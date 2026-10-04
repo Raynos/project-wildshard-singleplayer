@@ -1,0 +1,3538 @@
+{
+  "version": {
+    "build": "07209c6-muu8j9kq",
+    "time": "2026-10-04T19:50:04.666Z"
+  },
+  "timings": {
+    "startedAt": 0.09999990463256836,
+    "pathEndMs": 7004.80000019074,
+    "ringsReadyMs": 0,
+    "homeSimMs": 0,
+    "endedMs": 7004.80000019074,
+    "skipped": false,
+    "ceiling": false
+  },
+  "errors": [],
+  "warnings": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "[grid] far-reach edges stay at road level: RangeError: Invalid terrain bake header\n    at Tv (http://127.0.0.1:4472/assets/session-GLJK60op.js:403:8436)\n    at Ov (http://127.0.0.1:4472/assets/session-GLJK60op.js:403:9760)\n    at async http://127.0.0.1:4472/assets/session-GLJK60op.js:427:5448\n    at async http://127.0.0.1:4472/assets/session-GLJK60op.js:403:7334\n    at async http://127.0.0.1:4472/assets/session-GLJK60op.js:403:7951\n    at async Promise.all (index 7)\n    at async e.create (http://127.0.0.1:4472/assets/session-GLJK60op.js:427:5410)\n    at async KM (http://127.0.0.1:4472/assets/session-GLJK60op.js:2295:25058)\n    at async jN (http://127.0.0.1:4472/assets/session-GLJK60op.js:2297:19360)\n    at async a (http://127.0.0.1:4472/assets/session-GLJK60op.js:229:2060)",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined."
+  ],
+  "samples": [
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "loading"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "loading"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "loading"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "loading"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "loading"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "loading"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "loading"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "loading"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": false,
+        "residentMB": 51.51,
+        "playingMB": 437.18,
+        "rings": {
+          "far": 0,
+          "l1": 0,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 2.9075705576531163e-7,
+              "y": 2.0002999975185958,
+              "z": -194.0000006796771
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 2
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 2
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 2
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 2
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.0000014751618868658056,
+              "y": 2.0030999925584183,
+              "z": -194.00000052192564
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 30
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 30
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 30
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 0,
+              "capacity": 6,
+              "tick": 30
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000003365938373245392,
+              "y": 2.0054033146225265,
+              "z": -194.00000233518185
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 60
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 60
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 60
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 60
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000003681136189759293,
+              "y": 2.005000763463613,
+              "z": -194.0000013515
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 92
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 92
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 92
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 92
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000004771375521128718,
+              "y": 2.005101149516122,
+              "z": -194.0000086696578
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 122
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 122
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 122
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 122
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000004662703664004564,
+              "y": 2.0050019448899548,
+              "z": -194.00001474614587
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 152
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 152
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 152
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 152
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000005633591936338167,
+              "y": 2.0050783334882,
+              "z": -194.00001104343806
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 182
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 182
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 182
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 182
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000006258636723932565,
+              "y": 2.005201620500884,
+              "z": -194.0000015878528
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 212
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 212
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 212
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 212
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000006592640708402708,
+              "y": 2.0050030763668474,
+              "z": -193.99999849702562
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 242
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 242
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 242
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 242
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000006059392668344987,
+              "y": 2.00500117050251,
+              "z": -193.9999957434185
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 272
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 272
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 272
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 272
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000006376227402793422,
+              "y": 2.0052007499034517,
+              "z": -193.9999959735774
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 302
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 302
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 302
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 302
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000006895453582622668,
+              "y": 2.0051016798533965,
+              "z": -193.99999381101915
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 334
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 334
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 334
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 334
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000006787625610404913,
+              "y": 2.005101329596073,
+              "z": -193.9999950019617
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 364
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 364
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 364
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 364
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": null,
+        "ringsReadyMs": null,
+        "homeSimMs": null,
+        "endedMs": null,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.000006687456983567319,
+              "y": 2.005003116239095,
+              "z": -193.9999944507981
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 394
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 394
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 394
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 394
+            },
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "timings": {
+        "startedAt": 0.09999990463256836,
+        "pathEndMs": 7004.80000019074,
+        "ringsReadyMs": 0,
+        "homeSimMs": 0,
+        "endedMs": 7004.80000019074,
+        "skipped": false,
+        "ceiling": false
+      },
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 111576,
+          "draws": 6,
+          "buckets": {
+            "ground": 87954,
+            "stone": 4750,
+            "rock": 6428,
+            "dike": 11364,
+            "rail": 540,
+            "curtain": 540
+          }
+        },
+        "softWalls": {
+          "closed": 32,
+          "panel": null
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "ringsReady": true,
+        "residentMB": 51.64,
+        "playingMB": 437.33,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0
+        },
+        "frame": null,
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": 0.00000766027818049908,
+              "y": 2.00499519740697,
+              "z": -193.99998971243875
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [],
+            "pending": [],
+            "issues": {
+              "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+              "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+              "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+            },
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 8388608,
+              "claimedBytes": 33570816
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 424
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 424
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 424
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 1,
+              "capacity": 6,
+              "tick": 424
+            },
+            "failed": null
+          }
+        ]
+      }
+    }
+  ]
+}
