@@ -27,11 +27,11 @@ export class TickWorkerHost {
   private tickBudgetMicros: number;
   private readonly scope = new Scope('headless watchdog');
   private readonly ready: Promise<Reply>;
-  constructor(url: URL, payload: unknown, private readonly budget: { tickMicros: number; commandsPerTick: number }, execArgv: string[] = []) {
+  constructor(url: URL, payload: unknown, private readonly budget: { tickMicros: number; commandsPerTick: number }, execArgv: string[] = [], private readonly deadline: 'runtime' | 'advisory' = 'runtime') {
     if (!Number.isInteger(budget.tickMicros) || budget.tickMicros < 1 || budget.tickMicros > 16_666 || !Number.isInteger(budget.commandsPerTick) || budget.commandsPerTick < 0 || budget.commandsPerTick > 1024) throw new Error('Invalid headless budget');
     this.tickBudgetMicros = budget.tickMicros;
     this.ready = this.wait();
-    this.worker = new Worker(url, { workerData: { payload, ...budget, clock: this.clock.buffer }, execArgv });
+    this.worker = new Worker(url, { workerData: { payload, ...budget, clock: this.clock.buffer, enforceTickDeadline: deadline === 'runtime' }, execArgv });
     this.worker.on('message', (raw: unknown) => {
       try {
         const message = v.parse(v.union([v.strictObject({ commit: TickCommitSchema }), v.strictObject({ proof: proofSchema }), v.strictObject({ error: v.string() })]), raw);
@@ -45,7 +45,7 @@ export class TickWorkerHost {
     this.worker.on('exit', code => { if (!this.closed) this.fail(new Error(`Headless worker exited: ${code}`)); });
     this.scope.interval(1, () => {
       const now = hrtime.bigint();
-      if (Atomics.load(this.clock, 0) === 1n && now - Atomics.load(this.clock, 1) > BigInt(this.tickBudgetMicros) * 1000n) this.fail(new HeadlessDeadlineError(this.last, Number(now - Atomics.load(this.clock, 1)) / 1000));
+      if (this.deadline === 'runtime' && Atomics.load(this.clock, 0) === 1n && now - Atomics.load(this.clock, 1) > BigInt(this.tickBudgetMicros) * 1000n) this.fail(new HeadlessDeadlineError(this.last, Number(now - Atomics.load(this.clock, 1)) / 1000));
       else if (this.pending !== undefined && now - this.requestStarted > 30_000_000_000n) this.fail(new Error('Headless worker request deadline exceeded; quarantined'));
     });
   }

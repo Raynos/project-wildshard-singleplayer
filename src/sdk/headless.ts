@@ -14,8 +14,8 @@ import type { HeadlessCommandSource, HeadlessTickCommit } from './tickProtocol';
 /** A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. */
 export class HeadlessSimulation {
   private constructor(private readonly runner: TickWorkerHost) {}
-  /** Admit content, start the fixed platform worker, and optionally resume an exact committed same-engine checkpoint. */
-  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string): Promise<HeadlessSimulation> {
+  /** Start the fixed worker with runtime deadlines by default. Trusted offline validation selects advisory timing; author data cannot select this policy. */
+  static async create(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, snapshot?: string, options: { deadline?: 'runtime' | 'advisory' } = {}): Promise<HeadlessSimulation> {
     validateShardfileAssets(shard, assets, bytes => createHash('sha256').update(bytes).digest('hex'));
     const binary = [resolve(import.meta.dirname, 'client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, 'dist/client/assets/physics/rapier.wasm'), resolve(import.meta.dirname, '../../public/assets/physics/rapier.wasm')].find(existsSync);
     if (binary === undefined) throw new Error('SDK physics binary missing; build/pack the SDK before headless validation');
@@ -30,7 +30,7 @@ export class HeadlessSimulation {
     if (!distributed && (!existsSync(source) || !existsSync(loader))) throw new Error('SDK headless worker missing; build/pack the SDK or use its complete workspace checkout');
     // Source-checkout workers need their own Node hooks; parent Vitest/Vite transforms never cross the isolate boundary.
     const execArgv = distributed ? [] : ['--experimental-transform-types', '--import', pathToFileURL(loader).href];
-    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv);
+    const runner = new TickWorkerHost(pathToFileURL(distributed ? bundled : source), { shard, assets: admitted, binary, ...(snapshot === undefined ? {} : { snapshot }) }, shard.serverBudget, execArgv, options.deadline ?? 'runtime');
     try { await runner.initialized(); return new HeadlessSimulation(runner); } catch (error) { await runner.dispose(); throw error; }
   }
   /** Last committed state is detached; callers cannot change the checkpoint used after a refused or unfinished tick. */
@@ -46,11 +46,13 @@ export class HeadlessSimulation {
   /** Terminate the owned worker and release its complete native world. */
   dispose(): Promise<void> { return this.runner.dispose(); }
 }
-/** CLI validation uses the same preemptible, plain-Node session as an embedding host. */
-export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number }> {
-  const sim = await HeadlessSimulation.create(shard, assets);
+/** Offline admission enforces fuel, bounded platform queries and aggregate commands deterministically; wall timing is advisory. The independent request watchdog still bounds a broken worker. */
+export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number; timing: { medianMicros: number; maxMicros: number; samples: number } }> {
+  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
   try {
-    for (let tick = 0; tick < 60; tick++) await sim.step();
-    return await sim.finish();
+    const measured: number[] = [];
+    for (let tick = 0; tick < 60; tick++) { await sim.step(); measured.push(sim.lastTickMicros); }
+    measured.sort((a, b) => a - b);
+    return { ...await sim.finish(), timing: { medianMicros: ((measured[29] ?? 0) + (measured[30] ?? 0)) / 2, maxMicros: measured.at(-1) ?? 0, samples: measured.length } };
   } finally { await sim.dispose(); }
 }

@@ -34,7 +34,7 @@ it('preempts a finite-fuel WASM script blocked in a host query, publishes no unf
 });
 it('counts aggregate commands across sources before any tick and protects detached checkpoints', () => { expect(proof('overflow')).toEqual({ accepted: 2, refused: 3, tick: 1 }); });
 it('keeps the first-touch allowance bounded and preemptible', () => { expect(proof('cold')).toEqual({ retained: 0, effects: 0, quarantined: true }); });
-it('uses real physics in the embeddable Node session and CLI validator with exact suffix replay', () => { expect(proof('normal')).toMatchObject({ ticks: 60, exact: true }); });
+it('validates deterministically with a 1us declared runtime budget, advisory timing and exact native suffix replay', () => { expect(proof('normal')).toMatchObject({ ticks: 60, exact: true, timing: { samples: 60 } }); });
 it('runs the real template under its declared wall deadline, retaining the exact completed tick if contended work is quarantined', () => {
   const result = proof('template');
   if (result['deadline'] === true) {

@@ -11,7 +11,7 @@ export interface TickWorkerAdapter {
   finish: () => { ticks: number; lanes: number; steps: number };
   dispose: () => void;
 }
-export const WorkerEnvelopeSchema = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), payload: v.unknown() });
+export const WorkerEnvelopeSchema = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), enforceTickDeadline: v.optional(v.boolean(), true), payload: v.unknown() });
 /** Internal trusted worker adapter. Author modules are admitted WASM, never a configurable JS module URL. */
 export async function runTickWorker(create: (payload: unknown) => Promise<TickWorkerAdapter>): Promise<void> {
   const port = parentPort; if (port === null) throw new Error('Tick worker requires a parent');
@@ -32,7 +32,7 @@ export async function runTickWorker(create: (payload: unknown) => Promise<TickWo
       const started = hrtime.bigint(); Atomics.store(clock, 1, started); Atomics.store(clock, 0, 1n);
       adapter.step(request.commands);
       const elapsed = hrtime.bigint() - started; Atomics.store(clock, 2, elapsed);
-      if (elapsed > BigInt(tickMicros) * 1000n) throw new Error('Headless tick deadline exceeded');
+      if (envelope.enforceTickDeadline && elapsed > BigInt(tickMicros) * 1000n) throw new Error('Headless tick deadline exceeded');
       // Checkpoint construction cannot publish a partial tick and has the parent's independent request deadline.
       Atomics.store(clock, 0, 2n); port.postMessage({ commit: v.parse(TickCommitSchema, adapter.commit()) });
     } catch (error) { sendError(error); }

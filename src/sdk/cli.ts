@@ -29,7 +29,10 @@ export async function runCli(args: readonly string[]): Promise<void> {
     const assets = built ? projectAssets(resolve(input, '..'), shard, 'product') : projectAssets(resolve(input), shard);
     validateProject(shard, assets);
     const proof = await validateSimulation(shard, assets);
-    console.info(`validated ${shard.identity.slug} v${shard.version}: ${proof.ticks} sim ticks, ${proof.lanes} edge lanes, ${proof.steps} capsule steps`); return;
+    console.info(`validated ${shard.identity.slug} v${shard.version}: ${proof.ticks} sim ticks, ${proof.lanes} edge lanes, ${proof.steps} capsule steps`);
+    console.info(`advisory tick timing (${proof.timing.samples} samples): median ${proof.timing.medianMicros.toFixed(1)} us, max ${proof.timing.maxMicros.toFixed(1)} us, declared ${shard.serverBudget.tickMicros} us`);
+    if (proof.timing.medianMicros > shard.serverBudget.tickMicros) console.warn('advisory: measured tick median exceeds the declared runtime budget; host load is not an admission refusal');
+    return;
   }
   throw new Error('unknown wildshard command');
 }

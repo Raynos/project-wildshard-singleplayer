@@ -33,13 +33,13 @@ export async function run(mode: string, bytes: number[]): Promise<object> {
     } finally { await sim.dispose(); }
   }
   if (mode === 'normal') {
-    const source = emptyShardfile({ slug: 'watchdog-test', name: 'Test', author: 'Test', revision: 1, seed: 435 }); source.serverBudget.tickMicros = 16_666;
-    const sim = await HeadlessSimulation.create(source, new Map());
+    const source = emptyShardfile({ slug: 'watchdog-test', name: 'Test', author: 'Test', revision: 1, seed: 435 }); source.serverBudget.tickMicros = 1;
+    const sim = await HeadlessSimulation.create(source, new Map(), undefined, { deadline: 'advisory' });
     try {
       const first = await sim.step([{ source: 'input', commands: [{ kind: 'player', moveX: 1, moveZ: 0, yaw: 0 }] }]);
-      const next = await sim.step(); const fresh = await HeadlessSimulation.create(source, new Map(), first.snapshot);
+      const next = await sim.step(); const fresh = await HeadlessSimulation.create(source, new Map(), first.snapshot, { deadline: 'advisory' });
       try { const replay = await fresh.step(); check(replay.snapshot === next.snapshot, 'Exact native worker continuation diverged'); } finally { await fresh.dispose(); }
-      const proof = await validateSimulation(source, new Map()); check(proof.ticks === 60 && proof.lanes > 0 && proof.steps > 0, 'Missing real capsule validation');
+      const proof = await validateSimulation(source, new Map()); check(proof.ticks === 60 && proof.lanes > 0 && proof.steps > 0 && proof.timing.samples === 60 && Number.isFinite(proof.timing.medianMicros), 'Missing deterministic capsule validation and advisory timing');
       return { tick: next.tick, ...proof, exact: true };
     } finally { await sim.dispose(); }
   }
