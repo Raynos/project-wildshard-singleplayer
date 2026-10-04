@@ -1,11 +1,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The author CLI accepts filesystem project/output paths.
 import { resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Validate a built JSON product from disk.
-import { readFileSync } from 'node:fs';
 import { buildProject, newProject, projectAssets, readProject, validateProject } from './project';
 import { parseShardfile } from './shardfile';
 import { devProject } from './dev';
 import { validateSimulation } from './headless';
+import { readShardfileSource } from './sourceReader';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI releases its author server on termination.
 import process from 'node:process';
 
@@ -26,8 +25,8 @@ export async function runCli(args: readonly string[]): Promise<void> {
     const shard = await buildProject(resolve(input), output === undefined ? undefined : resolve(output), buildFlag === '--product-only' ? { client: null } : {}); console.info(`built ${shard.identity.slug} v${shard.version}`); return;
   }
   if (command === 'validate') {
-    const built = input.endsWith('.json'); const shard = built ? parseShardfile(JSON.parse(readFileSync(input, 'utf8'))) : await readProject(resolve(input));
-    const assets = built ? new Map([...shard.files.map((f) => [f.hash, readFileSync(resolve(input, '..', f.hash))] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, readFileSync(resolve(input, '..', h))] as const)]) : projectAssets(resolve(input), shard);
+    const built = input.endsWith('.json'); const shard = built ? parseShardfile(readShardfileSource(input)) : await readProject(resolve(input));
+    const assets = built ? projectAssets(resolve(input, '..'), shard, 'product') : projectAssets(resolve(input), shard);
     validateProject(shard, assets);
     const proof = await validateSimulation(shard, assets);
     console.info(`validated ${shard.identity.slug} v${shard.version}: ${proof.ticks} sim ticks, ${proof.lanes} edge lanes, ${proof.steps} capsule steps`); return;

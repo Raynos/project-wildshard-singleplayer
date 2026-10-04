@@ -1,0 +1,21 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The CLI reads author files through a bounded open descriptor.
+import { openSync, closeSync, fstatSync, readSync } from 'node:fs';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/game/shardfile/admissionLimits';
+
+/** Read a file within its declared wire bound, detecting growth without an unbounded readFile allocation. */
+export function readBoundedFile(path: string, maximum: number): Uint8Array {
+  if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > limits.wireBytes) throw new Error('Invalid file admission bound');
+  const descriptor = openSync(path, 'r');
+  try {
+    const size = fstatSync(descriptor).size;
+    if (!Number.isSafeInteger(size) || size > maximum) throw new Error('File exceeds admission byte cap');
+    const bytes = new Uint8Array(size); let at = 0;
+    while (at < size) { const count = readSync(descriptor, bytes, at, size - at, null); if (count === 0) break; at += count; }
+    if (readSync(descriptor, new Uint8Array(1), 0, 1, null) !== 0) throw new Error('File grew beyond admission byte cap');
+    return bytes.subarray(0, at);
+  } finally { closeSync(descriptor); }
+}
+/** Parse only source bytes within the shared network/cache limit, rejecting malformed UTF-8. */
+export function readShardfileSource(path: string): unknown {
+  return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readBoundedFile(path, limits.sourceBytes)));
+}

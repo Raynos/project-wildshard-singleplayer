@@ -1,6 +1,8 @@
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 import { isJsonData } from './json';
 
+const identifierKeys = new Set(['id', 'slug', 'name', 'actorId', 'rewardId', 'field', 'scene', 'entity', 'owner', 'sharedField', 'playerField']);
+
 function own(input: unknown, key: string): unknown {
   if (typeof input !== 'object' || input === null) return undefined;
   const descriptor = Object.getOwnPropertyDescriptor(input, key);
@@ -38,7 +40,10 @@ export function preflightShardfile(input: unknown): void {
     }
     if (typeof value === 'object' && value !== null) {
       const entries = Object.entries(value); add(2 + Math.max(0, entries.length - 1));
-      for (const [key, item] of entries) { string(key, limits.idCharacters); add(1); visit(item); }
+      for (const [key, item] of entries) {
+        string(key, limits.idCharacters); add(1);
+        if (typeof item === 'string' && identifierKeys.has(key)) string(item, limits.idCharacters); else visit(item);
+      }
       return;
     }
     add(JSON.stringify(value).length);

@@ -9,6 +9,9 @@ import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
 import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
+import { preflightShardfile } from '@wildshard/game/shardfile/preflight';
+import { preflightAssetGraph } from '@wildshard/game/shardfile/assetGraph';
+import { readBoundedFile } from './sourceReader';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
 export function canonicalJson(value: unknown): string {
@@ -37,9 +40,10 @@ export async function readProject(project: string): Promise<Shardfile> {
   if (typeof loaded !== 'object' || loaded === null || !('default' in loaded)) throw new Error('config has no default export');
   return parseShardfile(loaded.default);
 }
-/** Read content-addressed source assets inside the project's assets and commons directories. */
-export function projectAssets(project: string, shard: Shardfile): Map<string, Uint8Array> {
-  return new Map([...shard.files.map((f) => [f.hash, readFileSync(resolve(project, 'assets', f.hash))] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, readFileSync(resolve(project, 'commons', h))] as const)]);
+/** Preflight and read bounded immutable files from an author project or flat built product. */
+export function projectAssets(project: string, shard: Shardfile, layout: 'project' | 'product' = 'project'): Map<string, Uint8Array> {
+  preflightShardfile(shard); preflightAssetGraph(shard);
+  return new Map([...shard.files.map((f) => [f.hash, readBoundedFile(resolve(project, layout === 'project' ? 'assets' : '.', f.hash), f.compressed)] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, readBoundedFile(resolve(project, layout === 'project' ? 'commons' : '.', h), shard.requires.commonsWire[h] ?? 0)] as const)]);
 }
 /** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
 export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null } = {}): Promise<Shardfile> {

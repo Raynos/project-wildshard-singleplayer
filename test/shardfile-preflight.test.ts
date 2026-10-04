@@ -24,6 +24,9 @@ it.each([
 it('bounds UTF-8 canonical source bytes and text without copying an entire serialized source', () => {
   expect(() => preflightShardfile({ text: 'x'.repeat(limits.textCharacters) })).not.toThrow();
   expect(() => preflightShardfile({ text: 'x'.repeat(limits.textCharacters + 1) })).toThrow('string');
+  expect(() => preflightShardfile({ id: 'x'.repeat(limits.idCharacters) })).not.toThrow();
+  expect(() => preflightShardfile({ id: 'x'.repeat(limits.idCharacters + 1) })).toThrow('string');
+  expect(() => preflightShardfile({ default: 'x'.repeat(limits.textCharacters) })).not.toThrow();
   const rows = Array.from({ length: 487 }, () => 'x'.repeat(4096));
   // The final string places canonical JSON exactly at the shared source ceiling.
   const remaining = limits.sourceBytes - JSON.stringify(rows).length - 3;
