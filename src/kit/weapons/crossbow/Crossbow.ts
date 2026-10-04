@@ -543,7 +543,6 @@ export class Crossbow extends Weapon {
   private tracers: Tracer[] = [];
   private tracerRes = new THREE.Vector2();
   private time = 0;
-  private spawnPos = new THREE.Vector3();
 
   constructor(world: CrossbowWorld, targets: Targets | undefined, opts: CrossbowOptions & { profile?: CrossbowProfile }) {
     super(opts.row);
