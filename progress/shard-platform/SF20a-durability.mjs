@@ -21,6 +21,15 @@ try {
   await context.addInitScript(installResources);
   await context.addInitScript(() => {
     window.__wildshardHarness = { seed: 357, capture: null, resources: () => window.__parityResources() };
+    const setItem = Storage.prototype.setItem;
+    window.__durabilityWriteFailures = [];
+    Storage.prototype.setItem = function (key, value) {
+      try { return setItem.call(this, key, value); }
+      catch (error) {
+        if (window.__durabilityWriteFailures.length < 20) window.__durabilityWriteFailures.push({ key, characters: value.length, error: String(error) });
+        throw error;
+      }
+    };
   });
   page = await context.newPage();
   page.on('pageerror', (error) => { result.errors.push(error.message); });
@@ -113,6 +122,9 @@ try {
   result.failure = String(error.stack ?? error); result.pass = false;
   if (page !== undefined) {
     result.lastState = await page.evaluate(() => window.__wildshard?.shard?.grid?.state()).catch(() => null);
+    result.storage = await page.evaluate(() => ({ failures: window.__durabilityWriteFailures,
+      documents: Object.keys(localStorage).map((key) => ({ key, characters: localStorage.getItem(key)?.length ?? 0 })) })).catch(() => null);
+    result.failureLeak = await page.evaluate(() => window.__wildshard?.leak()).catch((failure) => ({ error: String(failure) }));
     await page.screenshot({ path: output.replace(/\.json$/, '-failure.jpg'), type: 'jpeg', quality: 60 }).catch(() => undefined);
   }
 }
