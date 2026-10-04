@@ -1,3 +1,5 @@
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { bindEnteredEnvironment } from './enteredEnvironment';
 import { Wildlife, type SheepHit } from '../creatures/wildlife';
 import { wildEnv } from '../creatures/env';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -217,10 +219,12 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   let now = 0;
   // the grass hides you and is trampled by every mover (GrassTrample, B1); the river corridor + the brook are water to a walker
   const previousEnv = { ...wildEnv, wind: { ...wildEnv.wind } };
-  wildEnv.grassHeightAt = grassHeightAt;
-  wildEnv.grassStandingAt = (x, z) => grassBaseHeightAt(x, z);
-  wildEnv.trample = (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); };
-  wildEnv.wetAt = nalatiWetAt;
+  if (!retainsRuntimeServices(plugin)) {
+    wildEnv.grassHeightAt = grassHeightAt;
+    wildEnv.grassStandingAt = (x, z) => grassBaseHeightAt(x, z);
+    wildEnv.trample = (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); };
+    wildEnv.wetAt = nalatiWetAt;
+  }
   // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
   const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
   const extra = { mounted: false, health01: 1 };
@@ -238,15 +242,21 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
     else if (name === 'pack-driven-off') toastOnce(name, 'The stallion drives the wolves off', 30);
     else if (name === 'stallion-beaten') toastOnce(name, 'The stallion gives ground', 30);
   };
-  wildEnv.onEvent = onSignal;
+  if (!retainsRuntimeServices(plugin)) wildEnv.onEvent = onSignal;
   // bowled over (the stallion's charge, a stampede): shoved along the blow, a red flash
-  wildEnv.onKnockdown = (dirX, dirZ, strength) => {
+  const onKnockdown = (dirX: number, dirZ: number, strength: number): void => {
     const l = Math.hypot(dirX, dirZ) || 1, v = 7 * Math.max(0.4, Math.min(1.5, strength));
     player.dash((dirX / l) * v, (dirZ / l) * v, 0.28);
     play?.flash();
     toastOnce('knockdown', 'Knocked down!', 4);
   };
-  plugin.scope.onDispose(() => { if (wildEnv.onEvent === onSignal) Object.assign(wildEnv, previousEnv); });
+  if (!retainsRuntimeServices(plugin)) {
+    wildEnv.onKnockdown = onKnockdown;
+    plugin.scope.onDispose(() => { if (wildEnv.onEvent === onSignal) Object.assign(wildEnv, previousEnv); });
+  } else bindEnteredEnvironment(plugin, { grassHeightAt, grassStandingAt: grassBaseHeightAt,
+    trample: (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); }, wetAt: nalatiWetAt,
+    onEvent: onSignal, onKnockdown,
+  });
   updates.push((dt, t) => {
     now = t;
     if (wildlife === null) return;
