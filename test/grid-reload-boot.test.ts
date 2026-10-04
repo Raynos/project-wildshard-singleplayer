@@ -4,6 +4,8 @@ import { consumeGridReloadBoot, installPlannedGridReload, plannedGridReload } fr
 import { gridReloadSlot, type GridReloadHandoff } from '../src/game/grid/reloadHandoff';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { MemoryStorage } from './setup';
+import { bootPageMode, pageGridInstance, gridCells } from '../src/game/grid/boot';
+import { gridEntryShown } from '../src/game/grid/menu';
 
 const layout = { developer: true, devserver: false, nineDragon: false }, cell = new GridAssembly(layout).cell('template-1');
 const value: GridReloadHandoff = { v: 1, mode: 'grid', layout, instance: cell.instance, revision: 1, cell: [...cell.cell],
@@ -26,4 +28,15 @@ it('invalid planned records return the menu instead of falling through to the ol
   gridReloadSlot(store).write({ ...value, roadPose: { x: 0, y: 0, z: 0 } });
   expect(consumeGridReloadBoot(new SaveStore({ local, session: null }), 1100).kind).toBe('invalid');
   expect(consumeGridReloadBoot(new SaveStore({ local, session: null }), 1101).kind).toBe('none');
+});
+it.each([false, true])('planned road boots bypass the public grid gate %s and never emit a home-cell enter', (gates) => {
+  expect(gridEntryShown({ developer: false, devserver: false }, gates)).toBe(gates);
+  const local = new MemoryStorage(), store = new SaveStore({ local, session: null }); gridReloadSlot(store).write(value);
+  const boot = consumeGridReloadBoot(store, 1100);
+  if (boot.kind !== 'resume') throw new Error('No planned boot');
+  installPlannedGridReload(boot);
+  try {
+    expect(bootPageMode(boot.home.slug)).toBe('grid');
+    expect(pageGridInstance()).toBe(boot.home.instance); expect(gridCells.cell).toBeNull();
+  } finally { installPlannedGridReload({ kind: 'none' }); }
 });

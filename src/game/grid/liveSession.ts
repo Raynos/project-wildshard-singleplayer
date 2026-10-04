@@ -24,6 +24,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
+import { floorBelow } from '@wildshard/engine/physics/query';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
@@ -130,11 +131,12 @@ function homeLoadout(equipment: EquipmentService, scope: Scope, checkpoint: () =
 /** The live crossing for one grid page; disposed with the level scope. */
 export class LiveGridSession {
   readonly live: LiveGridHost;
-  private readonly crossing: GridCrossingSession;
+  private crossing: GridCrossingSession;
   private readonly ports: LiveGridSessionPorts;
   private readonly page: LiveGridPage;
   private readonly durability = new Map<string, GridRegionDurability>();
   private readonly offset = new Vector3();
+  private framePhysics: Physics;
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
@@ -146,6 +148,7 @@ export class LiveGridSession {
 
   constructor(ports: LiveGridSessionPorts, page: LiveGridPage) {
     this.ports = ports; this.page = page;
+    this.framePhysics = ports.physics;
     const { assembly, home, scope } = ports, rapier = ports.physics.R;
     const traveller = page.traveller;
     this.road = new RoadRecovery(assembly);
@@ -181,12 +184,7 @@ export class LiveGridSession {
     });
     scope.onDispose(() => { this.live.dispose(); });
     this.loadout = homeLoadout(page.equipment, scope, page.checkpoint, () => { stowGridMount(traveller); });
-    this.crossing = installGridCrossing({
-      current: () => this.live.current(), prepare: (from, to) => this.live.prepare(from, to), ready: (instance) => this.live.ready(instance),
-      checkpoint: (instance) => this.live.checkpoint(instance), target: (feet) => this.live.target(feet),
-    }, assembly, (instance) => (instance === home.instance ? this.loadout : {
-      checkpoint: () => this.regionSave(instance).flush(), stow: () => { stowGridMount(traveller); }, interior: () => undefined,
-    }), scope);
+    this.crossing = this.installCrossing();
     // G68: off the home frame (the deck, the strips, another cell) the page pipeline admits no damage to or from the traveller
     page.events.answer('damage.admit', (request) => {
       if (request === null || this.live.current() === home.instance) return request;
@@ -222,6 +220,14 @@ export class LiveGridSession {
     scope.onDispose(() => { this.checkpoint(); });
   }
 
+  private installCrossing(): GridCrossingSession {
+    return installGridCrossing({ current: () => this.live.current(), prepare: (from, to) => this.live.prepare(from, to),
+      ready: (instance) => this.live.ready(instance), checkpoint: (instance) => this.live.checkpoint(instance), target: (feet) => this.live.target(feet) },
+    this.ports.assembly, (instance) => instance === this.ports.home.instance ? this.loadout : {
+      checkpoint: () => this.regionSave(instance).flush(), stow: () => { stowGridMount(this.page.traveller); }, interior: () => undefined,
+    }, this.ports.scope);
+  }
+
   private checkpointHome(): boolean {
     const sim = this.homeSim;
     return sim !== null && !sim.disposed() ? sim.checkpoint() : this.page.checkpoint();
@@ -237,6 +243,36 @@ export class LiveGridSession {
   checkpoint(): boolean {
     const current = this.live.current();
     return current === null ? this.checkpointHome() : this.live.checkpoint(current);
+  }
+
+  /** Retry every source-local and profile owner after the frame has reached the road, before a planned reload. */
+  checkpointInstance(instance: string): boolean {
+    if (instance === this.ports.home.instance) return this.checkpointHome();
+    const local = this.regionSave(instance).flush();
+    const native = this.live.checkpoint(instance);
+    return local && native;
+  }
+
+  /** A durable road point for the planned transfer, never a shard-owned respawn location. */
+  roadPoint(): ReturnType<RoadRecovery['target']> { return this.road.target(); }
+
+  /** Boot has not started fixed stepping: prepare the admitted highway controller, then restore road-only recovery. */
+  async resumeRoad(point: { readonly x: number; readonly y: number; readonly z: number }, recovery: { readonly x: number; readonly z: number; readonly yaw: number }): Promise<void> {
+    const traveller = this.page.traveller, previous = traveller.position.clone(), home = this.ports.home.origin;
+    this.road.restoreRoad(recovery);
+    traveller.position.set(point.x - home.x, point.y, point.z - home.z);
+    let prepared: Awaited<ReturnType<LiveGridHost['prepare']>> | undefined;
+    try {
+      prepared = await this.live.prepare(this.live.current(), null);
+      if (!this.live.ready(null)) throw new Error('Planned grid highway is not ready');
+      prepared.commit();
+      // The newly installed static deck must enter Rapier's broad phase before the boot readiness ray.
+      this.framePhysics.step();
+      const ground = floorBelow(this.framePhysics, point.x, point.z, 1, 2, traveller.motor.collider);
+      if (ground === undefined || Math.abs(ground) > 0.01) throw new Error('Planned grid road has no admitted deck collision');
+      this.crossing.crossing.dispose(); this.crossing = this.installCrossing();
+      this.loadout.stow();
+    } catch (error) { prepared?.cancel(); traveller.position.copy(previous); throw error; }
   }
 
   /** The traveller's world feet (grid metres), whatever frame it is in. */
@@ -305,6 +341,7 @@ export class LiveGridSession {
 
   /** The fixed-boundary rebind: the page's stepped world, the player's motor and the render origin. */
   private bind(frame: LiveGridFrame): void {
+    this.framePhysics = frame.physics;
     const home = frame.instance === this.ports.home.instance;
     this.page.traveller.bindFrame(frame.physics, frame.motor, home ? null : frame.instance === null ? HIGHWAY_QUERIES : this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
     this.page.setPhysics(frame.physics);

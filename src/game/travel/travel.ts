@@ -55,6 +55,11 @@ export function travelSlot(store = app.saves): SaveSlot<TravelHandoff | null> {
   return store.define({ key: 'travel.handoff', scope: 'session', version: 1, schema, initial: () => null });
 }
 let running: TravelSource | null = null;
+/** A fresh document releases the previous WebKit heap. Call only after the caller's durable transfer succeeds. */
+export function replaceTravelDocument(url: string, reason: string): void {
+  markUnload(reason);
+  location.replace(url);
+}
 /** The composition root binds the live Bag and rows; the cold title has no running shard. */
 export function bindTravelInventory(source: TravelSource): () => void {
   running = source;
@@ -65,9 +70,8 @@ const service = travelService({ source: () => running, slot: travelSlot(), now: 
   const url = new URL(chunkUrl(request.to));
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) url.searchParams.delete(name);
   if (request.mode === 'explore') url.searchParams.set('explore', 'hub');
-  markUnload(`shard switch to ${request.to} (fresh page)`);
   // Replacing releases WebKit's previous page rather than parking its heap in the back/forward cache.
-  location.replace(url.toString());
+  replaceTravelDocument(url.toString(), `shard switch to ${request.to} (fresh page)`);
 } });
 export function travel(request: TravelRequest): void { if (findShard(request.to) !== undefined) service.travel(request); }
 export function consumeTravelHandoff(to: ShardSlug): TravelHandoff | null { return service.consume(to); }
@@ -76,4 +80,3 @@ export function applyTravelCarry(handoff: TravelHandoff | null, inventory: Inven
   if (handoff?.to !== inventory.chunkId) return;
   for (const line of handoff.carry) inventory.add(line.id, line.count);
 }
-
