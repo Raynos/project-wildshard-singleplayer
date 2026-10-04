@@ -19,12 +19,12 @@
  *   walls until M3.
  */
 import { Vector3, type PerspectiveCamera } from 'three';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
-import { decodeTerrainTile, terrainTileHeight } from '@wildshard/engine/world/terrainTileData';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { createSimHost, SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
@@ -198,10 +198,10 @@ export class LiveGridSession {
         const host = restoreSimHost(authored, { rapier }, saved, (restored) => { sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest }); });
         host.detachPlayerMotor(); // the restored world carries its strip duplicates already
       } else for (const mesh of duplicates) installStripCollider(sim.host.physics, mesh, sim.host.scope);
-      const region = sim, start = region.host.level.player, bytes = source.terrain === null ? undefined : assets.get(source.terrain.collider);
-      const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes), water = region.water;
+      const region = sim, start = region.host.level.player, host = region.host, water = region.water;
       this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
-        queries: { heightAt: terrain === undefined ? () => 0 : (x, z) => terrainTileHeight(terrain, x, z), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] } });
+        // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
+        queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] } });
       return Promise.resolve({ host: region.host, dispose: () => { this.regions.delete(cell.instance); region.dispose(); } });
     } };
   }
