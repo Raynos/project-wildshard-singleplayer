@@ -9,6 +9,8 @@ import type { Shardfile } from './schema';
 export function shardfileFileUrl(ref: string): string { return `./${ref.replace(/^commons:/u, '')}`; }
 
 /** A shardfile's look section → the engine's data look (SF10b): its day keys on the engine clock and its LUT file. */
-export function shardfileLook(look: Shardfile['look']): LookStrategy {
-  return dataLook({ day: look.day ?? DATA_LOOK_DAY, dayOverride: look.dayOverride, keys: look.keys, lut: look.grade.lut === null ? null : shardfileFileUrl(look.grade.lut) });
+export function shardfileLook(look: Shardfile['look'], assets?: ReadonlyMap<string, Uint8Array>): LookStrategy {
+  const lut = look.grade.lut === null ? null : assets?.get(look.grade.lut) ?? shardfileFileUrl(look.grade.lut);
+  if (assets !== undefined && look.grade.lut !== null && !assets.has(look.grade.lut)) throw new Error('Missing admitted look LUT');
+  return dataLook({ day: look.day ?? DATA_LOOK_DAY, dayOverride: look.dayOverride, keys: look.keys, lut });
 }

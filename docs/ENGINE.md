@@ -1711,6 +1711,8 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 
 `@wildshard/engine/world/terrainTileData` owns the bounded little-endian terrain codec and the triangle-diagonal height sampler. `@wildshard/engine/physics/terrainTiles` installs a critical collider heightfield in one local world and removes it with its scope. The SDK terrain baker emits 64 L0 and 16 L1 tiles from one shared 257² lattice, with ordered hand overrides applied before both rendering and collision. Linear RGB, geometric errors and the four 129-sample edges are baked data. Actual asset costs include decoded arrays, GPU geometry and L0 shadow draws. `@wildshard/game/shardfile/terrain` checks grid completeness, collider/render seams, edge agreement and conservative errors; the full SF15a loader consumes its optional terrain section.
 
+**Terrain tile views (SF15a).** `installTerrainTile(bytes, { root, scope, material, shadow })` from `@wildshard/engine/world/terrainTileView` draws one admitted render tile as a mesh whose triangles split along the Rapier heightfield's diagonal (the drawn ground is the collider's ground), with grid normals that two neighbouring tiles light alike. The scope owns the geometry and removes the mesh; normals and colours are GPU-only after upload. Every tile but a coarse one hangs a size/16 skirt under its edges so a fine edge never cracks against a coarse neighbour. `maskTerrainTile(mesh, quadrants)` hides a coarse (L1, 17², 125 m) tile's quadrants in its one index buffer while fine tiles cover them (no allocation, no extra draw, no overlap). `coarseTileMask(root, x, z, scope)` from `@wildshard/engine/world/coarseTileMask` does the same for a coarse tile's props in the fragment shader, keeping instanced meshes instanced; its updater takes the hidden quadrants. The game's `clientViews` (`@wildshard/game/shardfile/clientViews`) wires these and `installDeclaredProps` into the loader's `ClientWorldViews`; `clientMaterials` compiles `look.materials` and the family looks, and `shardfileLook(look, assets)` hands an admitted LUT's bytes to `dataLook`.
+
 
 ### Declared water (SHARD-PLATFORM SF9d)
 
@@ -2019,6 +2021,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/Boundary`: `Boundary`
 - `@wildshard/engine/world/bounds`: `BoundsHost`, `installBounds`
 - `@wildshard/engine/world/dayCycle`: `compassDir`, `DayCycle`, `DayCycleClock`, `DayCycleSpec`, `DayKeys`, `DayPhase`, `LightPreset`, `PhaseListener`, `phaseOfHour`, `ScheduleSeg`, `smooth`, `TimePick`
+- `@wildshard/engine/world/coarseTileMask`: `coarseTileMask`
 - `@wildshard/engine/world/declaredProps`: `DeclaredProps`, `installDeclaredProps`, `InstalledProps`
 - `@wildshard/engine/world/faunaLayout`: `FaunaCell`, `FaunaGroup`, `FaunaLayoutOpts`, `layoutFauna`, `layoutFaunaCells`
 - `@wildshard/engine/world/forest/Forest`: `Forest`, `FOREST_BANDS`, `trunkCapsule`
@@ -2047,6 +2050,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/terrainField`: `buildTerrain`, `landscapeHash`
 - `@wildshard/engine/world/terrainHeight`: `setTerrainHeight`, `setTerrainPlacement`, `terrainHeight`, `terrainNormal`, `terrainWaterLevel`
 - `@wildshard/engine/world/terrainTileData`: `decodeTerrainTile`, `encodeTerrainTile`, `isTerrainTileData`, `terrainTileCost`, `TerrainTileData`, `terrainTileHeight`
+- `@wildshard/engine/world/terrainTileView`: `installTerrainTile`, `maskTerrainTile`
 - `@wildshard/engine/world/TreeFactory`: `FadeBand`, `forestFade`, `patchFade`, `patchWind`, `TreeFactory`, `TreeMaterial`, `TreeVariant`, `windUniforms`
 - `@wildshard/engine/world/voxelAO`: `aoTint`, `HemiDir`, `HemiRing`, `hemisphere`, `voxelAO`, `VoxelAOParams`
 - `@wildshard/engine/world/water/body`: `basinBody`, `swellBody`, `WaterBodies`, `WaterBody`

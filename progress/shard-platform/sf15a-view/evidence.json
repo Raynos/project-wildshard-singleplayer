@@ -1,0 +1,74 @@
+{
+  "poses": {
+    "spawn": {
+      "ssim": 0.9954801509134013,
+      "draws": {
+        "today": {
+          "calls": 54,
+          "triangles": 4352
+        },
+        "views": {
+          "calls": 36,
+          "triangles": 52552
+        }
+      }
+    },
+    "hut": {
+      "ssim": 0.9943741849898381,
+      "draws": {
+        "today": {
+          "calls": 52,
+          "triangles": 4328
+        },
+        "views": {
+          "calls": 35,
+          "triangles": 50688
+        }
+      }
+    },
+    "overview": {
+      "ssim": 0.9936510154730099,
+      "draws": {
+        "today": {
+          "calls": 77,
+          "triangles": 4628
+        },
+        "views": {
+          "calls": 41,
+          "triangles": 60132
+        }
+      }
+    },
+    "horizon": {
+      "ssim": 0.9969962897100608,
+      "draws": {
+        "today": {
+          "calls": 49,
+          "triangles": 4292
+        },
+        "views": {
+          "calls": 34,
+          "triangles": 50176
+        }
+      }
+    }
+  },
+  "census": {
+    "today": {
+      "meshes": 42,
+      "triangles": 3692,
+      "casters": 41
+    },
+    "views": {
+      "meshes": 56,
+      "triangles": 78732,
+      "casters": 20
+    },
+    "fine": 32
+  },
+  "fps": 60.29147534438011,
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "source": "today = template terrainPainter + world generators; views = src/shards/_template shardfile via clientMaterials/clientViews/clientWorld; one renderer, template look numbers, iPhone 16 Pro viewport, render scale 2"
+}

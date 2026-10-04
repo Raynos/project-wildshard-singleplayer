@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-1852 members; 831 without a doc line (—).
+1855 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1585,6 +1585,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Boundary` | class | @wildshard/engine/world/Boundary | the level's edge: cyan light-lines, corner beacons and beams, and a gate across each entry road |
 | `BoundsHost` | interface | @wildshard/engine/world/bounds | — |
 | `installBounds` | function | @wildshard/engine/world/bounds | An authored play area keeps the last grounded registry floor as its soft respawn. |
+| `coarseTileMask` | function | @wildshard/engine/world/coarseTileMask | Mask a coarse tile's props by quadrant in one draw per mesh; returns the updater for the hidden quadrants. |
 | `compassDir` | function | @wildshard/engine/world/dayCycle | — |
 | `DayCycle` | class | @wildshard/engine/world/dayCycle | One clock mechanism. Its schedule, paths, curves and look keys belong to content. |
 | `DayCycleClock` | type | @wildshard/engine/world/dayCycle | — |
@@ -1805,6 +1806,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `terrainTileCost` | function | @wildshard/engine/world/terrainTileData | Conservative sample/mesh residency and draws, including an L0 shadow pass; collider-only payloads have no draws. |
 | `TerrainTileData` | interface | @wildshard/engine/world/terrainTileData | Baked row-major heights in a shard-local square; optional linear RGB values describe the rendered vertices. |
 | `terrainTileHeight` | function | @wildshard/engine/world/terrainTileData | Sample the same diagonal split as Rapier heightfields, rather than a bilinear surface that differs from collision. |
+| `installTerrainTile` | function | @wildshard/engine/world/terrainTileView | Install one admitted terrain render tile under `root`; `scope` owns its geometry and its place in the scene. |
+| `maskTerrainTile` | function | @wildshard/engine/world/terrainTileView | Hide a coarse tile's quadrants (0 = −x −z, 1 = +x −z, 2 = −x +z, 3 = +x +z) in place while fine tiles cover them. |
 | `FadeBand` | interface | @wildshard/engine/world/TreeFactory | — |
 | `forestFade` | const | @wildshard/engine/world/TreeFactory | The forest's LOD fades (E94): Forest writes the viewer (its LOD centre) here every frame and sets each material's band. |
 | `patchFade` | function | @wildshard/engine/world/TreeFactory | — |

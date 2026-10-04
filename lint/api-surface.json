@@ -9484,6 +9484,12 @@
         "from": "@wildshard/engine/world/bounds"
       },
       {
+        "name": "coarseTileMask",
+        "kind": "function",
+        "doc": "Mask a coarse tile's props by quadrant in one draw per mesh; returns the updater for the hidden quadrants.",
+        "from": "@wildshard/engine/world/coarseTileMask"
+      },
+      {
         "name": "compassDir",
         "kind": "function",
         "doc": "",
@@ -10802,6 +10808,18 @@
         "kind": "function",
         "doc": "Sample the same diagonal split as Rapier heightfields, rather than a bilinear surface that differs from collision.",
         "from": "@wildshard/engine/world/terrainTileData"
+      },
+      {
+        "name": "installTerrainTile",
+        "kind": "function",
+        "doc": "Install one admitted terrain render tile under `root`; `scope` owns its geometry and its place in the scene.",
+        "from": "@wildshard/engine/world/terrainTileView"
+      },
+      {
+        "name": "maskTerrainTile",
+        "kind": "function",
+        "doc": "Hide a coarse tile's quadrants (0 = −x −z, 1 = +x −z, 2 = −x +z, 3 = +x +z) in place while fine tiles cover them.",
+        "from": "@wildshard/engine/world/terrainTileView"
       },
       {
         "name": "FadeBand",

@@ -44,7 +44,7 @@ export interface DataLookSpec {
   readonly dayOverride: number | null;
   readonly keys: readonly LookKey[];
   /** a 33³ × RGBA8 LUT (render/lut.ts format), applied last in the grade; null for none */
-  readonly lut: string | null;
+  readonly lut: string | Uint8Array | null;
 }
 
 /** A sampled look: plain numbers, blended between the two keys around a time of day. */
@@ -108,10 +108,11 @@ function gradientDome(): { dome: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMa
   return { dome, zenith, horizon };
 }
 
-async function lutTexture(url: string | null): Promise<LookupTexture | null> {
+async function lutTexture(url: string | Uint8Array | null): Promise<LookupTexture | null> {
   if (url === null) return null;
-  const data = await fetchLut(url);
+  const data = typeof url === 'string' ? await fetchLut(url) : Uint8Array.from(url);
   if (data === null) return null;
+  if (data.length !== LUT_SIZE ** 3 * 4) throw new Error('Invalid admitted look LUT');
   const lut = new LookupTexture(data, LUT_SIZE);
   lut.type = THREE.UnsignedByteType; lut.colorSpace = THREE.NoColorSpace; lut.name = 'look-lut'; lut.needsUpdate = true;
   return lut;
