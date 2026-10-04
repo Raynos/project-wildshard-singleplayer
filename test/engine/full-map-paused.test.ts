@@ -10,23 +10,25 @@ import { Minimap } from '../../src/engine/ui/Minimap';
 // frames while open now, from the last pose the play loop gave it.
 
 const frames: ((time: number) => void)[] = [];
-const drawn: { canvas: HTMLCanvasElement; source: unknown }[] = [];
+const drawn: { canvas: HTMLCanvasElement; source: CanvasImageSource }[] = [];
 /** a 2d context that accepts every call; drawImage is recorded with the canvas it drew on */
 function context(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
   const image = (w: number, h: number): ImageData => ({ data: new Uint8ClampedArray(Math.max(1, w * h) * 4), width: w, height: h, colorSpace: 'srgb' });
-  const surface: Record<string | symbol, unknown> = {
+  const noop = (): void => undefined;
+  const gradient = (): CanvasGradient => ({ addColorStop: noop });
+  const surface: Partial<CanvasRenderingContext2D> = {
     canvas,
-    drawImage: (source: unknown) => { drawn.push({ canvas, source }); },
+    drawImage: (source: CanvasImageSource) => { drawn.push({ canvas, source }); },
     getImageData: (_x: number, _y: number, w: number, h: number) => image(w, h),
-    createImageData: (w: number, h: number) => image(w, h),
-    measureText: () => ({ width: 10 }),
-    createRadialGradient: () => ({ addColorStop: () => undefined }),
-    createLinearGradient: () => ({ addColorStop: () => undefined }),
-    createPattern: () => null,
+    createImageData: (w: number | ImageData, h?: number) => (typeof w === 'number' ? image(w, h ?? w) : image(w.width, w.height)),
+    measureText: (text: string) => ({ width: text.length * 6, actualBoundingBoxAscent: 8, actualBoundingBoxDescent: 2, actualBoundingBoxLeft: 0, actualBoundingBoxRight: text.length * 6,
+      alphabeticBaseline: 0, emHeightAscent: 8, emHeightDescent: 2, fontBoundingBoxAscent: 8, fontBoundingBoxDescent: 2, hangingBaseline: 8, ideographicBaseline: 0 }),
+    createRadialGradient: gradient,
+    createLinearGradient: gradient,
   };
+  // every other method is a no-op; every property write is kept
   return new Proxy(surface, {
-    get: (target, key) => (key in target ? target[key] : () => undefined),
-    set: (target, key, value) => { target[key] = value; return true; },
+    get: (target, key): unknown => (Reflect.has(target, key) ? Reflect.get(target, key) : noop),
   }) as CanvasRenderingContext2D;
 }
 
@@ -39,7 +41,7 @@ beforeEach(() => {
     let ctx = contexts.get(this);
     if (!ctx) { ctx = context(this); contexts.set(this, ctx); }
     return ctx;
-  } as HTMLCanvasElement['getContext']);
+  });
 });
 afterEach(() => {
   for (const full of fullMaps.splice(0)) full.scope.dispose();
