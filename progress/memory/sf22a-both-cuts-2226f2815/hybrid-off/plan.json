@@ -1,0 +1,37 @@
+{
+  "opts": {
+    "out": "/private/tmp/claude-501/sp-builders/sp-x2/grid-fit-2226f2815/hybrid-off",
+    "expectedBuild": "2226f28-muuja9au",
+    "play": 30,
+    "fly": 30,
+    "settings": [],
+    "deviceSaves": {
+      "debug.plugin.driftwood-isle.driftwoodHybrid": "off",
+      "debug.plugin.driftwood-isle.driftwoodGpuOnlyCopies": "on",
+      "debug.plugin.driftwood-isle.driftwoodIslandInstancing": "on"
+    }
+  },
+  "runs": [
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4472/",
+      "round": 1,
+      "tag": "driftwood-isle-r1"
+    },
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4472/",
+      "round": 2,
+      "tag": "driftwood-isle-r2"
+    },
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4472/",
+      "round": 3,
+      "tag": "driftwood-isle-r3"
+    }
+  ]
+}

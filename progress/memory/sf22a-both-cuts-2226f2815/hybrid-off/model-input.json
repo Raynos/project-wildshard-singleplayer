@@ -1,0 +1,13 @@
+{
+  "hybrid": "off",
+  "webContentMB": 480.546248,
+  "glMB": 205.10000000000002,
+  "coldPlayMB": [
+    475.82768,
+    480.546248,
+    482.446768
+  ],
+  "rev": "2226f2815",
+  "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+  "evidence": "progress/memory/sf22a-both-cuts-2226f2815/summary.json"
+}

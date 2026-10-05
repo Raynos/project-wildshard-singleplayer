@@ -1,0 +1,357 @@
+{
+  "verdict": "success",
+  "memoryProtocol": "cold-origin-build-verified-v1",
+  "memory": [
+    {
+      "shard": "driftwood-isle",
+      "phase": "loading",
+      "nativeGB": 0.48297108,
+      "inspectorGB": 0.723141929,
+      "nativePeakGB": 0.562,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.48297108,
+        "inspectorGB": 0.723141929,
+        "minGB": 0.474467784,
+        "maxGB": 0.486444488,
+        "spreadGB": 0.011976704000000005,
+        "spreadPercent": 2.4797973410747502,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.486444488,
+            "inspectorGB": 0.742865822
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.48297108,
+            "inspectorGB": 0.723141929
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.474467784,
+            "inspectorGB": 0.690592058
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "play",
+      "nativeGB": 0.47582768,
+      "inspectorGB": 0.718847474,
+      "nativePeakGB": 0.495,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.47582768,
+        "inspectorGB": 0.718847474,
+        "minGB": 0.475794912,
+        "maxGB": 0.475876832,
+        "spreadGB": 0.0000819200000000131,
+        "spreadPercent": 0.01721631662958597,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.475794912,
+            "inspectorGB": 0.715829544
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.47582768,
+            "inspectorGB": 0.721026291
+          },
+          {
+            "seconds": 3.006,
+            "nativeGB": 0.475876832,
+            "inspectorGB": 0.718847474
+          }
+        ],
+        "seconds": 3.006
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "explorer",
+      "nativeGB": 0.483429856,
+      "inspectorGB": 0.687656106,
+      "nativePeakGB": 0.49,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.483429856,
+        "inspectorGB": 0.687656106,
+        "minGB": 0.483429856,
+        "maxGB": 0.483429856,
+        "spreadGB": 0,
+        "spreadPercent": 0,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.483429856,
+            "inspectorGB": 0.687656106
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.483429856,
+            "inspectorGB": 0.686312093
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.483429856,
+            "inspectorGB": 0.693127837
+          }
+        ],
+        "seconds": 3.008
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "loading",
+      "nativeGB": 0.480513456,
+      "inspectorGB": 0.673825146,
+      "nativePeakGB": 0.57,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.480513456,
+        "inspectorGB": 0.673825146,
+        "minGB": 0.479841688,
+        "maxGB": 0.48069368,
+        "spreadGB": 0.0008519920000000236,
+        "spreadPercent": 0.17730866625304736,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.479841688,
+            "inspectorGB": 0.672891136
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.48069368,
+            "inspectorGB": 0.673825146
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.480513456,
+            "inspectorGB": 0.678523121
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "play",
+      "nativeGB": 0.480546248,
+      "inspectorGB": 0.726630908,
+      "nativePeakGB": 0.502,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.480546248,
+        "inspectorGB": 0.726630908,
+        "minGB": 0.480415176,
+        "maxGB": 0.481873352,
+        "spreadGB": 0.0014581759999999777,
+        "spreadPercent": 0.30344134535828854,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.481873352,
+            "inspectorGB": 0.706019836
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.480415176,
+            "inspectorGB": 0.726630908
+          },
+          {
+            "seconds": 3.004,
+            "nativeGB": 0.480546248,
+            "inspectorGB": 0.73552742
+          }
+        ],
+        "seconds": 3.004
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "explorer",
+      "nativeGB": 0.491261432,
+      "inspectorGB": 0.747608491,
+      "nativePeakGB": 0.512,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.491261432,
+        "inspectorGB": 0.747608491,
+        "minGB": 0.491261432,
+        "maxGB": 0.491277816,
+        "spreadGB": 0.000016383999999980414,
+        "spreadPercent": 0.003335087782747092,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.491261432,
+            "inspectorGB": 0.743886302
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.491261432,
+            "inspectorGB": 0.748047838
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.491277816,
+            "inspectorGB": 0.747608491
+          }
+        ],
+        "seconds": 3.008
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "loading",
+      "nativeGB": 0.490917248,
+      "inspectorGB": 0.730015977,
+      "nativePeakGB": 0.625,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.490917248,
+        "inspectorGB": 0.730015977,
+        "minGB": 0.482315672,
+        "maxGB": 0.49135964,
+        "spreadGB": 0.009043968000000013,
+        "spreadPercent": 1.8422591662536194,
+        "samples": [
+          {
+            "seconds": 1.001,
+            "nativeGB": 0.490917248,
+            "inspectorGB": 0.739442489
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.49135964,
+            "inspectorGB": 0.730015977
+          },
+          {
+            "seconds": 3.005,
+            "nativeGB": 0.482315672,
+            "inspectorGB": 0.697296914
+          }
+        ],
+        "seconds": 3.005
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "play",
+      "nativeGB": 0.482446768,
+      "inspectorGB": 0.724774474,
+      "nativePeakGB": 0.505,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.482446768,
+        "inspectorGB": 0.724774474,
+        "minGB": 0.482430384,
+        "maxGB": 0.482479536,
+        "spreadGB": 0.000049151999999996754,
+        "spreadPercent": 0.010188067007632385,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.482430384,
+            "inspectorGB": 0.724774474
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.482446768,
+            "inspectorGB": 0.724734839
+          },
+          {
+            "seconds": 3.006,
+            "nativeGB": 0.482479536,
+            "inspectorGB": 0.729029687
+          }
+        ],
+        "seconds": 3.006
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "driftwood-isle",
+      "phase": "explorer",
+      "nativeGB": 0.488705456,
+      "inspectorGB": 0.686568584,
+      "nativePeakGB": 0.496,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.488705456,
+        "inspectorGB": 0.686568584,
+        "minGB": 0.488705456,
+        "maxGB": 0.488705456,
+        "spreadGB": 0,
+        "spreadPercent": 0,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.488705456,
+            "inspectorGB": 0.687926089
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.488705456,
+            "inspectorGB": 0.686387055
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.488705456,
+            "inspectorGB": 0.686568584
+          }
+        ],
+        "seconds": 3.008
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    }
+  ]
+}

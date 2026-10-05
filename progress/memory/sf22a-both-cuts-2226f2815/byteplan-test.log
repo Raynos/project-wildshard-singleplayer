@@ -1,0 +1,12 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:6:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 /private/tmp/wildshard-serve/20261004-195048-4472/src
+
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  20:06:35
+   Duration  14.64s (tests 82%, transform 16%, setup 2%)
+
