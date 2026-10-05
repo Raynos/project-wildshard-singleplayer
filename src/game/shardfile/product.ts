@@ -1,7 +1,7 @@
 import { parseShardfile, type Shardfile } from './schema';
 import { SHARDFILE_VERSION } from './version';
 import { assertStateCompatibility, parseStateLineage } from './revision';
-import { validateShardfileAssets } from './validate';
+import { preflightDeclaredCosts, validateShardfileAssets } from './validate';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
 import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
@@ -76,12 +76,16 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
+  preflightDeclaredCosts(source);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(parseStateLineage(visited.source), source);
   options.reserve?.(source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
+  const transport = new Map<string, Uint8Array>();
   for (const { ref, cap } of refs) {
     const hash = ref.replace(/^commons:/u, ''); if (!HASH.test(hash)) throw new Error('Invalid asset address');
+    const admitted = transport.get(hash);
+    if (admitted !== undefined) { assets.set(ref, admitted); continue; }
     let bytes = await options.cache?.asset(base, hash);
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
@@ -90,7 +94,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     const owned = Uint8Array.from(bytes), actual = await options.hash(owned);
     if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
-    assets.set(ref, owned); hashes.set(owned, actual);
+    assets.set(ref, owned); hashes.set(owned, actual); transport.set(hash, owned);
   }
   validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;

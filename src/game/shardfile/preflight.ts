@@ -1,5 +1,6 @@
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 import { isJsonData } from './json';
+import { assertCommonsCosts } from './commonsCosts';
 
 const identifierKeys = new Set(['id', 'slug', 'name', 'actorId', 'rewardId', 'field', 'scene', 'entity', 'owner', 'sharedField', 'playerField']);
 
@@ -65,5 +66,6 @@ export function preflightShardfile(input: unknown): void {
     const keys = typeof sizes === 'object' && sizes !== null ? Object.keys(sizes) : [];
     if (new Set(commons).size !== commons.length || keys.length !== commons.length || keys.some((key) => !commons.includes(key))) throw new Error('Commons require an exact wire key set');
     for (const hash of commons) include(hash, typeof hash === 'string' ? own(sizes, hash) : undefined);
+    if (commons.every((hash): hash is string => typeof hash === 'string')) assertCommonsCosts(commons, own(requires, 'commonsCosts'));
   }
 }

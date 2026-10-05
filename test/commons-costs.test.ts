@@ -5,6 +5,7 @@ import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admi
 const hash = 'a'.repeat(64), extra = 'b'.repeat(64), cost = { decoded: 1, gpu: 2, triangles: 3, draws: 4 };
 it('accepts an empty legacy table and exact pinned metadata without unknown fields', () => {
   expect(assertCommonsCosts([], undefined)).toEqual({});
+  expect(() => assertCommonsCosts([], null)).toThrow();
   expect(assertCommonsCosts([hash], { [hash]: cost })).toEqual({ [hash]: cost });
   expect(() => assertCommonsCosts([hash], { [hash]: { ...cost, compressed: 1 } })).toThrow();
 });

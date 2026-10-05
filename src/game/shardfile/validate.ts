@@ -13,12 +13,49 @@ import { clientScriptViewCost } from './clientScripts';
 import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
 import { compendiumSketches } from './sketch';
+import { assertCommonsCosts, type CommonsCosts } from './commonsCosts';
+
+/** Check declared residency before immutable reads; exact parsed headers are checked again on admission. */
+export function preflightDeclaredCosts(source: Shardfile): { commons: CommonsCosts; worst: ReturnType<typeof worstContentCost> } {
+  const commons = assertCommonsCosts(source.requires.commons, source.requires.commonsCosts);
+  const files = new Map(source.files.map(file => [file.hash, file]));
+  const closure = (roots: readonly string[]): Set<string> => {
+    const found = new Set<string>(), pending = [...roots];
+    while (pending.length > 0) {
+      const ref = pending.pop(); if (ref === undefined || found.has(ref)) continue;
+      found.add(ref); pending.push(...files.get(ref)?.dependencies ?? []);
+    }
+    return found;
+  };
+  const sum = (refs: Iterable<string>, excluded: ReadonlySet<string> = new Set(), includeCommons = false) => {
+    let resident = 0, compressed = 0, triangles = 0, draws = 0;
+    for (const ref of refs) {
+      if (excluded.has(ref)) continue;
+      const file = files.get(ref), hash = ref.replace(/^commons:/u, ''), shared = includeCommons && ref.startsWith('commons:') ? commons[hash] : undefined;
+      if (file !== undefined) { resident += file.decoded + file.gpu; compressed += file.compressed; triangles += file.triangles; draws += file.draws; }
+      else if (shared !== undefined) { resident += shared.decoded + shared.gpu; compressed += source.requires.commonsWire[hash] ?? 0; triangles += shared.triangles; draws += shared.draws; }
+    }
+    return { resident, compressed, triangles, draws };
+  };
+  const library = closure(source.library), libraryCost = sum(library), critical = sum(closure(source.critical), new Set(), true);
+  if (libraryCost.resident > source.budgets.library.resident || libraryCost.compressed > source.budgets.library.compressed) throw new Error('declared bundle cost exceeds budget');
+  if (critical.resident > source.budgets.sim.resident || critical.compressed > source.budgets.sim.compressed || critical.compressed > C.sim.compressed) throw new Error('declared critical bundle cap or budget exceeded');
+  for (const tile of [...source.tiles, ...source.far === null ? [] : [source.far]]) {
+    const cost = sum(closure(tile.files), library);
+    if (cost.resident > tile.decoded + tile.gpu || cost.compressed > tile.compressed || cost.triangles > tile.triangles || cost.draws > tile.draws) throw new Error('declared tile or far cost exceeds budget');
+  }
+  const resident = Object.values(commons).reduce((total, cost) => total + cost.decoded + cost.gpu, 0);
+  const worst = worstContentCost(source, resident);
+  if (worst.playing > C.playing || worst.loading > C.loading) throw new Error(`declared worst-location total exceeds envelope: ${worst.playing}`);
+  return { commons, worst };
+}
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
 export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string): Shardfile {
   preflightShardfile(input);
   const s = parseShardfile(input), files = new Map(s.files.map((f) => [f.hash, f]));
   preflightAssetGraph(s);
+  const declared = preflightDeclaredCosts(s).commons;
   const closure = (roots: readonly string[]): Set<string> => {
     const found = new Set<string>(), pending = [...roots];
     while (pending.length > 0) {
@@ -41,7 +78,9 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   for (const hash of s.requires.commons) {
     const bytes = assets.get(`commons:${hash}`); if (bytes === undefined || bytes.length !== s.requires.commonsWire[hash] || contentHash(bytes) !== hash) throw new Error('unavailable commons asset or wire size mismatch');
     const kind = bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb' : bytes[0] === 82 ? 'audio' : 'binary';
-    const cost = assetCost(kind, bytes); commons += cost.decoded + cost.gpu; commonsCosts.set(`commons:${hash}`, cost);
+    const cost = assetCost(kind, bytes), pinned = declared[hash];
+    if (pinned === undefined || (['decoded', 'gpu', 'triangles', 'draws'] as const).some(key => cost[key] !== pinned[key])) throw new Error('commons cost declaration differs from actual bytes');
+    commons += cost.decoded + cost.gpu; commonsCosts.set(`commons:${hash}`, cost);
   }
   for (const f of s.files) {
     const bytes = assets.get(f.hash); if (bytes === undefined || bytes.length !== f.compressed || contentHash(bytes) !== f.hash) throw new Error('file hash or wire size mismatch');

@@ -11,7 +11,7 @@ export const CommonsCostsSchema = v.pipe(v.record(hash, CommonsCostSchema), v.ch
 export type CommonsCosts = v.InferOutput<typeof CommonsCostsSchema>;
 /** Refuse omitted, surplus or malformed commons costs before any fetch or cache read. */
 export function assertCommonsCosts(commons: readonly string[], input: unknown): CommonsCosts {
-  const rows = v.parse(CommonsCostsSchema, input ?? {}), required = new Set(commons), keys = Object.keys(rows);
+  const rows = v.parse(CommonsCostsSchema, input === undefined ? {} : input), required = new Set(commons), keys = Object.keys(rows);
   if (required.size !== commons.length || keys.length !== required.size || keys.some(key => !required.has(key))) throw new Error('Commons require an exact cost key set');
   return rows;
 }

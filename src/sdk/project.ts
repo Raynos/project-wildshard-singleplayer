@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
-import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
+import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import { preflightShardfile } from '@wildshard/game/shardfile/preflight';
 import { preflightAssetGraph } from '@wildshard/game/shardfile/assetGraph';
 import { readBoundedFile } from './sourceReader';
@@ -43,6 +43,7 @@ export async function readProject(project: string): Promise<Shardfile> {
 /** Preflight and read bounded immutable files from an author project or flat built product. */
 export function projectAssets(project: string, shard: Shardfile, layout: 'project' | 'product' = 'project'): Map<string, Uint8Array> {
   preflightShardfile(shard); preflightAssetGraph(shard);
+  preflightDeclaredCosts(shard);
   return new Map([...shard.files.map((f) => [f.hash, readBoundedFile(resolve(project, layout === 'project' ? 'assets' : '.', f.hash), f.compressed)] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, readBoundedFile(resolve(project, layout === 'project' ? 'commons' : '.', h), shard.requires.commonsWire[h] ?? 0)] as const)]);
 }
 /** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
