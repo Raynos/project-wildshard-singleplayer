@@ -1,0 +1,83 @@
+{
+  "url": "http://127.0.0.1:4401",
+  "started": "2026-10-05T02:35:10.767Z",
+  "driftwoodIsland": {
+    "instanced": 62,
+    "merged": 0,
+    "colourReleased": 62,
+    "colourKept": 0
+  },
+  "driftwoodPickup": {
+    "name": "Iron sword",
+    "accent": "#fbbb2d"
+  },
+  "driftwoodShop": {
+    "open": true,
+    "big": true,
+    "classic": false,
+    "buy": "Buy Whetstone I · 12"
+  },
+  "driftwoodErrors": [],
+  "pineTrader": {
+    "big": true,
+    "slate": false,
+    "tiles": [
+      "Bolts ×10",
+      "Pitch bolts ×10",
+      "Broadheads ×8",
+      "Cartridges ×14",
+      "Arrows ×10",
+      "Crossbow finish",
+      "Rifle finish"
+    ],
+    "buy": "Bolts ×10 · Full",
+    "accent": "#89c06a"
+  },
+  "pineErrors": [],
+  "gridRow": null,
+  "grid-road": {
+    "installed": true,
+    "faded": 4,
+    "owner": null,
+    "highway": 1,
+    "weights": {},
+    "air": [
+      0.523,
+      0.693,
+      0.843
+    ],
+    "grade": [
+      0,
+      0.8,
+      1,
+      0.95,
+      0.99,
+      1.07
+    ],
+    "roadSky": 1
+  },
+  "grid-inside": {
+    "installed": true,
+    "faded": 4,
+    "owner": "driftwood-isle",
+    "highway": 0,
+    "weights": {
+      "driftwood-isle": 1
+    },
+    "air": [
+      0.36,
+      0.7,
+      1
+    ],
+    "grade": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "roadSky": 0
+  },
+  "gridErrors": []
+}
