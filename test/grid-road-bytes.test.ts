@@ -208,7 +208,7 @@ it('retains the pre-G173 measured home refusal before the real platform deck all
   expect(page.allocator.entries()).toEqual([]);
 }, SLOW);
 
-it('admits the real platform beside the G173 measured default without changing the playing cap', async () => {
+it('admits the real platform beside the G172 measured default without changing the playing cap', async () => {
   const { assembly, strips } = await real(), scope = new Scope('g173-home-road'), page = new PageResidency();
   const claim = page.admitHome('driftwood-isle', runtimeAccountedBytes(DRIFTWOOD_RUNTIME_COST));
   const baseline = page.allocator.entries(), residency = new PlatformRenderResidency(page.allocator, scope), allocated: string[] = [];
@@ -216,7 +216,7 @@ it('admits the real platform beside the G173 measured default without changing t
     allocated.push(plan.id); return build(owner);
   }) };
   try {
-    expect(page.allocator.cost().playing).toBe(749_394_001);
+    expect(page.allocator.cost().playing).toBe(759_378_001);
     install(assembly, strips, admission, scope);
     expect(allocated).toEqual(['road.asphalt', 'road.junctions', 'road.signs', 'road.void', 'road.deck', 'road.curtain']);
     expect(page.allocator.has('platform:render:road.deck')).toBe(true);

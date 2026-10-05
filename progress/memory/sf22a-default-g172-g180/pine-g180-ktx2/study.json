@@ -1,0 +1,14 @@
+{
+  "label": "pine-g180-ktx2",
+  "rev": "3f8409900",
+  "shard": "pine-hollow",
+  "url": "http://127.0.0.1:4401/",
+  "deviceSave": "debug.plugin.pine-hollow.pineMemoryTrim=on",
+  "settings": {
+    "tex": "ktx2"
+  },
+  "playSeconds": 30,
+  "explorerSeconds": 30,
+  "runs": 3,
+  "started": 1791171048.1713579
+}

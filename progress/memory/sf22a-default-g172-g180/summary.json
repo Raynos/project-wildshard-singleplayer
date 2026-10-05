@@ -1,0 +1,1570 @@
+{
+  "row": "SHARD-PLATFORM SF22a G172 default and G180 Pine",
+  "units": "decimal MB",
+  "playingCapMB": 1000,
+  "loadingCapMB": 1800,
+  "protocol": "Three cold Safari restarts/origin resets per product; 30s play and Explorer; three one-second settled samples/phase; all runs retained; Simulator shuts down before same-pin labelled GL census. Simulator plus desktop GL proxy, not physical-phone cap evidence.",
+  "rows": [
+    {
+      "label": "driftwood-g172",
+      "sourceRevision": "fe508c172",
+      "shard": "driftwood-isle",
+      "build": "fe508c1-muuofxuf",
+      "devicePicks": {},
+      "settingsPicks": {},
+      "glMB": 204.5,
+      "runs": [
+        {
+          "tag": "driftwood-isle-r1",
+          "identity": {
+            "build": "fe508c1-muuofxuf",
+            "shard": "driftwood-isle"
+          },
+          "devicePicks": {},
+          "settingsPicks": {},
+          "loadSeconds": 4.074,
+          "geometry": {
+            "geometryBytes": 58035514,
+            "instancedBytes": 15100512,
+            "textureImageBytes": 8,
+            "arrays": 1199,
+            "textures": 25,
+            "gpu": {
+              "geometries": 443,
+              "textures": 92
+            },
+            "calls": 119
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 477.62984800000004,
+              "inspectorMB": 707.163784,
+              "nativePeakMB": 575.0,
+              "settling": {
+                "nativeGB": 0.477629848,
+                "inspectorGB": 0.707163784,
+                "minGB": 0.474418608,
+                "maxGB": 0.496258504,
+                "spreadGB": 0.02183989599999997,
+                "spreadPercent": 4.5725567804129295,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.477629848,
+                    "inspectorGB": 0.707163784
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.474418608,
+                    "inspectorGB": 0.685648029
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.496258504,
+                    "inspectorGB": 0.708766807
+                  }
+                ],
+                "seconds": 3.007
+              }
+            },
+            "play": {
+              "nativeMB": 473.87796,
+              "inspectorMB": 719.569524,
+              "nativePeakMB": 481.0,
+              "settling": {
+                "nativeGB": 0.47387796,
+                "inspectorGB": 0.719569524,
+                "minGB": 0.473779656,
+                "maxGB": 0.47387796,
+                "spreadGB": 9.830399999999351e-05,
+                "spreadPercent": 0.020744581579610392,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.473779656,
+                    "inspectorGB": 0.719569524
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.47387796,
+                    "inspectorGB": 0.719183962
+                  },
+                  {
+                    "seconds": 3.008,
+                    "nativeGB": 0.47387796,
+                    "inspectorGB": 0.71991922
+                  }
+                ],
+                "seconds": 3.008
+              }
+            },
+            "explorer": {
+              "nativeMB": 482.495992,
+              "inspectorMB": 703.445174,
+              "nativePeakMB": 509.0,
+              "settling": {
+                "nativeGB": 0.482495992,
+                "inspectorGB": 0.703445174,
+                "minGB": 0.482495992,
+                "maxGB": 0.482512376,
+                "spreadGB": 1.6384000000035925e-05,
+                "spreadPercent": 0.0033956758753834223,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.482495992,
+                    "inspectorGB": 0.701669164
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.482495992,
+                    "inspectorGB": 0.704112016
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.482512376,
+                    "inspectorGB": 0.703445174
+                  }
+                ],
+                "seconds": 3.007
+              }
+            }
+          }
+        },
+        {
+          "tag": "driftwood-isle-r2",
+          "identity": {
+            "build": "fe508c1-muuofxuf",
+            "shard": "driftwood-isle"
+          },
+          "devicePicks": {},
+          "settingsPicks": {},
+          "loadSeconds": 4.056,
+          "geometry": {
+            "geometryBytes": 58035514,
+            "instancedBytes": 15100512,
+            "textureImageBytes": 8,
+            "arrays": 1199,
+            "textures": 25,
+            "gpu": {
+              "geometries": 443,
+              "textures": 92
+            },
+            "calls": 119
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 480.70992,
+              "inspectorMB": 700.191004,
+              "nativePeakMB": 555.0,
+              "settling": {
+                "nativeGB": 0.48070992,
+                "inspectorGB": 0.700191004,
+                "minGB": 0.472517944,
+                "maxGB": 0.498093392,
+                "spreadGB": 0.025575448,
+                "spreadPercent": 5.320349536369044,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.48070992,
+                    "inspectorGB": 0.700191004
+                  },
+                  {
+                    "seconds": 2.003,
+                    "nativeGB": 0.472517944,
+                    "inspectorGB": 0.695070979
+                  },
+                  {
+                    "seconds": 3.006,
+                    "nativeGB": 0.498093392,
+                    "inspectorGB": 0.706122802
+                  }
+                ],
+                "seconds": 3.006
+              }
+            },
+            "play": {
+              "nativeMB": 471.81345600000003,
+              "inspectorMB": 728.47125,
+              "nativePeakMB": 488.0,
+              "settling": {
+                "nativeGB": 0.471813456,
+                "inspectorGB": 0.72847125,
+                "minGB": 0.471731536,
+                "maxGB": 0.47182984,
+                "spreadGB": 9.830399999999351e-05,
+                "spreadPercent": 0.020835353199420727,
+                "samples": [
+                  {
+                    "seconds": 1.001,
+                    "nativeGB": 0.471731536,
+                    "inspectorGB": 0.72847125
+                  },
+                  {
+                    "seconds": 2.002,
+                    "nativeGB": 0.471813456,
+                    "inspectorGB": 0.729589462
+                  },
+                  {
+                    "seconds": 3.004,
+                    "nativeGB": 0.47182984,
+                    "inspectorGB": 0.728221018
+                  }
+                ],
+                "seconds": 3.004
+              }
+            },
+            "explorer": {
+              "nativeMB": 483.331456,
+              "inspectorMB": 748.475386,
+              "nativePeakMB": 510.0,
+              "settling": {
+                "nativeGB": 0.483331456,
+                "inspectorGB": 0.748475386,
+                "minGB": 0.481496448,
+                "maxGB": 0.483462528,
+                "spreadGB": 0.001966079999999981,
+                "spreadPercent": 0.40677675239080263,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.483462528,
+                    "inspectorGB": 0.750611217
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.483331456,
+                    "inspectorGB": 0.747965566
+                  },
+                  {
+                    "seconds": 3.008,
+                    "nativeGB": 0.481496448,
+                    "inspectorGB": 0.748475386
+                  }
+                ],
+                "seconds": 3.008
+              }
+            }
+          }
+        },
+        {
+          "tag": "driftwood-isle-r3",
+          "identity": {
+            "build": "fe508c1-muuofxuf",
+            "shard": "driftwood-isle"
+          },
+          "devicePicks": {},
+          "settingsPicks": {},
+          "loadSeconds": 3.798,
+          "geometry": {
+            "geometryBytes": 58035514,
+            "instancedBytes": 15100512,
+            "textureImageBytes": 8,
+            "arrays": 1199,
+            "textures": 25,
+            "gpu": {
+              "geometries": 443,
+              "textures": 92
+            },
+            "calls": 119
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 486.329752,
+              "inspectorMB": 693.866764,
+              "nativePeakMB": 572.0,
+              "settling": {
+                "nativeGB": 0.486329752,
+                "inspectorGB": 0.693866764,
+                "minGB": 0.479923632,
+                "maxGB": 0.507923912,
+                "spreadGB": 0.02800027999999999,
+                "spreadPercent": 5.7574680316905615,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.486329752,
+                    "inspectorGB": 0.693866764
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.479923632,
+                    "inspectorGB": 0.679156839
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.507923912,
+                    "inspectorGB": 0.747966428
+                  }
+                ],
+                "seconds": 3.007
+              }
+            },
+            "play": {
+              "nativeMB": 477.023688,
+              "inspectorMB": 716.78169,
+              "nativePeakMB": 504.0,
+              "settling": {
+                "nativeGB": 0.477023688,
+                "inspectorGB": 0.71678169,
+                "minGB": 0.476892616,
+                "maxGB": 0.477040072,
+                "spreadGB": 0.00014745599999999026,
+                "spreadPercent": 0.030911672461848533,
+                "samples": [
+                  {
+                    "seconds": 1.001,
+                    "nativeGB": 0.476892616,
+                    "inspectorGB": 0.714343229
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.477040072,
+                    "inspectorGB": 0.71678169
+                  },
+                  {
+                    "seconds": 3.006,
+                    "nativeGB": 0.477023688,
+                    "inspectorGB": 0.716878833
+                  }
+                ],
+                "seconds": 3.006
+              }
+            },
+            "explorer": {
+              "nativeMB": 484.13439200000005,
+              "inspectorMB": 703.0359579999999,
+              "nativePeakMB": 509.0,
+              "settling": {
+                "nativeGB": 0.484134392,
+                "inspectorGB": 0.703035958,
+                "minGB": 0.484118008,
+                "maxGB": 0.484134392,
+                "spreadGB": 1.6384000000035925e-05,
+                "spreadPercent": 0.0033841842824576538,
+                "samples": [
+                  {
+                    "seconds": 1.004,
+                    "nativeGB": 0.484118008,
+                    "inspectorGB": 0.70210244
+                  },
+                  {
+                    "seconds": 2.007,
+                    "nativeGB": 0.484134392,
+                    "inspectorGB": 0.703979272
+                  },
+                  {
+                    "seconds": 3.01,
+                    "nativeGB": 0.484134392,
+                    "inspectorGB": 0.703035958
+                  }
+                ],
+                "seconds": 3.01
+              }
+            }
+          }
+        }
+      ],
+      "phases": {
+        "loading": {
+          "native": {
+            "medianMB": 480.70992,
+            "minMB": 477.62984800000004,
+            "maxMB": 486.329752,
+            "spreadMB": 8.699903999999947,
+            "runsMB": [
+              477.62984800000004,
+              480.70992,
+              486.329752
+            ]
+          },
+          "inspector": {
+            "medianMB": 700.191004,
+            "minMB": 693.866764,
+            "maxMB": 707.163784,
+            "spreadMB": 13.297019999999975,
+            "runsMB": [
+              707.163784,
+              700.191004,
+              693.866764
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 572.0,
+            "minMB": 555.0,
+            "maxMB": 575.0,
+            "spreadMB": 20.0,
+            "runsMB": [
+              575.0,
+              555.0,
+              572.0
+            ]
+          }
+        },
+        "play": {
+          "native": {
+            "medianMB": 473.87796,
+            "minMB": 471.81345600000003,
+            "maxMB": 477.023688,
+            "spreadMB": 5.210231999999962,
+            "runsMB": [
+              473.87796,
+              471.81345600000003,
+              477.023688
+            ]
+          },
+          "inspector": {
+            "medianMB": 719.569524,
+            "minMB": 716.78169,
+            "maxMB": 728.47125,
+            "spreadMB": 11.689560000000029,
+            "runsMB": [
+              719.569524,
+              728.47125,
+              716.78169
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 488.0,
+            "minMB": 481.0,
+            "maxMB": 504.0,
+            "spreadMB": 23.0,
+            "runsMB": [
+              481.0,
+              488.0,
+              504.0
+            ]
+          }
+        },
+        "explorer": {
+          "native": {
+            "medianMB": 483.331456,
+            "minMB": 482.495992,
+            "maxMB": 484.13439200000005,
+            "spreadMB": 1.638400000000047,
+            "runsMB": [
+              482.495992,
+              483.331456,
+              484.13439200000005
+            ]
+          },
+          "inspector": {
+            "medianMB": 703.445174,
+            "minMB": 703.0359579999999,
+            "maxMB": 748.475386,
+            "spreadMB": 45.43942800000002,
+            "runsMB": [
+              703.445174,
+              748.475386,
+              703.0359579999999
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 509.0,
+            "minMB": 509.0,
+            "maxMB": 510.0,
+            "spreadMB": 1.0,
+            "runsMB": [
+              509.0,
+              510.0,
+              509.0
+            ]
+          }
+        }
+      },
+      "combinedPlay": {
+        "medianMB": 678.37796,
+        "minMB": 676.3134560000001,
+        "maxMB": 681.523688,
+        "spreadMB": 5.210231999999905,
+        "runsMB": [
+          678.37796,
+          676.3134560000001,
+          681.523688
+        ]
+      },
+      "combinedExplorer": {
+        "medianMB": 687.831456,
+        "minMB": 686.995992,
+        "maxMB": 688.634392,
+        "spreadMB": 1.638400000000047,
+        "runsMB": [
+          686.995992,
+          687.831456,
+          688.634392
+        ]
+      },
+      "combinedPeaks": {
+        "loading": 779.5,
+        "play": 708.5,
+        "explorer": 714.5
+      }
+    },
+    {
+      "label": "pine-g180",
+      "sourceRevision": "3f8409900",
+      "shard": "pine-hollow",
+      "build": "3f84099-muuonqme",
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+      },
+      "settingsPicks": {},
+      "glMB": 523.5,
+      "runs": [
+        {
+          "tag": "pine-hollow-r1",
+          "identity": {
+            "build": "3f84099-muuonqme",
+            "shard": "pine-hollow"
+          },
+          "devicePicks": {
+            "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+          },
+          "settingsPicks": {},
+          "loadSeconds": 13.249,
+          "geometry": {
+            "geometryBytes": 60754696,
+            "instancedBytes": 3210472,
+            "textureImageBytes": 14123048,
+            "arrays": 1457,
+            "textures": 194,
+            "gpu": {
+              "geometries": 244,
+              "textures": 423
+            },
+            "calls": 75
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 648.253208,
+              "inspectorMB": 1390.05818,
+              "nativePeakMB": 792.0,
+              "settling": {
+                "nativeGB": 0.648253208,
+                "inspectorGB": 1.39005818,
+                "minGB": 0.64635264,
+                "maxGB": 0.64871196,
+                "spreadGB": 0.0023593199999999426,
+                "spreadPercent": 0.36395037785913165,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.64635264,
+                    "inspectorGB": 1.381964484
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.64871196,
+                    "inspectorGB": 1.39005818
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.648253208,
+                    "inspectorGB": 1.413552836
+                  }
+                ],
+                "seconds": 3.007
+              }
+            },
+            "play": {
+              "nativeMB": 591.171376,
+              "inspectorMB": 1484.248953,
+              "nativePeakMB": 658.0,
+              "settling": {
+                "nativeGB": 0.591171376,
+                "inspectorGB": 1.484248953,
+                "minGB": 0.591007536,
+                "maxGB": 0.5913516,
+                "spreadGB": 0.0003440639999999773,
+                "spreadPercent": 0.058200382151110314,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.591007536,
+                    "inspectorGB": 1.470044025
+                  },
+                  {
+                    "seconds": 2.008,
+                    "nativeGB": 0.591171376,
+                    "inspectorGB": 1.484248953
+                  },
+                  {
+                    "seconds": 3.012,
+                    "nativeGB": 0.5913516,
+                    "inspectorGB": 1.496209273
+                  }
+                ],
+                "seconds": 3.012
+              }
+            },
+            "explorer": {
+              "nativeMB": 589.3363919999999,
+              "inspectorMB": 1277.155299,
+              "nativePeakMB": 596.0,
+              "settling": {
+                "nativeGB": 0.589336392,
+                "inspectorGB": 1.277155299,
+                "minGB": 0.589336392,
+                "maxGB": 0.589352776,
+                "spreadGB": 1.6384000000035925e-05,
+                "spreadPercent": 0.0027800760690230592,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.589352776,
+                    "inspectorGB": 1.265522659
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.589336392,
+                    "inspectorGB": 1.277155299
+                  },
+                  {
+                    "seconds": 3.008,
+                    "nativeGB": 0.589336392,
+                    "inspectorGB": 1.289492451
+                  }
+                ],
+                "seconds": 3.008
+              }
+            }
+          }
+        },
+        {
+          "tag": "pine-hollow-r2",
+          "identity": {
+            "build": "3f84099-muuonqme",
+            "shard": "pine-hollow"
+          },
+          "devicePicks": {
+            "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+          },
+          "settingsPicks": {},
+          "loadSeconds": 11.123,
+          "geometry": {
+            "geometryBytes": 60754696,
+            "instancedBytes": 3210472,
+            "textureImageBytes": 14123048,
+            "arrays": 1457,
+            "textures": 194,
+            "gpu": {
+              "geometries": 244,
+              "textures": 423
+            },
+            "calls": 75
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 602.001248,
+              "inspectorMB": 1319.559608,
+              "nativePeakMB": 790.0,
+              "settling": {
+                "nativeGB": 0.602001248,
+                "inspectorGB": 1.319559608,
+                "minGB": 0.59007372,
+                "maxGB": 0.605851512,
+                "spreadGB": 0.015777791999999957,
+                "spreadPercent": 2.620890247722536,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.602001248,
+                    "inspectorGB": 1.445241272
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.605851512,
+                    "inspectorGB": 1.319559608
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.59007372,
+                    "inspectorGB": 1.132972885
+                  }
+                ],
+                "seconds": 3.007
+              }
+            },
+            "play": {
+              "nativeMB": 589.614968,
+              "inspectorMB": 1167.949394,
+              "nativePeakMB": 598.0,
+              "settling": {
+                "nativeGB": 0.589614968,
+                "inspectorGB": 1.167949394,
+                "minGB": 0.589516664,
+                "maxGB": 0.58974604,
+                "spreadGB": 0.00022937599999994784,
+                "spreadPercent": 0.03890267588999671,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.589614968,
+                    "inspectorGB": 1.169212123
+                  },
+                  {
+                    "seconds": 2.006,
+                    "nativeGB": 0.58974604,
+                    "inspectorGB": 1.166671442
+                  },
+                  {
+                    "seconds": 3.008,
+                    "nativeGB": 0.589516664,
+                    "inspectorGB": 1.167949394
+                  }
+                ],
+                "seconds": 3.008
+              }
+            },
+            "explorer": {
+              "nativeMB": 588.205968,
+              "inspectorMB": 1154.347142,
+              "nativePeakMB": 596.0,
+              "settling": {
+                "nativeGB": 0.588205968,
+                "inspectorGB": 1.154347142,
+                "minGB": 0.588205968,
+                "maxGB": 0.589303696,
+                "spreadGB": 0.0010977279999999645,
+                "spreadPercent": 0.1866230639808749,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.589303696,
+                    "inspectorGB": 1.156667219
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.588205968,
+                    "inspectorGB": 1.146859654
+                  },
+                  {
+                    "seconds": 3.009,
+                    "nativeGB": 0.588205968,
+                    "inspectorGB": 1.154347142
+                  }
+                ],
+                "seconds": 3.009
+              }
+            }
+          }
+        },
+        {
+          "tag": "pine-hollow-r3",
+          "identity": {
+            "build": "3f84099-muuonqme",
+            "shard": "pine-hollow"
+          },
+          "devicePicks": {
+            "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+          },
+          "settingsPicks": {},
+          "loadSeconds": 10.996,
+          "geometry": {
+            "geometryBytes": 60754696,
+            "instancedBytes": 3210472,
+            "textureImageBytes": 14123048,
+            "arrays": 1457,
+            "textures": 194,
+            "gpu": {
+              "geometries": 244,
+              "textures": 423
+            },
+            "calls": 77
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 644.861768,
+              "inspectorMB": 1327.285719,
+              "nativePeakMB": 793.0,
+              "settling": {
+                "nativeGB": 0.644861768,
+                "inspectorGB": 1.327285719,
+                "minGB": 0.642862944,
+                "maxGB": 0.646500192,
+                "spreadGB": 0.003637247999999982,
+                "spreadPercent": 0.564035298802205,
+                "samples": [
+                  {
+                    "seconds": 1.004,
+                    "nativeGB": 0.644861768,
+                    "inspectorGB": 1.304593879
+                  },
+                  {
+                    "seconds": 2.006,
+                    "nativeGB": 0.646500192,
+                    "inspectorGB": 1.327285719
+                  },
+                  {
+                    "seconds": 3.008,
+                    "nativeGB": 0.642862944,
+                    "inspectorGB": 1.346536919
+                  }
+                ],
+                "seconds": 3.008
+              }
+            },
+            "play": {
+              "nativeMB": 596.75844,
+              "inspectorMB": 1316.713032,
+              "nativePeakMB": 752.0,
+              "settling": {
+                "nativeGB": 0.59675844,
+                "inspectorGB": 1.316713032,
+                "minGB": 0.59675844,
+                "maxGB": 0.596823976,
+                "spreadGB": 6.553600000003268e-05,
+                "spreadPercent": 0.010981998009116164,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.596823976,
+                    "inspectorGB": 1.306440264
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.59675844,
+                    "inspectorGB": 1.316713032
+                  },
+                  {
+                    "seconds": 3.005,
+                    "nativeGB": 0.59675844,
+                    "inspectorGB": 1.328263752
+                  }
+                ],
+                "seconds": 3.005
+              }
+            },
+            "explorer": {
+              "nativeMB": 594.4810640000001,
+              "inspectorMB": 1151.879344,
+              "nativePeakMB": 603.0,
+              "settling": {
+                "nativeGB": 0.594481064,
+                "inspectorGB": 1.151879344,
+                "minGB": 0.594481064,
+                "maxGB": 0.594481064,
+                "spreadGB": 0,
+                "spreadPercent": 0,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.594481064,
+                    "inspectorGB": 1.151879344
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.594481064,
+                    "inspectorGB": 1.160988848
+                  },
+                  {
+                    "seconds": 3.006,
+                    "nativeGB": 0.594481064,
+                    "inspectorGB": 1.151488515
+                  }
+                ],
+                "seconds": 3.006
+              }
+            }
+          }
+        }
+      ],
+      "phases": {
+        "loading": {
+          "native": {
+            "medianMB": 644.861768,
+            "minMB": 602.001248,
+            "maxMB": 648.253208,
+            "spreadMB": 46.25195999999994,
+            "runsMB": [
+              648.253208,
+              602.001248,
+              644.861768
+            ]
+          },
+          "inspector": {
+            "medianMB": 1327.285719,
+            "minMB": 1319.559608,
+            "maxMB": 1390.05818,
+            "spreadMB": 70.49857199999997,
+            "runsMB": [
+              1390.05818,
+              1319.559608,
+              1327.285719
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 792.0,
+            "minMB": 790.0,
+            "maxMB": 793.0,
+            "spreadMB": 3.0,
+            "runsMB": [
+              792.0,
+              790.0,
+              793.0
+            ]
+          }
+        },
+        "play": {
+          "native": {
+            "medianMB": 591.171376,
+            "minMB": 589.614968,
+            "maxMB": 596.75844,
+            "spreadMB": 7.143471999999974,
+            "runsMB": [
+              591.171376,
+              589.614968,
+              596.75844
+            ]
+          },
+          "inspector": {
+            "medianMB": 1316.713032,
+            "minMB": 1167.949394,
+            "maxMB": 1484.248953,
+            "spreadMB": 316.29955900000004,
+            "runsMB": [
+              1484.248953,
+              1167.949394,
+              1316.713032
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 658.0,
+            "minMB": 598.0,
+            "maxMB": 752.0,
+            "spreadMB": 154.0,
+            "runsMB": [
+              658.0,
+              598.0,
+              752.0
+            ]
+          }
+        },
+        "explorer": {
+          "native": {
+            "medianMB": 589.3363919999999,
+            "minMB": 588.205968,
+            "maxMB": 594.4810640000001,
+            "spreadMB": 6.275096000000076,
+            "runsMB": [
+              589.3363919999999,
+              588.205968,
+              594.4810640000001
+            ]
+          },
+          "inspector": {
+            "medianMB": 1154.347142,
+            "minMB": 1151.879344,
+            "maxMB": 1277.155299,
+            "spreadMB": 125.27595500000007,
+            "runsMB": [
+              1277.155299,
+              1154.347142,
+              1151.879344
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 596.0,
+            "minMB": 596.0,
+            "maxMB": 603.0,
+            "spreadMB": 7.0,
+            "runsMB": [
+              596.0,
+              596.0,
+              603.0
+            ]
+          }
+        }
+      },
+      "combinedPlay": {
+        "medianMB": 1114.671376,
+        "minMB": 1113.1149679999999,
+        "maxMB": 1120.25844,
+        "spreadMB": 7.143472000000202,
+        "runsMB": [
+          1114.671376,
+          1113.1149679999999,
+          1120.25844
+        ]
+      },
+      "combinedExplorer": {
+        "medianMB": 1112.836392,
+        "minMB": 1111.705968,
+        "maxMB": 1117.981064,
+        "spreadMB": 6.275096000000076,
+        "runsMB": [
+          1112.836392,
+          1111.705968,
+          1117.981064
+        ]
+      },
+      "combinedPeaks": {
+        "loading": 1316.5,
+        "play": 1275.5,
+        "explorer": 1126.5
+      }
+    },
+    {
+      "label": "pine-g180-ktx2",
+      "sourceRevision": "3f8409900",
+      "shard": "pine-hollow",
+      "build": "3f84099-muuozn9k",
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+      },
+      "settingsPicks": {
+        "tex": "ktx2"
+      },
+      "glMB": 239.1,
+      "runs": [
+        {
+          "tag": "pine-hollow-r1",
+          "identity": {
+            "build": "3f84099-muuozn9k",
+            "shard": "pine-hollow"
+          },
+          "devicePicks": {
+            "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+          },
+          "settingsPicks": {
+            "tex": "ktx2"
+          },
+          "loadSeconds": 10.113,
+          "geometry": {
+            "geometryBytes": 60754696,
+            "instancedBytes": 3210472,
+            "textureImageBytes": 14771248,
+            "arrays": 1457,
+            "textures": 194,
+            "gpu": {
+              "geometries": 244,
+              "textures": 422
+            },
+            "calls": 77
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 634.163328,
+              "inspectorMB": 1057.6749949999999,
+              "nativePeakMB": 780.0,
+              "settling": {
+                "nativeGB": 0.634163328,
+                "inspectorGB": 1.057674995,
+                "minGB": 0.631705728,
+                "maxGB": 0.635637864,
+                "spreadGB": 0.003932135999999975,
+                "spreadPercent": 0.620050991027973,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.635637864,
+                    "inspectorGB": 1.057674995
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.634163328,
+                    "inspectorGB": 1.088853747
+                  },
+                  {
+                    "seconds": 3.005,
+                    "nativeGB": 0.631705728,
+                    "inspectorGB": 1.050863116
+                  }
+                ],
+                "seconds": 3.005
+              }
+            },
+            "play": {
+              "nativeMB": 631.050368,
+              "inspectorMB": 1053.44423,
+              "nativePeakMB": 646.0,
+              "settling": {
+                "nativeGB": 0.631050368,
+                "inspectorGB": 1.05344423,
+                "minGB": 0.631050368,
+                "maxGB": 0.631050368,
+                "spreadGB": 0,
+                "spreadPercent": 0,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.631050368,
+                    "inspectorGB": 1.052421405
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.631050368,
+                    "inspectorGB": 1.056533789
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.631050368,
+                    "inspectorGB": 1.05344423
+                  }
+                ],
+                "seconds": 3.007
+              }
+            },
+            "explorer": {
+              "nativeMB": 640.7824880000001,
+              "inspectorMB": 1056.515536,
+              "nativePeakMB": 645.0,
+              "settling": {
+                "nativeGB": 0.640782488,
+                "inspectorGB": 1.056515536,
+                "minGB": 0.640766104,
+                "maxGB": 0.640798872,
+                "spreadGB": 3.276799999996083e-05,
+                "spreadPercent": 0.005113747740241119,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.640766104,
+                    "inspectorGB": 1.063043885
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.640782488,
+                    "inspectorGB": 1.056515536
+                  },
+                  {
+                    "seconds": 3.006,
+                    "nativeGB": 0.640798872,
+                    "inspectorGB": 1.055560747
+                  }
+                ],
+                "seconds": 3.006
+              }
+            }
+          }
+        },
+        {
+          "tag": "pine-hollow-r2",
+          "identity": {
+            "build": "3f84099-muuozn9k",
+            "shard": "pine-hollow"
+          },
+          "devicePicks": {
+            "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+          },
+          "settingsPicks": {
+            "tex": "ktx2"
+          },
+          "loadSeconds": 10.044,
+          "geometry": {
+            "geometryBytes": 60754696,
+            "instancedBytes": 3210472,
+            "textureImageBytes": 14771248,
+            "arrays": 1457,
+            "textures": 194,
+            "gpu": {
+              "geometries": 244,
+              "textures": 422
+            },
+            "calls": 77
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 660.000944,
+              "inspectorMB": 1097.397238,
+              "nativePeakMB": 777.0,
+              "settling": {
+                "nativeGB": 0.660000944,
+                "inspectorGB": 1.097397238,
+                "minGB": 0.656920752,
+                "maxGB": 0.661917848,
+                "spreadGB": 0.004997095999999979,
+                "spreadPercent": 0.7571346746437349,
+                "samples": [
+                  {
+                    "seconds": 1.001,
+                    "nativeGB": 0.661917848,
+                    "inspectorGB": 1.179759606
+                  },
+                  {
+                    "seconds": 2.003,
+                    "nativeGB": 0.660000944,
+                    "inspectorGB": 1.094267894
+                  },
+                  {
+                    "seconds": 3.006,
+                    "nativeGB": 0.656920752,
+                    "inspectorGB": 1.097397238
+                  }
+                ],
+                "seconds": 3.006
+              }
+            },
+            "play": {
+              "nativeMB": 652.85752,
+              "inspectorMB": 1065.433097,
+              "nativePeakMB": 662.0,
+              "settling": {
+                "nativeGB": 0.65285752,
+                "inspectorGB": 1.065433097,
+                "minGB": 0.651104432,
+                "maxGB": 0.661442736,
+                "spreadGB": 0.01033830400000002,
+                "spreadPercent": 1.5835467438592148,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.651104432,
+                    "inspectorGB": 1.064022255
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.661442736,
+                    "inspectorGB": 1.101330441
+                  },
+                  {
+                    "seconds": 3.005,
+                    "nativeGB": 0.65285752,
+                    "inspectorGB": 1.065433097
+                  }
+                ],
+                "seconds": 3.005
+              }
+            },
+            "explorer": {
+              "nativeMB": 660.902112,
+              "inspectorMB": 1046.229877,
+              "nativePeakMB": 667.0,
+              "settling": {
+                "nativeGB": 0.660902112,
+                "inspectorGB": 1.046229877,
+                "minGB": 0.660902112,
+                "maxGB": 0.660902112,
+                "spreadGB": 0,
+                "spreadPercent": 0,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.660902112,
+                    "inspectorGB": 1.046229877
+                  },
+                  {
+                    "seconds": 2.004,
+                    "nativeGB": 0.660902112,
+                    "inspectorGB": 1.054618485
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.660902112,
+                    "inspectorGB": 1.045778128
+                  }
+                ],
+                "seconds": 3.007
+              }
+            }
+          }
+        },
+        {
+          "tag": "pine-hollow-r3",
+          "identity": {
+            "build": "3f84099-muuozn9k",
+            "shard": "pine-hollow"
+          },
+          "devicePicks": {
+            "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+          },
+          "settingsPicks": {
+            "tex": "ktx2"
+          },
+          "loadSeconds": 9.337,
+          "geometry": {
+            "geometryBytes": 60754696,
+            "instancedBytes": 3210472,
+            "textureImageBytes": 14771248,
+            "arrays": 1457,
+            "textures": 194,
+            "gpu": {
+              "geometries": 244,
+              "textures": 422
+            },
+            "calls": 77
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 605.54048,
+              "inspectorMB": 1060.5531669999998,
+              "nativePeakMB": 779.0,
+              "settling": {
+                "nativeGB": 0.60554048,
+                "inspectorGB": 1.060553167,
+                "minGB": 0.60513088,
+                "maxGB": 0.608014464,
+                "spreadGB": 0.0028835839999999946,
+                "spreadPercent": 0.476200038682797,
+                "samples": [
+                  {
+                    "seconds": 1.003,
+                    "nativeGB": 0.60554048,
+                    "inspectorGB": 1.058608846
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.608014464,
+                    "inspectorGB": 1.079727822
+                  },
+                  {
+                    "seconds": 3.005,
+                    "nativeGB": 0.60513088,
+                    "inspectorGB": 1.060553167
+                  }
+                ],
+                "seconds": 3.005
+              }
+            },
+            "play": {
+              "nativeMB": 599.380096,
+              "inspectorMB": 1064.5402980000001,
+              "nativePeakMB": 611.0,
+              "settling": {
+                "nativeGB": 0.599380096,
+                "inspectorGB": 1.064540298,
+                "minGB": 0.599330944,
+                "maxGB": 0.5994784,
+                "spreadGB": 0.00014745599999999026,
+                "spreadPercent": 0.024601417528551075,
+                "samples": [
+                  {
+                    "seconds": 1.001,
+                    "nativeGB": 0.5994784,
+                    "inspectorGB": 1.063382041
+                  },
+                  {
+                    "seconds": 2.003,
+                    "nativeGB": 0.599330944,
+                    "inspectorGB": 1.064867978
+                  },
+                  {
+                    "seconds": 3.006,
+                    "nativeGB": 0.599380096,
+                    "inspectorGB": 1.064540298
+                  }
+                ],
+                "seconds": 3.006
+              }
+            },
+            "explorer": {
+              "nativeMB": 610.881664,
+              "inspectorMB": 1073.412473,
+              "nativePeakMB": 614.0,
+              "settling": {
+                "nativeGB": 0.610881664,
+                "inspectorGB": 1.073412473,
+                "minGB": 0.61086528,
+                "maxGB": 0.610881664,
+                "spreadGB": 1.6384000000035925e-05,
+                "spreadPercent": 0.00268202517206932,
+                "samples": [
+                  {
+                    "seconds": 1.002,
+                    "nativeGB": 0.610881664,
+                    "inspectorGB": 1.073412473
+                  },
+                  {
+                    "seconds": 2.005,
+                    "nativeGB": 0.61086528,
+                    "inspectorGB": 1.072599934
+                  },
+                  {
+                    "seconds": 3.007,
+                    "nativeGB": 0.610881664,
+                    "inspectorGB": 1.075647358
+                  }
+                ],
+                "seconds": 3.007
+              }
+            }
+          }
+        }
+      ],
+      "phases": {
+        "loading": {
+          "native": {
+            "medianMB": 634.163328,
+            "minMB": 605.54048,
+            "maxMB": 660.000944,
+            "spreadMB": 54.460464,
+            "runsMB": [
+              634.163328,
+              660.000944,
+              605.54048
+            ]
+          },
+          "inspector": {
+            "medianMB": 1060.5531669999998,
+            "minMB": 1057.6749949999999,
+            "maxMB": 1097.397238,
+            "spreadMB": 39.72224300000016,
+            "runsMB": [
+              1057.6749949999999,
+              1097.397238,
+              1060.5531669999998
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 779.0,
+            "minMB": 777.0,
+            "maxMB": 780.0,
+            "spreadMB": 3.0,
+            "runsMB": [
+              780.0,
+              777.0,
+              779.0
+            ]
+          }
+        },
+        "play": {
+          "native": {
+            "medianMB": 631.050368,
+            "minMB": 599.380096,
+            "maxMB": 652.85752,
+            "spreadMB": 53.47742400000004,
+            "runsMB": [
+              631.050368,
+              652.85752,
+              599.380096
+            ]
+          },
+          "inspector": {
+            "medianMB": 1064.5402980000001,
+            "minMB": 1053.44423,
+            "maxMB": 1065.433097,
+            "spreadMB": 11.988867000000027,
+            "runsMB": [
+              1053.44423,
+              1065.433097,
+              1064.5402980000001
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 646.0,
+            "minMB": 611.0,
+            "maxMB": 662.0,
+            "spreadMB": 51.0,
+            "runsMB": [
+              646.0,
+              662.0,
+              611.0
+            ]
+          }
+        },
+        "explorer": {
+          "native": {
+            "medianMB": 640.7824880000001,
+            "minMB": 610.881664,
+            "maxMB": 660.902112,
+            "spreadMB": 50.02044799999999,
+            "runsMB": [
+              640.7824880000001,
+              660.902112,
+              610.881664
+            ]
+          },
+          "inspector": {
+            "medianMB": 1056.515536,
+            "minMB": 1046.229877,
+            "maxMB": 1073.412473,
+            "spreadMB": 27.182596000000103,
+            "runsMB": [
+              1056.515536,
+              1046.229877,
+              1073.412473
+            ]
+          },
+          "nativePeak": {
+            "medianMB": 645.0,
+            "minMB": 614.0,
+            "maxMB": 667.0,
+            "spreadMB": 53.0,
+            "runsMB": [
+              645.0,
+              667.0,
+              614.0
+            ]
+          }
+        }
+      },
+      "combinedPlay": {
+        "medianMB": 870.1503680000001,
+        "minMB": 838.480096,
+        "maxMB": 891.95752,
+        "spreadMB": 53.47742400000004,
+        "runsMB": [
+          870.1503680000001,
+          891.95752,
+          838.480096
+        ]
+      },
+      "combinedExplorer": {
+        "medianMB": 879.8824880000001,
+        "minMB": 849.981664,
+        "maxMB": 900.002112,
+        "spreadMB": 50.02044799999999,
+        "runsMB": [
+          879.8824880000001,
+          900.002112,
+          849.981664
+        ]
+      },
+      "combinedPeaks": {
+        "loading": 1019.1,
+        "play": 901.1,
+        "explorer": 906.1
+      }
+    }
+  ],
+  "fullPoseGL": {
+    "sourceRevision": "3f8409900",
+    "build": "3f84099-muup99s3",
+    "glMB": 285.273866,
+    "poses": [
+      "gate",
+      "cabin",
+      "pond"
+    ],
+    "errors": [],
+    "reconciled": true,
+    "evidence": "pine-g180-ktx2/full-pose-gl.json",
+    "combinedPlayMB": 916.324234,
+    "combinedExplorerMB": 926.056354,
+    "combinedExplorerPeakMB": 952.273866
+  },
+  "calibration": {
+    "engineBaseMB": 299,
+    "revision": "91f97bdfc",
+    "evidence": "progress/memory/sf22a-2026-10-04.json",
+    "remeasured": false
+  },
+  "metadata": {
+    "webContentMB": 473.878,
+    "glMB": 204.5,
+    "engineBaseMB": 299,
+    "rev": "fe508c172",
+    "evidence": "progress/memory/sf22a-default-g172-g180/summary.json",
+    "accountedBytes": 341781982,
+    "homePlayingBytes": 759378001
+  },
+  "samplers": {
+    "simRevision": "3560329926e63ceedf26d07315d2d883070a26d9",
+    "desktopSettingsRevision": "526500253",
+    "simSHA256": "cd3517faf38f5c1bb9e4c08bac66664bc555f7289626c366f757c814c9034525",
+    "desktopSHA256": "4c20b42d87ff5e189e36567d118f049e7fda556a3d9f4c0100106ff9376627ba",
+    "fullPoseTool": "progress/shard-platform/g180/cut-capture.mjs"
+  },
+  "validation": {
+    "coldRuns": 9,
+    "phaseIdentities": 18,
+    "phaseSettledReadings": 27,
+    "allExitCodesZero": true,
+    "allDeviceAndSettingsPicksVerified": true,
+    "metadataFixturesPassed": 12,
+    "typedLint": "passed",
+    "resources": "All owned previews, browsers and Simulator closed before the new fixed-Auto follow-up"
+  },
+  "finding": "Cold Auto at3f8409900 resolves images because no compressed set is cached. ForcedKTX2 is a separate complete native+GL composition, not a replacement GL number paired with Auto native. Pine policy fixbc7181016 remeasurement follows separately."
+}

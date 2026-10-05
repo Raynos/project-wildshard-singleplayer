@@ -1,0 +1,33 @@
+{
+  "opts": {
+    "out": "/private/tmp/claude-501/sp-builders/sp-x2/default-memory-g172-g180/driftwood-g172/sim",
+    "expectedBuild": "fe508c1-muuofxuf",
+    "play": 30,
+    "fly": 30,
+    "settings": [],
+    "deviceSaves": {}
+  },
+  "runs": [
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4401/",
+      "round": 1,
+      "tag": "driftwood-isle-r1"
+    },
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4401/",
+      "round": 2,
+      "tag": "driftwood-isle-r2"
+    },
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4401/",
+      "round": 3,
+      "tag": "driftwood-isle-r3"
+    }
+  ]
+}

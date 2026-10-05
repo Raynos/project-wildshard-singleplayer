@@ -1,0 +1,35 @@
+{
+  "opts": {
+    "out": "/private/tmp/claude-501/sp-builders/sp-x2/default-memory-g172-g180/pine-g180/sim",
+    "expectedBuild": "3f84099-muuonqme",
+    "play": 30,
+    "fly": 30,
+    "settings": [],
+    "deviceSaves": {
+      "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+    }
+  },
+  "runs": [
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4401/",
+      "round": 1,
+      "tag": "pine-hollow-r1"
+    },
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4401/",
+      "round": 2,
+      "tag": "pine-hollow-r2"
+    },
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4401/",
+      "round": 3,
+      "tag": "pine-hollow-r3"
+    }
+  ]
+}
