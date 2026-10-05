@@ -1,6 +1,6 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Quaternion, ShaderMaterial, Vector3 } from 'three';
 import type { Isle } from '../layout';
-import { SKY_ISLES } from './skyIsles';
+import { SKY_ISLES, type SkyIsle } from './skyIsles';
 
 /**
  * The falls (loop 5): waterfalls off the playable isles' rims into the cloud sea (the targets have them; council R1C-9).
@@ -65,10 +65,11 @@ function fallMaterial(): ShaderMaterial {
 /**
  * The falls, one instanced draw: each sheet hangs from its isle's lip, facing out. `lip` gives a modelled isle's rim
  * radius at an angle (world/skyIsleHd.ts; null: the code isle's 12-gon), and the sheet hangs just inside it, under the turf.
+ * `skyIsles`: the decorative isles that stand (all standalone; inside the cube in a grid cell, G99).
  */
-export function skyline(isles: readonly Isle[], lip: (isle: Isle, a: number) => number | null = () => null): Group {
+export function skyline(isles: readonly Isle[], lip: (isle: Isle, a: number) => number | null = () => null, skyIsles: readonly SkyIsle[] = SKY_ISLES): Group {
   const group = new Group(), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
-  const sky = SKY_ISLES.flatMap((s) => s.fall === null ? [] : [{ isle: s, a: s.fall, length: s.keel * 1.3 }]);
+  const sky = skyIsles.flatMap((s) => s.fall === null ? [] : [{ isle: s, a: s.fall, length: s.keel * 1.3 }]);
   const at = [...FALLS.flatMap(([id, a, length]) => { const isle = isles.find((i) => i.id === id); return isle === undefined ? [] : [{ isle, a, length }]; }), ...sky];
   const fall = fallGeometry(1, 1), falls = new InstancedMesh(fall, fallMaterial(), at.length);
   at.forEach(({ isle, a, length }, k) => {

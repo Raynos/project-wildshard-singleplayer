@@ -11,7 +11,7 @@ import { CROWN_RING, crownArena, crownStones } from './crown';
 import { roost } from './roost';
 import { firSheet, firs } from './fir';
 import { trees } from './trees';
-import { SKY_ISLES } from './skyIsles';
+import { inCube, SKY_ISLES, skyIslesIn } from './skyIsles';
 import { ISLE_CUT, ISLE_KEEL_CUT, keelIsles, skyIsleModels } from './skyIsleHd';
 import { knollHull, knollMesh } from './knoll';
 import { winchHouse } from './winchHouse';
@@ -157,17 +157,21 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean, entries = 
   const skyRnd = (): number => { skySeed = (skySeed * 16807) % 2147483647; return skySeed / 2147483647; };
   // E392/E399: the textured floating-island models (world/skyIsleHd.ts) where they loaded, the code builder for the rest
   const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
-  const skyHd = skyIsleModels(SKY_ISLES); skyGroup.add(skyHd.group);
+  // G99: in a grid cell only the isles inside the 500 m cube (ctx.cube); standalone every one
+  const skyIsles = skyIslesIn(ctx.cube), half = ctx.cube?.half ?? null;
+  const skyHd = skyIsleModels(skyIsles); skyGroup.add(skyHd.group);
   // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
   // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
   // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
   const keels = skyIsleModels(keelIsles(ISLES), true);
   keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
   for (const s of SKY_ISLES) {
-    const code = skyHd.fallback.includes(s);
+    // an isle out of the cube still draws its pines' numbers, so the seeded stream (and every isle inside) matches standalone
+    const kept = half === null || inCube(s, half), code = kept && skyHd.fallback.includes(s);
     if (code) { const mesh = islandMesh(s, skyRnd); mesh.position.set(s.x, s.y, s.z); skyGroup.add(mesh); }
     for (let k = 0; k < s.pines; k++) {
       const a = skyRnd() * Math.PI * 2, d = s.r * (0.2 + skyRnd() * 0.55), x = s.x + Math.cos(a) * d, z = s.z + Math.sin(a) * d, size = 0.7 + skyRnd() * 0.5;
+      if (!kept) continue;
       // on a model, the fir stands on its turf (a little sunk), or not at all where the turf is not
       const y = code ? s.y : skyHd.topAt(s, x, z); if (y !== null) pineAt.push([x, code ? y : y - 0.2, z, size]);
     }
@@ -183,7 +187,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean, entries = 
   const dress = dressIslands(); root.add(dress.group);
   ctx.piece({ id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE, object: dress.group });
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
-  const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a)); root.add(sky);
+  const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a), skyIsles); root.add(sky);
 
   const plank = flat(PALETTE.plank), rope = flat(PALETTE.rope);
   // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing

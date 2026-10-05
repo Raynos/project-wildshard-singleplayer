@@ -47,3 +47,15 @@ export const SKY_ISLES: readonly SkyIsle[] = [
   isle('b1', -95, 45, 14, 52, 24, 4, Math.PI * 0.4), isle('b2', 98, 40, 13, 44, 22, 4, null),
   isle('b3', 20, 95, 16, 60, 26, 5, Math.PI * 1.5), isle('b4', -95, -250, 20, 62, 32, 6, Math.PI * 1.2),
 ];
+
+/** Whether a sky isle's footprint stands inside a cube of half width `half`. */
+export const inCube = (s: SkyIsle, half: number): boolean => Math.abs(s.x) + s.r <= half && Math.abs(s.z) + s.r <= half;
+/**
+ * G99 (every shard is a 500 × 500 × 500 cube): the sky isles whose footprint (centre ± rim radius) stands inside the cube.
+ * Standalone (`cube` null) every isle builds, the same array; in a grid cell (`ctx.cube`) the five past the cell edge (o2,
+ * n1, n2, n3 on the horizon past the crown, b4 across the south edge) leave the world, the falls and the far proxy, so
+ * nothing of Sky Reach hangs over the road or a neighbour.
+ */
+export function skyIslesIn(cube: { readonly half: number } | null): readonly SkyIsle[] {
+  return cube === null ? SKY_ISLES : SKY_ISLES.filter((s) => inCube(s, cube.half));
+}

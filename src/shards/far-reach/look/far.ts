@@ -11,7 +11,7 @@
 import { BufferAttribute, BufferGeometry, Color, Vector3 } from 'three';
 import { skyHdUrl } from '../boot/files';
 import { ISLE_CUT, ISLE_KEEL_CUT, keelIsles, SKY_ISLE_MODELS, skyIslePose, skyIsleUnit, skyIsleWear, type SkyIsleModel, type SkyIsleUnit } from '../world/skyIsleHd';
-import { SKY_ISLES, type SkyIsle } from '../world/skyIsles';
+import { skyIslesIn, type SkyIsle } from '../world/skyIsles';
 import { ISLES, MILL, PINES, WINDMILL } from '../layout';
 import { PALETTE } from '../world/shapes';
 
@@ -144,7 +144,8 @@ export async function farParts(tools: FarModelTools): Promise<FarPart[]> {
       const part = isle === undefined ? null : hang(isle, s, k, keel); if (part !== null) parts.push(part);
     });
   };
-  place(SKY_ISLES, false); place(keelIsles(ISLES), true);
+  // the proxy only draws in the grid: the cube's isles (G99), and `hang` refuses any vertex past the cell edge
+  place(skyIslesIn({ half: HALF }), false); place(keelIsles(ISLES), true);
   parts.push(decks());
   return parts;
 }
