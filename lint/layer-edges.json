@@ -1,7 +1,7 @@
 {
   "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
-    "game → engine": 590,
+    "game → engine": 592,
     "kit → engine": 196,
     "kit → game": 2,
     "root → engine": 17,
@@ -28,8 +28,8 @@
     "shards/nine-dragon-stack → game": 10,
     "shards/nine-dragon-stack → kit": 7,
     "shards/nine-dragon-stack → sdk": 3,
-    "shards/pine-hollow → engine": 512,
-    "shards/pine-hollow → game": 43,
+    "shards/pine-hollow → engine": 513,
+    "shards/pine-hollow → game": 45,
     "shards/pine-hollow → kit": 39,
     "shards/pine-hollow → sdk": 4,
     "shards/sunscar-dunes → engine": 76,

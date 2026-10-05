@@ -1833,7 +1833,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2049 exports, grouped by the module to import them from.
+2053 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2064,7 +2064,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
 - `@wildshard/engine/render/frameCounter`: `installFrameCounter`, `renderCount`, `Renders`
-- `@wildshard/engine/render/graph/presets`: `pbrMeasureGraph`
+- `@wildshard/engine/render/graph/presets`: `emissiveGraph`, `pbrMeasureGraph`, `PRESET_GRAPH_BUDGET`
 - `@wildshard/engine/render/graphBackend`: `GraphCompiler`, `loadGraphBackend`, `loadGraphCompiler`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
 - `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
@@ -2174,7 +2174,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`
 - `@wildshard/engine/world/Terrain`: `Terrain`
 - `@wildshard/engine/world/terrainField`: `buildTerrain`, `landscapeHash`
-- `@wildshard/engine/world/terrainHeight`: `setTerrainHeight`, `setTerrainPlacement`, `terrainHeight`, `terrainNormal`, `terrainWaterLevel`
+- `@wildshard/engine/world/terrainHeight`: `setTerrainDatum`, `setTerrainHeight`, `setTerrainPlacement`, `terrainDatum`, `terrainHeight`, `terrainNormal`, `terrainWaterLevel`
 - `@wildshard/engine/world/terrainTileData`: `decodeTerrainTile`, `encodeTerrainTile`, `isTerrainTileData`, `terrainTileCost`, `TerrainTileData`, `terrainTileHeight`
 - `@wildshard/engine/world/terrainTileView`: `installTerrainTile`, `maskTerrainTile`
 - `@wildshard/engine/world/TreeFactory`: `FadeBand`, `forestFade`, `patchFade`, `patchWind`, `TreeFactory`, `TreeMaterial`, `TreeVariant`, `windUniforms`
@@ -2189,7 +2189,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-526 exports, grouped by the module to import them from.
+529 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2213,7 +2213,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHome`, `LiveGridHost`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
 - `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preflightGridReload`, `preparePageResidency`, `validatePlannedGridReload`
 - `@wildshard/game/grid/reloadBoot`: `consumeGridReloadBoot`, `GridReloadBoot`, `installPlannedGridReload`, `plannedGridReload`
-- `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `reframeGridUnit`
+- `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `installGridTravellerCombat`, `reframeGridUnit`
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
 - `@wildshard/game/grid/wallet`: `GridLoadout`, `GridWallet`, `installGridLoadout`, `stowGridEquipment`, `stowGridMount`
@@ -2226,7 +2226,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/loot/Owned`: `CosmeticId`, `isCosmetic`, `isOwnedId`, `Owned`, `OWNED`, `OwnedId`, `OwnedKind`
 - `@wildshard/game/loot/runtime`: `installLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
 - `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
-- `@wildshard/game/loot/ui/ShopPanel`: `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
+- `@wildshard/game/loot/ui/ShopPanel`: `ShopCost`, `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopSlate`, `ShopState`
 - `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`
 - `@wildshard/game/Progress`: `Progress`, `ProgressRow`, `ProgressSink`
 - `@wildshard/game/quest/declared`: `createQuestScriptPorts`, `DeclaredQuests`, `DialogueView`, `QuestDataPorts`, `QuestScriptBindings`, `QuestScriptPorts`

@@ -8052,9 +8052,21 @@
         "from": "@wildshard/engine/render/frameCounter"
       },
       {
+        "name": "emissiveGraph",
+        "kind": "function",
+        "doc": "The emissive family as a graph preset (unlit): tint × colour map × vertex colours, through the tube when it has one,",
+        "from": "@wildshard/engine/render/graph/presets"
+      },
+      {
         "name": "pbrMeasureGraph",
         "kind": "function",
         "doc": "The PBR family with a measure layer as a graph preset: the same uniforms the family's patch declares (as params), the",
+        "from": "@wildshard/engine/render/graph/presets"
+      },
+      {
+        "name": "PRESET_GRAPH_BUDGET",
+        "kind": "const",
+        "doc": "the ceilings a built-in preset compiles under (`compileGraph(preset, { budget: PRESET_GRAPH_BUDGET })`)",
         "from": "@wildshard/engine/render/graph/presets"
       },
       {
@@ -11980,6 +11992,12 @@
         "from": "@wildshard/engine/world/terrainField"
       },
       {
+        "name": "setTerrainDatum",
+        "kind": "function",
+        "doc": "Bind the level's vertical datum (its terrain field's `datum`: a level shifted up or down at runtime, 0 for every level",
+        "from": "@wildshard/engine/world/terrainHeight"
+      },
+      {
         "name": "setTerrainHeight",
         "kind": "function",
         "doc": "",
@@ -11989,6 +12007,12 @@
         "name": "setTerrainPlacement",
         "kind": "function",
         "doc": "",
+        "from": "@wildshard/engine/world/terrainHeight"
+      },
+      {
+        "name": "terrainDatum",
+        "kind": "function",
+        "doc": "How far the level's world is shifted vertically at runtime (Driftwood's G164 drop with its hybrid row ON: −0.8). Readers",
         "from": "@wildshard/engine/world/terrainHeight"
       },
       {
@@ -13128,6 +13152,12 @@
         "from": "@wildshard/game/grid/rules"
       },
       {
+        "name": "installGridTravellerCombat",
+        "kind": "function",
+        "doc": "Hit-delivery permission for one authoritative world. The traveller's geometric cell owns combat, independently",
+        "from": "@wildshard/game/grid/rules"
+      },
+      {
         "name": "reframeGridUnit",
         "kind": "function",
         "doc": "Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection.",
@@ -13446,6 +13476,12 @@
         "from": "@wildshard/game/loot/tables"
       },
       {
+        "name": "ShopCost",
+        "kind": "interface",
+        "doc": "one thing a bartered good takes, as its line reads (\"2 deer hides (3)\": the trailing count is what the buyer holds)",
+        "from": "@wildshard/game/loot/ui/ShopPanel"
+      },
+      {
         "name": "ShopGood",
         "kind": "interface",
         "doc": "",
@@ -13464,9 +13500,15 @@
         "from": "@wildshard/game/loot/ui/ShopPanel"
       },
       {
+        "name": "ShopSlate",
+        "kind": "interface",
+        "doc": "a Classic look other than the flip deck: every good a row on a chalk slate, under a kicker and a hand-lettered title",
+        "from": "@wildshard/game/loot/ui/ShopPanel"
+      },
+      {
         "name": "ShopState",
         "kind": "type",
-        "doc": "",
+        "doc": "'full': the buyer has no room for what the good gives (a full quiver)",
         "from": "@wildshard/game/loot/ui/ShopPanel"
       },
       {

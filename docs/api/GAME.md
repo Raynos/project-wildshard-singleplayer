@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-526 members; 113 without a doc line (—).
+529 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -126,6 +126,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GridTravelUnit` | interface | @wildshard/game/grid/rules | Prepared crossing keeps the stable destination id and all member poses; the physics owner commits motors together. |
 | `gridZone` | function | @wildshard/game/grid/rules | Distance from a cell's centre classifies its interior, easing strip and shared highway deck. |
 | `installGridHoverSpeed` | function | @wildshard/game/grid/rules | Install the live deck/strip cap and restore the previous port when this residency scope leaves. |
+| `installGridTravellerCombat` | function | @wildshard/game/grid/rules | Hit-delivery permission for one authoritative world. The traveller's geometric cell owns combat, independently |
 | `reframeGridUnit` | function | @wildshard/game/grid/rules | Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection. |
 | `GridResident` | interface | @wildshard/game/grid/simulation | Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates. |
 | `GridSimLease` | interface | @wildshard/game/grid/simulation | Narrow adapter to the session's one residency allocator; bytes are charged only once. |
@@ -179,10 +180,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LootTableRow` | interface | @wildshard/game/loot/tables | — |
 | `registerLootTable` | function | @wildshard/game/loot/tables | Authored rewards resolve against the active resident; unscoped rows support pure content tools. |
 | `rollLoot` | function | @wildshard/game/loot/tables | — |
+| `ShopCost` | interface | @wildshard/game/loot/ui/ShopPanel | one thing a bartered good takes, as its line reads ("2 deer hides (3)": the trailing count is what the buyer holds) |
 | `ShopGood` | interface | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopOpts` | interface | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopPanel` | class | @wildshard/game/loot/ui/ShopPanel | — |
-| `ShopState` | type | @wildshard/game/loot/ui/ShopPanel | — |
+| `ShopSlate` | interface | @wildshard/game/loot/ui/ShopPanel | a Classic look other than the flip deck: every good a row on a chalk slate, under a kicker and a hand-lettered title |
+| `ShopState` | type | @wildshard/game/loot/ui/ShopPanel | 'full': the buyer has no room for what the good gives (a full quiver) |
 | `NewGameProgress` | interface | @wildshard/game/newGame | Detached before/after progress for the Settings confirmation. Null quest counts mean legacy flags exist without a declared quest catalogue. |
 | `NewGameQuest` | interface | @wildshard/game/newGame | Optional quest identities let an unloaded shard's card count completion from its legacy flags without executing its runtime. |
 | `NewGameSummary` | interface | @wildshard/game/newGame | A reset affects one stable instance. The kept categories include legacy shard feat progress as well as the profile ledger. |

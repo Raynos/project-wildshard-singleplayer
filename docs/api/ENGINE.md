@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2066 members; 831 without a doc line (—).
+2070 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1347,7 +1347,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `installFrameCounter` | function | @wildshard/engine/render/frameCounter | Start counting this renderer's renders (createRenderer does it for the game's renderer). Idempotent. It wraps |
 | `renderCount` | function | @wildshard/engine/render/frameCounter | How many times this renderer has rendered (`renderer.render()` calls, not draws). Read it where three's |
 | `Renders` | type | @wildshard/engine/render/frameCounter | what the counter needs of a renderer (the game's `Renderer`, or a test's stand-in) |
+| `emissiveGraph` | function | @wildshard/engine/render/graph/presets | The emissive family as a graph preset (unlit): tint × colour map × vertex colours, through the tube when it has one, |
 | `pbrMeasureGraph` | function | @wildshard/engine/render/graph/presets | The PBR family with a measure layer as a graph preset: the same uniforms the family's patch declares (as params), the |
+| `PRESET_GRAPH_BUDGET` | const | @wildshard/engine/render/graph/presets | the ceilings a built-in preset compiles under (`compileGraph(preset, { budget: PRESET_GRAPH_BUDGET })`) |
 | `GraphCompiler` | interface | @wildshard/engine/render/graphBackend | the graph compiler's entry points, once its chunk has loaded |
 | `loadGraphBackend` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer (once; later calls return the same handler) |
 | `loadGraphCompiler` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer, then load the material graph compiler (`graph/compile.ts`, |
@@ -2001,8 +2003,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Terrain` | class | @wildshard/engine/world/Terrain | — |
 | `buildTerrain` | function | @wildshard/engine/world/terrainField | — |
 | `landscapeHash` | function | @wildshard/engine/world/terrainField | A 32-bit fingerprint of a height field: FNV-1a over `heightAt` sampled on a 16 × 16 grid across the |
+| `setTerrainDatum` | function | @wildshard/engine/world/terrainHeight | Bind the level's vertical datum (its terrain field's `datum`: a level shifted up or down at runtime, 0 for every level |
 | `setTerrainHeight` | function | @wildshard/engine/world/terrainHeight | — |
 | `setTerrainPlacement` | function | @wildshard/engine/world/terrainHeight | — |
+| `terrainDatum` | function | @wildshard/engine/world/terrainHeight | How far the level's world is shifted vertically at runtime (Driftwood's G164 drop with its hybrid row ON: −0.8). Readers |
 | `terrainHeight` | function | @wildshard/engine/world/terrainHeight | — |
 | `terrainNormal` | function | @wildshard/engine/world/terrainHeight | — |
 | `terrainWaterLevel` | function | @wildshard/engine/world/terrainHeight | — |
