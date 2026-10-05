@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// SF57: two same-document 30-minute Simulator drives. Ask the coordinator for quiet before --run.
+// SF57: each selected production layout has a 30-minute cell drive and a separate 30-minute road-only drive.
+// --layouts=shipped runs the M2 layout; the default shipped,dev also prepares the M3 Developer evidence.
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
 // A long-lived parent retains both previews. --prepare writes its manifest and waits for <directory>/GO.
@@ -70,12 +71,14 @@ async function until(driver, expression, timeout = 240000, observe = () => Promi
 async function worker() {
   const udid = process.env.SIM_UDID;
   if (!udid) throw new Error('Run the worker inside scripts/sim-lane.sh');
-  const base = flag('base'), layout = flag('layout'), out = flag('out'), sha = flag('rev');
+  const base = flag('base'), layout = flag('layout'), out = flag('out'), sha = flag('rev'), leg = flag('leg', 'cells');
+  if (leg !== 'cells' && leg !== 'road') throw new Error('Unknown soak leg');
+  const name = `${layout}-${leg}`;
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
-  const phaseFile = join(out, `${layout}.phase`), nativeFile = join(out, `${layout}-native.jsonl`);
-  const glFile = join(out, `${layout}-gl.jsonl`), glRows = [];
+  const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
+  const glFile = join(out, `${name}-gl.jsonl`), glRows = [];
   writeFileSync(glFile, '');
-  const result = { schema: 2, purpose: 'REHEARSAL: conversions not prepared', engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, device: udid, surface: 'iPhone 17 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], leak: null };
+  const result = { schema: 2, purpose: 'REHEARSAL: conversions not prepared', engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, leg, device: udid, surface: 'iPhone 17 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], leak: null };
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
   const collectGl = async () => {
@@ -104,12 +107,13 @@ async function worker() {
     result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;w.hud.enterNow();return {href:location.href,clock:w.game.app.clock.mode,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state()};})()`);
     if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2) throw new Error('Soak must use live clock and 2x render scale');
     const cells = result.metadata.state.cells;
-    result.expected = cells.map((cell) => cell.instance);
+    result.catalogue = cells.map((cell) => cell.instance);
+    result.expected = leg === 'road' ? [] : result.catalogue;
     const catalogue = JSON.parse(execFileSync('git', ['show', `${sha}:src/game/grid/singleplayer.json`], { cwd: root, encoding: 'utf8' })).grid;
     if (layout !== 'shipped' && layout !== 'dev') throw new Error('Unknown soak layout');
     const wanted = soakCatalogue(catalogue, layout);
-    if (!validateSoakCatalogue(cells, wanted)) throw new Error(`Wrong ${layout} catalogue: ${result.expected}`);
-    result.route = soakRoute(cells);
+    if (!validateSoakCatalogue(cells, wanted)) throw new Error(`Wrong ${layout} catalogue: ${result.catalogue}`);
+    result.route = soakRoute(cells, 555, leg);
     await driver.evaluate(`window.__wildshard.pose({name:'sf57.initial-road',x:277.5,y:2,z:0,yaw:0});true`);
     phase('baseline-0'); await measuredWait(10);
     const initialStart = Date.now() / 1000; await measuredWait(10);
@@ -163,18 +167,20 @@ async function worker() {
   });
   result.grade = gradeSoak({ samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
-    expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal: true });
+    expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal: true, leg });
   result.nativeSummary = native.find((row) => row.type === 'summary');
   result.glFile = glFile; result.glSamples = glRows.length; result.nativeFile = nativeFile; result.sampleCount = samples.length;
-  writeFileSync(join(out, `${layout}.json`), `${JSON.stringify(result, null, 2)}\n`);
+  writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
   console.log(JSON.stringify({ layout, ...result.grade, failure: result.failure }));
 }
 async function drivePrepared(manifest) {
   const { sha, out, bases } = manifest;
   while (!existsSync(join(out, 'GO'))) await sleep(1000);
   for (const { layout, base } of bases) {
-    await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', '40', `sf57-sp-x1-${layout}-${process.pid}`, process.execPath, import.meta.filename,
-      '--worker', `--base=${base}`, `--layout=${layout}`, `--out=${out}`, `--rev=${sha}`], { cwd: out, echo: true });
+    for (const leg of ['cells', 'road']) {
+      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', '40', `sf57-sp-x1-${layout}-${process.pid}`, process.execPath, import.meta.filename,
+        '--worker', `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`], { cwd: out, echo: true });
+    }
   }
   console.log(`SF57 DONE ${out}`);
 }
@@ -195,8 +201,10 @@ async function prepare() {
   const sha = execFileSync('git', ['rev-parse', flag('rev', 'origin/main')], { cwd: root, encoding: 'utf8' }).trim();
   const out = resolvePath(flag('out', `/private/tmp/claude-501/sp-builders/sp-x1/sf57-${process.pid}`)); mkdirSync(out, { recursive: true });
   const bases = [], manifest = { sha, out, bases };
+  const layouts = flag('layouts', 'shipped,dev').split(',');
+  if (layouts.length === 0 || new Set(layouts).size !== layouts.length || layouts.some((layout) => layout !== 'shipped' && layout !== 'dev')) throw new Error('Select shipped and/or dev layouts');
   try {
-    for (const layout of ['shipped', 'dev']) {
+    for (const layout of layouts) {
       const base = await run(join(root, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `sf57-${layout}-${process.pid}`, '--hours', '3'],
         { cwd: out, env: { ...process.env, CLAUDE_CODE_SESSION_ID: `sf57-${layout}-${process.pid}`, SERVE_BUILD_DIR: join(out, 'serve') } });
       const version = await (await fetch(`${base}version.json`)).json();
