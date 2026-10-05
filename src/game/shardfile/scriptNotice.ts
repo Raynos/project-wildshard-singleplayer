@@ -5,11 +5,14 @@
  * module and its cause ("SCRIPT DISABLED · door.wasm · out of fuel ×3"). Module names are author data: the HUD sets both
  * lines through textContent only.
  */
-import type { ScriptDisabled } from '@wildshard/engine/script/host';
+import type { ShardScriptPorts } from './scripts';
 import { GAME_STRINGS } from '../strings';
 
 /** The HUD ports the notice uses (the page HUD's `toast(text, 'warn')` and `devAlert`). */
 export interface ScriptNoticePorts { toast: (text: string) => void; devAlert: (text: string) => void }
+
+/** What the host reports for a module it switched off (the engine's `ScriptDisabled`, read through the format's ports). */
+type ScriptDisabled = Parameters<NonNullable<ShardScriptPorts['onDisabled']>>[0];
 
 const CAUSE_LENGTH = 40;
 /** The host's failure reason as the Developer strip's short cause. */
