@@ -274,17 +274,18 @@ function plainMat() {
   m.emissiveNode = vec3(float(Number(NONCE)));
   return m;
 }
+let shardfileReadout = null; // family-sf / graph-sf: what clientMaterials made of the fixture
 /**
  * family-sf / graph-sf (SF59 step 5): the boxes from an ADMITTED shardfile through the client's own path
  * (parseShardfile → clientMaterials, graphs on): a PBR family entry vs a graph entry whose tint is bound to the look's
  * `sun.colour` day key and whose roughness is bound to the public shared state `wet` (its declared default 0.8)
  */
 async function shardfileMat() {
-  const sun = [0.85, 0.6, 0.35]; // a key colour, stored linear
-  const srgb = new THREE.Color(sun[0], sun[1], sun[2]).getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+  const keySun = [0.85, 0.6, 0.35]; // a key colour, stored linear
+  const srgb = new THREE.Color(keySun[0], keySun[1], keySun[2]).getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
   const base = emptyShardfile({ slug: 'graph-fixture', name: 'Graph fixture', author: 'Local', seed: 1, revision: 1 });
   base.state.shared.push({ id: 1, name: 'wet', type: 'f64', privacy: 'public', default: 0.8 });
-  const key = { time: 0.5, sky: { zenith: [0.1, 0.2, 0.4], horizon: [0.6, 0.7, 0.8] }, fog: { colour: [0.5, 0.5, 0.5], density: 0.004 }, sun: { colour: sun, intensity: 2.6 }, ambient: { sky: [1, 1, 1], ground: [0, 0, 0], intensity: 0.9 } };
+  const key = { time: 0.5, sky: { zenith: [0.1, 0.2, 0.4], horizon: [0.6, 0.7, 0.8] }, fog: { colour: [0.5, 0.5, 0.5], density: 0.004 }, sun: { colour: keySun, intensity: 2.6 }, ambient: { sky: [1, 1, 1], ground: [0, 0, 0], intensity: 0.9 } };
   const box = VARIANT === 'graph-sf'
     ? { family: 'graph', graph: { version: 1, kind: 'material', model: 'standard',
       params: { tint: { type: 'colour', value: [1, 1, 1], bind: { day: 'sun.colour' } }, wet: { type: 'float', value: 0, min: 0, max: 1, bind: { state: 'shared.wet' } } },
@@ -299,7 +300,6 @@ async function shardfileMat() {
   shardfileReadout = { ...look.graphs.readout, material: material.type };
   return material;
 }
-let shardfileReadout = null;
 const boxMat = SHARDFILE ? await shardfileMat() : VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
 if (!tsl && VARIANT !== 'warmup') {
   patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
