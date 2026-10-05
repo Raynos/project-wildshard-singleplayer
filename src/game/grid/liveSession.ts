@@ -19,19 +19,19 @@
  *   walls until M3.
  */
 import { Vector3, type PerspectiveCamera } from 'three';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
-import { floorBelow } from '@wildshard/engine/physics/query';
+import { castRay, floorBelow } from '@wildshard/engine/physics/query';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { createSimHost, SIM_API_VERSION, type SimLevel } from '@wildshard/engine/sim';
 import { restoreSimHost } from '@wildshard/engine/sim/snapshot';
-import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
+import { installStripCollider, PLATFORM_COLLIDER_OWNER } from '@wildshard/engine/physics/stripColliders';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/physics/gridBorders';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
@@ -74,6 +74,8 @@ export interface LiveGridPage {
   readonly saves: SaveStore;
   /** Flush the page's real progress/loadout owner; storage refusal must hold the source frame. */
   readonly checkpoint: () => boolean;
+  /** The home runtime's resolved higher fall floor; neighbour floors come from their own declarations. */
+  readonly homeFallFloor?: number;
   /** Profile rewards are restricted to the platform's admitted catalogue. */
   readonly catalogue: readonly LedgerCatalogueItem[];
   /** switch the page's stepped world (world.physics and app.physics) */
@@ -213,7 +215,19 @@ export class LiveGridSession {
       this.live.afterPlayerStep();
       const feet = this.live.worldFeet();
       const cell = assembly.at(feet.x, feet.z);
-      this.road.observe(feet, traveller.yaw, traveller.onGround === true, cell === undefined ? undefined : this.respawnCells.get(cell.instance));
+      const recoveryCell = cell === undefined ? undefined : this.respawnCells.get(cell.instance);
+      const p = traveller.position;
+      const hit = traveller.onGround === true ? castRay(this.framePhysics, { x: p.x, y: p.y + 0.6, z: p.z }, { x: 0, y: -1, z: 0 }, 1.35, ['WORLD'], traveller.motor.collider) : null;
+      const grounded = hit !== null && Math.abs(hit.point.y - p.y) <= 0.75;
+      // Shared strips/aprons never establish a shard checkpoint. The declared 8x15 asphalt socket does.
+      const entry = recoveryCell?.entryways.some(({ edge, width }) => {
+        const axis = edge === 'east' || edge === 'west' ? 'x' : 'z', along = axis === 'x' ? 'z' : 'x';
+        const sign = edge === 'east' || edge === 'north' ? 1 : -1;
+        const depth = CHUNK_HALF - sign * (feet[axis] - recoveryCell.origin[axis]);
+        return depth >= 0 && depth <= ENTRY_ASPHALT && Math.abs(feet[along] - recoveryCell.origin[along]) <= width / 2;
+      }) === true;
+      const shardGround = grounded && cell?.instance === this.live.current() && (hit.owner !== PLATFORM_COLLIDER_OWNER || entry);
+      this.road.observe(feet, traveller.yaw, grounded, recoveryCell, shardGround);
       if (++saveTicks >= 300) { saveTicks = 0; this.checkpoint(); }
     });
     page.onInput(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
@@ -383,6 +397,21 @@ export class LiveGridSession {
     if (current === null) return { x: p.x, y: 0.5, z: p.z, yaw: this.page.traveller.yaw };
     return this.regions.get(current)?.spawn ?? { x: 0, y: undefined, z: 0, yaw: 0 };
   }
+  /** The geometric region's kill floor, independent of the 6/10 m motor-frame hysteresis. */
+  fallFloor(): number {
+    const feet = this.worldFeet(), cell = this.ports.assembly.at(feet.x, feet.z);
+    if (cell === undefined) return -60;
+    const declared = cell.instance === this.ports.home.instance ? this.page.homeFallFloor : findShard(cell.slug)?.bounds?.floor;
+    return Math.max(-CHUNK_HALF, declared ?? -CHUNK_HALF);
+  }
+
+  /** Named home checkpoints apply only after its genuine entry, never while road recovery owns the fall. */
+  ownsHomeRecovery(): boolean {
+    const feet = this.worldFeet();
+    return this.road.target() === null && this.live.current() === this.ports.home.instance
+      && this.ports.assembly.at(feet.x, feet.z)?.instance === this.ports.home.instance;
+  }
+
   /** The active frame's identity (the home instance, a region, or null for the highway). */
   frame(): string | null { return this.live.current(); }
 

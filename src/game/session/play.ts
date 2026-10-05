@@ -129,10 +129,9 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const respawn = () => { toSpawn(); music.sting('death'); };
   // in the grid every frame has fall recovery (a level without authored bounds, Driftwood, gets the grid's fall floor; the horizontal check is the grid's)
   const GRID_FALL_FLOOR = -60;
-  const bounds = resolveLevelBounds(game.level.bounds, boot.runtime.hooks) ?? (grid === null ? undefined : { x0: -Infinity, x1: Infinity, z0: -Infinity, z1: Infinity, floor: GRID_FALL_FLOOR });
-  installBounds(app, game.levelScope, bounds, { player, toSpawn,
-    floorAt: (x, z) => ((gridLive?.spawn() ?? null) === null ? registry.floorAt(x, z) : floorBelow(world.physics, x, z, player.position.y + 0.6, 1.2)),
-    suspended: () => world.freeCamera || world.tour.active || away(), grid: () => grid !== null, frame: () => gridLive?.frame() });
+  const authoredBounds = resolveLevelBounds(game.level.bounds, boot.runtime.hooks);
+  const bounds = authoredBounds ?? (grid === null ? undefined : { x0: -Infinity, x1: Infinity, z0: -Infinity, z1: Infinity, floor: GRID_FALL_FLOOR });
+
   let kills = 0, swimHold = false;
   const owned = new Owned(manifest.slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   const playerHealth = new PlayerHealth(app.events, {
@@ -142,10 +141,15 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     impulse: (velocity) => player.impulse(velocity),
   });
   app.registerPlayer(playerHealth, game.levelScope);
+  installBounds(app, game.levelScope, bounds, { player,
+    toSpawn: () => { if (gridLive === null) toSpawn(); else app.combat.fall(playerHealth, player.position, { kind: 'out-of-world', label: '' }); },
+    fallFloor: () => gridLive?.fallFloor() ?? bounds?.floor ?? GRID_FALL_FLOOR,
+    floorAt: (x, z) => ((gridLive?.spawn() ?? null) === null ? registry.floorAt(x, z) : floorBelow(world.physics, x, z, player.position.y + 0.6, 1.2)),
+    suspended: () => world.freeCamera || world.tour.active || away() || (grid !== null && player.carried), grid: () => grid !== null, frame: () => gridLive?.frame() });
   // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
   // The installed play owner confirms its progress and pack writes; source clients supply their own durable handoff.
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
-    saves: app.saves, checkpoint: legacyHomeCheckpoint(() => boot.runtime.play), catalogue: [],
+    saves: app.saves, ...(authoredBounds === undefined ? {} : { homeFallFloor: authoredBounds.floor }), checkpoint: legacyHomeCheckpoint(() => boot.runtime.play), catalogue: [],
     setPhysics: (physics) => { world.physics = physics; app.physics = physics; },
     onFixedPre: (fn) => { game.onFixed('pre', fn, 'game.grid.live.pre'); }, onFixedPost: (fn) => { game.onFixed('post', fn, 'game.grid.live.post'); },
     onInput: (fn) => { game.onInput(fn, 'game.grid.origin.restore'); }, onUpdate: (fn) => { game.onUpdate(fn, 'game.grid.origin'); } }) ?? null;
@@ -354,6 +358,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       if (since < 0.25) return;
       since = 0;
       if (deathFade.active || !hud.entered || world.freeCamera || world.tour.active || away() || practiceRoom.open) return; // a practice room is never the checkpoint (E321)
+      if (gridLive !== null && !gridLive.ownsHomeRecovery()) return;
       const p = player.position, ph = app.physics;
       const floor = ph ? floorBelow(ph, p.x, p.z, p.y + 0.6, 1.2) : undefined; // real walkable footing under the feet
       const grounded = floor !== undefined && Math.abs(floor - p.y) < 0.3 && player.onGround && !player.swimming && !player.wading && !player.hover
@@ -362,7 +367,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     }, 'last place');
   }
   const die = (by: DeathCause | undefined): void => {
-    const stand = lastPlace?.stand ?? null;
+    const stand = gridLive !== null && !gridLive.ownsHomeRecovery() ? null : lastPlace?.stand ?? null;
     music.sting('death');
     player.carried = true; weapons.setEnabled(false); // frozen: the fixed step leaves the body alone, no swing / shot
     deathFade.play(deathCause(by ?? null), respawnWhere(chunk, stand !== null && stand.id !== 'pier' ? placeName(stand.label) : null, app.levelRegistrations.findText('respawn.default', game.levelScope)), {
@@ -375,7 +380,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     active: () => app.player === playerHealth, position: () => player.position,
     died: (cause, checkpoint) => {
       audio.death(); hud.damageFlash();
-      if (!checkpoint) die(cause);
+      if (!checkpoint || (gridLive?.spawn() ?? null) !== null) die(cause);
     },
   });
   // ── first-time control hints (E308, src/engine/ui/FirstHints.ts: every shard's one system; after main's onJump / onDodge, which

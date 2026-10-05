@@ -4,7 +4,7 @@ import { RoadRecovery, onRoad, type RoadRecoveryCell } from '../src/game/grid/ro
 import { CHUNK_HALF } from '../src/engine/core/config';
 
 const grid = new GridAssembly({ developer: false, devserver: false });
-const cell: RoadRecoveryCell = { instance: 'fixture', origin: { x: 555, z: 0 }, entryways: [{ edge: 'west', width: 6 }] };
+const cell: RoadRecoveryCell = { instance: 'fixture', origin: { x: 555, z: 0 }, entryways: [{ edge: 'west', width: 8 }] };
 
 it('resumes on the road without transferring grounded time or ownership through a shallow fence hop', () => {
   const road = new RoadRecovery(grid), point = { x: 281.1, z: 40, yaw: 1.2 };
@@ -46,7 +46,7 @@ it('keeps the road lane through a fence hop until five seconds at least twenty m
 
 it('hands respawn to each declared midpoint entry immediately on a grounded walked crossing, including hover height', () => {
   for (const edge of ['north', 'south', 'east', 'west'] as const) {
-    const road = new RoadRecovery(grid), target: RoadRecoveryCell = { instance: edge, origin: { x: 0, z: 0 }, entryways: [{ edge, width: 6 }] };
+    const road = new RoadRecovery(grid), target: RoadRecoveryCell = { instance: edge, origin: { x: 0, z: 0 }, entryways: [{ edge, width: 8 }] };
     road.observe({ x: 277.5, y: 0, z: 40 }, 0, true);
     const sign = edge === 'north' || edge === 'east' ? 1 : -1, axis = edge === 'north' || edge === 'south' ? 'z' : 'x';
     const before = { x: 0, y: 0.45, z: 0 }, after = { ...before };
@@ -61,7 +61,7 @@ it('refuses an airborne entry, a high fence hop, a teleport, an undeclared openi
   for (const variant of ['air', 'high', 'teleport', 'missing', 'wide']) {
     const road = new RoadRecovery(grid);
     road.observe({ x: 277.5, y: 0, z: 40 }, 0.2, true);
-    const before = { x: 555 - CHUNK_HALF - 0.5, y: variant === 'high' ? 3 : 0, z: variant === 'wide' ? 3.01 : 0 };
+    const before = { x: 555 - CHUNK_HALF - 0.5, y: variant === 'high' ? 3 : 0, z: variant === 'wide' ? 4.01 : 0 };
     road.observe(before, 0, variant !== 'air');
     road.observe({ ...before, x: variant === 'teleport' ? 555 - CHUNK_HALF + 30 : 555 - CHUNK_HALF + 0.5 }, 0, variant !== 'air', variant === 'missing' ? { ...cell, entryways: [] } : cell);
     expect(road.target()).toEqual({ x: 281.1, z: 40, yaw: 0.2 });

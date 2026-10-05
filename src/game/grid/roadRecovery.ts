@@ -63,15 +63,15 @@ export class RoadRecovery {
   private previous: { x: number; y: number; z: number; grounded: boolean } | undefined;
   constructor(grid: RoadGrid) { this.grid = grid; }
 
-  /** Once per 60 Hz fixed step: world feet, actual ground contact, and the containing cell's admitted openings. */
-  observe(feet: { readonly x: number; readonly y: number; readonly z: number }, yaw: number, grounded: boolean, cell?: RoadRecoveryCell): void {
+  /** Once per 60 Hz fixed step: world feet, ground contact, admitted openings, and contact with that shard's own ground. */
+  observe(feet: { readonly x: number; readonly y: number; readonly z: number }, yaw: number, grounded: boolean, cell?: RoadRecoveryCell, shardGround = grounded): void {
     const previous = this.previous; this.previous = { ...feet, grounded };
     if (cell !== undefined) {
       if (this.candidate !== cell.instance) { this.candidate = cell.instance; this.groundTicks = 0; if (this.owner !== cell.instance) this.owner = null; }
       if (this.owner === cell.instance) return;
       if (grounded && previous?.grounded === true && throughEntry(previous, feet, cell)) { this.owner = cell.instance; return; }
       const depth = CHUNK_HALF - Math.max(Math.abs(feet.x - cell.origin.x), Math.abs(feet.z - cell.origin.z));
-      this.groundTicks = grounded && depth >= 20 ? this.groundTicks + 1 : 0;
+      this.groundTicks = shardGround && depth >= 20 ? this.groundTicks + 1 : 0;
       if (this.groundTicks >= 300) this.owner = cell.instance;
       return;
     }
