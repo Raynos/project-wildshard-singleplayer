@@ -46,6 +46,7 @@
     "@fontsource/rajdhani": "5.3.0",
     "@sentry/browser": "11.0.0",
     "@vercel/blob": "2.8.0",
+    "@wildshard/commons": "workspace:*",
     "@wildshard/engine": "workspace:*",
     "@wildshard/game": "workspace:*",
     "@wildshard/kit": "workspace:*",

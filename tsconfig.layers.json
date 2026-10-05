@@ -9,6 +9,7 @@
     { "path": "./tsconfig.game.json" },
     { "path": "./tsconfig.kit.json" },
     { "path": "./tsconfig.sdk.json" },
+    { "path": "./tsconfig.commons.json" },
     { "path": "./tsconfig.shards.json" }
   ]
 }

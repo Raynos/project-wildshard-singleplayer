@@ -13,7 +13,7 @@ import ts from '@typescript/typescript6';
 
 const ROOT = resolve(import.meta.dirname, '..');
 // E434: no index files; a package's public surface is every module its package.json `exports` lists
-const PACKAGES = ['engine', 'game', 'kit', 'sdk'];
+const PACKAGES = ['engine', 'game', 'kit', 'sdk', 'commons'];
 const modulesOf = (root, layer) => Object.entries(JSON.parse(readFileSync(resolve(root, `src/${layer}/package.json`), 'utf8')).exports ?? {})
   .filter(([, target]) => typeof target === 'string').map(([subpath, target]) => ({ specifier: `@wildshard/${layer}/${subpath.slice(2)}`, file: `src/${layer}/${target.slice(2)}` }));
 const CONTEXTS = { LevelContext: 'src/engine/level/context.ts', ShardContext: 'src/game/shard/context.ts' };
@@ -84,6 +84,7 @@ export function pages(surface) {
     'docs/api/GAME.md': renderPage('@wildshard/game', 'The game layer\'s public modules (src/game/package.json `exports`).', surface.indexes.game, true),
     'docs/api/KIT.md': renderPage('@wildshard/kit', 'The kit\'s public modules (src/kit/package.json `exports`): reusable content.', surface.indexes.kit, true),
     'docs/api/SDK.md': renderPage('@wildshard/sdk', 'The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.', surface.indexes.sdk, true),
+    'docs/api/COMMONS.md': renderPage('@wildshard/commons', 'Build-time packs and catalogue (src/commons/package.json `exports`); no commons code executes in the game.', surface.indexes.commons, true),
     'docs/api/SHARD-CONTEXT.md': renderPage('ShardContext', 'What a shard\'s plugin receives (src/game/shard/context.ts, over the engine\'s LevelContext).', surface.contexts.ShardContext, true),
   };
 }

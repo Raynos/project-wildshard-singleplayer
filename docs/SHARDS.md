@@ -1,5 +1,7 @@
 # How to write a shard
 
+Shared build-time packs use the [commons catalogue](COMMONS.md); runtime imports cannot reach commons code.
+
 SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`, `quests/`,
 `assets/` and optional trusted transition `runtime/`. A pure shardfile project requires
 `shard.config.ts` and `README.md`; it does not require `plugin.ts`. The template is a complete declaration-only SDK project. Its manifest supplies picker

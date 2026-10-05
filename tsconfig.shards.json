@@ -8,6 +8,6 @@
     "outDir": ".tsc-layers/shards",
     "tsBuildInfoFile": ".tsc-layers/shards.tsbuildinfo"
   },
-  "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.kit.json" }, { "path": "./tsconfig.sdk.json" }],
+  "references": [{ "path": "./tsconfig.engine.json" }, { "path": "./tsconfig.game.json" }, { "path": "./tsconfig.kit.json" }, { "path": "./tsconfig.sdk.json" }, { "path": "./tsconfig.commons.json" }],
   "include": ["src/shards", "src/shards/**/*.json", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts", "src/kit/**/*.merge.d.ts"]
 }

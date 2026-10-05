@@ -26,7 +26,7 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
       }
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
       put('package.json', '{"type":"module"}'); put('tsconfig.json', '{"compilerOptions":{"strict":true,"types":[],"moduleResolution":"bundler","module":"esnext"}}');
-      for (const layer of ['engine', 'game', 'kit', 'sdk']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : {} }));
+      for (const layer of ['engine', 'game', 'kit', 'sdk', 'commons']) put(`src/${layer}/package.json`, JSON.stringify({ name: `@wildshard/${layer}`, exports: layer === 'engine' ? { './clock': './clock.ts' } : {} }));
       put('src/engine/clock.ts', '/** Authoritative time. */\nexport const tick = 1;\n');
       put('src/engine/level/context.ts', '/** Generic context. */\nexport interface LevelContext {}\n');
       put('src/game/shard/context.ts', '/** Content context. */\nexport interface ShardContext {}\n');

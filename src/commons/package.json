@@ -1,0 +1,8 @@
+{
+  "name": "@wildshard/commons",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { "./catalogue": "./catalogue.ts" },
+  "dependencies": { "@wildshard/sdk": "workspace:*" }
+}

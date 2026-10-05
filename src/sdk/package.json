@@ -29,7 +29,8 @@
     "./accent": "./accent.ts",
     "./groupBrains": "./groupBrains.ts",
     "./admission": "./admission.ts",
-    "./headless": "./headless.ts"
+    "./headless": "./headless.ts",
+    "./commons": "./commons.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -164,6 +165,10 @@
       "./headless": {
         "types": "./dist/types/sdk/headless.d.ts",
         "default": "./dist/headless.js"
+      },
+      "./commons": {
+        "types": "./dist/types/sdk/commons.d.ts",
+        "default": "./dist/commons.js"
       }
     }
   }

@@ -37,7 +37,7 @@ export function guardSnapshot(root, tree, scratch, selected) {
   };
   const targetOf = (file, source) => {
     let base;
-    const pkg = /^@wildshard\/(engine|game|kit)(?:\/(.+))?$/u.exec(source);
+    const pkg = /^@wildshard\/(engine|game|kit|sdk|commons)(?:\/(.+))?$/u.exec(source);
     if (source.startsWith('.')) base = posix.normalize(posix.join(posix.dirname(file), source));
     else if (pkg) {
       const target = exportsOf(pkg[1])[pkg[2] ? `./${pkg[2]}` : '.'];

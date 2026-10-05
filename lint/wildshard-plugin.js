@@ -18,12 +18,13 @@ import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
+import { runtimeCommonsClosure } from './commons-closure.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
  *  subpath is public (in the package's `exports`) is the `public-index` check's job; a deep one maps to its file so it
  *  is reported (it does not resolve at build time either). */
-const LAYER_PACKAGE = /^@wildshard\/(engine|game|kit|sdk)(?:\/([^?]+))?/u;
+const LAYER_PACKAGE = /^@wildshard\/(engine|game|kit|sdk|commons)(?:\/([^?]+))?/u;
 const packageTarget = (source) => {
   const m = LAYER_PACKAGE.exec(source);
   if (!m) return null;
@@ -282,9 +283,9 @@ const modulePath = (filename, source) => {
   return relative(REPO, resolve(dirname(filename), source)).replaceAll('\\', '/').replace(/^.*\/src\//u, 'src/');
 };
 const layerOf = (path) => {
-  const match = /^src\/(engine|game|kit|sdk|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|game|kit|sdk|shards)\/([^/]+)?/u.exec(path);
-  if (!match) return /^src\/[^/]+$/u.test(path) ? { name: 'app', rank: 5, slug: null } : null;
-  return { name: match[1], rank: ['engine', 'game', 'kit', 'sdk', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
+  const match = /^src\/(engine|game|kit|sdk|commons|shards)(?:\/([^/]+)?)?$/u.exec(path) ?? /^src\/(engine|game|kit|sdk|commons|shards)\/([^/]+)?/u.exec(path);
+  if (!match) return /^src\/[^/]+$/u.test(path) ? { name: 'app', rank: 6, slug: null } : null;
+  return { name: match[1], rank: ['engine', 'game', 'kit', 'sdk', 'commons', 'shards'].indexOf(match[1]), slug: match[1] === 'shards' ? match[2] : null };
 };
 const engineWords = JSON.parse(readFileSync(new URL('engine-words.json', import.meta.url), 'utf8'));
 const generatedWordsFile = new URL('shard-words.generated.json', import.meta.url);
@@ -359,11 +360,17 @@ const layerWalk = (kind) => (context) => {
     if (typeof source !== 'string' || source === '') return;
     const targetPath = modulePath(context.filename, source);
     const target = layerOf(targetPath);
+    if (kind === 'layer' && own.name === 'commons' && target && !['commons', 'sdk'].includes(target.name)) report(context, node, `Commons author tools import only the SDK: ${source}`);
+    if (kind === 'layer' && own.name === 'commons' && targetPath.startsWith('src/sdk/runtime/')) report(context, node, `Commons author tools cannot import trusted runtime code: ${source}`);
     const shardLocal = /^src\/shards\/[^/]+\/(.+)$/u.exec(pathOf(context))?.[1];
     if (kind === 'layer' && shardLocal !== undefined) {
       const runtime = shardLocal.startsWith('runtime/');
+      if (runtime) {
+        const commons = runtimeCommonsClosure(context.filename, source);
+        if (commons !== null) report(context, node, `Runtime import closure reaches build-time commons: ${commons}`);
+      }
       if (!runtime && (/^@wildshard\/sdk\/runtime(?:\/|$)/u.test(source) || targetPath.startsWith('src/sdk/runtime/'))) report(context, node, `Trusted SDK imports belong in runtime/: ${source}`);
-            if (/^@wildshard\/commons(?:\/|$)/u.test(source) && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts' && !runtime) report(context, node, `Commons packs are build-time imports: ${source}`);
+      if (target?.name === 'commons' && !/^(?:generators|data|quests)\//u.test(shardLocal) && shardLocal !== 'shard.config.ts' && !runtime) report(context, node, `Commons packs are build-time imports: ${source}`);
     }
     if (!target) {
       if (kind === 'layer' && targetPath.startsWith('src/')) report(context, node, `Import of a file outside the layers: ${source}`);
@@ -375,7 +382,7 @@ const layerWalk = (kind) => (context) => {
     const publicPath = !dynamic && (exported(source) || new RegExp(`^src/${target.name}(?:/index(?:\\.[jt]s)?)?$`, 'u').test(targetPath));
     if (target.rank > own.rank || (own.name === 'shards' && target.name === 'shards' && own.slug !== target.slug)) {
       if (kind === 'layer') report(context, node, `Layer import ${own.name} → ${target.name}: ${source}`);
-    } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'kit', 'sdk'].includes(target.name) && !publicPath) {
+    } else if (kind === 'public' && own.name !== target.name && ['engine', 'game', 'kit', 'sdk', 'commons'].includes(target.name) && !publicPath) {
       report(context, node, `Cross-layer imports use the public index: ${source}`);
     }
   };

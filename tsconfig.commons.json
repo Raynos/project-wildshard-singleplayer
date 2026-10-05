@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "outDir": ".tsc-layers/commons",
+    "tsBuildInfoFile": ".tsc-layers/commons.tsbuildinfo"
+  },
+  "references": [{ "path": "./tsconfig.sdk.json" }],
+  "include": ["src/commons/**/*.ts", "src/engine/**/*.d.ts", "src/game/**/*.merge.d.ts", "src/kit/**/*.merge.d.ts"]
+}

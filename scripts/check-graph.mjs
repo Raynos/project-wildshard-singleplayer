@@ -30,7 +30,7 @@ export function headModuleExists(path, tracked, diskExists) {
 
 /** the layer a src path belongs to: engine, game, kit, shards/<slug>, root */
 export function layerOf(path) {
-  const m = /^src\/(engine|game|kit|sdk)\//u.exec(path);
+  const m = /^src\/(engine|game|kit|sdk|commons)\//u.exec(path);
   if (m) return m[1];
   const s = /^src\/shards\/([^/]+)\//u.exec(path);
   if (s) return `shards/${s[1]}`;
@@ -40,7 +40,7 @@ export function layerOf(path) {
 /** a specifier → a repo path under src (or null for a package, an asset, or anything outside src) */
 export function resolveSpecifier(from, spec, exists) {
   let base;
-  const pkg = /^@wildshard\/(engine|game|kit|sdk)(?:\/(.+))?$/u.exec(spec); // E432: the layers' workspace packages
+  const pkg = /^@wildshard\/(engine|game|kit|sdk|commons)(?:\/(.+))?$/u.exec(spec); // E432: the layers' workspace packages
   // the #aliases are how commits before E432 spelled the same edges (the rise check reads the parent commit's graph)
   const legacy = /^#(engine|game|kit|shards)(?:\/(.+))?$/u.exec(spec);
   if (pkg) { const [, layer, sub = 'index'] = pkg; base = `src/${layer}/${sub}`; }
