@@ -11,6 +11,31 @@ import { overrideTerrain } from '../../src/engine/world/Heightfield';
 import { legacyDouble } from '../fake/FakeGame';
 import { app } from '../../src/engine/app/runtime';
 import { Scope } from '../../src/engine/app/scope';
+import { withOwner } from '../../src/engine/app/ownership';
+
+it('retires the returned page traveller after callback-owned frame teardown without leaving a capsule', async () => {
+  const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
+  const home = new Physics(rapier), next = new Physics(rapier), page = new Scope('page-frame');
+  const player = withOwner(page, () => new Player(new PerspectiveCamera(), home, legacyDouble<HTMLCanvasElement>({}),
+    { waterLine: { update: () => undefined, setHint: () => undefined } }));
+  page.onDispose(() => { player.motor.dispose(); });
+  const rider = { position: player.position, motor: player.motor };
+  try {
+    withOwner(page, () => {
+      prepareFrameMotors([rider], next, { x: -555, z: 0 }).commit(); player.bindFrame(next, rider.motor);
+      page.onDispose(() => {
+        prepareFrameMotors([rider], home, { x: 555, z: 0 }).commit(); player.bindFrame(home, rider.motor);
+        expect(next.world.colliders.len()).toBe(0); expect(home.world.colliders.len()).toBe(1);
+        next.dispose();
+      });
+    });
+    expect(home.world.colliders.len()).toBe(0); expect(next.world.colliders.len()).toBe(1);
+    page.dispose();
+    expect(home.world.bodies.len()).toBe(0); expect(home.world.colliders.len()).toBe(0);
+    expect(page.census.colliders).toBe(0); expect(page.census.disposers).toBe(0);
+    expect(() => next.world.colliders.len()).toThrow();
+  } finally { page.dispose(); home.dispose(); }
+});
 
 it('keeps the same live player and travel state while committing a controller in another real world', async () => {
   const rapier = await loadRapier(new Uint8Array(readFileSync('public/assets/physics/rapier.wasm')).buffer);

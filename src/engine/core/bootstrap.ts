@@ -105,6 +105,8 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   installPhysicsDebug(physics, game.scene, params);
 
   const player = new Player(game.camera, physics, canvas);
+  // Later frame owners return the traveller first (LIFO); retire its latest controller, rather than the boot capsule.
+  game.levelScope.onDispose(() => { player.motor.dispose(); });
   if (inputContexts.length > 0) installGameplayInput(player, canvas, game.levelScope, inputContexts);
   app.input.buffer.ms = level.fight.input?.bufferMs ?? 120;
   player.coyoteMs = level.fight.input?.coyoteMs ?? 100;
