@@ -55,6 +55,7 @@ export class EliteBar {
   private ban: HTMLElement; private banName: HTMLElement;
   private chev: HTMLElement;
   private skullLayer: HTMLElement | null = null; private skullEls: HTMLElement[] = [];
+  private active = true;
   /** the skull layer's half-width, measured when it resizes, and what each skull was last written (E142 aggro-perf:
    *  skulls() ran every frame and read clientWidth after the frame's HUD writes — a forced layout per frame) */
   private skullR = -1; private skullLast: string[] = [];
@@ -91,6 +92,12 @@ export class EliteBar {
     this.bar.classList.add('show');
   }
   hide(): void { this.bar.classList.remove('show', 'pinned', 'offscreen', 'beat', 'broken', 'occluded', 'dim'); this.mode = 'head'; }
+
+  /** Park separately mounted minimap marks while their resident encounter is inactive. */
+  setActive(on: boolean): void {
+    this.active = on;
+    if (this.skullLayer !== null) this.skullLayer.hidden = !on;
+  }
 
   set(frac: number, mode: 'head' | 'pinned', head: THREE.Vector3 | null, camera: THREE.PerspectiveCamera, beat: boolean, broken = false, occluded = false): void {
     const f = Math.max(0, Math.min(1, frac));
@@ -164,6 +171,7 @@ export class EliteBar {
       const mini = document.querySelector('.ws-minimap');
       if (!(mini instanceof HTMLElement)) return;
       this.skullLayer = document.createElement('div'); this.skullLayer.className = 'ws-elite-skulls';
+      if (!this.active) this.skullLayer.hidden = true;
       mountUi(this.skullLayer, this.scope, mini);
       const layer = this.skullLayer;
       const resize = new ResizeObserver(() => { this.skullR = layer.clientWidth / 2; }); resize.observe(layer);

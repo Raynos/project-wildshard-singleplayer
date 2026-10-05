@@ -41,6 +41,21 @@ export function installEnteredRuntimeUpdate(context: ShardContext, spec: Paramet
   context.system({ ...spec, run: (dt) => { time += dt; spec.run(dt, time); } });
 }
 
+/** Keep a resident HUD root's exact slot while detaching it outside the entered home. */
+export function installEnteredRuntimeAttachment(context: ShardContext, root: HTMLElement): void {
+  if (!retainsRuntimeServices(context)) throw new Error('Entered attachment needs a retained context');
+  const parent = root.parentNode;
+  if (parent === null) throw new Error('Entered attachment needs a mounted root');
+  const anchor = root.ownerDocument.createComment('runtime.entered');
+  root.before(anchor);
+  context.scope.onDispose(() => { anchor.remove(); });
+  installEnteredRuntimeService(context, (scope) => {
+    if (anchor.parentNode !== parent) throw new Error('Entered attachment lost its resident slot');
+    anchor.after(root);
+    scope.onDispose(() => { root.remove(); });
+  });
+}
+
 /** Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor. */
 export function installEnteredRuntimeObserver(context: ShardContext, name: string, observer: object): void {
   installEnteredRuntimeService(context, (scope) => {

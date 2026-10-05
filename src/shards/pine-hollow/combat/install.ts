@@ -36,7 +36,7 @@ import { AntlerKing, KING_KIND } from '../runtime/antlerKing';
 import { registerPineLap } from '../dev/perfLap';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { installPineCombatCallbacks, installPineCombatObservers } from '../runtime/combatService';
+import { installPineCombatAttachments, installPineCombatCallbacks, installPineCombatObservers } from '../runtime/combatService';
 
 /**
  * Pine Hollow's fights, wired in one call (PINE-HOLLOW-REMASTER: PH-C3 the four named elites, PH-C2 the Antler King,
@@ -128,7 +128,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   // ── the elites ──
   swapRolledElites(animals);
   const condition = (rule: EliteRule): boolean => rule === 'always' || (rule === 'dusk' ? ctx.dusk() > 0.5 : rule === 'night' ? ctx.night() > 0.5 : false);
-  const elites = new Elites({
+  const eliteHost: ConstructorParameters<typeof Elites>[0] = {
     scene: game.scene, camera: game.camera, renderer: game.renderer, player, condition,
     addInteractable: (it) => { h.interactables.push(it); },
     removeInteractable: (it) => { const i = h.interactables.indexOf(it); if (i !== -1) h.interactables.splice(i, 1); },
@@ -138,7 +138,8 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     ownSkin: (id) => { if (id in SKINS) ctx.ownSkin(id as keyof typeof SKINS); },
     // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
     canSee: (from, to) => { const ph = app.physics; return ph === null || lineOfSight(ph, from, to, 0.6); },
-  }, new EliteBar(), 'pine-hollow');
+  };
+  const eliteUi = new EliteBar(), elites = new Elites(eliteHost, eliteUi, 'pine-hollow');
   const pineElites = makePineElites(ctx, elites);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
@@ -151,6 +152,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     setWeaponsEnabled: (on) => { introLock = !on; legs(); weapons.setEnabled(on); },
     pickupHum: (on) => { h.audio.pickupHum(on); },
   });
+  if (entered !== undefined) installPineCombatAttachments(entered, eliteUi, king.ui);
 
   // dev: `?elite=<id>` — out now, you `&from=` m off it (toward the Hollow), facing it
   const eliteParam = params.get('elite');

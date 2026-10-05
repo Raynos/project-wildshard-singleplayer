@@ -1,6 +1,17 @@
 import type { Game } from '@wildshard/engine/core/Game';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+
+/** Preserve resident fight captions and their exact HUD slots, displaying them only during home entry. */
+export function installPineCombatAttachments(context: ShardContext,
+  elite: { root: HTMLElement; setActive: (on: boolean) => void }, king: { root: HTMLElement }): void {
+  installEnteredRuntimeAttachment(context, elite.root);
+  installEnteredRuntimeAttachment(context, king.root);
+  installEnteredRuntimeService(context, (scope) => {
+    elite.setActive(true);
+    scope.onDispose(() => { elite.setActive(false); });
+  });
+}
 
 /** Combat debug observers belong to the entered home; borrowed browser properties are restored on leave. */
 export function installPineCombatObservers(context: ShardContext, observers: { elites: object; king: object }): void {
