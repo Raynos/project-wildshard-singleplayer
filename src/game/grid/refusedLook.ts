@@ -53,7 +53,7 @@ void main() {
   float rim = pow(1.0 - abs(dot(normalize(vNormalW), view)), 2.2);
   float stipple = hash(vWorld * 1.7) * 0.5 + hash(vWorld * 0.45) * 0.5; // still grain: no time uniform, the dome never moves
   float foot = 1.0 - smoothstep(0.0, 14.0, vWorld.y); // a brighter seam where the shell meets the ground
-  float a = clamp(0.1 + rim * 0.5 + (stipple - 0.5) * 0.12 + foot * 0.2, 0.0, 0.78);
+  float a = clamp(0.2 + rim * 0.45 + (stipple - 0.5) * 0.28 + foot * 0.2, 0.0, 0.8);
   gl_FragColor = vec4(uColour, a);
 }`;
 
