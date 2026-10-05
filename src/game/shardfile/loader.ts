@@ -21,9 +21,11 @@ import { shardfileWater } from './water';
 import { clientResidency } from './clientResidency';
 import { firstPartyInstance } from '../grid/instances';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
+import { preflightShardfile } from './preflight';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
 export function emptyShardfileSource(input: unknown): ShardManifest {
+  preflightShardfile(input);
   if (typeof input === 'object' && input !== null && 'version' in input && input.version !== SHARDFILE_VERSION) throw new Error(`Shardfile version ${String(input.version)} requires a compatible client (this client supports ${SHARDFILE_VERSION})`);
   const source = parseShardfile(input);
   if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
@@ -145,7 +147,11 @@ export async function loadShardfile(app: App, input: unknown): Promise<void> {
 /** The prebuilt client's HTML supplies data, without a second boot loop or URL switch. */
 export function configuredShardfile(document: Pick<Document, 'getElementById'>): Shardfile | null {
   const element = document.getElementById('ws-shardfile');
-  return element === null ? null : parseShardfile(JSON.parse(element.textContent));
+  if (element === null) return null;
+  const text = element.textContent;
+  // Reject excessive character counts before creating a UTF-8 copy or parsing the inline source.
+  if (text.length > limits.sourceBytes || new TextEncoder().encode(text).length > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap');
+  return parseShardfile(JSON.parse(text));
 }
 
 /** Select a validated external source before the normal session starts. */
