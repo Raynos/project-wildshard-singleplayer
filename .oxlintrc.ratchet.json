@@ -25,6 +25,7 @@
     "wildshard/no-global-listener-patch": "error",
     "wildshard/no-raw-hud": "error",
     "wildshard/no-inline-ui-string": "error",
+    "wildshard/no-authored-html": "error",
     "wildshard/no-raw-animation-mixer": "error",
     "wildshard/no-level-identity": "error",
     "wildshard/shard-sandbox": "error",

@@ -160,7 +160,7 @@
       // lint/url-params.json; every variant goes in pause ▸ Settings ▸ Debug. See AGENTS.md "No URL switches".
       "files": ["src/**"],
       "rules": {
-        "wildshard/no-url-switch": "error", "wildshard/no-inline-ui-string": "error",
+        "wildshard/no-url-switch": "error", "wildshard/no-inline-ui-string": "error", "wildshard/no-authored-html": "error",
         // E362 AG16: zero stays zero in editors and the ordinary lint gate too.
         "wildshard/no-shard-branch": "error",
         "wildshard/no-raw-save": "error",

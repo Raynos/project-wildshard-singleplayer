@@ -17,6 +17,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { simClosure, simRoot } from './sim-closure.mjs';
+import { authoredHtmlSites } from './authored-html.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -613,6 +614,22 @@ const noInlineUiString = rule('Player-facing engine strings belong in the string
   };
 });
 
+const noAuthoredHtml = rule('Shardfile-sourced and unknown text uses textContent, never HTML (SF58)', (context) => {
+  if (!pathOf(context).startsWith('src/')) return {};
+  let html = false;
+  return {
+    AssignmentExpression(node) { if (['innerHTML', 'outerHTML', 'srcdoc'].includes(propName(node.left) ?? stringOf(node.left?.property))) html = true; },
+    CallExpression(node) { if (['insertAdjacentHTML', 'createContextualFragment', 'write', 'writeln', 'assign'].includes(calleeName(node.callee))) html = true; },
+    Property(node) { if (['innerHTML', 'outerHTML', 'srcdoc', '__html'].includes(node.key?.name ?? stringOf(node.key))) html = true; },
+    'Program:exit'() {
+      // The typed pass also resolves computed HTML property names and aliases.
+      const text = context.sourceCode.text;
+      if (!html && !/innerHTML|outerHTML|srcdoc|insertAdjacentHTML|createContextualFragment|document\.(write|writeln)/u.test(text)) return;
+      for (const site of authoredHtmlSites(process.cwd(), context.filename)) context.report({ loc: { line: site.line, column: site.column }, message: site.message });
+    },
+  };
+});
+
 const noRawHud = rule('HUD nodes mount through scope-owned numbered slots (E357 X2)', (context) => {
   if (pathOf(context) === 'src/engine/ui/hudSlots.ts') return {};
   const aliases = new Set();
@@ -850,6 +867,7 @@ const plugin = {
     'no-global-listener-patch': noGlobalListenerPatch,
     'no-raw-hud': noRawHud,
     'no-inline-ui-string': noInlineUiString,
+    'no-authored-html': noAuthoredHtml,
     'no-raw-animation-mixer': noRawAnimationMixer,
     'no-module-mock': noModuleMock,
     'no-level-identity': noLevelIdentity,
