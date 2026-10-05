@@ -8,8 +8,8 @@ import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { LEVER, CROSSBOW, LONGBOW } from '../../src/shards/pine-hollow/weapons/equipment';
 import { AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { SWORD } from '../../src/kit/weapons/equipment';
-import { LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
-import { Rifle } from '../../src/shards/nalati-grasslands/weapons/Rifle';
+import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
+import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';
 import { legacyActor } from '../fake/legacyActor';
 
 let scope: Scope;

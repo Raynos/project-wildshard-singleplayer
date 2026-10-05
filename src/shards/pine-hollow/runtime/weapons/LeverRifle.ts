@@ -13,13 +13,13 @@ import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
 import { sstep, clamp01 } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from './hunterHands';
-import { Firearm } from '@wildshard/kit/weapons/firearm/Firearm';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../../weapons/hunterHands';
+import { Firearm } from '@wildshard/sdk/runtime/weapons/Firearm';
 import { AR15, type FirearmProfile } from '@wildshard/kit/weapons/firearm/profiles';
 
 
 
-import { LEVER } from './equipment';
+import { LEVER } from '../../weapons/equipment';
 
 
 import * as THREE from 'three';

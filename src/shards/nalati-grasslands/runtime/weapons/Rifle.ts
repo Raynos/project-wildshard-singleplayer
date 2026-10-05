@@ -13,7 +13,7 @@ import { sstep, clamp01 } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
-import { Firearm } from '@wildshard/kit/weapons/firearm/Firearm';
+import { Firearm } from '@wildshard/sdk/runtime/weapons/Firearm';
 import { AR15, type FirearmProfile } from '@wildshard/kit/weapons/firearm/profiles';
 
 

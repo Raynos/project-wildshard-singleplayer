@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
+import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { legacyActor, invokeLegacy } from '../fake/legacyActor';
 import { FakeGame } from '../fake/FakeGame';
 

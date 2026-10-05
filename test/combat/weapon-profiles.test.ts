@@ -2,7 +2,7 @@ import { BOW } from '../../src/kit/weapons/bow/profiles';
 import { LONGBOW } from '../../src/shards/pine-hollow/weapons/longbowProfile';
 import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import { AR15 } from '../../src/kit/weapons/firearm/profiles';
-import { LEVER_PROFILE } from '../../src/shards/pine-hollow/weapons/LeverRifle';
+import { LEVER_PROFILE } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
 import { JIAN_ROW } from '../../src/shards/nine-dragon-stack/vm/jianRow';
 import * as THREE from 'three';
@@ -24,7 +24,7 @@ const profiles: readonly [string, Record<string, unknown>][] = [
     LANCE_REACH: 2.5, LANCE_CONE: rad(15), LANCE_MIN_SPEED: 8,
     WINDUP: 0.4, THROW_T: 0.14, THROW_RECOVER: 0.45, JAV_SPEED: 28, JAV_GRAVITY: 9.8, JAV_DAMAGE: 55, JAV_HEAD: 2,
     JAV_POOL: 5, PICKUP_R: 1.6, JAV_SURVIVE: 0.9, JAV_RADIUS: 0.03, ARC_POINTS: 32, ARC_SHOW_AFTER: 0.12, FOV_HIP: 72 }],
-  ['src/shards/pine-hollow/weapons/LeverRifle.ts', { TUBE_MAX: 6, RESERVE_START: 21, CYCLE_DELAY: 0.12, LEVER_TIME: 0.56,
+  ['src/shards/pine-hollow/runtime/weapons/LeverRifle.ts', { TUBE_MAX: 6, RESERVE_START: 21, CYCLE_DELAY: 0.12, LEVER_TIME: 0.56,
     ROUND_TIME: 0.4, RELOAD_IN: 0.22, RELOAD_OUT: 0.2, AUTO_RELOAD_DELAY: 0.35, KICK_PITCH: rad(1.25), BRASS_COUNT: 4, BRASS_LIFE: 1.8, TRACER_COUNT: 2, TRACER_TIME: 0.09,
     SIGHT_Y: 0.045, REAR_Z: -0.13, FRONT_Z: -0.512, MUZZLE_Z: -0.535 }],
   ['src/shards/nalati-grasslands/weapons/GoldenBow.ts', { STREAK_PTS: 48, SPEED_BASE: 30, SPEED_DRAW: 28, SUN_DRAW: 0.95 }],

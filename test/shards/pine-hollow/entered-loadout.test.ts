@@ -19,7 +19,7 @@ import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineLoadout } from '../../../src/shards/pine-hollow/loadout/loadout';
 import type { PineHollowSfx } from '../../../src/shards/pine-hollow/runtime/audio/sfx';
 import { LEVER, LONGBOW } from '../../../src/shards/pine-hollow/weapons/equipment';
-import type { LeverRifle } from '../../../src/shards/pine-hollow/weapons/LeverRifle';
+import type { LeverRifle } from '../../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { legacyDouble } from '../../fake/FakeGame';
 
 it('reinstalls real bolt input and weapon cues exactly once per entry and cancels the pending echo on leave', () => {

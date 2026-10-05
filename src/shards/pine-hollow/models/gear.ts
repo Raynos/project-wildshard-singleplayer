@@ -5,14 +5,14 @@
  * ones; each card is a separate build by the weapon's own builder on its own materials (src/engine/models/gear.ts says why).
  */
 import * as THREE from 'three';
-import { buildBolt, buildCrossbow, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
+import { buildBolt, buildCrossbow, MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { isMesh, whiteColors } from '@wildshard/engine/combat/view/ranged';
 import { loadingSpecimen, skinVariants, wearSkin, type GearSkinParams } from '@wildshard/engine/models/gear';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import { PINE_FINISHES } from '../loadout/skins';
-import { leverSpecimen, preloadLeverModel } from '../weapons/LeverRifle';
+import { leverSpecimen, preloadLeverModel } from '../runtime/weapons/LeverRifle';
 import { QUIVER_MAX } from '../weapons/Longbow';
 import { arrowMaterial, buildArrowGeometry, longbowSpecimen } from '../weapons/longbowView';
 import { skinningKnife } from './skinningKnife';

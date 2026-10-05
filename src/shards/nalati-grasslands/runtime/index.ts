@@ -12,7 +12,7 @@ import { pathRampDescs } from '@wildshard/engine/physics/paths';
 import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { loadParticles, loadGrassField } from '@wildshard/kit/lookApi';
-import { Rifle } from '../weapons/Rifle';
+import { Rifle } from './weapons/Rifle';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';

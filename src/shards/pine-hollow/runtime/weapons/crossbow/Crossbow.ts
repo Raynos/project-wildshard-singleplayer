@@ -4,7 +4,8 @@ import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
 import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, fovForAspect, dataTexture, viewmodelTexSet, remapUV, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial, isMesh, box, cyl, edgeWear, whiteColors, stripExtra, TRACER_ORDER, TRACER_RED, type CrossbowWorld, type CrossbowOptions } from '@wildshard/engine/combat/view/ranged';
-import { Weapon, quiverState, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
+import { quiverState, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
+import { Weapon } from '@wildshard/sdk/runtime/weapons/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Game } from '@wildshard/engine/core/Game';
 import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
@@ -13,8 +14,8 @@ import type { Player } from '@wildshard/engine/player/Player';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../hunterHands';
-import { CROSSBOW_PROFILE, type CrossbowProfile } from './profiles';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../../weapons/hunterHands';
+import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 
 
 

@@ -23,7 +23,7 @@ import * as THREE from 'three';
 
 
 
-import { Crossbow, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
+import { Crossbow, MAX_BOLTS } from '../runtime/weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { SKINS, type SkinId } from '../loadout/skins';
 import type { PineHollowSfx } from '../runtime/audio/sfx';

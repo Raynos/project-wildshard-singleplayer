@@ -15,7 +15,7 @@ import { legacyMethods } from '../fake/legacySource';
 import { Spear, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Spear';
 import { NaizagaiPower } from '../../src/shards/nalati-grasslands/weapons/Naizagai';
 import { Projectiles } from '../../src/engine/combat/view/projectile';
-import { Crossbow } from '../../src/shards/pine-hollow/weapons/crossbow/Crossbow';
+import { Crossbow } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
 import { loadRapier } from '../../src/engine/physics/rapier';
 import { Physics } from '../../src/engine/physics/Physics';
