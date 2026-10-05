@@ -11,10 +11,12 @@
  *   rocks, ferns, hibiscus, bushes, flowers, grass, beach grass, shells, starfish, pebbles, driftwood) whose vertex colour
  *   alpha is their Cycles-baked AO; meshopt-compressed.
  * - placements.bin (f32 × 10: proto, x, y, z, quaternion, scale, tint) + island.json (colliders, extra palms, bake notes):
- *   the prototypes are merged here into 2×2 tiles × {casters, ground cover} — one draw per tile, culled per tile. The phone
- *   builds every palm / rock / log and 70 % of the small cover (the file is ordered so that is a prefix).
- * - E306 / E315 M1: the prototypes are models (src/shards/driftwood-isle/models/cove.ts, one per family): the tiles are
- *   the cove's own drawing of their copies, so each family is placed with `drawnInto` (its copies, boxes and card; nothing
+ *   each prototype is uploaded once and drawn instanced per tile set {casters, small cover, big cover}, the tiles kept as
+ *   the unit of reach and view (./islandInstances.ts; G144 / G173, E435: the merged tiles held a world-space copy of every
+ *   vertex, ~104 MB). The phone builds every palm / rock / log and 70 % of the small cover (the file is ordered so that is
+ *   a prefix).
+ * - E306 / E315 M1: the prototypes are models (src/shards/driftwood-isle/models/cove.ts, one per family): the instanced
+ *   meshes are the cove's own drawing of their copies, so each family is placed with `drawnInto` (its copies, boxes and card; nothing
  *   drawn twice). The scattered small rocks are the small-rock model (rockKit), placed merged (src/engine/models/place.ts).
  * - lm-ao / lm-bounce (.phone).webp: the terrain's baked GI — sky AO (5 m) and the sun's one-to-three-bounce indirect light.
  *
@@ -39,7 +41,7 @@ import { worldDrop } from './sea';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
-import { IslandInstances, TINT_VERTEX, edgeOf } from './islandInstances';
+import { IslandInstances, TINT_VERTEX } from './islandInstances';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
@@ -84,15 +86,6 @@ const LOD_D = 110;
  * flowers) keeps the short reach: at 20 m+ it is a few pixels over the tinted ground.
  */
 const BIG_COVER = /^(bush|flowerbush|hibiscus|fern)\d+$/;
-/**
- * E186 — no first-sight uploads. three creates a mesh's GPU buffers the first time it draws it, so a tile's 0.3–1.6 MB of
- * vertices went up in the frame it first came within its distance and into view (running into the cove: up to 2.8 MB in one
- * frame, several times a second; turning round, the same for the tiles behind you). Now, each frame, the one tile that has
- * never been drawn and is nearest to showing (within WARM_M m of its distance, or already shown but out of view) is drawn
- * once ahead of need: out of view it is simply not culled that frame, and a hidden one draws at a draw range of 0 — its
- * buffers made, nothing on screen. The whole island is never uploaded (124 MB of tiles; ~27 MB in view from the pier).
- */
-const WARM_M = 30;
 const BIG_NEAR = TIER === 'phone' ? 50 : COVER_NEAR, BIG_FAR = TIER === 'phone' ? 80 : COVER_FAR, BIG_GROW = TIER === 'phone' ? 10 : COVER_GROW;
 /**
  * E117: a caster tile's far copy is its near one simplified (meshoptimizer: to FAR_RATIO of the triangles, never past
@@ -121,9 +114,6 @@ function simplified(p: Proto): Proto {
   return { pos, col, index };
 }
 
-/** `cover`: the tile's reach (m, camera to its rect) past which it is not drawn — 0 for a caster tile */
-interface Tile { x0: number; x1: number; z0: number; z1: number; near: THREE.Mesh; far: THREE.Mesh | null; cover: number }
-
 interface IslandMeta {
   version: number;
   protos: { name: string; kind: string; tris: number }[];
@@ -147,9 +137,6 @@ export interface BlenderIslandCtx {
   replace: (THREE.Mesh | null)[];
   /** GroundCover's group: its instanced plants are hidden inside the area, its static logs dropped there */
   cover: THREE.Object3D | null;
-  /** G144 (E435, the default-off `driftwoodIslandInstancing` row): the placements drawn instanced (./islandInstances.ts),
-   *  not merged into tiles */
-  instanced?: boolean;
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
@@ -203,25 +190,8 @@ function clipInstanced(mat: THREE.Material): void {
   mat.needsUpdate = true;
 }
 
-/** E156: each cover triangle's centre, ground / upright areas and colour, for CoverGrid.splat (the tiles are merged in world space) */
-function* coverTriangles(geos: THREE.BufferGeometry[]): Generator<CoverTri> {
-  const o: CoverTri = { x: 0, z: 0, top: 0, side: 0, r: 0, g: 0, b: 0 };
-  for (const g of geos) {
-    const p = g.getAttribute('position'), c = g.getAttribute('color'), idx = g.getIndex();
-    if (!idx) continue;
-    for (let t = 0; t + 2 < idx.count; t += 3) {
-      const a = idx.getX(t), b = idx.getX(t + 1), d = idx.getX(t + 2);
-      const ax = p.getX(a), az = p.getZ(a), bx = p.getX(b), bz = p.getZ(b), dx = p.getX(d), dz = p.getZ(d);
-      const ar = triAreas(ax, p.getY(a), az, bx, p.getY(b), bz, dx, p.getY(d), dz);
-      o.top = ar.top; o.side = ar.side;
-      o.x = (ax + bx + dx) / 3; o.z = (az + bz + dz) / 3;
-      o.r = (c.getX(a) + c.getX(b) + c.getX(d)) / 3; o.g = (c.getY(a) + c.getY(b) + c.getY(d)) / 3; o.b = (c.getZ(a) + c.getZ(b) + c.getZ(d)) / 3;
-      yield o;
-    }
-  }
-}
-
-/** G144: the same triangles from the instanced placements (./islandInstances.ts), exactly as the merged tiles held them */
+/** E156 / G144: each cover triangle's centre, ground / upright areas and colour, for CoverGrid.splat, from the instanced
+ *  placements (./islandInstances.ts) in world space */
 function* instancedCoverTriangles(ins: IslandInstances): Generator<CoverTri> {
   const o: CoverTri = { x: 0, z: 0, top: 0, side: 0, r: 0, g: 0, b: 0 };
   for (const t of ins.coverTriangles()) {
@@ -243,12 +213,7 @@ export class BlenderIsland {
   private terrainMat!: THREE.MeshStandardMaterial;
   private meta!: IslandMeta;
   private sunLum = 0;
-  private tiles: Tile[] = [];
-  /** E186: the tile meshes three has not drawn yet (their GPU buffers not made), and the one being warmed this frame */
-  private cold: { mesh: THREE.Mesh; tile: Tile; far: boolean }[] = [];
-  private readonly drawnOnce = new WeakSet<THREE.Object3D>();
-  private warm: { mesh: THREE.Mesh; start: number; count: number; culled: boolean } | null = null;
-  /** G144: the instanced placements (the row ON), repacked in `late` */
+  /** G144: the instanced placements, repacked in `late` (null until the build has made them) */
   instances: IslandInstances | null = null;
 
   static async install(ctx: BlenderIslandCtx): Promise<BlenderIsland> {
@@ -288,8 +253,7 @@ export class BlenderIsland {
 	reflectedLight.directDiffuse *= mix( 1.0, ambientOcclusion, ${AO_DIRECT.toFixed(2)} );`);
     }, { mode: 'replace', key: 'island-terrain' });
     ctx.sky.setupMaterial(terrainMat);
-    const inst = ctx.instanced === true;
-    const makePropsMat = (cover: { near: number; far: number; grow: number; key: string } | null, tinted = inst) => {
+    const makePropsMat = (cover: { near: number; far: number; grow: number; key: string } | null, tinted = true) => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
       patchShader(mat, 'driftwood.island-props', PATCH_ORDER.material, (s) => {
         attachFogUniforms(s);
@@ -299,9 +263,9 @@ export class BlenderIsland {
 	reflectedLight.directDiffuse *= mix( 1.0, vColor.a, 0.35 );`);
         // E156: past its edge a plant is gone, and over the COVER_GROW m before it it takes on the colour and shade of the
         // ground it stands on (the cover grid's, as the tinted terrain draws it far out) — it no longer sinks into the
-        // ground (Jake: the plants "bouncing like they're being reanimated"). Measured from the plant's own base (aBase), so
-        // the whole plant goes at once; the tiles are merged in world space.
-        // G144: instanced, each placement's tint is applied per vertex as the merged tiles baked it (./islandInstances.ts)
+        // ground (Jake: the plants "bouncing like they're being reanimated"). Measured from the plant's own base (aBase,
+        // per instance), so the whole plant goes at once.
+        // G144: each placement's tint is applied per vertex as the merged tiles baked it (./islandInstances.ts)
         if (tinted) s.vertexShader = s.vertexShader.replace('#include <common>', TINT_VERTEX.common).replace('#include <color_vertex>', TINT_VERTEX.color);
         if (cover !== null) {
           s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aEdge;\nattribute vec3 aBase;\nattribute vec4 aGround;\nvarying vec4 vGround;\nvarying float vFar;\nvarying float vGone;')
@@ -359,8 +323,8 @@ export class BlenderIsland {
       protos[pi] = { pos, col, index };
     }
 
-    // ── merge the placements into tiles: casters (palms, rocks, logs) 4×4, each with a far copy (the LOD palms);
-    //    ground cover 8×8, drawn only near the camera ──
+    // ── the placements by tile: casters (palms, rocks, logs) CT×CT, each with a far copy (the LOD palms); ground cover
+    //    VT×VT, drawn only near the camera ──
     const f = new Float32Array(place);
     const count = f.length / 10;
     if (drop !== 0) for (let i = 0; i < count; i++) f[i * 10 + 2] = (f[i * 10 + 2] ?? 0) - drop; // G164: each placement's y
@@ -387,104 +351,28 @@ export class BlenderIsland {
       if (/^smallrock\d+$/.test(name)) { smallRocks.push(i); continue; }
       if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else (BIG_COVER.test(name) ? bigs : covers)[tileOf(x, z, VT)]?.push(i);
     }
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
-    const e = m.elements;
-    const merge = (items: number[], far: boolean, edges = false): THREE.BufferGeometry | null => {
-      let verts = 0, indices = 0;
-      const pick = (i: number) => { const pi = f[i * 10] ?? 0; return protos[far ? lodOf.get(pi) ?? pi : pi]; };
-      for (const i of items) { const pr = pick(i); if (pr) { verts += pr.pos.length / 3; indices += pr.index.length; } }
-      if (indices === 0) return null;
-      const pos = new Float32Array(verts * 3), col = new Uint8Array(verts * 4), index = new Uint32Array(indices), edge = edges ? new Float32Array(verts) : null;
-      const base = edges ? new Float32Array(verts * 3) : null; // E156: each vertex's plant base (its distance fade is the plant's)
-      let vo = 0, io = 0;
-      for (const i of items) {
-        const o = i * 10, pr = pick(i);
-        if (pr === undefined) continue;
-        t.set(f[o + 1] ?? 0, f[o + 2] ?? 0, f[o + 3] ?? 0); q.set(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1);
-        const sc = f[o + 8] ?? 1, tint = f[o + 9] ?? 1;
-        m.compose(t, q, s.set(sc, sc, sc));
-        const n = pr.pos.length / 3;
-        if (edge) edge.fill(edgeOf(t.x, t.z), vo, vo + n);
-        if (base) for (let k = 0; k < n; k++) { base[(vo + k) * 3] = t.x; base[(vo + k) * 3 + 1] = t.y; base[(vo + k) * 3 + 2] = t.z; }
-        for (let k = 0; k < n; k++) {
-          const px = pr.pos[k * 3] ?? 0, py = pr.pos[k * 3 + 1] ?? 0, pz = pr.pos[k * 3 + 2] ?? 0, d = (vo + k) * 3;
-          pos[d] = e[0] * px + e[4] * py + e[8] * pz + e[12];
-          pos[d + 1] = e[1] * px + e[5] * py + e[9] * pz + e[13];
-          pos[d + 2] = e[2] * px + e[6] * py + e[10] * pz + e[14];
-          const c = (vo + k) * 4, sc4 = k * 4;
-          col[c] = Math.min(255, (pr.col[sc4] ?? 0) * tint); col[c + 1] = Math.min(255, (pr.col[sc4 + 1] ?? 0) * tint);
-          col[c + 2] = Math.min(255, (pr.col[sc4 + 2] ?? 0) * tint); col[c + 3] = pr.col[sc4 + 3] ?? 255;
-        }
-        for (let k = 0; k < pr.index.length; k++) index[io + k] = (pr.index[k] ?? 0) + vo;
-        vo += n; io += pr.index.length;
-      }
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      geo.setAttribute('color', new THREE.BufferAttribute(col, 4, true));
-      if (edge) geo.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
-      if (base) { geo.setAttribute('aBase', new THREE.BufferAttribute(base, 3)); geo.setAttribute('aGround', new THREE.BufferAttribute(new Uint8Array(verts * 4), 4, true)); }
-      geo.setIndex(new THREE.BufferAttribute(index, 1));
-      geo.computeVertexNormals(); // the CSM normal bias (flat lighting ignores them): without them the facets streak with acne
-      geo.computeBoundingSphere();
-      return geo;
-    };
     const rect = (k: number, n: number) => {
       const w = (area.x1 - area.x0) / n, d = (area.z1 - area.z0) / n, tx = k % n, tz = Math.floor(k / n);
       return { x0: area.x0 + tx * w, x1: area.x0 + (tx + 1) * w, z0: area.z0 + tz * d, z1: area.z0 + (tz + 1) * d };
     };
-    const add = (geo: THREE.BufferGeometry, name: string, cast: boolean, mat = propsMat) => {
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.name = name; mesh.castShadow = cast; mesh.receiveShadow = true;
-      this.group.add(mesh);
-      return mesh;
-    };
-    if (inst) {
-      // G144: one InstancedMesh per prototype × set, the tiles kept as the unit of reach and view (./islandInstances.ts)
-      const ins = this.instances = new IslandInstances(this.group, protos, meta.protos.map((p) => p.name), f, lodOf);
-      ins.add({ tag: 'casters', tiles: casters, rects: casters.map((_, k) => rect(k, CT)), material: propsMat, cast: true, reach: 0, lod: LOD_D, cover: false });
-      ins.add({ tag: 'cover', tiles: covers, rects: covers.map((_, k) => rect(k, VT)), material: coverMat, cast: false, reach: COVER_FAR + 1, lod: LOD_D, cover: true });
-      ins.add({ tag: 'cover-big', tiles: bigs, rects: bigs.map((_, k) => rect(k, VT)), material: bigMat, cast: false, reach: BIG_FAR + 1, lod: LOD_D, cover: true });
-      for (const set of [casters, covers, bigs]) for (const items of set) for (const i of items) this.stats.propTris += (protos[f[i * 10] ?? 0]?.index.length ?? 0) / 3;
-    }
-    for (const [k, items] of (inst ? [] : casters).entries()) {
-      const hi = merge(items, false), lo = merge(items, true);
-      if (!hi || !lo) continue;
-      this.tiles.push({ ...rect(k, CT), near: add(hi, `island-casters-${k}`, true), far: add(lo, `island-casters-${k}-far`, true), cover: 0 });
-      this.stats.propTris += (hi.getIndex()?.count ?? 0) / 3;
-    }
-    for (const [set, mat, reach, tag] of inst ? [] : [[covers, coverMat, COVER_FAR + 1, 'cover'], [bigs, bigMat, BIG_FAR + 1, 'cover-big']] as const) {
-      for (const [k, items] of set.entries()) {
-        const g = merge(items, false, true);
-        if (!g) continue;
-        this.tiles.push({ ...rect(k, VT), near: add(g, `island-${tag}-${k}`, false, mat), far: null, cover: reach });
-        this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
-      }
-    }
+    // G144: one InstancedMesh per prototype × set, the tiles kept as the unit of reach and view (./islandInstances.ts)
+    const ins = this.instances = new IslandInstances(this.group, protos, meta.protos.map((p) => p.name), f, lodOf);
+    ins.add({ tag: 'casters', tiles: casters, rects: casters.map((_, k) => rect(k, CT)), material: propsMat, cast: true, reach: 0, lod: LOD_D, cover: false });
+    ins.add({ tag: 'cover', tiles: covers, rects: covers.map((_, k) => rect(k, VT)), material: coverMat, cast: false, reach: COVER_FAR + 1, lod: LOD_D, cover: true });
+    ins.add({ tag: 'cover-big', tiles: bigs, rects: bigs.map((_, k) => rect(k, VT)), material: bigMat, cast: false, reach: BIG_FAR + 1, lod: LOD_D, cover: true });
+    for (const set of [casters, covers, bigs]) for (const items of set) for (const i of items) this.stats.propTris += (protos[f[i * 10] ?? 0]?.index.length ?? 0) / 3;
     // E156: the cove's ground wears the cover it carries (coverTint.ts) — what was placed here, splatted into the grid over
     // GroundCover's estimate for this area, then sampled by the cove's terrain
     const coverGrid = CoverGrid.get();
     if (coverGrid) {
-      const ins = this.instances;
-      coverGrid.splat(ins !== null ? instancedCoverTriangles(ins) : coverTriangles(this.tiles.filter((tile) => tile.cover > 0).map((tile) => tile.near.geometry)), area.x0, area.x1, area.z0, area.z1, 0.6);
+      coverGrid.splat(instancedCoverTriangles(ins), area.x0, area.x1, area.z0, area.z1, 0.6);
       // each cover plant's fade-out colour: the grid's at its base (a = 0 where the grid has none: it keeps its own)
       const smp = coverSample();
-      ins?.fillGround((x, z, out, o) => {
+      ins.fillGround((x, z, out, o) => {
         coverGrid.sample(x, z, smp);
         const ok = smp.top + smp.side > 0.01, j = coverJitter(x, z), byte = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
         out[o] = byte(smp.r * j); out[o + 1] = byte(smp.g * j); out[o + 2] = byte(smp.b * j); out[o + 3] = ok ? 255 : 0;
       });
-      for (const tile of this.tiles) {
-        if (tile.cover <= 0) continue;
-        const g = tile.near.geometry, b = g.getAttribute('aBase'), gr = g.getAttribute('aGround');
-        if (!(gr instanceof THREE.BufferAttribute)) continue;
-        const arr = gr.array as Uint8Array;
-        for (let i = 0; i < b.count; i++) {
-          coverGrid.sample(b.getX(i), b.getZ(i), smp);
-          const ok = smp.top + smp.side > 0.01, j = coverJitter(b.getX(i), b.getZ(i)), byte = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
-          arr[i * 4] = byte(smp.r * j); arr[i * 4 + 1] = byte(smp.g * j); arr[i * 4 + 2] = byte(smp.b * j); arr[i * 4 + 3] = ok ? 255 : 0;
-        }
-        gr.needsUpdate = true;
-      }
       for (const tile of terrainTiles) tintTerrain(tile);
     }
     if (smallRocks.length > 0) {
@@ -496,8 +384,8 @@ export class BlenderIsland {
     this.stats.draws = this.group.children.length;
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
-    // the specimens draw with the merged path's material (one instance of it has no `aTint`)
-    const unclaimed = await this.placeModels(models, f, used, meta, protos, inst ? makePropsMat(null, false) : propsMat);
+    // the specimens draw with an untinted props material (a single specimen has no per-instance `aTint`)
+    const unclaimed = await this.placeModels(models, f, used, meta, protos, makePropsMat(null, false));
 
     // ── hide what the area replaces ──
     clipTerrain(ctx.terrain);
@@ -527,11 +415,6 @@ export class BlenderIsland {
     // ── gameplay ──
     ctx.registry.add({ id: 'cove-unclaimed', name: 'Cove rocks', category: 'nature', file: 'src/shards/driftwood-isle/world/BlenderIsland.ts', colliders: unclaimed.map((c) => boxDesc(c, 'wood')), surface: 'wood', solidFloor: false });
     ctx.palmSpecs.push(...meta.extraPalms);
-    for (const tile of this.tiles) for (const [tm, far] of [[tile.near, false], [tile.far, true]] as const) {
-      if (tm === null) continue;
-      tm.onBeforeRender = () => { this.drawnOnce.add(tm); };
-      this.cold.push({ mesh: tm, tile, far });
-    }
     this.update(ctx.sky);
     console.info(`[island] blender: terrain ${this.stats.terrainTris} tris, props ${this.stats.propTris} tris in ${this.stats.draws} meshes, ${used}/${count} placements (${TIER})`);
   }
@@ -565,8 +448,8 @@ export class BlenderIsland {
   }
 
   /**
-   * E315 M1: the cove's prototypes are models (one per family, src/shards/driftwood-isle/models/cove.ts). The tiles
-   * above are their drawing, so each family is placed `drawnInto` this group: its copies (the placements this tier
+   * E315 M1: the cove's prototypes are models (one per family, src/shards/driftwood-isle/models/cove.ts). The instanced
+   * meshes above are their drawing, so each family is placed `drawnInto` this group: its copies (the placements this tier
    * builds), each copy's world box, and the model's catalog card; `place` draws nothing. The specimens read the loaded
    * prototypes and the casters' material from the shard's model context.
    *
@@ -601,7 +484,7 @@ export class BlenderIsland {
       b.copy(lb).applyMatrix4(m.compose(t, q, s.set(sc, sc, sc)));
       let e = fam.get(key);
       if (!e) { e = { pls: [], boxes: [], colliders: [] }; fam.set(key, e); }
-      // the copy's pose lives in placements.bin (the tiles draw it): a placement carries where it stands and which prototype
+      // the copy's pose lives in placements.bin (the instanced meshes draw it): a placement carries where it stands and which prototype
       e.pls.push({ x: t.x, y: t.y, z: t.z, variant: name });
       e.boxes.push(b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z);
       const own = claim.get(spot(t.x, t.z));
@@ -627,33 +510,5 @@ export class BlenderIsland {
     const elev = Math.max(0, sky.sunDir.y) / Math.max(0.2, this.meta.bake.refSun[1]);
     this.sunLum = lum * elev;
     this.terrainMat.lightMapIntensity = this.sunLum / this.meta.bake.bounceGain;
-    const cam = sky.viewCamera.position;
-    const w = this.warm;
-    if (w) { w.mesh.geometry.setDrawRange(w.start, w.count); w.mesh.frustumCulled = w.culled; this.warm = null; }
-    for (const t of this.tiles) {
-      const dx = Math.max(t.x0 - cam.x, 0, cam.x - t.x1), dz = Math.max(t.z0 - cam.z, 0, cam.z - t.z1), d = Math.hypot(dx, dz);
-      if (t.cover > 0) t.near.visible = d < t.cover;
-      else { t.near.visible = d < LOD_D; if (t.far) t.far.visible = !t.near.visible; }
-    }
-    this.warmOne(cam);
-  }
-
-  /** E186: draw the never-drawn tile nearest to showing once, this frame, so its buffers are made before it is seen */
-  private warmOne(cam: THREE.Vector3): void {
-    let best: { mesh: THREE.Mesh; tile: Tile; far: boolean } | null = null, bestGap = WARM_M;
-    for (let i = this.cold.length - 1; i >= 0; i--) {
-      const c = this.cold[i];
-      if (c === undefined) continue;
-      if (this.drawnOnce.has(c.mesh)) { this.cold[i] = this.cold[this.cold.length - 1] ?? c; this.cold.pop(); continue; }
-      const t = c.tile, dx = Math.max(t.x0 - cam.x, 0, cam.x - t.x1), dz = Math.max(t.z0 - cam.z, 0, cam.z - t.z1), d = Math.hypot(dx, dz);
-      // how far the camera is from this mesh showing (0: it shows by distance and has only been out of view)
-      const gap = c.mesh.visible ? 0 : c.far ? LOD_D - d : d - (t.cover > 0 ? t.cover : LOD_D);
-      if (gap < bestGap) { best = c; bestGap = gap; }
-    }
-    if (best === null) return;
-    const m = best.mesh, g = m.geometry;
-    this.warm = { mesh: m, start: g.drawRange.start, count: g.drawRange.count, culled: m.frustumCulled };
-    m.frustumCulled = false;
-    if (!m.visible) { m.visible = true; g.setDrawRange(0, 0); }
   }
 }

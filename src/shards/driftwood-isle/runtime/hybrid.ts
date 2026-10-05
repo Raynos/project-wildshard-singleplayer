@@ -16,11 +16,11 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
   private readonly binding: { context?: ShardContext };
   constructor() {
     const binding: { context?: ShardContext } = {};
-    super(async (world, viewer, buildOptions) => {
+    super(async (world, viewer) => {
       const context = binding.context;
       if (context === undefined) throw new Error('Declared Driftwood movers require their scoped world hook');
       // SF46 (G164): the resident's world is built lowered as one, the sea at road level; the registered sea follows it while it lives
-      const built = await residentWorld.load(context, (owner) => { lowerSea(owner); return buildDriftwoodWorld(world, viewer, G164_LOWERED, buildOptions); });
+      const built = await residentWorld.load(context, (owner) => { lowerSea(owner); return buildDriftwoodWorld(world, viewer, G164_LOWERED); });
       const options = driftwoodMoverViews(built);
       if (options === null) throw new Error('Declared Driftwood movers require the bridge and moored boat');
       await installDeclaredMovers(context, world, options);

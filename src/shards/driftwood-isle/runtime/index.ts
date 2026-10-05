@@ -1,9 +1,8 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { STRINGS } from '../strings';
-import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodBuildOptions, type DriftwoodWorld } from '../world/build';
+import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';
-import { runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 import { islandSystems } from '../world/systems';
 import { installDriftwoodAudio } from './audio/install';
 import type { World } from '@wildshard/engine/core/bootstrap';
@@ -16,17 +15,7 @@ import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { driftwoodLoadoutRows, installDriftwoodLoadout, clearDriftwoodDrop } from '../loadout/rows';
 
-type WorldBuilder = (world: World, viewer: () => Vector3, options: DriftwoodBuildOptions) => Promise<DriftwoodWorld>;
-// G144 (E435): the built world's vertex data on the GPU only (../world/gpuOnlyCopies.ts); pixel-identical, retires under
-// G112 (the row and the off path go) once parity and the quiet frame floor are green
-const DEBUG_ROWS = [{ id: 'driftwoodGpuOnlyCopies', group: 'loading', label: 'Driftwood GPU-only meshes',
-  choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], initial: 'off', reload: true,
-  ask: 'E435', reviewBy: '2026-12-30', note: 'E435 G144: free the world meshes\' JS copies after upload (−82 MB measured, no look change).' },
-// G144 (E435): the Blender island's placements instanced instead of merged into tiles (../world/islandInstances.ts; ≈ −97 MB
-// GPU modelled); retires under G112 (the row and the merged path go) once parity and the quiet frame floor are green
-{ id: 'driftwoodIslandInstancing', group: 'loading', label: 'Driftwood island instancing',
-  choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], initial: 'off', reload: true,
-  ask: 'E435', reviewBy: '2026-12-30', note: 'E435 G144: one instanced mesh per island prototype instead of merged tiles (GPU memory, no look change).' }] as const;
+type WorldBuilder = (world: World, viewer: () => Vector3) => Promise<DriftwoodWorld>;
 const PROBE_KEYS = ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
 
 /** Driftwood owns its world, creatures, loadout, adventure and audio through scoped hooks. */
@@ -34,7 +23,7 @@ export class DriftwoodPlugin extends ShardPlugin {
   private readonly build: WorldBuilder;
   private adventure: Adventure | null = null;
   /** `build` is injectable so the hook runs with a stub world in a node test (test/shards/driftwood-isle/plugin.test.ts) */
-  constructor(build: WorldBuilder = (world, viewer, options) => buildDriftwoodWorld(world, viewer, undefined, options)) {
+  constructor(build: WorldBuilder = (world, viewer) => buildDriftwoodWorld(world, viewer)) {
     super();
     this.build = build;
   }
@@ -45,11 +34,11 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (shell === undefined) throw new Error('Driftwood plugin requires its world host');
     const world = shell.world;
     if (world === null) throw new Error('Driftwood world requires the bootstrapped world');
-    const gpuOnly = runtimeVariantEnabled(ctx, DEBUG_ROWS[0]);
-    const islandInstancing = runtimeVariantEnabled(ctx, DEBUG_ROWS[1]);
-    const built = await this.build(world, shell.viewer, { islandInstancing });
+    const built = await this.build(world, shell.viewer);
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded during its world build');
-    if (gpuOnly) releaseDriftwoodCopies(built); // before the first frame: each copy goes as it uploads
+    // G144 / G173 (E450): the built world's vertex data on the GPU only (../world/gpuOnlyCopies.ts), before the first
+    // frame: each copy goes as it uploads
+    releaseDriftwoodCopies(built);
     keepDriftwoodWorld(shell, built);
     shell.hooks.meleeSilent = true;
     const { ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove } = built;

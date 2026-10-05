@@ -1,7 +1,7 @@
 /**
- * G144 (E435): the Blender island's placements drawn instanced (the default-off Debug row `driftwoodIslandInstancing`,
- * ../runtime/index.ts) instead of merged into tile meshes. The merged tiles hold a world-space copy of every vertex of
- * every placement (103.7 MB of GPU vertex data on the desktop tier); here each prototype is uploaded once and each tile
+ * G144 (E435): the Blender island's placements drawn instanced (./BlenderIsland.ts), the only path since Jake's G173 pick
+ * (E450) retired the merged tile meshes. Those held a world-space copy of every vertex of every placement (103.7 MB of
+ * GPU vertex data on the desktop tier); here each prototype is uploaded once and each tile
  * set (the casters, the small cover, the big cover) draws one InstancedMesh per prototype it places, with a row per
  * placement: its matrix, its tint (the merged path's Uint8 rounding, reproduced in the vertex shader) and, for the cover,
  * its edge (`aEdge`), base (`aBase`) and ground colour (`aGround`) — the attributes the cover's fade reads.
@@ -26,7 +26,7 @@ export interface InstProto { readonly pos: Float32Array; readonly col: Uint8Arra
 
 export interface TileRect { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number }
 
-/** one tile set, merged today into a mesh per tile */
+/** one tile set (the merged path drew a mesh per tile) */
 export interface InstanceSetSpec {
   readonly tag: string;
   /** per tile: the placements it holds (indices into placements.bin) */

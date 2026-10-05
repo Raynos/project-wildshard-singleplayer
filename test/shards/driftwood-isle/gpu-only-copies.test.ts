@@ -3,8 +3,9 @@ import * as THREE from 'three';
 import { noDriftwoodWorld, type DriftwoodWorld } from '../../../src/shards/driftwood-isle/world/build';
 import { driftwoodRoots, releaseDriftwoodCopies } from '../../../src/shards/driftwood-isle/world/gpuOnlyCopies';
 import { gpuOnlyContent } from '../../../src/engine/core/gpuOnly';
+import { IslandInstances } from '../../../src/shards/driftwood-isle/world/islandInstances';
 
-// G144 (E435): Driftwood's world meshes give up their JS vertex copies as they upload; position, the index, dynamic
+// G144 / G173 (E435, E450: always on, both rows retired): Driftwood's world meshes give up their JS vertex copies as they upload; position, the index, dynamic
 // attributes and skinned meshes keep theirs, and nothing outside Driftwood's own roots is touched.
 
 function mesh(dynamic = false): THREE.Mesh {
@@ -47,4 +48,24 @@ it('frees every static non-position array on upload, keeps position, the index a
   expect(outsider.geometry.getAttribute('normal').array.length).toBeGreaterThan(0);
   // a second entry (the hybrid resident's cached world) marks nothing more
   expect(releaseDriftwoodCopies(world)).toBe(0);
+});
+
+it('frees the instanced island prototypes\' static arrays but keeps the per-instance rows the repack rewrites (G173)', () => {
+  const tri = { pos: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), col: new Uint8Array(12).fill(200), index: new Uint32Array([0, 1, 2]) };
+  const f = new Float32Array([0, 5, 0, 5, 0, 0, 0, 1, 1, 1.2]);
+  const group = new THREE.Group();
+  const ins = new IslandInstances(group, [tri], ['fern'], f, new Map());
+  ins.add({ tag: 'cover', tiles: [[0]], rects: [{ x0: 0, x1: 10, z0: 0, z1: 10 }], material: new THREE.MeshBasicMaterial(), cast: false, reach: 41, lod: 110, cover: true });
+  const world: DriftwoodWorld = { ...noDriftwoodWorld(), jetties: [], palmSpecs: [] };
+  Object.assign(world, { blenderIsland: { group } });
+  releaseDriftwoodCopies(world);
+  const meshes = group.children.filter((o): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh);
+  expect(meshes).toHaveLength(1);
+  const g = meshes[0]?.geometry;
+  if (g === undefined) throw new Error('no instanced mesh');
+  upload(g);
+  expect(g.getAttribute('color').array.length).toBe(0);
+  expect(g.getAttribute('position').array.length).toBeGreaterThan(0);
+  for (const name of ['aTint', 'aEdge', 'aBase', 'aGround']) expect(g.getAttribute(name).array.length, name).toBeGreaterThan(0);
+  expect(meshes[0]?.instanceMatrix.array.length).toBeGreaterThan(0);
 });

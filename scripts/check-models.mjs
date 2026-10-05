@@ -75,7 +75,7 @@ export const DONE = {
     'src/shards/driftwood-isle/world/Cove.ts': { why: 'the sea cave is welded into the crag (its floor cuts the physics terrain), the pools and the cascade are water: world (piece `cove`); its reef rocks are models drawnInto their smooth mesh', counts: { 'registry add with object': 1, mergeGeometries: 2 } },
     'src/shards/driftwood-isle/world/GroundCover.ts': { why: 'a scatter field streamed round the viewer (E117 / E186): world (§1). Its dune logs are drift-log models drawnInto their mesh; its five plant kinds have no fixed copies for place() to count', counts: { InstancedMesh: 1 } },
     'src/shards/driftwood-isle/world/Gulls.ts': { why: 'the gulls are creatures (M5)', counts: { InstancedMesh: 1 } },
-    'src/shards/driftwood-isle/world/islandInstances.ts': { why: "G144 (E435, default-off row): the Blender island's tiles drawn instanced instead of merged: still the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group, as with the merged tiles)", counts: { InstancedMesh: 1 } },
+    'src/shards/driftwood-isle/world/islandInstances.ts': { why: "G144 / G173 (E435, E450): the Blender island's placements drawn instanced per tile set (the merged tiles retired): the cove's own drawing of its copies (the cove families stay placed drawnInto the island's group)", counts: { InstancedMesh: 1 } },
   },
   'nalati-grasslands': {
     'src/shards/nalati-grasslands/creatures/flock.ts': { why: 'a bird flock drawn as one instanced mesh by its live system (creatures, M5)', counts: { InstancedMesh: 1 } },

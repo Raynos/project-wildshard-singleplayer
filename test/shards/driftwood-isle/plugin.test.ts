@@ -3,7 +3,7 @@ import type { ShardRuntime } from '../../../src/game/shard/runtime';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import type { ShardWorld as World } from '../../../src/game/shard/world';
 import { afterEach, describe, expect, it } from 'vitest';
-import { Vector3 } from 'three';
+import { BoxGeometry, BufferAttribute, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { App } from '../../../src/engine/app/app';
 import type { World as EngineWorld } from '../../../src/engine/core/bootstrap';
 import type { LevelDriver } from '../../../src/engine/level/load';
@@ -21,11 +21,13 @@ describe('Driftwood world hook (E357 S4.1)', () => {
     const app = new App();
     const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: noop, world: noop, kit: noop, loadout: noop, play: noop, finish: noop };
     app.levelDriver = driver;
-    app.levelAdapters.debugRow = () => noop; // the world hook registers its G144 GPU-only row (default off)
     // the hook reads only `world` and `viewer` off the shell; the stub builder never touches the bootstrapped world
     const bootstrapped = {} as World;
     const runtime: ShardRuntime = { world: bootstrapped, step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => new Vector3(), horizonVeil: null };
     const built = { ...noDriftwoodWorld(), palmSpecs: [] };
+    // G173 (E450): the world hook always frees the built world's static JS vertex copies as they upload (no row)
+    const hutMesh = new Mesh(new BoxGeometry(1, 1, 1), new MeshBasicMaterial());
+    Object.assign(built, { hut: { group: hutMesh } });
     const calls: EngineWorld[] = [];
     const plugin = new DriftwoodPlugin((world) => { calls.push(world); return Promise.resolve(built); });
     const game: GameServices = { runtime, shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
@@ -34,6 +36,9 @@ describe('Driftwood world hook (E357 S4.1)', () => {
     await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(shardContext(ctx, manifest, game)) });
     expect(calls).toEqual([bootstrapped]);
     expect(driftwoodWorld(runtime)).toBe(built);
+    for (const a of Object.values(hutMesh.geometry.attributes)) if (a instanceof BufferAttribute) a.onUploadCallback();
+    expect(hutMesh.geometry.getAttribute('normal').array.length).toBe(0);
+    expect(hutMesh.geometry.getAttribute('position').array.length).toBeGreaterThan(0);
     expect(app.world.water.sea?.level).toBe(OCEAN.level);
     expect(app.world.water.surfaceAt(0, -194)).toBeCloseTo(OCEAN.level, 0);
     await app.unloadLevel(); loaded.delete(app);

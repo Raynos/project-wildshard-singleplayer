@@ -40,7 +40,7 @@ it('seeds explicit memory variants in device slots and refuses ambiguous picks',
   if (typeof parser !== 'function' || typeof code !== 'function') throw new Error('Device fixture helpers missing');
   const parse = parser as (values: readonly string[]) => Record<string, string>;
   const makeCode = code as (value: { scope: string; key: string; data: unknown }) => string;
-  const key = 'debug.plugin.driftwood-isle.driftwoodGpuOnlyCopies';
+  const key = 'debug.plugin.pine-hollow.pineMemoryTrim';
   const picks = parse([`${key}=on`, 'debug.plugin.driftwood-isle.driftwoodHybrid=off']);
   for (const [name, data] of Object.entries(picks)) runInNewContext(makeCode({ scope: 'device', key: name, data }), context);
   expect(JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}')).toEqual({ keys: {
