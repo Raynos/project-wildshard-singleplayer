@@ -1,0 +1,1829 @@
+{
+  "row": "SF57b",
+  "ask": "E435",
+  "pin": "d0ffd9b3fb4b66740edacd73f2c228505ff5ed09",
+  "fix": "e06a44173890389e3049eda4f33038ed7d69ee11",
+  "mode": "Fade-reload ON; gridMemoryAdmission OFF; phone portrait, renderScale 2; real native controller route",
+  "commands": [
+    "bash scripts/browser-lane.sh --max 15 node scripts/soak/reload.mjs --url=http://127.0.0.1:4401/ --sha=d0ffd9b3fb4b66740edacd73f2c228505ff5ed09 --runs=2",
+    "bash scripts/browser-lane.sh --max 45 node scripts/soak/reload.mjs --url=http://127.0.0.1:4401/ --sha=d0ffd9b3fb4b66740edacd73f2c228505ff5ed09 --runs=50"
+  ],
+  "proof": {
+    "2": {
+      "reportedPass": true,
+      "runs": 2,
+      "failure": null,
+      "errors": [],
+      "renderScale": 2,
+      "bootSeconds": {
+        "browser": "Chromium ANGLE Metal; information only, not the Simulator timing gate",
+        "min": 7.643,
+        "median": 7.912349999904633,
+        "max": 8.181699999809265
+      },
+      "cycles": [
+        {
+          "run": 1,
+          "exitToReadySeconds": 31.778,
+          "bootSeconds": 8.181699999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1181,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283683
+          }
+        },
+        {
+          "run": 2,
+          "exitToReadySeconds": 11.871,
+          "bootSeconds": 7.643,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1181,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283762
+          }
+        }
+      ],
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      "censusEqual": true,
+      "retainedResourceEntries": 234,
+      "retainedNote": "Retained resource-cache entries reported separately; no census adjustment or masking.",
+      "last": null
+    },
+    "50": {
+      "reportedPass": true,
+      "runs": 50,
+      "failure": null,
+      "errors": [],
+      "renderScale": 2,
+      "bootSeconds": {
+        "browser": "Chromium ANGLE Metal; information only, not the Simulator timing gate",
+        "min": 6.961099999904633,
+        "median": 7.427299999713897,
+        "max": 9.960800000190735
+      },
+      "cycles": [
+        {
+          "run": 1,
+          "exitToReadySeconds": 32.872,
+          "bootSeconds": 9.153699999809264,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283722
+          }
+        },
+        {
+          "run": 2,
+          "exitToReadySeconds": 13.122,
+          "bootSeconds": 8.725099999904632,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283750
+          }
+        },
+        {
+          "run": 3,
+          "exitToReadySeconds": 12.02,
+          "bootSeconds": 7.809099999904633,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283737
+          }
+        },
+        {
+          "run": 4,
+          "exitToReadySeconds": 11.708,
+          "bootSeconds": 7.589900000095367,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283749
+          }
+        },
+        {
+          "run": 5,
+          "exitToReadySeconds": 11.959,
+          "bootSeconds": 7.810800000190735,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283705
+          }
+        },
+        {
+          "run": 6,
+          "exitToReadySeconds": 11.781,
+          "bootSeconds": 7.672400000095368,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283706
+          }
+        },
+        {
+          "run": 7,
+          "exitToReadySeconds": 11.89,
+          "bootSeconds": 7.726199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283662
+          }
+        },
+        {
+          "run": 8,
+          "exitToReadySeconds": 11.94,
+          "bootSeconds": 7.759699999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283690
+          }
+        },
+        {
+          "run": 9,
+          "exitToReadySeconds": 11.439,
+          "bootSeconds": 7.3785,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283697
+          }
+        },
+        {
+          "run": 10,
+          "exitToReadySeconds": 11.384,
+          "bootSeconds": 7.302699999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283739
+          }
+        },
+        {
+          "run": 11,
+          "exitToReadySeconds": 13.089,
+          "bootSeconds": 8.791699999809266,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283735
+          }
+        },
+        {
+          "run": 12,
+          "exitToReadySeconds": 13.416,
+          "bootSeconds": 9.002400000095367,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283740
+          }
+        },
+        {
+          "run": 13,
+          "exitToReadySeconds": 13.371,
+          "bootSeconds": 8.956,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283666
+          }
+        },
+        {
+          "run": 14,
+          "exitToReadySeconds": 11.721,
+          "bootSeconds": 7.59,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283699
+          }
+        },
+        {
+          "run": 15,
+          "exitToReadySeconds": 11.574,
+          "bootSeconds": 7.4457999997138975,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283755
+          }
+        },
+        {
+          "run": 16,
+          "exitToReadySeconds": 11.431,
+          "bootSeconds": 7.387599999904633,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283770
+          }
+        },
+        {
+          "run": 17,
+          "exitToReadySeconds": 11.478,
+          "bootSeconds": 7.362899999618531,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283726
+          }
+        },
+        {
+          "run": 18,
+          "exitToReadySeconds": 11.097,
+          "bootSeconds": 7.065199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283760
+          }
+        },
+        {
+          "run": 19,
+          "exitToReadySeconds": 11.184,
+          "bootSeconds": 7.155699999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283754
+          }
+        },
+        {
+          "run": 20,
+          "exitToReadySeconds": 11.226,
+          "bootSeconds": 7.164800000190735,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283774
+          }
+        },
+        {
+          "run": 21,
+          "exitToReadySeconds": 11.302,
+          "bootSeconds": 7.242199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283722
+          }
+        },
+        {
+          "run": 22,
+          "exitToReadySeconds": 11.402,
+          "bootSeconds": 7.141300000190735,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283763
+          }
+        },
+        {
+          "run": 23,
+          "exitToReadySeconds": 11.201,
+          "bootSeconds": 7.106199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283754
+          }
+        },
+        {
+          "run": 24,
+          "exitToReadySeconds": 11.344,
+          "bootSeconds": 7.245700000286102,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283780
+          }
+        },
+        {
+          "run": 25,
+          "exitToReadySeconds": 11.381,
+          "bootSeconds": 7.300699999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283719
+          }
+        },
+        {
+          "run": 26,
+          "exitToReadySeconds": 11.655,
+          "bootSeconds": 7.4765,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283787
+          }
+        },
+        {
+          "run": 27,
+          "exitToReadySeconds": 11.728,
+          "bootSeconds": 7.683,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283781
+          }
+        },
+        {
+          "run": 28,
+          "exitToReadySeconds": 11.631,
+          "bootSeconds": 7.566400000095367,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283780
+          }
+        },
+        {
+          "run": 29,
+          "exitToReadySeconds": 11.924,
+          "bootSeconds": 7.775599999904633,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283711
+          }
+        },
+        {
+          "run": 30,
+          "exitToReadySeconds": 11.745,
+          "bootSeconds": 7.666700000286102,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283770
+          }
+        },
+        {
+          "run": 31,
+          "exitToReadySeconds": 11.732,
+          "bootSeconds": 7.617199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283795
+          }
+        },
+        {
+          "run": 32,
+          "exitToReadySeconds": 12.887,
+          "bootSeconds": 8.721199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283780
+          }
+        },
+        {
+          "run": 33,
+          "exitToReadySeconds": 13.399,
+          "bootSeconds": 9.051800000190735,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283749
+          }
+        },
+        {
+          "run": 34,
+          "exitToReadySeconds": 14.35,
+          "bootSeconds": 9.960800000190735,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283727
+          }
+        },
+        {
+          "run": 35,
+          "exitToReadySeconds": 11.903,
+          "bootSeconds": 7.6557999997138975,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283720
+          }
+        },
+        {
+          "run": 36,
+          "exitToReadySeconds": 11.958,
+          "bootSeconds": 7.743299999713898,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283769
+          }
+        },
+        {
+          "run": 37,
+          "exitToReadySeconds": 11.603,
+          "bootSeconds": 7.408799999713898,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283752
+          }
+        },
+        {
+          "run": 38,
+          "exitToReadySeconds": 11.399,
+          "bootSeconds": 7.267,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283776
+          }
+        },
+        {
+          "run": 39,
+          "exitToReadySeconds": 11.058,
+          "bootSeconds": 6.961099999904633,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283722
+          }
+        },
+        {
+          "run": 40,
+          "exitToReadySeconds": 11.079,
+          "bootSeconds": 6.983599999904633,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283706
+          }
+        },
+        {
+          "run": 41,
+          "exitToReadySeconds": 11.057,
+          "bootSeconds": 6.980299999713898,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283711
+          }
+        },
+        {
+          "run": 42,
+          "exitToReadySeconds": 11.099,
+          "bootSeconds": 7.0215,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283773
+          }
+        },
+        {
+          "run": 43,
+          "exitToReadySeconds": 11.234,
+          "bootSeconds": 7.102,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283774
+          }
+        },
+        {
+          "run": 44,
+          "exitToReadySeconds": 11.301,
+          "bootSeconds": 7.174099999904633,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283735
+          }
+        },
+        {
+          "run": 45,
+          "exitToReadySeconds": 11.637,
+          "bootSeconds": 7.505900000095368,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283712
+          }
+        },
+        {
+          "run": 46,
+          "exitToReadySeconds": 11.348,
+          "bootSeconds": 7.2375,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283715
+          }
+        },
+        {
+          "run": 47,
+          "exitToReadySeconds": 11.251,
+          "bootSeconds": 7.138900000095368,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283742
+          }
+        },
+        {
+          "run": 48,
+          "exitToReadySeconds": 11.466,
+          "bootSeconds": 7.301300000190735,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283735
+          }
+        },
+        {
+          "run": 49,
+          "exitToReadySeconds": 11.318,
+          "bootSeconds": 7.206199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283760
+          }
+        },
+        {
+          "run": 50,
+          "exitToReadySeconds": 11.351,
+          "bootSeconds": 7.220199999809265,
+          "coins": 5,
+          "facts": [
+            {
+              "instance": "template-4",
+              "shard": "template",
+              "revision": 1,
+              "entity": "actor.player",
+              "tick": 1182,
+              "ordinal": 0,
+              "name": "template.quest",
+              "origin": {
+                "kind": "engine",
+                "source": "quest.complete"
+              }
+            }
+          ],
+          "inventory": {
+            "counts": {},
+            "order": []
+          },
+          "loadout": null,
+          "continuation": {
+            "mode": "exact",
+            "storedChars": 283770
+          }
+        }
+      ],
+      "leak": {
+        "before": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": []
+      },
+      "censusEqual": true,
+      "retainedResourceEntries": 234,
+      "retainedNote": "Retained resource-cache entries reported separately; no census adjustment or masking.",
+      "last": null
+    }
+  },
+  "remaining": [
+    "Simulator reload-to-playable warm <=3s/cold <=8s",
+    "30-minute fade-reload soak per shipped and dev layout",
+    "SF46/47/48-g admissions required for the full SF57 verdict"
+  ],
+  "priorRed": "progress/shard-platform/sf57b/d10450c027-reload-receipt.json retained unchanged"
+}
