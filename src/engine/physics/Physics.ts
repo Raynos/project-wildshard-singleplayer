@@ -11,6 +11,7 @@ import type { World } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
 import { currentOwner } from '../app/ownership';
+import type { Scope } from '../app/scope';
 import { untagCollider } from './surface';
 
 /** Owns one fixed-step collision world and its complete same-version continuation. */
@@ -20,6 +21,8 @@ export class Physics {
   stepMs = 0;
 
   readonly R: Rapier;
+  private readonly bodyOwners = new Map<number, Scope>();
+  private readonly colliderOwners = new Map<number, Scope>();
   constructor(R: Rapier, snapshot?: Uint8Array) {
     this.R = R;
     this.world = snapshot === undefined ? new R.World({ x: 0, y: -9.81, z: 0 }) : R.World.restoreSnapshot(snapshot);
@@ -29,24 +32,38 @@ export class Physics {
     const createCollider = this.world.createCollider.bind(this.world), removeCollider = this.world.removeCollider.bind(this.world);
     this.world.createRigidBody = (desc) => {
       const body = createBody(desc), scope = currentOwner();
-      if (scope) bodies.set(body.handle, scope.capture('bodies', () => { if (body.isValid()) this.world.removeRigidBody(body); }));
+      if (scope) {
+        this.bodyOwners.set(body.handle, scope);
+        bodies.set(body.handle, scope.capture('bodies', () => { if (body.isValid()) this.world.removeRigidBody(body); }));
+      }
       return body;
     };
     this.world.createCollider = (desc, parent) => {
       const collider = createCollider(desc, parent), scope = currentOwner();
-      if (scope) colliders.set(collider.handle, scope.capture('colliders', () => { if (collider.isValid()) this.world.removeCollider(collider, true); }));
+      if (scope) {
+        this.colliderOwners.set(collider.handle, scope);
+        colliders.set(collider.handle, scope.capture('colliders', () => { if (collider.isValid()) this.world.removeCollider(collider, true); }));
+      }
       return collider;
     };
     this.world.removeCollider = (collider, wake) => {
-      colliders.get(collider.handle)?.(); colliders.delete(collider.handle); untagCollider(collider);
+      colliders.get(collider.handle)?.(); colliders.delete(collider.handle); this.colliderOwners.delete(collider.handle); untagCollider(collider);
       removeCollider(collider, wake);
     };
     this.world.removeRigidBody = (body) => {
       for (let i = 0; i < body.numColliders(); i++) {
-        const collider = body.collider(i); colliders.get(collider.handle)?.(); colliders.delete(collider.handle); untagCollider(collider);
+        const collider = body.collider(i); colliders.get(collider.handle)?.(); colliders.delete(collider.handle); this.colliderOwners.delete(collider.handle); untagCollider(collider);
       }
-      bodies.get(body.handle)?.(); bodies.delete(body.handle); removeBody(body);
+      bodies.get(body.handle)?.(); bodies.delete(body.handle); this.bodyOwners.delete(body.handle); removeBody(body);
     };
+  }
+
+  /** Live native handles owned by this scope subtree in this world, excluding identically numbered handles elsewhere. */
+  scopedCensus(scope: Scope): { bodies: number; colliders: number } {
+    const count = (owners: Map<number, Scope>): number => {
+      let total = 0; for (const owner of owners.values()) if (owner.belongsTo(scope)) total++; return total;
+    };
+    return { bodies: count(this.bodyOwners), colliders: count(this.colliderOwners) };
   }
 
   /** Rapier's complete same-version continuation; a fresh Physics instance can consume it. */
@@ -58,5 +75,5 @@ export class Physics {
     this.stepMs = performance.now() - t0;
   }
 
-  dispose(): void { this.world.forEachCollider(untagCollider); this.world.free(); }
+  dispose(): void { this.world.forEachCollider(untagCollider); this.world.free(); this.bodyOwners.clear(); this.colliderOwners.clear(); }
 }

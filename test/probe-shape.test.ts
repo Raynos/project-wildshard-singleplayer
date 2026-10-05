@@ -60,7 +60,7 @@ function fixture(): ProbeWorld {
   const app = new App(), levelScope = new Scope('level'); app.setState('play'); app.clock.tick(10);
   const game = fake<Game>({ level: fake<LevelSpec>({ id: 'driftwood-isle', budgets: {}, spawn: { x: 0, z: 0, yaw: 0 } }), app, levelScope, hudBaseline: 0, scene, renderer, frameTime: 10, levelSystemIds: () => [], systemLabels: () => ({ input: ['input'], 'fixed.pre': [], 'fixed.step': ['physics'], 'fixed.post': [], update: [], late: [] }) });
   const player = fake<Player>({ position: new THREE.Vector3(1.0004, 2, 3), velocity: new THREE.Vector3(), yaw: 0.1, pitch: 0.2, keys: new Set<string>(), spawn: vi.fn<() => void>(), setHover: vi.fn<() => void>() });
-  const physics = fake<Physics>({ world: fake<RapierWorld>({ bodies: fake<RigidBodySet>({ len: () => 1, forEach: () => { /* observation fixture has no side effects */ } }), colliders: fake<ColliderSet>({ len: () => 2 }) }) });
+  const physics = fake<Physics>({ scopedCensus: () => ({ bodies: 0, colliders: 0 }), world: fake<RapierWorld>({ bodies: fake<RigidBodySet>({ len: () => 1, forEach: () => { /* observation fixture has no side effects */ } }), colliders: fake<ColliderSet>({ len: () => 2 }) }) });
   const hud = fake<HUD>({ paused: false, entered: true, enterArenaNow: vi.fn<() => void>() });
   const animal = fake<Animal>({ kind: 'wolf', alive: true, hp: 20, position: new THREE.Vector3(5, 0, 6), state: 'idle', harnessHold: false });
   const animals = fake<AnimalManager>({ animals: [animal] });
@@ -127,6 +127,15 @@ describe('probe contract', () => {
     }) };
     const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer), page = new Physics(R), temporary = new Physics(R);
     const world = fixture(); let active = temporary;
+    const temporaryScope = world.game.levelScope.child('temporary');
+    withOwner(temporaryScope, () => {
+      const body = temporary.world.createRigidBody(R.RigidBodyDesc.fixed());
+      for (let i = 0; i < 3; i++) temporary.world.createCollider(R.ColliderDesc.cuboid(1, 1, 1), body);
+    });
+    withOwner(world.game.app.engineScope, () => {
+      const body = page.world.createRigidBody(R.RigidBodyDesc.fixed());
+      page.world.createCollider(R.ColliderDesc.cuboid(1, 1, 1), body);
+    });
     Object.defineProperty(world, 'physics', { get: () => active });
     withOwner(world.game.levelScope, () => {
       const body = page.world.createRigidBody(R.RigidBodyDesc.fixed());
@@ -136,17 +145,21 @@ describe('probe contract', () => {
       retainedHudCount: () => 0, retainedSceneObjects: () => 4, gpuResourceDiagnostics: () => ({}) });
     Object.assign(world.audio, { census: () => ({ activeVoices: 0, beds: 0, buses: 0 }) });
     vi.spyOn(world.game.app, 'unloadLevel').mockImplementation(() => {
-      active = page; temporary.dispose(); world.game.levelScope.dispose(); return Promise.resolve();
+      active = page; temporaryScope.dispose(); temporary.dispose(); world.game.levelScope.dispose(); return Promise.resolve();
     });
     vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
     try {
       const probe = installProbe(world, { ...deps, leakPhysics: page });
       expect(probe.world.physics).toBe(temporary);
+      expect(world.game.levelScope.census.colliders).toBe(4);
+      expect(page.scopedCensus(world.game.levelScope)).toEqual({ bodies: 1, colliders: 1 });
+      expect(temporary.scopedCensus(world.game.levelScope)).toEqual({ bodies: 1, colliders: 3 });
       const pending = probe.leak(); await vi.runAllTimersAsync();
       const result = await pending;
       expect(probe.world.physics).toBe(page); expect(() => temporary.world.bodies.len()).toThrow();
       expect(result.disposalErrors).toEqual([]); expect(result.after.bodies).toBe(0); expect(result.after.colliders).toBe(0);
-    } finally { vi.useRealTimers(); page.dispose(); }
+      expect(page.world.colliders.len()).toBe(1); // Actual retained engine collider, excluded by its own baseline.
+    } finally { vi.useRealTimers(); world.game.app.engineScope.dispose(); page.dispose(); }
   });
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<EngineProbe>();

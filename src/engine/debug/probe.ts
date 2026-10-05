@@ -287,8 +287,9 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     events: app.events.census(game.levelScope), dom: { hud: 0, body: 0 }, sceneObjects: 0,
   };
   const leakPhysics = deps.leakPhysics ?? world.physics;
-  const retainedPhysics = { bodies: leakPhysics.world.bodies.len() - game.levelScope.census.bodies,
-    colliders: leakPhysics.world.colliders.len() - game.levelScope.census.colliders };
+  const ownedPhysics = leakPhysics.scopedCensus(game.levelScope);
+  const retainedPhysics = { bodies: leakPhysics.world.bodies.len() - ownedPhysics.bodies,
+    colliders: leakPhysics.world.colliders.len() - ownedPhysics.colliders };
   app.debug.leakBaseline = { ...baseline };
   app.debug.expose('leakBaseline', app.debug.leakBaseline);
   const engineSystemIds = new Set(Object.values(app.systemsByPhase()).flat().filter((system) => !game.levelSystemIds().includes(system.id)).map((system) => system.id));
