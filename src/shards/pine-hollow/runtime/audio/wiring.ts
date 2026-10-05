@@ -1,5 +1,5 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { pineScore, pineScorePick } from './score';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -104,19 +104,16 @@ export function installPineAudio(h: PineAudioHost): void {
   } };
   const diagnostic = { spots, get night() { return night; } };
   if (retained && h.context !== undefined) {
+    installEnteredRuntimeObserver(h.context, '__pineAudio', diagnostic);
     installEnteredRuntimeService(h.context, (scope) => {
       const previousShade = h.audio.ambientShade;
       amb.setActive(true);
       game.app.addSystem(system, scope);
       const stopDoor = h.cabins?.onDoor(doorSound);
-      const previous = Object.getOwnPropertyDescriptor(window, '__pineAudio');
-      Object.assign(window, { __pineAudio: diagnostic });
       scope.onDispose(() => {
         stopDoor?.();
         amb.setActive(false);
         h.audio.shadeAmbient(previousShade.level, previousShade.cutoff);
-        if (previous === undefined) Reflect.deleteProperty(window, '__pineAudio');
-        else Object.defineProperty(window, '__pineAudio', previous);
       });
     });
   } else {

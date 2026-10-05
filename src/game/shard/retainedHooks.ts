@@ -14,6 +14,19 @@ export function installEnteredRuntimeService(context: ShardContext, install: (sc
   if (entered === undefined) install(context.scope); else entered(install);
 }
 
+/** Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor. */
+export function installEnteredRuntimeObserver(context: ShardContext, name: string, observer: object): void {
+  installEnteredRuntimeService(context, (scope) => {
+    if (typeof window === 'undefined') throw new Error('Browser debug observer needs a window');
+    const previous = Object.getOwnPropertyDescriptor(window, name);
+    Object.defineProperty(window, name, { configurable: true, enumerable: previous?.enumerable ?? true, value: observer, writable: true });
+    scope.onDispose(() => {
+      if (previous === undefined) Reflect.deleteProperty(window, name);
+      else Object.defineProperty(window, name, previous);
+    });
+  });
+}
+
 /** Reinstall entered callbacks while a borrowed home's models and authored state remain resident. */
 export class RetainedRuntimeHooks {
   readonly context: ShardContext;
