@@ -61,10 +61,11 @@ describe('SF57 honest drive and native memory gate', () => {
     }
     const busy = witness(); for (const row of busy.samples) row.gl.settled = false;
     expect(gradeSoak(busy).calibration).toBe(false);
-    const absent = witness().samples.map((row) => {
+    const absent = [];
+    for (const row of witness().samples) {
       const { settled: _settled, ...gl } = row.gl;
-      return Object.assign({}, row, { gl });
-    });
+      absent.push({ ...row, gl });
+    }
     expect(gradeSoak({ ...witness(), samples: absent }).calibration).toBe(false);
     const negative = witness(); negative.leak.scope.colliders = -1;
     expect(gradeSoak(negative).leakZero).toBe(false);
