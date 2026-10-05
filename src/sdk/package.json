@@ -31,7 +31,8 @@
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
     "./commons": "./commons.ts",
-    "./commonsCosts": "./commonsCosts.ts"
+    "./commonsCosts": "./commonsCosts.ts",
+    "./runtime/weapons/Firearm": "./runtime/weapons/Firearm.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -174,6 +175,10 @@
       "./commonsCosts": {
         "types": "./dist/types/sdk/commonsCosts.d.ts",
         "default": "./dist/commonsCosts.js"
+      },
+      "./runtime/weapons/Firearm": {
+        "types": "./dist/types/sdk/runtime/weapons/Firearm.d.ts",
+        "default": "./dist/runtime/weapons/Firearm.js"
       }
     }
   }
