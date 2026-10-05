@@ -1,6 +1,6 @@
 /**
  * The material graph compiler (SHARD-PLATFORM SF59 step 3; `docs/design/mmo/research/sf59-tsl-spike.md` §4–5):
- * `compileGraph(ir)` turns a validated graph IR (`graph/ir.ts`) into a three TSL node material that the engine's node
+ * `compileGraph(ir)` turns a validated graph IR (`core/materialGraph.ts`) into a three TSL node material that the engine's node
  * handler (`nodes/engineNodesHandler.ts`) runs inside today's `WebGLRenderer`. Every IR op maps to node classes in this
  * file and nowhere else; content never reaches `NodeLoader`, `CodeNode` or `glslFn`.
  *
@@ -30,7 +30,7 @@ import { targetTexture } from '../nodes/engineNodesHandler';
 import {
   GRAPH_OPS, validateGraph, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
-} from './ir';
+} from '../../core/materialGraph';
 
 /** a select side costing at most this many estimated instructions is evaluated unconditionally (branch-free) */
 export const BRANCH_LIGHT_COST = 16;

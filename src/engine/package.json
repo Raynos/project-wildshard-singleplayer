@@ -200,7 +200,7 @@
     "./render/families/pbr": "./render/families/pbr.ts",
     "./render/frameCounter": "./render/frameCounter.ts",
     "./render/graphBackend": "./render/graphBackend.ts",
-    "./render/graph/ir": "./render/graph/ir.ts",
+    "./core/materialGraph": "./core/materialGraph.ts",
     "./render/graph/presets": "./render/graph/presets.ts",
     "./render/nodes/engineNodesHandler": "./render/nodes/engineNodesHandler.ts",
     "./render/nodes/engineFog": "./render/nodes/engineFog.ts",

@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, type Node } from 'three/webgpu';
-import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/engine/render/graph/ir';
+import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/engine/core/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { pbrMeasureGraph } from '../src/engine/render/graph/presets';
 import { parseFamilyMaterial } from '../src/engine/render/families/params';

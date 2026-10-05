@@ -1,6 +1,6 @@
 /**
  * Built-in graph presets (SHARD-PLATFORM SF59 step 3): today's hand-written families re-expressed as graph IR
- * (`graph/ir.ts`), so a graph and its family can be held to pixel parity on the bench (`scripts/tsl-spike/`, the `graph`
+ * (`core/materialGraph.ts`), so a graph and its family can be held to pixel parity on the bench (`scripts/tsl-spike/`, the `graph`
  * variants). The families stay the shipped path: no material in the game is built from a preset yet, and nothing on the
  * default render path imports this module.
  *
@@ -10,7 +10,7 @@
  * maths, so a labelled face does not hold parity until they are added. Pure data: no three.js.
  */
 import { MEASURE_SLOT, type MeasureLayerParams, type PbrMaterialParams } from '../families/params';
-import { GRAPH_IR_VERSION, type GraphIr, type GraphNode, type GraphRef } from './ir';
+import { GRAPH_IR_VERSION, type GraphIr, type GraphNode, type GraphRef } from '../../core/materialGraph';
 
 /**
  * The coverage of lines every `pitch` metres across `c` (the measure layer's `famMGrid`): nodes named `<p>…`, the
