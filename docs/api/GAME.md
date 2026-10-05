@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-529 members; 112 without a doc line (—).
+534 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -113,10 +113,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `preflightGridReload` | function | @wildshard/game/grid/pageBoot | Preflight the fresh page's already measured mandatory home/platform claims without evicting the current world. |
 | `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
 | `validatePlannedGridReload` | function | @wildshard/game/grid/pageBoot | Verify the consumed transfer against today's layout and authored revision before any home hydration. |
-| `consumeGridReloadBoot` | function | @wildshard/game/grid/reloadBoot | The first boot consumes the record durably. A kill during later admission cannot retry the same transfer. |
+| `consumeGridReloadBoot` | function | @wildshard/game/grid/reloadBoot | The first boot marks the attempt durably; a kill during admission cannot retry the same transfer. |
+| `finishPlannedGridReload` | function | @wildshard/game/grid/reloadBoot | Called at fade-in after collision, ground and critical coverage are ready. |
 | `GridReloadBoot` | type | @wildshard/game/grid/reloadBoot | Entry routing happens before the crash-rescue path, without loading the renderer or a runtime chunk. |
-| `installPlannedGridReload` | function | @wildshard/game/grid/reloadBoot | Only the composition root installs the consumed transfer; imports alone never change page routing. |
-| `plannedGridReload` | function | @wildshard/game/grid/reloadBoot | The already-consumed transfer is shared by early residency, the live frame restore and the reveal gate. |
+| `installPlannedGridReload` | function | @wildshard/game/grid/reloadBoot | Only the composition root installs the attempted transfer; imports alone never change page routing. |
+| `plannedGridReload` | function | @wildshard/game/grid/reloadBoot | The attempted transfer is shared by early residency, the live frame restore and the reveal gate. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
@@ -349,6 +350,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `parseClientScripts` | function | @wildshard/game/shardfile/clientScripts | Parse detached strict data before host composition allocates any guest instance. |
 | `ShardClientScripts` | type | @wildshard/game/shardfile/clientScripts | Renderer-neutral declaration consumed by the client and the frozen-neighbour presentation adapter. |
 | `ShardfileClientScriptPorts` | interface | @wildshard/game/shardfile/clientScripts | Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode. |
+| `assertCommonsCosts` | function | @wildshard/game/shardfile/commonsCosts | Refuse omitted, surplus or malformed commons costs before any fetch or cache read. |
+| `CommonsCosts` | type | @wildshard/game/shardfile/commonsCosts | Exact byte-derived residency and geometry costs for each required hash. |
+| `CommonsCostSchema` | const | @wildshard/game/shardfile/commonsCosts | Parsed pinned-byte cost of one distinct commons hash; compressed bytes live in commonsWire. |
+| `CommonsCostsSchema` | const | @wildshard/game/shardfile/commonsCosts | Bounded commons cost declarations, validated before immutable content is read. |
 | `creatureRules` | function | @wildshard/game/shardfile/creatures | Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues. |
 | `CreaturesSchema` | const | @wildshard/game/shardfile/creatures | Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. |
 | `ShardCreatures` | type | @wildshard/game/shardfile/creatures | Validated brain parameters and spawn layout, with no rig or runtime closure. |

@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-100 members; 0 without a doc line (—).
+110 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -54,6 +54,16 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `clientScriptViewCost` | function | @wildshard/sdk/clientScripts | Exact bounded particle-pool resident cost to include in the authored library budget. |
 | `parseClientScripts` | function | @wildshard/sdk/clientScripts | Parse bounded visual commands and copied state-read selections. |
 | `ShardClientScripts` | type | @wildshard/sdk/clientScripts | Data-only author contract for isolated client scripts. |
+| `buildCommons` | function | @wildshard/sdk/commons | Compile bounded packs deterministically, deriving costs from actual bytes instead of declared numbers. |
+| `BuiltCommons` | interface | @wildshard/sdk/commons | Owned build output; aliases with identical bytes share one hash-named asset. |
+| `CommonsAsset` | interface | @wildshard/sdk/commons | One build-time pack input; only its copied bytes and validated metadata enter a product. |
+| `CommonsCatalogue` | interface | @wildshard/sdk/commons | Version zero catalogue data, independent of package installation paths and build time. |
+| `CommonsEntry` | interface | @wildshard/sdk/commons | Actual byte-derived cost and provenance of a stable catalogue entry. |
+| `CommonsPack` | interface | @wildshard/sdk/commons | A pinned author-tool pack; runtime code never imports or executes it. |
+| `assertCommonsCosts` | function | @wildshard/sdk/commonsCosts | Refuse missing, extra or malformed cost rows before reading any immutable asset. |
+| `CommonsCosts` | type | @wildshard/sdk/commonsCosts | Parsed exact residency and geometry costs keyed by the pinned commons content hash. |
+| `CommonsCostSchema` | const | @wildshard/sdk/commonsCosts | Pinned commons bytes declare exact decoded/GPU bytes and triangle/draw counts as nonnegative safe integers. |
+| `CommonsCostsSchema` | const | @wildshard/sdk/commonsCosts | Bounded hash-addressed metadata for at most 1024 distinct required commons assets. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
 | `DirectorData` | type | @wildshard/sdk/director | Typed director data with bounded observations, payloads and reserved grid subscriptions. |
 | `burstFlyer` | function | @wildshard/sdk/flyers | Validate a burst flyer without publishing a contact, random draw or player impulse. |

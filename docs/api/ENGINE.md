@@ -1630,7 +1630,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ItemCardPop` | class | @wildshard/engine/ui/ItemCard | The pickup / reward card: one big card under the top bar, the newest replacing the last. |
 | `ItemCardSpec` | interface | @wildshard/engine/ui/ItemCard | one item as the platform's card data (content hands this, never DOM) |
 | `ItemCardState` | type | @wildshard/engine/ui/ItemCard | what the tile's foot says: a price to pay, a price out of reach, owned, locked, sold out, or just shown (a pickup) |
-| `itemCardTile` | function | @wildshard/engine/ui/ItemCard | A grid tile for one item (a shop's goods). `selected` draws the accent frame. |
+| `itemCardTile` | function | @wildshard/engine/ui/ItemCard | A grid tile for one item (a shop's goods). `selected` draws the accent frame; `compact` sets the words a size down (a 4-up grid). |
 | `UiHandle` | interface | @wildshard/engine/ui/layers | — |
 | `UiLayer` | type | @wildshard/engine/ui/layers | — |
 | `UiLayers` | class | @wildshard/engine/ui/layers | A single back/input owner; resident scopes retain their own overlay entries. |

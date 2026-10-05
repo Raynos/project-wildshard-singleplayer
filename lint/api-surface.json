@@ -9756,7 +9756,7 @@
       {
         "name": "itemCardTile",
         "kind": "function",
-        "doc": "A grid tile for one item (a shop's goods). `selected` draws the accent frame.",
+        "doc": "A grid tile for one item (a shop's goods). `selected` draws the accent frame; `compact` sets the words a size down (a 4-up grid).",
         "from": "@wildshard/engine/ui/ItemCard"
       },
       {
@@ -13076,7 +13076,13 @@
       {
         "name": "consumeGridReloadBoot",
         "kind": "function",
-        "doc": "The first boot consumes the record durably. A kill during later admission cannot retry the same transfer.",
+        "doc": "The first boot marks the attempt durably; a kill during admission cannot retry the same transfer.",
+        "from": "@wildshard/game/grid/reloadBoot"
+      },
+      {
+        "name": "finishPlannedGridReload",
+        "kind": "function",
+        "doc": "Called at fade-in after collision, ground and critical coverage are ready.",
         "from": "@wildshard/game/grid/reloadBoot"
       },
       {
@@ -13088,13 +13094,13 @@
       {
         "name": "installPlannedGridReload",
         "kind": "function",
-        "doc": "Only the composition root installs the consumed transfer; imports alone never change page routing.",
+        "doc": "Only the composition root installs the attempted transfer; imports alone never change page routing.",
         "from": "@wildshard/game/grid/reloadBoot"
       },
       {
         "name": "plannedGridReload",
         "kind": "function",
-        "doc": "The already-consumed transfer is shared by early residency, the live frame restore and the reveal gate.",
+        "doc": "The attempted transfer is shared by early residency, the live frame restore and the reveal gate.",
         "from": "@wildshard/game/grid/reloadBoot"
       },
       {
@@ -14488,6 +14494,30 @@
         "kind": "interface",
         "doc": "Trusted input ports; the actor comes from the page, and observation never exposes a simulation object to bytecode.",
         "from": "@wildshard/game/shardfile/clientScripts"
+      },
+      {
+        "name": "assertCommonsCosts",
+        "kind": "function",
+        "doc": "Refuse omitted, surplus or malformed commons costs before any fetch or cache read.",
+        "from": "@wildshard/game/shardfile/commonsCosts"
+      },
+      {
+        "name": "CommonsCosts",
+        "kind": "type",
+        "doc": "Exact byte-derived residency and geometry costs for each required hash.",
+        "from": "@wildshard/game/shardfile/commonsCosts"
+      },
+      {
+        "name": "CommonsCostSchema",
+        "kind": "const",
+        "doc": "Parsed pinned-byte cost of one distinct commons hash; compressed bytes live in commonsWire.",
+        "from": "@wildshard/game/shardfile/commonsCosts"
+      },
+      {
+        "name": "CommonsCostsSchema",
+        "kind": "const",
+        "doc": "Bounded commons cost declarations, validated before immutable content is read.",
+        "from": "@wildshard/game/shardfile/commonsCosts"
       },
       {
         "name": "creatureRules",
@@ -17218,6 +17248,66 @@
         "from": "@wildshard/sdk/clientScripts"
       },
       {
+        "name": "buildCommons",
+        "kind": "function",
+        "doc": "Compile bounded packs deterministically, deriving costs from actual bytes instead of declared numbers.",
+        "from": "@wildshard/sdk/commons"
+      },
+      {
+        "name": "BuiltCommons",
+        "kind": "interface",
+        "doc": "Owned build output; aliases with identical bytes share one hash-named asset.",
+        "from": "@wildshard/sdk/commons"
+      },
+      {
+        "name": "CommonsAsset",
+        "kind": "interface",
+        "doc": "One build-time pack input; only its copied bytes and validated metadata enter a product.",
+        "from": "@wildshard/sdk/commons"
+      },
+      {
+        "name": "CommonsCatalogue",
+        "kind": "interface",
+        "doc": "Version zero catalogue data, independent of package installation paths and build time.",
+        "from": "@wildshard/sdk/commons"
+      },
+      {
+        "name": "CommonsEntry",
+        "kind": "interface",
+        "doc": "Actual byte-derived cost and provenance of a stable catalogue entry.",
+        "from": "@wildshard/sdk/commons"
+      },
+      {
+        "name": "CommonsPack",
+        "kind": "interface",
+        "doc": "A pinned author-tool pack; runtime code never imports or executes it.",
+        "from": "@wildshard/sdk/commons"
+      },
+      {
+        "name": "assertCommonsCosts",
+        "kind": "function",
+        "doc": "Refuse missing, extra or malformed cost rows before reading any immutable asset.",
+        "from": "@wildshard/sdk/commonsCosts"
+      },
+      {
+        "name": "CommonsCosts",
+        "kind": "type",
+        "doc": "Parsed exact residency and geometry costs keyed by the pinned commons content hash.",
+        "from": "@wildshard/sdk/commonsCosts"
+      },
+      {
+        "name": "CommonsCostSchema",
+        "kind": "const",
+        "doc": "Pinned commons bytes declare exact decoded/GPU bytes and triangle/draw counts as nonnegative safe integers.",
+        "from": "@wildshard/sdk/commonsCosts"
+      },
+      {
+        "name": "CommonsCostsSchema",
+        "kind": "const",
+        "doc": "Bounded hash-addressed metadata for at most 1024 distinct required commons assets.",
+        "from": "@wildshard/sdk/commonsCosts"
+      },
+      {
         "name": "director",
         "kind": "function",
         "doc": "Validate before admitting a bounded module or installing a fixed-step director.",
@@ -17540,6 +17630,20 @@
         "kind": "const",
         "doc": "Author-facing revision of the shardfile format and script ABI.",
         "from": "@wildshard/sdk/version"
+      }
+    ],
+    "commons": [
+      {
+        "name": "catalogueRef",
+        "kind": "function",
+        "doc": "Resolve a stable build-time entry to its immutable content reference and actual cost.",
+        "from": "@wildshard/commons/catalogue"
+      },
+      {
+        "name": "createCatalogue",
+        "kind": "function",
+        "doc": "Build a versioned catalogue using only the SDK's author-tool contract. Nothing installs on import.",
+        "from": "@wildshard/commons/catalogue"
       }
     ]
   },
