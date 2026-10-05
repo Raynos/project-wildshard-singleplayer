@@ -132,9 +132,9 @@ it('draws a barter stall as its declared slate in Classic and as the G87 sheet i
   expect(shop.root.querySelector('.ws-shop-bigpurse')?.childElementCount).toBe(0);
   const tiles = [...shop.root.querySelectorAll('.ws-shop-grid .ws-icard-tile')];
   expect(tiles.map((t) => t.querySelector('.ws-icard-name')?.textContent)).toEqual(['Tile 0', 'Tile 1', 'Tile 2', 'Tile 3']);
-  expect(tiles.map((t) => t.querySelector('.ws-icard-foot')?.textContent)).toEqual(['2 hides · 1 resin', '2 hides · 1 resin', 'Full', 'Owned']);
+  expect(tiles.map((t) => t.querySelector('.ws-icard-foot')?.textContent)).toEqual(['Ready', 'Need more', 'Full', 'Owned']);
   const bar = shop.root.querySelector<HTMLButtonElement>('.ws-shop-bigbuy'); if (!bar) throw new Error('Missing buy bar');
-  expect(bar.textContent).toBe('Trade Tile 0');
+  expect(bar.textContent).toBe('Trade Tile 02 hides · 1 resin'); expect(bar.querySelector('small')?.textContent).toBe('2 hides · 1 resin');
   tiles[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   expect(bar.textContent).toBe('Need 2 hides'); expect(bar.disabled).toBe(true);
   overrideSetting('itemCards', 'classic');
