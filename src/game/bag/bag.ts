@@ -73,7 +73,10 @@ export interface FindsView {
 }
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
-const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+const words = (cls: string, value: string, tag = 'div'): HTMLElement => { const node = el(cls, '', tag); node.textContent = value; return node; };
+const fill = (root: HTMLElement, selector: string, value: string): void => {
+  const node = root.querySelector(selector); if (node === null) throw new Error(`Missing Bag slot ${selector}`); node.textContent = value;
+};
 const ROMAN = ['', 'I', 'II', 'III'];
 const pips = (n: number, of: number): string => `<span class="ws-gmenu-pips">${'<i class="on"></i>'.repeat(Math.min(n, of))}${'<i></i>'.repeat(Math.max(0, of - n))}</span>`;
 
@@ -115,17 +118,21 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
     const sword = w.melee;
     const sub = sword && loot?.sharpen !== undefined
       ? `<span class="ws-gmenu-kitsub">${loot.sharpen > 0 ? `Sharpened ${ROMAN[loot.sharpen] ?? ''}` : 'Not sharpened'}</span>${pips(loot.sharpen, 2)}`
-      : w.ammoLabel ? `<span class="ws-gmenu-kitsub">${esc(w.ammoLabel)} · ${w.ammo} / ${w.magazine}${w.reserve ? ` + ${w.reserve}` : ''}</span>` : '<span class="ws-gmenu-kitsub">Melee</span>';
+      : '<span class="ws-gmenu-kitsub"></span>';
     const b = el(`ws-gmenu-kit ${side} weapon${w.equipped ? ' held' : ''}`, `
       <i class="ws-gmenu-kiticon">${icon(w.icon)}</i>
-      <span class="ws-gmenu-kitname">${esc(w.name)}</span>${sub}
+      <span class="ws-gmenu-kitname"></span>${sub}
       <span class="ws-gmenu-chip">${w.equipped ? 'Held' : 'Hold'}</span>`, 'button') as HTMLButtonElement;
     b.type = 'button';
+    fill(b, '.ws-gmenu-kitname', w.name);
+    if (!(sword && loot?.sharpen !== undefined)) fill(b, '.ws-gmenu-kitsub', w.ammoLabel ? `${w.ammoLabel} · ${w.ammo} / ${w.magazine}${w.reserve ? ` + ${w.reserve}` : ''}` : 'Melee');
     scope.listen(b, 'click', () => { if (!w.equipped) o.onEquip(w.id); });
     return b;
   };
-  const slot = (side: 'l' | 'r', cls: string, ic: IconId, name: string, sub: string, locked = false): HTMLElement =>
-    el(`ws-gmenu-kit ${side} ${cls}${locked ? ' locked' : ''}`, `<i class="ws-gmenu-kiticon">${icon(ic)}</i><span class="ws-gmenu-kitname">${esc(name)}</span>${sub}`);
+  const slot = (side: 'l' | 'r', cls: string, ic: IconId, name: string, sub: string, locked = false): HTMLElement => {
+    const node = el(`ws-gmenu-kit ${side} ${cls}${locked ? ' locked' : ''}`, `<i class="ws-gmenu-kiticon">${icon(ic)}</i><span class="ws-gmenu-kitname"></span>${sub}`);
+    fill(node, '.ws-gmenu-kitname', name); return node;
+  };
 
   const doll = el('ws-gmenu-doll');
   const left = el('ws-gmenu-dollcol l'), right = el('ws-gmenu-dollcol r');
@@ -141,7 +148,10 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
   }
   // left: the weapons you carry (tap to hold); right: the charm at the chest, the held weapon at the hand
   for (const w of carried) left.append(weaponSlot(w, 'l'));
-  for (const t of o.tools ?? []) left.append(slot('l', 'tool', t.icon, t.name, `<span class="ws-gmenu-kitsub">${esc(t.kind)}</span><span class="ws-gmenu-kitsub">${esc(t.how)}</span>`));
+  for (const t of o.tools ?? []) {
+    const tool = slot('l', 'tool', t.icon, t.name, '<span class="ws-gmenu-kitsub"></span><span class="ws-gmenu-kitsub"></span>');
+    const subs = tool.querySelectorAll('.ws-gmenu-kitsub'); if (subs[0]) subs[0].textContent = t.kind; if (subs[1]) subs[1].textContent = t.how; left.append(tool);
+  }
   if (loot?.charms) {
     const c = loot.charms;
     right.append(c.owned > 0
@@ -161,8 +171,9 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
     for (const c of cos) {
       const b = el(`ws-gmenu-kit cosmetic${c.owned ? '' : ' locked'}${c.worn ? ' held' : ''}`, `
         <i class="ws-gmenu-kiticon">${icon(c.icon)}</i>
-        <span class="ws-gmenu-kitname">${esc(c.name)}</span>
-        ${c.owned ? `<span class="ws-gmenu-chip">${c.worn ? 'Worn' : 'Wear'}</span>` : `<span class="ws-gmenu-kitsub">${esc(c.how)}</span>`}`, 'button') as HTMLButtonElement;
+        <span class="ws-gmenu-kitname"></span>
+        ${c.owned ? `<span class="ws-gmenu-chip">${c.worn ? 'Worn' : 'Wear'}</span>` : '<span class="ws-gmenu-kitsub"></span>'}`, 'button') as HTMLButtonElement;
+      fill(b, '.ws-gmenu-kitname', c.name); if (!c.owned) fill(b, '.ws-gmenu-kitsub', c.how);
       b.type = 'button'; b.disabled = !c.owned;
       scope.listen(b, 'click', () => { if (c.owned) o.onWear(c.id); });
       row.append(b);
@@ -171,16 +182,17 @@ export function renderGear(p: HTMLElement, o: GearOpts): void {
   }
   // the shard's wearable skins (Nalati, B15) / finishes (Pine Hollow, E314 C: the unowned ones dim, where they come from)
   if (o.skins.length > 0) {
-    p.append(el('ws-gmenu-label', esc(o.skinsTitle ?? 'Skins')));
+    p.append(words('ws-gmenu-label', o.skinsTitle ?? 'Skins'));
     const row = el('ws-gmenu-kitrow');
     for (const s of o.skins) {
       const locked = s.locked === true;
       const b = el(`ws-gmenu-kit cosmetic${s.worn ? ' held' : ''}${locked ? ' locked' : ''}`, `
         <i class="ws-gmenu-kiticon">${icon(locked ? 'lock' : s.icon ?? 'laurel')}</i>
-        <span class="ws-gmenu-kitname">${esc(s.name)}</span>
-        <span class="ws-gmenu-kitsub">${esc(s.blurb)}</span>
+        <span class="ws-gmenu-kitname"></span>
+        <span class="ws-gmenu-kitsub"></span>
         ${locked ? '' : `<span class="ws-gmenu-chip">${s.worn ? 'Worn' : 'Wear'}</span>`}`, 'button') as HTMLButtonElement;
       b.type = 'button'; b.disabled = locked;
+      fill(b, '.ws-gmenu-kitname', s.name); fill(b, '.ws-gmenu-kitsub', s.blurb);
       scope.listen(b, 'click', () => { if (!locked) o.onWearSkin(s.id); });
       row.append(b);
     }
@@ -196,28 +208,34 @@ export function renderFinds(p: HTMLElement, v: FindsView, scope: Scope = uiScope
   p.replaceChildren();
   if (v.open) {
     const o = v.open;
-    const row = el('ws-gmenu-done ws-gmenu-openbook', `<i class="ws-gmenu-done-icon">${icon('book')}</i><div class="ws-gmenu-abody"><div class="ws-gmenu-aname">${esc(o.title)}</div><div class="ws-gmenu-agoal">${esc(o.sub)}</div></div><span class="ws-gmenu-chip">Open</span>`, 'button') as HTMLButtonElement;
+    const row = el('ws-gmenu-done ws-gmenu-openbook', `<i class="ws-gmenu-done-icon">${icon('book')}</i><div class="ws-gmenu-abody"><div class="ws-gmenu-aname"></div><div class="ws-gmenu-agoal"></div></div><span class="ws-gmenu-chip">Open</span>`, 'button') as HTMLButtonElement;
+    fill(row, '.ws-gmenu-aname', o.title); fill(row, '.ws-gmenu-agoal', o.sub);
     row.type = 'button';
     scope.listen(row, 'click', () => { o.onPick(); });
     p.append(row);
   }
   const strip = el('ws-gmenu-counters');
-  for (const c of v.counters) strip.append(el(`ws-gmenu-counter${c.n >= c.of ? ' full' : ''}`, `<span>${esc(c.label)}</span><b>${c.n} / ${c.of}</b>`));
+  for (const c of v.counters) {
+    const counter = el(`ws-gmenu-counter${c.n >= c.of ? ' full' : ''}`, `<span></span><b>${c.n} / ${c.of}</b>`); fill(counter, 'span', c.label); strip.append(counter);
+  }
   p.append(strip);
-  if (v.next !== null) p.append(el('ws-gmenu-nextcharm', esc(v.next)));
+  if (v.next !== null) p.append(words('ws-gmenu-nextcharm', v.next));
   for (const s of v.sections) {
-    p.append(el('ws-gmenu-label', esc(s.title)));
+    p.append(words('ws-gmenu-label', s.title));
     const grid = el(`ws-gmenu-stickers${s.dense === true ? ' dense' : ''}${s.wide === true ? ' wide' : ''}`);
     for (const it of s.items) {
       const pick = v.onPick, id = it.id;
-      const prize = (it.prize ?? []).map((l) => `<em class="ws-gmenu-prize">${esc(l)}</em>`).join('');
-      const html = `<i class="ws-gmenu-stickicon">${icon(it.icon)}</i><span>${it.found ? esc(it.label) : '???'}</span>${prize}`;
+      const html = `<i class="ws-gmenu-stickicon">${icon(it.icon)}</i><span></span>`;
+      const decorate = (node: HTMLElement): void => {
+        fill(node, 'span', it.found ? it.label : '???'); for (const prize of it.prize ?? []) node.append(words('ws-gmenu-prize', prize, 'em'));
+      };
       if (pick !== undefined && id !== undefined) {
         const b = el(`ws-gmenu-sticker tap${it.found ? ' found' : ''}`, html, 'button') as HTMLButtonElement;
         b.type = 'button';
+        decorate(b);
         scope.listen(b, 'click', () => { pick(id); });
         grid.append(b);
-      } else grid.append(el(`ws-gmenu-sticker${it.found ? ' found' : ''}`, html));
+      } else { const sticker = el(`ws-gmenu-sticker${it.found ? ' found' : ''}`, html); decorate(sticker); grid.append(sticker); }
     }
     p.append(grid);
   }
