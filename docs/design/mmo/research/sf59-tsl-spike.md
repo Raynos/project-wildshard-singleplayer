@@ -260,3 +260,47 @@ PCF on the node boxes) 59.7 dB with a max of 10 levels, so the metric sees the f
 with the GPU budget work. A level's own fog chunk (fogPatches slots 200 / 300) and Pine Hollow's wet surfaces
 (`normal_fragment_begin`) do not reach node materials yet (the handler warns once about the fog). The Simulator bench
 and the frame floors on driftwood-isle and nalati-grasslands wait for the coordinator's quiet window.
+
+## 7. Step 6: the lighting stage, toon and painterly, G169's stress cases (2026-10-04)
+
+**The stage** (`core/materialGraph.ts`, `graph/compile.ts`): `stages.lighting` on a `standard` material graph, four
+outputs: `sun` (vec3, the radiance a directional light adds), `sunSpecular` (float, a factor on three's physical specular
+from the unshadowed sun; absent means the model has no specular at all), `ambient` (vec3, replaces the indirect diffuse)
+and `grade` (vec3, the lit colour, emissive included, before the output transform; a graded material is not tone mapped).
+Eight new input ops, each confined to its place: `normalView`, `viewDirection`, `albedo` (all three lighting places),
+`sunDirection`, `sunColour` (unshadowed), `sunShadow` (the families' ratio) in `sun`, `irradiance` in `ambient`,
+`litColour` in `grade`; plus a `flatShading` flag. No code nodes, constant loops only, the same budget (defaults
+unchanged). The compiler builds a lit graph as `GraphLitMaterial`, three's `PhysicalLightingModel` with each directional
+light's direct term replaced by the `sun` sub-graph, fed from the light node itself (`lightColor` already carries the tent
+shadow, a cascade's slice gate and the fade; `baseColorNode` is the unshadowed colour), so the engine epilogue and the
+cascade node are kept untouched. The light-free part of the `sun` sub-graph is memoised once and shared between the
+cascades; the per-light part is rebuilt per light. Every other light keeps the physical diffuse.
+
+**Parity, desktop** (`scripts/browser-lane.sh node scripts/tsl-spike/run.mjs --variants=family-toon,graph-toon,family-paint,graph-paint,graph-pastel,graph-ink --tag=lighting`,
+`progress/shard-platform/sf59/tsl-spike-desktop-lighting.{json,jpg}`): `family-toon` vs `graph-toon` **69.9 dB, 0 % > 8
+levels** (max 68 on isolated pixels: the cloud noise's hash, `fract(p · 123.34)` over world metres, at float precision);
+`family-paint` vs `graph-paint` **94.1 dB, 0 % > 8** (max 1). Synced frame 0.57 → 0.91 ms (toon), 0.46 → 0.46 ms
+(painterly); all at 59.9 fps, no GL errors. Presets: toon 203 nodes / ≈ 290 instructions, painterly 156 / ≈ 281
+(the toon's cloud shade, two octaves of its own value noise, is most of it). Simulator: waits for the coordinator's slot.
+
+**Not ported yet** (each preset throws with the reason): the toon caustics under a water level (expressible: world y, two
+drifting noises, `pow`); the painterly wind sway (needs the instance origin and a world → object direction as inputs).
+
+**G169's stress cases** (`scripts/tsl-spike/stress.js`, `graph-pastel`, `graph-ink`): both admit in the **content**
+budget (65 nodes, ≈ 121 / 112 instructions) and render clean at the floor (synced 0.72 / 0.99 ms).
+- *Pastel alien plain* (B): height-gradient albedo with slow noise, a half-Lambert sun through a two-colour pastel ramp,
+  the cast shadow softened to a tint, a wide mint rim, a sky / ground pastel ambient on the world normal, a lift-and-desaturate
+  grade. Ops: add, albedo, const, dot, irradiance, litColour, mix, mul, noise, normalView, normalWorld, oneMinus, param,
+  positionWorld, saturate, smoothstep, sunColour, sunDirection, sunShadow, swizzle, viewDirection. No gap.
+- *Ink / cel valley* (C): three hard bands (`floor` of N·L × shadow), a flat ink-wash shade, silhouette ink from N·V,
+  face-border ink at a constant screen width (`fwidth` on UV), a light posterise grade. Ops: add, albedo, const, div, dot,
+  floor, fwidth, gt, irradiance, litColour, min, mix, mul, normalView, oneMinus, param, saturate, select, smoothstep, step,
+  sunColour, sunDirection, sunShadow, swizzle, uv, viewDirection. **Gaps:** true outlines need either an inverted-hull
+  second draw (a back-face, vertex-offset pass: a render-state field the IR lacks) or a post edge filter over `sceneDepth`
+  / scene normals (§4 lists `sceneDepth`; the `post` stage has only `sceneColour`); the N·V silhouette thins on flat faces
+  and the UV border needs authored UVs. A shading-normal → world transform op (`normalView` to world) would also let the
+  toon rim use the faceted normal instead of the geometry's.
+
+**Budget note:** the `sun` sub-graph is counted once though it runs once per directional light (three cascades under
+the sky rig); the light-free part is shared, so only the per-light nodes multiply. Counting them × cascades is the GPU
+budget step's job (SF58 owns the caps; no default changed here).

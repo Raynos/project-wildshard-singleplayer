@@ -942,14 +942,20 @@ epilogue, the tent and cascade shadows as nodes); `loadGraphCompiler(renderer)` 
 (`render/graph/compile.ts`), which turns a graph IR into a node material. The renderer-neutral IR (`core/materialGraph.ts`,
 `GRAPH_IR_VERSION` 1) is data: `nodes` of an allowlisted vocabulary (`GRAPH_OPS`: inputs, safe maths, comparisons and a
 branch-light `select`, swizzles, MaterialX noise, an admitted texture, a constant-count `loop`), the stages
-`vertex.offset`, `surface` and `post` (`lighting` reserved), typed `params` that are uniforms only (bindable to a day key
+`vertex.offset`, `surface`, `lighting` and `post`, typed `params` that are uniforms only (bindable to a day key
 or a declared shard-state field; `setParam` never recompiles), and a per-program budget. `validateGraph(ir, opts)`
 refuses unknown ops, type mismatches, cycles and over-budget graphs before any node exists. A select with cheap sides
 compiles branch-free (`mix`); one with an expensive side nothing else reads becomes a real `if / else`. Presets
 (`render/graph/presets.ts`) re-express a family for the parity bench (`scripts/tsl-spike/`, the `graph` variants):
 `pbrMeasureGraph` (PBR + the SF56 measure layer, size labels included) and `emissiveGraph` (the emissive surface and
-tube), compiled under `PRESET_GRAPH_BUDGET` (the labelled measure preset runs past the content budget). The toon and
-painterly families redefine three's light model, which is the reserved `lighting` stage, so they have no preset yet;
+tube), `toonGraph` and `painterlyGraph` (their light models through the `lighting` stage), compiled under
+`PRESET_GRAPH_BUDGET` (the labelled measure preset runs past the content budget). The `lighting` stage (a `standard`
+material only) has four outputs: `sun`, the radiance a directional light adds, built per light from `sunDirection`,
+`sunColour` (unshadowed) and `sunShadow` (the cast-shadow ratio) with `normalView`, `viewDirection` and `albedo`;
+`sunSpecular`, a factor on the physical specular (absent: no specular); `ambient`, the indirect diffuse from `irradiance`;
+`grade`, the lit colour (`litColour`) before the output transform, which turns tone mapping off. The compiler's
+`GraphLitMaterial` keeps three's physical model and the engine's light nodes (tent, cascades, fade) underneath, so the
+epilogue is unchanged. `toonGraph` refuses caustics and `painterlyGraph` a wind sway (not ported yet);
 `emissiveGraph` refuses a sky, an additive blend or a fog share other than 1. No shipped material uses a preset, and
 today's families stay hand-written GLSL.
 
