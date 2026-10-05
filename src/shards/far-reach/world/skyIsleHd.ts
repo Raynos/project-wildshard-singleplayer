@@ -54,15 +54,27 @@ const WEAR: Readonly<Record<string, readonly [SkyIsleModel, number]>> = {
   'keel.keeper': ['isle-shelf-hd', 5.0], 'keel.ruin': ['isle-mass-hd', 3.3], 'keel.step': ['isle-falls-hd', 0.9], 'keel.crown': ['isle-spire-hd', 2.0],
 };
 const FALLBACK: readonly SkyIsleModel[] = SKY_ISLE_MODELS;
+/** The model a sky isle (or a playable keel) wears: its `WEAR` row, else the `i`-th model in turn. */
+export const skyIsleWear = (s: Isle, i: number): SkyIsleModel => WEAR[s.id]?.[0] ?? FALLBACK[i % FALLBACK.length] ?? 'isle-mass-hd';
+
+/**
+ * The playable islands' keels (world/build.ts; E399 round 2): a model under each island, its turf `keelTop` under the
+ * walkable top, its rim `keelScale` of the deck's; `cut` is where the code top's own rock is cut away. Shared with the far
+ * proxy's bake (look/far.ts), so the neighbour view hangs the same keels.
+ */
+export const ISLE_CUT = 1.4, KEEL_TOP = 1.0;
+export const ISLE_KEEL_CUT: Readonly<Record<string, { cut: number; keelTop: number; keelScale: number }>> = { windmill: { cut: 0.8, keelTop: 0.6, keelScale: 0.78 } };
+export const keelIsles = (isles: readonly Isle[]): SkyIsle[] => isles.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - (ISLE_KEEL_CUT[isle.id]?.keelTop ?? KEEL_TOP), r: isle.r * (ISLE_KEEL_CUT[isle.id]?.keelScale ?? 0.97), pines: 0, fall: null }));
 
 /** A model in its unit frame, with a probe of its turf and its rim radius per angle. */
 /** `bulge`: the model's widest horizontal reach under its turf (deck radii), where its overhangs and bushes spill out. */
-interface Unit { readonly geometry: BufferGeometry; readonly map: Texture; readonly depth: number; readonly rim: Float32Array; readonly probe: Mesh; readonly bulge: number }
+export interface SkyIsleUnit { readonly geometry: BufferGeometry; readonly depth: number; readonly rim: Float32Array; readonly probe: Mesh; readonly bulge: number }
+interface Unit extends SkyIsleUnit { readonly map: Texture }
 
 const median = (v: number[]): number => { const s = [...v].sort((a, b) => a - b); return s[Math.floor(s.length / 2)] ?? 0; };
 
-/** Bring a loaded model to the unit frame (see the module note). */
-function unit(geometry: BufferGeometry, map: Texture): Unit {
+/** Bring a loaded model to the unit frame (see the module note); moves the geometry in place. Node-safe (the far bake). */
+export function skyIsleUnit(geometry: BufferGeometry): SkyIsleUnit {
   const ray = new Raycaster(), down = new Vector3(0, -1, 0), probe = new Mesh(geometry, new MeshBasicMaterial({ side: DoubleSide }));
   const p = geometry.getAttribute('position') as BufferAttribute, box = new Box3().setFromBufferAttribute(p);
   const cx = (box.min.x + box.max.x) / 2, cz = (box.min.z + box.max.z) / 2, half = Math.max(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
@@ -89,7 +101,19 @@ function unit(geometry: BufferGeometry, map: Texture): Unit {
   for (let b = 0; b < bins; b++) rim[b] = (rim[b] ?? 0) * k;
   geometry.computeBoundingBox(); geometry.computeBoundingSphere();
   const depth = -(geometry.boundingBox?.min.y ?? -1);
-  return { geometry, map, depth, rim, probe, bulge };
+  return { geometry, depth, rim, probe, bulge };
+}
+
+/**
+ * Where an isle's model instance stands: its yaw (radians), its rim scale and its keel stretch (`sy`, applied on top of
+ * the rim scale to y). `k` is its place among the isles wearing the same model (the yaw fallback). A playable keel
+ * (`clipTop`) tapers INSIDE its deck (round 13, seat C: the mill's keel bulged past its deck, a thin disc on a mossy
+ * bun): its widest rock under the cut fitted to keelInset of the deck's radius; its depth kept.
+ */
+export function skyIslePose(s: Isle, u: SkyIsleUnit, k: number, clipTop: boolean): { readonly yaw: number; readonly r: number; readonly sy: number } {
+  const r = clipTop ? s.r * Math.min(1, SKY_ISLE_HD.keelInset / Math.max(1e-3, u.bulge)) : s.r;
+  const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi * s.r / r, Math.max(lo, s.keel / (r * u.depth)));
+  return { yaw, r, sy };
 }
 
 /** A unit model's rim radius at a local angle (radians from +x), bins without a vertex borrowing the median. */
@@ -113,11 +137,11 @@ export interface SkyIsleHd {
 /** `clipTop` (the playable islands' keels): everything above the model's turf is cut away, so its canopy never pokes through a deck. */
 export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIsleHd {
   const units = new Map<SkyIsleModel, Unit>();
-  for (const name of SKY_ISLE_MODELS) { const m = skyHd(name); if (m !== null) units.set(name, unit(m.geometry, m.map)); }
+  for (const name of SKY_ISLE_MODELS) { const m = skyHd(name); if (m !== null) units.set(name, { ...skyIsleUnit(m.geometry), map: m.map }); }
   const group = new Group(), fallback: SkyIsle[] = [], placed = new Map<string, { u: Unit; yaw: number; sy: number }>();
   const byModel = new Map<SkyIsleModel, SkyIsle[]>();
   isles.forEach((s, i) => {
-    const name = WEAR[s.id]?.[0] ?? FALLBACK[i % FALLBACK.length] ?? 'isle-mass-hd';
+    const name = skyIsleWear(s, i);
     if (!units.has(name)) { fallback.push(s); return; }
     byModel.set(name, [...(byModel.get(name) ?? []), s]);
   });
@@ -154,10 +178,7 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
     const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
     list.forEach((s, k) => {
-      // a keel tapers INSIDE its deck (round 13, seat C: the mill's keel bulged past its deck, a thin disc on a mossy bun):
-      // its widest rock under the cut fitted to keelInset of the deck's radius; its depth kept
-      const r = clipTop ? s.r * Math.min(1, SKY_ISLE_HD.keelInset / Math.max(1e-3, u.bulge)) : s.r;
-      const yaw = WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi * s.r / r, Math.max(lo, s.keel / (r * u.depth)));
+      const { yaw, r, sy } = skyIslePose(s, u, k, clipTop);
       q.setFromAxisAngle(up, yaw); m.compose(new Vector3(s.x, s.y, s.z), q, new Vector3(r, r * sy, r)); mesh.setMatrixAt(k, m);
       placed.set(s.id, { u, yaw, sy });
     });

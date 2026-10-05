@@ -29,6 +29,11 @@ export interface FarLookSource {
   readonly canopyAt?: (x: number, z: number, h: number, slope: number, splat: readonly [number, number, number, number]) => number;
   readonly water?: { readonly level: number; readonly colour: FarRgb };
   readonly haze: FarHaze;
+  /**
+   * quads per region side in its terrain lattice (default `FAR_QUADS`): a shard whose ground is one sheet (a cloud sea
+   * over a void, its land all models) spends 1 and gives its triangles to its parts instead (SF49)
+   */
+  readonly quads?: number;
   /** its grade under the one frame while it owns the frame (SF19a / SF19b, G158) */
   readonly grade?: FarGrade;
   /** a haze band at its border under the one frame (SF19b, G94) */
@@ -51,6 +56,12 @@ export interface FarBand { readonly colour: FarRgb; readonly height: number; rea
 export interface FarLookRuntime { readonly family: FarFamily; readonly haze: FarHaze; readonly grade?: FarGrade | undefined; readonly band?: FarBand | undefined }
 /** A baked grid as `terrain.bin` holds it: res² heights over size metres, 4 splat bytes per vertex. */
 export interface FarGrid { readonly res: number; readonly size: number; readonly heights: Float32Array; readonly splat: Uint8Array | null }
+/**
+ * A baked model merged into the proxy (SF49: a shard whose land is models, not a heightfield: floating islands, a skyline):
+ * cell-local metres and linear RGB per vertex, indexed. The whole part rides the region its centre stands over, so the
+ * rings hide it with that region; normals come from its faces.
+ */
+export interface FarPart { readonly positions: Float32Array; readonly colours: Float32Array; readonly index: Uint32Array }
 /** An indexed proxy mesh; `region` is per vertex. */
 export interface FarProxyMesh { positions: Float32Array; normals: Float32Array; colours: Float32Array; region: Float32Array; index: Uint32Array; triangles: number }
 
@@ -92,9 +103,14 @@ function sampler(grid: FarGrid): { height: (x: number, z: number) => number; spl
   };
 }
 
-/** Bake one shard's proxy mesh from its grid and far look. Deterministic; refuses output over the far triangle cap. */
-export function buildFarProxy(grid: FarGrid, look: FarLookSource): FarProxyMesh {
-  const sample = sampler(grid), regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / FAR_QUADS, n = FAR_QUADS + 1;
+/**
+ * Bake one shard's proxy mesh from its grid, far look and model parts. Deterministic; refuses output over the far triangle
+ * cap and a part outside the cell.
+ */
+export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonly FarPart[] = []): FarProxyMesh {
+  const quads = look.quads ?? FAR_QUADS;
+  if (!Number.isInteger(quads) || quads < 1) throw new RangeError('Invalid far lattice');
+  const sample = sampler(grid), regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / quads, n = quads + 1;
   const positions: number[] = [], normals: number[] = [], colours: number[] = [], region: number[] = [], index: number[] = [];
   const clamp = (c: number): number => Math.min(1, Math.max(0, c));
   // the surface the proxy shows: ground + canopy, its slope from the ground alone (a canopy is not a cliff)
@@ -116,7 +132,7 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource): FarProxyMesh 
       const x = x0 + i * step, z = z0 + j * step, g = ground(x, z), id = vertex(x, g.top, z, g.normal, g.rgb, r); low = Math.min(low, g.h);
       if (j === 0) edge[0]?.push(id); if (i === n - 1) edge[1]?.push(id); if (j === n - 1) edge[2]?.push(id); if (i === 0) edge[3]?.push(id);
     }
-    for (let j = 0; j < FAR_QUADS; j++) for (let i = 0; i < FAR_QUADS; i++) {
+    for (let j = 0; j < quads; j++) for (let i = 0; i < quads; i++) {
       const a = base + j * n + i, b = a + 1, c = a + n, d = c + 1;
       index.push(a, c, b, b, c, d);
     }
@@ -140,9 +156,41 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource): FarProxyMesh 
       index.push(a, c, b, b, c, d);
     }
   }
+  for (const part of parts) addPart(part, regionSize, { positions, normals, colours, region, index });
   const triangles = index.length / 3;
   if (triangles > CONTENT_CAPS.far.triangles) throw new RangeError(`Far proxy has ${triangles} triangles, over the ${CONTENT_CAPS.far.triangles} cap`);
   return { positions: Float32Array.from(positions), normals: Float32Array.from(normals), colours: Float32Array.from(colours), region: Float32Array.from(region), index: Uint32Array.from(index), triangles };
+}
+
+/** Append a model part: its region from its centre, area-weighted vertex normals from its faces. */
+function addPart(part: FarPart, regionSize: number, out: { positions: number[]; normals: number[]; colours: number[]; region: number[]; index: number[] }): void {
+  const { positions: p, colours: c, index: idx } = part, count = p.length / 3;
+  if (!Number.isInteger(count) || c.length !== p.length || idx.length % 3 !== 0) throw new RangeError('Invalid far part');
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (let v = 0; v < count; v++) {
+    const x = p[v * 3] ?? Number.NaN, y = p[v * 3 + 1] ?? Number.NaN, z = p[v * 3 + 2] ?? Number.NaN;
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z) || Math.abs(x) > CHUNK_HALF || Math.abs(z) > CHUNK_HALF) throw new RangeError('Far part outside the cell');
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x); minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z);
+  }
+  const cell = (u: number): number => Math.min(FAR_REGIONS - 1, Math.max(0, Math.floor((u + CHUNK_HALF) / regionSize)));
+  const r = cell((minX + maxX) / 2) + cell((minZ + maxZ) / 2) * FAR_REGIONS, normal = new Float32Array(p.length);
+  for (let t = 0; t < idx.length; t += 3) {
+    const a = idx[t] ?? 0, b = idx[t + 1] ?? 0, d = idx[t + 2] ?? 0;
+    if (a >= count || b >= count || d >= count) throw new RangeError('Invalid far part index');
+    const ux = (p[b * 3] ?? 0) - (p[a * 3] ?? 0), uy = (p[b * 3 + 1] ?? 0) - (p[a * 3 + 1] ?? 0), uz = (p[b * 3 + 2] ?? 0) - (p[a * 3 + 2] ?? 0);
+    const vx = (p[d * 3] ?? 0) - (p[a * 3] ?? 0), vy = (p[d * 3 + 1] ?? 0) - (p[a * 3 + 1] ?? 0), vz = (p[d * 3 + 2] ?? 0) - (p[a * 3 + 2] ?? 0);
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+    for (const i of [a, b, d]) { normal[i * 3] = (normal[i * 3] ?? 0) + nx; normal[i * 3 + 1] = (normal[i * 3 + 1] ?? 0) + ny; normal[i * 3 + 2] = (normal[i * 3 + 2] ?? 0) + nz; }
+  }
+  const base = out.region.length;
+  for (let v = 0; v < count; v++) {
+    const nx = normal[v * 3] ?? 0, ny = normal[v * 3 + 1] ?? 0, nz = normal[v * 3 + 2] ?? 0, len = Math.hypot(nx, ny, nz);
+    out.positions.push(p[v * 3] ?? 0, p[v * 3 + 1] ?? 0, p[v * 3 + 2] ?? 0);
+    if (len > 0) out.normals.push(nx / len, ny / len, nz / len); else out.normals.push(0, 1, 0);
+    out.colours.push(Math.min(1, Math.max(0, c[v * 3] ?? 0)), Math.min(1, Math.max(0, c[v * 3 + 1] ?? 0)), Math.min(1, Math.max(0, c[v * 3 + 2] ?? 0)));
+    out.region.push(r);
+  }
+  for (const i of idx) out.index.push(base + i);
 }
 
 /** The far level of a ring catalogue: an instance's proxy resident bytes (decoded + GPU), null when it has none. */

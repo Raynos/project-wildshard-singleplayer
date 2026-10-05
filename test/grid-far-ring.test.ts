@@ -52,6 +52,18 @@ describe('SF23 far proxies', () => {
     expect(mesh.triangles).toBe(16 * (FAR_QUADS * FAR_QUADS * 2 + 4 * FAR_QUADS * 2));
     expect(Math.min(...mesh.positions.filter((_, i) => i % 3 === 1))).toBeLessThan(4);
   });
+
+  it('SF49: merges model parts into the one mesh, each riding the region under its centre', () => {
+    const look: FarLookSource = { family: 'toon', quads: 1, colourAt: () => [0.5, 0.5, 0.5], haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
+    const grid = { res: 2, size: 500, heights: new Float32Array(4).fill(-40), splat: null };
+    // a floating triangle over region (2, 1) = 6, straddling into region 7 at one corner
+    const part = { positions: Float32Array.from([10, 30, -100, 140, 32, -100, 20, 40, -60]), colours: new Float32Array(9).fill(0.4), index: Uint32Array.from([0, 2, 1]) }; // counter-clockwise from above: faces up
+    const mesh = buildFarProxy(grid, look, [part]);
+    expect(mesh.triangles).toBe(16 * (2 + 4 * 2) + 1);
+    expect([...mesh.region.slice(-3)]).toEqual([6, 6, 6]);
+    expect(mesh.normals[mesh.normals.length - 2]).toBeGreaterThan(0.9);
+    expect(() => buildFarProxy(grid, look, [{ ...part, positions: Float32Array.from([10, 30, -100, 260, 32, -100, 20, 40, -60]) }])).toThrow(/outside the cell/u);
+  });
 });
 
 /** Rings over an n × n synthetic catalogue: the grid's six far proxies cycled over the cells, tiles at the caps. */

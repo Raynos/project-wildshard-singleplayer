@@ -12,7 +12,7 @@ import { roost } from './roost';
 import { firSheet, firs } from './fir';
 import { trees } from './trees';
 import { SKY_ISLES } from './skyIsles';
-import { skyIsleModels } from './skyIsleHd';
+import { ISLE_CUT, ISLE_KEEL_CUT, keelIsles, skyIsleModels } from './skyIsleHd';
 import { knollHull, knollMesh } from './knoll';
 import { winchHouse } from './winchHouse';
 import { skyline } from './distant';
@@ -116,8 +116,7 @@ export interface BuiltWorld {
  */
 // (round 13, seat A 5: 'the broad faceted apron below the deck': the code band was 3.2 m, 1.6 on the mill isle; the
 // modelled rock now starts just under the turf)
-const ISLE_CUT = 1.4, KEEL_TOP = 1.0;
-const CUT: Readonly<Record<string, { cut: number; keelTop: number; keelScale: number }>> = { windmill: { cut: 0.8, keelTop: 0.6, keelScale: 0.78 } };
+const CUT = ISLE_KEEL_CUT;
 /** The rock drum under the mill (mill.ts MILL_DRUM): a convex ring of stone, MILL_DRUM.h proud of the deck. */
 function millDrum(): ColliderDesc {
   const n = MILL_DRUM.sides, points = new Float32Array(n * 2 * 3);
@@ -162,7 +161,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean, entries = 
   // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
   // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
   // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
-  const keels = skyIsleModels(ISLES.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - (CUT[isle.id]?.keelTop ?? KEEL_TOP), r: isle.r * (CUT[isle.id]?.keelScale ?? 0.97), pines: 0, fall: null })), true);
+  const keels = skyIsleModels(keelIsles(ISLES), true);
   keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
   for (const s of SKY_ISLES) {
     const code = skyHd.fallback.includes(s);
