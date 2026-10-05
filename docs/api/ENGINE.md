@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2037 members; 831 without a doc line (—).
+2062 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1325,7 +1325,32 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `installFrameCounter` | function | @wildshard/engine/render/frameCounter | Start counting this renderer's renders (createRenderer does it for the game's renderer). Idempotent. It wraps |
 | `renderCount` | function | @wildshard/engine/render/frameCounter | How many times this renderer has rendered (`renderer.render()` calls, not draws). Read it where three's |
 | `Renders` | type | @wildshard/engine/render/frameCounter | what the counter needs of a renderer (the game's `Renderer`, or a test's stand-in) |
+| `DEFAULT_GRAPH_BUDGET` | const | @wildshard/engine/render/graph/ir | the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions) |
+| `GRAPH_IR_VERSION` | const | @wildshard/engine/render/graph/ir | the IR version a graph declares; a graph of another version is refused |
+| `GRAPH_OPS` | const | @wildshard/engine/render/graph/ir | The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons |
+| `GraphBinding` | type | @wildshard/engine/render/graph/ir | where a bound param's value comes from: a day-key channel or a declared public numeric shard-state field |
+| `GraphBudget` | interface | @wildshard/engine/render/graph/ir | the per-program ceilings validation refuses past |
+| `GraphCost` | interface | @wildshard/engine/render/graph/ir | what a valid graph costs: counted over every node a stage reaches, a loop's body times its count |
+| `GraphIr` | interface | @wildshard/engine/render/graph/ir | a graph |
+| `GraphLiteral` | type | @wildshard/engine/render/graph/ir | a literal input: a float or a 2–4 component vector |
+| `GraphLoopBody` | interface | @wildshard/engine/render/graph/ir | a loop's body: its own nodes (they may read the outer graph's nodes too) and the node that is the next `acc` |
+| `GraphNode` | interface | @wildshard/engine/render/graph/ir | one node of a graph |
+| `GraphOpSpec` | interface | @wildshard/engine/render/graph/ir | one op of the vocabulary |
+| `GraphParam` | interface | @wildshard/engine/render/graph/ir | a typed param: a uniform the graph reads |
+| `GraphParamType` | type | @wildshard/engine/render/graph/ir | a param's type; a colour is written in sRGB and arrives linear, a texture names an admitted file |
+| `GraphRef` | type | @wildshard/engine/render/graph/ir | an input: another node's id, or a literal |
+| `GraphStages` | interface | @wildshard/engine/render/graph/ir | the stages |
+| `GraphSurface` | interface | @wildshard/engine/render/graph/ir | the surface stage's outputs (each optional; an absent one keeps the lighting model's default) |
+| `GraphValidation` | type | @wildshard/engine/render/graph/ir | the outcome of validation: the graph (typed) and its cost, or every reason it is refused |
+| `GraphValidationOptions` | interface | @wildshard/engine/render/graph/ir | what validation checks bindings and the budget against |
+| `GraphValueType` | type | @wildshard/engine/render/graph/ir | a value's type inside a graph |
+| `GraphVertexOffset` | interface | @wildshard/engine/render/graph/ir | the vertex stage: an object-space offset; `shadow` (a matching depth variant) is refused until the back-end emits one (§2.5) |
+| `LOOP_MAX` | const | @wildshard/engine/render/graph/ir | the most iterations a `loop` node may run |
+| `validateGraph` | function | @wildshard/engine/render/graph/ir | Validate a graph read from content (`unknown`): its shape, every op against the vocabulary, every input's type, no |
+| `pbrMeasureGraph` | function | @wildshard/engine/render/graph/presets | The PBR family with a measure layer as a graph preset: the same uniforms the family's patch declares (as params), the |
+| `GraphCompiler` | interface | @wildshard/engine/render/graphBackend | the graph compiler's entry points, once its chunk has loaded |
 | `loadGraphBackend` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer (once; later calls return the same handler) |
+| `loadGraphCompiler` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer, then load the material graph compiler (`graph/compile.ts`, |
 | `buildHoverboard` | function | @wildshard/engine/render/hoverboardGeometry | The board, built into `g` (the viewmodel's model, or the Model Explorer's specimen: src/engine/models/hoverboard.ts, E348): the |
 | `EngineChainKind` | type | @wildshard/engine/render/look | the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's |
 | `EngineEffects` | interface | @wildshard/engine/render/look | — |

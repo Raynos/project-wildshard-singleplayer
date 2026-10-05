@@ -1828,7 +1828,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2020 exports, grouped by the module to import them from.
+2045 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2058,7 +2058,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
 - `@wildshard/engine/render/frameCounter`: `installFrameCounter`, `renderCount`, `Renders`
-- `@wildshard/engine/render/graphBackend`: `loadGraphBackend`
+- `@wildshard/engine/render/graph/ir`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
+- `@wildshard/engine/render/graph/presets`: `pbrMeasureGraph`
+- `@wildshard/engine/render/graphBackend`: `GraphCompiler`, `loadGraphBackend`, `loadGraphCompiler`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
 - `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
 - `@wildshard/engine/render/lut`: `fetchLut`, `LUT_SIZE`
