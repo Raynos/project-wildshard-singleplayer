@@ -256,6 +256,15 @@ costs against declarations. The worst 150 m disc includes lookahead, three neigh
 at caps, deduplicated libraries/commons, L1, far, four sims and streaming overlap.
 The engine base is 300 MB, playing envelope 850 MB, loading envelope 1.8 GB.
 
+`assetOverdraw(kind, bytes)` in `@wildshard/sdk/assets` returns byte-derived
+`layers`, `blendedLayers` and `maskedLayers`, with `basis: "primitive-bounds"`.
+For each GLB primitive it takes the largest projected triangle-area / bounding-
+rectangle ratio over three local orthographic axes, then conservatively stacks
+primitive, node and instance copies. The bounded triangle walk uses constant
+working storage. This is a rest-pose, local-axis estimate before camera selection,
+culling or occlusion; it is neither measured screen overdraw nor an admission cap.
+The CLI prints it as an advisory alongside the admitted asset costs.
+
 First-party products rebuild every build. The client accepts current v0; the only
 previous-version exception in Part A will be offline-cached first-party content.
 Older content needs upgrade without touching its source or saves. A version bump
