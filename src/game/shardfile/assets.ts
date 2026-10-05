@@ -1,5 +1,6 @@
 import { decodeTerrainTile, isTerrainTileData, terrainTileCost } from '@wildshard/engine/world/terrainTileData';
 import { visitGlbGeometry, type GlbVertex } from './glbTriangles';
+import { projectedLayerCoverage, type OverdrawEstimate } from './overdraw';
 
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }
@@ -20,7 +21,14 @@ function json(bytes: Uint8Array): unknown { return JSON.parse(new TextDecoder('u
 export function parseGlb(bytes: Uint8Array): AssetCost { return parseGlbData(bytes); }
 /** Inspect exact static triangles only after the bounded GLB parser admits the complete payload. */
 export function visitGlbTriangles(bytes: Uint8Array, visit: (triangle: readonly GlbVertex[]) => void): void { parseGlbData(bytes, visit); }
-function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]) => void): AssetCost {
+/** Shared byte-derived raster estimate; no author-supplied overdraw number is accepted. */
+export function assetOverdraw(kind: string, bytes: Uint8Array): OverdrawEstimate {
+  const estimate: OverdrawEstimate = { layers: 0, blendedLayers: 0, maskedLayers: 0, basis: 'primitive-bounds' };
+  if (kind === 'glb') parseGlbData(bytes, undefined, estimate);
+  else { assetCost(kind, bytes); if (isTerrainTileData(bytes)) estimate.layers = 1; }
+  return estimate;
+}
+function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]) => void, estimate?: OverdrawEstimate): AssetCost {
   requireRange(bytes, 0, 20); const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (bytes.length > MAX_BYTES || view.getUint32(0, true) !== 0x46546c67 || view.getUint32(4, true) !== 2 || view.getUint32(8, true) !== bytes.length) throw new Error('invalid GLB header');
   const length = view.getUint32(12, true); requireRange(bytes, 20, length);
@@ -62,9 +70,10 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
     }
   };
   const checkedPositions = new Set<number>(), maximumIndices = new Map<number, number>();
+  const materials = list(doc['materials'] ?? []).map(object);
   if (list(doc['images'] ?? []).length > 0) throw new Error('GLB textures must be separate declared KTX2 assets');
   const meshCosts = list(doc['meshes'] ?? []).map((mesh) => {
-    let triangles = 0, draws = 0;
+    let triangles = 0, draws = 0, layers = 0, blendedLayers = 0, maskedLayers = 0;
     for (const primitive of list(object(mesh)['primitives'])) {
       const p = object(primitive); if ((p['mode'] ?? 4) !== 4 || p['extensions'] !== undefined) throw new Error('unsupported GLB primitive');
       const attributes = object(p['attributes']);
@@ -82,9 +91,24 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
         if (maximum >= position.n) throw new Error('GLB index outside positions');
       }
       triangles += index.n / 3; draws++;
+      const material = p['material'] === undefined ? undefined : materials[count(p['material'], 10_000)];
+      if (p['material'] !== undefined && material === undefined) throw new Error('missing GLB material');
+      const alpha = material?.['alphaMode'] ?? 'OPAQUE';
+      if (typeof alpha !== 'string' || !['OPAQUE', 'MASK', 'BLEND'].includes(alpha)) throw new Error('unsupported GLB alpha mode');
+      if (estimate !== undefined) {
+        const vertices = position, indices = index;
+        const primitiveGeometry = function* primitiveGeometry(): Generator<readonly GlbVertex[]> {
+          for (let i = 0; i < indices.n; i += 3) yield Array.from({ length: 3 }, (_, offset) => {
+            const row = p['indices'] === undefined ? i + offset : read(indices, i + offset, 0);
+            return { x: read(vertices, row, 0), y: read(vertices, row, 1), z: read(vertices, row, 2) };
+          });
+        };
+        const coverage = projectedLayerCoverage(primitiveGeometry()); layers += coverage;
+        if (alpha === 'BLEND') blendedLayers += coverage; if (alpha === 'MASK') maskedLayers += coverage;
+      }
       for (const id of Object.values(attributes)) if (accessors[count(id, 10_000)] === undefined) throw new Error('missing GLB attribute');
     }
-    return { triangles, draws };
+    return { triangles, draws, layers, blendedLayers, maskedLayers };
   });
   let triangles = 0, draws = 0, instanceCpu = 0;
   const nodes = list(doc['nodes'] ?? []).map(object);
@@ -117,6 +141,7 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
     const shadow = node['extras'] === undefined ? true : object(node['extras'])['castShadow'] ?? true;
     if (typeof shadow !== 'boolean') throw new Error('invalid GLB shadow flag');
     triangles += cost.triangles * instances; draws += cost.draws * (shadow ? 2 : 1);
+    if (estimate !== undefined) { estimate.layers += cost.layers * instances; estimate.blendedLayers += cost.blendedLayers * instances; estimate.maskedLayers += cost.maskedLayers * instances; }
   }
   // Skins and clips are admitted before GLTFLoader allocates skeletons or animation tracks.
   const nodeIndex = (value: unknown): number => { const id = count(value, 10000); if (nodes[id] === undefined) throw new Error('missing GLB rig node'); return id; };
@@ -174,7 +199,10 @@ function parseGlbData(bytes: Uint8Array, visit?: (triangle: readonly GlbVertex[]
     }
   }
   // Old GLB fixtures omit scene nodes; count their mesh resources conservatively too.
-  if (nodes.length === 0) for (const cost of meshCosts) { triangles += cost.triangles; draws += cost.draws * 2; }
+  if (nodes.length === 0) for (const cost of meshCosts) {
+    triangles += cost.triangles; draws += cost.draws * 2;
+    if (estimate !== undefined) { estimate.layers += cost.layers; estimate.blendedLayers += cost.blendedLayers; estimate.maskedLayers += cost.maskedLayers; }
+  }
   if (length + binaryBytes + instanceCpu + rigCpu > MAX_BYTES || gpu > MAX_BYTES || triangles > 400_000 || draws > 512) throw new Error('GLB resource cap');
   if (visit !== undefined) visitGlbGeometry({ nodes, meshes, accessors, parents, read }, visit);
   return { decoded: length + binaryBytes + instanceCpu + rigCpu, gpu, triangles, draws };

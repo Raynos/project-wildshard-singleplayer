@@ -1,4 +1,4 @@
-import { assetCost as cost, parseAudio as audio, parseGlb as glb, parseKtx2 as ktx2, type AssetCost as Cost } from '@wildshard/game/shardfile/assets';
+import { assetCost as cost, assetOverdraw as raster, parseAudio as audio, parseGlb as glb, parseKtx2 as ktx2, type AssetCost as Cost } from '@wildshard/game/shardfile/assets';
 
 /** Actual parsed residency and draw costs, independent of author declarations. */
 export type AssetCost = Cost;
@@ -10,3 +10,7 @@ export function parseKtx2(bytes: Uint8Array): Cost { return ktx2(bytes); }
 export function parseAudio(bytes: Uint8Array): Cost { return audio(bytes); }
 /** Select the game's shared asset parser for CLI and browser admission. */
 export function assetCost(kind: string, bytes: Uint8Array): Cost { return cost(kind, bytes); }
+/** Advisory raster layers from actual geometry and material alpha modes, before culling or occlusion. */
+export type OverdrawEstimate = ReturnType<typeof raster>;
+/** Derive the shared conservative raster estimate without accepting an author-supplied number. */
+export function assetOverdraw(kind: string, bytes: Uint8Array): OverdrawEstimate { return raster(kind, bytes); }

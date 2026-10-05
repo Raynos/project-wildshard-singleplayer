@@ -5,6 +5,7 @@ import { parseShardfile } from './shardfile';
 import { devProject } from './dev';
 import { validateSimulation } from './headless';
 import { readShardfileSource } from './sourceReader';
+import { assetOverdraw } from './assets';
 // oxlint-disable-next-line import/no-nodejs-modules -- The CLI releases its author server on termination.
 import process from 'node:process';
 
@@ -28,6 +29,13 @@ export async function runCli(args: readonly string[]): Promise<void> {
     const built = input.endsWith('.json'); const shard = built ? parseShardfile(readShardfileSource(input)) : await readProject(resolve(input));
     const assets = built ? projectAssets(resolve(input, '..'), shard, 'product') : projectAssets(resolve(input), shard);
     validateProject(shard, assets);
+    let layers = 0, blended = 0, masked = 0;
+    const kinds = new Map(shard.files.map((file) => [file.hash, file.kind]));
+    for (const [hash, bytes] of assets) {
+      const kind = kinds.get(hash) ?? (bytes[0] === 103 ? 'glb' : bytes[0] === 171 ? 'ktx2' : bytes[0] === 82 ? 'audio' : 'binary');
+      const estimate = assetOverdraw(kind, bytes); layers += estimate.layers; blended += estimate.blendedLayers; masked += estimate.maskedLayers;
+    }
+    console.info(`advisory asset raster layers: ${layers.toFixed(2)} total, ${blended.toFixed(2)} blended, ${masked.toFixed(2)} alpha-tested (primitive bounds; before culling/occlusion, not measured screen overdraw)`);
     const proof = await validateSimulation(shard, assets);
     console.info(`validated ${shard.identity.slug} v${shard.version}: ${proof.ticks} sim ticks, ${proof.lanes} edge lanes, ${proof.steps} capsule steps`);
     console.info(`advisory tick timing (${proof.timing.samples} samples): median ${proof.timing.medianMicros.toFixed(1)} us, max ${proof.timing.maxMicros.toFixed(1)} us, declared ${shard.serverBudget.tickMicros} us`);
