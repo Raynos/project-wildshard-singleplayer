@@ -13,7 +13,7 @@ const from = flag('from'), out = flag('out');
 if (!from || !out) throw new Error('Supply --from=<recorded-run> --out=<new-evidence-directory>');
 mkdirSync(out, { recursive: true });
 const summary = { purpose: 'REHEARSAL; incomplete M3 and sampling, cannot close SF57 or establish retained WebKit memory',
-  engineBase: 300_000_000, formula: '(WebContent + labelled GL - engineBase) / accounted <= 1.11; raw ratio informational',
+  engineBase: 300_000_000, formula: '1.01 <= (WebContent + labelled GL - engineBase) / accounted <= 1.21; raw ratio informational',
   graderRevision: execFileSync('git', ['log', '-1', '--format=%H', '--', 'scripts/soak/route.ts'], { encoding: 'utf8' }).trim(),
   layouts: [] };
 for (const layout of ['shipped', 'dev']) {

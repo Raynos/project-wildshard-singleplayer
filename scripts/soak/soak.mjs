@@ -12,7 +12,7 @@ import { GL_INIT } from '../parity/glbytes.mjs';
 import { installSoakGl } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
-import { soakRoute, gradeSoak } from './route.ts';
+import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak } from './route.ts';
 import { installSoakDrive } from './drive.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -106,10 +106,9 @@ async function worker() {
     const cells = result.metadata.state.cells;
     result.expected = cells.map((cell) => cell.instance);
     const catalogue = JSON.parse(execFileSync('git', ['show', `${sha}:src/game/grid/singleplayer.json`], { cwd: root, encoding: 'utf8' })).grid;
-    const selected = new Map(catalogue.cells.map((cell) => [cell.cell.join(','), cell]));
-    if (layout === 'dev') for (const cell of [...catalogue.developer, ...catalogue.devserver]) selected.set(cell.cell.join(','), cell);
-    const wanted = [...selected.values()].map((cell) => cell.instance).sort((a, b) => a.localeCompare(b));
-    if (JSON.stringify([...result.expected].sort((a, b) => a.localeCompare(b))) !== JSON.stringify(wanted)) throw new Error(`Wrong ${layout} catalogue: ${result.expected}`);
+    if (layout !== 'shipped' && layout !== 'dev') throw new Error('Unknown soak layout');
+    const wanted = soakCatalogue(catalogue, layout);
+    if (!validateSoakCatalogue(cells, wanted)) throw new Error(`Wrong ${layout} catalogue: ${result.expected}`);
     result.route = soakRoute(cells);
     await driver.evaluate(`window.__wildshard.pose({name:'sf57.initial-road',x:277.5,y:2,z:0,yaw:0});true`);
     phase('baseline-0'); await measuredWait(10);
@@ -198,7 +197,7 @@ async function prepare() {
   const bases = [], manifest = { sha, out, bases };
   try {
     for (const layout of ['shipped', 'dev']) {
-      const base = await run(join(root, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `sf57-${layout}-${process.pid}`, '--hours', '3', ...(layout === 'dev' ? ['--devserver'] : [])],
+      const base = await run(join(root, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `sf57-${layout}-${process.pid}`, '--hours', '3'],
         { cwd: out, env: { ...process.env, CLAUDE_CODE_SESSION_ID: `sf57-${layout}-${process.pid}`, SERVE_BUILD_DIR: join(out, 'serve') } });
       const version = await (await fetch(`${base}version.json`)).json();
       if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error('Preview pin mismatch');
