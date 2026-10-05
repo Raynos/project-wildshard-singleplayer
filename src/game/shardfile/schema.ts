@@ -27,6 +27,7 @@ import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
 import { EdgeProfilesSchema } from './edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from './entryways';
 import { StateSchema, stateRules } from './state';
+import { CommonsCostsSchema, assertCommonsCosts } from './commonsCosts';
 import { AccentSchema } from './accent';
 import { MigrationsSchema, migrationRules } from './migrations';
 import { skinLookRules } from './skins';
@@ -57,7 +58,7 @@ const rawSchema = v.strictObject({
   version: v.literal(SHARDFILE_VERSION),
   accent: AccentSchema,
   identity: v.strictObject({ slug: name, name: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), author: v.pipe(v.string(), v.minLength(1), v.maxLength(limits.idCharacters)), revision: positive, seed: natural }),
-  requires: v.strictObject({ sdk: v.literal(0), capabilities: names, commons: v.pipe(v.array(hash), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(hash, natural), {}) }),
+  requires: v.strictObject({ sdk: v.literal(0), capabilities: names, commons: v.pipe(v.array(hash), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(hash, natural), {}), commonsCosts: v.optional(CommonsCostsSchema, {}) }),
   budgets: v.strictObject({ library: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.library.compressed)) }), sim: v.strictObject({ resident: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.resident)), compressed: v.pipe(natural, v.maxValue(CONTENT_CAPS.sim.compressed)) }), overlap: v.pipe(natural, v.maxValue(CONTENT_CAPS.overlap)) }),
   look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: references, bindings: v.optional(ScriptBindingsSchema, []) }),
@@ -97,6 +98,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...entrywayRules(s));
   errors.push(...migrationRules(s.migrations, s.state.version));
   const commons = new Set(s.requires.commons), commonsWire = Object.keys(s.requires.commonsWire);
+  try { assertCommonsCosts(s.requires.commons, s.requires.commonsCosts); } catch { errors.push('commons cost declarations match the exact commons hash keyset'); }
   if (commons.size !== s.requires.commons.length) errors.push('unique commons hashes');
   if (commonsWire.length !== commons.size || commonsWire.some((id) => !commons.has(id))) errors.push('commons wire declarations match the exact commons hash keyset');
   const files = new Map(s.files.map((f) => [f.hash, f]));

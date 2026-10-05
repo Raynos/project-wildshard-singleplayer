@@ -105,6 +105,7 @@
     "./grid/pageBoot": "./grid/pageBoot.ts",
     "./shardfile/admissionLimits": "./shardfile/admissionLimits.ts",
     "./shardfile/preflight": "./shardfile/preflight.ts",
-    "./shardfile/assetGraph": "./shardfile/assetGraph.ts"
+    "./shardfile/assetGraph": "./shardfile/assetGraph.ts",
+    "./shardfile/commonsCosts": "./shardfile/commonsCosts.ts"
   }
 }

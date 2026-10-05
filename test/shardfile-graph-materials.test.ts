@@ -78,7 +78,7 @@ it('roots graph texture params in admitted KTX2 library closure, including exact
   expect(() => parseShardfile({ ...input, files: [{ ...input.files[0], kind: 'binary' }] })).toThrow();
   expect(() => parseShardfile(product(textured('https://example.com/texture.ktx2')))).toThrow();
   const commons = product(textured(`commons:${hash}`));
-  commons.requires.commons.push(hash); commons.requires.commonsWire[hash] = 16; commons.library.push(`commons:${hash}`);
+  commons.requires.commons.push(hash); commons.requires.commonsWire[hash] = 16; commons.requires.commonsCosts[hash] = { decoded: 16, gpu: 16, triangles: 0, draws: 0 }; commons.library.push(`commons:${hash}`);
   expect(materialTextureRefs(parseShardfile(commons).look.materials)).toEqual([`commons:${hash}`]);
   expect(() => parseShardfile({ ...commons, library: [] })).toThrow();
   const ir = textured(hash);

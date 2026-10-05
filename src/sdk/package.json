@@ -30,7 +30,8 @@
     "./groupBrains": "./groupBrains.ts",
     "./admission": "./admission.ts",
     "./headless": "./headless.ts",
-    "./commons": "./commons.ts"
+    "./commons": "./commons.ts",
+    "./commonsCosts": "./commonsCosts.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -169,6 +170,10 @@
       "./commons": {
         "types": "./dist/types/sdk/commons.d.ts",
         "default": "./dist/commons.js"
+      },
+      "./commonsCosts": {
+        "types": "./dist/types/sdk/commonsCosts.d.ts",
+        "default": "./dist/commonsCosts.js"
       }
     }
   }

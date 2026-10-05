@@ -68,7 +68,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 |---|---|
 | `identity` | Kebab/dot slug, nonempty display name and author (128 characters max), positive revision, unsigned seed. No grid coordinates. |
 | `accent` | Required lowercase ID from the platform’s 20-colour palette; road/safe-zone cyan is reserved. |
-| `requires` | SDK revision 0; capability names; unique declared SHA-256 commons hashes and `commonsWire`, an exact hash→wire-byte map. The map defaults to `{}` only for an empty commons list; missing or extra keys fail format admission. |
+| `requires` | SDK revision 0; capability names; unique declared SHA-256 commons hashes and `commonsWire` (exact hash→wire bytes) and `commonsCosts` (exact hash→`{decoded, gpu, triangles, draws}`). Both maps default to `{}` only for an empty commons list; missing or extra keys fail format admission before asset reads. Costs are nonnegative safe integers derived from pinned bytes, not author estimates. |
 | `budgets` | Library resident ≤25 MB and wire ≤8 MB; sim resident ≤25 MB and critical wire ≤2 MB; decode/refinement slack ≤80 MB. |
 | `look` | Fixed platform family names; grade exposure/saturation/contrast and optional LUT reference; engine clock with an optional `day`; optional normalised day override; ordered day keys carrying sky gradient, fog, sun and ambient values (below). |
 | `sim` | 60 Hz fixed step; positive script tick divisor dividing 60; command and snapshot schema version 0; script references. |
@@ -169,6 +169,14 @@ scalar channels use float params and colour channels use colour/vec3 params.
 Bindings change uniforms only. Runtime graph compilation and binding are SF59's
 renderer adapter; existing preset entries keep their defaults. This additive slot
 keeps SHARDFILE_VERSION at 0; version 1 is not frozen.
+
+`@wildshard/sdk/commonsCosts` exposes the defining cost schemas and
+`assertCommonsCosts(hashes, table)`. A product declares one entry per required
+commons hash (at most 1024), matching `commonsWire` exactly. Decoded/GPU values
+are bytes; triangles/draws are counts. The SDK derives these costs from the pinned
+commons catalogue bytes. Metadata establishes the declared envelope before fetch
+or cache reads; byte validation subsequently checks equality with the declaration.
+Empty older products may omit both maps and parse with empty defaults.
 
 State fields carry explicit stable positive `id` values (1–2³¹−1), unique across
 shared and player fields. IDs never come from declaration positions. The numeric
