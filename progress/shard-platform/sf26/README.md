@@ -37,11 +37,40 @@ pnpm exec tsc --noEmit --incremental false
 pnpm exec tsc -b tsconfig.layers.json
 ```
 
-Root strict types, layer declarations and scoped typed lint passed. The
-coordinator owns the serialized clean gate/push and the next pinned browser
-parity/frame-floor window. Those are still required before plan closure; these
-focused proofs do not substitute for them. No owned browser, preview, Simulator,
-gate or push remains.
+Root strict types, isolated layer declarations and scoped typed lint passed.
+`cb049715d` supplies Node declarations to the build-only commons project. The
+coordinator owns the serialized clean gate/push and the next full frame-floor
+window; the floor remains required before plan closure. No owned browser,
+preview, Simulator, gate or push remains.
+
+## Browser parity
+
+The receipt comparison (`2a8d1f8d6` → `de2d7026c`, 336.644 s) passed Sky Reach
+on both tiers, minimum SSIM **0.9999971018**. Driftwood's combined comparison
+reported rendering differences across intervening G173 island instancing and
+G170 entry-deck changes (`0ffa9a4ba`, `07d38bfa9`, `c0bb953cf`). Its desktop
+combat ambience also differed; that difference did not recur in the isolated
+bridge control. The combined comparison remains recorded as red.
+
+The direct bridge-only control (`2a8d1f8d6` → `9323f19a9`, 367.233 s) passed
+Driftwood on **both tiers**, with zero structural or gameplay differences.
+Desktop pier, beach and wreck images each scored **SSIM 1.0**; phone minimum
+SSIM was **0.9914032755**, within the existing image band. The hybrid mover
+system was active. All completed scopes returned to zero and disposal errors
+were zero. No rebaseline, filtering or new quarantine was used.
+
+See the [receipt comparison](parity-receipt.json), [direct control](parity-control.json),
+and their [receipt images](parity-receipt/) and [control images](parity-control/).
+Captures use the existing SF46 runner, one Metal browser, seeded accelerated
+ticks, Memory saver OFF, and its phone/desktop tiers. Phone browser parity is
+separate from the required Simulator frame floor.
+
+```sh
+node progress/shard-platform/SF46-parity.mjs --current=9323f19a9 --parent=2a8d1f8d6 --shards=driftwood-isle --hybrid=on --out=/private/tmp/claude-501/sp-builders/sp-x3/sf26-control
+```
+
+The runner's browser pool acquires the browser lane and closes its browser and
+preview in `finally`.
 
 Council-3 SF58 follow-ups landed alongside this foundation:
 `b46c74540` exact commons cost leaf, format/export `9aa8527d9` (sp-x5),
