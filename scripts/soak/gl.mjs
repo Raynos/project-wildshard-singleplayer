@@ -12,7 +12,10 @@ export function installSoakGl() {
       textures: contexts.reduce((sum, context) => sum + context.texBytes, 0), renderbuffers: contexts.reduce((sum, context) => sum + context.rbBytes, 0), buffers: contexts.reduce((sum, context) => sum + context.bufBytes, 0),
       unlabelled: contexts.reduce((sum, context) => sum + context.unlabelled, 0), reconciled: contexts.every((context) => context.reconciled),
       assets: [...groups.values()].sort((a, b) => b.bytes - a.bytes || a.asset.localeCompare(b.asset)),
-      accountedBytes: grid ? grid.residentMB * 1e6 : null, cycle: window.__sf57?.cycles ?? null };
+      accountedBytes: grid?.accountedBytes ?? null,
+      settled: grid !== undefined && grid.rings?.inFlight === 0 && grid.rings.queued === 0
+        && grid.live?.live?.pending?.length === 0 && grid.live.live.gameplayReady === true,
+      cycle: window.__sf57?.cycles ?? null };
   };
   window.__sf57GLTimer = setInterval(() => { window.__sf57GL.push(window.__sf57ReadGL()); if (window.__sf57GL.length > 120) window.__sf57GL.shift(); }, 1000);
   window.addEventListener('webglcontextlost', () => { window.__sf57Errors.push('WebGL context lost'); }, true);

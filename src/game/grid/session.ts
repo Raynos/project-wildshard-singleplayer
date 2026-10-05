@@ -115,7 +115,9 @@ export interface GridSessionState {
   readonly shimmer: BorderShimmerState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
-  readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number };
+  /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
+  readonly accountedBytes: number;
+  readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number; readonly inFlight: number; readonly queued: number };
   /** SF19a's one frame (null with its Debug row off) */
   readonly frame: GridFrameState | null;
   /** step 2's live crossing (null until the page attaches its player) */
@@ -405,7 +407,8 @@ export class GridSession {
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
       strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
-      rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused },
+      accountedBytes: cost.accounted,
+      rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },
       frame: this.frame?.state() ?? null,
       live: this.live?.state() ?? null,
       life: this.life.state(),
