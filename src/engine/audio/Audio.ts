@@ -227,6 +227,10 @@ export class Audio extends PlayerVoices {
   override get ambient(): GainNode { return this.graph().ambient; }
   /** sfx + ambient's shared bus (hushed on the title screen) — reverb returns go here */
   get world(): GainNode { return this.graph().world; }
+  /** Current ambient bus shade without constructing an audio graph; scoped users can restore the borrowed mix. */
+  get ambientShade(): Readonly<{ level: number; cutoff: number }> {
+    return { level: this.g?.shade.gain.value ?? 1, cutoff: this.g?.shadeLp.frequency.value ?? 20000 };
+  }
   /** the ambient bus as heard from inside / at night: its level (1 = untouched) and a low-pass cutoff, eased over ~300 ms.
    *  A zoned ambience muffles the shard bed inside a cabin and lowers the day bed at night. */
   shadeAmbient(level: number, cutoff = 20000): void {

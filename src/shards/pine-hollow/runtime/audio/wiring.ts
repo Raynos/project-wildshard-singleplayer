@@ -1,5 +1,8 @@
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { pineScore, pineScorePick } from './score';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
+import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -28,6 +31,8 @@ import source from '../../shard.config';
  */
 export interface PineAudioHost {
   game: Game;
+  context?: ShardContext;
+  audio: Audio;
   sky: Sky;
   music: Music;
   ambience: ForestAmbience;
@@ -61,13 +66,15 @@ export function installPineAudio(h: PineAudioHost): void {
 
   // ── doors: every cabin / hamlet door (their prompts flip "Open door" ↔ "Close door") ──
   // a door that moved (a barred one, the mill's (E322), does not): its creak, through the cabins' door listeners
-  h.cabins?.onDoor((door, opening) => { amb.sfx.shot(opening ? 'doorOpen' : 'doorClose', { at: door.position }); });
+  const doorSound: Parameters<NonNullable<PineAudioHost['cabins']>['onDoor']>[0] = (door, opening) => { amb.sfx.shot(opening ? 'doorOpen' : 'doorClose', { at: door.position }); };
+  const retained = h.context !== undefined && retainsRuntimeServices(h.context);
+  if (!retained) h.cabins?.onDoor(doorSound);
 
   const score = pineScore(music);
   const pinned = pineScorePick() !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
   const prev = new WeakMap<Animal, Animal['state']>();
   let night = false, slowT = 0, snortAt = -99, elite = false, eliteT = 0;
-  game.app.addSystem({ id: 'audio', phase: 'update', after: ['hud.combat'], before: ['shard.pine.weather.state', 'shard.pine.weather', 'world.life', 'first hints', 'main.frame'], run: (dt, t) => {
+  const system: Parameters<ShardContext['system']>[0] = { id: 'audio', phase: 'update', after: ['hud.combat'], before: ['shard.pine.weather.state', 'shard.pine.weather', 'world.life', 'first hints', 'main.frame'], run: (dt, t) => {
     const dn = sky.dayNight;
     if (dn) amb.night = dn.night;
     slowT += dt;
@@ -94,6 +101,26 @@ export function installPineAudio(h: PineAudioHost): void {
       snortAt = t;
       amb.sfx.shot('deer_snort', { at: a.position });
     }
-  } }, game.levelScope);
-  Object.assign(window, { __pineAudio: { spots, get night() { return night; } } });
+  } };
+  const diagnostic = { spots, get night() { return night; } };
+  if (retained && h.context !== undefined) {
+    installEnteredRuntimeService(h.context, (scope) => {
+      const previousShade = h.audio.ambientShade;
+      amb.setActive(true);
+      game.app.addSystem(system, scope);
+      const stopDoor = h.cabins?.onDoor(doorSound);
+      const previous = Object.getOwnPropertyDescriptor(window, '__pineAudio');
+      Object.assign(window, { __pineAudio: diagnostic });
+      scope.onDispose(() => {
+        stopDoor?.();
+        amb.setActive(false);
+        h.audio.shadeAmbient(previousShade.level, previousShade.cutoff);
+        if (previous === undefined) Reflect.deleteProperty(window, '__pineAudio');
+        else Object.defineProperty(window, '__pineAudio', previous);
+      });
+    });
+  } else {
+    game.app.addSystem(system, game.levelScope);
+    Object.assign(window, { __pineAudio: diagnostic });
+  }
 }

@@ -1,3 +1,4 @@
+import type { Scope } from '@wildshard/engine/app/scope';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { AmbienceZones, type ZoneVoice } from '@wildshard/engine/audio/ambience';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -52,6 +53,8 @@ export interface ZoneSpot { zone: Exclude<ForestZone, 'hollow' | 'pond' | 'cabin
 
 export interface ForestAmbienceOpts {
   heightAt: (x: number, z: number) => number;
+  /** Explicit resident owner for retained homes; ordinary construction keeps its original ambient owner. */
+  scope?: Scope;
   /** the cabins (src/engine/world/Cabin.ts): their floors say when you are inside */
   cabins?: { floorHeightAt: (x: number, z: number) => number | undefined; firePits?: readonly { x: number; y: number; z: number }[] } | null;
   /** zones placed by the layout (src/shards/pine-hollow/runtime/audio/wiring.ts adds Pine Hollow's with `addSpot`) */
@@ -78,7 +81,8 @@ const DROP_S = PROFILE.silentSeconds;
 interface Bed extends ZoneVoice { name: PhBed; pending: boolean; idle: number; heard: boolean }
 
 export class ForestAmbience {
-  private readonly scope = resourceScope().child('ForestAmbience');
+  private readonly scope: Scope;
+  private active = true;
   night = 0; dawn = 0; rain = 0;
   /** the thralls' far calls (0 … 1); defaults to following the night when never set */
   thralls: number | undefined;
@@ -104,7 +108,8 @@ export class ForestAmbience {
   private timers: (ReturnType<typeof setTimeout> | 0)[] = [];
 
   constructor(private readonly audio: Audio, private readonly o: ForestAmbienceOpts) {
-    this.zones = new AmbienceZones(audio, audioRandom);
+    this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
+    this.zones = new AmbienceZones(audio, audioRandom, o.scope === undefined ? undefined : this.scope);
     this.sfx = new PineHollowSfx(audio);
     this.spots = [...(o.spots ?? [])];
   }
@@ -178,7 +183,7 @@ export class ForestAmbience {
   // ─────────────── per frame ───────────────
   update(dt: number, camera: Camera): void {
     const a = this.audio;
-    if (!a.ready) return;
+    if (!this.active || !a.ready) return;
     if (!this.built) this.build();
     const m = camera.matrixWorld.elements;
     const x = m[12], y = m[13], z = m[14];
@@ -287,7 +292,27 @@ export class ForestAmbience {
   }
 
   /** head under / over the pond's surface: the beds and sends drop while under */
-  setUnderwater(on: boolean): void { this.underwater = on; if (this.built) this.mix(0); }
+  setUnderwater(on: boolean): void { this.underwater = on; if (this.active && this.built) this.mix(0); }
+
+  /** Stop entered beds and schedulers, and cut the reverb input before another cell borrows the shared audio buses. */
+  setActive(on: boolean): void {
+    if (this.active === on) return;
+    this.active = on;
+    if (!on) {
+      for (const id of this.timers) this.scope.cancelTimer(id);
+      this.timers = [];
+      for (const bed of this.beds.values()) this.dropBed(bed);
+      this.diag.beds = [];
+    }
+    if (!this.built) return;
+    const time = this.audio.ctx.currentTime;
+    const set = (node: GainNode | undefined, value: number): void => {
+      node?.gain.cancelScheduledValues(time); node?.gain.setValueAtTime(value, time);
+    };
+    set(this.out, on ? OUT : 0); set(this.sendIn, on ? 1 : 0);
+    for (const [room, send] of this.sends) { set(send, 0); this.diag.sends[room] = 0; }
+    if (on) this.scheduleThrall();
+  }
 
   dispose(): void { for (const id of this.timers) this.scope.cancelTimer(id); this.timers = []; for (const b of this.beds.values()) this.dropBed(b); }
 }

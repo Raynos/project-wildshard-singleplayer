@@ -1,3 +1,4 @@
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installEnteredPineScore } from './audio/score';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
@@ -206,9 +207,9 @@ export class PineHollow extends ShardPlugin {
       crossbow: { addBolts: (n) => { loadout.addAmmo('iron', n); }, addAmmo: (kind, n) => { loadout.addAmmo(kind, n); }, room: (kind, n) => loadout.room(kind, n) },
       menu, interactables: rt.interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: ctx.manifest.slug, params, touchUi, nolock });
     placePineHollowSets(registry);
-    const ambience = new ForestAmbience(audio, { heightAt, cabins });
+    const ambience = new ForestAmbience(audio, { heightAt, cabins, ...(retainsRuntimeServices(ctx) ? { scope: ctx.scope } : {}) });
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
-    installPineAudio({ game, sky, music, ambience, animals, cabins, eliteEngaged: () => fights.eliteEngaged(), params });
+    installPineAudio({ context: ctx, game, audio, sky, music, ambience, animals, cabins, eliteEngaged: () => fights.eliteEngaged(), params });
     for (const spot of landmarks?.crags?.caveSpots() ?? []) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 });
     installWeather(ctx, { game, sky, trees: forest.trees, animals, particles, ambience,
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
