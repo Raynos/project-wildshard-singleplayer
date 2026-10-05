@@ -70,7 +70,7 @@ it('writes commons bytes once under their immutable hash in the built product', 
     const project = join(root, 'example'), bytes = new Uint8Array([1, 2, 3]), hash = contentHash(bytes);
     newProject(project, 'example'); symlinkSync(resolve('node_modules'), join(project, 'node_modules'));
     mkdirSync(join(project, 'commons')); writeFileSync(join(project, 'commons', hash), bytes);
-    writeFileSync(join(project, 'shard.config.ts'), `import { emptyShardfile } from '@wildshard/sdk/author';\nconst shard=emptyShardfile({slug:'example',name:'Example',author:'Local',seed:1,revision:1});\nshard.requires.commons.push('${hash}');\nshard.requires.commonsWire['${hash}']=${bytes.length};\nshard.library.push('commons:${hash}');\nexport default shard;\n`);
+    writeFileSync(join(project, 'shard.config.ts'), `import { emptyShardfile } from '@wildshard/sdk/author';\nconst shard=emptyShardfile({slug:'example',name:'Example',author:'Local',seed:1,revision:1});\nshard.requires.commons.push('${hash}');\nshard.requires.commonsWire['${hash}']=${bytes.length};\nshard.requires.commonsCosts['${hash}']=${JSON.stringify(assetCost('binary', bytes))};\nshard.library.push('commons:${hash}');\nexport default shard;\n`);
     await buildProject(project, join(root, 'product'));
     expect([...readFileSync(join(root, 'product', hash))]).toEqual([...bytes]);
     expect(readdirSync(join(root, 'product')).filter((name) => name === hash)).toHaveLength(1);

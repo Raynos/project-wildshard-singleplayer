@@ -3,17 +3,18 @@ import { preflightShardfile } from '../src/game/shardfile/preflight';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/game/shardfile/admissionLimits';
 
 const hash = 'a'.repeat(64), other = 'b'.repeat(64);
+const cost = { decoded: 0, gpu: 0, triangles: 0, draws: 0 };
 it('bounds distinct wire including commons before following references, and refuses understated aliases', () => {
-  const source = { files: [{ hash, compressed: limits.wireBytes - 1 }], requires: { commons: [other], commonsWire: { [other]: 1 } } };
+  const source = { files: [{ hash, compressed: limits.wireBytes - 1 }], requires: { commons: [other], commonsWire: { [other]: 1 }, commonsCosts: { [other]: cost } } };
   expect(() => preflightShardfile(source)).not.toThrow();
   source.requires.commonsWire[other] = 2; expect(() => preflightShardfile(source)).toThrow('total wire');
   expect(() => preflightShardfile({ files: [{ hash, compressed: 3_000_000_000 }] })).toThrow('total wire');
-  expect(() => preflightShardfile({ files: [{ hash, compressed: 5 }], requires: { commons: [hash], commonsWire: { [hash]: 5 } } })).not.toThrow();
+  expect(() => preflightShardfile({ files: [{ hash, compressed: 5 }], requires: { commons: [hash], commonsWire: { [hash]: 5 }, commonsCosts: { [hash]: cost } } })).not.toThrow();
   expect(() => preflightShardfile({ files: [{ hash, compressed: 5 }], requires: { commons: [hash], commonsWire: { [hash]: 4 } } })).toThrow('Conflicting');
 });
 it.each([
   ['files', limits.files, (rows: unknown[]) => ({ files: rows.map((_row, i) => ({ hash: i.toString(16).padStart(64, '0'), compressed: 0 })) })],
-  ['commons', limits.commons, (rows: unknown[]) => { const hashes = rows.map((_row, i) => i.toString(16).padStart(64, '0')); return { requires: { commons: hashes, commonsWire: Object.fromEntries(hashes.map((key) => [key, 0])) } }; }],
+  ['commons', limits.commons, (rows: unknown[]) => { const hashes = rows.map((_row, i) => i.toString(16).padStart(64, '0')); return { requires: { commons: hashes, commonsWire: Object.fromEntries(hashes.map((key) => [key, 0])), commonsCosts: Object.fromEntries(hashes.map(key => [key, cost])) } }; }],
   ['shared state', limits.stateFields, (rows: unknown[]) => ({ state: { shared: rows } })],
   ['player state', limits.stateFields, (rows: unknown[]) => ({ state: { player: rows } })],
   ['water', limits.waterBodies, (rows: unknown[]) => ({ water: rows })],

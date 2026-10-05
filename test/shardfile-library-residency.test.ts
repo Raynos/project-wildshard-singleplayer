@@ -10,6 +10,7 @@ function fixture() {
   const a = new Uint8Array([1, 2, 3]), b = new Uint8Array([4, 5]), common = new Uint8Array([6]), first = contentHash(a), second = contentHash(b), hash = contentHash(common);
   source.files = [first, second].map((ref, i) => ({ hash: ref, kind: 'binary', compressed: i === 0 ? 3 : 2, decoded: i === 0 ? 3 : 2, gpu: 0, triangles: 0, draws: 0, dependencies: i === 0 ? [second, `commons:${hash}`] : [], critical: false }));
   source.library = [first, second]; source.requires.commons = [hash]; source.requires.commonsWire[hash] = common.length;
+  source.requires.commonsCosts[hash] = { decoded: common.length, gpu: 0, triangles: 0, draws: 0 };
   return { source, assets: new Map([[first, a], [second, b], [`commons:${hash}`, common]]) };
 }
 it('deduplicates library dependencies and commons across instances in the one allocator and releases each owner', () => {

@@ -73,6 +73,7 @@ it('binds director and actor-bound server/entity scripts only to declared Wasm m
 it('charges three growth-sized memory copies once per module, admits commons and bounds critical wire', async () => {
   const bytes = await compileScript(scriptSource()), hash = contentHash(bytes), module = `commons:${hash}`, shard = empty();
   shard.requires.commons.push(hash); shard.requires.commonsWire[hash] = bytes.length; shard.critical.push(module); shard.sim.scripts.push(module);
+  shard.requires.commonsCosts[hash] = { decoded: bytes.length, gpu: 0, triangles: 0, draws: 0 };
   shard.sim.bindings.push({ module, entity: 1, actorId: 'one', kind: 'server' }, { module, entity: 2, actorId: 'two', kind: 'server' });
   shard.budgets.sim = { compressed: bytes.length, resident: bytes.length + 64 * 65536 * 3 };
   shard.serverBudget.memory = shard.budgets.sim.resident;
@@ -82,5 +83,6 @@ it('charges three growth-sized memory copies once per module, admits commons and
   shard.serverBudget.memory--; expect(() => validateProject(shard, assets)).toThrow('script memory budget'); shard.serverBudget.memory++;
   const padding = new Uint8Array(2_000_001), paddingHash = contentHash(padding);
   shard.requires.commons.push(paddingHash); shard.requires.commonsWire[paddingHash] = padding.length; shard.critical.push(`commons:${paddingHash}`); assets.set(`commons:${paddingHash}`, padding);
+  shard.requires.commonsCosts[paddingHash] = { decoded: padding.length, gpu: 0, triangles: 0, draws: 0 };
   expect(() => validateProject(shard, assets)).toThrow('critical bundle cap');
 }, 30_000);
