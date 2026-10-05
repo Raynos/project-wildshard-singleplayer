@@ -42,7 +42,7 @@ it('refuses author imports past the SDK and upward platform imports', () => {
     const result = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', resolve('.oxlintrc.ratchet.json'), '-f', 'json', 'src'], { cwd: root, encoding: 'utf8' });
     const report = JSON.parse(result.stdout) as { diagnostics: { filename: string; code: string }[] };
     const hits = report.diagnostics.filter((d) => d.code === 'wildshard(layer)').map((d) => d.filename);
-    expect(hits.sort((a, b) => a.localeCompare(b))).toEqual([0, 1, 2, 3, 4, 7].map((index) => cases[index]?.[0]).sort((a, b) => String(a).localeCompare(String(b))));
+    expect(hits.sort((a, b) => a.localeCompare(b))).toEqual([0, 1, 2, 3, 4, 6, 7].map((index) => cases[index]?.[0]).sort((a, b) => String(a).localeCompare(String(b))));
     const transition = report.diagnostics.filter((d) => d.code === 'wildshard(runtime-commons)').map((d) => d.filename);
     expect(transition.sort((a, b) => a.localeCompare(b))).toEqual([cases[5]?.[0], cases[6]?.[0]].sort((a, b) => String(a).localeCompare(String(b))));
   } finally { rmSync(root, { recursive: true, force: true }); }
