@@ -10,6 +10,8 @@ export const ENGINE_STRINGS = {
   "s_item_cards_classic": "Classic",
   "s_item_cards_big": "Big cards (G87)",
   "s_item_cards_note": "SF28 · G87 · E435: item pickups and the shop as big cards in the level's HUD accent; Classic is the toast and the one-card flip deck. Live",
+  "s_graph_materials": "Graph materials",
+  "s_graph_materials_note": "SF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. Reloads",
   "s_item_card_picked": "Picked up",
   "s_item_card_pack": "⟦0⟧ in the pack",
   "s_script_failure": "⟦0⟧: ⟦1⟧: ⟦2⟧⟦3⟧",

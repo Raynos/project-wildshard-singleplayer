@@ -246,6 +246,10 @@ export class ShardfileClient {
       }),
     });
     this.sim = sim;
+    // SF59: graph params read the frame owner's clock (the level backdrop's, G158) and the live public state
+    this.presentation?.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => {
+      const value = sim.lane?.world.view(health.id)[scope][name]; return typeof value === 'number' ? value : undefined;
+    } });
     const authoredDay = source.rows.days[0], day = ctx.app.dayCycle ?? (authoredDay === undefined ? null : declaredDay(authoredDay));
     const ownsDay = ctx.app.dayCycle === null && day !== null;
     if (ownsDay) ctx.app.registerDayCycle(day, ctx.scope);

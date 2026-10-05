@@ -34,21 +34,33 @@ export function materialTextureRefs(materials: Readonly<v.InferOutput<typeof Mat
   });
 }
 
-/** Check graph uniform bindings against admitted day channels and public numeric state declarations. */
-export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'>): string[] {
-  const errors: string[] = [];
-  const dayChannels = new Map<string, 'float' | 'vec3'>();
+/** A graph binding's admitted sources: the day-key channels the look's keys carry (with their value type) and the public numeric state fields. */
+export interface GraphBindingSources { readonly day: ReadonlyMap<string, 'float' | 'vec3'>; readonly state: readonly string[] }
+/**
+ * The admitted binding names of a shardfile (SF59): the canonical dotted day-key channels its look keys carry and its
+ * declared public i32 / f64 state fields as `shared.<field>` / `player.<field>`. Admission and the client's compile both
+ * use these lists, never a compiler default that allows any name.
+ */
+export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'>): GraphBindingSources {
+  const day = new Map<string, 'float' | 'vec3'>();
   if (source.look.keys.length > 0) {
-    for (const path of ['sky.zenith', 'sky.horizon', 'fog.colour', 'sun.colour', 'ambient.sky', 'ambient.ground']) dayChannels.set(path, 'vec3');
-    for (const path of ['fog.density', 'sun.intensity', 'ambient.intensity']) dayChannels.set(path, 'float');
+    for (const path of ['sky.zenith', 'sky.horizon', 'fog.colour', 'sun.colour', 'ambient.sky', 'ambient.ground']) day.set(path, 'vec3');
+    for (const path of ['fog.density', 'sun.intensity', 'ambient.intensity']) day.set(path, 'float');
     if (source.look.keys.every((key) => key.fog.near !== undefined && key.fog.far !== undefined)) {
-      dayChannels.set('fog.near', 'float'); dayChannels.set('fog.far', 'float');
+      day.set('fog.near', 'float'); day.set('fog.far', 'float');
     }
   }
-  const stateFields = ['shared', 'player'].flatMap((scope) => {
+  const state = ['shared', 'player'].flatMap((scope) => {
     const fields = scope === 'shared' ? source.state.shared : source.state.player;
     return fields.filter((field) => field.privacy === 'public' && (field.type === 'i32' || field.type === 'f64')).map((field) => `${scope}.${field.name}`);
   });
+  return { day, state };
+}
+
+/** Check graph uniform bindings against admitted day channels and public numeric state declarations. */
+export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'>): string[] {
+  const errors: string[] = [];
+  const { day: dayChannels, state: stateFields } = graphBindingSources(source);
   for (const [materialId, material] of Object.entries(source.look.materials)) {
     if (material.family !== 'graph') continue;
     const checked = validateGraph(material.graph, { dayKeys: [...dayChannels.keys()], stateFields });

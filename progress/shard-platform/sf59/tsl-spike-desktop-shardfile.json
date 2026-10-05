@@ -1,0 +1,158 @@
+{
+  "surface": "desktop",
+  "parity": [
+    {
+      "pair": "family-sf vs graph-sf",
+      "mean": 0.029,
+      "max": 1,
+      "over8pct": 0.0,
+      "psnr": 63.6
+    }
+  ],
+  "rows": [
+    {
+      "variant": "family-sf",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "shardfile": {
+        "compiled": 0,
+        "fallback": 0,
+        "reasons": [],
+        "material": "MeshStandardMaterial"
+      },
+      "size": [
+        804,
+        1362
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 4.6,
+      "firstDrawMs": 206.1,
+      "stallMs": 210.7,
+      "nodeBuildMs": 0,
+      "nodeBuilds": 0,
+      "programs": 4,
+      "programsAtEnd": 4,
+      "shaders": [
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "family:pbr",
+          "vs": 20207,
+          "fs": 81727
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        },
+        {
+          "name": "",
+          "vs": 14901,
+          "fs": 12596
+        }
+      ],
+      "rafMs": {
+        "median": 16.7,
+        "p95": 16.8,
+        "max": 16.8
+      },
+      "fps": 59.9,
+      "workMs": {
+        "median": 0.1,
+        "p95": 0.2,
+        "max": 0.4
+      },
+      "syncedMs": {
+        "median": 0.98,
+        "p95": 1.21,
+        "max": 1.4
+      },
+      "engineRenders": 1126,
+      "threeFrame": 1126,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 3,
+        "textures": 6
+      },
+      "heapMB": 12.3,
+      "heapAtStartMB": 7.5,
+      "errors": []
+    },
+    {
+      "variant": "graph-sf",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "shardfile": {
+        "compiled": 1,
+        "fallback": 0,
+        "reasons": [],
+        "material": "MeshStandardNodeMaterial"
+      },
+      "size": [
+        804,
+        1362
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 27.9,
+      "firstDrawMs": 247.9,
+      "stallMs": 275.8,
+      "nodeBuildMs": 19.1,
+      "nodeBuilds": 1,
+      "programs": 4,
+      "programsAtEnd": 4,
+      "shaders": [
+        {
+          "name": "",
+          "vs": 14867,
+          "fs": 12580
+        },
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "graph:material",
+          "vs": 3598,
+          "fs": 39439
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        }
+      ],
+      "rafMs": {
+        "median": 16.7,
+        "p95": 16.8,
+        "max": 16.8
+      },
+      "fps": 59.9,
+      "workMs": {
+        "median": 0.2,
+        "p95": 0.3,
+        "max": 0.6
+      },
+      "syncedMs": {
+        "median": 0.87,
+        "p95": 1.08,
+        "max": 1.3
+      },
+      "engineRenders": 1126,
+      "threeFrame": 1689,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 3,
+        "textures": 7
+      },
+      "heapMB": 15.9,
+      "heapAtStartMB": 10.1,
+      "errors": []
+    }
+  ]
+}

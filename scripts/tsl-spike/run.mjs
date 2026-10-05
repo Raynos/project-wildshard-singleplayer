@@ -11,7 +11,7 @@
 //
 // Variants: family · tsl · tsl-raw · tsl-post · tsl-sway · plain · tsl-plain · tsl-pcf · family-csm · tsl-csm ·
 // family-fade · tsl-fade · graph · family-roles · graph-roles · family-labels · graph-labels · family-emit · graph-emit ·
-// family-tube · graph-tube (spike.js's header says what each
+// family-tube · graph-tube · family-sf · graph-sf (spike.js's header says what each
 // draws). SF59 step 2: the TSL variants run the engine's back-end (src/engine/render/nodes/).
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
@@ -24,7 +24,7 @@ const ROOT = resolvePath(new URL('../..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const SURFACE = flag('surface', 'desktop');
-const VARIANTS = flag('variants', 'family,tsl,tsl-raw,tsl-post,tsl-sway,plain,tsl-plain,tsl-pcf,family-csm,tsl-csm,family-fade,tsl-fade,graph,family-roles,graph-roles,family-labels,graph-labels,family-emit,graph-emit,family-tube,graph-tube').split(',');
+const VARIANTS = flag('variants', 'family,tsl,tsl-raw,tsl-post,tsl-sway,plain,tsl-plain,tsl-pcf,family-csm,tsl-csm,family-fade,tsl-fade,graph,family-roles,graph-roles,family-labels,graph-labels,family-emit,graph-emit,family-tube,graph-tube,family-sf,graph-sf').split(',');
 const SCRATCH = resolvePath(flag('scratch', `/private/tmp/claude-501/sp-builders/sf59-tsl/run-${process.pid}`));
 const OUT_DIR = join(ROOT, 'progress/shard-platform/sf59');
 const TAG = flag('tag', ''); // --tag=graph writes tsl-spike-<surface>-graph.{json,jpg}, beside the spike's own results
@@ -138,7 +138,7 @@ def diff(a, b):
     A = np.asarray(Image.open(have[a]).convert('RGB')).astype(np.int16); B = np.asarray(Image.open(have[b]).convert('RGB')).astype(np.int16)
     d = np.abs(A - B); px = d.max(axis=2); mse = float((d.astype(np.float64) ** 2).mean())
     return {'pair': f'{a} vs {b}', 'mean': round(float(d.mean()), 3), 'max': int(d.max()), 'over8pct': round(float((px > 8).mean() * 100), 2), 'psnr': None if mse == 0 else round(10 * np.log10(255 * 255 / mse), 1)}
-pairs = [p for p in [('family', 'tsl'), ('family', 'tsl-raw'), ('tsl', 'tsl-post'), ('family', 'tsl-post'), ('plain', 'tsl-plain'), ('family', 'tsl-pcf'), ('family-csm', 'tsl-csm'), ('family-fade', 'tsl-fade'), ('family-csm', 'family-fade'), ('family', 'graph'), ('tsl', 'graph'), ('family-roles', 'graph-roles'), ('family', 'family-roles'), ('family-labels', 'graph-labels'), ('family-roles', 'family-labels'), ('family-emit', 'graph-emit'), ('family-tube', 'graph-tube')] if p[0] in have and p[1] in have]
+pairs = [p for p in [('family', 'tsl'), ('family', 'tsl-raw'), ('tsl', 'tsl-post'), ('family', 'tsl-post'), ('plain', 'tsl-plain'), ('family', 'tsl-pcf'), ('family-csm', 'tsl-csm'), ('family-fade', 'tsl-fade'), ('family-csm', 'family-fade'), ('family', 'graph'), ('tsl', 'graph'), ('family-roles', 'graph-roles'), ('family', 'family-roles'), ('family-labels', 'graph-labels'), ('family-roles', 'family-labels'), ('family-emit', 'graph-emit'), ('family-tube', 'graph-tube'), ('family-sf', 'graph-sf')] if p[0] in have and p[1] in have]
 parity = [diff(a, b) for a, b in pairs]
 json.dump({'surface': surface, 'parity': parity, 'rows': rows}, open(out_json, 'w'), indent=2)
 def font(n):

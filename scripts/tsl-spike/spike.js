@@ -29,6 +29,8 @@
 //              look's clock at 0) vs the emissive preset
 //   family-tube / graph-tube  the boxes as the emissive family's neon tube (opaque blend) over a procedural ring field
 //              (core, rim, seam, halo, a cell fade) vs the emissive preset
+//   family-sf / graph-sf  the boxes from an admitted fixture shardfile through the client's path (clientMaterials, graphs
+//              on, SF59 step 5): a PBR family entry vs a graph entry bound to a day key (sun.colour) and declared state
 // SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
 // render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
 // Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
@@ -56,6 +58,11 @@ import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { patchCSMShaderChunk } from '@wildshard/engine/world/csmLightBlock';
 import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from '@wildshard/engine/world/shadowFade';
 import { registerCascades } from '@wildshard/engine/world/cascadeLights';
+import { Scope } from '@wildshard/engine/app/scope';
+import { emptyShardfile } from '@wildshard/sdk/author';
+import { parseShardfile } from '@wildshard/game/shardfile/schema';
+import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
+import { materialGraphRules } from '../../src/game/shardfile/materials';
 
 const VARIANT = location.hash.slice(1) || 'family';
 // the Simulator's Safari can run the module before it lays the page out (innerWidth 0, so a 0 × 0 target): wait for it
@@ -92,7 +99,8 @@ const GRAPH = VARIANT.startsWith('graph');
 const ROLES = VARIANT.endsWith('-roles');
 const LABELS = VARIANT.endsWith('-labels');
 const EMIT = VARIANT.endsWith('-emit') || VARIANT.endsWith('-tube');
-const compiler = GRAPH ? await loadGraphCompiler(renderer) : null; // the graph compiler, the same lazy door
+const SHARDFILE = VARIANT.endsWith('-sf');
+const compiler = GRAPH && !SHARDFILE ? await loadGraphCompiler(renderer) : null; // the graph compiler, the same lazy door
 
 // ── the scene ──
 installAtmosphere(); // the engine's fog chunks (slot 100), as Game.buildSky installs them
@@ -266,7 +274,33 @@ function plainMat() {
   m.emissiveNode = vec3(float(Number(NONCE)));
   return m;
 }
-const boxMat = VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
+/**
+ * family-sf / graph-sf (SF59 step 5): the boxes from an ADMITTED shardfile through the client's own path
+ * (parseShardfile → clientMaterials, graphs on): a PBR family entry vs a graph entry whose tint is bound to the look's
+ * `sun.colour` day key and whose roughness is bound to the public shared state `wet` (its declared default 0.8)
+ */
+async function shardfileMat() {
+  const sun = [0.85, 0.6, 0.35]; // a key colour, stored linear
+  const srgb = new THREE.Color(sun[0], sun[1], sun[2]).getRGB({ r: 0, g: 0, b: 0 }, THREE.SRGBColorSpace);
+  const base = emptyShardfile({ slug: 'graph-fixture', name: 'Graph fixture', author: 'Local', seed: 1, revision: 1 });
+  base.state.shared.push({ id: 1, name: 'wet', type: 'f64', privacy: 'public', default: 0.8 });
+  const key = { time: 0.5, sky: { zenith: [0.1, 0.2, 0.4], horizon: [0.6, 0.7, 0.8] }, fog: { colour: [0.5, 0.5, 0.5], density: 0.004 }, sun: { colour: sun, intensity: 2.6 }, ambient: { sky: [1, 1, 1], ground: [0, 0, 0], intensity: 0.9 } };
+  const box = VARIANT === 'graph-sf'
+    ? { family: 'graph', graph: { version: 1, kind: 'material', model: 'standard',
+      params: { tint: { type: 'colour', value: [1, 1, 1], bind: { day: 'sun.colour' } }, wet: { type: 'float', value: 0, min: 0, max: 1, bind: { state: 'shared.wet' } } },
+      nodes: { tint: { op: 'param', param: 'tint' }, wet: { op: 'param', param: 'wet' } }, stages: { surface: { colour: 'tint', roughness: 'wet', metalness: 0 } } } }
+    : { family: 'pbr', colour: [srgb.r, srgb.g, srgb.b], roughness: 0.8, metalness: 0 };
+  const shard = parseShardfile({ ...base, look: { ...base.look, keys: [key], dayOverride: 0.5, materials: { box } } });
+  const rules = materialGraphRules(shard);
+  if (rules.length > 0) throw new Error(`spike: fixture refused: ${rules.join('; ')}`);
+  const look = await clientMaterials(shard, new Map(), renderer, new Scope('sf59.fixture'), { graphs: true });
+  const material = look.materials.get('box');
+  if (material === undefined) throw new Error('spike: no fixture material');
+  shardfileReadout = { ...look.graphs.readout, material: material.type };
+  return material;
+}
+let shardfileReadout = null;
+const boxMat = SHARDFILE ? await shardfileMat() : VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
 if (!tsl && VARIANT !== 'warmup') {
   patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(/\}\s*$/, `  gl_FragColor.rgb += vec3( ${NONCE} );\n}`);
@@ -407,7 +441,7 @@ async function run() {
   const err = gl.getError();
   if (err !== gl.NO_ERROR) errors.push(`gl error ${err}`);
   return {
-    variant: VARIANT, ua: navigator.userAgent, size: [W, H], instances: GRID * GRID,
+    variant: VARIANT, ua: navigator.userAgent, shardfile: shardfileReadout, size: [W, H], instances: GRID * GRID,
     uniformBlockLimit: gl.getParameter(gl.MAX_UNIFORM_BLOCK_SIZE),
     compileMs: round(tCompile, 1), firstDrawMs: round(tFirst, 1), stallMs: round(tCompile + tFirst, 1),
     nodeBuildMs: handler ? round(handler.buildMs, 1) : 0, nodeBuilds: handler ? handler.builds : 0,
