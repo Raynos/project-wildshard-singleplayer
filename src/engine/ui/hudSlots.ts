@@ -1,5 +1,4 @@
 import { nodeOwner, type Scope } from '../app/scope';
-import { engineString } from '../strings';
 
 
 export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r' | 'edge-l' | 'lock' | 'jump';
@@ -101,7 +100,8 @@ export class HudSlots {
     this.owners.set(b, scope);
     b.type = 'button';
     b.className = `ws-touch-disc at at-${o.spot} ${o.cls}`;
-    b.innerHTML = engineString('s_b7546cf3d24c', [o.icon, o.label]);
+    b.innerHTML = o.icon; // Platform-owned SVG; the authored label is a separate text node.
+    const label = document.createElement('span'); label.textContent = o.label; b.append(label);
     b.setAttribute('draggable', 'false');
     scope.listen(b, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); o.press?.(); });
     const end = (e: Event): void => { e.stopPropagation(); if (!b.classList.contains('down')) return; b.classList.remove('down'); o.release?.(); };

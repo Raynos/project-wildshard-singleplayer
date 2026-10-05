@@ -69,7 +69,14 @@ export interface SkinRow { id: string; name: string; blurb: string; worn: boolea
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 /** a tab's face: the BAG's are an icon over one short word (E314 board 8 A); PAUSE's stay words */
-const tabHtml = (label: string, ic?: IconId): string => (ic ? `<i class="ws-gmenu-ticon">${icon(ic)}</i><span class="ws-gmenu-tword">${esc(label)}</span>` : esc(label));
+const tabButton = (label: string, ic?: IconId): HTMLButtonElement => {
+  const button = document.createElement('button'); button.className = 'ws-gmenu-tab'; button.type = 'button';
+  if (ic) {
+    const glyph = el('ws-gmenu-ticon', icon(ic), 'i'), word = el('ws-gmenu-tword', '', 'span');
+    word.textContent = label; button.append(glyph, word);
+  } else button.textContent = label;
+  return button;
+};
 
 export class GameMenu {
   readonly scope = uiScope('GameMenu');
@@ -122,10 +129,10 @@ export class GameMenu {
     // have to scroll back to top"): the header bar is the menu's one row of actions, pinned above the tabs and the panel.
     // The left button goes back to play in both menus (RESUME / CLOSE); EXIT TO MAIN, the pause menu's only, sits on the
     // right, so a thumb that dismisses the BAG at the top-left never lands on the exit in the PAUSE menu
-    this.sheet.innerHTML = engineString('s_1856a8fac1fd', [esc(levelName)]);
+    this.sheet.innerHTML = engineString('s_1856a8fac1fd', ['']);
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
-      const b = el('ws-gmenu-tab', tabHtml(t.label, t.icon), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
+      const b = tabButton(t.label, t.icon); b.dataset['tab'] = t.id;
       this.scope.listen(b, 'click', () => this.select(t.id));
       this.tabBar.append(b);
     }
@@ -140,7 +147,7 @@ export class GameMenu {
     mountUi(this.root, this.scope, document.body);
 
     // ── MAP: the FullMap canvas lives inside this panel (Map.ts embedded mode) ──
-    this.mapMeta = el('ws-gmenu-mapmeta', esc(levelName)); // E318: the shard's name, no chunk size
+    this.mapMeta = el('ws-gmenu-mapmeta'); this.mapMeta.textContent = levelName; // E318: the shard's name, no chunk size
     this.mapQuest = el('ws-gmenu-mapquest');
     const frame = el('ws-gmenu-mapframe');
     opts.fullMap.mount(frame);
@@ -165,6 +172,7 @@ export class GameMenu {
     const title = this.sheet.querySelector<HTMLElement>('.ws-gmenu-title'); if (!title) throw new Error('GameMenu: no .ws-gmenu-title');
     const subtitle = this.sheet.querySelector<HTMLElement>('.ws-gmenu-sub'); if (!subtitle) throw new Error('GameMenu: no .ws-gmenu-sub');
     this.title = title; this.subtitle = subtitle; this.closeBtn = closeBtn; this.exitBtn = exitBtn;
+    this.subtitle.textContent = levelName;
     this.scope.listen(closeBtn, 'click', () => { this.close(); });
     this.scope.listen(exitBtn, 'click', () => { this.close(true); this.onExit?.(); }); // silent: the HUD brings the title back itself
     this.scope.listen(this.root, 'pointerdown', (e) => { if (e.target === this.root) this.close(); });
@@ -310,7 +318,7 @@ export class GameMenu {
     if (this.panels[spec.id] !== undefined) throw new Error(`Duplicate UI tab: ${spec.id}`);
     const off = this.tabsRegistry.tab(spec);
     const panel = el('ws-gmenu-panel scroll'); panel.dataset['scroll'] = '';
-    const button = el('ws-gmenu-tab', tabHtml(spec.title, spec.icon), 'button') as HTMLButtonElement;
+    const button = tabButton(spec.title, spec.icon);
     button.type = 'button'; button.dataset['tab'] = spec.id;
     this.scope.listen(button, 'click', () => { this.select(spec.id); });
     this.panels[spec.id] = panel;
@@ -342,7 +350,9 @@ export class GameMenu {
     const q = this.opts.fullMap.quest;
     this.mapQuest.hidden = q === null || q.objective === '';
     if (!q) return;
-    this.mapQuest.innerHTML = engineString('s_9b2a687f808a', [esc(q.title), esc(q.objective), q.hint ? engineString('s_ceba3ca94f0b', [esc(q.hint)]) : '']);
+    const title = el('ws-gmenu-mapquest-title'), objective = el('ws-gmenu-mapquest-obj'), hint = el('ws-gmenu-mapquest-hint');
+    title.textContent = q.title; objective.append(document.createElement('i'), document.createTextNode(q.objective)); hint.textContent = q.hint;
+    this.mapQuest.replaceChildren(title, objective); if (q.hint) this.mapQuest.append(hint);
   }
 
   private syncZoom() {

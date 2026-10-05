@@ -258,10 +258,11 @@ export class HUD {
 
     // ammo
     const ammo = el('div', engineString('s_bc430be3e44e'));
-    ammo.innerHTML = engineString('s_257c5b64d234', [this.opts.weaponUi.name, this.opts.weaponUi.ammo?.label ?? '', this.opts.maxBolts, this.opts.maxBolts]);
+    ammo.innerHTML = engineString('s_257c5b64d234', ['', '', this.opts.maxBolts, this.opts.maxBolts]);
     this.ammoPanel = ammo;
     this.ammoCount = q(ammo, '.ws-game-count'); this.ammoNum = q(this.ammoCount, '.c'); this.ammoStatus = q(ammo, '.ws-game-status'); this.ammoStatusText = q(ammo, '.ws-game-status .s'); this.reloadBar = q(ammo, '.ws-game-rbar i');
     this.ammoLabel = q(ammo, '.ws-label .l'); this.ammoWeapon = q(ammo, '.ws-game-weapon'); this.ammoMax = q(ammo, '.m'); this.ammoReserve = q(ammo, '.ws-game-reserve');
+    this.ammoWeapon.textContent = this.opts.weaponUi.name; this.ammoLabel.textContent = this.opts.weaponUi.ammo?.label ?? '';
     this.pipBox = q(ammo, '.ws-game-pips');
     this.buildPips(this.opts.maxBolts);
     mountUi(ammo, this.scope, r);
@@ -379,7 +380,15 @@ export class HUD {
     if (s.ads !== L.ads) { L.ads = s.ads; this.cross.classList.toggle('ads', s.ads === true); }
     if (s.prompt !== L.prompt) {
       L.prompt = s.prompt;
-      if (s.prompt) { this.prompt.innerHTML = s.prompt.replace(/^\[(\w+)\]\s*/, '<b>$1</b>'); this.prompt.classList.add('show'); }
+      if (s.prompt) {
+        const key = /^\[(\w+)\]\s*/.exec(s.prompt);
+        this.prompt.replaceChildren();
+        if (key) {
+          const badge = document.createElement('b'); badge.textContent = key[1] ?? '';
+          this.prompt.append(badge, document.createTextNode(s.prompt.slice(key[0].length)));
+        } else this.prompt.textContent = s.prompt;
+        this.prompt.classList.add('show');
+      }
       else this.prompt.classList.remove('show');
     }
     if (this.hitTimer > 0 && (this.hitTimer -= 1) === 0) this.cross.classList.remove('hit', 'head');
@@ -391,7 +400,9 @@ export class HUD {
   private mountBar(): void {
     const vitals = el('div', engineString('s_4c6b96a54dfa'), engineString('s_92890f1e67f6', [SVG_HEART]));
     const L = this.last, segN = L.segments ?? this.opts.weaponUi.ammo?.segments ?? 0, reserve = L.reserve ?? 0;
-    const bolts = el('button', engineString('s_e99685b6c3aa'), engineString('s_adf21edee32f', [L.weaponName ?? this.opts.weaponUi.name, L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
+    const bolts = el('button', engineString('s_e99685b6c3aa'), engineString('s_adf21edee32f', ['', '', '<i></i>'.repeat(segN), this.opts.maxBolts, L.maxBolts ?? this.opts.maxBolts, reserve > 0 ? engineString('s_850875985389', [reserve]) : '', SVG_BOLT]));
+    q(bolts, '.ws-game-weapon').textContent = L.weaponName ?? this.opts.weaponUi.name;
+    q(bolts, '.ws-game-tiny .l').textContent = L.ammoLabel ?? this.opts.weaponUi.ammo?.label ?? '';
     bolts.type = 'button'; bolts.disabled = true;
     // Keep chip gestures out of the look/fire layer. The input service owns the same reload action as desktop R.
     this.scope.listen(bolts, 'pointerdown', (event) => { event.stopPropagation(); });

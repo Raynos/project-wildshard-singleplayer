@@ -122,9 +122,11 @@ export class WeaponStrip {
     list.forEach((k, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'ws-touch-slot';
-      b.innerHTML = engineString('s_c54323633e60', [i + 1, k.row.ui.swapIcon, k.row.ui.swapName ?? k.row.ui.name]);
-      const ammo = b.querySelector<HTMLElement>('.ws-touch-slot-ammo');
-      if (ammo === null) return;
+      const keyLabel = document.createElement('i'); keyLabel.className = 'ws-touch-slot-key'; keyLabel.textContent = String(i + 1);
+      const glyph = document.createElementNS(SVGNS, 'svg'); glyph.setAttribute('viewBox', '0 0 24 24'); glyph.innerHTML = k.row.ui.swapIcon;
+      const name = document.createElement('span'); name.className = 'ws-touch-slot-name'; name.textContent = k.row.ui.swapName ?? k.row.ui.name;
+      const ammo = document.createElement('b'); ammo.className = 'ws-touch-slot-ammo';
+      b.append(keyLabel, glyph, name, ammo);
       this.scope.listen(b, 'pointerdown', (e) => {
         e.stopPropagation(); e.preventDefault();
         if (this.weapons.enabled) app.input.press(`swap.weapon.${k.id}`);
@@ -211,8 +213,13 @@ export class WeaponStrip {
       label.className = `ws-touch-pie-label${k.id === held ? ' held' : ''}`;
       label.style.transform = `translate(${(Math.cos(mid) * r).toFixed(1)}px, ${(Math.sin(mid) * r).toFixed(1)}px)`;
       const ammo = this.weapons.get(k.id).state.ammo;
-      const count = ammo === undefined ? '' : ` <b class="${ammo === 0 ? 'empty' : ''}">${ammo}</b>`;
-      label.innerHTML = engineString('s_1fe41cba9ec7', [k.row.ui.swapIcon, k.row.ui.swapName ?? k.row.ui.name, count]);
+      const glyph = document.createElementNS(SVGNS, 'svg'); glyph.setAttribute('viewBox', '0 0 24 24'); glyph.innerHTML = k.row.ui.swapIcon;
+      const name = document.createElement('span'); name.textContent = k.row.ui.swapName ?? k.row.ui.name;
+      if (ammo !== undefined) {
+        const count = document.createElement('b'); count.classList.toggle('empty', ammo === 0); count.textContent = String(ammo);
+        name.append(document.createTextNode(' '), count);
+      }
+      label.append(glyph, name);
       pie.append(label);
       this.wedges.push({ id: k.id, el: path, label });
     });

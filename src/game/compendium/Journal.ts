@@ -19,8 +19,10 @@ import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
 import { STATE_ORDER, type EntryDef, type EntryStats, type Plate, type TrophySlot } from './types';
 import type { CompendiumState } from './state';
 
-const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
-const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
+const el = (cls: string, text = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.textContent = text; return e; };
+const image = (src: string): HTMLImageElement => {
+  const img = document.createElement('img'); img.alt = ''; img.draggable = false; img.decoding = 'async'; img.src = src; return img;
+};
 
 /** the silhouette of a sketch (an unknown / discovered page, a ??? neighbour): `<id>-sil.webp` beside it */
 export const silhouetteOf = (sketch: string): string => sketch.replace(/\.webp$/, '-sil.webp');
@@ -78,7 +80,8 @@ export class Journal {
     const book = el('ws-cmp-book');
     this.tabBar = el('ws-cmp-tabs');
     for (const t of skin.tabs) {
-      const b = el('ws-cmp-tab', `${GLYPH[t.id] ?? ''}<span>${esc(t.label)}</span>`, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
+      const b = el('ws-cmp-tab', '', 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
+      b.innerHTML = GLYPH[t.id] ?? ''; b.append(el('', t.label, 'span'));
       this.scope.listen(b, 'click', () => { this.select(t.id); });
       this.tabBar.append(b);
     }
@@ -181,32 +184,36 @@ export class Journal {
     const skin = this.state.def.skin, s = this.state.stats(e.id);
     const level = STATE_ORDER.indexOf(s.state), named = level >= 1, drawn = level >= 2;
     page.dataset['entry'] = e.id; page.dataset['state'] = s.state;
-    const stamp = s.state === 'taken' || (e.kind === 'place' && drawn) ? `<div class="ws-cmp-stamp">${esc(skin.stamp(e))}</div>` : '';
-    const sub = named && e.subtitle ? `<div class="ws-cmp-sub">${esc(e.subtitle)}</div>` : '';
-    page.append(el('ws-cmp-head', `<h2 class="ws-cmp-name">${named ? esc(e.name) : '???'}</h2>${sub}${stamp}`));
+    const head = el('ws-cmp-head'); head.append(el('ws-cmp-name', named ? e.name : '???', 'h2'));
+    if (named && e.subtitle) head.append(el('ws-cmp-sub', e.subtitle));
+    if (s.state === 'taken' || (e.kind === 'place' && drawn)) head.append(el('ws-cmp-stamp', skin.stamp(e)));
+    page.append(head);
     const plate = el(`ws-cmp-plate${drawn ? '' : ' sil'}${e.kind === 'place' ? ' place' : ''}`);
     const src = drawn ? e.plate.sketch : e.kind === 'place' ? e.plate.sketch : silhouetteOf(e.plate.sketch);
-    plate.innerHTML = `<img alt="" draggable="false" decoding="async" src="${esc(src)}">${drawn ? '' : '<span class="ws-cmp-q">???</span>'}`;
+    plate.append(image(src)); if (!drawn) plate.append(el('ws-cmp-q', '???', 'span'));
     const model = e.plate.model, onView = this.onViewModel;
     if (drawn && model && onView) {
-      const b = el('ws-cmp-3d', `${GLYPH_3D}<span>3D</span>`, 'button') as HTMLButtonElement; b.type = 'button';
+      const b = el('ws-cmp-3d', '', 'button') as HTMLButtonElement; b.type = 'button';
+      b.innerHTML = GLYPH_3D; b.append(el('', '3D', 'span'));
       this.scope.listen(b, 'click', () => { onView(model, e); });
       plate.append(b);
     }
     page.append(plate);
     page.append(this.statsRow(e, s));
     const note = drawn ? e.notes : named ? (e.hint ?? 'Heard of, not yet seen.') : 'Not yet found.';
-    page.append(el(`ws-cmp-notes${drawn ? '' : ' hint'}`, esc(note), 'p'));
+    page.append(el(`ws-cmp-notes${drawn ? '' : ' hint'}`, note, 'p'));
     const near = el('ws-cmp-near');
     const list = this.entries, i = this.index;
     for (const [dir, n] of [[-1, list[i - 1]], [1, list[i + 1]]] as const) near.append(this.neighbour(n, dir));
     page.append(near);
-    page.append(el('ws-cmp-count', `<i></i>${i + 1} / ${list.length}<i></i>`));
+    const count = el('ws-cmp-count'); count.append(document.createElement('i'), document.createTextNode(`${i + 1} / ${list.length}`), document.createElement('i')); page.append(count);
   }
 
   private statsRow(e: EntryDef, s: EntryStats): HTMLElement {
     const row = el('ws-cmp-stats');
-    for (const st of this.state.def.skin.stats(e, s)) row.append(el('ws-cmp-stat', `<span>${esc(st.label)}</span><b>${esc(st.value)}</b>`));
+    for (const st of this.state.def.skin.stats(e, s)) {
+      const stat = el('ws-cmp-stat'); stat.append(el('', st.label, 'span'), el('', st.value, 'b')); row.append(stat);
+    }
     return row;
   }
 
@@ -215,7 +222,8 @@ export class Journal {
     if (!e) return el('ws-cmp-nb none');
     const s = this.state.stats(e.id), drawn = STATE_ORDER.indexOf(s.state) >= 2, named = s.state !== 'unknown';
     const src = drawn || e.kind === 'place' ? e.plate.sketch : silhouetteOf(e.plate.sketch);
-    const b = el(`ws-cmp-nb${drawn ? '' : ' sil'}${e.kind === 'place' ? ' place' : ''}`, `<img alt="" draggable="false" decoding="async" src="${esc(src)}"><span>${named ? esc(e.name) : '???'}</span>`, 'button') as HTMLButtonElement;
+    const b = el(`ws-cmp-nb${drawn ? '' : ' sil'}${e.kind === 'place' ? ' place' : ''}`, '', 'button') as HTMLButtonElement;
+    b.append(image(src), el('', named ? e.name : '???', 'span'));
     b.type = 'button'; b.dataset['dir'] = String(dir);
     this.scope.listen(b, 'click', () => { this.turn(dir); });
     return b;
@@ -226,16 +234,14 @@ export class Journal {
     const slots: readonly TrophySlot[] = this.state.def.trophies ?? [];
     const taken = slots.filter((t) => this.state.state(t.entry) === 'taken').length;
     page.dataset['entry'] = 'trophies'; page.classList.add('wall');
-    page.append(el('ws-cmp-head', `<h2 class="ws-cmp-name">Trophy Wall</h2><div class="ws-cmp-sub">The ranger's cabin · ${taken} / ${slots.length} taken</div>`));
+    const head = el('ws-cmp-head'); head.append(el('ws-cmp-name', 'Trophy Wall', 'h2'), el('ws-cmp-sub', `The ranger's cabin · ${taken} / ${slots.length} taken`)); page.append(head);
     const grid = el('ws-cmp-wall');
     for (const t of slots) {
       const e = this.state.entry(t.entry);
       if (!e) continue;
       const s = this.state.stats(t.entry), got = s.state === 'taken', named = s.state !== 'unknown';
-      const card = el(`ws-cmp-slot${got ? ' got' : ''}`, `
-        <img alt="" draggable="false" decoding="async" src="${esc(got ? e.plate.sketch : silhouetteOf(e.plate.sketch))}">
-        <b>${named ? esc(e.name) : '???'}</b>
-        <span>${got ? esc(t.title) : 'Not yet taken'}</span>`, 'button') as HTMLButtonElement;
+      const card = el(`ws-cmp-slot${got ? ' got' : ''}`, '', 'button') as HTMLButtonElement;
+      card.append(image(got ? e.plate.sketch : silhouetteOf(e.plate.sketch)), el('', named ? e.name : '???', 'b'), el('', got ? t.title : 'Not yet taken', 'span'));
       card.type = 'button';
       this.scope.listen(card, 'click', () => { this.goTo(t.entry); this.render(); });
       grid.append(card);
