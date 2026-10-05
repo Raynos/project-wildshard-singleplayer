@@ -74,7 +74,7 @@ export class PlayerHealth implements Actor {
     const next = this.mode;
     if (next !== this.previousMode) { this.events.emit('player.mode', { prev: this.previousMode, next }); this.previousMode = next; }
     const a = this.attributes;
-    if (a.health < a.maxHealth && this.ports.now() - this.lastHurt > 6000) a.health = Math.min(a.maxHealth, a.health + dt * 4);
+    if (a.health > 0 && a.health < a.maxHealth && this.ports.now() - this.lastHurt > 6000) a.health = Math.min(a.maxHealth, a.health + dt * 4);
     this.lifecycle?.updateFade(dt);
     if (this.lifecycle?.fading() === true) a.health = a.maxHealth;
     if (a.health > 0) return;
