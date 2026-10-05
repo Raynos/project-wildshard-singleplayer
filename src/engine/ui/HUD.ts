@@ -11,7 +11,6 @@ import { isDev, onDev } from '../core/devMode';
 import { mountDeveloperAlert, mountDeveloperBanner } from './developerBanner';
 import { ToastStack, type ToastTone } from './ToastStack';
 import { ItemCardPop, type ItemCardSpec } from './ItemCard';
-import { setting } from './Settings';
 import { ROW, hudSlots } from './hudSlots';
 
 /**
@@ -547,10 +546,9 @@ export class HUD {
   /** the level's HUD accent for the big item cards (a hex; null: the HUD cyan) — the game sets it from the level's declared accent */
   cardAccent: string | null = null;
   private cardPop: ItemCardPop | null = null;
-  /** SF28 (G87): a platform pickup (equipment, harvest drops) as the big item card under the top bar when pause ▸ Settings ▸
-   *  Debug ▸ Item cards is Big; otherwise (the default) the toast `fallback`, exactly as before */
-  pickupCard(spec: ItemCardSpec, fallback: string): void {
-    if (setting('itemCards') !== 'big') { this.toast(fallback); return; }
+  /** SF28 (G87; the only pickup look since Jake's G181 pick, E450): a platform pickup (equipment, harvest drops) as the big
+   *  item card under the top bar, in the level's accent */
+  pickupCard(spec: ItemCardSpec): void {
     this.cardPop ??= new ItemCardPop(this.root, this.scope);
     this.cardPop.show(spec, engineString('s_item_card_picked'), this.cardAccent);
   }

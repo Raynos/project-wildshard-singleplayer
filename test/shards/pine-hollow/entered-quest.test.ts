@@ -31,7 +31,7 @@ it('keeps Pine quest state and exact HUD placement across two entries with no ro
   const board = lifetime.view('board', (scope) => new BoardPanel(() => state, scope));
   const trade = lifetime.view('trade', (scope) => new ShopPanel({ trader: 'Mott', place: 'Hollow',
     goods: [{ id: 'a', name: 'Pelt', does: 'A pelt', icon: 'star', price: 0 }], state: () => 'short',
-    cost: () => [{ text: '1 hide (0)', have: false }], layout: { kind: 'slate', kicker: 'Stall', title: 'Swaps' }, scope }));
+    cost: () => [{ text: '1 hide (0)', have: false }], scope }));
   const count = lifetime.view('count', (scope) => new CountChip(scope));
   const dialogue = lifetime.view('dialogue', (scope) => new DialogueBox(scope));
   let pendingRewards = 0, completedTalk = 0, rerolls = 0;

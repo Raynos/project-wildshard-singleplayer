@@ -129,15 +129,15 @@ it('renders journal entry, skin, stats, neighbour and trophy text without interp
 it('renders shop names, descriptions and locked prerequisites literally through every card state', () => {
   let state: ShopState = 'locked'; const buy = vi.fn(() => true);
   const shop = new ShopPanel({ trader: hostile, place: hostile, goods: [{ id: 'one', name: hostile, does: hostile, icon: 'star', price: 5 }],
-    state: () => state, coins: () => 3, needs: () => hostile, greeting: () => hostile }); shop.onBuy = buy; shop.open();
+    state: () => state, coins: () => 3, needs: () => hostile }); shop.onBuy = buy; shop.open();
   expect(shop.root.querySelector('.ws-shop-title b')?.textContent).toBe(`${hostile}'s counter`);
   expect(shop.root.querySelector('.ws-shop-title span')?.textContent).toBe(hostile);
+  expect(shop.root.querySelector('.ws-shop-bigwho')?.textContent).toBe(`${hostile} · Trader`);
   for (const next of ['locked', 'short', 'buy', 'owned'] as const) {
     state = next; shop.render();
-    expect(shop.root.querySelector('.ws-shop-name')?.textContent).toBe(hostile);
-    expect(shop.root.querySelector('.ws-shop-does')?.textContent).toBe(hostile);
+    expect(shop.root.querySelector('.ws-shop-grid .ws-icard-name')?.textContent).toBe(hostile);
     expect(shop.root.querySelector('img,script,[onerror]')).toBeNull();
-    const button = shop.root.querySelector<HTMLButtonElement>('.ws-shop-buy'); if (!button) throw new Error('Missing buy');
+    const button = shop.root.querySelector<HTMLButtonElement>('.ws-shop-bigbuy'); if (!button) throw new Error('Missing buy');
     expect(button.disabled).toBe(next !== 'buy');
     if (next === 'locked') expect(button.textContent).toBe(`Needs ${hostile}`);
     if (next === 'buy') { button.click(); expect(buy).toHaveBeenCalledOnce(); }

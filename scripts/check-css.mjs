@@ -58,7 +58,6 @@ const FILES = [
   { file: join(ROOT, 'src/game/loot/loot.css'), prefix: 'ws-loot-', strict: true }, // the purse on the HUD: the coin chip + the "+n" pop (src/game/loot/CoinChip.ts, E314)
   { file: join(ROOT, 'src/engine/ui/styles/itemcard.css'), prefix: 'ws-icard-', strict: true }, // the big item card: shop tiles + the pickup card (src/engine/ui/ItemCard.ts, SF28 / G87)
   { file: join(ROOT, 'src/game/loot/ui/shop.css'), prefix: 'ws-shop-', strict: true }, // the trader's counter on Driftwood (src/shards/driftwood-isle/loot/ShopPanel.ts, E314 stage 2)
-  { file: join(ROOT, 'src/game/loot/ui/slate.css'), prefix: 'ws-slate-', strict: true }, // a barter stall's Classic slate (src/game/loot/ui/ShopPanel.ts `layout: slate`, SF28)
   { file: join(ROOT, 'src/game/saves.css'), prefix: 'ws-saves-', strict: true }, // pause ▸ Settings ▸ SAVES and the New game sheet (src/game/savesSettings.ts, SF33b / G83)
   { file: join(ROOT, 'src/game/grid/gridHud.css'), prefix: 'ws-grid-', strict: true }, // the grid's HUD moments: the sky-down reveal, SAFE ZONE, the title card, speed lines (src/game/grid/reveal.ts, gridHud.ts; SF21a / SF20a)
   // loading screen: owned by src/engine/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename

@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-// SHARD-PLATFORM SF28 (Jake's G87): the big item cards — the engine tile and pickup card, the HUD's pickup path behind
-// pause ▸ Settings ▸ Debug ▸ Item cards, and the trader's G87 sheet in the shard's accent. Classic (the default) is unchanged.
+// SHARD-PLATFORM SF28 (Jake's G87): the big item cards — the engine tile and pickup card, the HUD's pickup path and the
+// trader's G87 sheet in the shard's accent. G181 (E450): Big is the only look; the Classic toast, flip deck and slate are gone.
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
@@ -8,7 +8,6 @@ import { hudSlots } from '../src/engine/ui/hudSlots';
 import { HUD } from '../src/engine/ui/HUD';
 import { WOODEN_SWORD } from '../src/kit/weapons/equipment';
 import { ItemCardPop, itemCardTile } from '../src/engine/ui/ItemCard';
-import { overrideSetting } from '../src/engine/ui/Settings';
 import { ShopPanel, type ShopState } from '../src/game/loot/ui/ShopPanel';
 import { accentHex, hudAccent, setHudAccent } from '../src/game/session/hudAccent';
 
@@ -21,7 +20,7 @@ beforeEach(() => {
   const root = document.createElement('div'); root.id = 'hud'; document.body.append(root);
 });
 afterEach(() => {
-  overrideSetting('itemCards', null); setHudAccent(null);
+  setHudAccent(null);
   scope.dispose(); app.levelScope = null; app.input.clear(); hudSlots.restore(parked);
   vi.useRealTimers(); document.body.replaceChildren();
 });
@@ -53,16 +52,12 @@ it('pops one pickup card in the given accent and clears it after its life', () =
   expect(pop.shown).toBeNull();
 });
 
-it('keeps the classic toast by default and pops the big card only when Item cards is Big', () => {
+it('pops the big card for a platform pickup by default, never the old toast (G181)', () => {
   const layer = document.createElement('div'), status = document.createElement('div'); layer.append(status); hudSlots.mount(layer, status);
   const hud = new HUD({ pointerLock: false, weaponUi: WOODEN_SWORD.ui, maxBolts: 3 }); hud.cardAccent = '#fbbb2d';
   const toast = vi.spyOn(hud, 'toast');
-  hud.pickupCard({ name: 'Iron sword', icon: 'star' }, 'Iron sword found');
-  expect(toast).toHaveBeenCalledWith('Iron sword found');
-  expect(document.querySelector('.ws-icard-pop')).toBeNull();
-  overrideSetting('itemCards', 'big');
-  hud.pickupCard({ name: 'Iron sword', icon: 'star' }, 'Iron sword found');
-  expect(toast).toHaveBeenCalledOnce();
+  hud.pickupCard({ name: 'Iron sword', icon: 'star' });
+  expect(toast).not.toHaveBeenCalled();
   const pop = document.querySelector<HTMLElement>('.ws-icard-pop');
   expect(pop?.querySelector('.ws-icard-name')?.textContent).toBe('Iron sword');
   expect(pop?.style.getPropertyValue('--ws-accent')).toBe('#fbbb2d');
@@ -75,18 +70,16 @@ it('maps a declared accent id to its palette hex', () => {
   setHudAccent('#fe8169'); expect(hudAccent()).toBe('#fe8169');
 });
 
-it('builds no G87 sheet in Classic, then swaps to the big-cards sheet live in the shard accent', () => {
+it('opens the trader as the big-cards sheet by default, in the shard accent (G181: no Classic deck)', () => {
   const states: ShopState[] = ['buy', 'short', 'owned', 'locked'];
   const goods = states.map((_s, k) => ({ id: `g${k}`, name: k === 0 ? hostile : `Good ${k}`, does: 'Does', icon: 'star' as const, price: 10 + k }));
   const buy = vi.fn(() => true);
-  const shop = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods, state: (g) => states[goods.indexOf(g)] ?? 'buy', coins: () => 8, needs: () => hostile, greeting: () => 'Hello' });
-  shop.onBuy = buy; shop.open();
-  expect(shop.root.querySelector('.ws-shop-big')).toBeNull();
-  expect(shop.root.querySelector('.ws-shop-sheet')).not.toBeNull();
-  expect(shop.root.style.getPropertyValue('--ws-accent')).toBe('');
   setHudAccent('#89c06a');
-  overrideSetting('itemCards', 'big');
-  expect(shop.root.querySelector('.ws-shop-sheet')).toBeNull();
+  const shop = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods, state: (g) => states[goods.indexOf(g)] ?? 'buy', coins: () => 8, needs: () => hostile });
+  shop.onBuy = buy; shop.open();
+  expect(shop.root.className).toBe('ws-shop show');
+  expect(shop.root.querySelectorAll('.ws-shop-big')).toHaveLength(1);
+  expect(shop.root.querySelector('.ws-shop-sheet, .ws-shop-card, .ws-shop-deck')).toBeNull();
   expect(shop.root.querySelector('.ws-shop-bigwho')?.textContent).toBe('Mott · Trader');
   expect(shop.root.querySelector('.ws-shop-bigpurse b')?.textContent).toBe('8');
   expect(shop.root.style.getPropertyValue('--ws-accent')).toBe('#89c06a');
@@ -100,35 +93,21 @@ it('builds no G87 sheet in Classic, then swaps to the big-cards sheet live in th
   shop.root.querySelectorAll<HTMLElement>('.ws-shop-grid .ws-icard-tile')[1]?.click();
   expect(bar.textContent).toBe('Need 3 more');
   expect(bar.disabled).toBe(true);
-  overrideSetting('itemCards', 'classic');
-  expect(shop.root.querySelector('.ws-shop-big')).toBeNull();
-  expect(shop.root.querySelector('.ws-shop-sheet')).not.toBeNull();
+  setHudAccent(null); shop.render();
   expect(shop.root.style.getPropertyValue('--ws-accent')).toBe('');
   shop.dispose();
 });
 
-it('draws a barter stall as its declared slate in Classic and as the G87 sheet in Big, from data only (SF28 part 2)', () => {
+it('draws a barter stall as the G87 sheet from data only (SF28 part 2; G181: no slate)', () => {
   const states: ShopState[] = ['buy', 'short', 'full', 'owned'];
   const goods = states.map((_s, k) => ({ id: `t${k}`, name: k === 0 ? hostile : `Swap ${k}`, does: `Line ${k}`, icon: 'star' as const, price: 0, tile: `Tile ${k}` }));
   const cost = (g: (typeof goods)[number]) => [{ text: `2 hides (${goods.indexOf(g)})`, have: goods.indexOf(g) === 0 }, { text: '1 resin (4)', have: true }];
   const scope2 = new Scope('stall'), buy = vi.fn(() => true);
   const shop = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods, verb: 'Trade', state: (g) => states[goods.indexOf(g)] ?? 'buy', cost,
-    layout: { kind: 'slate', kicker: hostile, title: 'Swaps' }, scope: scope2 });
+    scope: scope2 });
   shop.onBuy = buy; shop.open();
-  expect(shop.root.className).toBe('ws-slate show');
-  expect(document.querySelector('.ws-shop.show')).toBeNull();
-  expect(shop.root.querySelector('.ws-slate-kicker')?.textContent).toBe(hostile);
-  expect([...shop.root.querySelectorAll('.ws-slate-swap')].map((r) => r.className)).toEqual(['ws-slate-swap ok', 'ws-slate-swap', 'ws-slate-swap', 'ws-slate-swap owned']);
-  expect([...shop.root.querySelectorAll('.ws-slate-swap-label')].map((r) => r.textContent)).toEqual([hostile, 'Swap 1', 'Swap 2', 'Swap 3']);
-  expect([...shop.root.querySelectorAll('.ws-slate-swap-btn')].map((b) => b.textContent)).toEqual(['Trade', 'Trade', 'Full', 'Owned']);
-  expect([...shop.root.querySelectorAll('.ws-slate-swap-give span')].slice(0, 2).map((s) => `${s.className}:${s.textContent}`)).toEqual(['have:2 hides (0)', 'have:1 resin (4)']);
-  expect(shop.root.querySelector('img,script,[onerror]')).toBeNull();
-  shop.root.querySelectorAll<HTMLButtonElement>('.ws-slate-swap-btn')[1]?.click(); expect(buy).not.toHaveBeenCalled();
-  shop.root.querySelector<HTMLButtonElement>('.ws-slate-swap-btn')?.click(); expect(buy).toHaveBeenCalledOnce();
-  setHudAccent('#89c06a');
-  overrideSetting('itemCards', 'big');
   expect(shop.root.className).toBe('ws-shop show');
-  expect(document.querySelector('.ws-slate.show')).toBeNull();
+  expect(document.querySelector('.ws-slate')).toBeNull();
   expect(shop.root.querySelector('.ws-shop-bigpurse')?.childElementCount).toBe(0);
   const tiles = [...shop.root.querySelectorAll('.ws-shop-grid .ws-icard-tile')];
   expect(tiles.map((t) => t.querySelector('.ws-icard-name')?.textContent)).toEqual(['Tile 0', 'Tile 1', 'Tile 2', 'Tile 3']);
@@ -137,9 +116,10 @@ it('draws a barter stall as its declared slate in Classic and as the G87 sheet i
   expect(bar.textContent).toBe('Trade Tile 02 hides · 1 resin'); expect(bar.querySelector('small')?.textContent).toBe('2 hides · 1 resin');
   tiles[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
   expect(bar.textContent).toBe('Need 2 hides'); expect(bar.disabled).toBe(true);
-  overrideSetting('itemCards', 'classic');
-  expect(shop.root.className).toBe('ws-slate show');
+  bar.click(); expect(buy).not.toHaveBeenCalled();
+  shop.root.querySelectorAll('.ws-shop-grid .ws-icard-tile')[0]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  shop.root.querySelector<HTMLButtonElement>('.ws-shop-bigbuy')?.click(); expect(buy).toHaveBeenCalledOnce();
   shop.close(); expect(shop.isOpen).toBe(false); expect(document.querySelector('.show')).toBeNull();
   scope2.dispose(); shop.open(); expect(shop.isOpen).toBe(false);
-  expect(document.querySelector('.ws-slate, .ws-shop')).toBeNull();
+  expect(document.querySelector('.ws-shop')).toBeNull();
 });

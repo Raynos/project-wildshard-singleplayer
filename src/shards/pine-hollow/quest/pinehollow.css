@@ -1,7 +1,7 @@
 /* ─── Pine Hollow's hamlet screens + the collectibles counter (src/shards/pine-hollow/quest/ui.ts; PINE-HOLLOW-REMASTER PH-C6 / C8)
    ─── prefix ws-ph- ───
    The lodge's contract board is pine boards with three paper notices pinned to it (the journal's paper, ink and hand);
-   the trader's slate is the platform's (src/game/loot/ui/slate.css, SF28). The chrome round them (CLOSE, the kicker) is the HUD's glass. */
+   the trader's stall is the platform's G87 sheet (src/game/loot/ui/shop.css, SF28 / G181). The chrome round them (CLOSE) is the HUD's glass. */
 
 .ws-ph-panel {
   --ph-paper: #efe5cf; --ph-paper-edge: #cdb892; --ph-ink: #2e2922; --ph-pencil: #5b5347; --ph-red: #ad2a22;

@@ -6,8 +6,8 @@
  *               what it pays; a filled one gets a red CLAIM seal, any can be TORN DOWN for the next (the streak resets)
  *   CountChip   "AMBER RESIN 4 / 30" slides in under the quest chip for a few seconds after a pickup
  *
- * Mott's chalk slate is no longer here: the platform's ShopPanel draws it from data (SHARD-PLATFORM SF28; the goods and
- * rules in ./trades.ts, `layout: { kind: 'slate' }`). The board releases the pointer lock and the weapons while open (like
+ * Mott's stall is no longer here: the platform's ShopPanel draws it from data as the G87 sheet (SHARD-PLATFORM SF28, G181;
+ * the goods and rules in ./trades.ts). The board releases the pointer lock and the weapons while open (like
  * the journal) and closes on CLOSE / Esc / E.
  */
 import './pinehollow.css';

@@ -263,7 +263,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     grant: (id) => { if (!isOwnedId(id)) throw new Error(`Unknown owned equipment: ${id}`); owned.grant(id); },
   },
     onNear: (inside) => audio.pickupHum(inside),
-    onPickup: (row, toast) => { audio.hitMarker(); music.sting('pickup'); hud.pickupCard({ name: row.ui.name, icon: row.ui.icon }, toast); },
+    onPickup: (row) => { audio.hitMarker(); music.sting('pickup'); hud.pickupCard({ name: row.ui.name, icon: row.ui.icon }); },
     hold: params.get('weapon') === 'iron' ? 'weapon.sword-iron' : undefined });
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/shards/nalati-grasslands/adventure.ts on the shared quest core) — null on any other shard ──
@@ -504,7 +504,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
         const got = drops.filter((id) => inventory.add(id)); // the toast names only what went in
         const said = `${got.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`, first = got[0];
         if (first === undefined) hud.toast(said);
-        else hud.pickupCard({ name: got.map((id) => ITEMS[id].label).join(' + '), icon: ITEMS[first].icon, detail: `${inventory.total} in the pack` }, said);
+        else hud.pickupCard({ name: got.map((id) => ITEMS[id].label).join(' + '), icon: ITEMS[first].icon, detail: `${inventory.total} in the pack` });
         audio.hitMarker();
       };
       if (boot.runtime.hooks.harvest) boot.runtime.hooks.harvest(carcass, give); // PH-F2: the skinning beat, then the drops; the carcass stays for the ravens

@@ -346,12 +346,12 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const pack = { count: (id: TradeItem): number => inventory.count(id) };
   const owns = (s: string): boolean => s in SKINS && h.skins.has(s);
   const room: Room = (k, n) => h.crossbow.room?.(k, n) ?? true;
-  // the platform draws the stall (SF28): the goods, the rules and the slate look are declared here
+  // the platform draws the stall (SF28; the G87 sheet since G181): the goods and the rules are declared here
   const trade = ui.view('trade', (scope) => {
     const panel = new ShopPanel<TradeGood>({
       trader: 'Mott', place: 'Pine Hollow', goods: TRADE_GOODS, verb: 'Trade',
       state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g.trade, pack),
-      layout: { kind: 'slate', kicker: "Mott's stall · no coin", title: 'Swaps' }, scope,
+      scope,
     });
     panel.onBuy = ({ trade: t }) => {
       for (const g of t.give) inventory.take(g.item, g.n);

@@ -54,7 +54,7 @@ describe('scoped status and quest UI', () => {
   });
   it('Pine board/trade listeners release with their owner, so a disposed panel cannot reopen', () => {
     const scope = new Scope('panels'), board = new BoardPanel(newBoard, scope);
-    const trade = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods: [{ id: 'a', name: 'A', does: 'a', icon: 'star', price: 0 }], state: () => 'short', cost: () => [{ text: '1 hide (0)', have: false }], layout: { kind: 'slate', kicker: 'Stall', title: 'Swaps' }, scope });
+    const trade = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods: [{ id: 'a', name: 'A', does: 'a', icon: 'star', price: 0 }], state: () => 'short', cost: () => [{ text: '1 hide (0)', have: false }], scope });
     const count = new CountChip(scope);
     let rerolls = 0;
     board.onReroll = () => { rerolls++; };

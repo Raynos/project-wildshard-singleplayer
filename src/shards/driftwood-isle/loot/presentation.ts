@@ -29,7 +29,6 @@ export async function driftwoodLootPresentation(o: { adventure: Adventure; owned
       const stall = adv.trader;
       if (stall === null) return null;
       const panel = new ShopPanel<Good>({ trader: TRADER_NAME, place: 'Driftwood Isle', goods: GOODS,
-        greeting: () => GOODS.every((g) => owned.has(g.id)) ? "That's all I carry. Fair winds, castaway." : purse.coins === 0 ? 'No coin? Every beast on this island carries a few.' : "Coin's good. What'll it be?",
         state: (g) => goodState(g, owned, purse.coins), coins: () => purse.coins,
         needs: (g) => g.needs !== undefined ? goodById(g.needs)?.name ?? g.needs : '' });
       panel.onBuy = (g) => {

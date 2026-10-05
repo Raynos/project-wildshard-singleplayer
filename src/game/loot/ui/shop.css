@@ -1,7 +1,7 @@
-/* ─── the trader's counter (src/game/loot/ui/ShopPanel.ts, E314 stage 2, board 5 C) ─── prefix ws-shop- ───
+/* ─── the trader's counter (src/game/loot/ui/ShopPanel.ts, E314 stage 2; SF28 G87, the only look since G181) ─── prefix ws-shop- ───
    Over the running world: a top bar ([× CLOSE] · "MAREN'S COUNTER / DRIFTWOOD ISLE"), the world and the trader left
-   visible in the middle, and one glass sheet at the bottom — her line, "n / 6" and the purse, one good per card between
-   ‹ ›, the dots, a big BUY. Phone portrait first; with a mouse the sheet is a 440 px column at the bottom centre. */
+   visible in the middle, and the big-cards sheet at the bottom. Phone portrait first; with a mouse the sheet is a 440 px
+   column at the bottom centre. */
 .ws-shop { position: absolute; inset: 0; z-index: calc(var(--ws-layer-hud) + 40); display: flex; flex-direction: column; justify-content: space-between; padding: calc(var(--ws-top) + 6px) 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to bottom, rgba(6, 10, 18, 0.55), rgba(6, 10, 18, 0) 18%, rgba(6, 10, 18, 0) 38%, rgba(6, 10, 18, 0.5)); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
 .ws-shop.show { opacity: 1; pointer-events: auto; }
 .ws-shop button { appearance: none; -webkit-appearance: none; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -16,61 +16,8 @@
 .ws-shop .ws-shop-title b { display: block; font-family: var(--ws-display); font-weight: 700; font-size: 20px; line-height: 1; letter-spacing: 0.22em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ws-shop .ws-shop-title span { display: block; margin-top: 5px; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ws-cyan); }
 
-/* the sheet */
-.ws-shop .ws-shop-sheet { width: 100%; max-width: 440px; align-self: center; padding: 14px 14px 14px; background: rgba(8, 14, 24, 0.84); }
-.ws-shop .ws-shop-sheet::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 18px; height: 18px; border-right: 1px solid var(--ws-cyan); border-bottom: 1px solid var(--ws-cyan); opacity: 0.8; pointer-events: none; }
-.ws-shop .ws-shop-who { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-cyan); }
-.ws-shop .ws-shop-line { margin-top: 5px; padding-bottom: 11px; border-bottom: 1px solid rgba(143, 227, 255, 0.18); font-family: var(--ws-display); font-weight: 600; font-size: 17px; line-height: 1.25; letter-spacing: 0.02em; color: #fff; }
-.ws-shop .ws-shop-row { display: flex; align-items: center; justify-content: space-between; margin: 10px 2px 8px; }
-.ws-shop .ws-shop-count { font-size: 12px; letter-spacing: 0.24em; color: var(--ws-text-dim); }
-.ws-shop .ws-shop-purse { display: flex; align-items: center; gap: 6px; }
-.ws-shop .ws-shop-purse b { font-family: var(--ws-display); font-weight: 700; font-size: 20px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
-.ws-shop .ws-shop-purse.spent { animation: ws-shop-spent 0.5s ease-out; }
-.ws-shop .ws-shop-coin { display: inline-block; flex: none; width: 16px; height: 16px; vertical-align: -2px; filter: drop-shadow(0 0 4px rgba(242, 196, 77, 0.5)); }
-.ws-shop .ws-shop-coin svg { display: block; width: 100%; height: 100%; }
-
-/* ‹ card › */
-.ws-shop .ws-shop-deck { display: grid; grid-template-columns: 40px minmax(0, 1fr) 40px; align-items: center; gap: 4px; }
-.ws-shop .ws-shop-flip { height: 72px; padding: 0; background: none; border: 0; color: var(--ws-cyan); }
-.ws-shop .ws-shop-flip svg { display: block; width: 28px; height: 28px; margin: auto; filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.5)); }
-.ws-shop .ws-shop-flip:active { color: #fff; }
-.ws-shop .ws-shop-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 10px 12px; min-height: 188px; border: 1px solid var(--ws-cyan-line); background: rgba(143, 227, 255, 0.04); touch-action: pan-y; }
-.ws-shop .ws-shop-card::before, .ws-shop .ws-shop-card::after { content: ''; position: absolute; width: 14px; height: 14px; opacity: 0.85; pointer-events: none; }
-.ws-shop .ws-shop-card::before { left: -1px; top: -1px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); }
-.ws-shop .ws-shop-card::after { right: -1px; bottom: -1px; border-right: 1px solid var(--ws-cyan); border-bottom: 1px solid var(--ws-cyan); }
-.ws-shop .ws-shop-icon { display: block; width: 70px; height: 70px; color: #f1ead8; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5)); }
-.ws-shop .ws-shop-icon svg { display: block; width: 100%; height: 100%; }
-.ws-shop .ws-shop-card.buy .ws-shop-icon, .ws-shop .ws-shop-card.owned .ws-shop-icon { color: #f6efdd; }
-.ws-shop .ws-shop-card.short .ws-shop-icon, .ws-shop .ws-shop-card.locked .ws-shop-icon { opacity: 0.55; }
-.ws-shop .ws-shop-name { margin-top: 4px; font-family: var(--ws-display); font-weight: 700; font-size: 21px; line-height: 1; letter-spacing: 0.22em; text-transform: uppercase; color: #fff; text-align: center; }
-.ws-shop .ws-shop-rule { width: 60%; height: 1px; background: rgba(143, 227, 255, 0.25); }
-.ws-shop .ws-shop-does { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); text-align: center; }
-.ws-shop .ws-shop-price { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-family: var(--ws-display); font-weight: 700; font-size: 28px; line-height: 1; color: #fff; }
-.ws-shop .ws-shop-price .ws-shop-coin { width: 22px; height: 22px; }
-.ws-shop .ws-shop-card.short .ws-shop-price, .ws-shop .ws-shop-card.locked .ws-shop-price { color: var(--ws-text-dim); }
-.ws-shop .ws-shop-stamp { margin-top: 4px; padding: 5px 14px; border: 1px solid var(--ws-cyan); color: var(--ws-cyan); font-family: var(--ws-display); font-weight: 700; font-size: 16px; letter-spacing: 0.3em; text-transform: uppercase; background: rgba(143, 227, 255, 0.1); }
-.ws-shop .ws-shop-card.owned { border-color: rgba(143, 227, 255, 0.55); background: rgba(143, 227, 255, 0.09); }
-.ws-shop .ws-shop-card.in-l { animation: ws-shop-in-l 0.2s ease-out; }
-.ws-shop .ws-shop-card.in-r { animation: ws-shop-in-r 0.2s ease-out; }
-.ws-shop .ws-shop-card.sold { animation: ws-shop-sold 0.6s ease-out; }
-
-.ws-shop .ws-shop-dots { display: flex; justify-content: center; gap: 9px; margin: 10px 0 10px; }
-.ws-shop .ws-shop-dots i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ws-cyan-dim); }
-.ws-shop .ws-shop-dots i.got { background: rgba(143, 227, 255, 0.35); }
-.ws-shop .ws-shop-dots i.on { background: var(--ws-cyan); border-color: var(--ws-cyan); box-shadow: 0 0 8px rgba(143, 227, 255, 0.8); }
-
-/* BUY: cyan and loud when you can; dimmed when short of coin; a quiet outline when owned or locked */
-.ws-shop .ws-shop-buy { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 8px; width: 100%; min-height: 56px; padding: 8px 12px; border: 1px solid var(--ws-cyan); background: var(--ws-cyan); color: #06121c; font-family: var(--ws-display); font-weight: 700; font-size: 24px; line-height: 1; letter-spacing: 0.2em; text-transform: uppercase; box-shadow: 0 0 22px rgba(143, 227, 255, 0.35); }
-.ws-shop .ws-shop-buy .ws-shop-coin { width: 22px; height: 22px; filter: none; }
-.ws-shop .ws-shop-buy small { flex-basis: 100%; margin-top: 5px; font-family: var(--ws-mono); font-weight: 400; font-size: 10px; letter-spacing: 0.22em; }
-.ws-shop .ws-shop-buy.buy:active { background: #c9f2ff; }
-.ws-shop .ws-shop-buy.short { background: rgba(143, 227, 255, 0.16); border-color: var(--ws-cyan-line); color: rgba(230, 242, 248, 0.5); box-shadow: none; }
-.ws-shop .ws-shop-buy.short .ws-shop-coin { opacity: 0.5; }
-.ws-shop .ws-shop-buy.owned, .ws-shop .ws-shop-buy.locked { background: rgba(8, 14, 24, 0.6); border-color: var(--ws-cyan-line); color: var(--ws-cyan); box-shadow: none; font-size: 17px; letter-spacing: 0.22em; }
-.ws-shop .ws-shop-buy.locked { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.45); }
-
-/* SF28, Jake's G87 big-cards kit (art/hud/round-19-ui-kit/B): pause ▸ Settings ▸ Debug ▸ Item cards = Big. The header and the
-   purse, a 3-up grid of big item tiles (src/engine/ui/styles/itemcard.css) and one wide BUY bar, in the shard's accent */
+/* SF28, Jake's G87 big-cards kit (art/hud/round-19-ui-kit/B; Classic retired by G181). The header and the purse, a 3-up
+   grid of big item tiles (src/engine/ui/styles/itemcard.css) and one wide BUY bar, in the shard's accent */
 .ws-shop .ws-shop-big { --ws-shop-a: var(--ws-accent, var(--ws-cyan)); width: 100%; max-width: 440px; align-self: center; padding: 12px 12px 12px; background: rgba(8, 16, 24, 0.86); border-color: color-mix(in srgb, var(--ws-shop-a) 70%, transparent); }
 .ws-shop .ws-shop-big::before, .ws-shop .ws-shop-big::after { content: ''; position: absolute; width: 10px; height: 10px; pointer-events: none; }
 .ws-shop .ws-shop-big::before { left: -3px; top: -3px; border-left: 2px solid var(--ws-shop-a); border-top: 2px solid var(--ws-shop-a); }
@@ -93,8 +40,3 @@
 @media (pointer: fine) {
   .ws-shop .ws-shop-top { max-width: 440px; width: 100%; align-self: center; }
 }
-
-@keyframes ws-shop-in-l { from { opacity: 0.3; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
-@keyframes ws-shop-in-r { from { opacity: 0.3; transform: translateX(18px); } to { opacity: 1; transform: none; } }
-@keyframes ws-shop-sold { 0% { box-shadow: 0 0 0 rgba(143, 227, 255, 0); } 30% { box-shadow: 0 0 34px rgba(143, 227, 255, 0.7); transform: scale(1.03); } 100% { box-shadow: 0 0 0 rgba(143, 227, 255, 0); transform: none; } }
-@keyframes ws-shop-spent { 0% { transform: scale(1); } 35% { transform: scale(1.18); color: #ffe39a; } 100% { transform: scale(1); } }
