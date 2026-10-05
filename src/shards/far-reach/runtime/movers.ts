@@ -2,7 +2,7 @@ import type { MoverInstallation, MoverView } from '@wildshard/game/shardfile/mov
 import { MOVERS } from '../data/movers';
 import type { BuiltWorld } from '../world/build';
 
-const modules = new Map([['9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d', new URL('../assets/9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d', import.meta.url).href]]);
+const modules = new Map([['1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', new URL('../assets/1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', import.meta.url).href]]);
 /** Legacy presentation reads script fields; no context, world allocation or tick installer lives in this shard recipe. */
 export function skyMoverViews(built: BuiltWorld, permissions: () => number, raised: () => void, onDispose: () => void): MoverInstallation {
   const views = new Map<string, MoverView>(MOVERS.map((row) => [row.id, { pose: (pose, fields) => {

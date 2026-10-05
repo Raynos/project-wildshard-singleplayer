@@ -7,11 +7,13 @@ import { resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { build } from 'vite';
+import { bridgeScriptSources } from '@wildshard/commons/scripts';
 
 const repo = resolve(import.meta.dirname, '../..');
 const modules = new Map();
+const shared = bridgeScriptSources();
 for (const [slug, file] of [['driftwood-isle', 'boat.as'], ['driftwood-isle', 'bridge.as'], ['far-reach', 'bridges.as']]) {
-  const bytes = await compileScript(readFileSync(join(repo, 'src/shards', slug, 'behaviour', file), 'utf8'), { maximumPages: 1 });
+  const bytes = await compileScript(readFileSync(join(repo, 'src/shards', slug, 'behaviour', file), 'utf8'), { maximumPages: 1, sources: shared.sources });
   const hash = createHash('sha256').update(bytes).digest('hex'), directory = join(repo, 'src/shards', slug, 'assets');
   mkdirSync(directory, { recursive: true }); writeFileSync(join(directory, hash), bytes);
   modules.set(`${slug}/${file}`, hash);

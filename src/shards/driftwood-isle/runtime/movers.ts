@@ -4,7 +4,7 @@ import type { DriftwoodWorld } from '../world/build';
 
 const modules = new Map([
   ['9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0', new URL('../assets/9a5171bc3dd84488aae9de29ebd07fdb12dfbd2500c45cf91cf37e5bbbc712f0', import.meta.url).href],
-  ['9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d', new URL('../assets/9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d', import.meta.url).href],
+  ['1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', new URL('../assets/1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', import.meta.url).href],
 ]);
 /** Legacy view recipes only; game/shardfile/moverRuntime owns script admission, world ports and all context access. */
 export function driftwoodMoverViews(built: DriftwoodWorld): MoverInstallation | null {

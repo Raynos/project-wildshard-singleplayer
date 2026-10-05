@@ -125,7 +125,7 @@ export const MOVERS: MoverData = [
   {
     "id": "driftwood.bridge",
     "entity": 7002,
-    "module": "9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d",
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "chain",
     "at": {
       "x": 0,

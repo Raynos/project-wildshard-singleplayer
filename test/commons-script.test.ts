@@ -19,7 +19,12 @@ it('compiles the pinned shared setup and bridge deterministically and retains bo
   expect(await compileScript(wrapper, { maximumPages: 1, sources: shared.sources })).toEqual(bytes);
   for (const [slug, row] of [['driftwood-isle', DRIFT.find(r => r.kind === 'chain')], ['far-reach', SKY.find(r => r.id === 'far.winch.bridge')]] as const) {
     if (row === undefined) throw new Error('Missing shared bridge');
-    const original = new Uint8Array(readFileSync(new URL(`../src/shards/${slug}/assets/${row.module}`, import.meta.url)));
+    const file = slug === 'driftwood-isle' ? 'bridge.as' : 'bridges.as';
+    const source = readFileSync(new URL(`../src/shards/${slug}/behaviour/${file}`, import.meta.url), 'utf8');
+    expect(await compileScript(source, { maximumPages: 1, sources: shared.sources })).toEqual(bytes);
+    expect(contentHash(bytes)).toBe(row.module);
+    // Keep the original admitted bytes as the behavioral oracle after author wrappers move to the commons.
+    const original = new Uint8Array(readFileSync(new URL(`../src/shards/${slug}/assets/9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d`, import.meta.url)));
     const create = (module: Uint8Array) => {
       const host = new ScriptHost({ world: new ScriptWorld({ fields: MOVER_FIELD_RANGES, archetypes: [], events: [], maxEntities: 32 }, moverScriptEntities([row])), query: moverQueries([row], () => []) });
       host.install('bridge', module); return host;

@@ -5,7 +5,7 @@ export const MOVERS: MoverData = [
   {
     "id": "far.rope.windmill",
     "entity": 8001,
-    "module": "9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d",
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "static",
     "at": {
       "x": 0,
@@ -741,7 +741,7 @@ export const MOVERS: MoverData = [
   {
     "id": "far.rope.grove",
     "entity": 8002,
-    "module": "9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d",
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "static",
     "at": {
       "x": 0,
@@ -1351,7 +1351,7 @@ export const MOVERS: MoverData = [
   {
     "id": "far.rope.ruin",
     "entity": 8003,
-    "module": "9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d",
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "static",
     "at": {
       "x": 0,
@@ -2171,7 +2171,7 @@ export const MOVERS: MoverData = [
   {
     "id": "far.winch.bridge",
     "entity": 8010,
-    "module": "9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d",
+    "module": "1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd",
     "kind": "platform",
     "at": {
       "x": -55.8279416565877,

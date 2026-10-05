@@ -43,7 +43,7 @@ async function boot(entries = false): Promise<{ app: App; plugin: SkyReachPlugin
     step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => surface.player.position, horizonVeil: null,
   } };
   const originalFetch = globalThis.fetch;
-  const module = '9453386c27dba27025de07a77332893489dc0042345dac6cd8e6bf7cfce1703d';
+  const module = '1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd';
   vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     if (url.endsWith(`/assets/${module}`)) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${module}`))));
