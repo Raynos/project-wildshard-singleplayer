@@ -22,6 +22,9 @@
  * Antler King's sealed clearing sets it, so the fight's own fog (×26 on the clock's density) is the whole fog in there.
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
+import type { Scope } from '@wildshard/engine/app/scope';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -79,11 +82,11 @@ function oldGrowthAt(x: number, z: number): number {
 
 interface Shelter { home: { x: number; z: number }; spot: { x: number; z: number } | null; hold: number }
 
-export function installWeather(ctx: LevelContext, host: PineWeatherHost): PineWeatherRig | null {
-  return installPineWeather(host, ctx);
+export function installWeather(ctx: ShardContext, host: PineWeatherHost): PineWeatherRig | null {
+  return installPineWeather(host, ctx, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
 
-export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): PineWeatherRig | null {
+export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, entered?: ShardContext): PineWeatherRig | null {
   const pine = pineBackdrop(h.sky);
   if (pine === null) return null; // the fixed sky: no clock, no weather
   const atT = 0.5; // a held Fog / Rain starts halfway into its phase
@@ -91,8 +94,10 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
   weather.setMode(setting('weather'), atT);
   const fx = new PineWeatherFX({ sky: h.sky, trees: h.trees, roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED }).build();
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
-  const stopSetting = onSettingChange('weather', (m) => { weather.setMode(m, atT); });
-  (ctx?.scope ?? h.game.levelScope).onDispose(stopSetting);
+  if (entered === undefined) {
+    const stopSetting = onSettingChange('weather', (m) => { weather.setMode(m, atT); });
+    (ctx?.scope ?? h.game.levelScope).onDispose(stopSetting);
+  }
 
   // the height fog's own floor / falloff (Sky set them from the chunk's atmosphere): the dawn fog lifts and steepens them
   const baseH = fogUniforms.fogHeight.value, baseFall = fogUniforms.fogHeightFalloff.value;
@@ -142,12 +147,37 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext): Pine
     if (weather.rain > 0.3) return s.spot !== null ? { x: s.spot.x, z: s.spot.z, r: 3.5 } : null;
     return { x: s.home.x, z: s.home.z, r: 10 };   // the rain is over: back out to graze
   };
-  const scope = ctx?.scope ?? h.game.levelScope;
-  h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? wetProjectile(input, weather.rain) : input, scope);
-  h.game.app.events.answer('creature.wander-goal', (query) => {
-    if (h.game.app.levelScope !== h.game.levelScope) return query;
-    return { ...query, goal: wanderGoal(query.herd) ?? query.goal };
-  }, scope);
+  const answers = (scope: Scope): void => {
+    h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? wetProjectile(input, weather.rain) : input, scope);
+    h.game.app.events.answer('creature.wander-goal', (query) => {
+      if (h.game.app.levelScope !== h.game.levelScope) return query;
+      return { ...query, goal: wanderGoal(query.herd) ?? query.goal };
+    }, scope);
+  };
+  if (entered === undefined) answers(ctx?.scope ?? h.game.levelScope);
+  else installEnteredRuntimeService(entered, (scope) => {
+    const borrowed = {
+      height: fogUniforms.fogHeight.value, falloff: fogUniforms.fogHeightFalloff.value,
+      wet: weatherUniforms.uWet.value, fogBlob: weatherUniforms.fogBlob.value.clone(), fogBlobAmt: weatherUniforms.fogBlobAmt.value,
+      rain: waterWeather.uRainRings.value, wind: windBoost.value, mod: { ...pine.mod },
+      volumeHeight: volumetricFog.height, volumeFalloff: volumetricFog.falloff,
+      mist: h.particles?.params.mistOpacity, veil: h.horizonVeil?.value.clone(),
+    };
+    answers(scope);
+    scope.onDispose(onSettingChange('weather', (mode) => { weather.setMode(mode, atT); }));
+    scope.onDispose(() => {
+      fogUniforms.fogHeight.value = borrowed.height; fogUniforms.fogHeightFalloff.value = borrowed.falloff;
+      weatherUniforms.uWet.value = borrowed.wet; weatherUniforms.fogBlob.value.copy(borrowed.fogBlob); weatherUniforms.fogBlobAmt.value = borrowed.fogBlobAmt;
+      waterWeather.uRainRings.value = borrowed.rain; windBoost.value = borrowed.wind;
+      volumetricFog.height = borrowed.volumeHeight; volumetricFog.falloff = borrowed.volumeFalloff;
+      Object.assign(pine.mod, borrowed.mod);
+      if (h.particles && borrowed.mist !== undefined) h.particles.params.mistOpacity = borrowed.mist;
+      if (h.horizonVeil && borrowed.veil !== undefined) h.horizonVeil.value.copy(borrowed.veil);
+      // Camera-local rain is an entered service; resident ground dressing and weather state stay frozen.
+      fx.group.visible = false;
+    });
+    fx.group.visible = true;
+  });
 
   const blob = new THREE.Vector3();
   /** C7: the Ghost Stag — the quest's lead when it is out, else the elite when it is within 140 m — in a fog bank at dawn */
