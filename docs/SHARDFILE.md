@@ -160,6 +160,14 @@ KTX2 hashes in the charged library closure, including declared commons; they can
 be bound. Graphs have no implicit default material: terrain, props and creature
 looks reference their authored material ID.
 
+Before typing or compilation, graph admission bounds the raw JSON to 64,000
+UTF-8 bytes, depth 64 and 160 declared nodes across every nested node table,
+including unreachable nodes and loop bodies. The reachable program still must
+fit the sampler/instruction budget and the loop-expanded node budget. Content
+cannot supply a larger budget; an explicit trusted engine preset budget does not
+widen the shardfile slot. Accessors and serializer callbacks are refused without
+invocation. These per-graph caps supplement the whole-manifest admission limits.
+
 Uniform bindings use `{state: "shared.<field>"}` or `{state: "player.<field>"}` for
 public i32/f64 fields, with float params. `{day: "<path>"}` names an existing look-key
 channel: `sky.zenith`, `sky.horizon`, `fog.colour`, `fog.density`, `sun.colour`,
@@ -177,6 +185,12 @@ are bytes; triangles/draws are counts. The SDK derives these costs from the pinn
 commons catalogue bytes. Metadata establishes the declared envelope before fetch
 or cache reads; byte validation subsequently checks equality with the declaration.
 Empty older products may omit both maps and parse with empty defaults.
+
+Admission checks declared transitive library, critical, tile/far and worst-location
+costs before immutable asset network or cache reads. An oversized declared envelope
+is refused at that stage. Hashes and parsed asset headers are then validated;
+actual costs cannot exceed their declarations, and commons costs must match exactly.
+Declared metadata never substitutes for byte validation or raises a budget.
 
 State fields carry explicit stable positive `id` values (1–2³¹−1), unique across
 shared and player fields. IDs never come from declaration positions. The numeric
