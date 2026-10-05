@@ -61,6 +61,10 @@ const TENT = /* glsl */`
 				}
 				#undef TENT_TAP`;
 
+let tentOn = false;
+/** the tent is installed (the TSL back-end gives node materials the same filter: render/nodes/tentShadowFilter.ts) */
+export function tentShadowFilterOn(): boolean { return tentOn; }
+
 /**
  * Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map
  * type the renderer must use.
@@ -69,5 +73,6 @@ export function installShadowFilter(): THREE.ShadowMapType {
   const chunk = THREE.ShaderChunk.shadowmap_pars_fragment;
   if (!PCF_BODY.test(chunk)) { console.warn('[sky] shadowmap_pars_fragment changed: the E138 shadow filter is off'); return THREE.PCFShadowMap; }
   THREE.ShaderChunk.shadowmap_pars_fragment = chunk.replace(PCF_BODY, TENT);
+  tentOn = true;
   return THREE.PCFShadowMap;
 }

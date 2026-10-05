@@ -223,3 +223,32 @@ MaterialX noises, lights and shadows come with three. The fixes are bounded and 
       preset. Give it the synced-frame probe from this bench as its cost test.
 4. **The bundle:** load `three/webgpu` + `three/tsl` (+117 KB gzip for the spike's surface, up to +256 KB for all of
    it) as a lazy chunk only when a shard with a graph material boots, so shards without one pay nothing.
+
+## 6. Step 2: the engine fixes (2026-10-04)
+
+The bench's TSL variants now run the engine's own back-end instead of the spike's inline handler:
+`src/engine/render/graphBackend.ts` (`loadGraphBackend(renderer)`, a lazy `import()` of the node modules, so the
+default bundle carries none of `three/webgpu` / `three/tsl`) and `src/engine/render/nodes/`.
+
+- **Fix 1 (§2.1, §2.10):** `EngineNodesHandler` applies the output transform the way classic programs do (tone mapping
+  only on screen and only for a `toneMapped` material; the working space inside a target) and keys the program on the
+  bound target. `targetTexture()` samples a classic render target upright; three's own shadow lookups keep their flip.
+- **Fix 2 (§2.3):** `render/frameCounter.ts`: `renderCount(renderer)` counts `renderer.render()` calls; the Memory
+  saver and Nalati's grass read it instead of `renderer.info.render.frame`.
+- **Fix 3 (§2.2), first part:** the engine epilogue (`EngineNodesHandler.epilogue`) runs after the output transform.
+  Its first stage is the height fog (`nodes/engineFog.ts`, with the chunk's optional edge-haze, fog-bank and weather
+  terms); three's stock fog node is dropped wherever the engine fog is installed. The tent PCF (`nodes/tentShadowFilter.ts`)
+  is given to every shadow-casting light as its node filter wherever `installShadowFilter()` ran.
+
+Desktop bench (`scripts/browser-lane.sh node scripts/tsl-spike/run.mjs`, the tent at radius 1.5 in every variant):
+`family` vs `tsl` 65.4 dB, max 1 level, 0 % > 8; `tsl` vs `tsl-post` (the post graph through `targetTexture`, no hand
+flip) 86.8 dB; `plain` vs `tsl-plain` 88.3 dB; the stock handler (`tsl-raw`) 26.9 dB / 52 %; `tsl-pcf` (three's 5-tap
+PCF on the node boxes) 59.7 dB with a max of 10 levels, so the metric sees the filter. The engine's render count is
+1126 in every variant, three's counter 1689 / 2252 with one / two node materials.
+
+**Still owed before the first graph material ships:** the CSM path. The classic CSM is one DirectionalLight per cascade,
+and its chunk gates each one to its depth range; node materials see N full-strength lights. The shadow fade (ghost
+lights, `uSunFade`) and the sky rig's CSM light block sit on that path; TSL's physical model already carries the DFG
+term the light block re-inserts. `pointLightSkip` is a cost patch with an identical frame, so it needs no parity node;
+its node form belongs with the GPU budget work. A level's own fog chunk (fogPatches slots 200 / 300) and Pine Hollow's
+wet surfaces (`normal_fragment_begin`) do not reach node materials yet (the handler warns once).

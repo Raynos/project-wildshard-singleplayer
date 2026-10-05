@@ -14,16 +14,25 @@
 //   tsl-sway   as tsl-post, plus a vertex-offset stage (wind sway per instance)
 //   plain      the boxes as a stock MeshStandardMaterial; tsl-plain as a stock MeshStandardNodeMaterial (+ the fog
 //              epilogue): the cost of TSL's own lighting and shadow path, apart from the ported graph
+//   tsl-pcf    as tsl, but the sun's node filter is three's stock 5-tap PCF instead of the engine tent: shows the parity
+//              metric sees the shadow filter (SF59 step 2)
+// SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
+// render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
+// Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
 // It reports compile stall, programs and shader sizes, frame times, memory and a frame for the parity diff, and POSTs the
 // JSON to /result (run.mjs writes it out).
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { MeshStandardNodeMaterial, MeshBasicNodeMaterial } from 'three/webgpu';
 import {
-  Fn, float, vec2, vec3, vec4, uniform, reference, positionLocal, positionWorld, normalWorldGeometry, cameraPosition, uv,
-  fwidth, abs, fract, floor, smoothstep, max, min, mix, exp, clamp, pow, dot, length, select, sin, time, instanceIndex,
-  texture, luminance, workingToColorSpace, hash,
+  Fn, float, vec2, vec3, vec4, uniform, positionLocal, positionWorld, normalWorldGeometry, uv,
+  fwidth, abs, fract, floor, smoothstep, max, min, mix, clamp, dot, select, sin, time, instanceIndex,
+  luminance, hash, PCFShadowFilter,
 } from 'three/tsl';
+import { loadGraphBackend } from '@wildshard/engine/render/graphBackend';
+import { targetTexture } from '@wildshard/engine/render/nodes/engineNodesHandler';
+import { installFrameCounter, renderCount } from '@wildshard/engine/render/frameCounter';
+import { installShadowFilter } from '@wildshard/engine/world/shadowFilter';
 import { compilePbr } from '@wildshard/engine/render/families/pbr';
 import { parseFamilyMaterial } from '@wildshard/engine/render/families/params';
 import { installAtmosphere, fogUniforms } from '@wildshard/engine/world/Atmosphere';
@@ -47,52 +56,19 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the screen pass
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMap.type = installShadowFilter(); // the engine's tent (E138), before anything compiles, as skyRig.ts does
+installFrameCounter(renderer); // the engine's render count (createRenderer does it in the game)
 document.body.append(renderer.domElement);
 const gl = renderer.getContext();
 
-/**
- * The engine-side handler: the stock WebGLNodesHandler plus two things a graph back-end needs from the engine.
- * 1. The output transform follows the bound render target the way classic materials do (no tone mapping and the target's
- *    linear space inside a target; the stock handler always applies the renderer's sRGB output, which double-encodes a
- *    node material drawn into the engine's half-float target), and the program cache key follows it too.
- * 2. An engine epilogue after the output transform, where classic three applies fog (fog_fragment follows
- *    colorspace_fragment): the engine's own height fog (Atmosphere.ts's chunk), which TSL materials never see because the
- *    engine installs it by editing THREE.ShaderChunk.
- */
-class EngineNodesHandler extends WebGLNodesHandler {
-  constructor(fixOutput) {
-    super();
-    this.fixOutput = fixOutput;
-    this.buildMs = 0;
-    this.builds = 0;
-    this.getOutputCallback = (outputNode, builder) => {
-      const r = this.renderer;
-      const target = r.getRenderTarget();
-      let out = outputNode;
-      if (!fixOutput || target === null) {
-        out = out.toneMapping(r.toneMapping);
-        out = workingToColorSpace(out, r.outputColorSpace);
-      } else {
-        out = workingToColorSpace(out, target.texture.colorSpace === THREE.SRGBColorSpace ? THREE.SRGBColorSpace : THREE.LinearSRGBColorSpace);
-      }
-      const epilogue = builder.material.userData.epilogue;
-      return typeof epilogue === 'function' ? epilogue(out) : out;
-    };
-  }
-  setRenderer(r) {
-    super.setRenderer(r);
-    if (this.fixOutput) this.renderer.getCacheKey = () => (r.getRenderTarget() === null ? `${r.toneMapping}${r.outputColorSpace}` : 'target-linear');
-  }
-  build(material, object, parameters) {
-    const t0 = performance.now();
-    super.build(material, object, parameters);
-    this.buildMs += performance.now() - t0;
-    this.builds++;
-  }
+/** tsl-raw: three's stock handler (no output fix, three's own fog and PCF), timed like the engine's */
+class StockNodesHandler extends WebGLNodesHandler {
+  constructor() { super(); this.buildMs = 0; this.builds = 0; }
+  build(material, object, parameters) { const t0 = performance.now(); super.build(material, object, parameters); this.buildMs += performance.now() - t0; this.builds++; }
 }
-const handler = tsl ? new EngineNodesHandler(VARIANT !== 'tsl-raw') : null;
-if (handler) renderer.setNodesHandler(handler);
+let handler = null;
+if (VARIANT === 'tsl-raw') { handler = new StockNodesHandler(); renderer.setNodesHandler(handler); }
+else if (tsl) handler = await loadGraphBackend(renderer); // the engine's back-end, as its own lazy chunk
 
 // ── the scene ──
 installAtmosphere(); // the engine's fog chunks (slot 100), as Game.buildSky installs them
@@ -110,6 +86,8 @@ sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 1, far: 120 });
 sun.shadow.bias = -0.0005;
+sun.shadow.radius = 1.5; // the 7×7 tent (SOFT_RADII near cascade)
+if (VARIANT === 'tsl-pcf') sun.shadow.filterNode = PCFShadowFilter; // the diagnostic: three's 5-tap PCF on node materials
 scene.add(sun, new THREE.HemisphereLight(0xa8c4ff, 0x6b5a48, 0.9));
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 400);
 camera.position.set(0, 9, 34);
@@ -131,27 +109,11 @@ const grid = Fn(([c, pitch, hw]) => {
   l.mulAssign(float(1).sub(smoothstep(pitch.mul(0.12), pitch.mul(0.35), fw)));
   return max(l.x, l.y);
 });
-/** the engine's height fog (Atmosphere.ts fog_fragment), as a TSL epilogue reading the engine's own uniform objects */
-function engineFog(out) {
-  const u = (key, type) => reference('value', type, fogUniforms[key]);
-  const ray = positionWorld.sub(cameraPosition);
-  const rayLen = length(ray);
-  const viewDir = ray.div(max(rayLen, 1e-3));
-  const falloff = u('fogHeightFalloff', 'float');
-  const camF = exp(falloff.negate().mul(cameraPosition.y.sub(u('fogHeight', 'float'))));
-  const t = falloff.mul(positionWorld.y.sub(cameraPosition.y));
-  const integ = select(abs(t).greaterThan(1e-3), float(1).sub(exp(t.negate())).div(t), float(1));
-  const amount = u('fogHeightDensity', 'float').mul(camF).mul(integ).mul(rayLen).add(u('fogDistDensity', 'float').mul(rayLen));
-  const factor = clamp(float(1).sub(exp(amount.negate())), 0, 1);
-  const sunAmt = max(dot(viewDir, u('fogSunDir', 'vec3')), 0);
-  const fogCol = mix(reference('color', 'color', scene.fog), u('fogSunColor', 'color'), pow(sunAmt, 6).mul(0.7));
-  return vec4(mix(out.rgb, fogCol, factor), out.a);
-}
 /** the PBR family + measure layer re-expressed as a TSL node material (the graph a compiler would emit) */
 function tslMat(sway) {
   const m = new MeshStandardNodeMaterial({ color: lin(params.colour), roughness: params.roughness, metalness: params.metalness });
   m.name = 'tsl:pbr-measure';
-  m.fog = false; // the engine epilogue owns fog
+  m.fog = true; // the engine back-end's epilogue fogs it (engineFog.ts) after the output transform
   const on = uniform(1);
   const lineC = uniform(lin(measure.line.colour)), labelUnused = lin(measure.label.colour);
   void labelUnused; // the size-label glyphs are not ported in the spike (see the verdict)
@@ -174,7 +136,6 @@ function tslMat(sway) {
     const phase = hash(instanceIndex).mul(6.283);
     m.positionNode = positionLocal.add(vec3(sin(time.mul(1.7).add(phase)).mul(positionLocal.y.add(1).mul(0.12)), 0, 0));
   }
-  m.userData.epilogue = engineFog;
   return m;
 }
 
@@ -189,9 +150,7 @@ function plainMat() {
   const opts = { color: lin(params.colour), roughness: params.roughness, metalness: params.metalness };
   if (!tsl) return new THREE.MeshStandardMaterial(opts);
   const m = new MeshStandardNodeMaterial(opts);
-  m.fog = false;
   m.emissiveNode = vec3(float(Number(NONCE)));
-  m.userData.epilogue = engineFog;
   return m;
 }
 const boxMat = VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : familyMat();
@@ -248,9 +207,8 @@ function tslPost() {
   m.name = 'tsl:post';
   m.fog = false;
   const q = uv();
-  // TextureNode flips every render-target sample for WebGPURenderer's WebGL backend, which stores targets upside down;
-  // the classic WebGLRenderer does not, so a node graph reading the engine's target must cancel the flip (engine fix)
-  let c = texture(target.texture, vec2(q.x, float(1).sub(q.y))).rgb.mul(uniform(post.exposure));
+  // the engine's targetTexture() samples the classic renderer's target upright (the spike cancelled three's flip by hand)
+  let c = targetTexture(target.texture, q).rgb.mul(uniform(post.exposure));
   c = mix(vec3(luminance(c)), c, uniform(post.saturation));
   c = c.mul(uniform(new THREE.Vector3(...post.gain))).add(uniform(new THREE.Vector3(...post.lift)));
   c = clamp(c.mul(c.mul(2.51).add(0.03)).div(c.mul(c.mul(2.43).add(0.59)).add(0.14)), 0, 1);
@@ -340,6 +298,8 @@ async function run() {
     nodeBuildMs: handler ? round(handler.buildMs, 1) : 0, nodeBuilds: handler ? handler.builds : 0,
     programs: programsAfterFirst, programsAtEnd: programs().length, shaders: shaderSizes(),
     rafMs: rafStat, fps: round(1000 / rafStat.median, 1), workMs: stat(work), syncedMs: stat(synced),
+    // the engine's render count vs three's: node draws bump three's once per draw (§2.3), the engine's once per render
+    engineRenders: renderCount(renderer), threeFrame: renderer.info.render.frame,
     calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, memory: { ...renderer.info.memory },
     heapMB: heap0 === null ? null : round((heap() ?? 0) / 1048576, 1), heapAtStartMB: heap0 === null ? null : round(heap0 / 1048576, 1),
     errors, shot,

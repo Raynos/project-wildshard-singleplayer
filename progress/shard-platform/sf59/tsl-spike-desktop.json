@@ -3,38 +3,45 @@
   "parity": [
     {
       "pair": "family vs tsl",
-      "mean": 0.025,
-      "max": 6,
+      "mean": 0.019,
+      "max": 1,
       "over8pct": 0.0,
-      "psnr": 63.7
+      "psnr": 65.4
     },
     {
       "pair": "family vs tsl-raw",
-      "mean": 8.401,
+      "mean": 7.976,
       "max": 30,
-      "over8pct": 48.21,
-      "psnr": 26.4
+      "over8pct": 52.32,
+      "psnr": 26.9
     },
     {
       "pair": "tsl vs tsl-post",
       "mean": 0.0,
       "max": 1,
       "over8pct": 0.0,
-      "psnr": 87.5
+      "psnr": 86.8
     },
     {
       "pair": "family vs tsl-post",
-      "mean": 0.025,
-      "max": 6,
+      "mean": 0.019,
+      "max": 1,
       "over8pct": 0.0,
-      "psnr": 63.7
+      "psnr": 65.4
     },
     {
       "pair": "plain vs tsl-plain",
-      "mean": 0.013,
-      "max": 14,
-      "over8pct": 0.01,
-      "psnr": 62.1
+      "mean": 0.0,
+      "max": 1,
+      "over8pct": 0.0,
+      "psnr": 88.3
+    },
+    {
+      "pair": "family vs tsl-pcf",
+      "mean": 0.041,
+      "max": 10,
+      "over8pct": 0.0,
+      "psnr": 59.7
     }
   ],
   "rows": [
@@ -48,8 +55,8 @@
       "instances": 2500,
       "uniformBlockLimit": 16384,
       "compileMs": 4.4,
-      "firstDrawMs": 152.6,
-      "stallMs": 157,
+      "firstDrawMs": 212.8,
+      "stallMs": 217.2,
       "nodeBuildMs": 0,
       "nodeBuilds": 0,
       "programs": 4,
@@ -58,12 +65,12 @@
         {
           "name": "family:pbr",
           "vs": 20522,
-          "fs": 84408
+          "fs": 86874
         },
         {
           "name": "family:pbr",
           "vs": 20545,
-          "fs": 84451
+          "fs": 86917
         },
         {
           "name": "glsl:post",
@@ -83,23 +90,25 @@
       },
       "fps": 59.9,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.3,
+        "median": 0.1,
+        "p95": 0.2,
         "max": 0.3
       },
       "syncedMs": {
-        "median": 0.96,
-        "p95": 1.08,
-        "max": 1.39
+        "median": 0.91,
+        "p95": 1.02,
+        "max": 1.34
       },
+      "engineRenders": 1126,
+      "threeFrame": 1126,
       "calls": 1,
       "triangles": 2,
       "memory": {
         "geometries": 3,
         "textures": 6
       },
-      "heapMB": 10.5,
-      "heapAtStartMB": 6.5,
+      "heapMB": 11.3,
+      "heapAtStartMB": 5.9,
       "errors": []
     },
     {
@@ -111,10 +120,10 @@
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 23.4,
-      "firstDrawMs": 197.9,
-      "stallMs": 221.3,
-      "nodeBuildMs": 13.6,
+      "compileMs": 27.7,
+      "firstDrawMs": 242.3,
+      "stallMs": 270,
+      "nodeBuildMs": 19.3,
       "nodeBuilds": 1,
       "programs": 4,
       "programsAtEnd": 4,
@@ -127,12 +136,12 @@
         {
           "name": "family:pbr",
           "vs": 20522,
-          "fs": 84408
+          "fs": 86874
         },
         {
           "name": "tsl:pbr-measure",
-          "vs": 3507,
-          "fs": 21903
+          "vs": 3990,
+          "fs": 42412
         },
         {
           "name": "glsl:post",
@@ -147,22 +156,24 @@
       },
       "fps": 59.9,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.4,
-        "max": 0.4
+        "median": 0.1,
+        "p95": 0.2,
+        "max": 0.5
       },
       "syncedMs": {
-        "median": 0.61,
-        "p95": 0.89,
-        "max": 0.89
+        "median": 0.86,
+        "p95": 1.13,
+        "max": 1.31
       },
+      "engineRenders": 1126,
+      "threeFrame": 1689,
       "calls": 1,
       "triangles": 2,
       "memory": {
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 10.9,
+      "heapMB": 14.1,
       "heapAtStartMB": 5.9,
       "errors": []
     },
@@ -175,10 +186,10 @@
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 23.8,
-      "firstDrawMs": 202.9,
-      "stallMs": 226.7,
-      "nodeBuildMs": 14.1,
+      "compileMs": 19.1,
+      "firstDrawMs": 145.8,
+      "stallMs": 164.9,
+      "nodeBuildMs": 11,
       "nodeBuilds": 1,
       "programs": 4,
       "programsAtEnd": 4,
@@ -191,12 +202,12 @@
         {
           "name": "family:pbr",
           "vs": 20522,
-          "fs": 84408
+          "fs": 86874
         },
         {
           "name": "tsl:pbr-measure",
-          "vs": 3507,
-          "fs": 22203
+          "vs": 3403,
+          "fs": 21445
         },
         {
           "name": "glsl:post",
@@ -206,28 +217,30 @@
       ],
       "rafMs": {
         "median": 16.7,
-        "p95": 16.7,
+        "p95": 16.8,
         "max": 16.8
       },
       "fps": 59.9,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.4,
+        "median": 0.1,
+        "p95": 0.2,
         "max": 0.4
       },
       "syncedMs": {
-        "median": 0.95,
-        "p95": 1.21,
-        "max": 1.41
+        "median": 0.82,
+        "p95": 1.08,
+        "max": 1.28
       },
+      "engineRenders": 1126,
+      "threeFrame": 1689,
       "calls": 1,
       "triangles": 2,
       "memory": {
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 11.6,
-      "heapAtStartMB": 5.8,
+      "heapMB": 9.9,
+      "heapAtStartMB": 5.9,
       "errors": []
     },
     {
@@ -239,10 +252,10 @@
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 26.1,
-      "firstDrawMs": 202,
-      "stallMs": 228.1,
-      "nodeBuildMs": 15.9,
+      "compileMs": 29.1,
+      "firstDrawMs": 219.8,
+      "stallMs": 248.9,
+      "nodeBuildMs": 20.5,
       "nodeBuilds": 2,
       "programs": 4,
       "programsAtEnd": 4,
@@ -255,17 +268,17 @@
         {
           "name": "family:pbr",
           "vs": 20522,
-          "fs": 84408
+          "fs": 86874
         },
         {
           "name": "tsl:pbr-measure",
-          "vs": 3507,
-          "fs": 21903
+          "vs": 3990,
+          "fs": 42412
         },
         {
           "name": "tsl:post",
-          "vs": 1086,
-          "fs": 2550
+          "vs": 1083,
+          "fs": 2206
         }
       ],
       "rafMs": {
@@ -276,21 +289,23 @@
       "fps": 59.9,
       "workMs": {
         "median": 0.2,
-        "p95": 0.4,
-        "max": 0.4
+        "p95": 0.3,
+        "max": 0.3
       },
       "syncedMs": {
-        "median": 0.99,
-        "p95": 1.13,
-        "max": 1.48
+        "median": 0.92,
+        "p95": 1.23,
+        "max": 1.4
       },
+      "engineRenders": 1126,
+      "threeFrame": 2252,
       "calls": 1,
       "triangles": 2,
       "memory": {
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 12.3,
+      "heapMB": 17.4,
       "heapAtStartMB": 5.9,
       "errors": []
     },
@@ -303,10 +318,10 @@
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 26.3,
-      "firstDrawMs": 231.6,
-      "stallMs": 257.9,
-      "nodeBuildMs": 16.3,
+      "compileMs": 29.8,
+      "firstDrawMs": 237.7,
+      "stallMs": 267.5,
+      "nodeBuildMs": 21.1,
       "nodeBuilds": 2,
       "programs": 4,
       "programsAtEnd": 4,
@@ -319,81 +334,17 @@
         {
           "name": "family:pbr",
           "vs": 20522,
-          "fs": 84408
+          "fs": 86874
         },
         {
           "name": "tsl:pbr-measure",
-          "vs": 3943,
-          "fs": 21938
+          "vs": 4426,
+          "fs": 42448
         },
         {
           "name": "tsl:post",
-          "vs": 1086,
-          "fs": 2550
-        }
-      ],
-      "rafMs": {
-        "median": 16.7,
-        "p95": 16.8,
-        "max": 16.8
-      },
-      "fps": 59.9,
-      "workMs": {
-        "median": 0.3,
-        "p95": 0.4,
-        "max": 0.4
-      },
-      "syncedMs": {
-        "median": 1,
-        "p95": 1.23,
-        "max": 1.36
-      },
-      "calls": 1,
-      "triangles": 2,
-      "memory": {
-        "geometries": 3,
-        "textures": 7
-      },
-      "heapMB": 12.5,
-      "heapAtStartMB": 5.9,
-      "errors": []
-    },
-    {
-      "variant": "plain",
-      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
-      "size": [
-        804,
-        1362
-      ],
-      "instances": 2500,
-      "uniformBlockLimit": 16384,
-      "compileMs": 4.9,
-      "firstDrawMs": 156.3,
-      "stallMs": 161.2,
-      "nodeBuildMs": 0,
-      "nodeBuilds": 0,
-      "programs": 4,
-      "programsAtEnd": 4,
-      "shaders": [
-        {
-          "name": "family:pbr",
-          "vs": 20522,
-          "fs": 84408
-        },
-        {
-          "name": "",
-          "vs": 19940,
-          "fs": 79110
-        },
-        {
-          "name": "glsl:post",
-          "vs": 1633,
-          "fs": 2561
-        },
-        {
-          "name": "",
-          "vs": 14867,
-          "fs": 12580
+          "vs": 1083,
+          "fs": 2206
         }
       ],
       "rafMs": {
@@ -408,18 +359,86 @@
         "max": 0.4
       },
       "syncedMs": {
-        "median": 0.88,
-        "p95": 1.1,
-        "max": 1.35
+        "median": 0.93,
+        "p95": 1.13,
+        "max": 1.29
       },
+      "engineRenders": 1126,
+      "threeFrame": 2252,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 3,
+        "textures": 7
+      },
+      "heapMB": 17.5,
+      "heapAtStartMB": 6,
+      "errors": []
+    },
+    {
+      "variant": "plain",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "size": [
+        804,
+        1362
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 4.6,
+      "firstDrawMs": 145.1,
+      "stallMs": 149.7,
+      "nodeBuildMs": 0,
+      "nodeBuilds": 0,
+      "programs": 4,
+      "programsAtEnd": 4,
+      "shaders": [
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "",
+          "vs": 19940,
+          "fs": 81576
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        },
+        {
+          "name": "",
+          "vs": 14867,
+          "fs": 12580
+        }
+      ],
+      "rafMs": {
+        "median": 16.7,
+        "p95": 16.8,
+        "max": 16.8
+      },
+      "fps": 59.9,
+      "workMs": {
+        "median": 0.1,
+        "p95": 0.2,
+        "max": 0.3
+      },
+      "syncedMs": {
+        "median": 0.88,
+        "p95": 1.02,
+        "max": 1.24
+      },
+      "engineRenders": 1126,
+      "threeFrame": 1126,
       "calls": 1,
       "triangles": 2,
       "memory": {
         "geometries": 3,
         "textures": 6
       },
-      "heapMB": 9.7,
-      "heapAtStartMB": 6.4,
+      "heapMB": 9.4,
+      "heapAtStartMB": 5.9,
       "errors": []
     },
     {
@@ -431,10 +450,10 @@
       ],
       "instances": 2500,
       "uniformBlockLimit": 16384,
-      "compileMs": 25.7,
-      "firstDrawMs": 201.5,
-      "stallMs": 227.2,
-      "nodeBuildMs": 14.9,
+      "compileMs": 28.5,
+      "firstDrawMs": 229.2,
+      "stallMs": 257.7,
+      "nodeBuildMs": 20.3,
       "nodeBuilds": 1,
       "programs": 4,
       "programsAtEnd": 4,
@@ -447,12 +466,12 @@
         {
           "name": "family:pbr",
           "vs": 20522,
-          "fs": 84408
+          "fs": 86874
         },
         {
           "name": "",
-          "vs": 3080,
-          "fs": 18894
+          "vs": 3563,
+          "fs": 39400
         },
         {
           "name": "glsl:post",
@@ -467,23 +486,91 @@
       },
       "fps": 59.9,
       "workMs": {
-        "median": 0.2,
-        "p95": 0.3,
+        "median": 0.1,
+        "p95": 0.2,
         "max": 0.5
       },
       "syncedMs": {
-        "median": 0.5,
-        "p95": 1.1,
-        "max": 1.11
+        "median": 0.82,
+        "p95": 1,
+        "max": 1.26
       },
+      "engineRenders": 1126,
+      "threeFrame": 1689,
       "calls": 1,
       "triangles": 2,
       "memory": {
         "geometries": 3,
         "textures": 7
       },
-      "heapMB": 13.8,
-      "heapAtStartMB": 6.4,
+      "heapMB": 13.4,
+      "heapAtStartMB": 5.9,
+      "errors": []
+    },
+    {
+      "variant": "tsl-pcf",
+      "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "size": [
+        804,
+        1362
+      ],
+      "instances": 2500,
+      "uniformBlockLimit": 16384,
+      "compileMs": 19.1,
+      "firstDrawMs": 147.2,
+      "stallMs": 166.3,
+      "nodeBuildMs": 11.3,
+      "nodeBuilds": 1,
+      "programs": 4,
+      "programsAtEnd": 4,
+      "shaders": [
+        {
+          "name": "",
+          "vs": 14867,
+          "fs": 12580
+        },
+        {
+          "name": "family:pbr",
+          "vs": 20522,
+          "fs": 86874
+        },
+        {
+          "name": "tsl:pbr-measure",
+          "vs": 3507,
+          "fs": 21903
+        },
+        {
+          "name": "glsl:post",
+          "vs": 1633,
+          "fs": 2561
+        }
+      ],
+      "rafMs": {
+        "median": 16.7,
+        "p95": 16.7,
+        "max": 16.8
+      },
+      "fps": 59.9,
+      "workMs": {
+        "median": 0.1,
+        "p95": 0.2,
+        "max": 0.4
+      },
+      "syncedMs": {
+        "median": 0.81,
+        "p95": 0.99,
+        "max": 1.15
+      },
+      "engineRenders": 1126,
+      "threeFrame": 1689,
+      "calls": 1,
+      "triangles": 2,
+      "memory": {
+        "geometries": 3,
+        "textures": 7
+      },
+      "heapMB": 11.1,
+      "heapAtStartMB": 5.9,
       "errors": []
     }
   ]
