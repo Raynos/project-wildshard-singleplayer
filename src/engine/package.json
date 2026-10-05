@@ -198,6 +198,7 @@
     "./render/families/painterly": "./render/families/painterly.ts",
     "./render/families/params": "./render/families/params.ts",
     "./render/families/pbr": "./render/families/pbr.ts",
+    "./render/frameCounter": "./render/frameCounter.ts",
     "./render/families/registry": "./render/families/registry.ts",
     "./render/families/toon": "./render/families/toon.ts",
     "./render/hoverboardGeometry": "./render/hoverboardGeometry.ts",

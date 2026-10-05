@@ -6,6 +6,7 @@
  */
 import * as THREE from 'three';
 import { installGpuLabels, labelledCreation } from './gpuLabels';
+import { installFrameCounter } from './frameCounter';
 
 /** the renderer every layer is handed (today three's WebGL renderer) */
 export type Renderer = THREE.WebGLRenderer;
@@ -24,5 +25,6 @@ export function isRenderer(value: object): boolean {
 export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext): Renderer {
   const renderer = labelledCreation('engine/renderer', 'builtin/renderer-initialization', () => new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true }));
   installGpuLabels(renderer);
+  installFrameCounter(renderer); // SF59: the engine counts its own renders (frameCounter.ts)
   return renderer;
 }

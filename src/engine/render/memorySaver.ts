@@ -25,6 +25,7 @@ import { setting } from '../ui/Settings';
 import { markGpuOnly } from '../core/gpuOnly';
 import { arrayReleased, markArrayReleased, markArrayRestored } from './releasedArrays';
 import type { Renderer } from './renderer';
+import { renderCount } from './frameCounter';
 
 let on: boolean | null = null;
 /** the row, read once per page (a reload row) */
@@ -227,7 +228,7 @@ export function installMemorySaver(renderer: Renderer): void {
   const draw = renderer.renderBufferDirect.bind(renderer);
   renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
     draw(camera, scene, geometry, material, object, group);
-    const frame = renderer.info.render.frame;
+    const frame = renderCount(renderer); // SF59: the engine's render count, not three's (node draws bump three's)
     if (frame !== lastFrame) { lastFrame = frame; settle(frame); }
     if (seenGeometry.has(geometry) || object instanceof THREE.BatchedMesh) return;
     seenGeometry.add(geometry);

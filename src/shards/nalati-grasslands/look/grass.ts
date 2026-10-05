@@ -32,6 +32,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
+import { renderCount } from '@wildshard/engine/render/frameCounter';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import { trailDistance, splatAt } from '@wildshard/engine/world/Heightfield';
@@ -651,7 +652,7 @@ export class GrassV2 {
    * to the camera, cull their tiles against its frustum, fill the tile lists and the instance counts.
    */
   private place(renderer: Renderer, camera: THREE.Camera): void {
-    const frame = renderer.info.render.frame;
+    const frame = renderCount(renderer); // the engine's render count (SF59: node draws bump three's)
     if (frame === this.placedFrame) return;
     this.placedFrame = frame;
     _pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
