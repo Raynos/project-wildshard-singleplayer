@@ -57,7 +57,7 @@ Driftwood on **both tiers**, with zero structural or gameplay differences.
 Desktop pier, beach and wreck images each scored **SSIM 1.0**; phone minimum
 SSIM was **0.9914032755**, within the existing image band. The hybrid mover
 system was active. All completed scopes returned to zero and disposal errors
-were zero. No rebaseline, filtering or new quarantine was used.
+were zero. No rebaseline, new image masks or quarantine was used.
 
 See the [receipt comparison](parity-receipt.json), [direct control](parity-control.json),
 and their [receipt images](parity-receipt/) and [control images](parity-control/).
