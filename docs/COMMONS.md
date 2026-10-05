@@ -31,5 +31,13 @@ are omitted. Missing or changed pins refuse before output is written. Projects
 without the named hook can still supply their existing `commons/<hash>` files.
 The package and the build-only named export are never shipped as runtime code.
 
-Shared behaviour compilation and the existing kit's asset migration follow as
-separate steps. Existing shard boot paths are unchanged.
+`@wildshard/commons/scripts` supplies version `0.0.0` source modules for ABI-v0
+setup and the shared bridge policy. `bridgeScriptSources()` returns the explicit
+virtual source map for the pinned AssemblyScript compiler; imports cannot read
+arbitrary host files. The setup owns the fixed input/parameter/effect buffers and
+the bridge policy handles static decks, the two-lock winch, raise and saved-state
+commands. Both existing shard bridge modules are checked against the shared
+policy for exact fields and effects over 10,000 fixed ticks each.
+
+The existing kit's asset migration follows as separate steps. Existing shard
+boot paths are unchanged.

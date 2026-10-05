@@ -89,10 +89,12 @@ export function instrumentScript(bytes) {
   } finally { module.dispose(); }
 }
 /** Build source in-memory; no native compiler or Rust toolchain. ABI/compiler versions are pinned in package.json.
- * @param {string} source @param {{maximumPages?:number}} [options] */
+ * @param {string} source @param {{maximumPages?:number,sources?:Readonly<Record<string,string>>}} [options] */
 export async function compileScript(source, options = {}) {
   const maximumPages = options.maximumPages ?? 64;
   if (!Number.isSafeInteger(maximumPages) || maximumPages < 1 || maximumPages > 64) throw new Error('Script maximumPages must be 1..64');
+  const sources = new Map(Object.entries(options.sources ?? {}));
+  if (sources.size > 64 || [...sources].some(([name, text]) => name === 'main.ts' || !/^(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u.test(name) || typeof text !== 'string')) throw new Error('Invalid virtual AssemblyScript sources');
   // asc's declaration bundle globally changes Array.at to return T, unsound in host JS.
   // Keep its portable ambient declarations inside the author compiler, not the host type program.
   const compilerSpecifier = ['assemblyscript', 'asc'].join('/');
@@ -101,7 +103,7 @@ export async function compileScript(source, options = {}) {
   if (!isCompiler(compiler)) throw new Error('Invalid pinned AssemblyScript compiler');
   let bytes = new Uint8Array();
   const result = await compiler.main(['main.ts', '--outFile', 'main.wasm', '--runtime', 'stub', '--importMemory', '--initialMemory', '1', '--maximumMemory', String(maximumPages), '--exportStart', '__start', '--disable', 'bulk-memory', '-O3'], {
-    readFile: (name) => name === 'main.ts' ? source : null,
+    readFile: (name) => name === 'main.ts' ? source : sources.get(name) ?? null,
     writeFile: (name, contents) => { if (name === 'main.wasm' && contents instanceof Uint8Array) bytes = contents; },
   });
   if (result.error || bytes.length === 0) throw new Error(`AssemblyScript compile failed: ${result.error?.message ?? 'no output'}`);
