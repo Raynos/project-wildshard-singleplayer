@@ -27,6 +27,28 @@ export const GAME_STRINGS = {
     built: (version: number): string => `BUILT FOR SHARDFILE V${version}`,
     saveKept: 'YOUR SAVE IS KEPT',
   },
+  /** G167 (art/grid/round-18-refused-cell): a shard that can't load. Its cell in the grid (B: the frozen grey far view under a
+   *  static dome; A: the void and the holo sign) and its SHARD SELECT card (dimmed, an amber UNAVAILABLE badge and the reason) */
+  unavailable: {
+    sign: 'SHARD UNAVAILABLE',
+    badge: 'UNAVAILABLE',
+    line: (name: string, reason: string): string => `${name.toUpperCase()} · ${reason}`,
+    upgrade: 'NEEDS UPGRADE',
+    tooBig: 'TOO BIG FOR THIS DEVICE',
+    safety: 'FAILED SAFETY CHECK',
+    load: "COULDN'T LOAD",
+  },
+  /** G168 (art/hud/round-22-script-error): a shard script switched off after its strikes. The player's toast, once; with
+   *  Developer on, the red strip names the module and its cause */
+  script: {
+    stopped: 'SOMETHING IN THIS SHARD STOPPED WORKING',
+    disabled: (module: string, cause: string, strikes: number): string => `SCRIPT DISABLED · ${module} · ${cause} ×${strikes}`,
+    outOfFuel: 'out of fuel',
+    callDepth: 'call depth',
+    queries: 'too many queries',
+    effects: 'too many effects',
+    trap: 'trapped',
+  },
   /** Infinite Wildshard, the 3 × 3 grid (SHARD-PLATFORM §3.3, G58, G79; SF21a) */
   grid: {
     ended: 'Infinite Wildshard ended unexpectedly last time.',
