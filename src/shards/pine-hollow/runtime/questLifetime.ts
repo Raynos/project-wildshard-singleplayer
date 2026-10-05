@@ -1,6 +1,6 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 
 /** Keep authored quest state resident, but recreate modal input and cancel timers at every home exit. */
 export class PineQuestLifetime {
@@ -41,13 +41,18 @@ export class PineQuestLifetime {
     return scope.timeout(ms, run);
   }
   cancelTimer(timer: ReturnType<typeof setTimeout> | 0): void { this.entered?.cancelTimer(timer); }
+  /** The retained browser observer leaves with its cell; false preserves the original OFF assignment. */
+  exposeBrowser(name: string, observer: object): boolean {
+    if (!this.retained) return false;
+    installEnteredRuntimeObserver(this.context, name, observer);
+    return true;
+  }
   /** The resident objective/caption keep their exact DOM insertion positions while hidden on the road. */
   retainRoot(root: HTMLElement, reset: () => void): void {
     if (!this.retained) return;
-    const parent = root.parentNode, before = root.nextSibling;
+    installEnteredRuntimeAttachment(this.context, root);
     installEnteredRuntimeService(this.context, (scope) => {
-      if (before?.parentNode === parent) before.before(root); else parent?.append(root);
-      scope.onDispose(() => { reset(); root.remove(); });
+      scope.onDispose(reset);
     });
   }
 }

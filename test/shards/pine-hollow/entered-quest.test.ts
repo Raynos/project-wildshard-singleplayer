@@ -22,6 +22,11 @@ it('keeps Pine quest state and exact HUD placement across two entries with no ro
   const hooks = new RetainedRuntimeHooks(shardContext(base.context, manifest, { shard: manifest, rows: new Map(),
     bag: { tab: () => () => undefined, fragment: () => () => undefined } }));
   const lifetime = new PineQuestLifetime(hooks.context), flags = new Flags('pine.entered.fixture', false), state = newBoard();
+  const originalObserver = Object.getOwnPropertyDescriptor(window, '__pineQuest');
+  Object.defineProperty(window, '__pineQuest', { configurable: true, enumerable: false, writable: false, value: { borrowed: true } });
+  const borrowedObserver = Object.getOwnPropertyDescriptor(window, '__pineQuest');
+  hooks.context.debug.expose('pine.quest', state);
+  expect(lifetime.exposeBrowser('__pineQuest', state)).toBe(true);
   flags.set('talked:ranger'); state.streak = 3;
   const objective = withOwner(resident, () => new ObjectiveLine()); objective.set('Lanterns', '1/3'); objective.root.style.top = '42px';
   const next = document.createElement('span'); hud.append(next);
@@ -41,6 +46,7 @@ it('keeps Pine quest state and exact HUD placement across two entries with no ro
     for (let visit = 0; visit < 2; visit++) {
       if (visit > 0) hooks.activate();
       expect(flags.has('talked:ranger')).toBe(true); expect(state.streak).toBe(3);
+      expect(Reflect.get(window, '__pineQuest')).toBe(state); expect(app.debug.snapshot()['pine.quest']).toBe(state);
       expect(objective.root.nextSibling).toBe(next); expect(objective.root.style.top).toBe('42px');
       const oldBoard = board(), oldTrade = trade(), oldDialogue = dialogue();
       oldBoard.open(); oldTrade.open(); count().show('Resin', 1, 3);
@@ -50,6 +56,8 @@ it('keeps Pine quest state and exact HUD placement across two entries with no ro
       const tear = oldBoard.root.querySelector('.ws-ph-tear');
       expect(resident.census.timers).toBeGreaterThan(0);
       hooks.deactivate();
+      expect(Object.getOwnPropertyDescriptor(window, '__pineQuest')).toEqual(borrowedObserver);
+      expect(app.debug.snapshot()['pine.quest']).toBeUndefined();
       expect(oldBoard.isOpen).toBe(false); expect(oldTrade.isOpen).toBe(false); expect(oldDialogue.isOpen).toBe(false);
       expect(oldBoard.root.isConnected).toBe(false); expect(oldTrade.root.isConnected).toBe(false);
       expect(objective.root.isConnected).toBe(false); expect(reward.root.isConnected).toBe(false);
@@ -60,6 +68,10 @@ it('keeps Pine quest state and exact HUD placement across two entries with no ro
       expect(completedTalk).toBe(0); expect(pendingRewards).toBe(0); expect(rerolls).toBe(0);
       expect(() => dialogue()).toThrow('left its cell'); expect(() => lifetime.timeout(1, () => undefined)).toThrow('left its cell');
     }
-  } finally { vi.useRealTimers(); resident.dispose(); app.levelScope = previousLevel; hud.remove(); }
+  } finally {
+    vi.useRealTimers(); resident.dispose(); app.levelScope = previousLevel; hud.remove();
+    if (originalObserver === undefined) Reflect.deleteProperty(window, '__pineQuest');
+    else Object.defineProperty(window, '__pineQuest', originalObserver);
+  }
   expect(resident.census.nodes).toBe(0); expect(resident.census.listeners).toBe(0); expect(resident.census.disposers).toBe(0);
 });
