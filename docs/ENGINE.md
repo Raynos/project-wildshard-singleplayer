@@ -2190,7 +2190,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-528 exports, grouped by the module to import them from.
+529 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2241,7 +2241,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
-- `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeService`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
+- `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
 - `@wildshard/game/shard/runtime`: `resolveLevelBounds`, `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
 - `@wildshard/game/shard/runtimeVariant`: `runtimeVariantEnabled`
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`, `createScopedRuntimeBinding`, `ScopedRuntimeBinding`
@@ -2347,7 +2347,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-110 exports, grouped by the module to import them from.
+111 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2361,7 +2361,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
 - `@wildshard/sdk/brains`: `guardian`, `GuardianData`, `perchHunter`, `PerchHunterData`, `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
-- `@wildshard/sdk/commons`: `buildCommons`, `BuiltCommons`, `CommonsAsset`, `CommonsCatalogue`, `CommonsEntry`, `CommonsPack`
+- `@wildshard/sdk/commons`: `buildCommons`, `BuiltCommons`, `CommonsAsset`, `CommonsCatalogue`, `CommonsEntry`, `CommonsPack`, `commonsRequirements`
 - `@wildshard/sdk/commonsCosts`: `assertCommonsCosts`, `CommonsCosts`, `CommonsCostSchema`, `CommonsCostsSchema`
 - `@wildshard/sdk/director`: `director`, `DirectorData`
 - `@wildshard/sdk/flyers`: `burstFlyer`, `BurstFlyerData`, `orbitDiver`, `OrbitDiverData`, `patrolDiver`, `PatrolDiverData`
@@ -2381,9 +2381,10 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/commons` (`src/commons/package.json`)
 
-2 exports, grouped by the module to import them from.
+3 exports, grouped by the module to import them from.
 
 - `@wildshard/commons/catalogue`: `catalogueRef`, `createCatalogue`
+- `@wildshard/commons/scripts`: `bridgeScriptSources`
 
 <!-- exports:end -->
 

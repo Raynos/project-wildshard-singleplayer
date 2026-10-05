@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-528 members; 112 without a doc line (—).
+529 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -286,6 +286,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `playable` | const | @wildshard/game/shard/registry | — |
 | `setActiveChunk` | function | @wildshard/game/shard/registry | Select a chunk by slug. Unknown slugs fall back to the default (and warn). |
 | `shardSlugFromUrl` | function | @wildshard/game/shard/registry | — |
+| `installEnteredRuntimeObserver` | function | @wildshard/game/shard/retainedHooks | Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor. |
 | `installEnteredRuntimeService` | function | @wildshard/game/shard/retainedHooks | Install a transient service for each home entry; ordinary staged contexts keep their original level scope. |
 | `RetainedRuntimeHooks` | class | @wildshard/game/shard/retainedHooks | Reinstall entered callbacks while a borrowed home's models and authored state remain resident. |
 | `retainsRuntimeServices` | function | @wildshard/game/shard/retainedHooks | Whether this trusted context retains its home resources while entered services are independently scoped. |

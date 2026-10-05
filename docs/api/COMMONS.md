@@ -4,9 +4,10 @@
 
 Build-time packs and catalogue (src/commons/package.json `exports`); no commons code executes in the game.
 
-2 members; 0 without a doc line (—).
+3 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
 | `catalogueRef` | function | @wildshard/commons/catalogue | Resolve a stable build-time entry to its immutable content reference and actual cost. |
 | `createCatalogue` | function | @wildshard/commons/catalogue | Build a versioned catalogue using only the SDK's author-tool contract. Nothing installs on import. |
+| `bridgeScriptSources` | function | @wildshard/commons/scripts | Versioned build-only sources for the shared ABI setup and bridge mover; no runtime installer. |

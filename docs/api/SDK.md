@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-110 members; 0 without a doc line (—).
+111 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -60,6 +60,7 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `CommonsCatalogue` | interface | @wildshard/sdk/commons | Version zero catalogue data, independent of package installation paths and build time. |
 | `CommonsEntry` | interface | @wildshard/sdk/commons | Actual byte-derived cost and provenance of a stable catalogue entry. |
 | `CommonsPack` | interface | @wildshard/sdk/commons | A pinned author-tool pack; runtime code never imports or executes it. |
+| `commonsRequirements` | function | @wildshard/sdk/commons | Emit unique manifest requirements from selected pinned bytes, never copied author cost declarations. |
 | `assertCommonsCosts` | function | @wildshard/sdk/commonsCosts | Refuse missing, extra or malformed cost rows before reading any immutable asset. |
 | `CommonsCosts` | type | @wildshard/sdk/commonsCosts | Parsed exact residency and geometry costs keyed by the pinned commons content hash. |
 | `CommonsCostSchema` | const | @wildshard/sdk/commonsCosts | Pinned commons bytes declare exact decoded/GPU bytes and triangle/draw counts as nonnegative safe integers. |

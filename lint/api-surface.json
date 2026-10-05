@@ -14160,6 +14160,12 @@
         "from": "@wildshard/game/shard/registry"
       },
       {
+        "name": "installEnteredRuntimeObserver",
+        "kind": "function",
+        "doc": "Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor.",
+        "from": "@wildshard/game/shard/retainedHooks"
+      },
+      {
         "name": "installEnteredRuntimeService",
         "kind": "function",
         "doc": "Install a transient service for each home entry; ordinary staged contexts keep their original level scope.",
@@ -17296,6 +17302,12 @@
         "from": "@wildshard/sdk/commons"
       },
       {
+        "name": "commonsRequirements",
+        "kind": "function",
+        "doc": "Emit unique manifest requirements from selected pinned bytes, never copied author cost declarations.",
+        "from": "@wildshard/sdk/commons"
+      },
+      {
         "name": "assertCommonsCosts",
         "kind": "function",
         "doc": "Refuse missing, extra or malformed cost rows before reading any immutable asset.",
@@ -17656,6 +17668,12 @@
         "kind": "function",
         "doc": "Build a versioned catalogue using only the SDK's author-tool contract. Nothing installs on import.",
         "from": "@wildshard/commons/catalogue"
+      },
+      {
+        "name": "bridgeScriptSources",
+        "kind": "function",
+        "doc": "Versioned build-only sources for the shared ABI setup and bridge mover; no runtime installer.",
+        "from": "@wildshard/commons/scripts"
       }
     ]
   },
