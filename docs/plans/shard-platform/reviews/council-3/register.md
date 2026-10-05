@@ -45,3 +45,29 @@ B = Codex (evidence: every claim, path, SHA and number checked), C = Claude (red
 | C3-R1-C14 | 1 | C | should-fix | for-Jake page | The waiting-for-Jake page is stale | fixed (register commit) | SF54 row removed; SF56, SF55, SF48 (G148) and SF57 entries added |
 | C3-R1-C15 | 1 | C | should-add · Jake | SF55 done-when | Template 2 must force the new mesh path | decided by Jake `5fe45736c` | G161 |
 | C3-R1-C16 | 1 | C | nit | State; §6 | The effort figures leave out the new rows | fixed `5fe45736c` | Part A ≈ 396 agent-days, ≈ 43 %; M2 gains SF57 / SF57b |
+| C3-R2-A1 | 2 | A | must-fix | SF57 (c) | The calibration ratio compares process totals with content-only accounting | fixed (round-2 commit) | (M − E) / A in [1.01, 1.21] (B1's exact form) |
+| C3-R2-A2 | 2 | A | must-fix | SF57 layouts | The dev soak tests DEVSERVER (Nine Dragon) | fixed (round-2 commit) | dev = Developer catalogue, `__DEVSERVER__` false; DEVSERVER soak separate |
+| C3-R2-A3 | 2 | A | must-fix | SF58 (1′) | The wire cap includes commons bytes the manifest does not declare | fixed (round-2 commit) | commons-cost table `{hash, compressed}` |
+| C3-R2-A4 | 2 | A | should-fix | SF55a | The texture encoder is machine-global | fixed (round-2 commit) | pinned WASM basis_universal + meshoptimizer in the SDK |
+| C3-R2-A5 | 2 | A | should-fix | SF19b | SF19b still asks for the superseded neighbour grade | fixed (round-2 commit) | SF19b rewritten under G158 |
+| C3-R2-B1 | 2 | B | must-fix | SF57 (c) | Wrong numerator; the grader uses another tolerance | fixed (round-2 commit) | as A1 |
+| C3-R2-B2 | 2 | B | must-fix | SF57; §5; §6 | The prerequisites do not match the dev catalogue | fixed (round-2 commit) | as A2 |
+| C3-R2-B3 | 2 | B | should-fix | SF58 (1′) | No declared commons wire size to sum | fixed (round-2 commit) | as A3 |
+| C3-R2-B4 | 2 | B | should-fix | SF46; Handoff 2 | Live text still orders the sea-only change | fixed (round-2 commit) | G134 sentence marked superseded; Handoff 2 points at G164 |
+| C3-R2-B5 | 2 | B | nit | §5; §6 | SF56 still reads pending after G163 | fixed (round-2 commit) | shipped `e894412ca` |
+| C3-R2-B6 | 2 | B | nit | SF56 | Label size claim is not uniform | fixed (round-2 commit) | the clamp and supported sizes recorded |
+| C3-R2-C1 | 2 | C | must-fix · Jake | SF46; SF8c | After G164 the validator refuses every Driftwood entry | needs pick (2026-10-04) | asked; came back "Skip for now" (suspected stray Enter); recommendation the platform deck socket + `sea` clip; the lane holds the entries |
+| C3-R2-C2 | 2 | C | should-fix | SF46 | How the player walks from the socket onto the island | fixed (round-2 commit) | pier ramps ≥ 8 m at ≤ 8°, or a deck to dry ground |
+| C3-R2-C3 | 2 | C | must-fix | SF46; SF33 | G164 changes the physics basis; old saves refuse | fixed (round-2 commit) | revision bump, logical migration, un-offset poses, toggle fixtures |
+| C3-R2-C4 | 2 | C | should-fix | SF46 | A root offset misses code that reads heights directly | fixed (round-2 commit) | offset in the height and water sources + ray fixture |
+| C3-R2-C5 | 2 | C | should-fix | SF46; Handoff 2 | G134 text survives next to G164 | fixed (round-2 commit) | as B4 |
+| C3-R2-C6 | 2 | C | must-fix | SF57b | A fourth reload path ignores the three that exist | fixed (round-2 commit) | reloadGuard `planned`, attempt marker, boot precedence, GpuRecovery |
+| C3-R2-C7 | 2 | C | must-fix · Jake | SF57b; G159 | Fade-reload never fires for a road-only drive | fixed (round-2 commit); remedy needs pick (2026-10-04) | road-only leg added; if it climbs, Developer-only and to Jake (asked; "Skip for now"; recommendation a roundabout trigger) |
+| C3-R2-C8 | 2 | C | should-fix | SF57b | The harness forbids the navigation SF57b needs | fixed (round-2 commit) | reload-aware soak mode |
+| C3-R2-C9 | 2 | C | should-fix | SF57b | Map coverage, vitals and late pagehide writes | fixed (round-2 commit) | carried in the handoff; ticks frozen; pagehide no-op |
+| C3-R2-C10 | 2 | C | should-fix | SF57b; §6 | No route if SF57b's own soak fails | fixed (round-2 commit) | both verdicts recorded; cut candidates to Jake; needs pick counts as Jake's gate |
+| C3-R2-C11 | 2 | C | must-fix | §5; §6; Handoff | The M2-ready order is impossible | fixed (round-2 commit) | lead call: M2-ready needs the shipped leg; dev leg under M3; Handoff 3b order |
+| C3-R2-C12 | 2 | C | must-fix | SF55a | "SDK tarball alone" is false for textures and LODs | fixed (round-2 commit) | as A4; embedded images extracted |
+| C3-R2-C13 | 2 | C | should-fix | SF55a | The door would be tiled; annotation undefined | fixed (round-2 commit) | `world.interactive` panels; exporter settings |
+| C3-R2-C14 | 2 | C | should-fix | SF58 (1′), (4) | A 256 MB download before the cost refusal; graph files outside SF58 | fixed (round-2 commit) | declared cost checked first; graph caps and fuzzing |
+| C3-R2-C15 | 2 | C | nit | SF57b | "The soft wall otherwise" cannot be built while faded | fixed (round-2 commit) | faded up to 8 s, then the menu |

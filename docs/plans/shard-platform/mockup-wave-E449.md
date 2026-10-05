@@ -51,4 +51,4 @@ Order: M1–M4 are one batch (four questions); M5–M6 the next.
 | Item | Status |
 |---|---|
 | Wave 0 | answered 2026-10-04: 0a B, the dev map (G163); 0b neither option: lower the whole world 0.8 m, sea and island together (G164) |
-| M1–M6 | in flight (2026-10-04, the plan-status agent's subagents) |
+| M1–M6 | made 2026-10-04 (`c953c7a0f`); M1–M4 asked: all four came back "Skip for now" (suspected stray Enter), so `needs pick (2026-10-04)`, re-asked in plain chat; M5–M6 not asked yet |
