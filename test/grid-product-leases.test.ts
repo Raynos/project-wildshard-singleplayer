@@ -15,6 +15,7 @@ describe('grid product leases', () => {
     const copy = structuredClone(source), hash = 'a'.repeat(64);
     copy.files = [{ hash, kind: 'binary', compressed: 1000, decoded: 1000, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false }];
     copy.requires.commons = [hash]; copy.requires.commonsWire[hash] = 1000;
+    copy.requires.commonsCosts[hash] = { decoded: 1000, gpu: 0, triangles: 0, draws: 0 };
     expect(productResidentBytes(copy) - bytes).toBeGreaterThan(2000);
     expect(bytes).toBeGreaterThan(JSON.stringify(source).length * 2);
     const allocator = allocatorForOne(), lease = allocator.reserve({ id: 'product', owner: 'page', category: 'product', bytes, distance: 0, needed: true });
