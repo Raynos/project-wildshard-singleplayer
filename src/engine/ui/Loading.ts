@@ -4,7 +4,8 @@ import { saveStorage } from '../saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';
-import { loadShellHtml } from '../boot/shell';
+import { loadShellTemplate } from '../boot/shell';
+import { appIdentity } from '../app/identity';
 import { lastEndLine } from '../boot/lastEnd';
 import { recordBootProgress, startBoot } from '../boot/bootTrace';
 import { isDev } from '../core/devMode';
@@ -55,9 +56,10 @@ export class Loading {
     else {
       this.root = document.createElement('div');
       this.root.className = 'ws-load';
-      this.root.innerHTML = loadShellHtml();
+      this.root.innerHTML = loadShellTemplate();
       mountUi(this.root, this.scope, document.body);
     }
+    const tagline = this.root.querySelector('.ws-load-tagline'); if (tagline === null) throw new Error('Loading: no tagline'); tagline.textContent = appIdentity().tagline;
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
     this.els.slug.textContent = isDev() ? chunk.id : chunk.name;

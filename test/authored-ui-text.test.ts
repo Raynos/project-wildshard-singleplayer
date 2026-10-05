@@ -18,10 +18,13 @@ import { legacyDouble } from './fake/FakeGame';
 import { ShopPanel, type ShopState } from '../src/game/loot/ui/ShopPanel';
 import { ShardComplete } from '../src/game/complete/ShardComplete';
 import { renderGear, renderFinds } from '../src/game/bag/bag';
+import { appIdentity, installAppIdentity } from '../src/engine/app/identity';
+import { Loading } from '../src/engine/ui/Loading';
 
 const hostile = '<img src=x onerror="throw 1"><script>bad()</script>& "literal"';
 let scope: Scope;
 const parked = hudSlots.snapshot();
+const identity = appIdentity();
 beforeEach(() => {
   scope = new Scope('authored-text'); app.levelScope = scope;
   hudSlots.restore({ layer: null, status: null, pending: [] });
@@ -29,7 +32,16 @@ beforeEach(() => {
 });
 afterEach(() => {
   scope.dispose(); app.levelScope = null; app.input.clear(); hudSlots.restore(parked);
+  installAppIdentity(identity);
   vi.useRealTimers(); document.body.replaceChildren();
+});
+
+it('fills a fresh loading shell tagline through textContent beside the trusted wordmark', () => {
+  installAppIdentity({ ...identity, tagline: hostile });
+  const loading = new Loading({ id: 'literal-fixture', name: hostile });
+  expect(loading.root.querySelector('.ws-load-tagline')?.textContent).toBe(hostile);
+  expect(loading.root.querySelector('.ws-wordmark b')).not.toBeNull(); expect(loading.root.querySelector('img,script,[onerror]')).toBeNull();
+  loading.scope.dispose();
 });
 
 it('keeps an authored disc label literal beside the trusted SVG and preserves its press lifecycle', () => {
