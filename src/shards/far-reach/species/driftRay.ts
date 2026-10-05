@@ -1,14 +1,11 @@
-import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { StrikeRunner, type StrikeContext, type StrikeSpec } from '@wildshard/engine/ai/strikes';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { AnimalSpecies, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { Color, Float32BufferAttribute, BufferGeometry, Uint16BufferAttribute, Vector3 } from 'three';
-import { DECK, RAY_HOMES } from '../layout';
+import { DECK } from '../layout';
 import { STRINGS } from '../strings';
-import { homeOf } from './rig';
 import { bindRigid, fit, skyMesh } from '../world/meshes';
 
 /** The dive: a 3-D sphere contact around the ray, tested against the player's chest (ENGINE §19 "Short flyer"). */
@@ -16,65 +13,9 @@ export const DIVE: StrikeSpec = { id: 'far.ray.dive', shape: { kind: 'sphere', r
   range: 14, damage: 10, tags: ['creature.driftRay'], units: 'world', weight: () => 1 };
 /** How the ray flies: its circle speed, how high it hangs over the player before the dive, its dive speed, its rest after one. */
 export const RAY = { circleSpeed: 8, hang: 9, stalkSpeed: 10, diveSpeed: 16, rest: 6, notice: 40, giveUp: 60 } as const;
-type RayState = 'circle' | 'stalk' | 'dive' | 'rise';
-
-export class DriftRayBrain extends CreatureBrain<RayState, Animal> {
-  private readonly strikes = new StrikeRunner();
-  private readonly home: { x: number; z: number; r: number; y: number };
-  private angle = 0; private rest = 3; private timer = 0; private diving = 0;
-  private readonly chest = new Vector3();
-  constructor(actor: Animal, home: { x: number; z: number; r: number; y: number }) {
-    super(actor, ['circle', 'stalk', 'dive', 'rise']); this.home = home; this.angle = Math.atan2(actor.position.z - home.z, actor.position.x - home.x);
-  }
-  private strike(ctx: ThinkCtx): StrikeContext {
-    const a = this.actor; this.chest.copy(ctx.player); this.chest.y += 1.2;
-    return { actor: a, target: this.chest, canReach: () => ctx.reach(a), hit: (spec) => { ctx.hurt(spec.damage); } };
-  }
-  override think(ctx: ThinkCtx): void {
-    const a = this.actor; if (!a.alive) return;
-    if (ctx.calm) { if (this.state !== 'circle') { this.strikes.cancel(); a.cancelAttack(); this.transition('circle'); } return; }
-    this.rest -= ctx.dt; this.timer += ctx.dt;
-    const d = Math.hypot(ctx.player.x - a.position.x, ctx.player.z - a.position.z);
-    if (this.state === 'circle' && this.rest <= 0 && d < RAY.notice && ctx.mayAttack(a)) { this.timer = 0; this.transition('stalk'); }
-    else if (this.state === 'stalk' && (d > RAY.giveUp || this.timer > 12)) this.transition('rise');
-    else if (this.state === 'rise' && a.position.y > this.home.y - 2) this.transition('circle');
-  }
-  override act(ctx: ThinkCtx): void {
-    const a = this.actor; if (!a.alive) return;
-    const p = ctx.player, dx = p.x - a.position.x, dz = p.z - a.position.z, d = Math.hypot(dx, dz), toPlayer = Math.atan2(dx, dz);
-    const strike = this.strike(ctx);
-    if (this.state === 'circle') {
-      this.angle += (ctx.dt * RAY.circleSpeed) / this.home.r;
-      const tx = this.home.x + Math.cos(this.angle) * this.home.r, tz = this.home.z + Math.sin(this.angle) * this.home.r;
-      ctx.flight.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), RAY.circleSpeed, this.home.y, 1.6);
-    } else if (this.state === 'stalk') {
-      const over = p.y + RAY.hang;
-      ctx.flight.steer(a, toPlayer, Math.min(RAY.stalkSpeed, d * 1.5), over, 3);
-      if (d < 3 && Math.abs(a.position.y - over) < 1.6 && !this.strikes.busy && ctx.reach(a) && ctx.claim(a)) {
-        this.strikes.start(DIVE, a, this.chest); this.diving = 0; this.transition('dive');
-      }
-    } else if (this.state === 'dive') {
-      this.diving += ctx.dt;
-      // The windup is the telegraph: the ray hangs still over the player, then drops onto the chest.
-      if (this.diving < DIVE.windup) ctx.flight.steer(a, toPlayer, 0, p.y + RAY.hang, 3);
-      else ctx.flight.steer(a, toPlayer, RAY.diveSpeed, this.chest.y, 4);
-      this.strikes.update(ctx.dt, strike);
-      if (!this.strikes.busy) { this.rest = RAY.rest; this.transition('rise'); }
-    } else {
-      ctx.flight.steer(a, toPlayer + Math.PI, RAY.circleSpeed, this.home.y, 2);
-    }
-  }
-}
-const brains = new WeakMap<Animal, DriftRayBrain>();
-const brain = (a: Animal): DriftRayBrain => {
-  let value = brains.get(a);
-  if (!value) { value = new DriftRayBrain(a, homeOf(a, RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 })); brains.set(a, value); }
-  return value;
-};
 export const DRIFT_RAY: SpeciesRow = { id: 'far.creature.driftRay', kind: 'driftRay', label: STRINGS.ray, aggressive: true, blood: false,
   flight: { altitude: DECK + 14, above: 'world', climbRate: 6, diveRate: 20, lockRange: 32 },
-  variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 50 }],
-  think: (a, ctx) => { brain(a).think(ctx); }, act: (a, ctx) => { brain(a).act(ctx); } };
+  variants: [{ id: 'dusk', label: STRINGS.ray, weight: 1, rarity: 'common', scale: [1, 1], hp: 50 }] };
 
 /** Bone indices in build().bones order. */
 const BODY = 0, HEAD = 1, WING_L = 2, WING_R = 3, TAIL = 4;

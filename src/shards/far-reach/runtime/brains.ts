@@ -1,4 +1,3 @@
-import { directorVariant } from '@wildshard/game/shardfile/directorClient';
 import { RamGrazerBrain } from '@wildshard/engine/ai/ramGrazer';
 import { OrbitDiverBrain } from '@wildshard/engine/ai/orbitDiver';
 import { BurstFlyerBrain } from '@wildshard/engine/ai/burstFlyer';
@@ -49,6 +48,3 @@ export function declaredSkyRows(): Selection {
     STORM_ROC,
   ], witness: (actor: Actor): string | null => goats.has(actor) ? 'ram-grazer' : rays.has(actor) ? 'orbit-diver' : wisps.has(actor) ? 'burst-flyer' : null };
 }
-
-/** The existing shared default-off row selects one immutable set of species callbacks for this session. */
-export function selectSkyRows(context: Parameters<typeof directorVariant>[0]): Selection | null { return directorVariant(context) ? declaredSkyRows() : null; }

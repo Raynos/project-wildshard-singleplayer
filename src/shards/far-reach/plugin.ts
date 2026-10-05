@@ -1,4 +1,4 @@
-import { selectSkyRows } from './runtime/brains';
+import { declaredSkyRows } from './runtime/brains';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
@@ -110,15 +110,16 @@ export class SkyReachPlugin extends ShardPlugin {
     if (entries && runtime !== undefined) runtime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
     runtime?.interactables.push(this.built.winch, this.built.notes);
   }
-  private brainPolicies: ReturnType<typeof selectSkyRows> = null;
+  private brainPolicies: ReturnType<typeof declaredSkyRows> | null = null;
   /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
   brainWitness(): { id: string; kind: string; family: string | null }[] {
     return [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps].map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.brainPolicies?.witness(actor) ?? null }));
   }
   override kit(ctx: ShardContext): void {
     ctx.rows.weapon(FAN_ROW);
-    this.brainPolicies = selectSkyRows(ctx);
-    ctx.rows.species(this.brainPolicies?.rows ?? [DRIFT_RAY, SKY_GOAT, GALE_WISP, STORM_ROC]); ctx.rows.speciesLook([DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK]);
+    this.brainPolicies = declaredSkyRows();
+    ctx.rows.species([{ ...DRIFT_RAY, ...this.brainPolicies.rows[0] }, { ...SKY_GOAT, ...this.brainPolicies.rows[1] },
+      { ...GALE_WISP, ...this.brainPolicies.rows[2] }, STORM_ROC]); ctx.rows.speciesLook([DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK]);
     ctx.rows.encounter({ id: ROC_ID, displayName: STRINGS.roc });
     const rt = ctx.game.runtime;
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.

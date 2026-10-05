@@ -1,4 +1,3 @@
-import { directorVariant } from '@wildshard/game/shardfile/directorClient';
 import { ChallengeGrazerBrain } from '@wildshard/engine/ai/challengeGrazer';
 import { PatrolDiverBrain } from '@wildshard/engine/ai/patrolDiver';
 import { challengeGrazer } from '@wildshard/sdk/grazers';
@@ -31,6 +30,3 @@ export function declaredDuneRows(): Selection {
     DUNE_MATRIARCH,
   ], witness: (actor: Actor): string | null => striders.has(actor) ? 'challenge-grazer' : rays.has(actor) ? 'patrol-diver' : null };
 }
-
-/** The existing shared default-off row selects one immutable set of species callbacks for this session. */
-export function selectDuneRows(context: Parameters<typeof directorVariant>[0]): Selection | null { return directorVariant(context) ? declaredDuneRows() : null; }
