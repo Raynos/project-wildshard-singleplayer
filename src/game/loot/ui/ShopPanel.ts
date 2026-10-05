@@ -320,13 +320,14 @@ export class ShopPanel<G extends ShopGood> {
     if (this.o.coins !== undefined) { el('i', 'ws-shop-ring', big.purse); text('b', '', String(this.coins()), big.purse); }
     const FOOT: Record<ShopState, ItemCardState> = { buy: 'buy', short: 'short', owned: 'owned', locked: 'locked', full: 'locked' };
     const barter = this.o.cost;
-    big.grid.classList.toggle('dense', this.o.goods.length > 6);   // seven or more goods: 4-up, so the world stays in view
+    const dense = this.o.goods.length > 6;   // seven or more goods: 4-up compact tiles, so the world stays in view
+    big.grid.classList.toggle('dense', dense);
     big.grid.replaceChildren(...this.o.goods.map((x, k) => {
       const st = this.o.state(x);
       // a bartered good's foot is its state in a word (the bar spells out what it takes): a cost list wrapped every tile
       const detail = st === 'owned' ? 'Owned' : st === 'locked' ? `Needs ${this.needs(x)}` : st === 'full' ? 'Full'
         : barter === undefined ? undefined : st === 'buy' ? 'Ready' : 'Need more';
-      return itemCardTile({ name: x.tile ?? x.name, icon: x.icon, ...(barter === undefined ? { price: x.price } : {}), state: FOOT[st], ...(detail === undefined ? {} : { detail }) }, k === this.i);
+      return itemCardTile({ name: x.tile ?? x.name, icon: x.icon, ...(barter === undefined ? { price: x.price } : {}), state: FOOT[st], ...(detail === undefined ? {} : { detail }) }, k === this.i, dense);
     }));
     const st = this.o.state(g), name = g.tile ?? g.name;
     big.buy.className = `ws-shop-bigbuy ${st}`;

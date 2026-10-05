@@ -15,6 +15,9 @@
 .ws-icard-tile.out .ws-icard-foot, .ws-icard-tile.locked .ws-icard-foot { font-size: 11px; color: var(--ws-text-dim); }
 .ws-icard-tile.owned .ws-icard-foot { font-size: 11px; }
 .ws-icard-tile.out .ws-icard-icon, .ws-icard-tile.short .ws-icard-icon, .ws-icard-tile.locked .ws-icard-icon { opacity: 0.55; }
+/* a compact tile (a 4-up grid): the name a size down and set tighter, so a ten-letter word fits without breaking */
+.ws-icard-tile.compact .ws-icard-name { font-size: 10.5px; letter-spacing: 0.06em; overflow-wrap: normal; }
+.ws-icard-tile.compact .ws-icard-foot { font-size: 11px; letter-spacing: 0.08em; }
 
 /* the pickup / reward card: centred under the top bar, the newest replacing the last */
 .ws-icard-pop { position: absolute; left: 50%; top: calc(var(--ws-top) + 168px); z-index: calc(var(--ws-layer-hud) + 6); width: min(280px, calc(100% - 32px)); transform: translateX(-50%); opacity: 0; pointer-events: none; }

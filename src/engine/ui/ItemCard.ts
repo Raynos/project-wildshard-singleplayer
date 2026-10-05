@@ -34,10 +34,10 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?:
 };
 const text = (tag: 'b' | 'span', cls: string, value: string, parent: HTMLElement): void => { el(tag, cls, parent).textContent = value; };
 
-/** A grid tile for one item (a shop's goods). `selected` draws the accent frame. */
-export function itemCardTile(spec: ItemCardSpec, selected = false): HTMLElement {
+/** A grid tile for one item (a shop's goods). `selected` draws the accent frame; `compact` sets the words a size down (a 4-up grid). */
+export function itemCardTile(spec: ItemCardSpec, selected = false, compact = false): HTMLElement {
   const state = spec.state ?? 'shown';
-  const tile = el('div', `ws-icard-tile ${state}${selected ? ' on' : ''}`);
+  const tile = el('div', `ws-icard-tile ${state}${selected ? ' on' : ''}${compact ? ' compact' : ''}`);
   const well = el('i', 'ws-icard-well', tile);
   const glyph = el('i', 'ws-icard-icon', well);
   glyph.prepend(svgOf(spec.icon));
