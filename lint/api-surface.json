@@ -7902,6 +7902,30 @@
         "from": "@wildshard/engine/render/families/toon"
       },
       {
+        "name": "installFrameCounter",
+        "kind": "function",
+        "doc": "Start counting this renderer's renders (createRenderer does it for the game's renderer). Idempotent. It wraps",
+        "from": "@wildshard/engine/render/frameCounter"
+      },
+      {
+        "name": "renderCount",
+        "kind": "function",
+        "doc": "How many times this renderer has rendered (`renderer.render()` calls, not draws). Read it where three's",
+        "from": "@wildshard/engine/render/frameCounter"
+      },
+      {
+        "name": "Renders",
+        "kind": "type",
+        "doc": "what the counter needs of a renderer (the game's `Renderer`, or a test's stand-in)",
+        "from": "@wildshard/engine/render/frameCounter"
+      },
+      {
+        "name": "loadGraphBackend",
+        "kind": "function",
+        "doc": "install the engine's node handler on this renderer (once; later calls return the same handler)",
+        "from": "@wildshard/engine/render/graphBackend"
+      },
+      {
         "name": "buildHoverboard",
         "kind": "function",
         "doc": "The board, built into `g` (the viewmodel's model, or the Model Explorer's specimen: src/engine/models/hoverboard.ts, E348): the",
@@ -8056,6 +8080,48 @@
         "kind": "const",
         "doc": "The one colour-LUT loader (10 §X5): a fitted 33³ RGB lookup, `scripts/fit-lut.py`'s format — 33³ × RGBA8, index",
         "from": "@wildshard/engine/render/lut"
+      },
+      {
+        "name": "engineFog",
+        "kind": "function",
+        "doc": "fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off)",
+        "from": "@wildshard/engine/render/nodes/engineFog"
+      },
+      {
+        "name": "EngineNodesHandler",
+        "kind": "class",
+        "doc": "three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend`",
+        "from": "@wildshard/engine/render/nodes/engineNodesHandler"
+      },
+      {
+        "name": "EpilogueContext",
+        "kind": "interface",
+        "doc": "what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer",
+        "from": "@wildshard/engine/render/nodes/engineNodesHandler"
+      },
+      {
+        "name": "EpilogueStage",
+        "kind": "type",
+        "doc": "one stage of the engine epilogue: the output colour after the output transform → the colour it leaves",
+        "from": "@wildshard/engine/render/nodes/engineNodesHandler"
+      },
+      {
+        "name": "outputTransform",
+        "kind": "function",
+        "doc": "the output transform for the bound target, as classic three decides it (WebGLPrograms.js getParameters)",
+        "from": "@wildshard/engine/render/nodes/engineNodesHandler"
+      },
+      {
+        "name": "targetTexture",
+        "kind": "function",
+        "doc": "Sample a render target's texture (its colour or depth) in a graph, upright: the classic renderer's targets are stored",
+        "from": "@wildshard/engine/render/nodes/engineNodesHandler"
+      },
+      {
+        "name": "tentShadowFilter",
+        "kind": "const",
+        "doc": "the tent as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it",
+        "from": "@wildshard/engine/render/nodes/tentShadowFilter"
       },
       {
         "name": "backgroundJob",
@@ -10210,6 +10276,12 @@
         "from": "@wildshard/engine/world/Atmosphere"
       },
       {
+        "name": "atmosphereTerms",
+        "kind": "function",
+        "doc": "which optional terms the installed fog chunk compiled in (the TSL back-end's fog, render/nodes/engineFog.ts, follows)",
+        "from": "@wildshard/engine/world/Atmosphere"
+      },
+      {
         "name": "attachFogUniforms",
         "kind": "function",
         "doc": "",
@@ -11600,6 +11672,24 @@
         "kind": "class",
         "doc": "",
         "from": "@wildshard/engine/world/registry"
+      },
+      {
+        "name": "installShadowFilter",
+        "kind": "function",
+        "doc": "Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map",
+        "from": "@wildshard/engine/world/shadowFilter"
+      },
+      {
+        "name": "SOFT_RADII",
+        "kind": "const",
+        "doc": "[near cascade, far cascade] `shadow.radius`: the 7×7 tent near, the 5×5 beyond (E138, the user: \"do the shadows",
+        "from": "@wildshard/engine/world/shadowFilter"
+      },
+      {
+        "name": "tentShadowFilterOn",
+        "kind": "function",
+        "doc": "the tent is installed (the TSL back-end gives node materials the same filter: render/nodes/tentShadowFilter.ts)",
+        "from": "@wildshard/engine/world/shadowFilter"
       },
       {
         "name": "shadowRig",

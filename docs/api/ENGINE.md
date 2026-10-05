@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2012 members; 830 without a doc line (—).
+2027 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1322,6 +1322,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TOON_PROGRAM_KEY` | const | @wildshard/engine/render/families/toon | the program-cache key every toon material shares (the source is the same for all of them) |
 | `ToonLook` | class | @wildshard/engine/render/families/toon | One toon look: the shared uniforms of every toon material made under it. Several looks can be live in one frame |
 | `ToonLookUniforms` | interface | @wildshard/engine/render/families/toon | The uniforms one toon look shares with every material made under it. |
+| `installFrameCounter` | function | @wildshard/engine/render/frameCounter | Start counting this renderer's renders (createRenderer does it for the game's renderer). Idempotent. It wraps |
+| `renderCount` | function | @wildshard/engine/render/frameCounter | How many times this renderer has rendered (`renderer.render()` calls, not draws). Read it where three's |
+| `Renders` | type | @wildshard/engine/render/frameCounter | what the counter needs of a renderer (the game's `Renderer`, or a test's stand-in) |
+| `loadGraphBackend` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer (once; later calls return the same handler) |
 | `buildHoverboard` | function | @wildshard/engine/render/hoverboardGeometry | The board, built into `g` (the viewmodel's model, or the Model Explorer's specimen: src/engine/models/hoverboard.ts, E348): the |
 | `EngineChainKind` | type | @wildshard/engine/render/look | the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's |
 | `EngineEffects` | interface | @wildshard/engine/render/look | — |
@@ -1348,6 +1352,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TerrainPainter` | interface | @wildshard/engine/render/look | a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) |
 | `fetchLut` | function | @wildshard/engine/render/lut | the LUT file's bytes; null (and a warning) when it is missing, unreadable or the wrong size |
 | `LUT_SIZE` | const | @wildshard/engine/render/lut | The one colour-LUT loader (10 §X5): a fitted 33³ RGB lookup, `scripts/fit-lut.py`'s format — 33³ × RGBA8, index |
+| `engineFog` | function | @wildshard/engine/render/nodes/engineFog | fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off) |
+| `EngineNodesHandler` | class | @wildshard/engine/render/nodes/engineNodesHandler | three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` |
+| `EpilogueContext` | interface | @wildshard/engine/render/nodes/engineNodesHandler | what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer |
+| `EpilogueStage` | type | @wildshard/engine/render/nodes/engineNodesHandler | one stage of the engine epilogue: the output colour after the output transform → the colour it leaves |
+| `outputTransform` | function | @wildshard/engine/render/nodes/engineNodesHandler | the output transform for the bound target, as classic three decides it (WebGLPrograms.js getParameters) |
+| `targetTexture` | function | @wildshard/engine/render/nodes/engineNodesHandler | Sample a render target's texture (its colour or depth) in a graph, upright: the classic renderer's targets are stored |
+| `tentShadowFilter` | const | @wildshard/engine/render/nodes/tentShadowFilter | the tent as a node shadow filter (a light's `shadow.filterNode`); EngineNodesHandler assigns it |
 | `backgroundJob` | function | @wildshard/engine/render/precompile | The sky background box (WebGLBackground's boxMesh) — same shader, same envMap kind, drawn into the scene target. |
 | `collectTextures` | function | @wildshard/engine/render/precompile | Every texture the first frame would upload — material maps, ShaderMaterial uniforms (the post |
 | `CompileJob` | interface | @wildshard/engine/render/precompile | Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table). |
@@ -1706,6 +1717,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Warned` | interface | @wildshard/engine/ui/WindupWarn | — |
 | `WindupWarn` | class | @wildshard/engine/ui/WindupWarn | an amber chevron on the screen edge toward an off-screen enemy that is winding up an attack |
 | `addFogUniforms` | function | @wildshard/engine/world/Atmosphere | — |
+| `atmosphereTerms` | function | @wildshard/engine/world/Atmosphere | which optional terms the installed fog chunk compiled in (the TSL back-end's fog, render/nodes/engineFog.ts, follows) |
 | `attachFogUniforms` | function | @wildshard/engine/world/Atmosphere | — |
 | `fogUniforms` | const | @wildshard/engine/world/Atmosphere | — |
 | `installAtmosphere` | function | @wildshard/engine/world/Atmosphere | the engine's fog chunks (slot 100, once a page: render/fogPatches.ts); a level's own fog (`LookStrategy.fog`) is installed after it (Game.buildSky) |
@@ -1938,6 +1950,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `RegisteredSet` | interface | @wildshard/engine/world/registry | A set (E306 / E315 M7): a named group of placements — a camp, a market square, a kurgan field — explorable as one |
 | `SetPlacement` | interface | @wildshard/engine/world/registry | one `place` call in a set, as Explore reads it (a `Placed`, src/engine/models/place.ts) |
 | `WorldRegistry` | class | @wildshard/engine/world/registry | — |
+| `installShadowFilter` | function | @wildshard/engine/world/shadowFilter | Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map |
+| `SOFT_RADII` | const | @wildshard/engine/world/shadowFilter | [near cascade, far cascade] `shadow.radius`: the 7×7 tent near, the 5×5 beyond (E138, the user: "do the shadows |
+| `tentShadowFilterOn` | function | @wildshard/engine/world/shadowFilter | the tent is installed (the TSL back-end gives node materials the same filter: render/nodes/tentShadowFilter.ts) |
 | `shadowRig` | function | @wildshard/engine/world/skyRig | The shadow rig for this tier and the level's shadow style. The phone's portrait camera (94° vertical FOV) makes a cascade's square far |
 | `ShadowRig` | interface | @wildshard/engine/world/skyRig | the sun's shadow map(s): cascade count, map size (px), how far they reach (m), the caster margin (m) and, for two |
 | `SkyRig` | class | @wildshard/engine/world/skyRig | Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the |

@@ -65,6 +65,7 @@
     "src/engine/player/LockOnTarget.ts": 3,
     "src/engine/player/TouchControls.ts": 5,
     "src/engine/player/WeaponPickup.ts": 12,
+    "src/engine/render/nodes/engineNodesHandler.ts": 2,
     "src/engine/ui/Combat.ts": 1,
     "src/engine/ui/EliteBar.ts": 1,
     "src/engine/ui/ErrorModal.ts": 1,

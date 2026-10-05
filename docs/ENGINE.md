@@ -1815,7 +1815,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-1995 exports, grouped by the module to import them from.
+2010 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2044,9 +2044,14 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/pbr`: `compilePbr`, `pbrFillers`, `TextureResolver`, `TextureUse`
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
+- `@wildshard/engine/render/frameCounter`: `installFrameCounter`, `renderCount`, `Renders`
+- `@wildshard/engine/render/graphBackend`: `loadGraphBackend`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
 - `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
 - `@wildshard/engine/render/lut`: `fetchLut`, `LUT_SIZE`
+- `@wildshard/engine/render/nodes/engineFog`: `engineFog`
+- `@wildshard/engine/render/nodes/engineNodesHandler`: `EngineNodesHandler`, `EpilogueContext`, `EpilogueStage`, `outputTransform`, `targetTexture`
+- `@wildshard/engine/render/nodes/tentShadowFilter`: `tentShadowFilter`
 - `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`
 - `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
 - `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
@@ -2109,7 +2114,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ui/tabs`: `TabFragment`, `TabId`, `TabRegistry`, `TabSpec`
 - `@wildshard/engine/ui/WeaponStrip`: `WeaponStrip`
 - `@wildshard/engine/ui/WindupWarn`: `Warned`, `WindupWarn`
-- `@wildshard/engine/world/Atmosphere`: `addFogUniforms`, `attachFogUniforms`, `fogUniforms`, `installAtmosphere`, `isUnderwater`, `setUnderwater`, `updateUnderwater`, `volumetricFog`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `weatherFogUniforms`, `weatherUniforms`
+- `@wildshard/engine/world/Atmosphere`: `addFogUniforms`, `atmosphereTerms`, `attachFogUniforms`, `fogUniforms`, `installAtmosphere`, `isUnderwater`, `setUnderwater`, `updateUnderwater`, `volumetricFog`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `weatherFogUniforms`, `weatherUniforms`
 - `@wildshard/engine/world/BakedCards`: `bakedCardUrls`, `CardTextures`, `exportCardTextures`, `loadBakedCards`
 - `@wildshard/engine/world/BakedTerrain`: `BakedGrid`, `BakedPlacement`, `bakedSamplers`, `bakedTerrainUrl`, `bakedUndergrowth`, `loadBakedTerrain`, `parseBakedTerrain`
 - `@wildshard/engine/world/blenderArea`: `BlenderArea`, `blenderAreaFor`, `blenderModelsBase`, `CELL`, `STEP`
@@ -2139,6 +2144,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/pond`: `Water`
 - `@wildshard/engine/world/pondGrid`: `pondGrid`
 - `@wildshard/engine/world/registry`: `activeRegistry`, `boxDesc`, `ColliderDesc`, `DrawnAs`, `installWorldRegistry`, `ModelCategory`, `ModelEntry`, `ModelFacts`, `Piece`, `PieceCategory`, `Pipeline`, `RegisteredModel`, `RegisteredPick`, `RegisteredSet`, `SetPlacement`, `WorldRegistry`
+- `@wildshard/engine/world/shadowFilter`: `installShadowFilter`, `SOFT_RADII`, `tentShadowFilterOn`
 - `@wildshard/engine/world/skyRig`: `shadowRig`, `ShadowRig`, `SkyRig`
 - `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`
 - `@wildshard/engine/world/Terrain`: `Terrain`
