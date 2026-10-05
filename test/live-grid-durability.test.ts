@@ -146,7 +146,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.session.frame()).toBe(home.instance);
     expect(first.session.state().crossing.issue).toBe('Local checkpoint is not durable');
     expect(first.dismount).toHaveBeenCalledOnce(); expect(first.traveller.ride).toBeNull(); expect(first.traveller.hover).toBe(true);
-    homeDurable = true; first.tick(); expect(first.session.frame()).toBeNull();
+    homeDurable = true; first.session.retrySave(); first.tick(); expect(first.session.frame()).toBeNull();
     pageHost.player.position.set(target.origin.x, 1, target.origin.z); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
     expect(first.dismount).toHaveBeenCalledOnce(); expect(first.traveller.ride).toBeNull(); expect(first.traveller.hover).toBe(true);
@@ -162,7 +162,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     pageHost.player.position.set(270, 1, 270); await settle(first.tick);
     expect(first.session.frame()).toBe(target.instance);
     expect(first.session.state().crossing.issue).toBe('Local checkpoint is not durable');
-    local.fail = false; first.tick(); expect(first.session.frame()).toBeNull();
+    local.fail = false; first.session.retrySave(); first.tick(); expect(first.session.frame()).toBeNull();
     expect(first.session.live.state().continuations.storedChars).toBe(0); // The durable record below carries this continuation.
     const reload = new GridRegionDurability(new SaveStore({ local, session: null }), { id: target.instance, shard: target.slug }, source, []);
     const freshBasis = create(source, assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });

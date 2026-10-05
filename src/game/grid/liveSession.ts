@@ -294,6 +294,8 @@ export class LiveGridSession {
 
   /** The traveller's world feet (grid metres), whatever frame it is in. */
   worldFeet(): { x: number; y: number; z: number } { return this.live.worldFeet(); }
+  /** Retry a refused source save without reloading the prepared destination; retreat also cancels the hold safely. */
+  retrySave(): void { this.crossing.crossing.retrySave(); }
 
   private bundle(cell: GridCell): ReadinessBundle {
     return { criticalWireBytes: findShard(cell.slug)?.shardfile === undefined ? 0 : 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 };

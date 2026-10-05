@@ -5,7 +5,7 @@
  * start from), glows brightest at its foot and fades out with distance, so only the borders near the traveller read.
  *
  * G119: while a crossing waits for its durable save the shimmer nearest the traveller carries a "SAVING…" panel, and on a
- * refused save "SAVE FAILED, RETRY" (the crossing retries every fixed step), so the hold never looks like a bug.
+ * refused save "SAVE FAILED, RETRY" (an explicit retry or safe retreat), so the hold never looks like a bug.
  *
  * One draw for every border (a ribbon per side) plus the panel's two quads, shown only while a status is up.
  */
@@ -29,8 +29,8 @@ const NOT_DURABLE = 'Local checkpoint is not durable';
 /** G119 from the crossing's telemetry: a refused durable save, else a crossing on its way (preparing / waiting to commit). */
 export function crossingSaveStatus(state: GridCrossingState | null | undefined): CrossingSaveStatus {
   if (state === null || state === undefined) return null;
-  if (state.issue === NOT_DURABLE) return 'failed';
-  if (state.target !== state.current && (state.phase === 'preparing' || state.phase === 'ready')) return 'saving';
+  if (state.phase === 'save-failed' || state.issue === NOT_DURABLE) return 'failed';
+  if (state.target !== state.current && (state.phase === 'save-pending' || state.phase === 'ready')) return 'saving';
   return null;
 }
 

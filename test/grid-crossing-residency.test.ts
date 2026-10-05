@@ -123,7 +123,7 @@ it('retains the only active traveller motor while a real source checkpoint is bl
     for (let tick = 0; tick < 20; tick++) { f.session.step(f.driver.worldFeet()); await Promise.resolve(); }
     expect(f.driver.current()).toBe('driftwood-isle'); expect(source.player.motor).toBe(motor); expect(source.hasPlayerMotor).toBe(true);
     expect(f.session.crossing.state().issue).toBe('Local checkpoint is not durable');
-    f.quota(false); expect(f.session.step(f.driver.worldFeet())).toBe(true); expect(f.driver.current()).toBeNull(); expect(source.hasPlayerMotor).toBe(false);
+    f.quota(false); f.session.crossing.retrySave(); expect(f.session.step(f.driver.worldFeet())).toBe(true); expect(f.driver.current()).toBeNull(); expect(source.hasPlayerMotor).toBe(false);
     expect(f.changes).toEqual(['driftwood-isle', null]);
   } finally { f.dispose(); }
 });

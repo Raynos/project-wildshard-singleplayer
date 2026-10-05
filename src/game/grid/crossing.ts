@@ -4,11 +4,13 @@ import type { GridLoadout } from './wallet';
 
 /** A prepared, rollback-safe frame/view change. Commit must either finish completely or leave the source intact. */
 export interface PreparedGridCrossing { commit: () => void; cancel: () => void }
+/** Poll pending durability without capturing an old asynchronous snapshot; true must checkpoint the current fixed boundary. */
+export type GridCheckpointResult = boolean | 'pending';
 /** Destination admission runs ahead of the fixed step; local checkpoints and stow never transfer shard possessions. */
 export interface GridCrossingPorts {
   prepare: (from: string | null, to: string | null) => Promise<PreparedGridCrossing>;
   ready: (instance: string | null) => boolean;
-  checkpoint: (instance: string) => boolean;
+  checkpoint: (instance: string) => GridCheckpointResult;
   stow: (instance: string) => void;
   interior: (instance: string) => void;
   changed: (from: string | null, to: string | null) => void;
@@ -16,7 +18,7 @@ export interface GridCrossingPorts {
 /** Observed logical frame and admission state; a blocked transition keeps the original active frame. */
 export interface GridCrossingState {
   readonly current: string | null; readonly target: string | null;
-  readonly phase: 'settled' | 'preparing' | 'ready' | 'blocked'; readonly issue: string | null;
+  readonly phase: 'settled' | 'preparing' | 'ready' | 'blocked' | 'save-pending' | 'save-failed'; readonly issue: string | null;
 }
 /** Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit. */
 export class GridCrossing {
@@ -34,6 +36,7 @@ export class GridCrossing {
   request(target: string | null): void {
     if (this.disposed) throw new Error('Crossing is disposed');
     if (target?.length === 0) throw new Error('Crossing needs a stable instance');
+    if (target === this.target && this.phase === 'save-failed') { this.retrySave(); return; }
     if (target === this.target && this.phase !== 'blocked') return;
     this.prepared?.cancel(); this.prepared = undefined;
     const generation = ++this.generation; this.target = target; this.issue = null;
@@ -62,9 +65,15 @@ export class GridCrossing {
       }
     }
     const prepared = this.prepared;
-    if (this.phase !== 'ready' || prepared === undefined || !this.ports.ready(this.target)) return false;
+    if ((this.phase !== 'ready' && this.phase !== 'save-pending') || prepared === undefined || !this.ports.ready(this.target)) return false;
     const from = this.current, to = this.target;
-    if (from !== null && !this.ports.checkpoint(from)) { this.issue = 'Local checkpoint is not durable'; return false; }
+    if (from !== null) {
+      let saved: GridCheckpointResult;
+      try { saved = this.ports.checkpoint(from); }
+      catch { saved = false; }
+      if (saved === 'pending') { this.phase = 'save-pending'; this.issue = null; return false; }
+      if (!saved) { this.phase = 'save-failed'; this.issue = 'Local checkpoint is not durable'; return false; }
+    }
     try { prepared.commit(); }
     catch (error) {
       prepared.cancel(); this.prepared = undefined; this.phase = 'blocked';
@@ -75,6 +84,8 @@ export class GridCrossing {
   }
   /** State is copied so consumers cannot move a frame without committing its prepared transition. */
   state(): GridCrossingState { return { current: this.current, target: this.target, phase: this.phase, issue: this.issue }; }
+  /** Explicit quota/storage retry reuses the prepared destination; fixed ticks never spam a failed durable write. */
+  retrySave(): void { if (!this.disposed && this.phase === 'save-failed') { this.phase = 'ready'; this.issue = null; } }
   /** Cancel only this session's prepared destination; late completions release their own resources. */
   dispose(): void { this.disposed = true; this.generation++; this.prepared?.cancel(); this.prepared = undefined; }
 }
