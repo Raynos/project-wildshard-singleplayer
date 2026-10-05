@@ -3,7 +3,7 @@
 // balance); the reverb rooms decay in their target times; loops are seamless; renders are deterministic.
 import { describe, expect, test } from 'vitest';
 import * as G from '../src/engine/audio/gen';
-import * as V from '../src/kit/audio/creatureVoices';
+import * as V from '../src/shards/driftwood-isle/runtime/audio/creatureVoices';
 import { Biquad, bandEnergy, centroid, rt60 } from '../src/engine/audio/dsp';
 import { SurfaceMap } from '../src/shards/driftwood-isle/runtime/audio/surface';
 

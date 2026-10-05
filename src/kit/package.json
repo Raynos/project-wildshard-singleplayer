@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./audio/creatureVoices": "./audio/creatureVoices.ts",
     "./audio/forest": "./audio/forest.ts",
     "./audio/weaponVoices": "./audio/weaponVoices.ts",
     "./effects/install": "./effects/install.ts",
