@@ -14,6 +14,8 @@ import { DialogueBox, RewardCaption } from '@wildshard/engine/quest/view/ui';
 import type { ProgressSink } from '@wildshard/game/Progress';
 import { elitesSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredAdventure } from './runtime/enteredAdventure';
 /**
  * Nalati's adventure layer (NALATI-MERGE Q1–Q5) — the shard's quest line on the shared quest core
  * (src/game/quest/core.ts: the chip, NPC talk, places with saved discovery, chained chapters), wired from main.ts in
@@ -140,9 +142,15 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
     },
     markers,
   });
-  const dialogue = new DialogueBox(w.ctx?.scope);
+  const entered = w.ctx !== undefined && retainsRuntimeServices(w.ctx) ? installEnteredAdventure(w.ctx, chip.line.root) : undefined;
+  const legacyDialogue = entered === undefined ? new DialogueBox(w.ctx?.scope) : undefined;
+  const currentDialogue = (): DialogueBox => {
+    const dialogue = entered?.dialogue ?? legacyDialogue;
+    if (dialogue === undefined) throw new Error('Nalati dialogue is not installed');
+    return dialogue;
+  };
   const talks = (Object.keys(CAMP_NPCS) as PersonId[]).map((id) => {
-    const talk = new NpcTalk({ dialogue, flags, npc: CAMP_NPCS[id], at: people.fig[id].headWorld, radius: TALK_R, label: LABELS[id], speaker: people.fig[id], onOpen: () => { w.audio.weaponSwap(); } });
+    const talk = new NpcTalk({ get dialogue() { return currentDialogue(); }, flags, npc: CAMP_NPCS[id], at: people.fig[id].headWorld, radius: TALK_R, label: LABELS[id], speaker: people.fig[id], onOpen: () => { w.audio.weaponSwap(); } });
     w.prompts.push(talk.prompt);
     return { id, talk };
   });
@@ -160,11 +168,12 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
     w.music.sting('chunk');   // no "Quest complete" toast: the caption below says it (the phone stacked both over it)
     const title = REWARD[q.def.id]?.title;
     let c = caption.get(q.def.id);
-    if (!c) { c = new RewardCaption(`Chapter ${line.number(q)} · complete`, q.def.title, title !== undefined ? `Title earned · ${title}` : ''); caption.set(q.def.id, c); w.ctx?.scope.onDispose(() => c?.root.remove()); }
+    if (!c) { c = new RewardCaption(`Chapter ${line.number(q)} · complete`, q.def.title, title !== undefined ? `Title earned · ${title}` : ''); caption.set(q.def.id, c); w.ctx?.scope.onDispose(() => c?.root.remove()); entered?.caption(c.root); }
     const shown = c;
     shown.show(true);
     chip.line.root.classList.add('ws-quest-hide');   // the caption has the screen
-    scope.timeout(6500, () => { shown.show(false); chip.line.root.classList.remove('ws-quest-hide'); });
+    const hide = (): void => { shown.show(false); chip.line.root.classList.remove('ws-quest-hide'); };
+    if (entered === undefined) scope.timeout(6500, hide); else entered.timeout(6500, hide);
   };
   // the MAP tab's quest card: the chapter, its objective, the hint
   w.fullMap?.setQuest?.(() => {
@@ -219,6 +228,7 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
     const flag = CLUE_FLAGS[i], lines = CARVINGS[i];
     if (flag === undefined || lines === undefined) return;
     w.hud.toast(`A carving on its back · clue ${i + 1} / ${CLUE_FLAGS.length}`);
+    const dialogue = currentDialogue();
     if (!dialogue.isOpen) dialogue.open(`A toppled balbal · ${i + 1} / ${CLUE_FLAGS.length}`, lines, () => undefined);
     flags.set(flag);
   };
@@ -249,7 +259,7 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
   const update = (dt: number, t: number): void => {
     if (!chained) chainKill();
     const pp = w.player.position;
-    dialogue.update(dt);
+    currentDialogue().update(dt);
     for (const { talk } of talks) talk.update(pp);
     people.update(dt, t, pp);
     kokpar.update(dt, pp, w.ride?.mount ?? null);
@@ -259,8 +269,8 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
   if (w.ctx === undefined) w.game.onUpdate(update, 'shard.nalati-grasslands.installNalatiAdventure');
   else w.ctx.system({ id: 'shard.nalati.quest', phase: 'update', after: ['main.6'], before: ['hud.combat', 'shard.nalati-grasslands.bind', 'first hints', 'main.world', 'main.frame'], run: update });
 
-  const adventure: NalatiAdventure = { flags, line, people, kokpar, places, dialogue, chip, markers };
-  const debug = { ...adventure, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } };
+  const adventure: NalatiAdventure = { flags, line, people, kokpar, places, get dialogue() { return currentDialogue(); }, chip, markers };
+  const debug = { ...adventure, get dialogue() { return currentDialogue(); }, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } };
   if (w.ctx === undefined) Object.assign(window, { __nalatiQuest: debug }); else w.ctx.debug.expose('nalati.quest', debug);
   return adventure;
 }
