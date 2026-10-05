@@ -1,6 +1,7 @@
 import type { Scope } from '../../app/scope';
+import { Vector3 } from 'three';
 import type { Events } from '../../events/events';
-import type { Actor, CombatTag } from '../pipeline';
+import type { Actor, CombatPipeline, CombatTag } from '../pipeline';
 import { matchesTag, type ActiveEffect, type AttributeSet, type EffectDef, type EffectId, type EffectTarget } from './types';
 
 declare module '../../events/maps' {
@@ -8,6 +9,26 @@ declare module '../../events/maps' {
     'effect.applied': { target: EffectTarget; id: EffectId };
     'effect.removed': { target: EffectTarget; id: EffectId };
   }
+}
+
+/** Bind player-owned movement channels and periodic damage for the same lifetime as the player. */
+export function bindPlayerEffects(o: { effects: EffectService; target: Actor;
+  movement: { effectMoveLocked: boolean; effectMoveScale: number };
+  combat: CombatPipeline; position: () => Vector3; scope: Scope }): void {
+  const { effects, target, movement, scope } = o;
+  effects.setBase(target, 'moveLocked', 0);
+  effects.setBase(target, 'moveSpeedMul', 1);
+  effects.bind(target, () => {
+    movement.effectMoveLocked = (target.attributes['moveLocked'] ?? 0) > 0;
+    movement.effectMoveScale = target.attributes['moveSpeedMul'] ?? 1;
+  }, scope);
+  effects.onTick((recipient: EffectTarget, effect) => {
+    const amount = effect.def.tickDamage;
+    if (recipient !== target || amount === undefined || !target.alive) return;
+    o.combat.hit({ source: effect.source ?? 'env', sourceTags: [...effect.sourceTags, effect.def.id, 'dmg.effect', 'through.walls'],
+      target, amount: amount * effect.stacks, point: o.position(), dir: new Vector3(), throughWalls: true });
+  }, scope);
+  scope.onDispose(() => { movement.effectMoveLocked = false; movement.effectMoveScale = 1; });
 }
 interface TargetState {
   active: Map<EffectId, ActiveEffect>; bases: AttributeSet;
