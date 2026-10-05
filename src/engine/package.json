@@ -341,6 +341,7 @@
     "./sim/shore": "./sim/shore.ts",
     "./physics/readinessWalls": "./physics/readinessWalls.ts",
     "./physics/gridBorders": "./physics/gridBorders.ts",
+    "./physics/transferWalls": "./physics/transferWalls.ts",
     "./player/hoverSpeed": "./player/hoverSpeed.ts",
     "./sim/strips": "./sim/strips.ts",
     "./physics/frame": "./physics/frame.ts",
