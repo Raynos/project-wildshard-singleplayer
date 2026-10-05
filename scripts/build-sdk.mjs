@@ -2,7 +2,7 @@
 // Build author tools against the same public contract as the game; pnpm pack uses these portable JS modules.
 import { build } from 'vite';
 import { relative, resolve } from 'node:path';
-import { cpSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { rapierAlias } from '../vite/rapier.ts';
 
@@ -27,7 +27,10 @@ function declaration(layer, module) {
   seen.add(key);
   const source = resolve(root, `.tsc-layers/${layer}/src/${layer}/${module}.d.ts`);
   const output = resolve(root, `src/sdk/dist/types/${key}.d.ts`);
-  let text = readFileSync(source, 'utf8');
+  // Ambient defining leaves are compiler inputs, so tsc does not emit a second copy of them.
+  let text = readFileSync(existsSync(source) ? source : resolve(root, `src/${layer}/${module}.d.ts`), 'utf8');
+  // Relative import declarations are illegal inside ambient modules; the equivalent type query remains portable.
+  if (key === 'engine/types/n8ao') text = text.replace("import type { Renderer } from '@wildshard/engine/render/renderer';", "type Renderer = import('@wildshard/engine/render/renderer').Renderer;");
   text = text.replaceAll(/(['"])@wildshard\/(engine|game|kit|sdk)\/([^'"]+)\1/gu, (_match, quote, dependencyLayer, dependency) => {
     declaration(dependencyLayer, dependency);
     const from = resolve(root, `src/sdk/dist/types/${layer}`, module, '..');
@@ -39,6 +42,11 @@ function declaration(layer, module) {
   for (const match of text.matchAll(/(?:from\s*|import\s*\()(['"])(\.[^'"]+)\1/gu)) {
     const dependency = relative(resolve(root, `src/${layer}`), resolve(root, `src/${layer}`, module, '..', match[2]));
     if (!dependency.startsWith('..')) declaration(layer, dependency.replace(/\.js$/u, ''));
+  }
+  if (/from\s*['"]n8ao['"]/u.test(text)) {
+    declaration('engine', 'types/n8ao');
+    const vendor = relative(resolve(output, '..'), resolve(root, 'src/sdk/dist/types/engine/types/n8ao.d.ts')).replaceAll('\\', '/');
+    text = `/// <reference path="${vendor}" />\n${text}`;
   }
   mkdirSync(resolve(output, '..'), { recursive: true }); writeFileSync(output, text);
 }

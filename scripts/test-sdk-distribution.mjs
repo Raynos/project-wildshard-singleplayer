@@ -30,9 +30,12 @@ try {
   if (!html.includes('id="ws-shardfile"') || !html.includes('"slug":"outside"')) throw new Error('Prebuilt normal client is missing the outside source');
   const installed = JSON.parse(readFileSync(join(consumer, 'node_modules/@wildshard/sdk/package.json'), 'utf8'));
   if (!installed.exports['./shardfile'].types.startsWith('./dist/')) throw new Error('Packed types still point to workspace sources');
-  writeFileSync(join(consumer, 'typecheck.ts'), "import { emptyShardfile } from '@wildshard/sdk/author';\nimport type { Shardfile } from '@wildshard/sdk/shardfile';\nconst shard: Shardfile = emptyShardfile({slug:'outside',name:'Outside',author:'Local',revision:1,seed:1});\nconsole.log(shard.ui);\n");
-  run(join(root, 'node_modules/.bin/tsc'), ['--noEmit', '--strict', '--module', 'esnext', '--moduleResolution', 'bundler', '--target', 'es2022', '--lib', 'es2022,dom', 'typecheck.ts'], consumer);
-  console.log(JSON.stringify({ pass: true, tarballBytes: statSync(tarball).size, files: one.length, identicalBuilds: 2, installedBy: 'file:', standaloneTypes: true, normalClient: true }));
+  const modules = Object.keys(installed.exports);
+  const imports = modules.map((name, i) => `import * as public${i} from '@wildshard/sdk/${name.slice(2)}';`);
+  writeFileSync(join(consumer, 'typecheck.ts'), `${imports.join('\n')}\nconsole.log(${modules.map((_name, i) => `public${i}`).join(',')});\n`);
+  // Rapier's public declarations use the standard disposable symbols available in the supported Node versions.
+  run(join(root, 'node_modules/.bin/tsc'), ['--noEmit', '--strict', '--module', 'esnext', '--moduleResolution', 'bundler', '--target', 'es2022', '--lib', 'es2022,dom,esnext.disposable', 'typecheck.ts'], consumer);
+  console.log(JSON.stringify({ pass: true, tarballBytes: statSync(tarball).size, files: one.length, identicalBuilds: 2, installedBy: 'file:', standaloneTypes: true, publicModules: modules.length, normalClient: true }));
   if (process.argv.includes('--keep')) { console.log(`kept ${scratch}`); }
   else rmSync(scratch, { recursive: true, force: true });
 } catch (error) {

@@ -51,7 +51,9 @@
     "@types/three": "^0.186.0",
     "@dimforge/rapier3d-simd": "0.21.0",
     "@gltf-transform/core": "^4.5.0",
-    "fflate": "0.8.3"
+    "fflate": "0.8.3",
+    "navcat": "0.4.1",
+    "postprocessing": "^6.39.5"
   },
   "publishConfig": {
     "exports": {
