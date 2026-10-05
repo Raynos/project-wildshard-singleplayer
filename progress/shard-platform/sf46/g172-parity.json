@@ -1,0 +1,4797 @@
+{
+ "row": "SF46 G172",
+ "parent": "0b75774e7b9172bbda2cff04bbcda65f67126010",
+ "parentDebug": "driftwoodHybrid saved ON (the previous row-ON world)",
+ "current": "116e973a6ec9cafba27234aa18327c89a8592dd2",
+ "currentNote": "candidate tree of fe508c172 on 0b75774e7; no row, the drop is the only world",
+ "when": "2026-10-05T02:52:23.566Z",
+ "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+ "reports": [
+  {
+   "tier": "phone",
+   "verdict": "green",
+   "images": [
+    {
+     "name": "pier",
+     "ssim": 0.9911566049446355,
+     "full": 0.9913948164239162,
+     "masked": 0.027,
+     "note": null
+    },
+    {
+     "name": "beach",
+     "ssim": 0.9910384288344941,
+     "full": 0.9912916551599527,
+     "masked": 0.052,
+     "note": null
+    },
+    {
+     "name": "wreck",
+     "ssim": 0.9995625370875756,
+     "full": 0.9974510327918106,
+     "masked": 0.129,
+     "note": null
+    }
+   ],
+   "differences": [],
+   "checks": [
+    {
+     "field": "leak.disposalErrors",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "no disposal failures",
+     "verdict": "green"
+    },
+    {
+     "field": "boot.errors",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "boot.renderer",
+     "baseline": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+     "now": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+     "class": "D",
+     "band": "ANGLE Metal",
+     "verdict": "green"
+    },
+    {
+     "field": "boot.scene.totals.batched",
+     "baseline": 2,
+     "now": 2,
+     "class": "D",
+     "band": "\u2264 2 (B15 ratchet)",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.stuck",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.pier.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.pier.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.hut.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.hut.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.bridge.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.bridge.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.lookout.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.lookout.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.wreck.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.wreck.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.cave.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.cave.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.shrine.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.shrine.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.boat.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.boat.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.touch",
+     "baseline": {
+      "moved": 15.101195538082395,
+      "yawDelta": -1.1399999999999997,
+      "dodged": true,
+      "used": true
+     },
+     "now": {
+      "moved": 15.101195538082395,
+      "yawDelta": -1.1399999999999997,
+      "dodged": true,
+      "used": true
+     },
+     "class": "D",
+     "band": "moved \u22652; yaw changed; dodge; use",
+     "verdict": "green"
+    },
+    {
+     "field": "combat.swing",
+     "baseline": {
+      "weapon": "sword",
+      "target": "crab",
+      "hits": 3,
+      "hitWithinS": 0.6333333333332973,
+      "killed": true,
+      "killWithinS": 1.899999999999892,
+      "hitLimit": 3,
+      "killLimit": 15
+     },
+     "now": {
+      "weapon": "sword",
+      "target": "crab",
+      "hits": 3,
+      "hitWithinS": 0.6333333333332973,
+      "killed": true,
+      "killWithinS": 1.899999999999892,
+      "hitLimit": 3,
+      "killLimit": 15
+     },
+     "class": "D",
+     "band": "hit and kill within limits",
+     "verdict": "green"
+    },
+    {
+     "field": "pauseResume",
+     "baseline": {
+      "before": {
+       "appState": "paused",
+       "clockNow": 103.79999999999667,
+       "player": {
+        "pos": {
+         "x": -7.871,
+         "y": 1.128,
+         "z": -142.122
+        },
+        "yaw": -0.7380514040376686,
+        "pitch": -0.7388837872768186,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 62.347,
+          "y": 3.839,
+          "z": -106.378
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": -90.217,
+          "y": 3.855,
+          "z": 137.85
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": -98.121,
+          "y": 2.872,
+          "z": 150.005
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": -97.551,
+          "y": 3.158,
+          "z": 141.473
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3",
+          "used:vista-bench"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "after": {
+       "appState": "play",
+       "clockNow": 103.79999999999667,
+       "player": {
+        "pos": {
+         "x": -7.871,
+         "y": 1.128,
+         "z": -142.122
+        },
+        "yaw": -0.7380514040376686,
+        "pitch": -0.7388837872768186,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 62.347,
+          "y": 3.839,
+          "z": -106.378
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": -90.217,
+          "y": 3.855,
+          "z": 137.85
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": -98.121,
+          "y": 2.872,
+          "z": 150.005
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": -97.551,
+          "y": 3.158,
+          "z": 141.473
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3",
+          "used:vista-bench"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "diff": [],
+      "appStates": [
+       "paused",
+       "play"
+      ],
+      "returnState": "play"
+     },
+     "now": {
+      "before": {
+       "appState": "paused",
+       "clockNow": 103.79999999999667,
+       "player": {
+        "pos": {
+         "x": -7.871,
+         "y": 1.128,
+         "z": -142.122
+        },
+        "yaw": -0.7380514040376686,
+        "pitch": -0.7388837872768186,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 62.347,
+          "y": 3.839,
+          "z": -106.378
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": -90.217,
+          "y": 3.855,
+          "z": 137.85
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": -98.121,
+          "y": 2.872,
+          "z": 150.005
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": -97.551,
+          "y": 3.158,
+          "z": 141.473
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3",
+          "used:vista-bench"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "after": {
+       "appState": "play",
+       "clockNow": 103.79999999999667,
+       "player": {
+        "pos": {
+         "x": -7.871,
+         "y": 1.128,
+         "z": -142.122
+        },
+        "yaw": -0.7380514040376686,
+        "pitch": -0.7388837872768186,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 62.347,
+          "y": 3.839,
+          "z": -106.378
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": -90.217,
+          "y": 3.855,
+          "z": 137.85
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": -98.121,
+          "y": 2.872,
+          "z": 150.005
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": -97.551,
+          "y": 3.158,
+          "z": 141.473
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3",
+          "used:vista-bench"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "diff": [],
+      "appStates": [
+       "paused",
+       "play"
+      ],
+      "returnState": "play"
+     },
+     "class": "D",
+     "band": "no state drift; resumed prior state",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.geometries",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.textures",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.programs",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.bodies",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.colliders",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.window",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.document",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.canvas",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.other",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.timers.timeouts",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.timers.intervals",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.timers.raf",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.audio.activeVoices",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.audio.beds",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.audio.buses",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.input",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.fixed.pre",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.fixed.step",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.fixed.post",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.update",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.late",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.render",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.events.listeners",
+     "baseline": 7,
+     "now": 7,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.events.answerers",
+     "baseline": 5,
+     "now": 5,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.dom.hud",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.dom.body",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.sceneObjects",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.draws",
+     "baseline": 1174,
+     "now": 272,
+     "class": "D",
+     "band": "\u2264 1174",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.tris",
+     "baseline": 18779873,
+     "now": 1315452,
+     "class": "D",
+     "band": "\u2264 18779873",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.programs",
+     "baseline": 148,
+     "now": 96,
+     "class": "D",
+     "band": "\u2264 148",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.gpuMB",
+     "baseline": 500,
+     "now": 173.6965570449829,
+     "class": "D",
+     "band": "\u2264 500",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.draws",
+     "baseline": 1174,
+     "now": 286,
+     "class": "D",
+     "band": "\u2264 1174",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.tris",
+     "baseline": 18779873,
+     "now": 1288560,
+     "class": "D",
+     "band": "\u2264 18779873",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.programs",
+     "baseline": 148,
+     "now": 96,
+     "class": "D",
+     "band": "\u2264 148",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.gpuMB",
+     "baseline": 500,
+     "now": 173.6965570449829,
+     "class": "D",
+     "band": "\u2264 500",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.draws",
+     "baseline": 1174,
+     "now": 178,
+     "class": "D",
+     "band": "\u2264 1174",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.tris",
+     "baseline": 18779873,
+     "now": 937718,
+     "class": "D",
+     "band": "\u2264 18779873",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.programs",
+     "baseline": 148,
+     "now": 96,
+     "class": "D",
+     "band": "\u2264 148",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.gpuMB",
+     "baseline": 500,
+     "now": 173.6965570449829,
+     "class": "D",
+     "band": "\u2264 500",
+     "verdict": "green"
+    }
+   ]
+  },
+  {
+   "tier": "desktop",
+   "verdict": "green",
+   "images": [
+    {
+     "name": "pier",
+     "ssim": 0.9996908322388511,
+     "full": 0.9996137667728767,
+     "masked": 0.03,
+     "note": null
+    },
+    {
+     "name": "beach",
+     "ssim": 0.9964878847914702,
+     "full": 0.996839522903597,
+     "masked": 0.128,
+     "note": null
+    },
+    {
+     "name": "wreck",
+     "ssim": 0.996908681967992,
+     "full": 0.9958579453003825,
+     "masked": 0.061,
+     "note": null
+    }
+   ],
+   "differences": [],
+   "checks": [
+    {
+     "field": "leak.disposalErrors",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "no disposal failures",
+     "verdict": "green"
+    },
+    {
+     "field": "boot.errors",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "boot.renderer",
+     "baseline": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+     "now": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+     "class": "D",
+     "band": "ANGLE Metal",
+     "verdict": "green"
+    },
+    {
+     "field": "boot.scene.totals.batched",
+     "baseline": 2,
+     "now": 2,
+     "class": "D",
+     "band": "\u2264 2 (B15 ratchet)",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.stuck",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.pier.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.pier.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.hut.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.hut.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.bridge.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.bridge.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.lookout.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.lookout.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.wreck.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.wreck.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.cave.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.cave.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.shrine.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.shrine.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.boat.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.boat.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-0-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-1-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-2-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-forward.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-back.stuck",
+     "baseline": [],
+     "now": [],
+     "class": "D",
+     "band": "[]",
+     "verdict": "green"
+    },
+    {
+     "field": "walk.legs.trail-3-back.out",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "0",
+     "verdict": "green"
+    },
+    {
+     "field": "combat.swing",
+     "baseline": {
+      "weapon": "sword",
+      "target": "crab",
+      "hits": 3,
+      "hitWithinS": 0.6333333333332973,
+      "killed": true,
+      "killWithinS": 1.899999999999892,
+      "hitLimit": 3,
+      "killLimit": 15
+     },
+     "now": {
+      "weapon": "sword",
+      "target": "crab",
+      "hits": 3,
+      "hitWithinS": 0.6333333333332973,
+      "killed": true,
+      "killWithinS": 1.899999999999892,
+      "hitLimit": 3,
+      "killLimit": 15
+     },
+     "class": "D",
+     "band": "hit and kill within limits",
+     "verdict": "green"
+    },
+    {
+     "field": "pauseResume",
+     "baseline": {
+      "before": {
+       "appState": "paused",
+       "clockNow": 101.19999999999682,
+       "player": {
+        "pos": {
+         "x": -6.794,
+         "y": 0.937,
+         "z": -144.32
+        },
+        "yaw": 3.0051900517386705,
+        "pitch": -0.6514404936593635,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.107,
+          "y": 2.415,
+          "z": -122.155
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.916,
+          "y": 2.744,
+          "z": -56.727
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.86,
+          "y": 2.181,
+          "z": -46.909
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.183,
+          "y": 1.976,
+          "z": -41.938
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "after": {
+       "appState": "play",
+       "clockNow": 101.19999999999682,
+       "player": {
+        "pos": {
+         "x": -6.794,
+         "y": 0.937,
+         "z": -144.32
+        },
+        "yaw": 3.0051900517386705,
+        "pitch": -0.6514404936593635,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.107,
+          "y": 2.415,
+          "z": -122.155
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.916,
+          "y": 2.744,
+          "z": -56.727
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.86,
+          "y": 2.181,
+          "z": -46.909
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.183,
+          "y": 1.976,
+          "z": -41.938
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "diff": [],
+      "appStates": [
+       "paused",
+       "play"
+      ],
+      "returnState": "play"
+     },
+     "now": {
+      "before": {
+       "appState": "paused",
+       "clockNow": 101.19999999999682,
+       "player": {
+        "pos": {
+         "x": -6.794,
+         "y": 0.937,
+         "z": -144.32
+        },
+        "yaw": 3.0051900517386705,
+        "pitch": -0.6514404936593635,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.107,
+          "y": 2.415,
+          "z": -122.155
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.916,
+          "y": 2.744,
+          "z": -56.727
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.86,
+          "y": 2.181,
+          "z": -46.909
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.183,
+          "y": 1.976,
+          "z": -41.938
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "after": {
+       "appState": "play",
+       "clockNow": 101.19999999999682,
+       "player": {
+        "pos": {
+         "x": -6.794,
+         "y": 0.937,
+         "z": -144.32
+        },
+        "yaw": 3.0051900517386705,
+        "pitch": -0.6514404936593635,
+        "vel": {
+         "x": 0,
+         "y": 0,
+         "z": 0
+        },
+        "health": 100
+       },
+       "weapon": {
+        "id": "sword",
+        "state": {
+         "magazine": 30,
+         "reserve": 0,
+         "loaded": true,
+         "reloading": false,
+         "reloadProgress": 0,
+         "ads": false
+        },
+        "ammo": null
+       },
+       "creatures": [
+        {
+         "id": "bear:11",
+         "kind": "bear",
+         "pos": {
+          "x": 65.957,
+          "y": 5.327,
+          "z": -80.921
+         },
+         "hp": 320,
+         "brain": "idle"
+        },
+        {
+         "id": "bear:12",
+         "kind": "bear",
+         "pos": {
+          "x": -119.539,
+          "y": 2.825,
+          "z": -98.997
+         },
+         "hp": 220,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:0",
+         "kind": "boar",
+         "pos": {
+          "x": 69.034,
+          "y": 1.522,
+          "z": -139.777
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:1",
+         "kind": "boar",
+         "pos": {
+          "x": 80.325,
+          "y": 1.134,
+          "z": -142.393
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:10",
+         "kind": "boar",
+         "pos": {
+          "x": 33.554,
+          "y": 12.215,
+          "z": 145.421
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:2",
+         "kind": "boar",
+         "pos": {
+          "x": 72.009,
+          "y": 1.635,
+          "z": -138.087
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:3",
+         "kind": "boar",
+         "pos": {
+          "x": 73.189,
+          "y": 0.95,
+          "z": -144.849
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:4",
+         "kind": "boar",
+         "pos": {
+          "x": -144.701,
+          "y": 2.606,
+          "z": -39.701
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:5",
+         "kind": "boar",
+         "pos": {
+          "x": -142.605,
+          "y": 2.767,
+          "z": -43.969
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:6",
+         "kind": "boar",
+         "pos": {
+          "x": -137.462,
+          "y": 3.13,
+          "z": -42.744
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:7",
+         "kind": "boar",
+         "pos": {
+          "x": 39.924,
+          "y": 10.041,
+          "z": 148.447
+         },
+         "hp": 140,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:8",
+         "kind": "boar",
+         "pos": {
+          "x": 37.298,
+          "y": 12.79,
+          "z": 141.411
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "boar:9",
+         "kind": "boar",
+         "pos": {
+          "x": 41.581,
+          "y": 12.338,
+          "z": 141.224
+         },
+         "hp": 100,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:13",
+         "kind": "crab",
+         "pos": {
+          "x": 130,
+          "y": 1.007,
+          "z": 5
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:14",
+         "kind": "crab",
+         "pos": {
+          "x": 131.908,
+          "y": 0.876,
+          "z": 4.819
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:15",
+         "kind": "crab",
+         "pos": {
+          "x": 132.474,
+          "y": 0.826,
+          "z": 3.924
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:16",
+         "kind": "crab",
+         "pos": {
+          "x": 132,
+          "y": 0.549,
+          "z": -9
+         },
+         "hp": 70,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:17",
+         "kind": "crab",
+         "pos": {
+          "x": 130.761,
+          "y": 0.515,
+          "z": -10.591
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:18",
+         "kind": "crab",
+         "pos": {
+          "x": 134.185,
+          "y": 0.501,
+          "z": -7.659
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:19",
+         "kind": "crab",
+         "pos": {
+          "x": 130.467,
+          "y": 0.799,
+          "z": -7.078
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:20",
+         "kind": "crab",
+         "pos": {
+          "x": 133.684,
+          "y": 0.271,
+          "z": -10.926
+         },
+         "hp": 25,
+         "brain": "idle"
+        },
+        {
+         "id": "crab:21",
+         "kind": "crab",
+         "pos": {
+          "x": -7,
+          "y": 1.027,
+          "z": -143
+         },
+         "hp": 0,
+         "brain": "dead"
+        },
+        {
+         "id": "monkey:22",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.999,
+          "y": 3.007,
+          "z": -114.676
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:23",
+         "kind": "monkey",
+         "pos": {
+          "x": 58.701,
+          "y": 3.604,
+          "z": -109.69
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:24",
+         "kind": "monkey",
+         "pos": {
+          "x": 53.334,
+          "y": 3.276,
+          "z": -114.315
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:25",
+         "kind": "monkey",
+         "pos": {
+          "x": 60.107,
+          "y": 2.415,
+          "z": -122.155
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:26",
+         "kind": "monkey",
+         "pos": {
+          "x": 105.368,
+          "y": 32.057,
+          "z": 107.867
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:27",
+         "kind": "monkey",
+         "pos": {
+          "x": 95.933,
+          "y": 32.924,
+          "z": 107.4
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:28",
+         "kind": "monkey",
+         "pos": {
+          "x": 103.156,
+          "y": 31.857,
+          "z": 104.309
+         },
+         "hp": 45,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:29",
+         "kind": "monkey",
+         "pos": {
+          "x": 110.077,
+          "y": 31.13,
+          "z": 109.398
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:30",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.916,
+          "y": 2.744,
+          "z": -56.727
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:31",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.86,
+          "y": 2.181,
+          "z": -46.909
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "monkey:32",
+         "kind": "monkey",
+         "pos": {
+          "x": 114.183,
+          "y": 1.976,
+          "z": -41.938
+         },
+         "hp": 30,
+         "brain": "idle"
+        },
+        {
+         "id": "sailor:33",
+         "kind": "sailor",
+         "pos": {
+          "x": 153.488,
+          "y": -0.097,
+          "z": -0.203
+         },
+         "hp": 60,
+         "brain": "idle"
+        }
+       ],
+       "quest": {
+        "adventure": {
+         "adventure": [
+          "glass:3",
+          "seen:bridge",
+          "seen:cave",
+          "seen:hut",
+          "seen:lookout",
+          "seen:pier",
+          "seen:shrine",
+          "seen:wreck",
+          "taken:glass-3"
+         ],
+         "quest": []
+        },
+        "level": []
+       }
+      },
+      "diff": [],
+      "appStates": [
+       "paused",
+       "play"
+      ],
+      "returnState": "play"
+     },
+     "class": "D",
+     "band": "no state drift; resumed prior state",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.geometries",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.textures",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.programs",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.bodies",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.colliders",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.window",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.document",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.canvas",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.listeners.other",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.timers.timeouts",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.timers.intervals",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.timers.raf",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.audio.activeVoices",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.audio.beds",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.audio.buses",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.input",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.fixed.pre",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.fixed.step",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.fixed.post",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.update",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.late",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.systems.render",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.events.listeners",
+     "baseline": 7,
+     "now": 7,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.events.answerers",
+     "baseline": 5,
+     "now": 5,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.dom.hud",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.dom.body",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "leak.sceneObjects",
+     "baseline": 0,
+     "now": 0,
+     "class": "D",
+     "band": "B1 = B0",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.draws",
+     "baseline": 3262,
+     "now": 664,
+     "class": "D",
+     "band": "\u2264 3262",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.tris",
+     "baseline": 52174145,
+     "now": 3496682,
+     "class": "D",
+     "band": "\u2264 52174145",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.programs",
+     "baseline": 826,
+     "now": 109,
+     "class": "D",
+     "band": "\u2264 826",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.pier.gpuMB",
+     "baseline": 583.5372714996338,
+     "now": 455.5665683746338,
+     "class": "D",
+     "band": "\u2264 583.5372714996338",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.draws",
+     "baseline": 3262,
+     "now": 470,
+     "class": "D",
+     "band": "\u2264 3262",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.tris",
+     "baseline": 52174145,
+     "now": 2498006,
+     "class": "D",
+     "band": "\u2264 52174145",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.programs",
+     "baseline": 826,
+     "now": 109,
+     "class": "D",
+     "band": "\u2264 826",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.beach.gpuMB",
+     "baseline": 583.5372714996338,
+     "now": 455.5665683746338,
+     "class": "D",
+     "band": "\u2264 583.5372714996338",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.draws",
+     "baseline": 3262,
+     "now": 253,
+     "class": "D",
+     "band": "\u2264 3262",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.tris",
+     "baseline": 52174145,
+     "now": 1483393,
+     "class": "D",
+     "band": "\u2264 52174145",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.programs",
+     "baseline": 826,
+     "now": 109,
+     "class": "D",
+     "band": "\u2264 826",
+     "verdict": "green"
+    },
+    {
+     "field": "budgets.wreck.gpuMB",
+     "baseline": 583.5372714996338,
+     "now": 455.5665683746338,
+     "class": "D",
+     "band": "\u2264 583.5372714996338",
+     "verdict": "green"
+    }
+   ]
+  }
+ ]
+}
