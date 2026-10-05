@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Scope } from '../../../src/engine/app/scope';
 import type { MusicState } from '../../../src/engine/audio/Music';
 import type { SlotAudio } from '../../../src/engine/audio/Stems';
+import * as stems from '../../../src/engine/audio/Stems';
 import { PineScore } from '../../../src/shards/pine-hollow/runtime/audio/score';
 
 const pcm = new Float32Array(48000);
@@ -30,5 +31,21 @@ describe('Pine score policy', () => {
     score.attach(scope); score.useBank({ slots: new Map([['pine', theme]]), stings: new Map([['chunk', buffer]]) });
     expect(score.stings.size).toBe(1); scope.dispose();
     expect(score.stings.size).toBe(0); expect(score.want(undefined)).toBeUndefined(); expect(score.pending).toBe(false);
+  });
+  it.each(['theme', 'dawn'])('refuses a late %s decode from the previous entry after the retained score reattaches', async (kind) => {
+    const music = host(), score = new PineScore(music), first = new Scope('pine.score.first'), second = new Scope('pine.score.second');
+    let finish: (bank: stems.StyleBank) => void = () => { throw new Error('Decode was not requested'); };
+    const decode = vi.spyOn(stems, 'decodeStyle').mockImplementation(() => new Promise<stems.StyleBank>((resolve) => { finish = resolve; }));
+    score.attach(first);
+    const sting = kind === 'dawn' ? score.sting('dawn') : undefined;
+    if (kind === 'theme') score.want(undefined);
+    try {
+      await vi.waitFor(() => { expect(decode).toHaveBeenCalledOnce(); });
+      first.dispose(); score.attach(second);
+      finish({ genre: 'piano', slots: new Map([['pine', theme]]), stings: new Map([['dawn', buffer], ['chunk', buffer]]) });
+      if (sting !== undefined) expect(await sting).toBeUndefined();
+      else await vi.waitFor(() => { expect(score.pending).toBe(false); });
+      expect(score.stings.size).toBe(0); expect(music.refreshScore).not.toHaveBeenCalled();
+    } finally { first.dispose(); second.dispose(); decode.mockRestore(); }
   });
 });

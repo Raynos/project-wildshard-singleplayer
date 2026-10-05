@@ -1,4 +1,4 @@
-import { installPineScore } from './audio/score';
+import { installEnteredPineScore } from './audio/score';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
 import { installPineDebug } from '../debug/options';
@@ -156,7 +156,7 @@ export class PineHollow extends ShardPlugin {
     if (world === null || h === null) throw new Error('Pine gameplay needs its player host');
     const { game, sky, player, forest, registry, params } = world;
     const { animals, weapons, inventory, owned, hud, audio, music, skins, wearSkin, menu, progress, fullMap, touchUi, nolock } = h;
-    installPineScore(audio, music, ctx.scope, ctx.debugRow);
+    installEnteredPineScore(ctx, audio, music, ctx.debugRow);
     const { cabins, landmarks, particles } = this;
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof LeverRifle) || !(longbow instanceof Bow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');

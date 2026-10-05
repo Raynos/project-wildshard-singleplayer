@@ -1,4 +1,5 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music, MusicState } from '@wildshard/engine/audio/Music';
@@ -69,6 +70,7 @@ export class PineScore implements ScoreSource {
   private prepare(genre: MusicStyle, slot: string): void {
     const key = `${genre}/${slot}`;
     if (this.decoding.has(key) || this.failures.has(key) || this.scope?.disposed) return;
+    const owner = this.scope;
     this.decoding.add(key);
     void (async () => {
       let bank: StyleBank | undefined;
@@ -77,6 +79,7 @@ export class PineScore implements ScoreSource {
         bank = await decodeStyle(genre, [slot], cachedBytes, decodeBytes, undefined, PROFILE.sets[slot] ?? 'base', slot === this.base ? undefined : ['dawn']);
       } catch (error) { console.info(`[music] pine-hollow ${key}: ${error instanceof Error ? error.message : String(error)} — the theme plays`); }
       finally { this.decoding.delete(key); }
+      if (owner?.disposed || this.scope !== owner) return;
       const audio = bank?.slots.get(slot);
       if (!audio) { this.failures.add(key); return; }
       if (this.music.genre !== genre || this.scope?.disposed) return;
@@ -88,10 +91,12 @@ export class PineScore implements ScoreSource {
   async sting(name: StemSting): Promise<AudioBuffer | undefined> {
     if (name !== 'dawn') return this.stings.get(name);
     const genre = this.music.genre;
+    const owner = this.scope;
     if (this.extra?.genre === genre && this.extra.dawn) return this.extra.dawn;
     try {
       const [{ decodeStyle }, { cachedBytes, decodeBytes }] = await Promise.all([import('@wildshard/engine/audio/Stems'), import('@wildshard/engine/audio/preload')]);
       const bank = await decodeStyle(genre, [], cachedBytes, decodeBytes, undefined, 'pine-hollow', ['dawn']);
+      if (owner?.disposed || this.scope !== owner) return undefined;
       const buffer = bank.stings.get('dawn');
       if (buffer && this.music.genre === genre && !this.scope?.disposed) this.extra = { genre, slot: this.extra?.genre === genre ? this.extra.slot : undefined, dawn: buffer };
       return buffer;
@@ -129,4 +134,19 @@ export function installPineScore(audio: Audio, music: Music, scope: Scope, debug
   scope.onDispose(music.setScore(PROFILE.id, score));
   audio.onLevelBank((bank) => { if (bank.title) score.useStyleBank(bank.title); }, scope);
   return score;
+}
+
+/** Suspend a retained home's score on the road without restarting its authored scene or boss phase on re-entry. */
+export function installEnteredPineScore(context: ShardContext, audio: Audio, music: Music, debugRow?: ShardContext['debugRow']): void {
+  if (!retainsRuntimeServices(context)) {
+    installPineScore(audio, music, context.scope, debugRow);
+    return;
+  }
+  let registerDebug = true;
+  installEnteredRuntimeService(context, (scope) => {
+    const score = installPineScore(audio, music, scope, registerDebug ? debugRow : undefined);
+    registerDebug = false;
+    const bank = music.residentBank();
+    if (bank !== undefined) score.useStyleBank(bank);
+  });
 }
