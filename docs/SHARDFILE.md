@@ -160,6 +160,22 @@ KTX2 hashes in the charged library closure, including declared commons; they can
 be bound. Graphs have no implicit default material: terrain, props and creature
 looks reference their authored material ID.
 
+Material graphs with the standard lighting model may add `stages.lighting`:
+required `sun` (vec3 direct-diffuse radiance), optional `sunSpecular` (float scaling
+the sun's physical specular; omitted means no specular), optional `ambient` (vec3
+indirect diffuse; omitted uses irradiance × albedo / π), and optional `grade`
+(vec3 mapping `litColour` after lighting and emissive, before the output transform).
+A graded material bypasses tone mapping; the engine still appends its fog/output
+epilogue. Unlit and post graphs cannot carry a lighting stage. Graph-level optional
+`flatShading: boolean` selects face normals; omission preserves smooth shading.
+This addition keeps IR version 1 and the same author caps.
+
+Lighting reads engine-supplied `normalView`, `viewDirection` and `albedo` inputs;
+`sunDirection`, `sunColour` and `sunShadow` are restricted to sun evaluation,
+`irradiance` to ambient, and `litColour` to grade. All lighting subgraphs are typed
+and costed by the same validator. Toon/painterly engine presets use this stage;
+their trusted preset budget does not become a shardfile author budget.
+
 Before typing or compilation, graph admission bounds the raw JSON to 64,000
 UTF-8 bytes, depth 64 and 160 declared nodes across every nested node table,
 including unreachable nodes and loop bodies. The reachable program still must
