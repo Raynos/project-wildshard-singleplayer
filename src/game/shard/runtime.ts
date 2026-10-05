@@ -57,7 +57,8 @@ export interface ShardPlayHooks {
   eliteEngaged?: () => boolean;
   isElite?: (animal: Animal) => boolean;
   harvestBusy?: () => boolean;
-  harvest?: (animal: Animal, give: () => void) => void;
+  /** Cancel releases the caller's pending harvest reservation when a scoped gesture leaves before its reward. */
+  harvest?: (animal: Animal, give: () => void, cancel?: () => void) => void;
   stepSurface?: (at: Vector3) => StepSurface;
   directional?: boolean;
 }

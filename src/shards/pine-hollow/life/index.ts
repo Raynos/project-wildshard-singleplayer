@@ -1,4 +1,5 @@
 import { sharedWeaponVoices } from '@wildshard/kit/audio/weaponVoices';
+import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { app } from '@wildshard/engine/app/runtime';
 import { TickScheduler } from '@wildshard/engine/app/scheduler';
@@ -60,7 +61,7 @@ import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
-import { pineOption } from '../debug/options';
+import { pineMemoryTrim, pineOption } from '../debug/options';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface PineLifeHost {
@@ -81,7 +82,7 @@ export interface PineLifeHost {
 export interface PineLife {
   mesh: THREE.InstancedMesh;
   /** the skinning beat over `carcass`; `give` hands out the drops at its end. The carcass then waits for the ravens. */
-  harvest: (carcass: Animal, give: () => void) => void;
+  harvest: (carcass: Animal, give: () => void, cancel?: () => void) => void;
   /** the beat is running */
   readonly busy: boolean;
 }
@@ -128,8 +129,13 @@ const flying = (b: { mode: string }): boolean => b.mode !== 'off';
 const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
 export function installPineLife(h: PineLifeHost): PineLife | null {
+  if (pineMemoryTrim()) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (Pine memory trim)
   if (pineOption('pineLife') === 'off') return null; // Debug ▸ Creatures & NPCs ▸ Pine Hollow life (E162)
   const { game, sky, player, animals } = h;
+  const retained = retainsRuntimeServices(h.ctx);
+  let lifeTime = app.clock.now;
+  const now = (): number => retained ? lifeTime : app.clock.now;
+
   const rng = new Rng(0x71fe);
   const wild = new WildlifeMesh(sky, CAPACITY);
   game.scene.add(wild.mesh);
@@ -215,14 +221,14 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   let ravenVoiceT = 0, flapT = 0;
   /** a raven's croak from `r` (two ravens trading croaks when `pair`): one at a time across the flock, a few seconds apart */
   const caw = (r: Bird, pair = false): void => {
-    const t = app.clock.now; // the game clock: seeded runs repeat (E357 F2)
+    const t = now(); // the game clock: seeded runs repeat (E357 F2)
     if (t < ravenVoiceT) return;
     ravenVoiceT = t + rng.range(3, 6);
     voice(pair ? 'raven_pair' : 'raven_caw', r.pose, 0.9);
   };
   /** a raven's wings as it lifts off (one clatter for a flock going up together) */
   const flap = (r: Bird): void => {
-    const t = app.clock.now; // the game clock: seeded runs repeat (E357 F2)
+    const t = now(); // the game clock: seeded runs repeat (E357 F2)
     if (t < flapT) return;
     flapT = t + 0.6;
     voice('raven_flap', r.pose, 0.8);
@@ -281,7 +287,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
 
   // ── the ravens at a carcass ──
   const carcasses: Carcass[] = [];
-  const now = (): number => app.clock.now; // the game clock (E357 F2): wall time made the harness's sound log flaky
+  const harvestColors = new WeakMap<Carcass, { original: THREE.Color; dimmed: THREE.Color }>();
   // a kill, through the combat pipeline's event (no chained onKill: E357 AG19)
   h.ctx.on('actor.died', ({ actor }) => {
     const a = animals.animals.find((x) => x.combatActor() === actor);
@@ -322,7 +328,11 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     const fur = mats[0];
     if (!(fur instanceof THREE.MeshStandardMaterial)) return;
     const shared = animals.animals.some((o) => o !== c.a && (Array.isArray(o.mesh.material) ? o.mesh.material.includes(fur) : o.mesh.material === fur));
-    if (!shared) fur.color.multiplyScalar(0.62);
+    if (!shared) {
+      const original = retained ? fur.color.clone() : undefined;
+      fur.color.multiplyScalar(0.62);
+      if (original !== undefined) harvestColors.set(c, { original, dimmed: fur.color.clone() });
+    }
   };
 
   const updateCarcasses = (t: number, dt: number): void => {
@@ -688,13 +698,18 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   };
 
   // ── the skinning beat (F2) ──
+  let beatCancel: (() => void) | undefined;
   let beatT = -1, beatCarcass: Animal | null = null, beatGive: (() => void) | null = null, cutsDone = 0;
   let addPitch = 0, addY = 0, lastRx = Number.NaN, lastPy = Number.NaN;
   const fx = CameraFX.for(game);
   // the gloved hand and the skinning knife the strokes are made with (the weapon is holstered for the beat)
   const knife = new SkinKnife(game, sky, h.ctx);
-  const harvest = (carcass: Animal, give: () => void): void => {
+  let interrupted: { enabled: boolean; visible: boolean } | undefined;
+  let previousWeapons: { enabled: boolean; visible: boolean } | undefined;
+  const harvest = (carcass: Animal, give: () => void, cancel?: () => void): void => {
     if (beatT >= 0) { beatGive?.(); } // a second harvest mid-beat (never, the prompt hides): the first one's drops land now
+    if (retained && beatT < 0) previousWeapons = { enabled: h.weapons.enabled, visible: h.weapons.visible };
+    beatCancel = cancel;
     beatT = 0; beatCarcass = carcass; beatGive = give; cutsDone = 0;
     h.weapons.setEnabled(false); h.weapons.visible = false;
     h.audio.footstep(false, 'litter'); // kneeling in the needles
@@ -725,7 +740,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       fx.kick(-1.1, cutsDone % 2 === 0 ? 0.8 : -0.8);
     }
     if (beatT >= BEAT.len) {
-      beatT = -1; beatCarcass = null;
+      beatT = -1; beatCarcass = null; beatCancel = undefined;
       const give = beatGive; beatGive = null; give?.();
       if (!player.swimming) { h.weapons.setEnabled(true); h.weapons.visible = true; }
     }
@@ -733,12 +748,38 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     lastRx = cam.rotation.x; lastPy = cam.position.y;
   };
 
+  if (retained) installEnteredRuntimeService(h.ctx, (scope) => {
+    // Only the next home entry may release an interrupted harvest hold; never reveal a stowed weapon on the road.
+    if (interrupted !== undefined) {
+      h.weapons.setEnabled(interrupted.enabled); h.weapons.visible = interrupted.visible;
+      interrupted = undefined;
+    }
+    scope.onDispose(() => {
+      if (beatT >= 0) {
+        interrupted = previousWeapons;
+        const carcass = carcasses.find((entry) => entry.a === beatCarcass);
+        if (carcass !== undefined) {
+          const color = harvestColors.get(carcass), materials = carcass.a.mesh.material;
+          const fur = Array.isArray(materials) ? materials[0] : materials;
+          if (color !== undefined && fur instanceof THREE.MeshStandardMaterial && fur.color.equals(color.dimmed)) fur.color.copy(color.original);
+          harvestColors.delete(carcass); carcass.dimmed = false; carcass.harvestT = -1;
+        }
+        const cancel = beatCancel; beatCancel = undefined; cancel?.();
+      }
+      if (cam.rotation.x === lastRx && cam.position.y === lastPy) { cam.rotation.x -= addPitch; cam.position.y -= addY; }
+      beatT = -1; beatCarcass = null; beatGive = null; cutsDone = 0;
+      addPitch = 0; addY = 0; lastRx = Number.NaN; lastPy = Number.NaN;
+      knife.update(-1);
+    });
+  });
+
   // ── the frame ──
   let perfMs = 0;
   const scheduler = new TickScheduler();
   const ambient = { id: 'shard.pine.life', phase: 'update' as const, tick: 'fx', run: (): void => undefined };
   h.ctx.system({ id: 'world.life', phase: 'update', after: ['shard.pine.weather'], before: ['first hints', 'main.frame'], run: (dt) => {
     const t0 = performance.now();
+    if (retained) lifeTime += dt;
     scheduler.beginFrame(dt, player.position);
     wild.begin();
     updateBeat(dt);
@@ -814,8 +855,11 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     beat: () => beatT,
   };
   h.ctx.debug.expose('pineLife', probe);
-  const previous: unknown = Reflect.get(window, '__pineLife');
-  Reflect.set(window, '__pineLife', probe);
-  h.ctx.scope.onDispose(() => { if (Reflect.get(window, '__pineLife') === probe) { if (previous === undefined) Reflect.deleteProperty(window, '__pineLife'); else Reflect.set(window, '__pineLife', previous); } });
+  if (retained) installEnteredRuntimeObserver(h.ctx, '__pineLife', probe);
+  else {
+    const previous: unknown = Reflect.get(window, '__pineLife');
+    Reflect.set(window, '__pineLife', probe);
+    h.ctx.scope.onDispose(() => { if (Reflect.get(window, '__pineLife') === probe) { if (previous === undefined) Reflect.deleteProperty(window, '__pineLife'); else Reflect.set(window, '__pineLife', previous); } });
+  }
   return life;
 }

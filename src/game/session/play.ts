@@ -498,7 +498,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     if (!hud.entered) return;
     if (nearest) { tap.use?.(nearest.label); nearest.onInteract(); }
     else if (carcass && boot.runtime.hooks.harvestBusy?.() !== true) {
-      harvested.add(carcass);
+      const selectedCarcass = carcass;
+      harvested.add(selectedCarcass);
       const drops = inventory.harvest(carcass.kind, carcass.variant); // Pine Hollow: only what Mott takes (E314 C)
       const give = (): void => {
         const got = drops.filter((id) => inventory.add(id)); // the toast names only what went in
@@ -507,7 +508,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
         else hud.pickupCard({ name: got.map((id) => ITEMS[id].label).join(' + '), icon: ITEMS[first].icon, detail: `${inventory.total} in the pack` });
         audio.hitMarker();
       };
-      if (boot.runtime.hooks.harvest) boot.runtime.hooks.harvest(carcass, give); // PH-F2: the skinning beat, then the drops; the carcass stays for the ravens
+      if (boot.runtime.hooks.harvest) boot.runtime.hooks.harvest(selectedCarcass, give, () => { harvested.delete(selectedCarcass); }); // PH-F2: the skinning beat, then the drops; the carcass stays for the ravens
       else { give(); carcass.fadeOut(); }
     }
   }, game.levelScope);

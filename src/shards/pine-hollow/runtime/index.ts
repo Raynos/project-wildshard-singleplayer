@@ -227,7 +227,7 @@ export class PineHollow extends ShardPlugin {
     rt.hooks.eliteEngaged = () => fights.eliteEngaged();
     rt.hooks.isElite = (animal) => fights.isElite(animal);
     rt.hooks.harvestBusy = () => life?.busy ?? false;
-    if (life) rt.hooks.harvest = (animal, give) => { life.harvest(animal, give); };
+    if (life) rt.hooks.harvest = (animal, give, cancel) => { life.harvest(animal, give, cancel); };
     rt.hooks.stepSurface = (at) => ambience.stepSurface(at.x, at.z, at.y);
     rt.hooks.directional = true;
   }
