@@ -58,8 +58,11 @@ export function shardCompleteUp(): boolean { return up > 0; }
 export function completeEntry(): CompleteEntry | null { return entry; }
 export function setCompleteEntry(e: CompleteEntry | null): void { entry = e; }
 
-const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.body;
+const words = (cls: string, value = '', tag = 'div'): HTMLElement => { const node = document.createElement(tag); node.className = cls; node.textContent = value; return node; };
+const required = (root: HTMLElement, selector: string): HTMLElement => {
+  const node = root.querySelector<HTMLElement>(selector); if (node === null) throw new Error(`Missing completion slot ${selector}`); return node;
+};
 
 export class ShardComplete {
   private root: HTMLElement | null = null;
@@ -75,30 +78,43 @@ export class ShardComplete {
     const scope = uiScope('complete'); this.viewScope = scope;
     const root = document.createElement('div');
     root.className = 'ws-complete';
-    const stats = data.stats.map((s) => {
-      const bar = s.frac === undefined ? '' : `<div class="ws-complete-bar${s.frac >= 1 ? ' full' : ''}"><i style="width:${Math.round(Math.min(1, Math.max(0, s.frac)) * 100)}%"></i></div>`;
-      return `<div class="ws-complete-stat"><div class="ws-complete-lab">${esc(s.label)}</div><div class="ws-complete-val${s.value.length > 7 ? ' sm' : ''}">${esc(s.value)}</div>${bar}</div>`;
-    }).join('');
-    const todo = data.todo.length === 0 ? '' : `<div class="ws-complete-rule"></div>
-      <div class="ws-complete-lab">Still to find</div>
-      <div class="ws-complete-todo">${data.todo.map((t) => `<span>${esc(t)}</span>`).join(' ')}</div>`;
-    const next = data.next === undefined ? '' : `<button type="button" class="ws-complete-btn sec" data-act="next"><small>Next shard:</small>${esc(data.next)}</button>`;
-    root.innerHTML = `<div class="ws-complete-card" role="dialog" aria-label="${esc(data.title)} complete">
+    root.innerHTML = `<div class="ws-complete-card" role="dialog">
       <i class="cb tl"></i><i class="cb tr"></i><i class="cb bl"></i><i class="cb br"></i>
       <div class="ws-complete-head">
-        <div class="ws-complete-kicker">${esc(data.kicker)}</div>
-        <div class="ws-complete-title">${esc(data.title)}</div>
+        <div class="ws-complete-kicker"></div>
+        <div class="ws-complete-title"></div>
         <div class="ws-complete-done">· Complete ·</div>
-        <div class="ws-complete-flavour">${data.flavour.map(esc).join('<br>')}</div>
+        <div class="ws-complete-flavour"></div>
       </div>
       <div class="ws-complete-rule"></div>
-      <div class="ws-complete-grid">${stats}</div>
-      ${todo}
+      <div class="ws-complete-grid"></div>
       <div class="ws-complete-btns">
         <button type="button" class="ws-complete-btn pri" data-act="keep">Keep exploring<b>▸</b></button>
-        <div class="ws-complete-row2${next === '' ? ' one' : ''}">${next}<button type="button" class="ws-complete-btn sec" data-act="title">Title screen</button></div>
+        <div class="ws-complete-row2"><button type="button" class="ws-complete-btn sec" data-act="title">Title screen</button></div>
       </div>
     </div>`;
+    required(root, '.ws-complete-card').setAttribute('aria-label', `${data.title} complete`);
+    required(root, '.ws-complete-kicker').textContent = data.kicker; required(root, '.ws-complete-title').textContent = data.title;
+    const flavour = required(root, '.ws-complete-flavour');
+    data.flavour.forEach((line, index) => { if (index > 0) flavour.append(document.createElement('br')); flavour.append(document.createTextNode(line)); });
+    const grid = required(root, '.ws-complete-grid');
+    for (const stat of data.stats) {
+      const row = words('ws-complete-stat'); row.append(words('ws-complete-lab', stat.label), words(`ws-complete-val${stat.value.length > 7 ? ' sm' : ''}`, stat.value));
+      if (stat.frac !== undefined) {
+        const bar = words(`ws-complete-bar${stat.frac >= 1 ? ' full' : ''}`), fill = document.createElement('i');
+        fill.style.width = `${Math.round(Math.min(1, Math.max(0, stat.frac)) * 100)}%`; bar.append(fill); row.append(bar);
+      }
+      grid.append(row);
+    }
+    if (data.todo.length > 0) {
+      const todo = words('ws-complete-todo'); data.todo.forEach((value, index) => { if (index > 0) todo.append(document.createTextNode(' ')); todo.append(words('', value, 'span')); });
+      grid.after(words('ws-complete-rule'), words('ws-complete-lab', 'Still to find'), todo);
+    }
+    const row2 = required(root, '.ws-complete-row2'); row2.classList.toggle('one', data.next === undefined);
+    if (data.next !== undefined) {
+      const next = document.createElement('button'); next.type = 'button'; next.className = 'ws-complete-btn sec'; next.dataset['act'] = 'next';
+      next.append(words('', 'Next shard:', 'small'), document.createTextNode(data.next)); row2.prepend(next);
+    }
     scope.listen(root, 'click', (e) => {
       const t = e.target instanceof Element ? e.target.closest('[data-act]') : null;
       const act = t instanceof HTMLElement ? t.dataset['act'] : undefined;
