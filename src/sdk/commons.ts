@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { assetCost, type AssetCost } from './assets';
-import { canonicalJson, contentHash } from './project';
+import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admission';
 import type { CommonsCosts } from './commonsCosts';
 
@@ -39,7 +39,7 @@ export function buildCommons(packs: readonly CommonsPack[]): BuiltCommons {
       const key = `${pack.id}/${row.id}`; v.parse(id, key);
       if (ids.has(key)) throw new Error('Duplicate commons entry'); ids.add(key);
       if (input.bytes.byteLength > limits.wireBytes) throw new Error('Commons wire exceeds admission cap');
-      const hash = contentHash(input.bytes), previous = hashes.get(hash);
+      const hash = hashImmutableBytes(input.bytes), previous = hashes.get(hash);
       if (previous !== undefined && previous !== row.kind) throw new Error('Commons hash has conflicting kinds');
       if (!assets.has(hash)) {
         wire += input.bytes.byteLength; if (wire > limits.wireBytes) throw new Error('Commons total wire exceeds admission cap');
@@ -51,7 +51,7 @@ export function buildCommons(packs: readonly CommonsPack[]): BuiltCommons {
   }
   entries.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   const catalogue: CommonsCatalogue = { format: 'wildshard.commons', version: 0, entries };
-  return { catalogue, json: canonicalJson(catalogue), assets: new Map([...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
+  return { catalogue, json: encodeCanonicalJson(catalogue), assets: new Map([...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
 }
 
 /** Emit unique manifest requirements from selected pinned bytes, never copied author cost declarations. */
@@ -63,7 +63,7 @@ export function commonsRequirements(built: BuiltCommons, entryIds: readonly stri
     if (selected.has(entry.hash)) continue;
     if (selected.size >= limits.commons) throw new Error('Commons hashes exceed admission cap');
     const bytes = built.assets.get(entry.hash);
-    if (bytes === undefined || contentHash(bytes) !== entry.hash) throw new Error('Pinned commons bytes differ from catalogue hash');
+    if (bytes === undefined || hashImmutableBytes(bytes) !== entry.hash) throw new Error('Pinned commons bytes differ from catalogue hash');
     selected.set(entry.hash, { wire: bytes.length, cost: assetCost(entry.kind, bytes) });
   }
   const commons = [...selected.keys()].sort();

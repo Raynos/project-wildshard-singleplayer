@@ -2,8 +2,6 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve source assets inside the author project.
 import { resolve } from 'node:path';
-// oxlint-disable-next-line import/no-nodejs-modules -- Content addresses are SHA-256 of the exact wire bytes.
-import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Encode a compiled config as a Node module URL.
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
@@ -12,24 +10,17 @@ import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/game
 import { preflightShardfile } from '@wildshard/game/shardfile/preflight';
 import { preflightAssetGraph } from '@wildshard/game/shardfile/assetGraph';
 import { readBoundedFile } from './sourceReader';
+import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
-export function canonicalJson(value: unknown): string {
-  const canonical = (input: unknown): unknown => {
-    if (Array.isArray(input)) return input.map(canonical);
-    if (typeof input === 'object' && input !== null) return Object.fromEntries(Object.entries(input).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([key, val]) => [key, canonical(val)]));
-    return input;
-  };
-  return `${JSON.stringify(canonical(value))}\n`;
-}
+export function canonicalJson(value: unknown): string { return encodeCanonicalJson(value); }
 /** Hash of immutable wire bytes; this is also their output filename. */
-export function contentHash(bytes: Uint8Array): string { return createHash('sha256').update(bytes).digest('hex'); }
+export function contentHash(bytes: Uint8Array): string { return hashImmutableBytes(bytes); }
 
 /** Validate graph closure costs and actual bytes through the same admission used by the browser loader. */
 export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint8Array>): Shardfile { return validateShardfileAssets(input, assets, contentHash); }
 
-/** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
-export async function readProject(project: string): Promise<Shardfile> {
+async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown }> {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u] } } });
   const built = Array.isArray(result) ? result[0] : result;
   if (built === undefined || !('output' in built) || (Array.isArray(result) && result.length !== 1)) throw new Error('config build produced unexpected output');
@@ -38,21 +29,46 @@ export async function readProject(project: string): Promise<Shardfile> {
   const chunk = chunks[0]; if (chunk === undefined) throw new Error('config chunk missing');
   const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
   if (typeof loaded !== 'object' || loaded === null || !('default' in loaded)) throw new Error('config has no default export');
-  return parseShardfile(loaded.default);
+  return { shard: parseShardfile(loaded.default), commons: 'commons' in loaded ? loaded.commons : undefined };
+}
+/** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
+export async function readProject(project: string): Promise<Shardfile> { return (await projectModule(project)).shard; }
+
+function pinnedCommons(input: unknown, source: Shardfile): ReadonlyMap<string, Uint8Array> | undefined {
+  if (input === undefined) return undefined;
+  preflightDeclaredCosts(source);
+  if (typeof input !== 'object' || input === null || !('catalogue' in input) || !('assets' in input)) throw new Error('Build-only commons export needs a compiled catalogue');
+  const catalogue = input.catalogue;
+  if (typeof catalogue !== 'object' || catalogue === null || !('format' in catalogue) || catalogue.format !== 'wildshard.commons' || !('version' in catalogue) || catalogue.version !== 0 || !(input.assets instanceof Map)) throw new Error('Unsupported build-only commons catalogue');
+  const assets = new Map<string, Uint8Array>();
+  for (const hash of source.requires.commons) {
+    const bytes: unknown = input.assets.get(hash);
+    if (!(bytes instanceof Uint8Array) || bytes.length !== source.requires.commonsWire[hash] || contentHash(bytes) !== hash) throw new Error('Pinned commons export misses or changes a required asset');
+    assets.set(hash, bytes);
+  }
+  return assets;
 }
 /** Preflight and read bounded immutable files from an author project or flat built product. */
-export function projectAssets(project: string, shard: Shardfile, layout: 'project' | 'product' = 'project'): Map<string, Uint8Array> {
+export function projectAssets(project: string, shard: Shardfile, layout: 'project' | 'product' = 'project', pinned?: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
   preflightShardfile(shard); preflightAssetGraph(shard);
   preflightDeclaredCosts(shard);
-  return new Map([...shard.files.map((f) => [f.hash, readBoundedFile(resolve(project, layout === 'project' ? 'assets' : '.', f.hash), f.compressed)] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, readBoundedFile(resolve(project, layout === 'project' ? 'commons' : '.', h), shard.requires.commonsWire[h] ?? 0)] as const)]);
+  const read = (hash: string, size: number, folder: string): Uint8Array => {
+    const bytes = pinned?.get(hash) ?? readBoundedFile(resolve(project, layout === 'project' ? folder : '.', hash), size);
+    if (bytes.length !== size) throw new Error('Project asset differs from its declared wire size'); return bytes;
+  };
+  return new Map([...shard.files.map((f) => [f.hash, read(f.hash, f.compressed, 'assets')] as const), ...shard.requires.commons.map((h) => [`commons:${h}`, read(h, shard.requires.commonsWire[h] ?? 0, 'commons')] as const)]);
 }
 /** Build a deterministic shard.json, immutable files and the distributed normal client when present. */
 export async function buildProject(project: string, output?: string, options: { devserver?: boolean; client?: string | null } = {}): Promise<Shardfile> {
-  const raw = await readProject(project), assets = projectAssets(project, raw), shard = validateProject(raw, assets);
+  const loaded = await projectModule(project), raw = loaded.shard, assets = projectAssets(project, raw, 'project', pinnedCommons(loaded.commons, raw)), shard = validateProject(raw, assets);
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
   shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
   mkdirSync(destination, { recursive: true });
-  for (const [hash, bytes] of assets) writeFileSync(resolve(destination, hash.replace('commons:', '')), bytes);
+  const emitted = new Set<string>();
+  for (const [ref, bytes] of assets) {
+    const hash = ref.replace('commons:', ''); if (emitted.has(hash)) continue;
+    writeFileSync(resolve(destination, hash), bytes); emitted.add(hash);
+  }
   writeFileSync(resolve(destination, 'shard.json'), canonicalJson(shard));
   const directory = import.meta.dirname;
   const clientFolder = options.devserver === true ? 'client-devserver' : 'client';

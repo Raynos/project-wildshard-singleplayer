@@ -18,6 +18,18 @@ workspace imports, re-exports or literal dynamic imports. The layer guard follow
 that transitive closure, including cycles. The game consumes emitted data and
 assets; it never runs commons code.
 
-This initial contract provides catalogue compilation only. Product build hooks,
-shared behaviour compilation and the existing kit's asset migration follow as
+In `shard.config.ts`, export the compiled `BuiltCommons` as the named build-only
+`commons` export. Use `commonsRequirements(commons, entryIds)` from
+`@wildshard/sdk/commons` to populate `requires.commons`, `commonsWire` and
+`commonsCosts` from selected pinned bytes. It verifies the hash and derives costs
+again, so mutable catalogue metadata cannot understate the manifest.
+
+`wildshard build` consumes the named export, verifies every selected pin and
+admits its exact header costs. It emits only the default shardfile data and one
+hash-named file per selected asset; aliases share a file and unused pack entries
+are omitted. Missing or changed pins refuse before output is written. Projects
+without the named hook can still supply their existing `commons/<hash>` files.
+The package and the build-only named export are never shipped as runtime code.
+
+Shared behaviour compilation and the existing kit's asset migration follow as
 separate steps. Existing shard boot paths are unchanged.
