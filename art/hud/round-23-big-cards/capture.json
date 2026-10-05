@@ -1,0 +1,45 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "started": "2026-10-05T01:24:32.325Z",
+  "pine-hollow": {
+    "name": "Warden's longbow",
+    "accent": "#89c06a",
+    "cardAccent": "#89c06a",
+    "errors": []
+  },
+  "nalati-grasslands": {
+    "name": "Spear",
+    "accent": "#fe8169",
+    "cardAccent": "#fe8169",
+    "errors": []
+  },
+  "driftwood-shop-big": {
+    "open": true,
+    "big": true,
+    "tiles": [
+      "ws-icard-tile buy on",
+      "ws-icard-tile locked",
+      "ws-icard-tile buy",
+      "ws-icard-tile locked",
+      "ws-icard-tile buy",
+      "ws-icard-tile buy"
+    ],
+    "buy": "Buy Whetstone I \u00b7 12",
+    "accent": "#fbbb2d"
+  },
+  "driftwood-pickup": {
+    "name": "Iron sword",
+    "accent": "#fbbb2d",
+    "cardAccent": "#fbbb2d"
+  },
+  "driftwood-big-errors": [],
+  "driftwood-shop-classic": {
+    "open": true,
+    "big": false,
+    "tiles": [],
+    "buy": "Buy \u00b7 12",
+    "accent": ""
+  },
+  "driftwood-classic-errors": [],
+  "driftwoodRun": "2026-10-05T01:29:10.368Z"
+}
