@@ -3,7 +3,7 @@
 // sign), and SHARD SELECT reads this session's refused shards.
 import { describe, expect, it } from 'vitest';
 import { SaveStore } from '../src/engine/saves/store';
-import { GridCellWaiting, classifyRefusal, refusalReason, refusedLook, shardRefusals } from '../src/game/grid/refusal';
+import { GridCellWaitingError, classifyRefusal, refusalReason, refusedLook, shardRefusals } from '../src/game/grid/refusal';
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -17,7 +17,7 @@ class MemoryStorage {
 
 describe('G167: the admission error → the refusal reason', () => {
   it('a cell only waiting for M3, or a closing page, is not refused', () => {
-    expect(classifyRefusal(new GridCellWaiting('pine-hollow is not a shardfile shard (it stays a far proxy until M3)'))).toBeNull();
+    expect(classifyRefusal(new GridCellWaitingError('pine-hollow is not a shardfile shard (it stays a far proxy until M3)'))).toBeNull();
     expect(classifyRefusal(new Error('pine-hollow is not a shardfile shard (it stays a far proxy until M3)'))).toBeNull();
     expect(classifyRefusal(new Error('driftwood-isle declares a hybrid runtime (M3)'))).toBeNull();
     expect(classifyRefusal(new Error('Live grid is disposed'))).toBeNull();

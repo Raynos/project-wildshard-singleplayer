@@ -19,18 +19,18 @@ const REFUSALS = ['upgrade', 'too-big', 'safety', 'load'] as const satisfies rea
 
 /** Thrown by an admission that is not a refusal: the cell's shard is not a playable shardfile yet (it stays its far proxy
  *  behind the closed soft wall until M3). */
-export class GridCellWaiting extends Error {
-  override readonly name = 'GridCellWaiting';
+export class GridCellWaitingError extends Error {
+  override readonly name = 'GridCellWaitingError';
 }
 
-// today's admission messages, until each thrower is typed (the M3 waits throw GridCellWaiting once liveSession adopts it)
+// today's admission messages, until each thrower is typed (the M3 waits throw GridCellWaitingError once liveSession adopts it)
 const WAITING = /is not a shardfile shard|declares a hybrid runtime \(M3\)|disposed/u;
 const UPGRADE = /needs a compatible client|needs a format version/u;
 const TOO_BIG = /residency|shared budget|admission deferred|can be evicted|cache capacity exceeded/u;
 
 /** The reason a failed admission refuses its shard, or null when the cell is only waiting (M3) or the page is closing. */
 export function classifyRefusal(error: unknown): ShardRefusal | null {
-  if (error instanceof GridCellWaiting) return null;
+  if (error instanceof GridCellWaitingError) return null;
   if (error instanceof TypeError) return 'load'; // fetch rejects with a TypeError when the bytes can't arrive
   const message = error instanceof Error ? error.message : String(error);
   if (WAITING.test(message)) return null;
@@ -70,7 +70,7 @@ export function shardRefusals(store: Store): ShardRefusals {
   const slot = store.define({ key: 'shardRefusals', scope: 'session', version: 1, schema, initial: (): Readonly<Record<string, ShardRefusal>> => ({}) });
   return {
     note: (slug, refusal) => { const all = slot.read(); if (all[slug] !== refusal) slot.write({ ...all, [slug]: refusal }); },
-    clear: (slug) => { const all = slot.read(); if (slug in all) slot.write(Object.fromEntries(Object.entries(all).filter(([key]) => key !== slug))); },
+    clear: (slug) => { const all = new Map(Object.entries(slot.read())); if (all.delete(slug)) slot.write(Object.fromEntries(all)); },
     read: (slug) => slot.read()[slug] ?? null,
   };
 }
