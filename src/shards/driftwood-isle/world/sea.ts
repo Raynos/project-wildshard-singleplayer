@@ -86,20 +86,21 @@ export const DECLARED_SEA = { id: 'sea', kind: 'sea', level: LOWERED_SEA, waves:
 /** how far in from its socket's shard-side edge an entry landing runs (metres) */
 export const LANDING_RUN = 1.5;
 const LANDING_HALF = 0.1;
-/** one declared entry landing: an axis-aligned plank stage at road height (top y = 0 exactly), the full 8 m across the
- *  socket's shard-side edge, `LANDING_RUN` deep; the pier / jetty's sea-end ramp rises from it */
+/** one declared entry landing: an axis-aligned slab at road height (top y = 0 exactly), the full 8 m across the socket's
+ *  shard-side edge, `LANDING_RUN` deep (G170: the inner end of the asphalt road deck, world/entryDeck.ts); the pier /
+ *  jetty's sea-end ramp rises from it */
 export interface EntryLanding {
   readonly edge: DryEntryEdge;
-  readonly box: { readonly kind: 'box'; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly surface: 'wood' };
+  readonly box: { readonly kind: 'box'; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly surface: 'stone' };
 }
 function landing(edge: DryEntryEdge): EntryLanding {
   const centre = CHUNK_HALF - ENTRY_ASPHALT - LANDING_RUN / 2, across = ENTRY_WIDTH / 2, along = LANDING_RUN / 2;
   const at = { north: [0, centre, across, along], south: [0, -centre, across, along], east: [centre, 0, along, across], west: [-centre, 0, along, across] } as const;
   const [x, z, hx, hz] = at[edge];
-  return { edge, box: { kind: 'box', x, y: -LANDING_HALF, z, hx, hy: LANDING_HALF, hz, surface: 'wood' } };
+  return { edge, box: { kind: 'box', x, y: -LANDING_HALF, z, hx, hy: LANDING_HALF, hz, surface: 'stone' } };
 }
 /** G164: the four landings, declared by the shardfile as active static colliders (its socket-landing proof) and installed
- *  exactly as declared by the lowered world build (world/build.ts); the pier / jetty model draws their planks */
+ *  exactly as declared by the lowered world build (world/build.ts); G170: the road deck draws each as its inner end */
 export const ENTRY_LANDINGS: readonly EntryLanding[] = DRY_ENTRIES.map(landing);
 
 /** the canonical 8 × 15 m socket of a dry entry as a rectangle for the ocean shader's clip (inclusive, the same region as

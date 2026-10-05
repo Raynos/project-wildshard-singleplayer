@@ -32,6 +32,10 @@ import { GroundCover } from './GroundCover';
 import { tintTerrain } from './coverTint';
 import type { BlenderIsland } from './BlenderIsland';
 import { ENTRY_FOOTPRINTS, ENTRY_LANDINGS, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, type DryRect, type EntryLanding } from './sea';
+import { deckPlacements, deckRects, deckSlabs, onDeck } from './entryDeck';
+import { entryDeck } from '../models/entryDeck';
+import { modelContext } from '@wildshard/engine/models/model';
+import { place } from '@wildshard/engine/models/place';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
@@ -46,11 +50,13 @@ export interface DriftwoodWorld {
  *  follow the manifest's dropped field, ./sea.ts): the sea at road level, each pier and jetty starting past its entry's
  *  asphalt socket with a ramp up from the socket's road height. Absent, the world is the legacy build exactly. */
 export interface DriftwoodLowered {
-  readonly level: number; readonly pierStart: number; readonly seaRamp: number; readonly dry: readonly DryRect[];
+  readonly level: number; readonly pierStart: number; readonly seaRamp: number;
+  /** the declared sea row's dry sockets (the swim body's clip, ./sea.ts); the ocean's draw clips each whole deck (G170) */
+  readonly dry: readonly DryRect[];
   /** how far inside a confining grid cell's edge the sea stops (G149: the shore revetment's inner face) */
   readonly edgeInset: number;
-  /** G164: the shardfile's declared entry landings (world/sea.ts), installed exactly as declared, each pier / jetty drawing the
-   *  planks of the one at its sea end */
+  /** G164: the shardfile's declared entry landings (world/sea.ts), installed exactly as declared; G170: each is the inner
+   *  end of an asphalt road deck (./entryDeck.ts) that carries the socket on over it, and a pier / jetty ramps up from it */
   readonly landings: readonly EntryLanding[];
 }
 /** G164 / council C3-R2-C2: each pier / jetty ramps from the socket's inner edge (15 m in, road height) up to its deck over
@@ -60,15 +66,6 @@ export const SEA_RAMP_RUN = 9;
  *  inner edge), a `SEA_RAMP_RUN` ramp up from road height */
 export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: SEA_RAMP_RUN, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, landings: ENTRY_LANDINGS };
 
-/** the plank stage a pier / jetty starting at (x, z) (its sea end, on its socket's shard-side edge) draws: the declared landing
- *  there, `width` across the entry and `run` in */
-function apronAt(landings: readonly EntryLanding[], x: number, z: number): { width: number; run: number } | undefined {
-  const hit = landings.find(({ box }) => Math.abs(x - box.x) <= box.hx + 1e-6 && Math.abs(z - box.z) <= box.hz + 1e-6);
-  if (hit === undefined) return undefined;
-  const ns = hit.edge === 'north' || hit.edge === 'south';
-  return { width: 2 * (ns ? hit.box.hx : hit.box.hz), run: 2 * (ns ? hit.box.hz : hit.box.hx) };
-}
-
 /** The handle off Driftwood: nothing built (main.ts's readers keep their `?.` until S4.2–S4.4 move them). */
 export function noDriftwoodWorld(): DriftwoodWorld {
   return { ocean: null, pier: null, jetties: [], boat: null, rocks: null, hut: null, lookout: null, wreck: null, shrine: null,
@@ -76,8 +73,14 @@ export function noDriftwoodWorld(): DriftwoodWorld {
     bridgeDeck: null, blenderIsland: null };
 }
 
+/** The world build's reload-only Debug rows (../runtime/index.ts). */
+export interface DriftwoodBuildOptions {
+  /** G144 (E435, `driftwoodIslandInstancing`): the Blender island's placements drawn instanced (./islandInstances.ts) */
+  readonly islandInstancing?: boolean;
+}
+
 /** main.ts:366-467's Driftwood builders, verbatim (`sea` is the manifest's OCEAN, or SF46's lowered sea). */
-export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, lowered?: DriftwoodLowered): Promise<DriftwoodWorld> {
+export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, lowered?: DriftwoodLowered, options: DriftwoodBuildOptions = {}): Promise<DriftwoodWorld> {
   const { game, sky, player, registry } = world;
   const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield')]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered?.level ?? OCEAN.level };
@@ -86,19 +89,25 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];
   const slice = slicer(); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
-  const ocean = new Ocean(sky).build(sea.level, lowered?.dry, lowered?.edgeInset);
+  // G170: lowered, the ocean is clipped out under each whole road deck (the socket and its landing), not only the socket
+  const decks = lowered === undefined ? [] : deckRects(lowered.landings.map(({ edge }) => edge));
+  const ocean = new Ocean(sky).build(sea.level, lowered === undefined ? undefined : decks, lowered?.edgeInset);
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
   // SF46: lowered, it starts `cut` in (past the entry socket) and ramps up from road height
-  const apron = (x: number, z: number): { apron?: { width: number; run: number } } => {
-    const a = lowered === undefined ? undefined : apronAt(lowered.landings, x, z); return a === undefined ? {} : { apron: a };
-  };
-  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp, ...apron(0, -CHUNK_HALF + cut) }).place(registry, 'pier');
-  // G164: the declared entry landings (the shardfile's socket-landing proof), installed as declared; the piers draw them
-  if (lowered !== undefined) registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/sea.ts', surface: 'wood',
-    colliders: lowered.landings.map(({ box }) => ({ ...box })), solidFloor: true,
-    floor: (x, z) => (lowered.landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
+  const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF + cut, length: ROAD_LENGTH - cut, width: 4, deckY: sea.level + 1.2, landing: true, pennantAt: PIER_PENNANT_AT - cut, ...seaRamp }).place(registry, 'pier');
+  // G170: the four asphalt road decks over the water (./entryDeck.ts): the platform's socket floor carried on over the
+  // declared entry landings (the shardfile's socket-landing proof, installed exactly as declared); each ramp rises from one
+  if (lowered !== undefined) {
+    const edges = lowered.landings.map(({ edge }) => edge);
+    registry.add({ id: 'entry-landings', name: 'Entry landings', category: 'props', file: 'src/shards/driftwood-isle/world/sea.ts', surface: 'stone',
+      colliders: lowered.landings.map(({ box }) => ({ ...box })), solidFloor: true,
+      floor: (x, z) => (lowered.landings.some(({ box }) => Math.abs(x - box.x) <= box.hx && Math.abs(z - box.z) <= box.hz) ? 0 : undefined) });
+    place(entryDeck, deckPlacements(edges, heightAt), { ctx: modelContext(sky), draw: 'merged', registry,
+      piece: { id: 'entry-decks', floor: (x, z) => (onDeck(decks, x, z) ? 0 : undefined), solidFloor: true } });
+    statics.push(...deckSlabs(edges));
+  }
   statics.push(...pier.colliders);
   const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
   // the little sailboat you arrived in, moored alongside the pier by the spawn (E308: half way down); you can drop into it
@@ -136,7 +145,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const jetties: Pier[] = [];
   for (const [i, j] of JETTIES.entries()) {
     const x = cut === 0 ? j.x : j.x + Math.sin(j.rot) * cut, z = cut === 0 ? j.z : j.z + Math.cos(j.rot) * cut; // `rot` 0 runs +z
-    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, ...seaRamp, ...apron(x, z) }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice();
+    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, ...seaRamp }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice();
   }
   await slice();
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
@@ -198,10 +207,10 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({
       scene: game.scene, sky, registry, terrain: world.terrain.mesh, palms: palms.mesh, palmSpecs,
-      replace: [bushes.mesh], cover: cover.group,
+      replace: [bushes.mesh], cover: cover.group, instanced: options.islandInstancing === true,
     });
     game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');
-    game.onLate(() => { island.late(sky); }, 'shard.driftwood.blenderIsland.instances'); // G144: the instanced placements repack after the camera is posed
+    if (island.instances !== null) game.onLate(() => { island.late(sky); }, 'shard.driftwood.blenderIsland.instances'); // G144: after the camera is posed
     cover.excludeArea(B.area); // E156: the cove dresses its own area
     return island;
   }).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; });

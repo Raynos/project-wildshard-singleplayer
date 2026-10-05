@@ -31,8 +31,8 @@ export default parseShardfile({
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: DRIFTWOOD_AUDIO,
   // G164 (SHARDFILE.md socketOverWater): every entry meets the road over the lowered sea. The sea row clips the four 8 × 15 m
-  // sockets dry (dryEntries) and the four declared plank landings (top y = 0, the full 8 m across each socket's shard-side
-  // edge) prove the walk off the socket. The trusted runtime consumes both rows itself (world/sea.ts, world/build.ts).
+  // sockets dry (dryEntries) and the four declared landings (top y = 0, the full 8 m across each socket's shard-side edge;
+  // G170: the inner ends of the asphalt road decks) prove the walk off the socket. The trusted runtime consumes both rows itself (world/sea.ts, world/build.ts).
   entryways: base.entryways.map(({ edge, at, width }) => ({ edge, at, width, kind: 'socketOverWater' as const })),
   water: [{ ...DECLARED_SEA, dryEntries: [...DECLARED_SEA.dryEntries] }],
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],

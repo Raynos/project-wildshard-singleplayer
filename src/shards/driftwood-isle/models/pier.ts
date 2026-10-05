@@ -39,9 +39,6 @@ export interface PierSeaRamp {
   readonly run: number;
   /** the sand at the sea end, own y (the deck's top is 0) */
   readonly landY: number;
-  /** G164: a plank landing stage at the ramp's foot (its top at `landY`, `width` across, `run` from the sea end): the planks
-   *  only; its collider is the shardfile's declared entry landing (world/sea.ts ENTRY_LANDINGS) */
-  readonly apron?: { readonly width: number; readonly run: number };
 }
 
 export interface PierParams {
@@ -340,18 +337,6 @@ function deckGeometry(p: PierParams, rng: Rng): { deck: THREE.BufferGeometry; cl
   }
   // ── the sea end: a low kick board so the deck reads as an end, not a cut ──
   add(put(new THREE.BoxGeometry(width + 0.3, 0.22, 0.14), 0.02, 0, deckY + 0.05), C.plankDark, 0.05);
-  // ── G164: the landing stage at the sea-end ramp's foot (drawn last, so every part above keeps its random shading) ──
-  const apron = p.seaRamp?.apron;
-  if (p.seaRamp !== undefined && apron !== undefined) {
-    const top = p.seaRamp.landY, plank = 0.36;
-    for (let a = 0; a < apron.run - 0.01; a += plank + 0.04) {
-      const w = Math.min(plank, apron.run - a), shade = rng.next();
-      add(put(new THREE.BoxGeometry(apron.width, thick, w), a + w / 2, 0, top - thick / 2 - rng.range(0, 0.012)), shade < 0.2 ? C.plankDark : shade > 0.8 ? C.plankLight : C.plank, 0.06);
-    }
-    for (const s of [-1, 1]) add(put(new THREE.BoxGeometry(0.22, 0.24, apron.run), apron.run / 2, s * (apron.width / 2 - 0.25), top - thick - 0.12), C.plankDark, 0.05);
-    const h = top - thick + pileDepth;
-    for (const s of [-1, 1]) for (const a of [0.25, apron.run - 0.25]) add(put(new THREE.CylinderGeometry(0.15, 0.18, h, 7), a, s * (apron.width / 2 - 0.25), top - thick - h / 2), C.post, 0.07);
-  }
   return { deck: mergeGeometries(parts, false), cloth };
 }
 

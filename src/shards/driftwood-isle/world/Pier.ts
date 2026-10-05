@@ -45,9 +45,6 @@ export interface PierSpec {
   /** SF46 (G164): the deck ramps up over this many metres from road height (y = 0) at its sea end, where it meets the
    *  platform's entry socket (the lowered world's entries) */
   seaRamp?: number;
-  /** G164: with a sea ramp, the plank landing stage at its foot (the shardfile's declared entry landing: `width` across,
-   *  `run` in from the sea end, top at road height); its collider is the declared box, installed by the world build */
-  apron?: { width: number; run: number };
 }
 
 export class Pier {
@@ -100,8 +97,7 @@ export class Pier {
     // the pennant streams downwind: the world's wind turned into the pier's frame
     const [wx, wz] = PENNANT_WIND, c = Math.cos(yaw), s = Math.sin(yaw);
     const pennantDir: [number, number] = yaw === 0 ? [wx, wz] : [wx * c - wz * s, wx * s + wz * c];
-    const apron = this.spec.apron === undefined ? {} : { apron: { ...this.spec.apron } };
-    const seaRamp = this.spec.seaRamp === undefined ? {} : { seaRamp: { run: this.spec.seaRamp, landY: -deckY, ...apron } };
+    const seaRamp = this.spec.seaRamp === undefined ? {} : { seaRamp: { run: this.spec.seaRamp, landY: -deckY } };
     this.params = { length, width, pileDepth: this.spec.pileDepth ?? 8, landing, pennantDir, ...(this.spec.pennantAt === undefined ? {} : { pennantAt: this.spec.pennantAt }), ...seaRamp };
     const pl: Placement<PierParams> = { x: this.spec.x, y: deckY, z: this.spec.z, ...(yaw === 0 ? {} : { yaw }), params: this.params };
     const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'merged', registry,
@@ -148,9 +144,7 @@ export class Pier {
   floorHeightAt(x: number, z: number): number | undefined {
     const dx = x - this.spec.x, dz = z - this.spec.z;
     const along = dx * this.sin + dz * this.cos, across = dx * this.cos - dz * this.sin;
-    // G164: the landing stage at the ramp's foot, wider than the deck (road height; the ramp stands on it)
-    const apron = this.params.seaRamp?.apron, stage = apron !== undefined && along >= 0 && along <= apron.run && Math.abs(across) <= apron.width / 2;
-    if (along < -0.2 || along > this.params.length + 0.2 || Math.abs(across) > this.spec.width / 2 + 0.25) return stage ? 0 : undefined;
+    if (along < -0.2 || along > this.params.length + 0.2 || Math.abs(across) > this.spec.width / 2 + 0.25) return undefined;
     return this.deckY + pierDeckAt(this.params, along);
   }
 }
