@@ -105,7 +105,7 @@ const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
 const LOCK_LINGER = 0.8;       // s — E319: LOCK stays up this long after the last lockable target leaves its reach
 
 /** a disc a shard's traversal verb may re-dress (ShardManifest TouchRelabel): its button, label, icon and own label / icon */
-interface HintDisc { btn: HTMLElement; label: HTMLElement; svg: Element; ownIcon: string; hint: TouchRelabel | null }
+interface HintDisc { btn: HTMLElement; label: HTMLElement; svg: Element; ownIcon: readonly Node[]; hint: TouchRelabel | null }
 
 /** a control the layer's own markup (above) must contain — a miss is a template typo, not a runtime state */
 function el(parent: ParentNode, sel: string): HTMLElement {
@@ -175,13 +175,13 @@ export class TouchControls {
     this.knob = el(stick, 'i');
     const moveZone = el(root, '.ws-touch-zone.move'), lookpad = el(root, '.ws-touch-lookpad');
     const lockBtn = el(root, '.ws-touch-disc.lock'), lockLabel = el(lockBtn, 'span'), lookLabel = el(lookpad, 'span'), moveLabel = el(moveZone, '.ws-touch-label');
-    const hintDisc = (btn: HTMLElement): HintDisc => { const svg = el(btn, 'svg'); return { btn, label: el(btn, 'span'), svg, ownIcon: svg.innerHTML, hint: null }; };
+    const hintDisc = (btn: HTMLElement): HintDisc => { const svg = el(btn, 'svg'); return { btn, label: el(btn, 'span'), svg, ownIcon: [...svg.childNodes].map((node) => node.cloneNode(true)), hint: null }; };
     const hintLock = this.hintLock = hintDisc(lockBtn);
     this.hintJump = hintDisc(el(root, '.ws-touch-disc.jump'));
     const attackDisc = el(root, '.ws-touch-attack');
     for (const mode of ['melee', 'ranged'] as const) {
       const svg = el(attackDisc, `svg.${mode}`);
-      const hint: HintDisc = { btn: attackDisc, label: el(attackDisc, `span.${mode}`), svg, ownIcon: svg.innerHTML, hint: null };
+      const hint: HintDisc = { btn: attackDisc, label: el(attackDisc, `span.${mode}`), svg, ownIcon: [...svg.childNodes].map((node) => node.cloneNode(true)), hint: null };
       if (mode === 'melee') this.hintAttackMelee = hint; else this.hintAttackRanged = hint;
     }
     // Build hint targets before the sink's first synchronous layout paint.
@@ -462,11 +462,17 @@ export class TouchControls {
       if (!button.classList.contains('at-edge-l')) button.classList.remove('at', 'at-aim');
       if (verb.element === undefined) button.classList.add('ws-touch-disc');
       button.style.display = ''; button.classList.add('show'); button.hidden = false;
-      const markup = `${verb.icon}<span>${verb.label}</span>`; if (button.innerHTML !== markup) button.innerHTML = markup;
+      const previous = this.verbMarkup[slot];
+      if (previous?.button !== button || previous.icon !== verb.icon || previous.label !== verb.label) {
+        button.innerHTML = verb.icon;
+        const label = document.createElement('span'); label.textContent = verb.label; button.append(label);
+        this.verbMarkup[slot] = { button, icon: verb.icon, label: verb.label };
+      }
       this.verbActions[slot] = verb.action; this.verbSpecs[slot] = verb;
     }
   }
   private readonly verbSpecs: Partial<Record<'verb.1' | 'verb.2', { hold?: boolean }>> = {};
+  private readonly verbMarkup: Partial<Record<'verb.1' | 'verb.2', { button: HTMLElement; icon: string; label: string }>> = {};
 
   /**
    * A shard re-dresses ATTACK/FIRE (r0), LOCK and JUMP (scoped HUD relabels, E286: Nine Dragon's
@@ -491,8 +497,10 @@ export class TouchControls {
     if (was === h || (was !== null && h !== null && was.label === h.label && was.icon === h.icon && was.tone === h.tone && was.accent === h.accent)) return;
     d.hint = h;
     d.label.textContent = h?.label ?? own;
-    const icon = h?.icon ?? d.ownIcon;
-    if (icon !== (was?.icon ?? d.ownIcon)) d.svg.innerHTML = icon;
+    if (h?.icon !== was?.icon) {
+      if (h?.icon === undefined) d.svg.replaceChildren(...d.ownIcon.map((node) => node.cloneNode(true)));
+      else d.svg.innerHTML = h.icon;
+    }
     d.btn.classList.toggle('hint', h !== null);
     for (const t of ['rest', 'ready', 'active'] as const) d.btn.classList.toggle(`hint-${t}`, h !== null && (h.tone ?? 'rest') === t);
     if (h?.accent === undefined) d.btn.style.removeProperty('--hint');

@@ -38,5 +38,12 @@ it('paints an already active attack relabel, respects an overlay and restores la
     app.input.pop('g22.baseline');
     app.input.pop('weapon.melee'); app.input.push('weapon.ranged', scope);
     expect(label.textContent).toBe('Attack'); expect(ranged.textContent).toBe('Fire');
+    const hostile = '<img src=x onerror="bad()"><script>bad()</script>& literal';
+    app.input.register({ id: 'literal.verb', actions: ['use'], touch: { relabel: { jump: { label: hostile } },
+      verbs: { 'verb.1': { action: 'use', label: hostile, icon: '<svg viewBox="0 0 24 24"><path d="M0 0L1 1"/></svg>' } } } }, scope);
+    app.input.push('literal.verb', scope);
+    expect(document.querySelector('.ws-touch-disc.jump span')?.textContent).toBe(hostile);
+    expect(document.querySelector('.ws-touch-verb.verb-one span')?.textContent).toBe(hostile);
+    expect(document.querySelector('.ws-touch img, .ws-touch script, .ws-touch [onerror]')).toBeNull();
   } finally { scope.dispose(); app.levelScope = previous; app.input.clear(); document.body.replaceChildren(); }
 });
