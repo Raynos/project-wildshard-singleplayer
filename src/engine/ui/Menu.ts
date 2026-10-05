@@ -67,6 +67,7 @@ export interface GameMenuOptions {
 /** `locked`: not owned yet — dim, not tappable; `icon`: the card's glyph (default laurel) */
 export interface SkinRow { id: string; name: string; blurb: string; worn: boolean; locked?: boolean; icon?: IconId }
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
+const words = (cls: string, text: string, tag = 'div'): HTMLElement => { const node = el(cls, '', tag); node.textContent = text; return node; };
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 /** a tab's face: the BAG's are an icon over one short word (E314 board 8 A); PAUSE's stay words */
 const tabButton = (label: string, ic?: IconId): HTMLButtonElement => {
@@ -442,7 +443,7 @@ export class GameMenu {
       const box = el('ws-gmenu-seg');
       const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
       for (const o of options) {
-        const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
+        const b = words('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
         this.scope.listen(b, 'click', () => { set(o.v); paint(); });
         box.append(b);
       }

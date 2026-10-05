@@ -29,6 +29,7 @@ import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, sett
 import { markUnload } from '../boot/lastEnd';
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
+const words = (cls: string, text: string, tag = 'div'): HTMLElement => { const node = el(cls, '', tag); node.textContent = text; return node; };
 
 type BootKey = 'tier' | 'touch';
 interface Row<K extends BootKey> { label: string; experimental?: boolean; options: { v: OptionValue<K>; text: string }[] }
@@ -97,7 +98,7 @@ function build(): HTMLElement {
     const row = el('ws-gmenu-row', engineString('s_135d0923e690', [label, experimental ? engineString('s_33b99f60d520') : '']));
     const box = el('ws-gmenu-seg');
     for (const o of options) {
-      const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
+      const b = words('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
       scope.listen(b, 'click', () => { set(o.v); repaint(); });
       box.append(b);
     }
@@ -128,11 +129,11 @@ function build(): HTMLElement {
     dbg);
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));
-  if (overridden.length > 0) p.append(el('ws-gmenu-note', engineString('s_7537bbaf9c47', [overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')])));
+  if (overridden.length > 0) p.append(words('ws-gmenu-note', engineString('s_7537bbaf9c47', [overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')])));
   p.append(status, apply);
   // credits (E64 — Jake: "get that music attribution out of here and move it to a dedicated credits page"): the title used to
   // print them under the cards; they live here now, and in the pause menu ▸ Settings ▸ Audio next to the pickers
-  p.append(el('ws-gmenu-label', engineString('s_2a6b24ad2872')), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => el('ws-gmenu-note', t)));
+  p.append(el('ws-gmenu-label', engineString('s_2a6b24ad2872')), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => words('ws-gmenu-note', t)));
 
   scope.listen(apply, 'click', () => {
     const next = settingsReloadUrl(location.href, TITLE_SKIPPERS);

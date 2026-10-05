@@ -41,7 +41,6 @@ const LABEL: Record<Category, string> = { bug: engineString('s_703a5028367b'), a
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const button = (cls: string, html: string): HTMLButtonElement => { const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.innerHTML = html; return b; };
-const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 
 /** compass heading as the HUD shows it: +Z is north, `180 − yaw°` (src/engine/ui/HUD.ts) */
 export function headingDeg(yaw: number): number { const d = 180 - (yaw * 180) / Math.PI; return Math.round(((d % 360) + 360) % 360) % 360; }
@@ -244,7 +243,12 @@ export class Feedback {
       ['FPS', String(c['fps'] ?? '—')],
       ['Build', buildId().slice(0, 7) || 'dev'],
     ];
-    sheet.append(el('ws-fb-ctx', kv.map(([k, v]) => `<span class="ws-fb-kv"><i>${k}</i>${esc(v)}</span>`).join('')));
+    const context = el('ws-fb-ctx');
+    for (const [key, value] of kv) {
+      const row = el('ws-fb-kv', '', 'span'), label = document.createElement('i'); label.textContent = key;
+      row.append(label, document.createTextNode(value)); context.append(row);
+    }
+    sheet.append(context);
     const send = button('ws-fb-send', engineString('s_8675c04a5f9a'));
     this.viewScope.listen(send, 'click', () => { void this.send(); });
     sheet.append(send);
