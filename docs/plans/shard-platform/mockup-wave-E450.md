@@ -43,5 +43,6 @@ the refreshed M1 board; SF57's soak verdict (info). Council 4's questions join t
 
 | Item | Status |
 |---|---|
-| Wave A | ready; to Jake 2026-10-04 |
+| Wave A | answered 2026-10-04 as G172–G182: A1 ship; A2 on, 16 m; A3 rejected → nine new Sky Reach entry ideas (B5, in flight); A4 OK, climb next (B2, in flight); A5 OK; A6 B1+B2+B4+B5 then a cut board (B1); A7 Big cards on; A8 on; A9 keep 17.6 m; A10 OK; A11 OK; A12 folded into A3 |
+| B5 | Sky Reach: nine new entry ideas, a 3 × 3 board (`art/far-reach/round-42-entry-ideas/`), in flight 2026-10-04 |
 | Wave B | planned |
