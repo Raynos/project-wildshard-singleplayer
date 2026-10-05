@@ -1,4 +1,7 @@
 import { bagMenu } from '../bag/tabs';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import type { ShardContext } from '../shard/context';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import { app } from '@wildshard/engine/app/runtime';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -26,8 +29,11 @@ import { CompendiumState } from './state';
 import { CompendiumTracker } from './tracker';
 import { Journal } from './Journal';
 import { compendiumFinds } from './finds';
+import type { ShardCompendium } from './types';
 
 export interface CompendiumHost {
+  /** Keep authored discovery state resident while journal controls follow the entered cell. */
+  context?: ShardContext;
   chunkId: string;
   game: { onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   camera: THREE.Camera;
@@ -41,7 +47,7 @@ export interface CompendiumHost {
   weapons: { setEnabled: (on: boolean) => void };
   touchUi: () => boolean;
   nolock: boolean;
-  wall?: (state: CompendiumState, journal: Journal) => CompendiumWallPort | null;
+  wall?: (state: CompendiumState, journal: Pick<Journal, 'open'>) => CompendiumWallPort | null;
 }
 
 export interface CompendiumWallPort { refresh: () => void; update: (camera: THREE.Camera) => void }
@@ -51,6 +57,7 @@ const GLYPH_BOOK = '<svg viewBox="0 0 24 24"><path d="M4 5.5C6.5 4 9.5 4 12 5.8 
 export function installCompendium(host: CompendiumHost): { state: CompendiumState; journal: Journal; wall: CompendiumWallPort | null } | null {
   const def = compendiumFor(host.chunkId);
   if (!def) return null;
+  if (host.context !== undefined && retainsRuntimeServices(host.context)) return installRetainedCompendium(host, host.context, def);
   const { hud, menu, weapons } = host;
   const state = new CompendiumState(def);
   const journal = new Journal(state);
@@ -108,4 +115,66 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
     wall?.update(cam);
   }, 'engine.compendium.installCompendium');
   return { state, journal, wall };
+}
+
+function installRetainedCompendium(host: CompendiumHost, context: ShardContext, def: ShardCompendium): NonNullable<ReturnType<typeof installCompendium>> {
+  const { hud, menu, weapons } = host;
+  const state = new CompendiumState(def);
+  const tracker = new CompendiumTracker(state, {
+    canSee: (from, to) => { const physics = context.app.physics; return physics === null || lineOfSight(physics, from, to, 1.2); },
+  });
+  let current: Journal | undefined;
+  const open = (id?: string): void => { current?.open(id); };
+  const wall = withOwner(context.scope, () => host.wall?.(state, { open }) ?? null);
+  const eye = { position: { x: 0, y: 0, z: 0 }, forward: { x: 0, y: 0, z: -1 } };
+  installEnteredRuntimeService(context, (scope) => {
+    const borrowedUpdate = Object.getOwnPropertyDescriptor(state, 'onUpdate');
+    const borrowedChange = Object.getOwnPropertyDescriptor(state, 'onChange'), borrowedPause = hud.holdPause;
+    const journal = new Journal(state); current = journal;
+    const disc = document.createElement('button'); disc.type = 'button'; disc.className = 'ws-cmp-disc';
+    disc.innerHTML = `${GLYPH_BOOK}Journal`;
+    hudSlots.pill(disc, () => { if (hud.entered) journal.open(); }, journal.scope);
+    scope.onDispose(bagMenu(menu).addFinds('compendium', () => compendiumFinds(state, (id) => { journal.open(id); })));
+    context.app.input.bind('journal', () => { journal.open(); }, journal.scope, () => hud.entered && !menu.isOpen && !journal.isOpen);
+    let holdScope = journal.scope.child('resume-hold');
+    journal.onOpen = () => {
+      holdScope.dispose(); holdScope = journal.scope.child('resume-hold'); hud.holdPause = true; weapons.setEnabled(false);
+      if (menu.isOpen) menu.close(true);
+      if (document.pointerLockElement) document.exitPointerLock();
+      disc.classList.remove('new');
+    };
+    journal.onClose = () => {
+      hud.onResume?.();
+      holdScope.timeout(450, () => {
+        hud.holdPause = false;
+        if (!host.nolock && !host.touchUi() && !document.pointerLockElement && hud.entered && !menu.isOpen && !journal.isOpen) hud.setPaused(true);
+      });
+    };
+    state.onChange = (entry, _from, to) => {
+      if (to === 'taken') hud.toast(`Journal · ${entry.name} — taken`);
+      else if (to === 'seen') hud.toast(`Journal · ${entry.kind === 'place' ? 'new place' : 'new page'}: ${entry.name}`);
+      if ((def.trophies ?? []).some((trophy) => trophy.entry === entry.id)) wall?.refresh();
+      if (to !== 'discovered') disc.classList.add('new');
+    };
+    context.app.events.on('actor.died', ({ actor }) => {
+      const animal = host.animals.animals.find((value) => value.combatActor() === actor);
+      if (animal !== undefined) tracker.killed(animal);
+    }, scope);
+    context.app.addSystem({ id: `game.compendium.${context.manifest.slug}`, phase: 'update', run: (dt) => {
+      disc.classList.toggle('show', hud.entered && host.touchUi() && !menu.isOpen);
+      if (!hud.entered) return;
+      const elements = host.camera.matrixWorld.elements;
+      eye.position.x = elements[12]; eye.position.y = elements[13]; eye.position.z = elements[14];
+      eye.forward.x = -elements[8]; eye.forward.y = -elements[9]; eye.forward.z = -elements[10];
+      if (!perfLap.active) tracker.update(dt, eye, host.animals.animals);
+      wall?.update(host.camera);
+    } }, scope);
+    scope.onDispose(() => {
+      delete journal.onClose; journal.close(); hud.holdPause = borrowedPause;
+      if (borrowedUpdate === undefined) delete state.onUpdate; else Object.defineProperty(state, 'onUpdate', borrowedUpdate);
+      if (borrowedChange === undefined) delete state.onChange; else Object.defineProperty(state, 'onChange', borrowedChange);
+      if (current === journal) current = undefined;
+    });
+  });
+  return { state, wall, get journal() { if (current === undefined) throw new Error('Journal left its cell'); return current; } };
 }
