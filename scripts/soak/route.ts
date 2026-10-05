@@ -91,7 +91,7 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
     return [{ cycle: index + 1, raw: measured / accounted, adjusted: (measured - engineBase) / accounted }];
   });
   const calibration = ratios.length === windows.length - 1 && ratios.every((ratio) => ratio.adjusted >= 1.01 && ratio.adjusted <= 1.21);
-  // Planned boot samples remain loading evidence. They must be sampled too, rather than looking like an active-play gap.
+  // Initial boot samples remain loading evidence and must be sampled as well as active play.
   const covered = [...active, ...loading].sort((a, b) => a.elapsed - b.elapsed);
   const gaps = covered.slice(1).map((row, index) => row.elapsed - (covered.at(index)?.elapsed ?? row.elapsed));
   const missingGlSamples = [...drive, ...loading].filter((row) => row.gl === undefined).length;
