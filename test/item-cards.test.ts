@@ -106,3 +106,40 @@ it('builds no G87 sheet in Classic, then swaps to the big-cards sheet live in th
   expect(shop.root.style.getPropertyValue('--ws-accent')).toBe('');
   shop.dispose();
 });
+
+it('draws a barter stall as its declared slate in Classic and as the G87 sheet in Big, from data only (SF28 part 2)', () => {
+  const states: ShopState[] = ['buy', 'short', 'full', 'owned'];
+  const goods = states.map((_s, k) => ({ id: `t${k}`, name: k === 0 ? hostile : `Swap ${k}`, does: `Line ${k}`, icon: 'star' as const, price: 0, tile: `Tile ${k}` }));
+  const cost = (g: (typeof goods)[number]) => [{ text: `2 hides (${goods.indexOf(g)})`, have: goods.indexOf(g) === 0 }, { text: '1 resin (4)', have: true }];
+  const scope2 = new Scope('stall'), buy = vi.fn(() => true);
+  const shop = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods, verb: 'Trade', state: (g) => states[goods.indexOf(g)] ?? 'buy', cost,
+    layout: { kind: 'slate', kicker: hostile, title: 'Swaps' }, scope: scope2 });
+  shop.onBuy = buy; shop.open();
+  expect(shop.root.className).toBe('ws-slate show');
+  expect(document.querySelector('.ws-shop.show')).toBeNull();
+  expect(shop.root.querySelector('.ws-slate-kicker')?.textContent).toBe(hostile);
+  expect([...shop.root.querySelectorAll('.ws-slate-swap')].map((r) => r.className)).toEqual(['ws-slate-swap ok', 'ws-slate-swap', 'ws-slate-swap', 'ws-slate-swap owned']);
+  expect([...shop.root.querySelectorAll('.ws-slate-swap-label')].map((r) => r.textContent)).toEqual([hostile, 'Swap 1', 'Swap 2', 'Swap 3']);
+  expect([...shop.root.querySelectorAll('.ws-slate-swap-btn')].map((b) => b.textContent)).toEqual(['Trade', 'Trade', 'Full', 'Owned']);
+  expect([...shop.root.querySelectorAll('.ws-slate-swap-give span')].slice(0, 2).map((s) => `${s.className}:${s.textContent}`)).toEqual(['have:2 hides (0)', 'have:1 resin (4)']);
+  expect(shop.root.querySelector('img,script,[onerror]')).toBeNull();
+  shop.root.querySelectorAll<HTMLButtonElement>('.ws-slate-swap-btn')[1]?.click(); expect(buy).not.toHaveBeenCalled();
+  shop.root.querySelector<HTMLButtonElement>('.ws-slate-swap-btn')?.click(); expect(buy).toHaveBeenCalledOnce();
+  setHudAccent('#89c06a');
+  overrideSetting('itemCards', 'big');
+  expect(shop.root.className).toBe('ws-shop show');
+  expect(document.querySelector('.ws-slate.show')).toBeNull();
+  expect(shop.root.querySelector('.ws-shop-bigpurse')?.childElementCount).toBe(0);
+  const tiles = [...shop.root.querySelectorAll('.ws-shop-grid .ws-icard-tile')];
+  expect(tiles.map((t) => t.querySelector('.ws-icard-name')?.textContent)).toEqual(['Tile 0', 'Tile 1', 'Tile 2', 'Tile 3']);
+  expect(tiles.map((t) => t.querySelector('.ws-icard-foot')?.textContent)).toEqual(['2 hides · 1 resin', '2 hides · 1 resin', 'Full', 'Owned']);
+  const bar = shop.root.querySelector<HTMLButtonElement>('.ws-shop-bigbuy'); if (!bar) throw new Error('Missing buy bar');
+  expect(bar.textContent).toBe('Trade Tile 0');
+  tiles[1]?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  expect(bar.textContent).toBe('Need 2 hides'); expect(bar.disabled).toBe(true);
+  overrideSetting('itemCards', 'classic');
+  expect(shop.root.className).toBe('ws-slate show');
+  shop.close(); expect(shop.isOpen).toBe(false); expect(document.querySelector('.show')).toBeNull();
+  scope2.dispose(); shop.open(); expect(shop.isOpen).toBe(false);
+  expect(document.querySelector('.ws-slate, .ws-shop')).toBeNull();
+});

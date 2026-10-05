@@ -1,29 +1,25 @@
 /**
- * The mill hamlet's two screens and the collectibles' counter (PINE-HOLLOW-REMASTER PH-C6 / C8) — DOM in `#hud`, styled
+ * The lodge's contract board and the collectibles' counter (PINE-HOLLOW-REMASTER PH-C6 / C8) — DOM in `#hud`, styled
  * by src/shards/pine-hollow/quest/pinehollow.css (prefix ws-ph-):
  *
  *   BoardPanel  the lodge's contract board: three paper notices pinned to pine boards — the heading, the job, a tally,
  *               what it pays; a filled one gets a red CLAIM seal, any can be TORN DOWN for the next (the streak resets)
- *   TradePanel  Mott's chalk slate: each swap, what it takes (what you hold of it), TRADE / OWNED
  *   CountChip   "AMBER RESIN 4 / 30" slides in under the quest chip for a few seconds after a pickup
  *
- * Both panels release the pointer lock and the weapons while open (like the journal) and close on CLOSE / Esc / E.
+ * Mott's chalk slate is no longer here: the platform's ShopPanel draws it from data (SHARD-PLATFORM SF28; the goods and
+ * rules in ./trades.ts, `layout: { kind: 'slate' }`). The board releases the pointer lock and the weapons while open (like
+ * the journal) and closes on CLOSE / Esc / E.
  */
 import './pinehollow.css';
 import { Scope } from '@wildshard/engine/app/scope';
 import { listenPage } from '@wildshard/engine/input/dom';
 import { isFilled, type Board, type Contract } from './contracts';
-import { TRADES, tradeState, type Pack, type Room, type Trade } from './trades';
+import { itemName } from './trades';
 
 const hudRoot = (): HTMLElement => document.getElementById('hud') ?? document.body;
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement, text?: string): HTMLElementTagNameMap[K] => {
   const e = document.createElement(tag); e.className = cls; if (text !== undefined) e.textContent = text; parent?.append(e); return e;
 };
-const ITEM_NAMES: Record<string, string> = {
-  'lodge-ribbon': 'lodge ribbon', 'amber-resin': 'amber resin', 'deer-hide': 'deer hide',
-  'boar-hide': 'boar hide', 'boar-tusk': 'boar tusk', 'bear-pelt': 'bear pelt', venison: 'venison',
-};
-const itemName = (id: string, n: number): string => { const w = ITEM_NAMES[id] ?? id; return n === 1 ? w : w.endsWith('s') || w.endsWith('venison') || w.endsWith('resin') ? w : `${w}s`; };
 
 /** what a contract pays, as the notice says it */
 export function rewardLine(c: Contract): string {
@@ -115,29 +111,6 @@ export class BoardPanel extends Panel {
       scope.listen(tear, 'click', (e) => { e.stopPropagation(); this.onReroll?.(i); this.render(); });
     });
     el('div', 'ws-ph-foot', this.body, 'A filled notice is claimed here. Tearing one down posts the next and ends your run.');
-  }
-}
-
-export class TradePanel extends Panel {
-  onTrade?: (t: Trade) => void;
-  constructor(private readonly pack: Pack, private readonly owns: (skin: string) => boolean, private readonly room: Room = () => true, scope = new Scope('quest.trade')) { super('ws-ph-trade', 'Swaps', "Mott's stall · no coin", scope); }
-  render(): void {
-    const scope = this.renderScope();
-    for (const t of TRADES) {
-      const st = tradeState(t, this.pack, this.owns, this.room);
-      const row = el('div', `ws-ph-swap${st.ok ? ' ok' : ''}${st.owned ? ' owned' : ''}`, this.body);
-      const text = el('div', 'ws-ph-swap-text', row);
-      el('div', 'ws-ph-swap-label', text, t.label);
-      el('div', 'ws-ph-swap-blurb', text, t.blurb);
-      const give = el('div', 'ws-ph-swap-give', text);
-      for (const g of t.give) {
-        const have = this.pack.count(g.item);
-        el('span', have >= g.n ? 'have' : 'short', give, `${g.n} ${itemName(g.item, g.n)} (${have})`);
-      }
-      const btn = el('button', 'ws-ph-swap-btn', row, st.owned ? 'Owned' : st.full ? 'Full' : 'Trade');
-      btn.type = 'button'; btn.disabled = !st.ok;
-      scope.listen(btn, 'click', (e) => { e.stopPropagation(); if (tradeState(t, this.pack, this.owns, this.room).ok) { this.onTrade?.(t); this.render(); } });
-    }
   }
 }
 

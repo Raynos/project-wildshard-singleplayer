@@ -25,6 +25,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { CompendiumState } from '@wildshard/game/compendium/state';
 import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
 import type { Inventory, ItemId } from '@wildshard/game/Inventory';
+import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import type { Progress } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
 /**
@@ -60,8 +61,8 @@ import { pineTable, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAME
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
 import { preloadNpcModels } from './npcModels';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
-import type { Room, Trade, TradeItem } from './trades';
-import { BoardPanel, TradePanel, CountChip } from './ui';
+import { TRADE_GOODS, tradeCost, tradeShopState, type Room, type TradeGood, type TradeItem } from './trades';
+import { BoardPanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
 import { hollowLogFloor, hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
 import { hollowLog, loadHollowLog } from '../models/hollowLog';
@@ -338,8 +339,15 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── the trader's slate ──
   const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const pack = { count: (id: TradeItem): number => inventory.count(id) };
-  const trade = new TradePanel(pack, (s) => s in SKINS && h.skins.has(s), (k, n) => h.crossbow.room?.(k, n) ?? true, ctx.scope.child('trade'));
-  trade.onTrade = (t: Trade) => {
+  const owns = (s: string): boolean => s in SKINS && h.skins.has(s);
+  const room: Room = (k, n) => h.crossbow.room?.(k, n) ?? true;
+  // the platform draws the stall (SF28): the goods, the rules and the slate look are declared here
+  const trade = new ShopPanel<TradeGood>({
+    trader: 'Mott', place: 'Pine Hollow', goods: TRADE_GOODS, verb: 'Trade',
+    state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g.trade, pack),
+    layout: { kind: 'slate', kicker: "Mott's stall · no coin", title: 'Swaps' }, scope: ctx.scope.child('trade'),
+  });
+  trade.onBuy = ({ trade: t }) => {
     for (const g of t.give) inventory.take(g.item, g.n);
     const got = t.get;
     if ('bolts' in got) h.crossbow.addBolts(got.bolts);
@@ -348,6 +356,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     sfx?.bark('trader', traderVoice);
     kitSfx.interact('chime');
     hud.toast(`Traded · ${t.label}`);
+    return true;
   };
 
   // ── panels: the board and the slate release the lock + the weapons like the journal ──

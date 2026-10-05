@@ -11,7 +11,8 @@ import { installStarterEffects } from '../../src/kit/effects/install';
 import { DialogueBox } from '../../src/engine/quest/view/ui';
 import { Flags } from '../../src/engine/world/interact/flags';
 import { NpcTalk } from '../../src/engine/quest/view';
-import { BoardPanel, TradePanel, CountChip } from '../../src/shards/pine-hollow/quest/ui';
+import { BoardPanel, CountChip } from '../../src/shards/pine-hollow/quest/ui';
+import { ShopPanel } from '../../src/game/loot/ui/ShopPanel';
 import { newBoard } from '../../src/shards/pine-hollow/quest/contracts';
 
 afterEach(() => document.body.replaceChildren());
@@ -53,7 +54,7 @@ describe('scoped status and quest UI', () => {
   });
   it('Pine board/trade listeners release with their owner, so a disposed panel cannot reopen', () => {
     const scope = new Scope('panels'), board = new BoardPanel(newBoard, scope);
-    const trade = new TradePanel({ count: () => 0 }, () => false, () => true, scope);
+    const trade = new ShopPanel({ trader: 'Mott', place: 'Hollow', goods: [{ id: 'a', name: 'A', does: 'a', icon: 'star', price: 0 }], state: () => 'short', cost: () => [{ text: '1 hide (0)', have: false }], layout: { kind: 'slate', kicker: 'Stall', title: 'Swaps' }, scope });
     const count = new CountChip(scope);
     let rerolls = 0;
     board.onReroll = () => { rerolls++; };

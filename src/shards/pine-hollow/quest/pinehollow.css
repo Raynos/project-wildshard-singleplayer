@@ -1,7 +1,7 @@
 /* ─── Pine Hollow's hamlet screens + the collectibles counter (src/shards/pine-hollow/quest/ui.ts; PINE-HOLLOW-REMASTER PH-C6 / C8)
    ─── prefix ws-ph- ───
    The lodge's contract board is pine boards with three paper notices pinned to it (the journal's paper, ink and hand);
-   the trader's swaps are chalk on a slate. The chrome round them (CLOSE, the kicker) is the HUD's glass. */
+   the trader's slate is the platform's (src/game/loot/ui/slate.css, SF28). The chrome round them (CLOSE, the kicker) is the HUD's glass. */
 
 .ws-ph-panel {
   --ph-paper: #efe5cf; --ph-paper-edge: #cdb892; --ph-ink: #2e2922; --ph-pencil: #5b5347; --ph-red: #ad2a22;
@@ -50,24 +50,6 @@
 .ws-ph-note-row { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 8px; }
 .ws-ph-seal { appearance: none; -webkit-appearance: none; padding: 7px 14px; border: 0; border-radius: 50% / 46%; background: radial-gradient(circle at 40% 35%, #c9443a, var(--ph-red) 60%, #7a1a14); color: #f7e6da; font-family: var(--ph-serif); font-weight: 700; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2); cursor: pointer; transform: rotate(-5deg); }
 .ws-ph-tear { appearance: none; -webkit-appearance: none; padding: 6px 2px; border: 0; background: none; color: var(--ph-pencil); font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: underline dotted; cursor: pointer; }
-
-/* ── the trader's slate: chalk on black ── */
-.ws-ph-trade .ws-ph-frame {
-  background: radial-gradient(140% 90% at 30% 0%, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 55%), linear-gradient(180deg, #2a2d2b, #1c1f1d);
-  border: 10px solid #5a3c24; border-radius: 4px; color: rgba(236, 236, 226, 0.92);
-}
-.ws-ph-trade .ws-ph-head { border-bottom: 1px dashed rgba(236, 236, 226, 0.25); }
-.ws-ph-swap { display: flex; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px dashed rgba(236, 236, 226, 0.18); }
-.ws-ph-swap-text { flex: 1 1 auto; min-width: 0; }
-.ws-ph-swap-label { font-family: var(--ph-hand); font-size: 21px; line-height: 1.05; }
-.ws-ph-swap-blurb { font-family: var(--ph-serif); font-style: italic; font-size: 11.5px; opacity: 0.62; margin-top: 1px; }
-.ws-ph-swap-give { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 5px; font-size: 10.5px; letter-spacing: 0.06em; }
-.ws-ph-swap-give .have { color: #bfe8a8; }
-.ws-ph-swap-give .short { color: rgba(236, 236, 226, 0.45); }
-.ws-ph-swap-btn { flex: none; appearance: none; -webkit-appearance: none; padding: 8px 14px; border: 1.5px solid rgba(236, 236, 226, 0.75); border-radius: 3px; background: none; color: rgba(236, 236, 226, 0.95); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; cursor: pointer; }
-.ws-ph-swap-btn:disabled { opacity: 0.28; cursor: default; }
-.ws-ph-swap.ok .ws-ph-swap-btn { border-color: #bfe8a8; color: #bfe8a8; box-shadow: 0 0 10px rgba(191, 232, 168, 0.25); }
-.ws-ph-swap.owned .ws-ph-swap-label { text-decoration: line-through; opacity: 0.55; }
 
 /* ── the collectibles counter: under the quest chip, right-aligned, a few seconds after a pickup ── */
 .ws-ph-count {
