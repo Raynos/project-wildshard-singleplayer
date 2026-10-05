@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Load the native fixture bytes through the existing Rapier test alias.
+import { readFileSync } from 'node:fs';
 import { App } from '../src/engine/app/app';
 import { Scope } from '../src/engine/app/scope';
 import type { EquipmentService } from '../src/engine/combat/EquipmentService';
@@ -12,7 +14,6 @@ import type { Player } from '../src/engine/player/Player';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { withOwner } from '../src/engine/app/ownership';
-import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import type { World as RapierWorld, RigidBodySet, ColliderSet } from '@dimforge/rapier3d-simd';
 import type { Audio } from '../src/engine/audio/Audio';
 import type { Music } from '../src/engine/audio/Music';
@@ -124,7 +125,7 @@ describe('probe contract', () => {
       timers: { timeouts: 0, intervals: 0, raf: 1 }, timerIds: { timeouts: [], intervals: [], raf: [1] },
       stacks: { listeners: [], timers: [] },
     }) };
-    const R = await loadRapier(await (await fetch(wasmInline)).arrayBuffer()), page = new Physics(R), temporary = new Physics(R);
+    const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer), page = new Physics(R), temporary = new Physics(R);
     const world = fixture(); let active = temporary;
     Object.defineProperty(world, 'physics', { get: () => active });
     withOwner(world.game.levelScope, () => {
