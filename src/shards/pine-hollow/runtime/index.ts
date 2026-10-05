@@ -1,4 +1,4 @@
-import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installEnteredPineScore } from './audio/score';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
@@ -183,7 +183,7 @@ export class PineHollow extends ShardPlugin {
       rt.interactables.push(drop.interactable); skinDrops.push(drop);
       drop.onPickup = () => { skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); skinDrops.splice(skinDrops.indexOf(drop), 1); };
     });
-    const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues });
+    const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx });
     const rifleDrop = (() => {
       const site = CABIN_SITES[0];
       if (site === undefined || cabins === null) return null;
@@ -223,7 +223,7 @@ export class PineHollow extends ShardPlugin {
     rt.hooks.dispose = () => { ambience.dispose(); };
     rt.hooks.checkpoint = () => fights.onPlayerDeath();
     const health = ctx.app.player;
-    bindLoadoutDeath(ctx.app.events, ctx.scope, health, { active: () => ctx.app.player === health, reset: () => { loadout.onPlayerDeath(); } });
+    installEnteredRuntimeService(ctx, (scope) => { bindLoadoutDeath(ctx.app.events, scope, health, { active: () => ctx.app.player === health, reset: () => { loadout.onPlayerDeath(); } }); });
     rt.hooks.eliteEngaged = () => fights.eliteEngaged();
     rt.hooks.isElite = (animal) => fights.isElite(animal);
     rt.hooks.harvestBusy = () => life?.busy ?? false;

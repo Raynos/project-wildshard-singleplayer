@@ -1,3 +1,5 @@
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { AMMO_ROWS } from './effects';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -58,6 +60,8 @@ const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, sch
  */
 
 export interface PineLoadoutHost {
+  /** Retain ammunition data while transient input, cues and echo timers belong to the entered cell. */
+  context?: ShardContext;
   scope: Scope; cues: CombatCues; scene: THREE.Scene; sky: Sky; weapons: EquipmentService; crossbow: Crossbow | null; rifle: LeverRifle; longbow: Bow;
   inventory: Inventory; owned: Owned; hud: HUD; audio: Audio; params: URLSearchParams;
 }
@@ -172,31 +176,35 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const CAP: Record<AmmoKind, number> = { iron: MAX_BOLTS, pitch: POUCH_MAX, broadhead: POUCH_MAX, arrow: QUIVER_MAX, cartridge: Infinity };
   const room = (kind: AmmoKind, n: number): boolean => count(kind) + n <= CAP[kind];
 
-  // ── input: B cycles the bolt kind while the crossbow is held; the touch ammo strip, tapped, does the same ──
-  app.input.register({ id: 'crossbow.bolts', actions: ['bolt.cycle'], keys: { 'bolt.cycle': ['KeyB'] }, touch: { relabel: {}, verbs: { 'verb.1': { action: 'bolt.cycle', label: 'Bolts', icon: '<svg viewBox="0 0 24 24"><path d="M5 19 19 5m-6 0h6v6M5 14v5h5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>' } } }, enabled: () => weapons.current.ammoSelect !== undefined && weapons.enabled && weapons.current.enabled }, h.scope);
-  app.input.push('crossbow.bolts', h.scope);
-  app.input.bind('bolt.cycle', () => { weapons.current.ammoSelect?.(); }, h.scope, () => weapons.enabled && weapons.current.ammoSelect !== undefined);
+  const bind = (scope: Scope): void => {
+    // ── input: B cycles the bolt kind while the crossbow is held; the touch ammo strip, tapped, does the same ──
+    app.input.register({ id: 'crossbow.bolts', actions: ['bolt.cycle'], keys: { 'bolt.cycle': ['KeyB'] }, touch: { relabel: {}, verbs: { 'verb.1': { action: 'bolt.cycle', label: 'Bolts', icon: '<svg viewBox="0 0 24 24"><path d="M5 19 19 5m-6 0h6v6M5 14v5h5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>' } } }, enabled: () => weapons.current.ammoSelect !== undefined && weapons.enabled && weapons.current.enabled }, scope);
+    app.input.push('crossbow.bolts', scope);
+    app.input.bind('bolt.cycle', () => { weapons.current.ammoSelect?.(); }, scope, () => weapons.enabled && weapons.current.ammoSelect !== undefined);
 
-  listenPage(h.scope, 'pointerdown', (e) => {
-    const t = e.target;
-    if (!(t instanceof Element) || t.closest('.ws-game-bolts') === null || weapons.current.ammoSelect === undefined || !weapons.enabled) return;
-    e.stopPropagation(); weapons.current.ammoSelect();
-  }, { capture: true, on: 'document' });
+    listenPage(scope, 'pointerdown', (e) => {
+      const t = e.target;
+      if (!(t instanceof Element) || t.closest('.ws-game-bolts') === null || weapons.current.ammoSelect === undefined || !weapons.enabled) return;
+      e.stopPropagation(); weapons.current.ammoSelect();
+    }, { capture: true, on: 'document' });
 
-  // ── sounds (chained over main.ts's: the held weapon decides) ──
-  const cues = h.cues;
-  cues.use(pineCombatCues({
-    shot: (name, opts) => sfx?.shot(name, opts) ?? false, stony,
-    later: (fn, seconds) => { h.scope.timeout(seconds * 1000, fn); }, echoDelay: ECHO_DELAY, echoGain: ECHO_GAIN,
-  }), h.scope);
-  const events = weapons.events;
-  events?.on('weapon.action', ({ id, phase }) => {
-    if (id === rifle.row.id && phase === 'cycle') cues.cue('cue.lever.cycle');
-  }, h.scope);
-  events?.on('weapon.reload', ({ id, phase }) => {
-    if (id === rifle.row.id && phase === 'round' && !cues.cue('cue.lever.round')) sharedWeaponVoices(audio).dryFire();
-  }, h.scope);
-  if (events) bindLongbowCharge(events, h.scope, longbow.row, cues, (ok) => { hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); });
+    // ── sounds (chained over main.ts's: the held weapon decides) ──
+    const cues = h.cues;
+    cues.use(pineCombatCues({
+      shot: (name, opts) => sfx?.shot(name, opts) ?? false, stony,
+      later: (fn, seconds) => { scope.timeout(seconds * 1000, fn); }, echoDelay: ECHO_DELAY, echoGain: ECHO_GAIN,
+    }), scope);
+    const events = weapons.events;
+    events?.on('weapon.action', ({ id, phase }) => {
+      if (id === rifle.row.id && phase === 'cycle') cues.cue('cue.lever.cycle');
+    }, scope);
+    events?.on('weapon.reload', ({ id, phase }) => {
+      if (id === rifle.row.id && phase === 'round' && !cues.cue('cue.lever.round')) sharedWeaponVoices(audio).dryFire();
+    }, scope);
+    if (events) bindLongbowCharge(events, scope, longbow.row, cues, (ok) => { hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); });
+
+  };
+  if (h.context === undefined) bind(h.scope); else installEnteredRuntimeService(h.context, bind);
 
   // ── the longbow: the King's reward, and the lever-action: kept in Owned, never in a pack slot (E314 C) ──
   const keep = restoreKept(inventory, owned);
