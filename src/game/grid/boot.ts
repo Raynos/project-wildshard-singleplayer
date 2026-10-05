@@ -5,6 +5,7 @@ import { devserverCellOn } from './debug';
 import { findShard } from '../shard/registry';
 import { travel } from '../travel/travel';
 import type { HomeResidencyClaim } from './pageResidency';
+import { currentPageMode, setPageMode } from './pageMode';
 /**
  * Infinite Wildshard's way in (SF21a). There is no assembled grid client yet (SF18a's residency, SF20a's in-page
  * crossing and SF18b's rings are not wired into a page), so the entry boots the furthest real thing: the grid catalogue's
@@ -99,16 +100,16 @@ export class GridHomeHandoff {
 /** this page's home handoff (only a grid page's home client offers one) */
 export const gridHomeSim = new GridHomeHandoff();
 
-let mode: PageMode = 'shard';
-/** this page's mode, decided once at boot */
-export function pageMode(): PageMode { return mode; }
+/** this page's mode, decided once at boot (held in the leaf grid/pageMode.ts) */
+export function pageMode(): PageMode { return currentPageMode(); }
 
 /** The boot's one read of the intent (every boot consumes it, used or not). In grid mode the address becomes the bare
  *  title URL (`history.replaceState`), so nothing but a new tap can bring the grid back. */
 export function bootPageMode(slug: string): PageMode {
   let intent = null;
   try { intent = pageGridIntents().consume(slug); } catch { /* blocked storage: no intent, the normal shard flow */ }
-  mode = intent === null ? 'shard' : 'grid';
+  const mode: PageMode = intent === null ? 'shard' : 'grid';
+  setPageMode(mode);
   if (intent !== null) gridCells.enter({ instance: intent.instance, slug: intent.slug }); // the home cell: the page starts inside it
   if (mode === 'grid' && typeof history !== 'undefined') {
     try { history.replaceState(history.state, '', new URL(location.pathname, location.origin)); } catch { /* a sandboxed frame: the URL stays */ }
@@ -117,7 +118,7 @@ export function bootPageMode(slug: string): PageMode {
 }
 
 /** the catalogue instance this grid page booted into (null in shard mode) */
-export function pageGridInstance(): string | null { return mode === 'grid' ? gridCells.cell?.instance ?? null : null; }
+export function pageGridInstance(): string | null { return currentPageMode() === 'grid' ? gridCells.cell?.instance ?? null : null; }
 
 /** The title page's boot: a stale intent is consumed and dropped, never kept for a later page. */
 export function dropGridIntent(): void {

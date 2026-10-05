@@ -461,6 +461,12 @@ export class AnimalManager {
   private readonly farRigs = new Map<Animal, FarRig>();
   /** PH-P2: the casting animals' shadows per model (farHerd.ts { shadow }), within animalShadowDist */
   private readonly shadowHerd = new FarHerd<FarRig>((m) => m.model.fur, { shadow: true });
+  /**
+   * A level's override of TIER_CONFIG.animalShadowBatch (null: the tier's): false casts each animal from its own visible
+   * rig (its one-draw caster) instead of the shadow herd's skinned copies — one shadow draw per animal per cascade, and
+   * none of the batch's geometry (G180 B5, Pine Hollow's memory trim: ~−7.9 MB of GL, −12.8 MB of JS arrays)
+   */
+  shadowBatch: boolean | null = null;
   private readonly pbr: boolean;
 
   private readonly scene: THREE.Scene;
@@ -773,7 +779,7 @@ export class AnimalManager {
     sd.fill(Infinity); si.fill(-1);
     const farD = TIER_CONFIG.animalFarBatchDist, far2 = farD > 0 ? farD * farD : Infinity;
     if (farD > 0) this.farHerd.begin(camera);
-    const herdShadows = TIER_CONFIG.animalShadowBatch && this.pbr;
+    const herdShadows = (this.shadowBatch ?? TIER_CONFIG.animalShadowBatch) && this.pbr;
     if (herdShadows) this.shadowHerd.begin(null);
     const poseT0 = frameCost.on ? performance.now() : 0;
     for (let i = 0; i < n; i++) {

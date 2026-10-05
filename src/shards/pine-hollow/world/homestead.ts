@@ -15,6 +15,7 @@ import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { CABIN_SITES } from '../layout';
+import { pineSetCap } from '../debug/options';
 import {
   CABIN_SPECS, CabinBuilder, PROP_KINDS, mergeParts,
   type BuildingOwner, type CabinSpec, type Door, type Fire, type Floor, type LightAnchor, type PropKind, type PropPart, type Room, type Swing,
@@ -68,9 +69,10 @@ export function cabinMats(sky: Sky): Promise<Mats> {
 }
 
 async function loadMats(sky: Sky): Promise<Mats> {
+  const cap = pineSetCap(TIER_CONFIG.maxTexture); // G180 B1: 512² on the phone with the memory trim on
   const [logSet, roofSet, beamSet, deckSet, doorSet, stoneSet, barkSet] = await Promise.all([
-    loadPBR('wood_trunk_wall'), loadPBR('wood_planks_grey'), loadPBR('wood_planks_grey'), loadPBR('wood_planks_dirt'),
-    loadPBR('rough_pine_door'), loadPBR('stone_wall'), loadPBR('pine_bark'),
+    loadPBR('wood_trunk_wall', 1, cap), loadPBR('wood_planks_grey', 1, cap), loadPBR('wood_planks_grey', 1, cap), loadPBR('wood_planks_dirt', 1, cap),
+    loadPBR('rough_pine_door', 1, cap), loadPBR('stone_wall', 1, cap), loadPBR('pine_bark', 1, cap),
   ]);
   const std = (set: PBRSet, extra: THREE.MeshStandardMaterialParameters = {}) => pbrMaterial(set, { metalness: 0, ...extra });
   const m: Mats = {

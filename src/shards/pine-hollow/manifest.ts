@@ -64,7 +64,7 @@ export const PINE_HOLLOW: ShardManifest = {
   creatures: { lowPoly: false, waitForModels: true, furRim: true, tintRange: 0.2, oneMaterial: false },
   debugOptions: [],
   assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
-  ktx2: () => import('./ktx2.generated'),
+  ktx2: () => import('./boot/gpuTable').then((m) => m.pineKtx2()), // G180 B2: the memory trim's ASTC 6×6 phone overlay
   order: 2,
   status: 'earlyAccess', // Jake 2026-10-01: Pine Hollow is an early access level
   

@@ -141,7 +141,7 @@ export class PineSkyBackdrop {
    */
   private envStep = -1;
 
-  private constructor(private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly envSteps: boolean, private readonly packKeys: boolean) {
+  private constructor(private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly envSteps: boolean, private readonly packKeys: boolean, smallEnv: boolean) {
     this.clock = new DayCycle({ ...PINE_DAY, start: phase, curves: { night: pineNightAt, dusk: PINE_DAY.curves?.dusk ?? (() => 0), dawn: PINE_DAY.curves?.dawn ?? (() => 0), lamps: (p) => Math.max(PINE_DAY.curves?.lamps(p) ?? 0, .35 * this.mod.overcast) } });
     this.clock.cycle = cycle; this.clock.paused = frozen;
     this.clock.onSet = () => this.jump();
@@ -160,8 +160,11 @@ export class PineSkyBackdrop {
     dome.frustumCulled = false;
     dome.renderOrder = -1000; // first of the opaque pass, depth untouched: everything draws over it
     this.dome = dome;
-    // the environment pass: the same sky, one texel per direction of a 1024×512 equirect
-    this.envEquirect = new THREE.WebGLRenderTarget(1024, 512, { type: THREE.HalfFloatType, depthBuffer: false, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
+    // the environment pass: the same sky, one texel per direction of a 1024×512 equirect (PMREM's cube is a quarter of its
+    // width: 256). G180 B4, the memory trim on the phone: 512×256 → a 128 cube, PMREM's three cube-UV targets 768×1024 →
+    // 384×512 RGBA16F (~−16.5 MB); the IBL is roughness-filtered light, so it reads the same at half the texels
+    const envW = smallEnv ? 512 : 1024;
+    this.envEquirect = new THREE.WebGLRenderTarget(envW, envW / 2, { type: THREE.HalfFloatType, depthBuffer: false, generateMipmaps: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter });
     this.envEquirect.texture.mapping = THREE.EquirectangularReflectionMapping;
     const tri = new THREE.BufferGeometry();
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
@@ -183,7 +186,7 @@ export class PineSkyBackdrop {
   }
 
   /** the clock at the URL's / Settings' time, its first two keys decoded, the environment rendered */
-  static async create(renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, envSteps: boolean, packKeys = false): Promise<PineSkyBackdrop> {
+  static async create(renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, envSteps: boolean, packKeys = false, smallEnv = false): Promise<PineSkyBackdrop> {
     const qs = new URLSearchParams(location.search);
     const todRaw = qs.get('tod') ?? '';
     const named = (PINE_PHASES as Record<string, number | undefined>)[todRaw];
@@ -192,7 +195,7 @@ export class PineSkyBackdrop {
     const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
     const frozen = time !== 'live';
     const phase = frozen ? FIXED_PHASE[time] : Number.isFinite(tod) ? ((tod % 1) + 1) % 1 : PINE_PHASES.morning + 0.05;
-    const dn = new PineSkyBackdrop(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen, envSteps, packKeys);
+    const dn = new PineSkyBackdrop(renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : 24 * 60, frozen, envSteps, packKeys, smallEnv);
     const [a, b] = dn.segment(phase);
     await Promise.all([dn.ensure(a[1].key), dn.ensure(b[1].key)]);
     return dn;

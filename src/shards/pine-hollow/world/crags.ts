@@ -33,7 +33,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import {
   BEAR_CAVE, DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, ridgeFootZ, nearestOnPolyline, type XZ,
 } from '../layout';
-import { CRAG_VIEWS, pineOption } from '../debug/options';
+import { CRAG_VIEWS, pineOption, pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';
@@ -43,7 +43,7 @@ import { SCREE_MODULES, scree as screeFan } from '../models/scree';
 import { loadPBR, type PBRSet } from '@wildshard/engine/core/assets';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { TIER } from '@wildshard/engine/core/tier';
+import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
@@ -661,7 +661,7 @@ export class PineCrags {
         loadNodes(`${CRAG_DIR}/crags-b.glb`),
         loadNodes(`${CRAG_DIR}/cave.glb`).catch((e: unknown) => { console.warn('[crags] no cave.glb', e); return new Map<string, THREE.BufferGeometry>(); }),
         fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
-        sky ? Promise.all([loadPBR('mossy_rock'), loadPBR('rock_ground')]) : Promise.resolve(null),
+        sky ? Promise.all([loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)), loadPBR('rock_ground')]) : Promise.resolve(null), // G180 B1 (rock_ground stays shared with the terrain slab's)
       ]);
       const mat = sky && tex ? cragMaterial(sky, tex[0], tex[1]) : null;
       for (const [name, g] of kitB) kit.set(name, g);

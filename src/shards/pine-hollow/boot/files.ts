@@ -8,6 +8,10 @@ import { pineHeroUrls } from '../world/heroFiles';
 import { pineSkyKeyUrls } from '../look/skyKeys';
 
 const uniq = (urls: readonly string[]): string[] => [...new Set(urls)];
+/** the KTX2 table the boot lists read: the generated one, or with the memory trim's ASTC 6×6 overlay (boot/gpuTable.ts, G180 B2) */
+let table: typeof GPU_FILES = GPU_FILES;
+/** boot/gpuTable.ts, when the manifest's KTX2 table resolves (the boot's ktx2 stage, before any list is read) */
+export function usePineGpuFiles(next: typeof GPU_FILES): void { table = next; }
 const rigNames = ['deer-hind', 'deer-stag', 'boar', 'elk-cow', 'elk-bull', 'bear-black', 'bear-brown', 'antler-king-rig'];
 const treeSet = '/assets/models/pine-hollow-trees';
 const bakedDir = '/assets/baked/pine-hollow/';
@@ -15,7 +19,7 @@ const hdri = '/assets/hdri/qwantani_sunset_puresky_2k';
 export const BAKED_UNREAD = /\/fur-[^/]*$/;
 /** World files formerly fetched outside the loading contract. */
 export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
-  const { gpu } = filePolicy(tier, tex, GPU_FILES);
+  const { gpu } = filePolicy(tier, tex, table);
   const phone = tier === 'phone' ? '-phone' : '';
   return [
     '/assets/lut/pine-hollow.bin', `/assets/horizon/pine-hollow-day${phone}.webp`, `/assets/horizon/pine-hollow-night${phone}.webp`,
@@ -25,7 +29,7 @@ export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
   ].map(gpu).filter((url) => url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
-  const { gpu, layer, pbr } = filePolicy(tier, tex, GPU_FILES);
+  const { gpu, layer, pbr } = filePolicy(tier, tex, table);
   const gltf = (id: string): string[] => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((kind) => `/assets/models/${id}/textures/${id}_${kind}_1k.jpg`)];
   const lod = (id: string): string => `/assets/models/${id}/${id}_lod.glb`;
   const baked = `${bakedDir}terrain.bin`;

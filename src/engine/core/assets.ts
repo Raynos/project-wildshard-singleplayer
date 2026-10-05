@@ -25,9 +25,12 @@ export function setAnisotropy(renderer: Renderer): void { gpu = renderer; maxAni
  * 2048² Poly Haven set becomes 1024², a quarter of the GPU memory and upload time.
  */
 const images = new Map<string, Promise<ImageBitmap | HTMLImageElement>>();
+/** the decode cache's key: a decode below the tier's own cap (a level's memory trim) is another image */
+const imageKey = (url: string, maxSize: number): string => (maxSize === TIER_CONFIG.maxTexture ? url : `${url}@${maxSize}`);
 export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promise<ImageBitmap | HTMLImageElement> {
-  let p = images.get(url);
-  if (!p) { p = fetchImage(url, maxSize); images.set(url, p); }
+  const key = imageKey(url, maxSize);
+  let p = images.get(key);
+  if (!p) { p = fetchImage(url, maxSize); images.set(key, p); }
   return p;
 }
 
@@ -52,8 +55,12 @@ function shareSource(t: THREE.Texture, url: string, srgb: boolean, image: ImageB
   releaseOnUpload(t.source, done);
 }
 
-export async function loadTexture(url: string, srgb = false, repeat = 1): Promise<THREE.Texture> {
-  const k = await ktx2Texture(tierUrl(url), TIER_CONFIG.maxTexture); // E157: the KTX2 stand-in, when the build has one and KTX2 is on (src/engine/core/ktx2.ts)
+/**
+ * One texture file. `maxSize` (default: the tier's cap) is the largest edge it keeps: a level's own memory trim may ask
+ * for less (Pine Hollow's 512² building sets, G180); a KTX2 stand-in drops its top mips, an image decodes smaller.
+ */
+export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize = TIER_CONFIG.maxTexture): Promise<THREE.Texture> {
+  const k = await ktx2Texture(tierUrl(url), maxSize); // E157: the KTX2 stand-in, when the build has one and KTX2 is on (src/engine/core/ktx2.ts)
   if (k) {
     k.wrapS = k.wrapT = THREE.RepeatWrapping;
     k.repeat.set(repeat, repeat);
@@ -62,13 +69,14 @@ export async function loadTexture(url: string, srgb = false, repeat = 1): Promis
     k.needsUpdate = true;
     return labelAsset(k, 'engine/loadTexture', url);
   }
-  const shared = memorySaverOn() ? sharedSources.get(sourceKey(url, srgb)) : undefined;
+  const key = imageKey(url, maxSize);
+  const shared = memorySaverOn() ? sharedSources.get(sourceKey(key, srgb)) : undefined;
   let t: THREE.Texture;
   if (shared === undefined) {
-    const image = await loadImage(url);
+    const image = await loadImage(url, maxSize);
     t = new THREE.Texture(image);
     t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
-    if (memorySaverOn()) shareSource(t, url, srgb, image);
+    if (memorySaverOn()) shareSource(t, key, srgb, image);
   } else {
     t = new THREE.Texture();
     t.source = shared.source;
@@ -95,12 +103,13 @@ export function texUrl(id: string, kind: 'diffuse' | 'nor_gl' | 'arm'): string {
 }
 export const pbrUrls = (id: string): string[] => (['diffuse', 'nor_gl', 'arm'] as const).map((k) => texUrl(id, k));
 
-/** Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per call. */
-export async function loadPBR(id: string, repeat = 1): Promise<PBRSet> {
+/** Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per
+ *  call; `maxSize` as loadTexture's (a level's memory trim). */
+export async function loadPBR(id: string, repeat = 1, maxSize = TIER_CONFIG.maxTexture): Promise<PBRSet> {
   const [map, normalMap, armMap] = await Promise.all([
-    loadTexture(texUrl(id, 'diffuse'), true, repeat),
-    loadTexture(texUrl(id, 'nor_gl'), false, repeat),
-    loadTexture(texUrl(id, 'arm'), false, repeat),
+    loadTexture(texUrl(id, 'diffuse'), true, repeat, maxSize),
+    loadTexture(texUrl(id, 'nor_gl'), false, repeat, maxSize),
+    loadTexture(texUrl(id, 'arm'), false, repeat, maxSize),
   ]);
   return { map, normalMap, armMap };
 }
