@@ -28,6 +28,7 @@ import type { Inventory, ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import type { Progress } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { PineQuestLifetime } from '../runtime/questLifetime';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -189,7 +190,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   ctx.system({ id: 'quest.pool', phase: 'update', after: ['quest.kit'], before: ['quest.shelf', 'quest', 'hud.combat', 'main.frame'], run: (dt) => { pool.update(dt); } });
 
   // ── the counters, the toasts ──
-  const chip = new CountChip(ctx.scope.child('count'));
+  const ui = new PineQuestLifetime(ctx);
+  const chip = ui.view('count', (scope) => new CountChip(scope));
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
   // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (a model: tokenShelf.ts places it)
   const rangerRoot = h.cabins?.roots[0];
@@ -204,12 +206,12 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       case 'take':
         if (d.kind === 'pickup' && d.look === 'resin') {
           inventory.add('amber-resin');
-          chip.show('Amber resin', resinCount(), RESIN_COUNT);
+          chip().show('Amber resin', resinCount(), RESIN_COUNT);
           kitSfx.interact('chime', e.at, { gain: 0.7 });
           if (resinCount() === RESIN_COUNT) hud.toast(`Every drop of amber in the Hollow · ${RESIN_COUNT} / ${RESIN_COUNT}`);
         } else if (d.kind === 'pickup' && d.look === 'token') {
           const i = Number(d.id.split('-')[1] ?? '1') - 1;
-          chip.show('Carved tokens', tokenCount(), TOKEN_NAMES.length);
+          chip().show('Carved tokens', tokenCount(), TOKEN_NAMES.length);
           hud.toast(`Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`);
           kitSfx.interact('glyph', e.at);
           if (tokenCount() === TOKEN_NAMES.length) { hud.toast("All eight carved tokens — they're on the ranger's mantel now"); shelf?.setShown(true); }
@@ -258,7 +260,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
         flags.set(flag);
         lm?.setLit(id, true);
         shot('lanternCreak', it.position); // its little door swung open, then the wick takes
-        ctx.scope.timeout(350, () => { shot('lanternLight', it.position); });
+        ui.timeout(350, () => { shot('lanternLight', it.position); });
         kitSfx.interact('ignite', it.position);
         hud.toast(`${n.name[0]?.toUpperCase() ?? ''}${n.name.slice(1)} burns again`);
       },
@@ -313,26 +315,29 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   // ── the lodge's contract board ──
   const store = { getItem: (_key: string): string => JSON.stringify(lodgeSave.read('pine-hollow')), setItem: (_key: string, raw: string): void => { lodgeSave.write(v.parse(jsonSchema, JSON.parse(raw) as unknown), 'pine-hollow'); } };
   const board: Board = loadBoard(store);
-  const boardUi = new BoardPanel(() => board, ctx.scope.child('board'));
-  boardUi.onClaim = (i) => {
-    const r = claim(board, i);
-    if (!r) return;
-    for (const it of r.items) inventory.add(it.id, it.n);
-    if (r.bolts > 0) h.crossbow.addBolts(r.bolts);
-    if (r.skin) { const s = SKINS[r.skin]; h.skins.own(s.id); h.wearSkin(s); hud.toast(`${s.name} crossbow finish — ${s.blurb}`); }
-    saveBoard(board, store);
-    kitSfx.interact('chest');
-    h.music.sting('pickup');
-    progress.recordEvent('streak', board.streak);
-    hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
-  };
-  boardUi.onReroll = (i) => { reroll(board, i); saveBoard(board, store); kitSfx.interact('door'); };
+  const boardUi = ui.view('board', (scope) => {
+    const panel = new BoardPanel(() => board, scope);
+    panel.onClaim = (i) => {
+      const r = claim(board, i);
+      if (!r) return;
+      for (const it of r.items) inventory.add(it.id, it.n);
+      if (r.bolts > 0) h.crossbow.addBolts(r.bolts);
+      if (r.skin) { const s = SKINS[r.skin]; h.skins.own(s.id); h.wearSkin(s); hud.toast(`${s.name} crossbow finish — ${s.blurb}`); }
+      saveBoard(board, store);
+      kitSfx.interact('chest');
+      h.music.sting('pickup');
+      progress.recordEvent('streak', board.streak);
+      hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
+    };
+    panel.onReroll = (i) => { reroll(board, i); saveBoard(board, store); kitSfx.interact('door'); };
+    return panel;
+  });
   const bs = contractBoardSite();
   const boardPrompt: Interactable = {
     position: new THREE.Vector3(bs.x, heightAt(bs.x, bs.z) + 1.3, bs.z),
-    get radius() { return boardUi.isOpen ? 0 : 2.8; },
+    get radius() { return boardUi().isOpen ? 0 : 2.8; },
     get label() { return board.slots.some(isFilled) ? 'Read the contract board — one is filled' : 'Read the contract board'; },
-    onInteract: () => { boardUi.open(); kitSfx.interact('door', boardPrompt.position, { gain: 0.5 }); },
+    onInteract: () => { boardUi().open(); kitSfx.interact('door', boardPrompt.position, { gain: 0.5 }); },
   };
   h.interactables.push(boardPrompt);
 
@@ -342,43 +347,49 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const owns = (s: string): boolean => s in SKINS && h.skins.has(s);
   const room: Room = (k, n) => h.crossbow.room?.(k, n) ?? true;
   // the platform draws the stall (SF28): the goods, the rules and the slate look are declared here
-  const trade = new ShopPanel<TradeGood>({
-    trader: 'Mott', place: 'Pine Hollow', goods: TRADE_GOODS, verb: 'Trade',
-    state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g.trade, pack),
-    layout: { kind: 'slate', kicker: "Mott's stall · no coin", title: 'Swaps' }, scope: ctx.scope.child('trade'),
+  const trade = ui.view('trade', (scope) => {
+    const panel = new ShopPanel<TradeGood>({
+      trader: 'Mott', place: 'Pine Hollow', goods: TRADE_GOODS, verb: 'Trade',
+      state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g.trade, pack),
+      layout: { kind: 'slate', kicker: "Mott's stall · no coin", title: 'Swaps' }, scope,
+    });
+    panel.onBuy = ({ trade: t }) => {
+      for (const g of t.give) inventory.take(g.item, g.n);
+      const got = t.get;
+      if ('bolts' in got) h.crossbow.addBolts(got.bolts);
+      else if ('ammo' in got) h.crossbow.addAmmo?.(got.ammo, got.n);
+      else { const s = SKINS[got.skin]; h.skins.own(s.id); h.wearSkin(s); } // nothing Mott gives goes in the pack (E314 C)
+      sfx?.bark('trader', traderVoice);
+      kitSfx.interact('chime');
+      hud.toast(`Traded · ${t.label}`);
+      return true;
+    };
+    return panel;
   });
-  trade.onBuy = ({ trade: t }) => {
-    for (const g of t.give) inventory.take(g.item, g.n);
-    const got = t.get;
-    if ('bolts' in got) h.crossbow.addBolts(got.bolts);
-    else if ('ammo' in got) h.crossbow.addAmmo?.(got.ammo, got.n);
-    else { const s = SKINS[got.skin]; h.skins.own(s.id); h.wearSkin(s); } // nothing Mott gives goes in the pack (E314 C)
-    sfx?.bark('trader', traderVoice);
-    kitSfx.interact('chime');
-    hud.toast(`Traded · ${t.label}`);
-    return true;
-  };
 
   // ── panels: the board and the slate release the lock + the weapons like the journal ──
   let holdTimer: ReturnType<typeof setTimeout> | 0 = 0;
   const onOpen = (): void => {
-    ctx.scope.cancelTimer(holdTimer);
+    ui.cancelTimer(holdTimer);
     hud.holdPause = true; h.weapons.setEnabled(false);
     if (h.menu.isOpen) h.menu.close(true);
     if (document.pointerLockElement) document.exitPointerLock();
   };
   const onClose = (): void => {
     hud.onResume?.();
-    holdTimer = ctx.scope.timeout(450, () => {
+    holdTimer = ui.timeout(450, () => {
       hud.holdPause = false;
-      if (!h.nolock && !h.touchUi() && !document.pointerLockElement && hud.entered && !h.menu.isOpen && !boardUi.isOpen && !trade.isOpen) hud.setPaused(true);
+      if (!h.nolock && !h.touchUi() && !document.pointerLockElement && hud.entered && !h.menu.isOpen && !boardUi().isOpen && !trade().isOpen) hud.setPaused(true);
     });
   };
-  boardUi.onOpen = onOpen; boardUi.onClose = onClose;
-  trade.onOpen = onOpen; trade.onClose = onClose;
+  ui.enter(() => {
+    boardUi().onOpen = onOpen; boardUi().onClose = onClose;
+    trade().onOpen = onOpen; trade().onClose = onClose;
+  });
+  ui.leave(() => { hud.holdPause = false; holdTimer = 0; });
 
   // ── the people ──
-  const dialogue = new DialogueBox(ctx.scope.child('dialogue'));
+  const dialogue = ui.view('dialogue', (scope) => new DialogueBox(scope));
   interface Person { kind: NpcKind; def: NpcDef; fig: NpcFigure; prompt: Interactable; talk: NpcTalk; barked: boolean; after: (() => void) | undefined }
   const people: Person[] = [];
   const addPerson = (kind: NpcKind, def: NpcDef, feet: { x: number; z: number }, yaw: number, label: string, after?: () => void): Person => {
@@ -386,7 +397,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     const fig = makeNpcFigure(kind, sky, { x: feet.x, y, z: feet.z }, yaw);
     game.scene.add(fig.group);
     h.registry.add({ id: `npc-${kind}`, name: def.name, category: 'people', file: 'src/shards/pine-hollow/quest/index.ts', colliders: [boxInFrame(fig.collider, fig.group, 'wood', false)], follows: fig.group, followRotation: false });
-    const talk = new NpcTalk({ dialogue, flags, npc: def, at: fig.talkPoint, radius: TALK_R, label, speaker: fig,
+    const talk = new NpcTalk({ get dialogue() { return dialogue(); }, flags, npc: def, at: fig.talkPoint, radius: TALK_R, label, speaker: fig,
       onOpen: () => { sfx?.bark(kind, fig.talkPoint); }, onDone: () => { after?.(); }, onEmpty: () => { after?.(); } });
     // Mott's hatch moves the cloned prompt out in front of the stall.
     const prompt = talk.prompt; prompt.position = fig.talkPoint.clone();
@@ -405,7 +416,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const millerAt = front(HAMLET_SITES.miller, 2.5 + 1.8 + 1.4);
   addPerson('miller', MILLER, millerAt, HAMLET_SITES.miller.rot + Math.PI, 'Talk to Brandt, the miller', () => { if (flags.has('errand:thanked') && !flags.has('errand:paid')) payMiller(); });
   const traderAt = front(HAMLET_SITES.trader, 0.55);
-  const traderPerson = addPerson('trader', TRADER, traderAt, HAMLET_SITES.trader.rot + Math.PI, 'Trade with Mott', () => { trade.open(); });
+  const traderPerson = addPerson('trader', TRADER, traderAt, HAMLET_SITES.trader.rot + Math.PI, 'Trade with Mott', () => { trade().open(); });
   // the trader stands behind his hatch: his prompt is out front of it
   { const f = front(HAMLET_SITES.trader, 2.6); traderPerson.prompt.position.set(f.x, floorAt(f.x, f.z) + 1.4, f.z); traderVoice.copy(traderPerson.fig.talkPoint); }
 
@@ -468,6 +479,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const questChip = new QuestChip({ chip: () => quest.chip(), markers: () => quest.markers().map((m) => ({ id: m.id, label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z })) });
   const objective = questChip.line;
   const reward = new RewardCaption('Dawn over the Hollow', "The Warden's Hollow", 'Every lantern burns. The fog is going home.');
+  ui.retainRoot(objective.root, () => { objective.root.classList.remove('ws-quest-hide'); });
+  ui.retainRoot(reward.root, () => { reward.show(false); });
   let ff: { from: number; span: number; t: number; dur: number; to: number } | null = null;
   const fastForward = (to: number, dur: number): void => {
     const dn = sky.dayNight; if (!dn) return;
@@ -544,7 +557,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   let slowT = 0;
   ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit', 'quest.pool', 'quest.shelf'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
-    dialogue.update(dt);
+    dialogue().update(dt);
     for (const p of people) {
       p.fig.update(dt, t, pp);
       const d2 = p.fig.talkPoint.distanceToSquared(pp);
@@ -602,7 +615,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     jump: goto, goto,
     dawn: runDawn, night: (): void => { fastForward(PINE_PHASES.night, 2); },
     zip, canoe, lanterns: lanternPrompts, hollow: (): HollowLog | null => hollow,
-    openBoard: (): void => { boardUi.open(); }, openTrade: (): void => { trade.open(); },
+    openBoard: (): void => { boardUi().open(); }, openTrade: (): void => { trade().open(); },
     callThralls: (): void => { thralls.force(player.position); },
     give: (id: ItemId, n = 1): void => { inventory.add(id, n); },
     fill: (i: number): void => { const c = board.slots[i]; if (c) { c.have = c.need; saveBoard(board, store); } },
@@ -613,9 +626,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   Object.assign(window, { __pineQuest: debug });
   ctx.scope.onDispose(() => {
     if (Reflect.get(window, '__pineQuest') === debug) Reflect.deleteProperty(window, '__pineQuest');
-    objective.root.remove(); reward.root.remove(); dialogue.dispose();
-    boardUi.root.remove(); trade.root.remove(); chip.root.remove();
-    ctx.scope.cancelTimer(holdTimer);
+    objective.root.remove(); reward.root.remove();
+    ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
+    ui.cancelTimer(holdTimer);
   });
   if (quest.current?.id === 'dawn') runDawn();   // an early kill (or `?quest=dawn`): the dawn plays now
   return { useSfx: (s) => { sfx = s; }, stagAt: () => stag.position };
