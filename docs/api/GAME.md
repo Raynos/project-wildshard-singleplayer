@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-525 members; 113 without a doc line (—).
+526 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -312,6 +312,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `preflightAssetGraph` | function | @wildshard/game/shardfile/assetGraph | Refuse orphan wire assets and require look LUTs in the charged library closure before any asset read. |
 | `assetCost` | function | @wildshard/game/shardfile/assets | Select the format parser; binary/JSON/Wasm are bounded before higher-level content validators run. |
 | `AssetCost` | interface | @wildshard/game/shardfile/assets | Actual costs derived from a bounded parser, never trusted from the author declaration. |
+| `assetOverdraw` | function | @wildshard/game/shardfile/assets | Shared byte-derived raster estimate; no author-supplied overdraw number is accepted. |
 | `parseAudio` | function | @wildshard/game/shardfile/assets | Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory. |
 | `parseGlb` | function | @wildshard/game/shardfile/assets | Parse self-contained GLB 2 without following URLs or allocating accessor-sized arrays. |
 | `parseKtx2` | function | @wildshard/game/shardfile/assets | Parse bounded KTX2 headers and mip ranges; RGBA residency is the conservative transcode upper bound. |

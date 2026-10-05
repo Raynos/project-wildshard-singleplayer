@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-98 members; 0 without a doc line (—).
+100 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -17,6 +17,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `SHARDFILE_ADMISSION_LIMITS` | const | @wildshard/sdk/admission | Shared source, collection, identifier, text and distinct wire ceilings for author output and client intake. |
 | `assetCost` | function | @wildshard/sdk/assets | Select the game's shared asset parser for CLI and browser admission. |
 | `AssetCost` | type | @wildshard/sdk/assets | Actual parsed residency and draw costs, independent of author declarations. |
+| `assetOverdraw` | function | @wildshard/sdk/assets | Derive the shared conservative raster estimate without accepting an author-supplied number. |
+| `OverdrawEstimate` | type | @wildshard/sdk/assets | Advisory raster layers from actual geometry and material alpha modes, before culling or occlusion. |
 | `parseAudio` | function | @wildshard/sdk/assets | Admit bounded PCM audio and derive decoded sample residency. |
 | `parseGlb` | function | @wildshard/sdk/assets | Admit a self-contained GLB and derive its geometry and instance costs. |
 | `parseKtx2` | function | @wildshard/sdk/assets | Admit bounded KTX2 mip ranges and conservative transcode residency. |

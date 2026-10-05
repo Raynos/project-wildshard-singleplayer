@@ -14070,6 +14070,12 @@
         "from": "@wildshard/game/shardfile/assets"
       },
       {
+        "name": "assetOverdraw",
+        "kind": "function",
+        "doc": "Shared byte-derived raster estimate; no author-supplied overdraw number is accepted.",
+        "from": "@wildshard/game/shardfile/assets"
+      },
+      {
         "name": "parseAudio",
         "kind": "function",
         "doc": "Parse PCM WAV without decoding samples; duration/channel caps bound decoded audio memory.",
@@ -16771,6 +16777,18 @@
         "name": "AssetCost",
         "kind": "type",
         "doc": "Actual parsed residency and draw costs, independent of author declarations.",
+        "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "assetOverdraw",
+        "kind": "function",
+        "doc": "Derive the shared conservative raster estimate without accepting an author-supplied number.",
+        "from": "@wildshard/sdk/assets"
+      },
+      {
+        "name": "OverdrawEstimate",
+        "kind": "type",
+        "doc": "Advisory raster layers from actual geometry and material alpha modes, before culling or occlusion.",
         "from": "@wildshard/sdk/assets"
       },
       {
