@@ -939,7 +939,7 @@ The renderer type is named only in `src/engine/render/**` (`wildshard/no-rendere
 **Material graphs (SF59, lazy, not on the default path).** TSL is reached only through `render/graphBackend.ts`:
 `loadGraphBackend(renderer)` installs `EngineNodesHandler` (the output transform, the upright target sample, the fog
 epilogue, the tent and cascade shadows as nodes); `loadGraphCompiler(renderer)` then loads `compileGraph(ir)`
-(`render/graph/compile.ts`), which turns a graph IR into a node material. The IR (`render/graph/ir.ts`,
+(`render/graph/compile.ts`), which turns a graph IR into a node material. The renderer-neutral IR (`core/materialGraph.ts`,
 `GRAPH_IR_VERSION` 1) is data: `nodes` of an allowlisted vocabulary (`GRAPH_OPS`: inputs, safe maths, comparisons and a
 branch-light `select`, swizzles, MaterialX noise, an admitted texture, a constant-count `loop`), the stages
 `vertex.offset`, `surface` and `post` (`lighting` reserved), typed `params` that are uniforms only (bindable to a day key
