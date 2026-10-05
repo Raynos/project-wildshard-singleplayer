@@ -246,9 +246,17 @@ flip) 86.8 dB; `plain` vs `tsl-plain` 88.3 dB; the stock handler (`tsl-raw`) 26.
 PCF on the node boxes) 59.7 dB with a max of 10 levels, so the metric sees the filter. The engine's render count is
 1126 in every variant, three's counter 1689 / 2252 with one / two node materials.
 
-**Still owed before the first graph material ships:** the CSM path. The classic CSM is one DirectionalLight per cascade,
-and its chunk gates each one to its depth range; node materials see N full-strength lights. The shadow fade (ghost
-lights, `uSunFade`) and the sky rig's CSM light block sit on that path; TSL's physical model already carries the DFG
-term the light block re-inserts. `pointLightSkip` is a cost patch with an identical frame, so it needs no parity node;
-its node form belongs with the GPU budget work. A level's own fog chunk (fogPatches slots 200 / 300) and Pine Hollow's
-wet surfaces (`normal_fragment_begin`) do not reach node materials yet (the handler warns once).
+- **Fix 3, the cascades:** `world/cascadeLights.ts` (no TSL; the sky rig registers its CSM, fade ghosts and `uSunFade`)
+  and `nodes/cascadeLightNode.ts`: the handler lights node materials through its own DirectionalLight node, which gates a
+  registered cascade to its depth slice exactly as CSMShader's CSM_FADE loop does and mixes the ghost's shadow in while
+  a sun step fades; the ghosts (intensity 0) get no light node. The sky rig's CSM light block moved to
+  `world/csmLightBlock.ts`; it re-inserts three's DFG block, which TSL's physical model already carries.
+  Bench: `family-csm` vs `tsl-csm` 60.8 dB, max 7 levels, 0 % > 8; `family-fade` vs `tsl-fade` (uSunFade 0.5) 60.8 dB, where
+  the fade itself moves 0.27 % of pixels (51.9 dB), so the node side follows it. Cost to watch (the GPU budget step): the
+  cascade program's cold stall is 808 ms against the family's 215 ms on desktop (node build 81 ms), and its CPU work per
+  frame 0.4 vs 0.1 ms.
+
+**Still owed:** `pointLightSkip` is a cost patch with an identical frame, so it needs no parity node; its node form belongs
+with the GPU budget work. A level's own fog chunk (fogPatches slots 200 / 300) and Pine Hollow's wet surfaces
+(`normal_fragment_begin`) do not reach node materials yet (the handler warns once about the fog). The Simulator bench
+and the frame floors on driftwood-isle and nalati-grasslands wait for the coordinator's quiet window.

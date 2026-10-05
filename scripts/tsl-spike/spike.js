@@ -16,6 +16,9 @@
 //              epilogue): the cost of TSL's own lighting and shadow path, apart from the ported graph
 //   tsl-pcf    as tsl, but the sun's node filter is three's stock 5-tap PCF instead of the engine tent: shows the parity
 //              metric sees the shadow filter (SF59 step 2)
+//   family-csm / tsl-csm    the sun as the sky rig builds it: three CSM cascades (fade on), the CSM light block, the
+//              E147 fade ghosts; the node boxes gated by the engine's cascade light node (SF59 step 2)
+//   family-fade / tsl-fade  the same, frozen half way through a sun step (uSunFade 0.5: the ghosts' shadows mix in)
 // SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
 // render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
 // Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
@@ -36,14 +39,18 @@ import { installShadowFilter } from '@wildshard/engine/world/shadowFilter';
 import { compilePbr } from '@wildshard/engine/render/families/pbr';
 import { parseFamilyMaterial } from '@wildshard/engine/render/families/params';
 import { installAtmosphere, fogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
+import { patchShader, PATCH_ORDER, takeForeignHook } from '@wildshard/engine/render/shaderPatches';
+import { CSM } from 'three/examples/jsm/csm/CSM.js';
+import { patchCSMShaderChunk } from '@wildshard/engine/world/csmLightBlock';
+import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from '@wildshard/engine/world/shadowFade';
+import { registerCascades } from '@wildshard/engine/world/cascadeLights';
 
 const VARIANT = location.hash.slice(1) || 'family';
 // the Simulator's Safari can run the module before it lays the page out (innerWidth 0, so a 0 × 0 target): wait for it
 while (window.innerWidth === 0 || window.innerHeight === 0) await new Promise((resolve) => { requestAnimationFrame(() => { resolve(undefined); }); });
 const FRAMES = 240;
 const GRID = 50; // 2,500 instances: past every device's uniform-buffer limit, so TSL takes the instanced-attribute path
-const tsl = VARIANT !== 'family' && VARIANT !== 'warmup' && VARIANT !== 'plain'; // warmup: a discarded family page that warms the shared programs
+const tsl = !VARIANT.startsWith('family') && VARIANT !== 'warmup' && VARIANT !== 'plain'; // warmup: a discarded family page that warms the shared programs
 // a per-page constant in the program that differs between variants (the boxes, and the TSL post graph), so the stall
 // always measures that program compiled cold: WebKit and Metal cache programs by source, across Safari launches and
 // Simulator boots, and the shared programs (ground, shadow depth, GLSL post) are warmed by run.mjs's warmup page
@@ -88,10 +95,43 @@ Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, n
 sun.shadow.bias = -0.0005;
 sun.shadow.radius = 1.5; // the 7×7 tent (SOFT_RADII near cascade)
 if (VARIANT === 'tsl-pcf') sun.shadow.filterNode = PCFShadowFilter; // the diagnostic: three's 5-tap PCF on node materials
-scene.add(sun, new THREE.HemisphereLight(0xa8c4ff, 0x6b5a48, 0.9));
+const CASCADES = VARIANT.endsWith('-csm') || VARIANT.endsWith('-fade'); // the sky rig's sun: CSM + the E147 fade
+if (!CASCADES) scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xa8c4ff, 0x6b5a48, 0.9));
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 400);
 camera.position.set(0, 9, 34);
 camera.lookAt(0, 0, -6);
+camera.updateMatrixWorld();
+/** family-csm / tsl-csm, family-fade / tsl-fade: the sun as the sky rig builds it (skyRig.ts): three cascades with
+ *  CSM's fade, the CSM light block, the E147 fade ghosts, registered for the node back-end (cascadeLightNode.ts); the
+ *  -fade pair freezes a sun step half way (uSunFade 0.5), so every cascade but the last mixes its ghost's shadow */
+let csm = null, fade = null;
+if (CASCADES) {
+  csm = new CSM({ camera, parent: scene, cascades: 3, mode: 'practical', maxFar: 120, shadowMapSize: 2048, lightDirection: new THREE.Vector3(30, -40, 20).normalize(), lightIntensity: 2.6, shadowBias: -0.0005, lightMargin: 60, lightNear: 1, lightFar: 300 });
+  // after the CSM, which installs its own lights_fragment_begin (the sky rig's order)
+  patchCSMShaderChunk();
+  installShadowFadeChunk();
+  csm.fade = true;
+  for (const l of csm.lights) { l.color.set(0xfff2e0); l.shadow.radius = 1.5; }
+  fade = new ShadowFade(csm, camera, scene);
+  registerCascades({ csm, ghosts: fade.ghosts, fade: sunFadeUniform });
+  csm.update();
+  fade.warm();
+  if (VARIANT.endsWith('-fade')) {
+    csm.lightDirection.applyAxisAngle(new THREE.Vector3(0, 1, 0), 3 * Math.PI / 180);
+    csm.update();
+    fade.update(0.5); // a step starts the fade; half a second in, uSunFade = 0.5 and the ghosts hold the old direction
+  }
+}
+/** a classic material lit by the cascades, as SkyRig.setupMaterial wires it */
+function csmMaterial(mat) {
+  if (csm === null || fade === null) return mat;
+  const hook = takeForeignHook(mat, () => { csm.setupMaterial(mat); });
+  mat.defines = { ...mat.defines, CSM_GHOSTS: fade.ghosts.length };
+  patchShader(mat, 'engine.csm', PATCH_ORDER.shadows, (shader, r) => { hook(shader, r); shader.uniforms.uSunFade = sunFadeUniform; }, { key: (k) => `${k}|csm` });
+  mat.needsUpdate = true;
+  return mat;
+}
 
 // the PBR family with SF56's measure layer, through the engine's own compiler (the hand-written family)
 const params = parseFamilyMaterial({ family: 'pbr', colour: [0.8, 0.8, 0.8], roughness: 0.85, metalness: 0, measure: {} });
@@ -140,7 +180,7 @@ function tslMat(sway) {
 }
 
 // ground (always the family: patched and node materials in one frame) and the instanced boxes
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120).rotateX(-Math.PI / 2), familyMat());
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120).rotateX(-Math.PI / 2), csmMaterial(familyMat()));
 ground.receiveShadow = true;
 scene.add(ground);
 const boxGeo = new THREE.BoxGeometry(1.6, 1, 1.6, 1, 1, 1).translate(0, 0.5, 0);
@@ -158,6 +198,7 @@ if (!tsl && VARIANT !== 'warmup') {
   patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(/\}\s*$/, `  gl_FragColor.rgb += vec3( ${NONCE} );\n}`);
   });
+  csmMaterial(boxMat);
 }
 // the handler writes instancing attributes into the geometry, so a TSL InstancedMesh needs a geometry of its own; a
 // shallow clone (the same attribute objects, so the same GPU buffers) is enough
@@ -225,6 +266,7 @@ postScene.add(quad);
 const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
 function frame() {
+  if (csm !== null) csm.update();
   renderer.setRenderTarget(target);
   renderer.render(scene, camera);
   renderer.setRenderTarget(null);

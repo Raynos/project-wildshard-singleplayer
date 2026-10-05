@@ -10,6 +10,8 @@ import type { LevelSpec } from '../level/spec';
 import { SOFT_RADII, installShadowFilter } from './shadowFilter';
 import { ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade';
 import { patchPointLightSkip } from './pointLightSkip';
+import { registerCascades } from './cascadeLights';
+import { patchCSMShaderChunk } from './csmLightBlock';
 import type { DayCycleClock } from './dayCycle';
 import { ShadowMaps } from './shadowVariants';
 import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropPost, SkyDressing } from '../render/look';
@@ -127,6 +129,7 @@ export class SkyRig {
       this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
     }
+    registerCascades({ csm: this.csm, ghosts: this.shadowFade?.ghosts ?? [], fade: sunFadeUniform }); // SF59: node materials gate the cascades too (cascadeLights.ts)
     if (this.level.tiers?.[TIER]?.pointLightSkip === true) patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     // a low sun (golden hour, dawn) grazes flat decks: a shadow style may take more normal bias, or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = shadows?.normalBias ?? 0.05; l.shadow.radius = shadows?.radius ?? 2; }
@@ -331,25 +334,4 @@ export class SkyRig {
   }
 
 
-}
-
-/**
- * three r186's CSMShader replaces `lights_fragment_begin` with a copy that predates the
- * `#ifdef STANDARD` block computing `material.dfg` / multi-scattering compensation, so every
- * CSM material loses its IBL specular (metals go black, water loses its sky). Re-insert it.
- */
-function patchCSMShaderChunk() {
-  const chunk = THREE.ShaderChunk.lights_fragment_begin;
-  if (chunk.includes('material.dfg')) return;
-  const block = /* glsl */`
-#ifdef STANDARD
-	float dotNVms = saturate( dot( geometryNormal, geometryViewDir ) );
-	material.dfg = texture2D( dfgLUT, vec2( material.roughness, dotNVms ) ).rg;
-	#if ( NUM_SUN_LIGHTS > 0 || NUM_DIR_LIGHTS > 0 || NUM_POINT_LIGHTS > 0 || NUM_SPOT_LIGHTS > 0 )
-		float EssMs = material.dfg.x + material.dfg.y;
-		material.multiScatteringCompensation = 1.0 + material.specularColorBlended * ( 1.0 / EssMs - 1.0 );
-	#endif
-#endif
-IncidentLight directLight;`;
-  THREE.ShaderChunk.lights_fragment_begin = chunk.replace('IncidentLight directLight;', block);
 }

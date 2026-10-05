@@ -25,6 +25,9 @@
  *    without a filter of its own gets the tent as its node filter (`tentShadowFilter.ts`), so node and family
  *    materials share one penumbra.
  *
+ * 5. **The sun's cascades and the shadow fade** (`cascadeLightNode.ts`): a DirectionalLight the sky rig registered as
+ *    a cascade is gated to its depth slice as the CSM chunk gates it, with the fade's ghost shadow mixed in.
+ *
  * Load it lazily (`render/graphBackend.ts`): it pulls in `three/webgpu` + `three/tsl` (≈ +117 KB gzip), which a shard
  * without a graph material never pays for. Nothing on the default render path imports this module.
  */
@@ -36,6 +39,8 @@ import { fogPatches } from '../fogPatches';
 import { tentShadowFilterOn } from '../../world/shadowFilter';
 import { engineFog } from './engineFog';
 import { tentShadowFilter } from './tentShadowFilter';
+import { EngineDirectionalLightNode } from './cascadeLightNode';
+import { isCascadeGhost } from '../../world/cascadeLights';
 import type { Renderer } from '../renderer';
 
 /** what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer */
@@ -144,6 +149,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // the stock key reads the renderer's tone mapping and output space whatever is bound; the engine's follows the target
     const proxy: unknown = Reflect.get(this, 'renderer');
     if (typeof proxy === 'object' && proxy !== null) {
+      // every DirectionalLight lights node materials through the engine's node: a registered cascade gets the CSM gate
+      // (cascadeLightNode.ts). The handler owns its node library, so nothing else sees the swap.
+      const library: unknown = Reflect.get(proxy, 'library');
+      const lightNodes: unknown = typeof library === 'object' && library !== null ? Reflect.get(library, 'lightNodes') : null;
+      if (lightNodes instanceof WeakMap) lightNodes.set(THREE.DirectionalLight, EngineDirectionalLightNode);
       Reflect.set(proxy, 'getCacheKey', () => {
         const { toneMapping, colorSpace } = outputTransform(renderer);
         return `${String(toneMapping)}:${colorSpace}`;
@@ -172,7 +182,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
   }
 
-  /** the frame's lights: every shadow caster without a node filter of its own gets the engine tent */
+  /** the frame's lights: every shadow caster without a node filter of its own gets the engine tent; the fade's ghosts are left out */
   override updateLights(lights: THREE.Light[]): void {
     if (tentShadowFilterOn()) {
       for (const light of lights) {
@@ -181,7 +191,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         if (Reflect.get(shadow, 'filterNode') === undefined) Reflect.set(shadow, 'filterNode', tentShadowFilter);
       }
     }
-    super.updateLights(lights);
+    // the fade's ghosts light nothing (intensity 0) and lend their maps to their cascades: no light node of their own
+    super.updateLights(lights.some(isCascadeGhost) ? lights.filter((l) => !isCascadeGhost(l)) : lights);
   }
 
   /** build one node material's program (timed: `builds`, `buildMs`) */
