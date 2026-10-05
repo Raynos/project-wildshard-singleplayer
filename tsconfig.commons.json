@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "types": ["vite/client", "node"],
     "composite": true,
     "noEmit": false,
     "emitDeclarationOnly": true,
