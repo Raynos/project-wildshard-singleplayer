@@ -185,9 +185,10 @@ it('a refused plan never builds, and a refusal part-way disposes what was built 
   expect(partial.entries()).toEqual([]); expect(meshesOf([scene])).toEqual([]);
 }, SLOW);
 
-it('refuses the real platform before its deck allocation when the measured Driftwood home already occupies the shared envelope', async () => {
+it('retains the pre-G173 measured home refusal before the real platform deck allocation', async () => {
   const { assembly, strips } = await real(), scope = new Scope('measured-home-road'), page = new PageResidency();
-  const claim = page.admitHome('driftwood-isle', runtimeAccountedBytes(DRIFTWOOD_RUNTIME_COST));
+  const previousMeasurement = { ...DRIFTWOOD_RUNTIME_COST, webContentMB: 606.097, glMB: 282.4, rev: '6c0aaea4f', evidence: 'progress/memory/sf22a-repeat-6c0aaea4f/summary.json' };
+  const claim = page.admitHome('driftwood-isle', runtimeAccountedBytes(previousMeasurement));
   const baseline = page.allocator.entries(), residency = new PlatformRenderResidency(page.allocator, scope), allocated: string[] = [];
   const admission: PlatformRenderAdmission = { allocate: (plan, build) => residency.allocate(plan, (owner) => {
     allocated.push(plan.id); return build(owner);
@@ -200,6 +201,25 @@ it('refuses the real platform before its deck allocation when the measured Drift
     expect(failure.plan.id).toBe('road.deck');
     expect(allocated).toEqual(['road.asphalt', 'road.junctions', 'road.signs', 'road.void']);
     expect(page.allocator.has('platform:render:road.deck')).toBe(false);
+    expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);
+    expect(page.home()).toBe(claim);
+    scope.dispose(); expect(page.allocator.entries()).toEqual(baseline);
+  } finally { scope.dispose(); page.dispose(); }
+  expect(page.allocator.entries()).toEqual([]);
+}, SLOW);
+
+it('admits the real platform beside the G173 measured default without changing the playing cap', async () => {
+  const { assembly, strips } = await real(), scope = new Scope('g173-home-road'), page = new PageResidency();
+  const claim = page.admitHome('driftwood-isle', runtimeAccountedBytes(DRIFTWOOD_RUNTIME_COST));
+  const baseline = page.allocator.entries(), residency = new PlatformRenderResidency(page.allocator, scope), allocated: string[] = [];
+  const admission: PlatformRenderAdmission = { allocate: (plan, build) => residency.allocate(plan, owner => {
+    allocated.push(plan.id); return build(owner);
+  }) };
+  try {
+    expect(page.allocator.cost().playing).toBe(749_394_001);
+    install(assembly, strips, admission, scope);
+    expect(allocated).toEqual(['road.asphalt', 'road.junctions', 'road.signs', 'road.void', 'road.deck', 'road.curtain']);
+    expect(page.allocator.has('platform:render:road.deck')).toBe(true);
     expect(page.allocator.cost().playing).toBeLessThanOrEqual(1_000_000_000);
     expect(page.home()).toBe(claim);
     scope.dispose(); expect(page.allocator.entries()).toEqual(baseline);

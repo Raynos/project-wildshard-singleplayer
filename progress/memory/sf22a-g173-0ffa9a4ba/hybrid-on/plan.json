@@ -1,0 +1,35 @@
+{
+  "opts": {
+    "out": "/private/tmp/claude-501/sp-builders/sp-x2/g173-memory-0ffa9a4ba/hybrid-on",
+    "expectedBuild": "0ffa9a4-muumyh0u",
+    "play": 30,
+    "fly": 30,
+    "settings": [],
+    "deviceSaves": {
+      "debug.plugin.driftwood-isle.driftwoodHybrid": "on"
+    }
+  },
+  "runs": [
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4400/",
+      "round": 1,
+      "tag": "driftwood-isle-r1"
+    },
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4400/",
+      "round": 2,
+      "tag": "driftwood-isle-r2"
+    },
+    {
+      "label": "driftwood-isle",
+      "shard": "driftwood-isle",
+      "base": "http://127.0.0.1:4400/",
+      "round": 3,
+      "tag": "driftwood-isle-r3"
+    }
+  ]
+}
