@@ -39,8 +39,13 @@ pnpm exec tsc -b tsconfig.layers.json
 
 Root strict types, isolated layer declarations and scoped typed lint passed.
 `cb049715d` supplies Node declarations to the build-only commons project. The
-coordinator owns the serialized clean gate/push and the next full frame-floor
-window; the floor remains required before plan closure. No owned browser,
+coordinator owns the serialized clean gate/push. The foundation's required frame
+floor passed at `525053c37`: [default](../../frame-floor/525053c37-93121-1791169129882.json)
+(Driftwood, Pine, Sky Reach and grid, both surfaces; 292.282 s) and
+[hybrid](../../frame-floor/525053c37-17001-1791169423543.json)
+(Driftwood hybrid and grid, both surfaces; 157.066 s). All rows passed:
+desktop 59.88 fps, p95 16.7–16.8 ms; Simulator 30.3 fps, p95 34 ms.
+These pins contain the shared bridge and commons foundation. No owned browser,
 preview, Simulator, gate or push remains.
 
 ## Browser parity

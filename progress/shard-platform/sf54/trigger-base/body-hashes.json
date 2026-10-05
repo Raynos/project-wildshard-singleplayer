@@ -1,0 +1,27 @@
+{
+  "parent": "a4b1ddad9",
+  "current": "b1a37e857",
+  "normalization": "TypeScript statement getText excluding imports; preserve every body token",
+  "rows": [
+    {
+      "from": "src/kit/weapons/firearm/Firearm.ts",
+      "to": "src/engine/combat/Firearm.ts",
+      "bodySha256": "fad10f587d92a2fd925852ff286429b82cb6f358bc984bd6d9a9bb00776583d2"
+    },
+    {
+      "from": "src/shards/nalati-grasslands/weapons/Rifle.ts",
+      "to": "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts",
+      "bodySha256": "e4b867a0808af80ec47dd20d83e95ed8045b90e88bfd62caf25d2ce61806fde1"
+    },
+    {
+      "from": "src/shards/pine-hollow/weapons/LeverRifle.ts",
+      "to": "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts",
+      "bodySha256": "a52c4f2f2e647debe23590d51356bf41dbfbb948c6b4b99b382084a57145ecbf"
+    },
+    {
+      "from": "src/shards/pine-hollow/weapons/crossbow/Crossbow.ts",
+      "to": "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts",
+      "bodySha256": "84fdca9be7a806a54dc27b173b8b1e7e6510ede958ee320fd48df4686d7ff665"
+    }
+  ]
+}
