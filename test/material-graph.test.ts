@@ -3,11 +3,11 @@
 // variants).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, type Node } from 'three/webgpu';
+import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, PhysicalLightingModel, type Node } from 'three/webgpu';
 import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/engine/core/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
-import { emissiveGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET } from '../src/engine/render/graph/presets';
-import { parseFamilyMaterial } from '../src/engine/render/families/params';
+import { emissiveGraph, painterlyGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET, toonGraph } from '../src/engine/render/graph/presets';
+import { parseFamilyMaterial, parsePainterlyLook, parseToonLook } from '../src/engine/render/families/params';
 
 const pbr = parseFamilyMaterial({ family: 'pbr', colour: [0.8, 0.8, 0.8], roughness: 0.85, metalness: 0, measure: {} });
 if (pbr.family !== 'pbr' || pbr.measure === null) throw new Error('a PBR measure surface');
@@ -109,7 +109,7 @@ describe('SF59 material graph IR: validation', () => {
   });
 
   it('checks stages, places and bindings', () => {
-    expect(refused({ ...base(), stages: { ...base().stages, lighting: {} } })).toMatch(/lighting-model stage is not in IR version 1/);
+    expect(refused({ ...base(), stages: { ...base().stages, lighting: {} } })).toMatch(/a lighting model needs sun/);
     expect(refused({ ...base(), nodes: { ...base().nodes, p: { op: 'positionLocal' }, f: { op: 'fwidth', in: ['p'] } }, stages: { ...base().stages, 'vertex.offset': { offset: 'f' } } })).toMatch(/fwidth cannot run in the vertex stage/);
     expect(refused({ ...base(), stages: { ...base().stages, 'vertex.offset': { offset: [0, 1, 0], shadow: true } } })).toMatch(/shadow depth variant/);
     expect(refused(withNodes({ s: { op: 'sceneColour' }, rgb: { op: 'swizzle', in: ['s'], mask: 'xyz' } }, { colour: 'rgb' }))).toMatch(/sceneColour cannot run in the fragment stage/);
@@ -227,5 +227,100 @@ describe('SF59 family presets', () => {
     expect(r.types.get('e')).toBe('float');
     expect(refused(withNodes({ e: { op: 'exp', in: [[1, 2]] }, b: { op: 'gt', in: ['e', 0] } }, { roughness: 'b' }))).toMatch(/compares two floats/);
     expect(() => compileGraph(g)).not.toThrow();
+  });
+});
+
+describe('SF59 step 6: the lighting stage', () => {
+  /** a small lit graph: a two-band sun, a lifted ambient, a grade */
+  const lit = (): GraphIr => ({
+    ...base(),
+    nodes: {
+      ...base().nodes,
+      n: { op: 'normalView' }, l: { op: 'sunDirection' }, c: { op: 'sunColour' }, sh: { op: 'sunShadow' }, a: { op: 'albedo' },
+      ndl: { op: 'dot', in: ['n', 'l'] }, band: { op: 'step', in: [0.2, 'ndl'] }, k: { op: 'mul', in: ['band', 'sh'] }, ca: { op: 'mul', in: ['c', 'a'] }, sun: { op: 'mul', in: ['ca', 'k'] },
+      irr: { op: 'irradiance' }, amb0: { op: 'add', in: ['irr', [0.05, 0.02, 0.1]] }, amb: { op: 'mul', in: ['amb0', 'a'] },
+      lc: { op: 'litColour' }, graded: { op: 'mul', in: ['lc', 1.1] },
+    },
+    stages: { surface: { colour: 't', roughness: 'r' }, lighting: { sun: 'sun', sunSpecular: 'band', ambient: 'amb', grade: 'graded' } },
+  });
+
+  it('admits a lit graph, typed and costed, the sun sub-graph inside the content budget', () => {
+    const r = validateGraph(lit());
+    if (!r.ok) throw new Error(r.errors.join('\n'));
+    expect(r.types.get('sun')).toBe('vec3');
+    expect(r.types.get('sh')).toBe('float');
+    expect(r.cost.nodes).toBeLessThan(DEFAULT_GRAPH_BUDGET.nodes);
+    expect(r.graph.stages.lighting).toEqual({ sun: 'sun', sunSpecular: 'band', ambient: 'amb', grade: 'graded' });
+  });
+
+  it('keeps the light inputs to their places and the stage to standard materials', () => {
+    const g = lit();
+    expect(refused({ ...g, stages: { ...g.stages, surface: { colour: 'sun' } } })).toMatch(/sunDirection cannot run in the fragment stage/);
+    expect(refused({ ...g, stages: { ...g.stages, lighting: { sun: 'amb' } } })).toMatch(/irradiance cannot run in the sun stage/);
+    expect(refused({ ...g, stages: { ...g.stages, lighting: { sun: 'sun', ambient: 'graded' } } })).toMatch(/litColour cannot run in the ambient stage/);
+    expect(refused({ ...g, stages: { ...g.stages, lighting: { sun: 'sun', grade: 'sun' } } })).toMatch(/cannot run in the grade stage/);
+    expect(refused({ ...g, model: 'unlit' })).toMatch(/unlit graph has no lighting model/);
+    expect(refused({ ...g, stages: { ...g.stages, lighting: { sun: 'sun', shade: 'sun' } } })).toMatch(/unknown output shade/);
+    expect(refused({ ...g, stages: { ...g.stages, lighting: { sun: 'sun', sunSpecular: 'sun' } } })).toMatch(/sunSpecular: is a vec3, wants a float/);
+    expect(refused({ version: 1, kind: 'post', nodes: { s: { op: 'sceneColour' }, rgb: { op: 'swizzle', in: ['s'], mask: 'xyz' } }, stages: { post: { colour: 'rgb' }, lighting: { sun: 1 } } })).toMatch(/only a post stage/);
+    expect(refused({ ...g, flatShading: 1 })).toMatch(/flatShading is not a boolean/);
+    // the light-free ops still run there: noise over the world position in the sun sub-graph
+    const noisy = { ...g, nodes: { ...g.nodes, p: { op: 'positionWorld' }, nz: { op: 'noise', in: ['p'] }, sunN: { op: 'mul', in: ['sun', 'nz'] } }, stages: { ...g.stages, lighting: { sun: 'sunN' } } };
+    expect(validateGraph(noisy).ok).toBe(true);
+  });
+
+  it('compiles to a standard node material whose lighting model is the graph model; the grade turns tone mapping off', () => {
+    const c = compileGraph({ ...lit(), flatShading: true });
+    expect(c.material).toBeInstanceOf(MeshStandardNodeMaterial);
+    if (!(c.material instanceof MeshStandardNodeMaterial)) throw new Error('standard');
+    const model = c.material.setupLightingModel();
+    expect(model).toBeInstanceOf(PhysicalLightingModel);
+    expect(model.constructor.name).not.toBe('PhysicalLightingModel');
+    expect(c.material.toneMapped).toBe(false);
+    expect(c.material.flatShading).toBe(true);
+    expect(c.material.fog).toBe(true);
+    const plain = compileGraph(base());
+    if (!(plain.material instanceof MeshStandardNodeMaterial)) throw new Error('standard');
+    expect(plain.material.setupLightingModel().constructor.name).toBe('PhysicalLightingModel');
+    expect(plain.material.toneMapped).toBe(true);
+  });
+});
+
+describe('SF59 step 6: the toon and painterly presets', () => {
+  const toon = parseFamilyMaterial({ family: 'toon', colour: [0.85, 0.6, 0.4] });
+  const paint = parseFamilyMaterial({ family: 'painterly', colour: [0.5, 0.7, 0.3] });
+  if (toon.family !== 'toon' || paint.family !== 'painterly') throw new Error('surfaces');
+
+  it('re-expresses both families through the lighting stage within the preset budget and compiles them', () => {
+    for (const [name, g] of [['toon', toonGraph(toon, parseToonLook({}))], ['painterly', painterlyGraph(paint, parsePainterlyLook({}))], ['painterly ungraded', painterlyGraph(paint, parsePainterlyLook({ grade: null }))]] as const) {
+      const r = validateGraph(g, { budget: PRESET_GRAPH_BUDGET });
+      if (!r.ok) throw new Error(`${name}: ${r.errors.join('\n')}`);
+      expect(r.cost.nodes).toBeLessThanOrEqual(PRESET_GRAPH_BUDGET.nodes);
+      const c = compileGraph(g, { budget: PRESET_GRAPH_BUDGET });
+      expect(c.material).toBeInstanceOf(MeshStandardNodeMaterial);
+      expect(c.material.toneMapped).toBe(name !== 'painterly');
+    }
+    const t = toonGraph(toon, parseToonLook({}));
+    expect(t.flatShading).toBe(true);
+    expect(t.stages.lighting?.sunSpecular).toBe('sunSpec');
+    expect(painterlyGraph(paint, parsePainterlyLook({})).stages.lighting?.sunSpecular).toBeUndefined();
+  });
+
+  it('refuses what is not ported yet, naming it', () => {
+    expect(() => toonGraph(toon, parseToonLook({ caustics: { level: 0, strength: 0.5 } }))).toThrow(/caustics/);
+    expect(() => painterlyGraph({ ...paint, sway: 0.1 }, parsePainterlyLook({}))).toThrow(/wind sway/);
+  });
+});
+
+describe('SF59 step 6: G169 stress cases (the bench fixtures)', () => {
+  it('admits the pastel alien plain and the ink / cel valley within the content budget and compiles both', async () => {
+    const { inkGraph, opsOf, pastelGraph } = await import('../scripts/tsl-spike/stress.js');
+    for (const g of [pastelGraph(), inkGraph()]) {
+      const r = validateGraph(g);
+      if (!r.ok) throw new Error(r.errors.join('\n'));
+      expect(r.cost.nodes).toBeLessThanOrEqual(DEFAULT_GRAPH_BUDGET.nodes);
+      expect(() => compileGraph(g)).not.toThrow();
+      expect(opsOf(g)).toContain('sunShadow');
+    }
   });
 });

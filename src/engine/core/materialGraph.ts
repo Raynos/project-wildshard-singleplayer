@@ -8,8 +8,17 @@
  * The shape (version 1, the starter vocabulary; §4 lists the ≈ 60 the format grows to):
  * - `nodes`: id → `{ op, in?, … }`; an input is another node's id or a literal number / 2–4 number array;
  * - `stages`: `vertex.offset` (object-space displacement), `surface` (colour, alpha, cutoff, emissive, roughness,
- *   metalness, occlusion), `post` (a screen pass over `sceneColour`); `lighting` is reserved and refused until the
- *   lighting-model stage lands; the engine epilogue (fog, the grade) is appended by the back-end and is not a stage;
+ *   metalness, occlusion), `lighting` (the lighting model: see below), `post` (a screen pass over `sceneColour`); the
+ *   engine epilogue (fog, the CSM cascade gate, the tent PCF, the shadow fade) is appended by the back-end and is not a
+ *   stage a graph can skip;
+ * - `lighting` (SF59 step 6, the approved lighting-model stage; a `standard` material only): `sun` is the radiance the
+ *   sun adds, built per directional light (the sky rig's cascades are one sun) from the engine's light inputs
+ *   (`sunDirection`, `sunColour` unshadowed, `sunShadow` the cast-shadow ratio, with `normalView`, `viewDirection`,
+ *   `albedo`); `ambient` replaces the indirect diffuse (from `irradiance`); `sunSpecular` scales the physical model's own
+ *   specular for the sun (absent: the model is diffuse only, no specular at all); `grade` maps the lit colour
+ *   (`litColour`, emissive included) to the colour the output transform receives (a graded material is not tone mapped).
+ *   Every other light keeps the physical model's diffuse. Same vocabulary, no code nodes, constant loops only, the same
+ *   budget (the `sun` sub-graph is counted once though it runs per cascade: the light-free part of it is shared);
  * - `params`: typed uniforms with ranges, each optionally bound to a day key or a declared public shard-state field.
  *   A binding moves a value, never the program (§2.6);
  * - loops have a constant count (`loop`, at most `LOOP_MAX` iterations), so the cost is known before compile;
@@ -18,7 +27,7 @@
  * Pure data and checks: this module imports no three.js, so the shardfile validator can use it on any machine.
  */
 
-/** the IR version a graph declares; a graph of another version is refused */
+/** the IR version a graph declares; a graph of another version is refused (the lighting stage is additive: still version 1) */
 export const GRAPH_IR_VERSION = 1;
 /** the most iterations a `loop` node may run */
 export const LOOP_MAX = 16;
@@ -79,12 +88,25 @@ export interface GraphVertexOffset {
   readonly offset: GraphRef;
   readonly shadow?: boolean;
 }
+/**
+ * The lighting-model stage (a `standard` material only): what the sun adds, the ambient term, the sun's share of the
+ * physical specular and the per-pixel grade after lighting (the module comment says what each reads).
+ */
+export interface GraphLighting {
+  /** vec3: the radiance one directional light adds (built per cascade), added to the direct diffuse */
+  readonly sun: GraphRef;
+  /** float: the factor on the physical model's specular from the unshadowed sun (absent: no specular at all) */
+  readonly sunSpecular?: GraphRef;
+  /** vec3: the indirect diffuse radiance, from `irradiance` (absent: irradiance × albedo / π) */
+  readonly ambient?: GraphRef;
+  /** vec3: the lit colour (`litColour`) → the colour the output transform receives; a graded material is not tone mapped */
+  readonly grade?: GraphRef;
+}
 /** the stages */
 export interface GraphStages {
   readonly 'vertex.offset'?: GraphVertexOffset;
   readonly surface?: GraphSurface;
-  /** reserved: the lighting-model stage (§4) is not in version 1 yet, so a graph that carries it is refused */
-  readonly lighting?: never;
+  readonly lighting?: GraphLighting;
   readonly post?: { readonly colour: GraphRef };
 }
 /** a graph */
@@ -95,6 +117,8 @@ export interface GraphIr {
   /** a material's lighting model: three's physical standard model, or unlit */
   readonly model?: 'standard' | 'unlit';
   readonly doubleSided?: boolean;
+  /** one normal per triangle (the toon family's faceted look): `normalView` is the face's */
+  readonly flatShading?: boolean;
   readonly params?: Readonly<Record<string, GraphParam>>;
   readonly nodes: Readonly<Record<string, GraphNode>>;
   readonly stages: GraphStages;
@@ -156,8 +180,11 @@ export interface GraphCost {
   readonly instructions: number;
 }
 
-/** where a node may run: `vertex` (the offset stage), `fragment` (surface), `post` (a screen pass) */
-type GraphPlace = 'vertex' | 'fragment' | 'post';
+/**
+ * where a node may run: `vertex` (the offset stage), `fragment` (surface), `post` (a screen pass), and the lighting
+ * stage's three: `sun` (per directional light), `ambient` (the indirect term) and `grade` (after lighting)
+ */
+type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade';
 
 /** how an op types its inputs */
 type TypeRule =
@@ -176,7 +203,10 @@ export interface GraphOpSpec {
   readonly places?: readonly GraphPlace[];
 }
 
-const FRAG: readonly GraphPlace[] = ['fragment', 'post'];
+/** the lighting stage's places (fragment work, like the surface) */
+const LIT: readonly GraphPlace[] = ['sun', 'ambient', 'grade'];
+const FRAG: readonly GraphPlace[] = ['fragment', 'post', ...LIT];
+const MESH: readonly GraphPlace[] = ['vertex', 'fragment', ...LIT];
 /**
  * The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons
  * and a branch-light `select`, swizzles and vector construction, MaterialX noise, an admitted texture's sample and a
@@ -184,16 +214,25 @@ const FRAG: readonly GraphPlace[] = ['fragment', 'post'];
  */
 export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // inputs
-  uv: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['vertex', 'fragment'] },
-  positionLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['vertex', 'fragment'] },
-  positionWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: ['vertex', 'fragment'] },
-  normalLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['vertex', 'fragment'] },
-  normalWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: ['vertex', 'fragment'] },
+  uv: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: MESH },
+  positionLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
+  positionWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
+  normalLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
+  normalWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
   cameraPosition: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
   time: { arity: [0, 0], rule: 'input', cost: 0, type: 'float' },
-  instanceHash: { arity: [0, 0], rule: 'input', cost: 4, type: 'float', places: ['vertex', 'fragment'] },
-  vertexColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['vertex', 'fragment'] }, // the geometry's `color` attribute (rgb, linear); white where it has none
+  instanceHash: { arity: [0, 0], rule: 'input', cost: 4, type: 'float', places: MESH },
+  vertexColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH }, // the geometry's `color` attribute (rgb, linear); white where it has none
   screenUV: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['post'] },
+  // the lighting stage's inputs (SF59 step 6): view space, unit vectors; the engine supplies them from its own lights
+  normalView: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: LIT }, // the shading normal (the face's under flatShading)
+  viewDirection: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: LIT }, // toward the camera
+  albedo: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: LIT }, // the surface colour × (1 − metalness)
+  sunDirection: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['sun'] }, // toward the light
+  sunColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['sun'] }, // the light's colour × intensity, unshadowed
+  sunShadow: { arity: [0, 0], rule: 'input', cost: 4, type: 'float', places: ['sun'] }, // 1 lit … 0 in cast shadow (the families' ratio)
+  irradiance: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['ambient'] }, // the indirect irradiance (hemisphere, ambient)
+  litColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['grade'] }, // the lit colour, emissive included
   sceneColour: { arity: [0, 0], rule: 'input', cost: 2, type: 'vec4', places: ['post'] },
   const: { arity: [0, 0], rule: 'const', cost: 0 },
   param: { arity: [0, 0], rule: 'param', cost: 0 },
@@ -268,7 +307,7 @@ const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3'
 /** an object read from content, with the fields this module looks at named (each still unknown) */
 interface Raw {
   readonly [k: string]: unknown;
-  readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown;
+  readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flatShading?: unknown;
   readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
   readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown;
   readonly day?: unknown; readonly state?: unknown;
@@ -276,6 +315,7 @@ interface Raw {
   readonly body?: unknown; readonly out?: unknown;
   readonly offset?: unknown; readonly shadow?: unknown; readonly surface?: unknown; readonly post?: unknown;
   readonly lighting?: unknown; readonly colour?: unknown;
+  readonly sun?: unknown; readonly sunSpecular?: unknown; readonly ambient?: unknown; readonly grade?: unknown;
 }
 const isRecord = (v: unknown): v is Raw => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -321,7 +361,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (kind !== 'material' && kind !== 'post') fail(`graph: kind ${String(kind)} (material or post)`);
   if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit') fail(`graph: model ${JSON.stringify(input.model)} (standard or unlit)`);
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
-  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'doubleSided', 'params', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
+  if (input.flatShading !== undefined && typeof input.flatShading !== 'boolean') fail('graph: flatShading is not a boolean');
+  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'doubleSided', 'flatShading', 'params', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
 
   // params
   const paramTypes = new Map<string, GraphParamType>();
@@ -483,7 +524,6 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
   for (const k of Object.keys(stages)) if (!['vertex.offset', 'surface', 'lighting', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
-  if (stages.lighting !== undefined) fail('stages.lighting: the lighting-model stage is not in IR version 1 yet');
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
@@ -507,8 +547,21 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       if (t === undefined) { fail(`stages.surface: unknown output ${k}`); continue; }
       want(v, 'fragment', t, `stages.surface.${k}`);
     }
+    const lit = stages.lighting;
+    if (lit !== undefined) {
+      if (input.model === 'unlit') fail('stages.lighting: an unlit graph has no lighting model');
+      if (!isRecord(lit)) fail('stages.lighting: not an object');
+      else {
+        for (const k of Object.keys(lit)) if (!['sun', 'sunSpecular', 'ambient', 'grade'].includes(k)) fail(`stages.lighting: unknown output ${k}`);
+        if (lit.sun === undefined) fail('stages.lighting: a lighting model needs sun');
+        else want(lit.sun, 'sun', 'vec3', 'stages.lighting.sun');
+        if (lit.sunSpecular !== undefined) want(lit.sunSpecular, 'sun', 'float', 'stages.lighting.sunSpecular');
+        if (lit.ambient !== undefined) want(lit.ambient, 'ambient', 'vec3', 'stages.lighting.ambient');
+        if (lit.grade !== undefined) want(lit.grade, 'grade', 'vec3', 'stages.lighting.grade');
+      }
+    }
   } else if (kind === 'post') {
-    for (const k of ['vertex.offset', 'surface'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
+    for (const k of ['vertex.offset', 'surface', 'lighting'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
@@ -534,6 +587,7 @@ function asGraph(input: Raw): GraphIr {
     stages: isRecord(input.stages) ? toStages(input.stages) : {},
     ...(input.model === 'standard' || input.model === 'unlit' ? { model: input.model } : {}),
     ...(typeof input.doubleSided === 'boolean' ? { doubleSided: input.doubleSided } : {}),
+    ...(typeof input.flatShading === 'boolean' ? { flatShading: input.flatShading } : {}),
     ...(isRecord(input.params) ? { params: toParams(input.params) } : {}),
   };
   return graph;
@@ -556,13 +610,19 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
   return out;
 }
 function toStages(raw: Raw): GraphStages {
-  const vo = raw['vertex.offset'], s = raw.surface, p = raw.post;
+  const vo = raw['vertex.offset'], s = raw.surface, p = raw.post, l = raw.lighting;
   const surface: Record<string, GraphRef | number> = {};
   if (isRecord(s)) for (const [k, v] of Object.entries(s)) surface[k] = k === 'alphaCutoff' && isFiniteNumber(v) ? v : toRef(v);
   return {
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(vo.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
     ...(isRecord(p) ? { post: { colour: toRef(p.colour) } } : {}),
+    ...(isRecord(l) ? { lighting: {
+      sun: toRef(l.sun),
+      ...(l.sunSpecular !== undefined ? { sunSpecular: toRef(l.sunSpecular) } : {}),
+      ...(l.ambient !== undefined ? { ambient: toRef(l.ambient) } : {}),
+      ...(l.grade !== undefined ? { grade: toRef(l.grade) } : {}),
+    } } : {}),
   };
 }
 function toParams(raw: Raw): Record<string, GraphParam> {

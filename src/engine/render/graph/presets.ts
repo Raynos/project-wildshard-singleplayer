@@ -8,18 +8,22 @@
  *   and sub-grid, the glow, and the size-label glyphs ("12.5×3" on a structure or trim face of at least 1 m × 1 m) as
  *   integer-style float maths, the seven segments as two constant-count loops.
  * - `emissiveGraph`: the emissive family's opaque surface and neon tube shapes (`families/emissive.ts`), flicker included.
- * - **Not expressible in IR version 1** (so no preset yet): the toon and painterly families replace three's light model
- *   (`RE_Direct` / `RE_IndirectDiffuse`: cel bands on the sun, the shadow ratio, shade tints, rim on the sun's side, the
- *   painterly grade after lighting), which is the reserved `lighting` stage; the emissive sky (no `atan` / `asin` or
- *   screen-position input, and its back-face, depth-off, unfogged render state), an additive emitter (no blend mode) and a
- *   fog share other than 1 (the engine fog epilogue is not a stage). `emissiveGraph` refuses those with the reason.
+ * - `toonGraph` / `painterlyGraph` (SF59 step 6): the toon and painterly families' light models through the `lighting`
+ *   stage: the sun sub-graph (cel bands on N·L and the shadow ratio, shade tints, the terminator, the rim, the toon's
+ *   cloud shade as two octaves of the family's own value noise, the painterly wetness), the ambient term (the toon lift,
+ *   the painted floor) and the painterly grade after lighting. Each refuses, with the reason, what it does not port yet:
+ *   the toon caustics under a water level and the painterly wind sway (it needs the instance origin as an input).
+ * - **Not expressible in IR version 1** (so no preset yet): the emissive sky (no `atan` / `asin` or screen-position
+ *   input, and its back-face, depth-off, unfogged render state), an additive emitter (no blend mode) and a fog share
+ *   other than 1 (the engine fog epilogue is not a stage). `emissiveGraph` refuses those with the reason.
  *
  * A preset may run past the content budget (the labelled measure preset does: its glyph loops count once per
  * iteration: ≈ 450 nodes, ≈ 560 instructions against the content default of 160 / 480), so presets compile under
  * `PRESET_GRAPH_BUDGET`.
  */
 import {
-  MEASURE_SLOT, type EmissiveLookParams, type EmissiveMaterialParams, type MeasureLayerParams, type PbrMaterialParams,
+  MEASURE_SLOT, type EmissiveLookParams, type EmissiveMaterialParams, type MeasureLayerParams, type PainterlyLookParams,
+  type PainterlyMaterialParams, type PbrMaterialParams, type ToonLookParams, type ToonMaterialParams,
 } from '../families/params';
 import { GRAPH_IR_VERSION, type GraphBudget, type GraphIr, type GraphNode, type GraphParam, type GraphRef } from '../../core/materialGraph';
 
@@ -537,5 +541,206 @@ export function emissiveGraph(params: EmissiveMaterialParams, look: EmissiveLook
     },
     nodes,
     stages: { surface: { colour: 'out' } },
+  };
+}
+
+/** a node: `op` over inputs */
+const N = (op: string, ...ins: GraphRef[]): GraphNode => (ins.length === 0 ? { op } : { op, in: ins });
+const SW = (src: GraphRef, mask: string): GraphNode => ({ op: 'swizzle', in: [src], mask });
+const INV_PI = 1 / Math.PI;
+
+/** the toon family's `famToonHash`: fract(p · (123.34, 456.21)), p += dot(p, p + 45.32), fract(p.x · p.y); result `<p>out` */
+function toonHashNodes(p: string, x: GraphRef): Record<string, GraphNode> {
+  return {
+    [`${p}a`]: N('mul', x, [123.34, 456.21]), [`${p}b`]: N('fract', `${p}a`), [`${p}c`]: N('add', `${p}b`, 45.32),
+    [`${p}d`]: N('dot', `${p}b`, `${p}c`), [`${p}e`]: N('add', `${p}b`, `${p}d`), [`${p}x`]: SW(`${p}e`, 'x'), [`${p}y`]: SW(`${p}e`, 'y'),
+    [`${p}m`]: N('mul', `${p}x`, `${p}y`), [`${p}out`]: N('fract', `${p}m`),
+  };
+}
+/** the toon family's `famToonNoise` (bilinear value noise, smooth-step weights) at `x`; result `<p>out` */
+function toonNoiseNodes(p: string, x: GraphRef): Record<string, GraphNode> {
+  return {
+    [`${p}i`]: N('floor', x), [`${p}f`]: N('fract', x),
+    [`${p}f2`]: N('mul', `${p}f`, 2), [`${p}f3`]: N('sub', 3, `${p}f2`), [`${p}ff`]: N('mul', `${p}f`, `${p}f`), [`${p}u`]: N('mul', `${p}ff`, `${p}f3`),
+    [`${p}ux`]: SW(`${p}u`, 'x'), [`${p}uy`]: SW(`${p}u`, 'y'),
+    [`${p}i10`]: N('add', `${p}i`, [1, 0]), [`${p}i01`]: N('add', `${p}i`, [0, 1]), [`${p}i11`]: N('add', `${p}i`, [1, 1]),
+    ...toonHashNodes(`${p}h00`, `${p}i`), ...toonHashNodes(`${p}h10`, `${p}i10`), ...toonHashNodes(`${p}h01`, `${p}i01`), ...toonHashNodes(`${p}h11`, `${p}i11`),
+    [`${p}m0`]: N('mix', `${p}h00out`, `${p}h10out`, `${p}ux`), [`${p}m1`]: N('mix', `${p}h01out`, `${p}h11out`, `${p}ux`),
+    [`${p}out`]: N('mix', `${p}m0`, `${p}m1`, `${p}uy`),
+  };
+}
+
+/**
+ * The toon family as a graph preset (`families/toon.ts`): the look's numbers as params (`cloudTime` is the look's clock,
+ * which the runtime moves as the look ticks), the surface's colour × vertex colours, and its light model in the
+ * lighting stage. Throws for the caustics under a water level (expressible, not ported yet).
+ */
+export function toonGraph(params: ToonMaterialParams, look: ToonLookParams): GraphIr {
+  if (look.caustics.level !== null) throw new Error('toon preset: the caustics under a water level are not ported yet (expressible: world y, two drifting noises, pow)');
+  return {
+    version: GRAPH_IR_VERSION,
+    kind: 'material',
+    model: 'standard',
+    doubleSided: params.doubleSided,
+    flatShading: params.faceted,
+    params: {
+      colour: { type: 'colour', value: params.colour },
+      roughness: { type: 'float', value: params.roughness, min: 0, max: 1 },
+      metalness: { type: 'float', value: params.metalness, min: 0, max: 1 },
+      face: { type: 'vec2', value: [...look.faceEdge] },
+      shadowEdge: { type: 'vec2', value: [...look.shadowEdge] },
+      grade: { type: 'vec2', value: [look.litGrade, look.shadeGrade], min: 0, max: 1 },
+      lift: { type: 'vec3', value: [...look.lift], min: 0 },
+      rim: { type: 'vec3', value: [...look.rim], min: 0 },
+      terminator: { type: 'vec3', value: [...look.terminator], min: 0 },
+      gloss: { type: 'float', value: look.glossBelow, min: 0, max: 1 },
+      cloud: { type: 'vec4', value: [look.cloudShade.strength, look.cloudShade.scale, look.cloudShade.wind[0], look.cloudShade.wind[1]] },
+      cloudTime: { type: 'float', value: 0, min: 0 },
+    },
+    nodes: {
+      // the surface
+      colourP: { op: 'param', param: 'colour' },
+      ...(params.vertexColours ? { vc: N('vertexColour'), base: N('mul', 'colourP', 'vc') } : { base: N('mul', 'colourP', 1) }),
+      rough: { op: 'param', param: 'roughness' }, metal: { op: 'param', param: 'metalness' },
+      // the sun: two bands on N·L and on the shadow ratio
+      nV: N('normalView'), lV: N('sunDirection'), vV: N('viewDirection'), sunC: N('sunColour'), shadow: N('sunShadow'), alb: N('albedo'),
+      faceP: { op: 'param', param: 'face' }, shP: { op: 'param', param: 'shadowEdge' }, gradeP: { op: 'param', param: 'grade' },
+      fe0: SW('faceP', 'x'), fe1: SW('faceP', 'y'), se0: SW('shP', 'x'), se1: SW('shP', 'y'), gx: SW('gradeP', 'x'), gy: SW('gradeP', 'y'),
+      ndl: N('dot', 'nV', 'lV'), ndlS: N('saturate', 'ndl'),
+      faceLit: N('smoothstep', 'fe0', 'fe1', 'ndl'), inSun: N('smoothstep', 'se0', 'se1', 'shadow'), band: N('mul', 'faceLit', 'inSun'),
+      gxN: N('mul', 'gx', 'ndlS'), gx1: N('oneMinus', 'gx'), litGrade: N('add', 'gx1', 'gxN'),
+      // the drifting cloud shade (famToonCloudShade): two octaves over the world xz, scrolled by the wind
+      cloudP: { op: 'param', param: 'cloud' }, cTime: { op: 'param', param: 'cloudTime' },
+      cStr: SW('cloudP', 'x'), cScale: SW('cloudP', 'y'), cWind: SW('cloudP', 'zw'),
+      wPos: N('positionWorld'), wXZ: SW('wPos', 'xz'), cDrift: N('mul', 'cWind', 'cTime'), cAt: N('add', 'wXZ', 'cDrift'), cP: N('div', 'cAt', 'cScale'),
+      ...toonNoiseNodes('n1', 'cP'),
+      cP2a: N('mul', 'cP', 2.3), cP2: N('add', 'cP2a', 7.1),
+      ...toonNoiseNodes('n2', 'cP2'),
+      n1w: N('mul', 'n1out', 0.65), n2w: N('mul', 'n2out', 0.35), cN: N('add', 'n1w', 'n2w'),
+      cS: N('smoothstep', 0.46, 0.68, 'cN'), cSs: N('mul', 'cStr', 'cS'), cloudShade: N('oneMinus', 'cSs'),
+      // irradiance: the lit band graded by N·L under the cloud, the shade band's own share of the grade
+      lit0: N('mul', 'band', 'litGrade'), lit1: N('mul', 'lit0', 'cloudShade'),
+      band1: N('oneMinus', 'band'), shd0: N('mul', 'band1', 'gy'), shd1: N('mul', 'shd0', 'ndlS'), shd2: N('mul', 'shd1', 0.5),
+      irrK: N('add', 'lit1', 'shd2'), irr: N('mul', 'sunC', 'irrK'),
+      // the terminator: a saturated albedo where a facet turns from the sun
+      fl1: N('oneMinus', 'faceLit'), tm0: N('mul', 'faceLit', 'fl1'), tm1: N('mul', 'tm0', 'inSun'), term: N('mul', 'tm1', 4),
+      ar: SW('alb', 'x'), ag: SW('alb', 'y'), ab: SW('alb', 'z'), agb: N('max', 'ag', 'ab'), amax: N('max', 'ar', 'agb'), amaxS: N('max', 'amax', 1e-3),
+      alb2: N('mul', 'alb', 'alb'), satAlb: N('div', 'alb2', 'amaxS'),
+      termP: { op: 'param', param: 'terminator' },
+      d0: N('mul', 'alb', 'irr'), t0: N('mul', 'satAlb', 'termP'), t1: N('mul', 't0', 'term'), t2: N('mul', 't1', 'sunC'),
+      d1: N('add', 'd0', 't2'), diffuse: N('mul', 'd1', INV_PI),
+      // the banded rim on the lit side of vertical-ish faces
+      ndv: N('dot', 'nV', 'vV'), ndvS: N('saturate', 'ndv'), ndv1: N('oneMinus', 'ndvS'), fres: N('smoothstep', 0.55, 0.8, 'ndv1'),
+      rimSide: N('smoothstep', -0.3, 0.2, 'ndl'), nW: N('normalWorld'), nWy: SW('nW', 'y'), nWya: N('abs', 'nWy'), rimVert: N('smoothstep', 0.85, 0.4, 'nWya'),
+      r0: N('mul', 'fres', 'rimSide'), r1: N('mul', 'r0', 'shadow'), r2: N('mul', 'r1', 'cloudShade'), rimK: N('mul', 'r2', 'rimVert'),
+      rimP: { op: 'param', param: 'rim' }, alb35: N('add', 'alb', 0.35),
+      rc0: N('mul', 'rimP', 'rimK'), rc1: N('mul', 'rc0', 'sunC'), rc2: N('mul', 'rc1', INV_PI), rimC: N('mul', 'rc2', 'alb35'),
+      sun: N('add', 'diffuse', 'rimC'),
+      // the sun's specular only below the gloss roughness, on the lit band
+      glossP: { op: 'param', param: 'gloss' }, glossy: N('lt', 'rough', 'glossP'), sunSpec: N('select', 'glossy', 'band', 0),
+      // ambient: the irradiance plus the coloured lift, × albedo / π
+      irrA: N('irradiance'), liftP: { op: 'param', param: 'lift' }, a0: N('add', 'irrA', 'liftP'), a1: N('mul', 'a0', 'alb'), ambient: N('mul', 'a1', INV_PI),
+    },
+    stages: {
+      surface: { colour: 'base', roughness: 'rough', metalness: 'metal' },
+      lighting: { sun: 'sun', sunSpecular: 'sunSpec', ambient: 'ambient' },
+    },
+  };
+}
+
+/**
+ * The painterly family as a graph preset (`families/painterly.ts`): soft cel bands, the painted shade, the warm
+ * terminator, the rim on the sun's side, the painted floor, wetness and (when the look grades) the per-pixel grade after
+ * lighting. Diffuse only: no specular, as the family's Lambert base. Throws for the wind sway (it needs the instance
+ * origin and a world → object direction as inputs).
+ */
+export function painterlyGraph(params: PainterlyMaterialParams, look: PainterlyLookParams): GraphIr {
+  if (params.sway > 0) throw new Error('painterly preset: the wind sway is not expressible yet (it needs the instance origin and a world → object direction as inputs)');
+  const g = look.grade;
+  return {
+    version: GRAPH_IR_VERSION,
+    kind: 'material',
+    model: 'standard',
+    doubleSided: params.doubleSided,
+    params: {
+      colour: { type: 'colour', value: params.colour },
+      ...(params.map === null ? {} : { map: { type: 'texture', value: params.map } }),
+      emissive: { type: 'colour', value: params.emissive },
+      emissiveIntensity: { type: 'float', value: params.emissiveIntensity, min: 0, max: 64 },
+      rimAmt: { type: 'float', value: params.rim, min: 0, max: 1 },
+      bands: { type: 'float', value: params.bands, min: 0, max: 1 },
+      shadeAmt: { type: 'float', value: params.shade, min: 0, max: 1 },
+      floorAmt: { type: 'float', value: params.floor, min: 0, max: 1 },
+      shade: { type: 'vec3', value: [...look.shade], min: 0 },
+      rim: { type: 'vec3', value: [...look.rim], min: 0 },
+      warm: { type: 'float', value: look.warm, min: 0, max: 4 },
+      floor: { type: 'float', value: look.floor, min: 0, max: 16 },
+      wet: { type: 'float', value: look.wet, min: 0, max: 1 },
+      ...(g === null ? {} : {
+        gradeA: { type: 'vec4', value: [g.gain * g.exposure, 1 / g.shoulder, g.saturation, g.contrast] },
+        shadowTint: { type: 'vec3', value: [...g.shadowTint], min: 0 },
+        lightTint: { type: 'vec3', value: [...g.lightTint], min: 0 },
+        gradeB: { type: 'vec3', value: [g.split[0], g.split[1], g.lookSaturation] },
+      }),
+    },
+    nodes: {
+      // the surface: colour × map × vertex colours, the emissive
+      uv: N('uv'), colourP: { op: 'param', param: 'colour' },
+      ...(params.map === null ? { tinted: N('mul', 'colourP', 1) } : { mapS: { op: 'texture', param: 'map', in: ['uv'] }, mapC: SW('mapS', 'xyz'), mapA: SW('mapS', 'w'), tinted: N('mul', 'colourP', 'mapC') }),
+      ...(params.vertexColours ? { vc: N('vertexColour'), base: N('mul', 'tinted', 'vc') } : { base: N('mul', 'tinted', 1) }),
+      emP: { op: 'param', param: 'emissive' }, emI: { op: 'param', param: 'emissiveIntensity' }, emissive: N('mul', 'emP', 'emI'),
+      // the sun through the three-band ramp (famPaintCel)
+      nV: N('normalView'), lV: N('sunDirection'), vV: N('viewDirection'), sunC: N('sunColour'), vis: N('sunShadow'), alb: N('albedo'),
+      ndl: N('dot', 'nV', 'lV'), ndlS: N('saturate', 'ndl'), x: N('mul', 'ndlS', 'vis'),
+      c0: N('smoothstep', 0.03, 0.13, 'x'), c1: N('smoothstep', 0.34, 0.5, 'x'), c0w: N('mul', 'c0', 0.52), c1w: N('mul', 'c1', 0.48), cel: N('add', 'c0w', 'c1w'),
+      bandsP: { op: 'param', param: 'bands' }, l: N('mix', 'x', 'cel', 'bandsP'),
+      // the painted shade where the sun does not reach
+      shadeP: { op: 'param', param: 'shade' }, shadeAmtP: { op: 'param', param: 'shadeAmt' },
+      l1: N('oneMinus', 'l'), sh0: N('mul', 'shadeP', 'l1'), sh1: N('mul', 'sh0', 'shadeAmtP'), lit: N('mul', 'sunC', 'l'), irr0: N('add', 'lit', 'sh1'),
+      // the warm band past the terminator, keyed by how warm the sun is
+      pt0: N('smoothstep', 0.02, 0.2, 'l'), pt1: N('smoothstep', 0.45, 0.85, 'l'), pt2: N('oneMinus', 'pt1'), pTerm: N('mul', 'pt0', 'pt2'),
+      sR: SW('sunC', 'x'), sB: SW('sunC', 'z'), sRB: N('sub', 'sR', 'sB'), sRm: N('max', 'sR', 1e-3), wk0: N('div', 'sRB', 'sRm'), wk1: N('mul', 'wk0', 4), warmKey: N('saturate', 'wk1'),
+      warmP: { op: 'param', param: 'warm' }, wm0: N('mul', 'pTerm', 'warmP'), wm1: N('mul', 'wm0', 'warmKey'),
+      warmTint: N('mix', [1, 1, 1], [1.16, 0.98, 0.8], 'wm1'), irr: N('mul', 'irr0', 'warmTint'),
+      // wetness: darker paint on what faces the sky, and a tight highlight
+      wetP: { op: 'param', param: 'wet' }, nW: N('normalWorld'), nWy: SW('nW', 'y'), wu: N('smoothstep', 0.1, 0.75, 'nWy'), wu7: N('mul', 'wu', 0.7), wu3: N('add', 'wu7', 0.3), wetK: N('mul', 'wetP', 'wu3'),
+      wd0: N('mul', 'wetK', 0.38), wd1: N('oneMinus', 'wd0'), albW: N('mul', 'alb', 'wd1'), albWpi: N('mul', 'albW', INV_PI),
+      dif: N('mul', 'irr', 'albWpi'),
+      hv0: N('add', 'lV', 'vV'), hv: N('normalize', 'hv0'), ndh: N('dot', 'nV', 'hv'), ndhS: N('saturate', 'ndh'), spk: N('pow', 'ndhS', 120),
+      ws0: N('mul', 'sunC', 'vis'), ws1: N('mul', 'ws0', 'spk'), ws2: N('mul', 'ws1', 'wetK'), wetSpec: N('mul', 'ws2', 0.6),
+      // the rim on the sun's side of the silhouette (the family adds it as emissive; one sun, so here)
+      ndv: N('dot', 'nV', 'vV'), ndvS: N('saturate', 'ndv'), ndv1: N('oneMinus', 'ndvS'), fres: N('pow', 'ndv1', 3),
+      vNeg: N('negate', 'vV'), back0: N('dot', 'vNeg', 'lV'), back: N('saturate', 'back0'), side0: N('mul', 'ndl', 0.5), side1: N('add', 'side0', 0.5), side: N('saturate', 'side1'),
+      rf: N('smoothstep', 0.25, 0.75, 'fres'), rb0: N('mul', 'back', 0.65), rb: N('add', 'rb0', 0.35), rk0: N('mul', 'rf', 'rb'), rk1: N('mul', 'rk0', 'side'),
+      rimAmtP: { op: 'param', param: 'rimAmt' }, rimK: N('mul', 'rk1', 'rimAmtP'), rimP: { op: 'param', param: 'rim' },
+      albHalf: N('mix', 'alb', [1, 1, 1], 0.5), rc0: N('mul', 'rimP', 'albHalf'), rimC: N('mul', 'rc0', 'rimK'),
+      sun0: N('add', 'dif', 'wetSpec'), sun: N('add', 'sun0', 'rimC'),
+      // ambient: the irradiance on the wet paint, a wet sheen, the painted floor under dark albedo
+      irrA: N('irradiance'), a0: N('mul', 'irrA', 'albWpi'),
+      fr5: N('pow', 'ndv1', 5), a1a: N('mul', 'irrA', 'fr5'), a1b: N('mul', 'a1a', 'wetK'), a1: N('mul', 'a1b', 0.07),
+      floorP: { op: 'param', param: 'floor' }, floorAmtP: { op: 'param', param: 'floorAmt' },
+      fl0: N('sub', [0.22, 0.22, 0.22], 'alb'), fl1: N('max', 'fl0', 0), fl2: N('mul', 'fl1', INV_PI), fl3: N('mul', 'shadeP', 'floorP'), fl4: N('mul', 'fl3', 'floorAmtP'), a2: N('mul', 'fl4', 'fl2'),
+      am0: N('add', 'a0', 'a1'), ambient: N('add', 'am0', 'a2'),
+      ...(g === null ? {} : {
+        // the grade (famPaintGrade): exposure, the filmic shoulder, saturation, the split tint, the S-curve, the hour's saturation
+        litC: N('litColour'), gA: { op: 'param', param: 'gradeA' }, gB: { op: 'param', param: 'gradeB' },
+        sT: { op: 'param', param: 'shadowTint' }, lT: { op: 'param', param: 'lightTint' },
+        gAx: SW('gA', 'x'), gAy: SW('gA', 'y'), gAz: SW('gA', 'z'), gAw: SW('gA', 'w'), gBx: SW('gB', 'x'), gBy: SW('gB', 'y'), gBz: SW('gB', 'z'),
+        gx0: N('max', 'litC', 0), gx: N('mul', 'gx0', 'gAx'),
+        gs0: N('mul', 'gx', 'gAy'), gs1: N('add', 'gs0', 1), gs2: N('mul', 'gx', 'gs1'), gs3: N('add', 'gx', 1), gc: N('div', 'gs2', 'gs3'),
+        gl: N('dot', 'gc', [0.2126, 0.7152, 0.0722]), gsat: N('mix', 'gl', 'gc', 'gAz'),
+        gsp: N('smoothstep', 'gBx', 'gBy', 'gl'), gtint: N('mix', 'sT', 'lT', 'gsp'), gt: N('mul', 'gsat', 'gtint'), gcl: N('saturate', 'gt'),
+        gq0: N('mul', 'gcl', 2), gq1: N('sub', 3, 'gq0'), gq2: N('mul', 'gcl', 'gcl'), gq3: N('mul', 'gq2', 'gq1'), gq4: N('mul', 'gq3', 'gAw'),
+        gw1: N('oneMinus', 'gAw'), gq5: N('mul', 'gcl', 'gw1'), gS: N('add', 'gq4', 'gq5'),
+        gl2: N('dot', 'gS', [0.2126, 0.7152, 0.0722]), graded: N('mix', 'gl2', 'gS', 'gBz'),
+      }),
+    },
+    stages: {
+      surface: {
+        colour: 'base', emissive: 'emissive', roughness: 1, metalness: 0,
+        ...(params.map !== null && params.alphaCutoff > 0 ? { alpha: 'mapA', alphaCutoff: params.alphaCutoff } : {}),
+      },
+      lighting: { sun: 'sun', ambient: 'ambient', ...(g === null ? {} : { grade: 'graded' }) },
+    },
   };
 }

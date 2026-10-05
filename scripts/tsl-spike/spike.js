@@ -31,6 +31,12 @@
 //              (core, rim, seam, halo, a cell fade) vs the emissive preset
 //   family-sf / graph-sf  the boxes from an admitted fixture shardfile through the client's path (clientMaterials, graphs
 //              on, SF59 step 5): a PBR family entry vs a graph entry bound to a day key (sun.colour) and declared state
+//   family-toon / graph-toon  the boxes as the toon family (its light model: bands, terminator, rim, cloud shade) vs the toon
+//              preset through the lighting stage (SF59 step 6)
+//   family-paint / graph-paint  the boxes as the painterly family (cel bands, painted shade, warm terminator, rim, floor,
+//              the per-pixel grade) vs the painterly preset through the lighting stage
+//   graph-pastel / graph-ink  G169's stress cases (stress.js): the pastel alien plain and the ink / cel valley as graphs
+//              (no family to compare: they must admit, compile and render clean at the floor; their ops are recorded)
 // SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
 // render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
 // Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
@@ -45,7 +51,10 @@ import {
   luminance, hash, PCFShadowFilter,
 } from 'three/tsl';
 import { loadGraphBackend, loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
-import { emissiveGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET } from '@wildshard/engine/render/graph/presets';
+import { emissiveGraph, painterlyGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET, toonGraph } from '@wildshard/engine/render/graph/presets';
+import { compileToon, ToonLook } from '@wildshard/engine/render/families/toon';
+import { compilePainterly, PainterlyLook } from '@wildshard/engine/render/families/painterly';
+import { inkGraph, opsOf, pastelGraph } from './stress.js';
 import { targetTexture } from '@wildshard/engine/render/nodes/engineNodesHandler';
 import { installFrameCounter, renderCount } from '@wildshard/engine/render/frameCounter';
 import { installShadowFilter } from '@wildshard/engine/world/shadowFilter';
@@ -100,6 +109,7 @@ const ROLES = VARIANT.endsWith('-roles');
 const LABELS = VARIANT.endsWith('-labels');
 const EMIT = VARIANT.endsWith('-emit') || VARIANT.endsWith('-tube');
 const SHARDFILE = VARIANT.endsWith('-sf');
+const TOON = VARIANT.endsWith('-toon'), PAINT = VARIANT.endsWith('-paint'), STRESS = VARIANT === 'graph-pastel' || VARIANT === 'graph-ink';
 const compiler = GRAPH && !SHARDFILE ? await loadGraphCompiler(renderer) : null; // the graph compiler, the same lazy door
 
 // ── the scene ──
@@ -186,6 +196,14 @@ if (emitParams.family !== 'emissive') throw new Error('spike: an emissive surfac
 const emitLook = new EmissiveLook({ gain: 1.25 });
 const emitTextures = () => FIELD;
 
+// the toon and painterly families (step 6): plain colour, no vertex colours (the boxes carry none), the looks' defaults
+const toonParams = parseFamilyMaterial({ family: 'toon', colour: [0.85, 0.62, 0.42], vertexColours: false });
+const paintParams = parseFamilyMaterial({ family: 'painterly', colour: [0.55, 0.72, 0.36], vertexColours: false });
+if (toonParams.family !== 'toon' || paintParams.family !== 'painterly') throw new Error('spike: toon / painterly surfaces');
+const toonLook = new ToonLook({});
+const paintLook = new PainterlyLook({});
+let graphReadout = null; // graph variants: the compiled graph's cost and ops
+
 const lin = (rgb) => new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace);
 /** the measure layer's grid (measure.ts famMGrid), as TSL */
 const grid = Fn(([c, pitch, hw]) => {
@@ -256,6 +274,13 @@ if (LABELS) {
 }
 /** graph / graph-roles: the boxes from the compiler (the preset IR plus the page's cold-compile constant on the glow) */
 function graphMat() {
+  if (TOON || PAINT || STRESS) {
+    const ir = VARIANT === 'graph-pastel' ? pastelGraph(Number(NONCE)) : VARIANT === 'graph-ink' ? inkGraph(Number(NONCE)) : TOON ? toonGraph(toonParams, toonLook.params) : painterlyGraph(paintParams, paintLook.params);
+    const withNonce = STRESS ? ir : { ...ir, nodes: { ...ir.nodes, nonceE: { op: 'const', value: Number(NONCE) } }, stages: { ...ir.stages, surface: { ...ir.stages.surface, emissive: 'nonceE' } } };
+    const g = compiler.compileGraph(withNonce, { budget: PRESET_GRAPH_BUDGET });
+    graphReadout = { cost: g.cost, selects: g.selects, ops: opsOf(ir) };
+    return g.material;
+  }
   if (EMIT) {
     const ir = emissiveGraph(emitParams, emitLook.params);
     const g = compiler.compileGraph({ ...ir, nodes: { ...ir.nodes, outN: { op: 'add', in: ['out', Number(NONCE)] } }, stages: { surface: { colour: 'outN' } } }, { budget: PRESET_GRAPH_BUDGET, textures: emitTextures });
@@ -300,7 +325,8 @@ async function shardfileMat() {
   shardfileReadout = { ...look.graphs.readout, material: material.type };
   return material;
 }
-const boxMat = SHARDFILE ? await shardfileMat() : VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
+const familyStyled = () => (TOON ? compileToon(toonParams, toonLook) : compilePainterly(paintParams, paintLook, () => { throw new Error('spike: no textures'); }));
+const boxMat = SHARDFILE ? await shardfileMat() : !tsl && (TOON || PAINT) ? familyStyled() : VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
 if (!tsl && VARIANT !== 'warmup') {
   patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(/\}\s*$/, `  gl_FragColor.rgb += vec3( ${NONCE} );\n}`);
@@ -441,7 +467,7 @@ async function run() {
   const err = gl.getError();
   if (err !== gl.NO_ERROR) errors.push(`gl error ${err}`);
   return {
-    variant: VARIANT, ua: navigator.userAgent, shardfile: shardfileReadout, size: [W, H], instances: GRID * GRID,
+    variant: VARIANT, ua: navigator.userAgent, shardfile: shardfileReadout, graph: graphReadout, size: [W, H], instances: GRID * GRID,
     uniformBlockLimit: gl.getParameter(gl.MAX_UNIFORM_BLOCK_SIZE),
     compileMs: round(tCompile, 1), firstDrawMs: round(tFirst, 1), stallMs: round(tCompile + tFirst, 1),
     nodeBuildMs: handler ? round(handler.buildMs, 1) : 0, nodeBuilds: handler ? handler.builds : 0,

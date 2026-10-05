@@ -13,6 +13,13 @@
  * - **Constant-count loops** unroll nowhere: a `loop` is a GLSL `for` with a literal bound.
  * - The engine epilogue (fog after the output transform) is appended by the handler: a graph material always has
  *   `fog` on, which a graph cannot switch off.
+ * - **The lighting stage** (SF59 step 6): a graph with `stages.lighting` compiles to a `GraphLitMaterial`, a standard
+ *   node material whose lighting model (`GraphLightingModel`, three's physical model underneath) builds the `sun`
+ *   sub-graph for each directional light from the light node's own direction, unshadowed colour and shadow ratio, so
+ *   the engine's light nodes (the cascade gate, the tent filter, the shadow fade) still feed it; `ambient` replaces the
+ *   indirect diffuse; `sunSpecular` keeps the physical specular, scaled; `grade` runs on the lit colour before the
+ *   output transform and the epilogue (fog), with tone mapping off. Every other light keeps the physical diffuse. The
+ *   light-free part of the `sun` sub-graph is built once and shared between cascades.
  *
  * This module imports `three/webgpu` + `three/tsl`, so it is reached only through `loadGraphCompiler()`
  * (`render/graphBackend.ts`), a lazy chunk; nothing on the default render path imports it.
@@ -20,11 +27,12 @@
 import * as THREE from 'three';
 import {
   ConditionalNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
-  SplitNode, type Node, type NodeMaterial,
+  PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial,
 } from 'three/webgpu';
 import {
-  Fn, Loop, Var, and, cameraPosition, float, hash, instanceIndex, mx_noise_float, normalLocal, normalWorldGeometry, not, or,
-  positionLocal, positionWorld, texture, time, uniform, uv, vec2, vec3, vec4, vertexColor,
+  Fn, Loop, Var, and, cameraPosition, clamp, diffuseContribution, dot, float, hash, instanceIndex, max, mx_noise_float,
+  normalLocal, normalView, normalWorldGeometry, not, or, positionLocal, positionViewDirection, positionWorld, texture, time,
+  uniform, uv, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { targetTexture } from '../nodes/engineNodesHandler';
 import {
@@ -59,6 +67,118 @@ export interface CompiledGraph {
 
 /** one compiled value with its IR type */
 interface Val { readonly t: GraphValueType; readonly n: Node }
+
+/** what a lit graph hands its material: each lighting output, built on demand from the engine's light inputs */
+interface LitHooks {
+  /** the radiance one directional light adds, and the factor on its physical specular (null: no specular) */
+  readonly sun: (direction: Node<'vec3'>, colour: Node<'vec3'>, shadow: Node<'float'>) => { readonly radiance: Node<'vec3'>; readonly specular: Node<'float'> | null };
+  readonly ambient: ((irradiance: Node<'vec3'>) => Node<'vec3'>) | null;
+  readonly grade: ((lit: Node<'vec3'>) => Node<'vec3'>) | null;
+  /** whether the model keeps any specular (the graph declared `sunSpecular`) */
+  readonly specular: boolean;
+}
+const isNodeValue = (v: unknown): v is Node => typeof v === 'object' && v !== null && Reflect.get(v, 'isNode') === true;
+/** the lighting context's accumulators are vec3 var nodes */
+const isVec3Node = (v: unknown): v is Node<'vec3'> => isNodeValue(v);
+/** add to one of the lighting context's accumulators */
+function accumulate(target: unknown, value: Node<'vec3'>): void {
+  if (!isVec3Node(target)) throw new Error('material graph: a lighting accumulator that is not a node');
+  target.addAssign(value);
+}
+const vec3Of = (v: unknown, what: string): Node<'vec3'> => {
+  if (!isNodeValue(v)) throw new Error(`material graph: ${what} is not a node`);
+  return new ConvertNode<'vec3'>(v, 'vec3');
+};
+type DirectInput = Parameters<PhysicalLightingModel['direct']>[0];
+
+/**
+ * The lighting stage's model: three's physical model, with each directional light (the sun; the sky rig's cascades are
+ * one sun) lit by the graph's `sun` sub-graph instead. The light node has already applied its shadow (and a cascade its
+ * slice gate) to `lightColor`; its unshadowed colour (`baseColorNode`) recovers the ratio as the families do.
+ */
+class GraphLightingModel extends PhysicalLightingModel {
+  private readonly hooks: LitHooks;
+  constructor(hooks: LitHooks) { super(); this.hooks = hooks; }
+
+  override direct(input: DirectInput, builder: NodeBuilder): void {
+    const light: unknown = Reflect.get(input.lightNode, 'light');
+    if (!(light instanceof THREE.DirectionalLight)) { this.physical(input, builder, true, this.hooks.specular); return; }
+    const shadowed = vec3Of(input.lightColor, 'a light colour');
+    const baseNode: unknown = Reflect.get(input.lightNode, 'baseColorNode');
+    const base = isNodeValue(baseNode) ? vec3Of(baseNode, 'a light colour') : shadowed;
+    const shadow = clamp(dot(shadowed, vec3(1)).div(max(dot(base, vec3(1)), 1e-5)), 0, 1);
+    const sun = this.hooks.sun(vec3Of(input.lightDirection, 'a light direction'), base, shadow);
+    accumulate(input.reflectedLight.directDiffuse, sun.radiance);
+    if (sun.specular !== null) this.physical({ ...input, lightColor: base.mul(sun.specular) }, builder, false, true);
+  }
+
+  /** three's physical direct term for this light, keeping its diffuse and / or its specular */
+  private physical(input: DirectInput, builder: NodeBuilder, diffuse: boolean, specular: boolean): void {
+    if (diffuse && specular) { super.direct(input, builder); return; }
+    const tmp = { directDiffuse: vec3(0).toVar(), directSpecular: vec3(0).toVar(), indirectDiffuse: vec3(0).toVar(), indirectSpecular: vec3(0).toVar() };
+    super.direct({ ...input, reflectedLight: tmp }, builder);
+    if (diffuse) accumulate(input.reflectedLight.directDiffuse, tmp.directDiffuse);
+    if (specular) accumulate(input.reflectedLight.directSpecular, tmp.directSpecular);
+  }
+
+  override indirect(builder: NodeBuilder): void {
+    const ambient = this.hooks.ambient;
+    if (ambient === null) this.indirectDiffuse(builder);
+    else {
+      const ctx: unknown = builder.context;
+      const irradiance: unknown = typeof ctx === 'object' && ctx !== null ? Reflect.get(ctx, 'irradiance') : null;
+      const reflected: unknown = typeof ctx === 'object' && ctx !== null ? Reflect.get(ctx, 'reflectedLight') : null;
+      const indirect: unknown = typeof reflected === 'object' && reflected !== null ? Reflect.get(reflected, 'indirectDiffuse') : null;
+      accumulate(indirect, ambient(vec3Of(irradiance, 'the irradiance')));
+    }
+    if (this.hooks.specular) this.indirectSpecular(builder);
+    this.ambientOcclusion(builder);
+  }
+}
+
+/** a standard node material lit by a graph's lighting stage, its lit colour graded when the graph says so */
+class GraphLitMaterial extends MeshStandardNodeMaterial {
+  private readonly hooks: LitHooks;
+  constructor(hooks: LitHooks) { super(); this.hooks = hooks; }
+  override setupLightingModel(): PhysicalLightingModel { return new GraphLightingModel(this.hooks); }
+  override setupLighting(builder: NodeBuilder): Node {
+    const lit = super.setupLighting(builder);
+    return this.hooks.grade === null ? lit : this.hooks.grade(vec3Of(lit, 'the lit colour'));
+  }
+}
+
+/** the ops whose value is one directional light's (a node reading one is built per light, the rest once) */
+const SUN_OPS: ReadonlySet<string> = new Set(['sunDirection', 'sunColour', 'sunShadow']);
+/** the root nodes that read a sun input, directly or through their inputs and loop bodies */
+function lightDependents(ir: GraphIr): ReadonlySet<string> {
+  type Nodes = Readonly<Record<string, GraphNode>>;
+  const memo = new Map<string, boolean>();
+  function depRef(chain: readonly Nodes[], r: GraphRef | undefined): boolean {
+    if (typeof r !== 'string') return false;
+    for (let i = chain.length - 1; i >= 0; i--) {
+      const n = chain[i]?.[r];
+      if (n === undefined) continue;
+      return i === 0 ? depRoot(r) : depNode(chain.slice(0, i + 1), n);
+    }
+    return false;
+  }
+  function depNode(chain: readonly Nodes[], n: GraphNode): boolean {
+    if (SUN_OPS.has(n.op) || (n.in ?? []).some((x) => depRef(chain, x))) return true;
+    const body = n.body;
+    if (body === undefined) return false;
+    const inner = [...chain, body.nodes];
+    return Object.values(body.nodes).some((b) => depNode(inner, b)) || depRef(inner, body.out);
+  }
+  function depRoot(id: string): boolean {
+    const known = memo.get(id);
+    if (known !== undefined) return known;
+    const n = ir.nodes[id];
+    const v = n !== undefined && depNode([ir.nodes], n);
+    memo.set(id, v);
+    return v;
+  }
+  return new Set(Object.keys(ir.nodes).filter(depRoot));
+}
 
 const LEN: Readonly<Record<GraphValueType, number>> = { float: 1, vec2: 2, vec3: 3, vec4: 4, bool: 1 };
 const asBool = (v: Val): Node<'bool'> => new ConvertNode<'bool'>(v.n, 'bool');
@@ -126,6 +246,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   countRef(st['vertex.offset']?.offset);
   for (const k of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion'] as const) countRef(st.surface?.[k]);
   countRef(st.post?.colour);
+  for (const k of ['sun', 'sunSpecular', 'ambient', 'grade'] as const) countRef(st.lighting?.[k]);
   /** the instructions only this side of a select would run */
   const ownCost = (r: GraphRef | undefined, seen = new Set<string>()): number => {
     if (typeof r !== 'string' || seen.has(r) || (readers.get(r) ?? 0) > 1) return 0;
@@ -139,16 +260,23 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
 
   interface Scope { readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
+  // the lighting stage's inputs, live only while its sub-graph builds; a node reading a sun input memoizes per light
+  let sunIn: { readonly direction: Node<'vec3'>; readonly colour: Node<'vec3'>; readonly shadow: Node<'float'> } | null = null;
+  let irradianceIn: Node<'vec3'> | null = null;
+  let litIn: Node<'vec3'> | null = null;
+  const perLight = lightDependents(ir);
+  let lightMemo = new Map<string, Val>();
 
   function ref(r: GraphRef, scope: Scope): Val {
     if (typeof r !== 'string') return literal(r);
     for (let s: Scope | null = scope; s !== null; s = s.parent) {
       const n = s.nodes[r];
       if (n === undefined) continue;
-      const hit = s.memo.get(r);
+      const memo = s === root && perLight.has(r) ? lightMemo : s.memo;
+      const hit = memo.get(r);
       if (hit !== undefined) return hit;
       const v = build(n, s);
-      s.memo.set(r, v);
+      memo.set(r, v);
       return v;
     }
     throw new Error(`material graph: unknown node ${r}`); // validation already refused this
@@ -173,6 +301,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'screenUV': return { t: 'vec2', n: uv() };
+      case 'normalView': return { t: 'vec3', n: normalView };
+      case 'viewDirection': return { t: 'vec3', n: positionViewDirection };
+      case 'albedo': return { t: 'vec3', n: diffuseContribution };
+      case 'sunDirection': if (sunIn !== null) return { t: 'vec3', n: sunIn.direction }; break;
+      case 'sunColour': if (sunIn !== null) return { t: 'vec3', n: sunIn.colour }; break;
+      case 'sunShadow': if (sunIn !== null) return { t: 'float', n: sunIn.shadow }; break;
+      case 'irradiance': if (irradianceIn !== null) return { t: 'vec3', n: irradianceIn }; break;
+      case 'litColour': if (litIn !== null) return { t: 'vec3', n: litIn }; break;
       case 'sceneColour': {
         if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColour, so compile it with { scene }');
         return { t: 'vec4', n: targetTexture(opts.scene, uv()) };
@@ -282,10 +418,35 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     m.fog = false;
     return m;
   };
+  /** the lighting stage's hooks: each builds its sub-graph with its inputs live (the material calls them while it builds) */
+  const litHooks = (lit: NonNullable<GraphIr['stages']['lighting']>): LitHooks => {
+    const asVec3 = (r: GraphRef): Node<'vec3'> => new ConvertNode<'vec3'>(widen(ref(r, root), 'vec3'), 'vec3');
+    const specularRef = lit.sunSpecular;
+    const ambientRef = lit.ambient, gradeRef = lit.grade;
+    return {
+      specular: specularRef !== undefined,
+      sun(direction, colour, shadow) {
+        sunIn = { direction, colour, shadow };
+        lightMemo = new Map();
+        try {
+          return { radiance: asVec3(lit.sun), specular: specularRef === undefined ? null : asFloat(ref(specularRef, root)) };
+        } finally { sunIn = null; }
+      },
+      ambient: ambientRef === undefined ? null : (irradiance) => {
+        irradianceIn = irradiance;
+        try { return asVec3(ambientRef); } finally { irradianceIn = null; }
+      },
+      grade: gradeRef === undefined ? null : (litColour) => {
+        litIn = litColour;
+        try { return asVec3(gradeRef); } finally { litIn = null; }
+      },
+    };
+  };
   /** a material graph: the lighting model's material with the surface and vertex stages in its slots */
   const surfaceMaterial = (): NodeMaterial => {
     const s = st.surface ?? {};
-    const m = ir.model === 'unlit' ? new MeshBasicNodeMaterial() : new MeshStandardNodeMaterial();
+    const lit = st.lighting;
+    const m = ir.model === 'unlit' ? new MeshBasicNodeMaterial() : lit !== undefined ? new GraphLitMaterial(litHooks(lit)) : new MeshStandardNodeMaterial();
     const colour = out(s.colour);
     if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
     const alpha = out(s.alpha);
@@ -302,6 +463,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     const offset = out(st['vertex.offset']?.offset);
     if (offset !== null) m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(offset, 'vec3'), 'vec3'));
     m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
+    if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading === true;
+    if (lit?.grade !== undefined) m.toneMapped = false; // a graded colour is display linear already
     m.fog = true; // the engine epilogue (fog) is not optional
     return m;
   };
