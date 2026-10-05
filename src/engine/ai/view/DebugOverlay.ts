@@ -1,6 +1,8 @@
 import { uiScope, mountUi } from '../../ui/ownership';
 import { engineString } from '../../strings';
 import { Vector3 } from 'three';
+import { withOwner } from '../../app/ownership';
+import type { Scope } from '../../app/scope';
 import type { Game } from '../../core/Game';
 import type { LevelContext } from '../../level/context';
 import { brainInspection } from '../inspect';
@@ -45,18 +47,27 @@ class Labels implements AiDebugView {
   dispose(): void { this.labels.clear(); this.root.remove(); }
 }
 
-/** Off creates no visual objects and registers no per-frame system. */
-export function installAiDebug(ctx: Pick<LevelContext, 'app' | 'scope' | 'debugRow'>, host: AiDebugHost, view: (host: AiDebugHost) => AiDebugView = (value) => new Labels(value)): void {
+/** Off creates no visual objects; an optional installer scopes enabled overlays to the current entered lifetime. */
+export function installAiDebug(ctx: Pick<LevelContext, 'app' | 'scope' | 'debugRow'>, host: AiDebugHost,
+  view: (host: AiDebugHost) => AiDebugView = (value) => new Labels(value), entered?: (install: (scope: Scope) => void) => void): void {
   let stop = (): void => { /* Off initially. */ };
+  let parent: Scope | undefined = entered === undefined ? ctx.scope : undefined;
+  let selected = 'off';
   const change = (value: string): void => {
+    selected = value;
     stop(); stop = () => { /* Already stopped. */ };
-    if (value !== 'on' || ctx.scope.disposed) return;
-    const scope = ctx.scope.child('ai-overlay'), labels = view(host);
+    if (value !== 'on' || ctx.scope.disposed || parent === undefined) return;
+    const scope = parent.child('ai-overlay');
+    const labels = entered === undefined ? view(host) : withOwner(scope, () => view(host));
     scope.onDispose(() => { labels.dispose(); }); stop = () => { scope.dispose(); };
     ctx.app.addSystem({ id: `engine.ai.debug.${ctx.scope.name}`, phase: 'late',
       when: (app) => app.levelScope === ctx.scope && ['play', 'practice', 'explore'].includes(app.state),
       run: () => { labels.update(); } }, scope);
   };
+  if (entered !== undefined) entered((scope) => {
+    parent = scope; change(selected);
+    scope.onDispose(() => { stop(); if (parent === scope) parent = undefined; });
+  });
   ctx.scope.onDispose(() => { stop(); });
   ctx.debugRow({ ask: 'E357', reviewBy: '2026-12-30', id: 'ai.brains', group: 'tools', label: engineString('s_4a74d7223bec'), initial: 'off',
     choices: [{ value: 'off', text: engineString('s_ca7981b46ecf') }, { value: 'on', text: engineString('s_130011756125') }], change,

@@ -161,7 +161,8 @@ export class PineHollow extends ShardPlugin {
     const { cabins, landmarks, particles } = this;
     const rifle = h.rifle, longbow = h.secondary, crossbow = h.primary;
     if (!(rifle instanceof LeverRifle) || !(longbow instanceof Bow) || !(crossbow instanceof Crossbow)) throw new Error('Pine ranged kit was not built');
-    installAiDebug(ctx, { game, actors: () => animals.animals, player });
+    installAiDebug(ctx, { game, actors: () => animals.animals, player }, undefined,
+      retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     rt.hooks.wearFinish = (id) => {
       const pick = finishPick(skins, id); if (!pick) return;
       if (pick.act === 'wear') { wearSkin(pick.skin); return; }
