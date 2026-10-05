@@ -41,6 +41,7 @@ import { engineFog } from './engineFog';
 import { tentShadowFilter } from './tentShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
+import { diagnosticNow } from '../../core/clock';
 import type { Renderer } from '../renderer';
 
 /** what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer */
@@ -197,9 +198,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** build one node material's program (timed: `builds`, `buildMs`) */
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
-    const t0 = performance.now();
+    const t0 = diagnosticNow();
     super.build(material, object, parameters);
-    this.buildMs += performance.now() - t0;
+    this.buildMs += diagnosticNow() - t0;
     this.builds++;
   }
 }
