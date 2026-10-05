@@ -5,6 +5,7 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
+import type { compileGraph } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';
 
@@ -21,4 +22,19 @@ export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler
   });
   installed.set(renderer, loading);
   return loading;
+}
+
+/** the graph compiler's entry points, once its chunk has loaded */
+export interface GraphCompiler {
+  readonly compileGraph: typeof compileGraph;
+}
+
+/**
+ * install the engine's node handler on this renderer, then load the material graph compiler (`graph/compile.ts`,
+ * SF59 step 3) from the same lazy chunk family: a graph IR becomes a node material only through this door
+ */
+export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompiler> {
+  await loadGraphBackend(renderer);
+  const { compileGraph: compile } = await import('./graph/compile');
+  return { compileGraph: compile };
 }

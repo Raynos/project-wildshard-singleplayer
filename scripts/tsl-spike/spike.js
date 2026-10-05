@@ -19,6 +19,10 @@
 //   family-csm / tsl-csm    the sun as the sky rig builds it: three CSM cascades (fade on), the CSM light block, the
 //              E147 fade ghosts; the node boxes gated by the engine's cascade light node (SF59 step 2)
 //   family-fade / tsl-fade  the same, frozen half way through a sun step (uSunFade 0.5: the ghosts' shadows mix in)
+//   graph      as tsl, but the boxes are the material graph COMPILER's output (SF59 step 3): the PBR + measure preset
+//              (render/graph/presets.ts) through compileGraph (render/graph/compile.ts, loaded by loadGraphCompiler)
+//   family-roles / graph-roles  0.8 m boxes whose UV0 carries measure roles (sides structure, tops trim; under 1 m, so
+//              unlabelled): the role decode, the face grid and the role colours, family vs the graph preset
 // SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
 // render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
 // Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
@@ -32,12 +36,13 @@ import {
   fwidth, abs, fract, floor, smoothstep, max, min, mix, clamp, dot, select, sin, time, instanceIndex,
   luminance, hash, PCFShadowFilter,
 } from 'three/tsl';
-import { loadGraphBackend } from '@wildshard/engine/render/graphBackend';
+import { loadGraphBackend, loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { pbrMeasureGraph } from '@wildshard/engine/render/graph/presets';
 import { targetTexture } from '@wildshard/engine/render/nodes/engineNodesHandler';
 import { installFrameCounter, renderCount } from '@wildshard/engine/render/frameCounter';
 import { installShadowFilter } from '@wildshard/engine/world/shadowFilter';
 import { compilePbr } from '@wildshard/engine/render/families/pbr';
-import { parseFamilyMaterial } from '@wildshard/engine/render/families/params';
+import { parseFamilyMaterial, measureUv } from '@wildshard/engine/render/families/params';
 import { installAtmosphere, fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { patchShader, PATCH_ORDER, takeForeignHook } from '@wildshard/engine/render/shaderPatches';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
@@ -76,6 +81,9 @@ class StockNodesHandler extends WebGLNodesHandler {
 let handler = null;
 if (VARIANT === 'tsl-raw') { handler = new StockNodesHandler(); renderer.setNodesHandler(handler); }
 else if (tsl) handler = await loadGraphBackend(renderer); // the engine's back-end, as its own lazy chunk
+const GRAPH = VARIANT.startsWith('graph');
+const ROLES = VARIANT.endsWith('-roles');
+const compiler = GRAPH ? await loadGraphCompiler(renderer) : null; // the graph compiler, the same lazy door
 
 // ── the scene ──
 installAtmosphere(); // the engine's fog chunks (slot 100), as Game.buildSky installs them
@@ -183,7 +191,25 @@ function tslMat(sway) {
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120).rotateX(-Math.PI / 2), csmMaterial(familyMat()));
 ground.receiveShadow = true;
 scene.add(ground);
-const boxGeo = new THREE.BoxGeometry(1.6, 1, 1.6, 1, 1, 1).translate(0, 0.5, 0);
+const BOX = ROLES ? 0.8 : 1.6;
+const boxGeo = new THREE.BoxGeometry(BOX, 1, BOX, 1, 1, 1).translate(0, 0.5, 0);
+if (ROLES) {
+  // BoxGeometry's faces are +x, −x, +y, −y, +z, −z, four vertices each: sides are structure (role 1), top and bottom trim
+  const uvs = boxGeo.getAttribute('uv');
+  for (let i = 0; i < uvs.count; i++) {
+    const face = Math.floor(i / 4), top = face === 2 || face === 3;
+    const w = BOX, h = top ? BOX : 1;
+    const [x, y] = measureUv(top ? 2 : 1, uvs.getX(i) * w, uvs.getY(i) * h, w, h);
+    uvs.setXY(i, x, y);
+  }
+  uvs.needsUpdate = true;
+}
+/** graph / graph-roles: the boxes from the compiler (the preset IR plus the page's cold-compile constant on the glow) */
+function graphMat() {
+  const ir = pbrMeasureGraph(params, measure);
+  const g = compiler.compileGraph({ ...ir, nodes: { ...ir.nodes, glowN: { op: 'add', in: ['glow', Number(NONCE)] } }, stages: { surface: { ...ir.stages.surface, emissive: 'glowN' } } });
+  return g.material;
+}
 /** the diagnostic pair plain / tsl-plain: the stock standard material, classic vs node, no measure layer (the cost of
  * TSL's own lighting and shadow path, apart from the graph the spike ported) */
 function plainMat() {
@@ -193,7 +219,7 @@ function plainMat() {
   m.emissiveNode = vec3(float(Number(NONCE)));
   return m;
 }
-const boxMat = VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : familyMat();
+const boxMat = VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : familyMat();
 if (!tsl && VARIANT !== 'warmup') {
   patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(/\}\s*$/, `  gl_FragColor.rgb += vec3( ${NONCE} );\n}`);

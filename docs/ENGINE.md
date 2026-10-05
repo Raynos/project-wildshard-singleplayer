@@ -933,7 +933,20 @@ patchShader(material, 'template.linear-fog', PATCH_ORDER.decorate, (shader) => {
 ```
 
 The renderer type is named only in `src/engine/render/**` (`wildshard/no-renderer-type`). The handle is `Renderer`
-(`probeRenderer`, `isRenderer`). No WebGPU, no TSL. **Facade multi-draw is banned everywhere** (AGENTS.md E271).
+(`probeRenderer`, `isRenderer`). No WebGPU. **Facade multi-draw is banned everywhere** (AGENTS.md E271).
+
+**Material graphs (SF59, lazy, not on the default path).** TSL is reached only through `render/graphBackend.ts`:
+`loadGraphBackend(renderer)` installs `EngineNodesHandler` (the output transform, the upright target sample, the fog
+epilogue, the tent and cascade shadows as nodes); `loadGraphCompiler(renderer)` then loads `compileGraph(ir)`
+(`render/graph/compile.ts`), which turns a graph IR into a node material. The IR (`render/graph/ir.ts`,
+`GRAPH_IR_VERSION` 1) is data: `nodes` of an allowlisted vocabulary (`GRAPH_OPS`: inputs, safe maths, comparisons and a
+branch-light `select`, swizzles, MaterialX noise, an admitted texture, a constant-count `loop`), the stages
+`vertex.offset`, `surface` and `post` (`lighting` reserved), typed `params` that are uniforms only (bindable to a day key
+or a declared shard-state field; `setParam` never recompiles), and a per-program budget. `validateGraph(ir, opts)`
+refuses unknown ops, type mismatches, cycles and over-budget graphs before any node exists. A select with cheap sides
+compiles branch-free (`mix`); one with an expensive side nothing else reads becomes a real `if / else`. Presets
+(`render/graph/presets.ts`, `pbrMeasureGraph`) re-express a family for the parity bench (`scripts/tsl-spike/`, the
+`graph` variants); no shipped material uses one yet, and today's families stay hand-written GLSL.
 
 ### 13.3 Tiers as data
 
