@@ -1,5 +1,6 @@
 import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installEnteredPineScore } from './audio/score';
+import { installPineLandmarkUpdate } from './landmarkLifetime';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
 import { installPineDebug } from '../debug/options';
@@ -102,7 +103,7 @@ export class PineHollow extends ShardPlugin {
             return on;
           } });
       }
-      const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn, 'pine.landmarks'); }, trees: forest.trees });
+      const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { installPineLandmarkUpdate(ctx, game, fn); }, trees: forest.trees });
       if (landmarks.crags) { cutTerrain(world.physics, landmarks.crags.terrainCuts()); world.terrain.punch(landmarks.crags.holeTest()); }
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
       this.cabins = cabins; this.landmarks = landmarks;

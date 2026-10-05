@@ -34,6 +34,13 @@ export function installEnteredRuntimeService(context: ShardContext, install: (sc
   if (entered === undefined) install(context.scope); else entered(install);
 }
 
+/** Register entered-only updates on a clock that does not advance while the resident is parked. */
+export function installEnteredRuntimeUpdate(context: ShardContext, spec: Parameters<ShardContext['system']>[0]): void {
+  if (!retainsRuntimeServices(context)) throw new Error('Entered clock needs a retained context');
+  let time = context.app.clock.now;
+  context.system({ ...spec, run: (dt) => { time += dt; spec.run(dt, time); } });
+}
+
 /** Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor. */
 export function installEnteredRuntimeObserver(context: ShardContext, name: string, observer: object): void {
   installEnteredRuntimeService(context, (scope) => {
