@@ -1,0 +1,68 @@
+{
+  "url": "http://127.0.0.1:4401",
+  "tag": "after",
+  "started": "2026-10-05T01:54:36.195Z",
+  "pine-trader-classic": {
+    "slate": [
+      "A quiver of bolts ×10",
+      "Pitch-tipped bolts ×10",
+      "Broadhead bolts ×8",
+      "Rifle cartridges ×14",
+      "Goose-fletched arrows ×10",
+      "Hollow Ash crossbow finish",
+      "Scarback Furnace rifle finish"
+    ],
+    "buttons": [
+      "Full",
+      "Trade",
+      "Trade",
+      "Trade",
+      "Full",
+      "Trade",
+      "Trade"
+    ],
+    "tiles": [],
+    "feet": [],
+    "bar": null,
+    "accent": "",
+    "errors": []
+  },
+  "nalati-camp-classic": {
+    "dialogue": "Baqyt Ata, the camp elderSalem, traveller! Sit, sit — in a Kazakh yurt the kettle is always on, even when the yurt1 / 4NEXT ▸",
+    "chip": "TulparBAQYT ATA87 m▲",
+    "talkClass": "ws-quest-talk show",
+    "errors": []
+  },
+  "pine-trader-big": {
+    "slate": [],
+    "buttons": [],
+    "tiles": [
+      "Bolts ×10",
+      "Pitch bolts ×10",
+      "Broadheads ×8",
+      "Cartridges ×14",
+      "Arrows ×10",
+      "Crossbow finish",
+      "Rifle finish"
+    ],
+    "feet": [
+      "Full",
+      "Ready",
+      "Ready",
+      "Need more",
+      "Full",
+      "Need more",
+      "Need more"
+    ],
+    "bar": "Bolts ×10 · Full",
+    "accent": "#89c06a",
+    "errors": []
+  },
+  "pine-trader-big-2": "Trade Pitch bolts ×103 amber resin",
+  "nalati-camp-big": {
+    "dialogue": "Baqyt Ata, the camp elderSalem, traveller! Sit, sit — in a Kazakh yurt the kettle is always on, even when the yurt 1 / 4NEXT ▸",
+    "chip": "TulparBAQYT ATA87 m▲",
+    "talkClass": "ws-quest-talk show",
+    "errors": []
+  }
+}

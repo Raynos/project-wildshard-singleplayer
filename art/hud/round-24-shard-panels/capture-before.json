@@ -1,0 +1,65 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "tag": "before",
+  "started": "2026-10-05T01:40:43.050Z",
+  "pine-trader-classic": {
+    "slate": [
+      "A quiver of bolts ×10",
+      "Pitch-tipped bolts ×10",
+      "Broadhead bolts ×8",
+      "Rifle cartridges ×14",
+      "Goose-fletched arrows ×10",
+      "Hollow Ash crossbow finish",
+      "Scarback Furnace rifle finish"
+    ],
+    "buttons": [
+      "Full",
+      "Trade",
+      "Trade",
+      "Trade",
+      "Full",
+      "Trade",
+      "Trade"
+    ],
+    "tiles": [],
+    "feet": [],
+    "bar": null,
+    "accent": null,
+    "errors": []
+  },
+  "nalati-camp-classic": {
+    "dialogue": null,
+    "chip": null,
+    "errors": []
+  },
+  "pine-trader-big": {
+    "slate": [
+      "A quiver of bolts ×10",
+      "Pitch-tipped bolts ×10",
+      "Broadhead bolts ×8",
+      "Rifle cartridges ×14",
+      "Goose-fletched arrows ×10",
+      "Hollow Ash crossbow finish",
+      "Scarback Furnace rifle finish"
+    ],
+    "buttons": [
+      "Full",
+      "Trade",
+      "Trade",
+      "Trade",
+      "Full",
+      "Trade",
+      "Trade"
+    ],
+    "tiles": [],
+    "feet": [],
+    "bar": null,
+    "accent": null,
+    "errors": []
+  },
+  "nalati-camp-big": {
+    "dialogue": null,
+    "chip": null,
+    "errors": []
+  }
+}
