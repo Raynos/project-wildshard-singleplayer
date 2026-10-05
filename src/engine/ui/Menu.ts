@@ -317,18 +317,19 @@ export class GameMenu {
   /** Registered game / kit tabs own all Bag presentation. */
   addTab(spec: TabSpec): () => void {
     if (this.panels[spec.id] !== undefined) throw new Error(`Duplicate UI tab: ${spec.id}`);
+    const scope = this.scope.child(`tab.${spec.id}`);
     const off = this.tabsRegistry.tab(spec);
     const panel = el('ws-gmenu-panel scroll'); panel.dataset['scroll'] = '';
     const button = tabButton(spec.title, spec.icon);
     button.type = 'button'; button.dataset['tab'] = spec.id;
-    this.scope.listen(button, 'click', () => { this.select(spec.id); });
+    scope.listen(button, 'click', () => { this.select(spec.id); });
     this.panels[spec.id] = panel;
     this.panels.map.parentElement?.append(panel);
     const next = this.tabsRegistry.registeredTabs.find((row) => row.id !== spec.id && (row.order ?? 0) > (spec.order ?? 0));
     const before = [...this.tabBar.children].find((child) => (child as HTMLElement).dataset['tab'] === (next?.id ?? 'settings'));
     this.tabBar.insertBefore(button, before ?? null); this.syncTabs();
     const remove = (): void => { off(); panel.remove(); button.remove(); delete this.panels[spec.id]; if (this._tab === spec.id) this.select('gear'); else this.syncTabs(); };
-    this.scope.onDispose(remove); return remove;
+    scope.onDispose(remove); return () => { scope.dispose(); };
   }
   addTabFragment(tab: string, fragment: TabFragment): () => void {
     const panel = tab === 'pack' ? 'inventory' : tab === 'feats' ? 'achievements' : tab;

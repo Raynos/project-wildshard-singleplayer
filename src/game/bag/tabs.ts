@@ -56,10 +56,11 @@ export class BagMenu {
   }
   private allows(...ids: string[]): boolean { return this.opts.tabs === undefined || ids.some((id) => this.opts.tabs?.includes(id) === true); }
   private register(spec: TabSpec, render: (host: HTMLElement) => void): () => void {
+    const scope = this.menu.scope.child(`bag.${spec.id}`);
     const offTab = this.menu.addTab(spec);
     const offFragment = this.menu.addTabFragment(spec.id, { id: 'game.content', order: -100, render });
     const off = (): void => { offFragment(); offTab(); };
-    this.menu.scope.onDispose(off); return off;
+    scope.onDispose(off); return () => { scope.dispose(); };
   }
   private get loot(): BagLoot | null { return this.lootRows.values().next().value ?? null; }
   private get findsView(): (() => FindsView) | null { return this.loot?.finds ?? this.findsRows.values().next().value ?? null; }
@@ -89,8 +90,10 @@ export class BagMenu {
   addFinds(id: string, finds: () => FindsView): () => void {
     if (this.findsRows.has(id)) throw new Error(`Duplicate Bag finds: ${id}`);
     this.findsRows.set(id, finds); this.syncFinds();
-    const off = (): void => { this.findsRows.delete(id); this.syncFinds(); };
-    this.menu.scope.onDispose(off); return off;
+    let live = true;
+    let forget: () => void = () => undefined;
+    const off = (): void => { if (!live) return; live = false; forget(); this.findsRows.delete(id); this.syncFinds(); };
+    forget = this.menu.scope.capture('disposers', off); return off;
   }
   addLoot(id: string, loot: BagLoot): () => void {
     if (this.lootRows.has(id)) throw new Error(`Duplicate Bag loot: ${id}`);
