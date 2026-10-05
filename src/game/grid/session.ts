@@ -72,10 +72,15 @@ import { farMapImage } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
 
-/** In grid mode the level's own chunk-edge walls and veil yield to the platform (the standalone path is unchanged). */
+/**
+ * In grid mode the level's own chunk-edge walls and veil yield to the platform, and so does its own horizon (G99: every
+ * shard is a 500 m cube; a level's horizon rings and cloud sea stand past it, over the road and the neighbours, whose
+ * far views are the grid's horizon now). A level without its own horizon keeps the engine's (the painted strips at
+ * infinity, the default ridges past the grid's outer road). The standalone path is unchanged.
+ */
 export function gridLevel(spec: LevelSpec): LevelSpec {
   if (pageMode() !== 'grid') return spec;
-  return { ...spec, boundary: { ...spec.boundary, visible: false, walls: false } };
+  return { ...spec, boundary: { ...spec.boundary, visible: false, walls: false }, ...(spec.horizon === undefined ? {} : { horizon: { rings: [], cloudSea: false } }) };
 }
 
 /** What the session reads from the page: the player's feet in the home frame, the scene, the world, the fixed step. */

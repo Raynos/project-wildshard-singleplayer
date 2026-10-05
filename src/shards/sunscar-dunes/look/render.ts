@@ -8,6 +8,7 @@ import { WIND } from '../world/dunes';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import { SKY_FRAGMENT, SKY_VERTEX, SUN_GLOW } from './sky';
 import { loadPaintedSky, paintedSkyMaterial } from './painted';
+import { holdSkirt } from './cube';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md): the key is a low warm sun ~9° up in front of the spawn view,
@@ -131,8 +132,9 @@ function skirtAt(heightAt: (x: number, z: number) => number, x: number, z: numbe
   const u = (x * WIND.x + z * WIND.z) / 64, v = (-x * WIND.z + z * WIND.x) / 90;
   return heightAt(cx, cz) * (1 - e) + (2.5 + 3 * Math.sin((u + Math.sin(v) * 0.4) * Math.PI * 2)) * e - 0.05;
 }
-function skirtGeometry(heightAt: (x: number, z: number) => number): BufferGeometry {
-  const n = (SKIRT.out * 2) / SKIRT.cell, g = new PlaneGeometry(SKIRT.out * 2, SKIRT.out * 2, n, n); g.rotateX(-Math.PI / 2);
+function skirtGeometry(heightAt: (x: number, z: number) => number, reach: number = SKIRT.out): BufferGeometry {
+  // G99: a grid cell's skirt ends at its cube (`reach` 250, look/cube.ts); standalone it runs to SKIRT.out
+  const n = Math.max(1, Math.round((reach * 2) / SKIRT.cell)), g = new PlaneGeometry(reach * 2, reach * 2, n, n); g.rotateX(-Math.PI / 2);
   const p = g.getAttribute('position'), col = new Float32Array(p.count * 3), c = new Color().copy(SAND).lerp(HOLLOW, 0.25), edge = GROUND_HALF;
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), z = p.getZ(i), out = Math.max(Math.abs(x), Math.abs(z)) - edge;
@@ -456,6 +458,7 @@ float sandN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
       // gentle swells along the wind; the same sand material, so the fog lays it back with the rest.
       const skirt = skirtGeometry((x, z) => field.heightAt(x, z)); scope.own(skirt);
       const skirtMesh = new Mesh(skirt, material); skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh);
+      holdSkirt(skirtMesh, (half) => skirtGeometry((x, z) => field.heightAt(x, z), half), scope); // G99: cut back to the cube in a grid cell
       return Promise.resolve();
     } },
   };

@@ -1,0 +1,107 @@
+{
+ "base": "http://127.0.0.1:4402",
+ "views": [
+  {
+   "id": "spawn",
+   "variant": "A",
+   "pos": [
+    0,
+    22.96,
+    70
+   ],
+   "look": [
+    8,
+    25.66,
+    -75
+   ],
+   "rings": 4,
+   "clipped": false
+  },
+  {
+   "id": "spawn",
+   "variant": "B",
+   "pos": [
+    0,
+    22.96,
+    70
+   ],
+   "look": [
+    8,
+    25.66,
+    -75
+   ],
+   "rings": 0,
+   "clipped": true
+  },
+  {
+   "id": "west-edge",
+   "variant": "A",
+   "pos": [
+    -205,
+    2.54,
+    18
+   ],
+   "look": [
+    -420,
+    3.6,
+    0
+   ],
+   "rings": 4,
+   "clipped": false
+  },
+  {
+   "id": "west-edge",
+   "variant": "B",
+   "pos": [
+    -205,
+    2.54,
+    18
+   ],
+   "look": [
+    -420,
+    3.6,
+    0
+   ],
+   "rings": 0,
+   "clipped": true
+  },
+  {
+   "id": "aerial",
+   "variant": "A",
+   "pos": [
+    330,
+    260,
+    470
+   ],
+   "look": [
+    0,
+    0,
+    -20
+   ],
+   "rings": 4,
+   "clipped": false
+  },
+  {
+   "id": "aerial",
+   "variant": "B",
+   "pos": [
+    330,
+    260,
+    470
+   ],
+   "look": [
+    0,
+    0,
+    -20
+   ],
+   "rings": 0,
+   "clipped": true
+  }
+ ],
+ "errors": [],
+ "build": "41876250b-muuh5oll",
+ "found": {
+  "skirt": true,
+  "rings": 4
+ }
+}

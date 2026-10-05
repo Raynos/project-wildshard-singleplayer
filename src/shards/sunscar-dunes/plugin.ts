@@ -13,6 +13,7 @@ import { buildWorld, FLAG, type SignalFire, type SignalWorld } from './world/bui
 import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
 import { setDusk, stepDusk } from './look/dusk';
+import { fitSkirtToCube } from './look/cube';
 import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
@@ -73,6 +74,8 @@ export class SignalDunesPlugin extends ShardPlugin {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     await preloadDuneMeshes();
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug)); this.fire = this.places.fire;
+    // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
+    if (ctx.cube !== null) fitSkirtToCube(ctx.cube.half);
   }
   private brainPolicies: ReturnType<typeof selectDuneRows> = null;
   /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */

@@ -42,8 +42,8 @@ export class Horizon {
     this.sky = sky;
   }
 
-  build(): this {
-    const level = activeLevel();
+  /** `level`: the spec the world boots (a grid cell's yields its own horizon, G99); omitted = the selected level */
+  build(level: LevelSpec = activeLevel()): this {
     const own = level.horizon;
     if (own) { // a level's own compass-banded ranges (its manifest's `horizon` data)
       this.buildBands(own, level.sky.painted);

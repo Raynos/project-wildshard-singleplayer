@@ -65,7 +65,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
     // PH-L9: Pine Hollow's creek, waterfall, plunge foam and spray (two draws; they run on the wind clock)
     const streams = null;
     await macrotask();
-    const horizon = new Horizon(sky).build();
+    const horizon = new Horizon(sky).build(game.level); // the booted spec: in the grid its own horizon yields to the cube (gridLevel, G99)
     game.scene.add(horizon.group);
     // the painted 360° horizon (X4): far sea stacks, islands and cloud banks on the sea, day + night; the paintings load after boot
     const seaBody = app.world.water.sea; // registered at level.data, before the edge step
