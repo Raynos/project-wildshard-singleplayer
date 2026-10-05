@@ -1,16 +1,36 @@
 #!/usr/bin/env node
 // SF2: count typed boundary reaches and engine inheritance, never comments or identifier spelling.
-import { globSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ts from '@typescript/typescript6';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/shard-coupling.json';
+export const WEAPON_TRANSFER_LIST = 'lint/weapon-subclasses.json';
+// Reviewed bootstrap for the two classes relocated by f6d18f088, not a wildcard or a new inheritance budget.
+export const WEAPON_TRANSFER_BOOTSTRAP = {
+  'src/shards/nalati-grasslands/weapons/Rifle.ts': { class: 'Rifle', from: 'src/kit/weapons/firearm/Rifle.ts', runtime: 'src/shards/nalati-grasslands/runtime/weapons/Rifle.ts', base: 'Weapon', owner: 'SF36' },
+  'src/shards/pine-hollow/weapons/crossbow/Crossbow.ts': { class: 'Crossbow', from: 'src/kit/weapons/crossbow/Crossbow.ts', runtime: 'src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts', base: 'Weapon', owner: 'SF36' },
+};
+/** Entries may disappear; a site, class, source, destination, base or removal owner may never grow/change. */
+export function compareWeaponTransfers(before, after) {
+  const failures = [];
+  for (const [file, item] of Object.entries(after)) {
+    const previous = before[file];
+    if (!previous) failures.push(`${WEAPON_TRANSFER_LIST}: new weapon transfer ${file}`);
+    else if (Object.keys(item).length !== Object.keys(previous).length || Object.entries(item).some(([key, value]) => previous[key] !== value)) failures.push(`${WEAPON_TRANSFER_LIST}: immutable weapon transfer changed ${file}`);
+  }
+  return failures;
+}
 const CONTEXT_FILES = new Set(['src/game/shard/context.ts', 'src/engine/level/context.ts']);
 const initial = () => ({ 'ctx.app': 0, 'ctx.game': 0, 'ctx.game.runtime': 0, engineSubclasses: 0 });
 
 export function shardCoupling(root = ROOT) {
+  const transferPath = resolve(root, WEAPON_TRANSFER_LIST);
+  const transfers = existsSync(transferPath) ? JSON.parse(readFileSync(transferPath, 'utf8')).transfers : {};
+  const invalid = compareWeaponTransfers(WEAPON_TRANSFER_BOOTSTRAP, transfers);
+  if (invalid.length > 0) throw new Error(invalid.join('\n'));
   const files = globSync('src/shards/**/*.{ts,tsx}', { cwd: root }).filter((file) => !file.endsWith('.d.ts') && !file.includes('.generated.'));
   const configPath = resolve(root, 'tsconfig.json');
   const config = ts.readConfigFile(configPath, (file) => ts.sys.readFile(file));
@@ -53,6 +73,20 @@ export function shardCoupling(root = ROOT) {
     const result = inspect(); dataTypes.set(type, result); return result;
   };
   const contextProperties = new Map();
+  // Keep the Weapon category stable when its content-free platform families gain defining modules.
+  // This is typed ancestry to the exact defining class, not a class-name exemption.
+  const platformWeapon = (type, seen = new Set()) => {
+    if (seen.has(type)) return false;
+    const next = new Set(seen).add(type), symbol = type.getSymbol();
+    if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl) && local(decl.getSourceFile().fileName) === 'src/engine/combat/Weapon.ts' && decl.name?.text === 'Weapon')) return true;
+    if (declarations(symbol).some((decl) => ts.isClassDeclaration(decl))) {
+      const declared = checker.getDeclaredTypeOfSymbol(symbol);
+      if (declared !== type) return platformWeapon(declared, next);
+    }
+    if (!(type.flags & ts.TypeFlags.Object) || !(type.objectFlags & ts.ObjectFlags.ClassOrInterface)) return false;
+    return checker.getBaseTypes(type).some((base) => platformWeapon(base, next));
+  };
+  const claimedTransfers = new Set();
   const engineBase = (type, seen = new Set()) => {
     if (seen.has(type)) return null;
     const next = new Set(seen).add(type), symbol = type.getSymbol();
@@ -99,8 +133,19 @@ export function shardCoupling(root = ROOT) {
         }
       } else if (ts.isClassDeclaration(node) || ts.isClassExpression(node)) {
         for (const clause of node.heritageClauses ?? []) if (clause.token === ts.SyntaxKind.ExtendsKeyword) for (const base of clause.types) {
-          const name = engineBase(checker.getTypeAtLocation(base));
-          if (name !== null) { add('engineSubclasses', node); add(`subclass.${name}`, node); }
+          const type = checker.getTypeAtLocation(base), weapon = platformWeapon(type);
+          const name = weapon ? 'Weapon' : engineBase(type);
+          if (name !== null) {
+            const entry = Object.entries(transfers).find(([original, item]) => (file === original || file === item.runtime) && node.name?.text === item.class);
+            if (entry !== undefined) {
+              const [original, transfer] = entry;
+              if (!weapon || name !== transfer.base || existsSync(resolve(root, transfer.from))) throw new Error(`Invalid kit weapon transfer ${file}: platform base changed or kit source still exists`);
+              if (claimedTransfers.has(original)) throw new Error(`Invalid kit weapon transfer ${file}: transfer reused by another class`);
+              claimedTransfers.add(original);
+              const at = source.getLineAndCharacterOfPosition(node.getStart(source));
+              (row.transfers ??= []).push({ from: transfer.from, site: `${file}:${at.line + 1}:${at.character + 1}`, class: transfer.class, base: name });
+            } else { add('engineSubclasses', node); add(`subclass.${name}`, node); }
+          }
         }
       }
       ts.forEachChild(node, visit);
@@ -134,5 +179,6 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   for (const [slug, row] of Object.entries(current)) {
     const nonData = Object.entries(row.counts).filter(([metric]) => metric.startsWith('context.')).map(([metric, count]) => `${metric.slice(8)}=${count}`).join(', ');
     console.log(`${slug.padEnd(22)} ${String(row.counts['ctx.app']).padStart(7)} ${String(row.counts['ctx.game']).padStart(9)} ${String(row.counts['ctx.game.runtime']).padStart(13)} ${String(row.counts.engineSubclasses).padStart(18)}  ${nonData}`);
+    for (const transfer of row.transfers ?? []) console.log(`  transferred ${transfer.class}: ${transfer.from} → ${transfer.site} (${transfer.base}; retires SF36)`);
   }
 }

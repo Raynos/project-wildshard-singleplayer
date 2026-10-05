@@ -36,7 +36,8 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const manifest = changed.some((p) => /^src\/shards\/[^/]+\/manifest\.ts$/u.test(p));
     const predecessor = join(scratch, 'predecessor');
     mkdirSync(predecessor);
-    const lists = run(root, 'git', ['archive', 'HEAD', '--', ...PLATFORM_LISTS], { encoding: 'buffer' });
+    const predecessorLists = PLATFORM_LISTS.filter((list) => list !== 'lint/weapon-subclasses.json' || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
+    const lists = run(root, 'git', ['archive', 'HEAD', '--', ...predecessorLists], { encoding: 'buffer' });
     run(root, 'tar', ['-xf', '-', '-C', predecessor], { input: lists });
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     // SF2 observes every shard, including inherited context/class types outside changed files.
