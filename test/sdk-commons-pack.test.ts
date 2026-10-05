@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { buildCommons, type CommonsAsset, type CommonsPack } from '../src/sdk/commons';
+import { buildCommons, commonsRequirements, type CommonsAsset, type CommonsPack } from '../src/sdk/commons';
 import { contentHash } from '../src/sdk/project';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '../src/sdk/admission';
 
@@ -40,4 +40,15 @@ it('rejects malformed parsed assets and excessive entry counts before reading pa
   const row: CommonsAsset = { ...asset('bounded'), get bytes() { reads++; return new Uint8Array(); } };
   expect(() => buildCommons([pack('one', Array.from({ length: limits.files + 1 }, () => row))])).toThrow('entries exceed');
   expect(reads).toBe(0);
+});
+it('derives exact deduplicated manifest requirements again from pinned bytes', () => {
+  const built = buildCommons([pack('one', [asset('deck'), asset('alias')])]);
+  const first = built.catalogue.entries[0]; if (first === undefined) throw new Error('Missing fixture entry');
+  first.cost.decoded = 999; first.wire = 999;
+  const requirements = commonsRequirements(built, ['one/deck', 'one/alias', 'one/deck']);
+  expect(requirements.commons).toEqual([first.hash]); expect(requirements.commonsWire[first.hash]).toBe(3);
+  expect(requirements.commonsCosts[first.hash]).toEqual({ decoded: 3, gpu: 0, triangles: 0, draws: 0 });
+  expect(() => commonsRequirements(built, ['unknown'])).toThrow('Unknown commons entry');
+  built.assets.get(first.hash)?.fill(8);
+  expect(() => commonsRequirements(built, ['one/deck'])).toThrow('Pinned commons bytes differ');
 });

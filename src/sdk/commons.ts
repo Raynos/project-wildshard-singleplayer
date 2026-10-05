@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { assetCost, type AssetCost } from './assets';
 import { canonicalJson, contentHash } from './project';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admission';
+import type { CommonsCosts } from './commonsCosts';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)*$/u));
 const version = v.pipe(v.string(), v.maxLength(32), v.regex(/^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/u));
@@ -51,4 +52,25 @@ export function buildCommons(packs: readonly CommonsPack[]): BuiltCommons {
   entries.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   const catalogue: CommonsCatalogue = { format: 'wildshard.commons', version: 0, entries };
   return { catalogue, json: canonicalJson(catalogue), assets: new Map([...assets].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) };
+}
+
+/** Emit unique manifest requirements from selected pinned bytes, never copied author cost declarations. */
+export function commonsRequirements(built: BuiltCommons, entryIds: readonly string[]): { commons: string[]; commonsWire: Record<string, number>; commonsCosts: CommonsCosts } {
+  if (entryIds.length > limits.files) throw new Error('Commons selection exceeds admission cap');
+  const entries = new Map(built.catalogue.entries.map(entry => [entry.id, entry])), selected = new Map<string, { wire: number; cost: AssetCost }>();
+  for (const entryId of entryIds) {
+    const entry = entries.get(entryId); if (entry === undefined) throw new Error(`Unknown commons entry: ${entryId}`);
+    if (selected.has(entry.hash)) continue;
+    if (selected.size >= limits.commons) throw new Error('Commons hashes exceed admission cap');
+    const bytes = built.assets.get(entry.hash);
+    if (bytes === undefined || contentHash(bytes) !== entry.hash) throw new Error('Pinned commons bytes differ from catalogue hash');
+    selected.set(entry.hash, { wire: bytes.length, cost: assetCost(entry.kind, bytes) });
+  }
+  const commons = [...selected.keys()].sort();
+  const commonsWire: Record<string, number> = {}, commonsCosts: CommonsCosts = {};
+  for (const hash of commons) {
+    const entry = selected.get(hash); if (entry === undefined) throw new Error('Missing pinned commons selection');
+    commonsWire[hash] = entry.wire; commonsCosts[hash] = entry.cost;
+  }
+  return { commons, commonsWire, commonsCosts };
 }
