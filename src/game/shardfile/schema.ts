@@ -30,7 +30,7 @@ import { StateSchema, stateRules } from './state';
 import { AccentSchema } from './accent';
 import { MigrationsSchema, migrationRules } from './migrations';
 import { skinLookRules } from './skins';
-import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs } from './materials';
+import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs, materialGraphRules } from './materials';
 
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
 const positive = v.pipe(natural, v.minValue(1));
@@ -116,6 +116,7 @@ export function shardfileRules(s: Shardfile): string[] {
     }
   }
   errors.push(...stateRules(s.state));
+  errors.push(...materialGraphRules(s));
   const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();
   const libraryPending = [...s.library];
   while (libraryPending.length > 0) {

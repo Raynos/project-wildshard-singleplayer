@@ -6,7 +6,7 @@ const source = () => emptyShardfile({ slug: 'material-test', name: 'Materials', 
 it('fills platform material/look defaults while preserving authored parameters', () => {
   const input = { ...source(), look: { ...source().look, materials: { grass: { family: 'toon', colour: [0.2, 0.5, 0.1], roughness: 0.9 }, rock: { family: 'pbr', metalness: 0, ground: null } }, familyLooks: { toon: { cloudShade: { strength: 0, scale: 60, wind: [0, 0] } }, painterly: {}, emissive: {} } } };
   const parsed = parseShardfile(input), grass = parsed.look.materials['grass'];
-  expect(grass?.family).toBe('toon'); expect(grass?.colour).toEqual([0.2, 0.5, 0.1]);
+  expect(grass?.family).toBe('toon'); if (grass?.family !== 'toon') throw new Error('expected toon material'); expect(grass.colour).toEqual([0.2, 0.5, 0.1]);
   expect(parsed.look.familyLooks.toon?.cloudShade.strength).toBe(0);
   expect(parseShardfile(source()).look.materials).toEqual({});
 });

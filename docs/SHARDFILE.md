@@ -151,6 +151,25 @@ names or shader fields. Terrain and prop `family` bindings select a material ID;
 the four family names also select platform defaults. Creature look rows may name a
 `material` ID. Texture references resolve admitted files through the loader.
 
+An additive material entry `{ family: "graph", graph: GraphIr }` carries engine
+IR version 1 data. `validateGraph` checks node types, cycles, stage placement,
+constant loops and the engine's default per-program budget (160 nodes, 4 samplers,
+480 estimated instructions). Only `kind: "material"` belongs in this slot; post
+passes, shader source and callbacks are refused. Graph texture params name admitted
+KTX2 hashes in the charged library closure, including declared commons; they cannot
+be bound. Graphs have no implicit default material: terrain, props and creature
+looks reference their authored material ID.
+
+Uniform bindings use `{state: "shared.<field>"}` or `{state: "player.<field>"}` for
+public i32/f64 fields, with float params. `{day: "<path>"}` names an existing look-key
+channel: `sky.zenith`, `sky.horizon`, `fog.colour`, `fog.density`, `sun.colour`,
+`sun.intensity`, `ambient.sky`, `ambient.ground`, or `ambient.intensity`. Linear-fog
+keys also admit `fog.near` and `fog.far`. Day bindings require at least one key;
+scalar channels use float params and colour channels use colour/vec3 params.
+Bindings change uniforms only. Runtime graph compilation and binding are SF59's
+renderer adapter; existing preset entries keep their defaults. This additive slot
+keeps SHARDFILE_VERSION at 0; version 1 is not frozen.
+
 State fields carry explicit stable positive `id` values (1–2³¹−1), unique across
 shared and player fields. IDs never come from declaration positions. The numeric
 script input supports at most 24 bool/i32/f64 fields; string fields stay outside
