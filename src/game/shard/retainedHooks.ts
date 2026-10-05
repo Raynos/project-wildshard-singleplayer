@@ -1,11 +1,31 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
 import type { ShardContext } from './context';
+import { bindPlayerEffects } from '@wildshard/engine/combat/effects/EffectService';
+import type { Vector3 } from 'three';
 
 const enteredServices = new WeakMap<ShardContext, (install: (scope: Scope) => void) => void>();
+const playerBindings = new WeakSet<ShardContext>();
 
 /** Whether this trusted context retains its home resources while entered services are independently scoped. */
 export function retainsRuntimeServices(context: ShardContext): boolean { return enteredServices.has(context); }
+
+/** Keep status movement and damage attached to a retained home's player while shard callbacks come and go. */
+export function installRetainedPlayerEffects(context: ShardContext, player: {
+  movement: { effectMoveLocked: boolean; effectMoveScale: number }; position: () => Vector3;
+}): void {
+  if (!retainsRuntimeServices(context)) throw new Error('Player lifetime binding needs a retained context');
+  if (playerBindings.has(context)) throw new Error('Player effects already bound');
+  const target = context.app.player, effects = context.app.effects;
+  if (target === null || effects === null) throw new Error('Player lifetime binding needs health and effects');
+  bindPlayerEffects({ effects, target, movement: player.movement, combat: context.app.combat, position: player.position, scope: context.scope });
+  context.app.events.on('player.died', ({ actor }) => {
+    if (actor !== target) return;
+    for (const effect of effects.active(target)) if (effect.def.tags.some((tag) => tag.startsWith('status.'))) effects.remove(target, effect.def.id);
+  }, context.scope);
+  playerBindings.add(context);
+  context.scope.onDispose(() => { playerBindings.delete(context); });
+}
 
 /** Install a transient service for each home entry; ordinary staged contexts keep their original level scope. */
 export function installEnteredRuntimeService(context: ShardContext, install: (scope: Scope) => void): void {

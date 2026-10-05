@@ -1,4 +1,4 @@
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installEnteredPineScore } from './audio/score';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
@@ -199,7 +199,9 @@ export class PineHollow extends ShardPlugin {
     if (loadout.hasRifle || params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') rifleDrop?.dispose();
     rt.hooks.disposeRifleDrop = () => { rifleDrop?.dispose(); };
     rt.hooks.updatePickups = (dt, t) => { rifleDrop?.update(dt, t, game.renderer, game.camera); for (const drop of skinDrops) drop.update(dt, t, game.renderer, game.camera); };
-    installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects });
+    if (retainsRuntimeServices(ctx)) installRetainedPlayerEffects(ctx, { movement: player, position: () => player.position });
+    installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects },
+      retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     const fights = installPineCombat({ context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } });
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
