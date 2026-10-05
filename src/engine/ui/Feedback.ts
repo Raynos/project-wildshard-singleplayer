@@ -2,6 +2,7 @@ import { uiScope, mountUi } from './ownership';
 import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
 import { engineString } from '../strings';
+import { terrainDatum } from '../world/terrainHeight';
 /**
  * The review inbox's composer (project/archive/2026-09-22-feedback-inbox.md, mockups art/feedback/round-1-inbox/) — loaded lazily on the first
  * F8 / ✎ / FEEDBACK tab, so the boot bundle never carries it. Styled by src/engine/ui/styles/feedback.css (prefix ws-fb-).
@@ -57,7 +58,8 @@ export function reproUrl(origin: string, c: Record<string, ContextValue>): strin
     return engineString('s_ba48ed755795', [origin, q.toString()]);
   }
   const pos = c['pos'], yaw = c['yaw'], pitch = c['pitch'];
-  if (Array.isArray(pos) && typeof yaw === 'number' && typeof pitch === 'number') q.set('at', [...pos, yaw, pitch].map((v) => Number(v.toFixed(2))).join(','));
+  // `at`'s y is in the level's authored frame (less its runtime datum, G164), as every `?at=` writer keeps it
+  if (Array.isArray(pos) && typeof yaw === 'number' && typeof pitch === 'number') q.set('at', [...pos.map((v, i) => (i === 1 ? v - terrainDatum() : v)), yaw, pitch].map((v) => Number(v.toFixed(2))).join(','));
   if (typeof c['weapon'] === 'string') q.set('weapon', c['weapon']);
   q.set('skipintro', '');
   return engineString('s_ba48ed755795', [origin, q.toString().replace('skipintro=', 'skipintro')]);

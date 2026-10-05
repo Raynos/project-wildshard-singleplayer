@@ -10,7 +10,10 @@ import { DECLARED_SEA, ENTRY_LANDINGS, WORLD_DROP } from './world/sea';
 // Driftwood's real boundary rows (./data/edges.ts, the authored bake's) lowered with the whole world by WORLD_DROP; across
 // each 8 m opening (and the sample either side its interpolation reads) the row is the platform's entry socket at road
 // height, which the pier / jetty's sea-end ramp meets 15 m in (world/sea.ts).
-const base = emptyShardfile({ slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 1, seed: 0x5ea1 });
+// G164 bumps the revision (council C3-R2-C3): the world's basis moved 0.8 m, so a revision-1 continuation restores through the
+// logical migration (progress, flags, quests and creature health kept; held / pending actions dropped; the player starts at
+// the spawn), never the exact path and never a refusal (test/shards/driftwood-isle/g164-saves.test.ts).
+const base = emptyShardfile({ slug: 'driftwood-isle', name: 'Driftwood Isle', author: 'Wildshard', revision: 2, seed: 0x5ea1 });
 const opening = Math.max(...base.entryways.map((row) => row.width)) / 2;
 const lowered = (heights: readonly number[]): number[] => {
   const stride = 500 / (heights.length - 1);

@@ -1,5 +1,6 @@
 import { precompileLevel } from '../render/precompile';
 import { saveStorage } from '../saves/slots';
+import { terrainDatum } from '../world/terrainHeight';
 /**
  * GPU recovery (E54) and the app-switch resume (E61): what the game does when the phone takes its graphics away — the
  * iOS home-screen app switched out and back, Safari backgrounded, a driver reset.
@@ -158,7 +159,8 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const url = fragileBoot ? new URL('/', location.origin) : new URL(location.href);
     url.searchParams.delete('v');
     const pose = fragileBoot ? null : host.pose();
-    if (pose) url.searchParams.set('at', [pose.x, pose.y, pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
+    // y in the level's authored frame (less its runtime datum, G164): the reload stands on the same ground in either state
+    if (pose) url.searchParams.set('at', [pose.x, pose.y - terrainDatum(), pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
     if (!fragileBoot && (!away || pose)) url.searchParams.set(RELOAD_PARAM, '1'); // ?glreload skips the title only after a stable world
     const to = url.toString();
     const sw = away ? window.__ws_sw : undefined;

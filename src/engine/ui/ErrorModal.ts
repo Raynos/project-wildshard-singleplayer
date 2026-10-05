@@ -2,6 +2,7 @@ import type { UiHandle } from './layers';
 import { uiScope, mountUi } from './ownership';
 import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
+import { terrainDatum } from '../world/terrainHeight';
 import { app } from '../app/runtime';
 /**
  * ErrorModal — what the player sees when the game hits an error, and the wiring that reports every error (E133).
@@ -126,7 +127,7 @@ function reloadHere(atSpot: boolean): void {
   const pose = atSpot ? currentPose() : null;
   url.searchParams.delete('at'); url.searchParams.delete(RELOAD_PARAM);
   if (pose) {
-    url.searchParams.set('at', [pose.x, pose.y, pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
+    url.searchParams.set('at', [pose.x, pose.y - terrainDatum(), pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
     url.searchParams.set(RELOAD_PARAM, '1'); // index.html's RESUMING screen from the first paint; main.ts skips the title and pauses
   }
   markUnload(`error modal: ${atSpot ? 'reload here' : 'reload at spawn'} (${firstText.slice(0, 80)})`);

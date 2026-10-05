@@ -17,6 +17,7 @@ import {
   type Box3, type NavMesh, type NavMeshPoly, type NavMeshPolyDetail, type Vec3,
 } from 'navcat';
 import { navmeshUrl } from './navmeshUrl';
+import { terrainDatum } from '../world/terrainHeight';
 import { frameCost } from '../core/frameCost';
 
 
@@ -95,7 +96,9 @@ function readLayer(r: Reader): NavLayer {
   return { radius, height, climb, mesh };
 }
 
-const toVec3 = (p: XYZ, out: Vec3): Vec3 => { out[0] = p.x; out[1] = p.y; out[2] = p.z; return out; };
+/** a world point into the navmesh's frame: the bake is the level's authored frame, so a level shifted at runtime (its
+ *  terrain datum, G164) queries `y − datum` and every point out adds it back (datum 0: the point exactly) */
+const toVec3 = (p: XYZ, out: Vec3): Vec3 => { out[0] = p.x; out[1] = p.y - terrainDatum(); out[2] = p.z; return out; };
 
 export class Navmesh {
   /** by radius, smallest first */
@@ -144,7 +147,8 @@ export class Navmesh {
       // the goal off the mesh: head for where it would be (findStraightPath clamps it to the last poly)
       const straight = findStraightPath(mesh, s.position, e.success ? endPos : toVec3(to, this.b), nodes.path);
       if (!straight.success) return null;
-      straight.path.forEach((pt, i) => { out[i] = (out[i] ?? new THREE.Vector3()).set(pt.position[0], pt.position[1], pt.position[2]); });
+      const datum = terrainDatum();
+      straight.path.forEach((pt, i) => { out[i] = (out[i] ?? new THREE.Vector3()).set(pt.position[0], pt.position[1] + datum, pt.position[2]); });
       out.length = straight.path.length;
       return out;
     } finally { this.count(t0); }
@@ -155,7 +159,7 @@ export class Navmesh {
     const t0 = performance.now();
     try {
       const r = findNearestPoly(this.nearest, this.layerFor(agentRadius).mesh, toVec3(p, this.a), SNAP, DEFAULT_QUERY_FILTER);
-      return r.success ? out.set(r.position[0], r.position[1], r.position[2]) : null;
+      return r.success ? out.set(r.position[0], r.position[1] + terrainDatum(), r.position[2]) : null;
     } finally { this.count(t0); }
   }
 
@@ -176,7 +180,7 @@ export class Navmesh {
         const r = findRandomPointAroundCircle(mesh, s.nodeRef, s.position, radius, DEFAULT_QUERY_FILTER, rand);
         if (!r.success) continue;
         const d = Math.hypot(r.position[0] - s.position[0], r.position[2] - s.position[2]);
-        if (d < best) { best = d; out.set(r.position[0], r.position[1], r.position[2]); }
+        if (d < best) { best = d; out.set(r.position[0], r.position[1] + terrainDatum(), r.position[2]); }
       }
       return best < Infinity ? out : null;
     } finally { this.count(t0); }

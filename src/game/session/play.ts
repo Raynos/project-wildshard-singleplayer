@@ -80,6 +80,7 @@ import { installSavesSettings } from '../savesSettings';
 import { GridSession } from '../grid/session';
 import type { LiveGridSession } from '../grid/liveSession';
 import { pickInteractable } from '@wildshard/engine/world/interact/Interactables';
+import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
@@ -639,7 +640,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const at = (params.get('at') ?? '').split(',').map(Number);
   if (at.length >= 3 && at.every((v) => Number.isFinite(v))) {
     const [x = 0, y = 0, z = 0, yaw = player.yaw, pitch = 0] = at;
-    player.position.set(x, y, z); player.yaw = yaw; player.pitch = pitch;
+    // y is in the level's authored frame (every `?at=` writer takes the runtime datum off, G164): stand on the same ground in either state
+    player.position.set(x, y + terrainDatum(), z); player.yaw = yaw; player.pitch = pitch;
   }
   // back from a GPU-recovery reload (E54): the pose is applied; take it off the address so a later reload spawns as usual
   if (params.has('glreload')) { const u = new URL(location.href); u.searchParams.delete('glreload'); u.searchParams.delete('at'); history.replaceState(history.state, '', u); }

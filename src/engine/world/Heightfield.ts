@@ -1,4 +1,4 @@
-import { setTerrainHeight, setTerrainPlacement } from './terrainHeight';
+import { setTerrainDatum, setTerrainHeight, setTerrainPlacement } from './terrainHeight';
 import { terrainFieldFor } from './groundField';
 import type { PondDef, TerrainField } from '../level/data';
 import type { LevelSpec } from '../level/spec';
@@ -68,6 +68,8 @@ const initial = selectedLevel();
 if (initial !== null) bindBase(terrainOf(initial));
 else setTerrainHeight(heightAt);
 setTerrainPlacement((x, z) => normalAt(x, z), () => waterLevel());
+// the field's runtime vertical shift (TerrainField.datum, 0 unless a level is shifted): the authored frame for saved poses
+setTerrainDatum(() => field().datum ?? 0);
 // a new level rebinds the analytic field (its bake is installed when it loads); the same field configured again keeps
 // whatever is bound, an installed bake included
 onLevelChange((level) => { const T = terrainOf(level); if (T !== bound.base) bindBase(T); });
