@@ -109,6 +109,46 @@ export interface GraphBudget {
 /** the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions) */
 export const DEFAULT_GRAPH_BUDGET: GraphBudget = { nodes: 160, samplers: 4, instructions: 480 };
 
+/** Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget. */
+export const GRAPH_ADMISSION_LIMITS = Object.freeze({ bytes: 64_000, depth: 64 });
+/** Check JSON bytes, all nested nodes and inert structure without invoking authored getters or toJSON methods. */
+export function graphAdmissionErrors(input: unknown, nodeLimit = DEFAULT_GRAPH_BUDGET.nodes): string[] {
+  type Entry = { value: unknown; depth: number; nodes: boolean } | { leave: object };
+  const pending: Entry[] = [{ value: input, depth: 0, nodes: false }], active = new Set<object>(), encoder = new TextEncoder();
+  let bytes = 0, nodes = 0;
+  const stringBytes = (value: string): number => value.length > GRAPH_ADMISSION_LIMITS.bytes ? GRAPH_ADMISSION_LIMITS.bytes + 1 : encoder.encode(JSON.stringify(value)).length;
+  while (pending.length > 0) {
+    const entry = pending.pop(); if (entry === undefined) break;
+    if ('leave' in entry) { active.delete(entry.leave); continue; }
+    const { value, depth } = entry;
+    if (depth > GRAPH_ADMISSION_LIMITS.depth) return ['graph: JSON depth exceeds admission cap'];
+    if (typeof value === 'string') bytes += stringBytes(value);
+    else if (value === null || typeof value === 'boolean') bytes += value === null ? 4 : value ? 4 : 5;
+    else if (typeof value === 'number') {
+      if (!Number.isFinite(value) || Object.is(value, -0)) return ['graph: finite JSON numbers required'];
+      bytes += JSON.stringify(value).length;
+    } else if (typeof value === 'object') {
+      if (active.has(value)) return ['graph: JSON cycle refused'];
+      const prototype: unknown = Object.getPrototypeOf(value);
+      if ((Array.isArray(value) ? prototype !== Array.prototype : prototype !== Object.prototype && prototype !== null) || Object.getOwnPropertySymbols(value).length > 0) return ['graph: plain JSON data required'];
+      const descriptors = Object.getOwnPropertyDescriptors(value), keys = Object.keys(descriptors).filter(key => !(Array.isArray(value) && key === 'length'));
+      if (entry.nodes) { nodes += keys.length; if (nodes > nodeLimit) return [`budget: ${nodes} nodes (at most ${nodeLimit}); all nested nodes counted`]; }
+      bytes += 2 + Math.max(0, keys.length - 1);
+      if (Array.isArray(value) && value.length !== keys.length) return ['graph: sparse JSON arrays refused'];
+      active.add(value); pending.push({ leave: value });
+      for (const key of keys) {
+        const descriptor = descriptors[key];
+        if (descriptor === undefined || descriptor.get !== undefined || descriptor.set !== undefined || !descriptor.enumerable) return ['graph: JSON accessors and hidden properties refused'];
+        if (!Array.isArray(value)) bytes += stringBytes(key) + 1;
+        const child: unknown = descriptor.value;
+        pending.push({ value: child, depth: depth + 1, nodes: key === 'nodes' });
+      }
+    } else return ['graph: plain JSON data required'];
+    if (bytes > GRAPH_ADMISSION_LIMITS.bytes) return ['graph: JSON byte size exceeds admission cap'];
+  }
+  return [];
+}
+
 /** what a valid graph costs: counted over every node a stage reaches, a loop's body times its count */
 export interface GraphCost {
   readonly nodes: number;
@@ -270,6 +310,8 @@ interface Scope {
  * every reason it is refused.
  */
 export function validateGraph(input: unknown, opts: GraphValidationOptions = {}): GraphValidation {
+  const rawErrors = graphAdmissionErrors(input, opts.budget?.nodes ?? DEFAULT_GRAPH_BUDGET.nodes);
+  if (rawErrors.length > 0) return { ok: false, errors: rawErrors };
   const errors: string[] = [];
   const fail = (msg: string): null => { errors.push(msg); return null; };
   const budget = opts.budget ?? DEFAULT_GRAPH_BUDGET;
