@@ -12,7 +12,6 @@
  * a change of look builds or disposes its few meshes once (the dome is one draw; the void floor and the sign two).
  */
 import { BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, FrontSide, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, ShaderMaterial, SphereGeometry, type Object3D } from 'three';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { GridCell } from './assembly';
 import type { LookScope } from './roadLayout';
 import { refusalReason, refusedLook, type FarViewStatus, type RefusedLook, type ShardRefusal } from './refusal';
@@ -33,7 +32,7 @@ export interface RefusedLookPorts {
 /** The readout: each dressed cell's look and reason. */
 export interface RefusedLookState { readonly cells: readonly { readonly instance: string; readonly look: RefusedLook; readonly refusal: ShardRefusal }[] }
 
-const DOME_RADIUS = CHUNK_HALF * 1.18, DOME_HEIGHT = 0.42, SIGN_Y = 46, SIGN_W = 92, SIGN_H = 28.75;
+const DOME_SCALE = 1.18, DOME_HEIGHT = 0.42, SIGN_Y = 46, SIGN_W = 92, SIGN_H = 28.75;
 
 const domeVertex = /* glsl */ `
 varying vec3 vNormalW;
@@ -58,9 +57,9 @@ void main() {
   gl_FragColor = vec4(uColour, a);
 }`;
 
-/** The dome: an upper hemisphere flattened to DOME_HEIGHT, over the cell centre. */
-function dome(): Mesh {
-  const geometry = new SphereGeometry(DOME_RADIUS, 48, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+/** The dome: an upper hemisphere flattened to DOME_HEIGHT, over the cell centre (`half`: the cell's half size). */
+function dome(half: number): Mesh {
+  const geometry = new SphereGeometry(half * DOME_SCALE, 48, 16, 0, Math.PI * 2, 0, Math.PI / 2);
   geometry.scale(1, DOME_HEIGHT, 1);
   const material = new ShaderMaterial({ vertexShader: domeVertex, fragmentShader: domeFragment, transparent: true, depthWrite: false, side: FrontSide, fog: false,
     uniforms: { uColour: { value: new Color(0.86, 0.9, 0.95) } } });
@@ -71,8 +70,8 @@ function dome(): Mesh {
 }
 
 /** The void inside the cell: one quad a hair over road level, the outer void's floor with this cell as its glowing rim. */
-function voidFloor(cell: GridCell, home: GridCell): Mesh {
-  const h = CHUNK_HALF, x = cell.origin.x - home.origin.x, z = cell.origin.z - home.origin.z, y = 0.05;
+function voidFloor(cell: GridCell, home: GridCell, h: number): Mesh {
+  const x = cell.origin.x - home.origin.x, z = cell.origin.z - home.origin.z, y = 0.05;
   const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array([-h, y, -h, -h, y, h, h, y, h, h, y, -h]), 3)).setIndex([0, 1, 2, 0, 2, 3]);
   geometry.computeBoundingSphere();
   const mesh = new Mesh(geometry, voidFloorMaterial(home, [x - h, x + h, z - h, z + h]));
@@ -113,8 +112,8 @@ function sign(name: string, refusal: ShardRefusal): Mesh {
 interface Dressed { look: RefusedLook; refusal: ShardRefusal; group: Group; sign: Mesh | null; dispose: () => void }
 
 /** Dress refused neighbours; `step` runs each fixed step. Everything is disposed with the scope. */
-export function installRefusedLook(input: { readonly cells: readonly RefusedLookCell[]; readonly home: GridCell; readonly ports: RefusedLookPorts; readonly scope: LookScope }): { step: () => void; state: () => RefusedLookState } {
-  const { cells, home, ports, scope } = input, dressed = new Map<string, Dressed>();
+export function installRefusedLook(input: { readonly cells: readonly RefusedLookCell[]; readonly home: GridCell; readonly half: number; readonly ports: RefusedLookPorts; readonly scope: LookScope }): { step: () => void; state: () => RefusedLookState } {
+  const { cells, home, half, ports, scope } = input, dressed = new Map<string, Dressed>();
   const undress = (instance: string): void => {
     const was = dressed.get(instance); if (was === undefined) return;
     dressed.delete(instance); was.dispose(); if (was.look === 'frozen') ports.grey(instance, false);
@@ -123,8 +122,8 @@ export function installRefusedLook(input: { readonly cells: readonly RefusedLook
     const group = new Group(); group.name = `grid-refused:${entry.cell.instance}`;
     const meshes: Mesh[] = [];
     let shown: Mesh | null = null;
-    if (look === 'frozen') { meshes.push(dome()); ports.grey(entry.cell.instance, true); }
-    else { meshes.push(voidFloor(entry.cell, home)); shown = sign(entry.name, refusal); meshes.push(shown); }
+    if (look === 'frozen') { meshes.push(dome(half)); ports.grey(entry.cell.instance, true); }
+    else { meshes.push(voidFloor(entry.cell, home, half)); shown = sign(entry.name, refusal); meshes.push(shown); }
     for (const mesh of meshes) { mesh.matrixAutoUpdate = mesh === shown; mesh.updateMatrix(); group.add(mesh); }
     entry.root.add(group);
     dressed.set(entry.cell.instance, { look, refusal, group, sign: shown, dispose: () => {

@@ -17,7 +17,7 @@ function rig() {
   const root = new Group(); root.position.set(560, 0, 0);
   const state: { refusal: ShardRefusal | null; far: FarViewStatus } = { refusal: null, far: 'loading' }, greys: [string, boolean][] = [];
   const scope = new Scope('refused-look-test');
-  const look = installRefusedLook({ home, scope, cells: [{ cell: pine, name: 'Pine Hollow', root }],
+  const look = installRefusedLook({ home, half: 250, scope, cells: [{ cell: pine, name: 'Pine Hollow', root }],
     ports: { refusal: () => state.refusal, far: () => state.far, feet: () => ({ x: 0, z: 0 }), grey: (id, on) => { greys.push([id, on]); } } });
   const names = (): string[] => { const out: string[] = []; root.traverse((node) => { if (node instanceof Mesh) out.push(node.name); }); return out.sort(); };
   return { root, state, greys, scope, look, names };

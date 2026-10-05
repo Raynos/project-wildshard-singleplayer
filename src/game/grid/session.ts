@@ -318,7 +318,7 @@ export class GridSession {
       view.dispose = () => { if (this.farViews.get(tile.instance) === view) this.farViews.delete(tile.instance); dispose(); };
       return view;
     } };
-    this.refused = installRefusedLook({ home, scope: host.scope,
+    this.refused = installRefusedLook({ home, half: CHUNK_HALF, scope: host.scope,
       cells: this.neighbours.flatMap((cell) => { const root = roots.get(cell.instance); return root === undefined ? [] : [{ cell, name: this.shardName(cell.instance), root }]; }),
       ports: { refusal: (id) => this.refusal(id), far: (id) => this.farStatus(id), grey: (id, on) => { this.farViews.get(id)?.grey(on); },
         feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
