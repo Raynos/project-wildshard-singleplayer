@@ -34,8 +34,8 @@ it('reserves the opaque measured home before hydration and exposes the same owne
   const selected = preparePageResidency(manifest), owner = selected?.residency;
   if (owner === undefined) throw new Error('Missing early grid owner');
   const claim = owner.home(), registry = claim.retain();
-  expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:driftwood-isle', bytes: 527_476_577, refs: 2 }]);
-  expect(owner.allocator.cost().playing).toBe(965_499_001);
+  expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:driftwood-isle', bytes: 531_078_379, refs: 2 }]);
+  expect(owner.allocator.cost().playing).toBe(969_497_001);
   registry.release(); owner.dispose(); expect(owner.allocator.entries()).toEqual([]);
 });
 

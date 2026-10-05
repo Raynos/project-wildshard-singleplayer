@@ -194,7 +194,7 @@ it('refuses the real platform before its deck allocation when the measured Drift
   }) };
   let failure: unknown;
   try {
-    expect(page.allocator.cost().playing).toBe(965_499_001);
+    expect(page.allocator.cost().playing).toBe(969_497_001);
     try { install(assembly, strips, admission, scope); } catch (error) { failure = error; }
     if (!(failure instanceof PlatformRenderAdmissionError)) throw new Error('Expected real platform refusal under measured home cost');
     expect(failure.plan.id).toBe('road.deck');

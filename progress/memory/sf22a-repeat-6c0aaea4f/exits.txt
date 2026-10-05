@@ -1,0 +1,4 @@
+legacy-copies-off 0
+legacy-copies-on 0
+hybrid-copies-off 0
+hybrid-copies-on 0
