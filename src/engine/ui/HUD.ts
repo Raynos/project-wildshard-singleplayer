@@ -10,6 +10,8 @@ import { openBootSettings } from './BootSettings';
 import { isDev, onDev } from '../core/devMode';
 import { mountDeveloperBanner } from './developerBanner';
 import { ToastStack } from './ToastStack';
+import { ItemCardPop, type ItemCardSpec } from './ItemCard';
+import { setting } from './Settings';
 import { ROW, hudSlots } from './hudSlots';
 
 /**
@@ -536,6 +538,17 @@ export class HUD {
   /** one queue (src/engine/ui/ToastStack.ts: ≤ 3 up, the older ones dimmed, stepping down under the elite / boss bars), placed per
    *  A1 (E130): right-aligned under the quest chip */
   toast(text: string): void { this.placeToasts(); this.toasts.push(text); }
+
+  /** the level's HUD accent for the big item cards (a hex; null: the HUD cyan) — the game sets it from the level's declared accent */
+  cardAccent: string | null = null;
+  private cardPop: ItemCardPop | null = null;
+  /** SF28 (G87): a platform pickup (equipment, harvest drops) as the big item card under the top bar when pause ▸ Settings ▸
+   *  Debug ▸ Item cards is Big; otherwise (the default) the toast `fallback`, exactly as before */
+  pickupCard(spec: ItemCardSpec, fallback: string): void {
+    if (setting('itemCards') !== 'big') { this.toast(fallback); return; }
+    this.cardPop ??= new ItemCardPop(this.root, this.scope);
+    this.cardPop.show(spec, engineString('s_item_card_picked'), this.cardAccent);
+  }
 
   /** A1 (E130): the toasts hang right-aligned under the quest chip (placed by QuestUI under the minimap; hidden, its slot
    *  still is) — on a shard without one, under the minimap. Read at each toast: every layout puts them differently */

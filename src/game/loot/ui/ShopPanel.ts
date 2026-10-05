@@ -2,6 +2,9 @@ import { app } from '@wildshard/engine/app/runtime';
 import { icon, type IconId } from '@wildshard/engine/ui/icons';
 import type { UiHandle } from '@wildshard/engine/ui/layers';
 import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
+import { itemCardTile, type ItemCardState } from '@wildshard/engine/ui/ItemCard';
+import { onSettingChange, setting } from '@wildshard/engine/ui/Settings';
+import { hudAccent } from '../../session/hudAccent';
 /**
  * ShopPanel — the trader's counter on Driftwood (E314 stage 2, Jake's pick board 5 **C**: one good per card, flipped with
  * ‹ ›, a big BUY button; buy only). DOM in `#hud`, styled by src/game/loot/ui/shop.css (prefix ws-shop-), in the baseline UI
@@ -15,6 +18,11 @@ import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
  *   shop.open() / shop.close() / shop.isOpen / shop.render()   // render(): the purse or Owned changed while open
  *
  * Input: ‹ › (or a swipe on the card, ← →) flips; BUY (or Enter / Space) buys the card shown; CLOSE, Esc or E closes.
+ *
+ * SF28 (Jake's G87, `art/hud/round-19-ui-kit/B-big-cards-accent.jpg`): with pause ▸ Settings ▸ Debug ▸ Item cards on Big,
+ * the sheet is the big-cards kit instead: "<TRADER> · TRADER" and the purse, every good as a big item tile in a 3-up grid
+ * (src/engine/ui/ItemCard.ts; a tap picks one, ← → step through), and one wide "BUY <NAME> · <price>" bar, all in the
+ * shard's HUD accent (session/hudAccent.ts). Classic (the default) builds nothing of it.
  */
 import './shop.css';
 
@@ -58,6 +66,8 @@ export class ShopPanel<G extends ShopGood> {
   private card: HTMLElement; private dots: HTMLElement; private buy: HTMLButtonElement;
   private swipeX: number | null = null;
   private readonly o: ShopOpts<G>;
+  private readonly classic: HTMLElement;
+  private big: { sheet: HTMLElement; purse: HTMLElement; grid: HTMLElement; buy: HTMLButtonElement } | null = null;
   constructor(o: ShopOpts<G>) {
     this.o = o;
     this.root = el('div', 'ws-shop');
@@ -68,6 +78,7 @@ export class ShopPanel<G extends ShopGood> {
     const title = el('div', 'ws-shop-title', top); text('b', '', `${o.trader}'s counter`, title); text('span', '', o.place, title);
 
     const sheet = el('div', 'ws-shop-sheet ws-glass', this.root);
+    this.classic = sheet;
     text('div', 'ws-shop-who', `${o.trader} · Trader`, sheet);
     this.line = el('div', 'ws-shop-line', sheet);
     const row = el('div', 'ws-shop-row', sheet);
@@ -98,6 +109,28 @@ export class ShopPanel<G extends ShopGood> {
     app.input.bind('confirm', () => { this.tryBuy(); }, this.scope, () => this.layer?.top === true);
     app.input.bind('use', () => { this.close(); }, this.scope, () => this.layer?.top === true);
     mountUi(this.root, this.scope);
+    this.scope.onDispose(onSettingChange('itemCards', () => { if (this.open_) this.render(); }));
+  }
+
+  private get bigCards(): boolean { return setting('itemCards') === 'big'; }
+
+  /** the G87 sheet, built the first time Big is on */
+  private bigSheet(): NonNullable<ShopPanel<G>['big']> {
+    if (this.big !== null) return this.big;
+    const sheet = el('div', 'ws-shop-big ws-glass');
+    const head = el('div', 'ws-shop-bighead', sheet);
+    text('b', 'ws-shop-bigwho', `${this.o.trader} · Trader`, head);
+    const purse = el('span', 'ws-shop-bigpurse', head);
+    const grid = el('div', 'ws-shop-grid', sheet);
+    const buy = el('button', 'ws-shop-bigbuy', sheet); buy.type = 'button';
+    this.scope.listen(buy, 'click', (e) => { e.stopPropagation(); this.tryBuy(); });
+    this.scope.listen(grid, 'click', (e) => {
+      const tile = e.target instanceof Element ? e.target.closest('.ws-icard-tile') : null;
+      const k = tile === null ? -1 : [...grid.children].indexOf(tile);
+      if (k >= 0) { e.stopPropagation(); this.i = k; this.render(); }
+    });
+    this.big = { sheet, purse, grid, buy };
+    return this.big;
   }
 
   get isOpen(): boolean { return this.open_; }
@@ -153,6 +186,8 @@ export class ShopPanel<G extends ShopGood> {
   render(): void {
     const g = this.o.goods[this.i];
     if (!g) return;
+    if (this.bigCards) { this.renderBig(g); return; }
+    if (this.big?.sheet.isConnected === true) { this.big.sheet.replaceWith(this.classic); this.root.style.removeProperty('--ws-accent'); }
     const st = this.o.state(g), goods = this.o.goods;
     this.count.textContent = `${this.i + 1} / ${goods.length}`;
     this.purse.innerHTML = `<i class="ws-shop-coin">${COIN}</i><b>${this.o.coins()}</b>`;
@@ -170,11 +205,30 @@ export class ShopPanel<G extends ShopGood> {
     if (st === 'short') text('small', '', `Need ${g.price - this.o.coins()} more`, this.buy);
   }
 
+  /** the G87 sheet: every good a big tile, the one picked framed in the accent, and the wide BUY bar */
+  private renderBig(g: G): void {
+    const big = this.bigSheet();
+    if (!big.sheet.isConnected) this.classic.replaceWith(big.sheet);
+    const accent = hudAccent();
+    if (accent === null) this.root.style.removeProperty('--ws-accent'); else this.root.style.setProperty('--ws-accent', accent);
+    big.purse.replaceChildren(); el('i', 'ws-shop-ring', big.purse); text('b', '', String(this.o.coins()), big.purse);
+    const FOOT: Record<ShopState, ItemCardState> = { buy: 'buy', short: 'short', owned: 'owned', locked: 'locked' };
+    big.grid.replaceChildren(...this.o.goods.map((x, k) => {
+      const st = this.o.state(x);
+      return itemCardTile({ name: x.name, icon: x.icon, price: x.price, state: FOOT[st], ...(st === 'owned' ? { detail: 'Owned' } : st === 'locked' ? { detail: `Needs ${this.o.needs(x)}` } : {}) }, k === this.i);
+    }));
+    const st = this.o.state(g);
+    big.buy.className = `ws-shop-bigbuy ${st}`;
+    big.buy.disabled = st !== 'buy';
+    big.buy.textContent = st === 'owned' ? `${g.name} · Owned` : st === 'locked' ? `Needs ${this.o.needs(g)}` : st === 'short' ? `Need ${g.price - this.o.coins()} more` : `Buy ${g.name} · ${g.price}`;
+  }
+
   private tryBuy(): void {
     const g = this.shown;
     if (!g || this.o.state(g) !== 'buy') return;
     if (this.onBuy?.(g) !== true) return;
     this.render();
+    if (this.bigCards) return;
     this.card.classList.remove('sold'); void this.card.offsetWidth; this.card.classList.add('sold');
     this.purse.classList.remove('spent'); void this.purse.offsetWidth; this.purse.classList.add('spent');
   }

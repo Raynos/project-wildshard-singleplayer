@@ -17,6 +17,7 @@ import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import type { GridCellEvents, GridCellRef } from './boot';
 import { GAME_STRINGS } from '../strings';
 import { accentVars, ROAD_ACCENT } from '../shardfile/accent';
+import { setHudAccent } from '../session/hudAccent';
 import './gridHud.css';
 
 export interface GridHudHost {
@@ -88,6 +89,7 @@ export function installGridHud(host: GridHudHost): () => GridHudState {
   const vars = Object.keys(accentVars(ROAD_ACCENT));
   const setAccent = (hex: string | null): void => {
     accent = hex ?? ROAD_ACCENT;
+    setHudAccent(hex); // SF28: the big item cards follow the cell too
     if (hex === null) { for (const name of vars) hudRoot.style.removeProperty(name); return; }
     for (const [name, value] of Object.entries(accentVars(hex))) hudRoot.style.setProperty(name, value);
   };

@@ -779,6 +779,7 @@ Bows use manual hold/release draw on both devices; the automatic-shot action has
 | `registerInteractProps`, `InteractProps`, `ChestLook`, `DoorLook`, `ChestDims` | the props the interaction runtime draws (chest, key, door, lever, plate, barrel, brazier, bench, altar: each part's geometry, and the catalog model it places a kind's rows as) are registered content; the engine keeps the kinds, poses, colliders and prompts (E405 E417; the kit's: `installKitProps`) |
 | `IconId`, `IconMap`, `icon`, `registerIcons`, `iconParts` | the icon registry: the engine's UI glyphs (lock, check, map pins, the Bag's tabs); a content library merges its ids into `IconMap` through `declare module '@wildshard/engine'` and registers SVGs drawn with `iconParts` (the kit's `installKitIcons`; E405) |
 | `BossBar`, `EliteBar` | the shared encounter bars (decision 91: one boss bar look) |
+| `ItemCardSpec`, `ItemCardState`, `itemCardTile`, `ItemCardPop` | the big item card (SF28, Jake's G87): an item as plain data (name, icon id, detail, price, state) drawn by the platform as a shop grid tile or the pickup / reward card under the top bar, in the accent hex it is handed (`--ws-accent`; the HUD cyan when none). Text lands as `textContent`. `HUD.pickupCard(spec, fallback)` shows it for platform pickups when pause ▸ Settings ▸ Debug ▸ Look ▸ Item cards is Big, else the toast `fallback`; the game sets `HUD.cardAccent` from the shard's declared accent |
 | `HUD`, `GameMenu`, `GameMenuOptions`, `FullMap`, `FullMapPoi`, `MapQuest`, `MapMark`, `MapPoi`, `MapOverlay`, `MinimapPalette`, `FirstHints`, `Feedback`, `KitEntry` | **ports**: the legacy HUD, menu and map types `runtime.play` hands over |
 
 **HUD verbs** (`ctx.hud`, all scoped):
@@ -1828,7 +1829,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2045 exports, grouped by the module to import them from.
+2020 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2058,9 +2059,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
 - `@wildshard/engine/render/frameCounter`: `installFrameCounter`, `renderCount`, `Renders`
-- `@wildshard/engine/render/graph/ir`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
-- `@wildshard/engine/render/graph/presets`: `pbrMeasureGraph`
-- `@wildshard/engine/render/graphBackend`: `GraphCompiler`, `loadGraphBackend`, `loadGraphCompiler`
+- `@wildshard/engine/render/graphBackend`: `loadGraphBackend`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
 - `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
 - `@wildshard/engine/render/lut`: `fetchLut`, `LUT_SIZE`

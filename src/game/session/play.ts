@@ -73,6 +73,7 @@ import { installGridHud } from '../grid/gridHud';
 import { ACCENTS } from '../shardfile/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
 import { findShard } from '../shard/registry';
+import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
 import { firstPartyInstance } from '../grid/instances';
 import { preflightGridReload } from '../grid/pageBoot';
 import { installSavesSettings } from '../savesSettings';
@@ -133,6 +134,9 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const bounds = authoredBounds ?? (grid === null ? undefined : { x0: -Infinity, x1: Infinity, z0: -Infinity, z1: Infinity, floor: GRID_FALL_FLOOR });
 
   let kills = 0, swimHold = false;
+  // SF28 (G87 / G104): the big item cards wear the shard's declared accent (in the grid, the cell's: grid/gridHud.ts)
+  setHudAccent(accentHex(manifest.accent)); hud.cardAccent = hudAccent();
+  game.levelScope.onDispose(onHudAccent((hex) => { hud.cardAccent = hex; }));
   const owned = new Owned(manifest.slug);            // E314: upgrades, cosmetics, trophies, the found iron sword (src/game/loot/Owned.ts)
   const playerHealth = new PlayerHealth(app.events, {
     now: () => performance.now(), position: () => player.position,
@@ -273,7 +277,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     grant: (id) => { if (!isOwnedId(id)) throw new Error(`Unknown owned equipment: ${id}`); owned.grant(id); },
   },
     onNear: (inside) => audio.pickupHum(inside),
-    onPickup: (_row, toast) => { audio.hitMarker(); music.sting('pickup'); hud.toast(toast); },
+    onPickup: (row, toast) => { audio.hitMarker(); music.sting('pickup'); hud.pickupCard({ name: row.ui.name, icon: row.ui.icon }, toast); },
     hold: params.get('weapon') === 'iron' ? 'weapon.sword-iron' : undefined });
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/shards/nalati-grasslands/adventure.ts on the shared quest core) — null on any other shard ──
@@ -512,7 +516,9 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       const drops = inventory.harvest(carcass.kind, carcass.variant); // Pine Hollow: only what Mott takes (E314 C)
       const give = (): void => {
         const got = drops.filter((id) => inventory.add(id)); // the toast names only what went in
-        hud.toast(`${got.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`);
+        const said = `${got.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`, first = got[0];
+        if (first === undefined) hud.toast(said);
+        else hud.pickupCard({ name: got.map((id) => ITEMS[id].label).join(' + '), icon: ITEMS[first].icon, detail: `${inventory.total} in the pack` }, said);
         audio.hitMarker();
       };
       if (boot.runtime.hooks.harvest) boot.runtime.hooks.harvest(carcass, give); // PH-F2: the skinning beat, then the drops; the carcass stays for the ravens

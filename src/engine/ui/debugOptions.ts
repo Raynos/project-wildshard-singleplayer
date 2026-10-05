@@ -158,6 +158,7 @@ const SFX_TEXT: Record<SfxSet, string> = { best: engineString('s_827ec8d9f99d'),
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   opt('learnedLut', 'look', engineString('s_567ce8e61d83'), ON_OFF, { reload: true, ask: 'E85', reviewBy: '2026-12-30', note: engineString('s_e028d004f425') }),
+  opt('itemCards', 'look', engineString('s_item_cards'), [['classic', engineString('s_item_cards_classic')], ['big', engineString('s_item_cards_big')]], { ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_item_cards_note') }),
 
   // ── Sky & weather ──
   // Authored clocks and weather opt in through level mechanisms.

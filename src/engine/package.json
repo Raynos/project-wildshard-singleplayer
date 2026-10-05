@@ -254,6 +254,7 @@
     "./ui/hudAdapters": "./ui/hudAdapters.ts",
     "./ui/hudSlots": "./ui/hudSlots.ts",
     "./ui/icons": "./ui/icons.ts",
+    "./ui/ItemCard": "./ui/ItemCard.ts",
     "./ui/layers": "./ui/layers.ts",
     "./ui/ownership": "./ui/ownership.ts",
     "./ui/playerDeath": "./ui/playerDeath.ts",

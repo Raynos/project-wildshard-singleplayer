@@ -69,6 +69,25 @@
 .ws-shop .ws-shop-buy.owned, .ws-shop .ws-shop-buy.locked { background: rgba(8, 14, 24, 0.6); border-color: var(--ws-cyan-line); color: var(--ws-cyan); box-shadow: none; font-size: 17px; letter-spacing: 0.22em; }
 .ws-shop .ws-shop-buy.locked { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.45); }
 
+/* SF28, Jake's G87 big-cards kit (art/hud/round-19-ui-kit/B): pause ▸ Settings ▸ Debug ▸ Item cards = Big. The header and the
+   purse, a 3-up grid of big item tiles (src/engine/ui/styles/itemcard.css) and one wide BUY bar, in the shard's accent */
+.ws-shop .ws-shop-big { --ws-shop-a: var(--ws-accent, var(--ws-cyan)); width: 100%; max-width: 440px; align-self: center; padding: 12px 12px 12px; background: rgba(8, 16, 24, 0.86); border-color: color-mix(in srgb, var(--ws-shop-a) 70%, transparent); }
+.ws-shop .ws-shop-big::before, .ws-shop .ws-shop-big::after { content: ''; position: absolute; width: 10px; height: 10px; pointer-events: none; }
+.ws-shop .ws-shop-big::before { left: -3px; top: -3px; border-left: 2px solid var(--ws-shop-a); border-top: 2px solid var(--ws-shop-a); }
+.ws-shop .ws-shop-big::after { right: -3px; bottom: -3px; border-right: 2px solid var(--ws-shop-a); border-bottom: 2px solid var(--ws-shop-a); }
+.ws-shop .ws-shop-bighead { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 4px 10px; margin-bottom: 10px; border-bottom: 1px solid color-mix(in srgb, var(--ws-shop-a) 35%, transparent); }
+.ws-shop .ws-shop-bigwho { min-width: 0; font-family: var(--ws-mono); font-weight: 600; font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-shop-a); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-shop .ws-shop-bigpurse { display: flex; align-items: center; gap: 7px; color: var(--ws-shop-a); }
+.ws-shop .ws-shop-bigpurse b { font-family: var(--ws-mono); font-weight: 600; font-size: 20px; line-height: 1; font-variant-numeric: tabular-nums; }
+.ws-shop .ws-shop-ring { position: relative; display: inline-block; width: 18px; height: 18px; border: 2px solid currentColor; border-radius: 50%; box-sizing: border-box; }
+.ws-shop .ws-shop-ring::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: currentColor; }
+.ws-shop .ws-shop-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ws-shop .ws-shop-grid > * { cursor: pointer; }
+.ws-shop .ws-shop-bigbuy { display: block; width: 100%; min-height: 50px; margin-top: 10px; padding: 8px 10px; border: 1px solid var(--ws-shop-a); background: color-mix(in srgb, var(--ws-shop-a) 10%, rgba(8, 16, 24, 0.9)); color: var(--ws-shop-a); font-family: var(--ws-mono); font-weight: 600; font-size: 15px; line-height: 1.2; letter-spacing: 0.2em; text-transform: uppercase; }
+.ws-shop .ws-shop-bigbuy.buy:active { background: color-mix(in srgb, var(--ws-shop-a) 30%, rgba(8, 16, 24, 0.9)); }
+.ws-shop .ws-shop-bigbuy.short, .ws-shop .ws-shop-bigbuy.owned { border-color: color-mix(in srgb, var(--ws-shop-a) 40%, transparent); color: var(--ws-text-dim); }
+.ws-shop .ws-shop-bigbuy.locked { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.45); }
+
 @media (pointer: fine) {
   .ws-shop .ws-shop-top { max-width: 440px; width: 100%; align-self: center; }
 }
