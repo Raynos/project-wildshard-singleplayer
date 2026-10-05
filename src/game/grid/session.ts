@@ -380,7 +380,10 @@ export class GridSession {
     console.warn(`[grid] ${cell.instance} can't load (${refusal}):`, error);
     this.refusals.set(cell.instance, refusal); pageShardRefusals().note(cell.slug, refusal);
   }
-  private refusal(instance: string): ShardRefusal | null { return this.refusals.get(instance) ?? null; }
+  private refusal(instance: string): ShardRefusal | null {
+    const live = this.live?.refusal(instance);
+    return this.refusals.get(instance) ?? (live === undefined ? null : classifyRefusal(live));
+  }
   private farStatus(instance: string): FarViewStatus { return this.farViews.has(instance) ? 'resident' : this.farMissing.has(instance) ? 'none' : 'loading'; }
   private shardName(instance: string): string { const slug = this.assembly.cell(instance).slug; return findShard(slug)?.name ?? slug; }
 
