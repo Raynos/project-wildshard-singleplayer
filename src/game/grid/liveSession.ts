@@ -11,9 +11,9 @@
  *   camera is offset by that frame's origin minus the home origin for the update / late / render phases only, and the
  *   offset comes off again at the next frame's input phase, so every fixed-step query reads the frame-local camera.
  * - **G68, the safe zone**: leaving a shard's cell stows silently to bare hands (no toast); entering the home cell restores
- *   its weapon; a template cell's weapon is its empty equipment (hands). Off the active home frame the page's combat
- *   pipeline admits no damage to or from the traveller (no enemies on the deck, the strips or a frame the home's
- *   creatures can't see).
+ *   its weapon; a template cell's weapon is its empty equipment (hands). G130 combat permission follows the feet's
+ *   geometric cell at hit delivery, independently of the motor frame's 6/10 m hysteresis. The road is safe; each
+ *   authoritative pipeline only admits the traveller inside its own cell, with regional actor-object provenance.
  * - **which cells are enterable**: shardfile shards (the template copies), each admitted as `createShardfileSim` in its
  *   own bodyless regional host with its strip duplicates; the rest refuse admission and stay far proxies behind closed
  *   walls until M3.
@@ -45,7 +45,7 @@ import { installGridCrossing, type GridCrossingSession, type GridCrossingState }
 import { stowGridMount, type GridLoadout } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
-import { installGridHoverSpeed } from './rules';
+import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
 import { gridShardfileProduct } from './products';
@@ -191,11 +191,10 @@ export class LiveGridSession {
     scope.onDispose(() => { this.live.dispose(); });
     this.loadout = homeLoadout(page.equipment, scope, page.checkpoint, () => { stowGridMount(traveller); });
     this.crossing = this.installCrossing();
-    // G68: off the home frame (the deck, the strips, another cell) the page pipeline admits no damage to or from the traveller
-    page.events.answer('damage.admit', (request) => {
-      if (request === null || this.live.current() === home.instance) return request;
-      return request.target === page.health || request.source === page.health ? null : request;
-    }, scope);
+    installGridTravellerCombat(page.events, scope, page.health, home.instance, () => {
+      const feet = this.live.worldFeet();
+      return assembly.at(feet.x, feet.z)?.instance ?? null;
+    });
     // SF20d: 30 m/s on the deck, easing to the shard's 14 over the strip (the cell nearest the feet; the outer ring is deck too)
     installGridHoverSpeed(traveller, scope, () => {
       const feet = this.live.worldFeet(), p = assembly.pitch;
@@ -352,6 +351,11 @@ export class LiveGridSession {
         // Motors collide with BORDER; analytic/flying motion uses the same walls before sampling admitted terrain.
         // Restore already carries the four colliders in its native basis, so only these live readers reconnect.
         for (const actor of host.entities.values()) actor.motionConstraint = gridCreatureConstraint(() => host.physics, actor.dims.bodyRadius * actor.scale);
+        // Reinstall on the final host after native restore. Repeated actor ids in another region confer no permission.
+        installGridTravellerCombat(host.events, host.scope, this.page.health, cell.instance, () => {
+          const feet = this.live.worldFeet();
+          return this.ports.assembly.at(feet.x, feet.z)?.instance ?? null;
+        }, new Map([...host.entities.values()].map(actor => [actor.combatActor(), actor.position])));
         this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
           queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region });
