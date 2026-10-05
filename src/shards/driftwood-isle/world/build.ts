@@ -73,14 +73,8 @@ export function noDriftwoodWorld(): DriftwoodWorld {
     bridgeDeck: null, blenderIsland: null };
 }
 
-/** The world build's reload-only Debug rows (../runtime/index.ts). */
-export interface DriftwoodBuildOptions {
-  /** G144 (E435, `driftwoodIslandInstancing`): the Blender island's placements drawn instanced (./islandInstances.ts) */
-  readonly islandInstancing?: boolean;
-}
-
 /** main.ts:366-467's Driftwood builders, verbatim (`sea` is the manifest's OCEAN, or SF46's lowered sea). */
-export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, lowered?: DriftwoodLowered, options: DriftwoodBuildOptions = {}): Promise<DriftwoodWorld> {
+export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, lowered?: DriftwoodLowered): Promise<DriftwoodWorld> {
   const { game, sky, player, registry } = world;
   const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield')]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered?.level ?? OCEAN.level };
@@ -207,10 +201,10 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({
       scene: game.scene, sky, registry, terrain: world.terrain.mesh, palms: palms.mesh, palmSpecs,
-      replace: [bushes.mesh], cover: cover.group, instanced: options.islandInstancing === true,
+      replace: [bushes.mesh], cover: cover.group,
     });
     game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');
-    if (island.instances !== null) game.onLate(() => { island.late(sky); }, 'shard.driftwood.blenderIsland.instances'); // G144: after the camera is posed
+    game.onLate(() => { island.late(sky); }, 'shard.driftwood.blenderIsland.instances'); // G144: the instanced placements repack after the camera is posed
     cover.excludeArea(B.area); // E156: the cove dresses its own area
     return island;
   }).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; });
