@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-178 members; 84 without a doc line (—).
+178 members; 83 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -14,7 +14,7 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `declaredWeaponVoices` | function | @wildshard/kit/audio/weaponVoices | Catalogue voices for declared audio; reuse the existing sampled/synth recipes and impact surface routing. |
 | `sharedWeaponVoices` | function | @wildshard/kit/audio/weaponVoices | The kit's default equipment voices; samples and synth blocks come from the level's mixer. |
 | `WeaponSynth` | interface | @wildshard/kit/audio/weaponVoices | Only the oscillator blocks and sample/cue ports that an equipment recipe reads. |
-| `installStarterEffects` | function | @wildshard/kit/effects/install | — |
+| `installStarterEffects` | function | @wildshard/kit/effects/install | An optional entered installer retires observers and icons while statuses remain player-owned. |
 | `STARTER_CHOICES` | const | @wildshard/kit/effects/starter | — |
 | `STARTER_EFFECTS` | const | @wildshard/kit/effects/starter | Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play. |
 | `StarterChoice` | type | @wildshard/kit/effects/starter | — |

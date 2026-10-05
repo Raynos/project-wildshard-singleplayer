@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2078 members; 830 without a doc line (—).
+2083 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -113,7 +113,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `AiDebugHost` | interface | @wildshard/engine/ai/view/DebugOverlay | — |
 | `AiDebugView` | interface | @wildshard/engine/ai/view/DebugOverlay | — |
 | `DebugActor` | interface | @wildshard/engine/ai/view/DebugOverlay | — |
-| `installAiDebug` | function | @wildshard/engine/ai/view/DebugOverlay | Off creates no visual objects and registers no per-frame system. |
+| `installAiDebug` | function | @wildshard/engine/ai/view/DebugOverlay | Off creates no visual objects; an optional installer scopes enabled overlays to the current entered lifetime. |
 | `TableDrop` | interface | @wildshard/engine/ai/weighted | — |
 | `TableSpec` | interface | @wildshard/engine/ai/weighted | — |
 | `WeightedRow` | interface | @wildshard/engine/ai/weighted | — |
@@ -473,6 +473,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HitStopProfile` | interface | @wildshard/engine/combat/cues | — |
 | `resolveHitStop` | const | @wildshard/engine/combat/cues | — |
 | `WeaponChargePhase` | type | @wildshard/engine/combat/cues | — |
+| `bindPlayerEffects` | function | @wildshard/engine/combat/effects/EffectService | Bind player-owned movement channels and periodic damage for the same lifetime as the player. |
 | `EffectService` | class | @wildshard/engine/combat/effects/EffectService | — |
 | `ActiveEffect` | interface | @wildshard/engine/combat/effects/types | — |
 | `AttributeSet` | type | @wildshard/engine/combat/effects/types | Numeric attributes stay live at the simulation ports; modifiers retain a separate base. |
@@ -504,6 +505,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `EquipmentPickupSpec` | interface | @wildshard/engine/combat/EquipmentPickup | how a weapon lies in the world before it is owned: its prompt, its toast and how its pickup is built |
 | `PickupLoadout` | type | @wildshard/engine/combat/EquipmentPickup | — |
 | `EquipmentService` | class | @wildshard/engine/combat/EquipmentService | — |
+| `Firearm` | class | @wildshard/engine/combat/Firearm | The trigger template is shared; custom actions override readiness, cycling and reload hooks. |
 | `HealthLifecycle` | interface | @wildshard/engine/combat/health | what the death fade tells the health model: whether it runs, and its step (bound by the session) |
 | `PlayerHealth` | class | @wildshard/engine/combat/health | — |
 | `PlayerHealthPorts` | interface | @wildshard/engine/combat/health | — |
@@ -689,13 +691,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `releaseAfterUpload` | function | @wildshard/engine/core/ktx2 | Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the |
 | `DEFAULT_GRAPH_BUDGET` | const | @wildshard/engine/core/materialGraph | the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions) |
 | `GRAPH_ADMISSION_LIMITS` | const | @wildshard/engine/core/materialGraph | Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget. |
-| `GRAPH_IR_VERSION` | const | @wildshard/engine/core/materialGraph | the IR version a graph declares; a graph of another version is refused |
+| `GRAPH_IR_VERSION` | const | @wildshard/engine/core/materialGraph | the IR version a graph declares; a graph of another version is refused (the lighting stage is additive: still version 1) |
 | `GRAPH_OPS` | const | @wildshard/engine/core/materialGraph | The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons |
 | `graphAdmissionErrors` | function | @wildshard/engine/core/materialGraph | Check JSON bytes, all nested nodes and inert structure without invoking authored getters or toJSON methods. |
 | `GraphBinding` | type | @wildshard/engine/core/materialGraph | where a bound param's value comes from: a day-key channel or a declared public numeric shard-state field |
 | `GraphBudget` | interface | @wildshard/engine/core/materialGraph | the per-program ceilings validation refuses past |
 | `GraphCost` | interface | @wildshard/engine/core/materialGraph | what a valid graph costs: counted over every node a stage reaches, a loop's body times its count |
 | `GraphIr` | interface | @wildshard/engine/core/materialGraph | a graph |
+| `GraphLighting` | interface | @wildshard/engine/core/materialGraph | The lighting-model stage (a `standard` material only): what the sun adds, the ambient term, the sun's share of the |
 | `GraphLiteral` | type | @wildshard/engine/core/materialGraph | a literal input: a float or a 2–4 component vector |
 | `GraphLoopBody` | interface | @wildshard/engine/core/materialGraph | a loop's body: its own nodes (they may read the outer graph's nodes too) and the node that is the next `acc` |
 | `GraphNode` | interface | @wildshard/engine/core/materialGraph | one node of a graph |
@@ -1355,8 +1358,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `renderCount` | function | @wildshard/engine/render/frameCounter | How many times this renderer has rendered (`renderer.render()` calls, not draws). Read it where three's |
 | `Renders` | type | @wildshard/engine/render/frameCounter | what the counter needs of a renderer (the game's `Renderer`, or a test's stand-in) |
 | `emissiveGraph` | function | @wildshard/engine/render/graph/presets | The emissive family as a graph preset (unlit): tint × colour map × vertex colours, through the tube when it has one, |
+| `painterlyGraph` | function | @wildshard/engine/render/graph/presets | The painterly family as a graph preset (`families/painterly.ts`): soft cel bands, the painted shade, the warm |
 | `pbrMeasureGraph` | function | @wildshard/engine/render/graph/presets | The PBR family with a measure layer as a graph preset: the same uniforms the family's patch declares (as params), the |
 | `PRESET_GRAPH_BUDGET` | const | @wildshard/engine/render/graph/presets | the ceilings a built-in preset compiles under (`compileGraph(preset, { budget: PRESET_GRAPH_BUDGET })`) |
+| `toonGraph` | function | @wildshard/engine/render/graph/presets | The toon family as a graph preset (`families/toon.ts`): the look's numbers as params (`cloudTime` is the look's clock, |
 | `GraphCompiler` | interface | @wildshard/engine/render/graphBackend | the graph compiler's entry points, once its chunk has loaded |
 | `loadGraphBackend` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer (once; later calls return the same handler) |
 | `loadGraphCompiler` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer, then load the material graph compiler (`graph/compile.ts`, |

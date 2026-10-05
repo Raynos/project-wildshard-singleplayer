@@ -634,7 +634,7 @@
       {
         "name": "installAiDebug",
         "kind": "function",
-        "doc": "Off creates no visual objects and registers no per-frame system.",
+        "doc": "Off creates no visual objects; an optional installer scopes enabled overlays to the current entered lifetime.",
         "from": "@wildshard/engine/ai/view/DebugOverlay"
       },
       {
@@ -2799,6 +2799,12 @@
         "from": "@wildshard/engine/combat/cues"
       },
       {
+        "name": "bindPlayerEffects",
+        "kind": "function",
+        "doc": "Bind player-owned movement channels and periodic damage for the same lifetime as the player.",
+        "from": "@wildshard/engine/combat/effects/EffectService"
+      },
+      {
         "name": "EffectService",
         "kind": "class",
         "doc": "",
@@ -2983,6 +2989,12 @@
         "kind": "class",
         "doc": "",
         "from": "@wildshard/engine/combat/EquipmentService"
+      },
+      {
+        "name": "Firearm",
+        "kind": "class",
+        "doc": "The trigger template is shared; custom actions override readiness, cycling and reload hooks.",
+        "from": "@wildshard/engine/combat/Firearm"
       },
       {
         "name": "HealthLifecycle",
@@ -4099,7 +4111,7 @@
       {
         "name": "GRAPH_IR_VERSION",
         "kind": "const",
-        "doc": "the IR version a graph declares; a graph of another version is refused",
+        "doc": "the IR version a graph declares; a graph of another version is refused (the lighting stage is additive: still version 1)",
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
@@ -4136,6 +4148,12 @@
         "name": "GraphIr",
         "kind": "interface",
         "doc": "a graph",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphLighting",
+        "kind": "interface",
+        "doc": "The lighting-model stage (a `standard` material only): what the sun adds, the ambient term, the sun's share of the",
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
@@ -8100,6 +8118,12 @@
         "from": "@wildshard/engine/render/graph/presets"
       },
       {
+        "name": "painterlyGraph",
+        "kind": "function",
+        "doc": "The painterly family as a graph preset (`families/painterly.ts`): soft cel bands, the painted shade, the warm",
+        "from": "@wildshard/engine/render/graph/presets"
+      },
+      {
         "name": "pbrMeasureGraph",
         "kind": "function",
         "doc": "The PBR family with a measure layer as a graph preset: the same uniforms the family's patch declares (as params), the",
@@ -8109,6 +8133,12 @@
         "name": "PRESET_GRAPH_BUDGET",
         "kind": "const",
         "doc": "the ceilings a built-in preset compiles under (`compileGraph(preset, { budget: PRESET_GRAPH_BUDGET })`)",
+        "from": "@wildshard/engine/render/graph/presets"
+      },
+      {
+        "name": "toonGraph",
+        "kind": "function",
+        "doc": "The toon family as a graph preset (`families/toon.ts`): the look's numbers as params (`cloudTime` is the look's clock,",
         "from": "@wildshard/engine/render/graph/presets"
       },
       {
@@ -14166,6 +14196,18 @@
         "from": "@wildshard/game/shard/retainedHooks"
       },
       {
+        "name": "installEnteredRuntimeUpdate",
+        "kind": "function",
+        "doc": "Register entered-only updates on a clock that does not advance while the resident is parked.",
+        "from": "@wildshard/game/shard/retainedHooks"
+      },
+      {
+        "name": "installRetainedPlayerEffects",
+        "kind": "function",
+        "doc": "Keep status movement and damage attached to a retained home's player while shard callbacks come and go.",
+        "from": "@wildshard/game/shard/retainedHooks"
+      },
+      {
         "name": "RetainedRuntimeHooks",
         "kind": "class",
         "doc": "Reinstall entered callbacks while a borrowed home's models and authored state remain resident.",
@@ -15706,7 +15748,7 @@
       {
         "name": "installStarterEffects",
         "kind": "function",
-        "doc": "",
+        "doc": "An optional entered installer retires observers and icons while statuses remain player-owned.",
         "from": "@wildshard/kit/effects/install"
       },
       {
@@ -17348,6 +17390,18 @@
         "kind": "const",
         "doc": "Resolve declared variant health, collision dimensions and motion multipliers.",
         "from": "@wildshard/sdk/rows"
+      },
+      {
+        "name": "Firearm",
+        "kind": "const",
+        "doc": "The platform's one firearm constructor, preserving readiness, empty-trigger and reload hooks without a second implementation.",
+        "from": "@wildshard/sdk/runtime/weapons/Firearm"
+      },
+      {
+        "name": "FirearmInstance",
+        "kind": "type",
+        "doc": "Trusted firearm trigger family for transitional shard runtime subclasses; views and tuning stay with the shard.",
+        "from": "@wildshard/sdk/runtime/weapons/Firearm"
       },
       {
         "name": "assertStateCompatibility",

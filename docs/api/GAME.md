@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-529 members; 112 without a doc line (—).
+531 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -287,6 +287,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `shardSlugFromUrl` | function | @wildshard/game/shard/registry | — |
 | `installEnteredRuntimeObserver` | function | @wildshard/game/shard/retainedHooks | Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor. |
 | `installEnteredRuntimeService` | function | @wildshard/game/shard/retainedHooks | Install a transient service for each home entry; ordinary staged contexts keep their original level scope. |
+| `installEnteredRuntimeUpdate` | function | @wildshard/game/shard/retainedHooks | Register entered-only updates on a clock that does not advance while the resident is parked. |
+| `installRetainedPlayerEffects` | function | @wildshard/game/shard/retainedHooks | Keep status movement and damage attached to a retained home's player while shard callbacks come and go. |
 | `RetainedRuntimeHooks` | class | @wildshard/game/shard/retainedHooks | Reinstall entered callbacks while a borrowed home's models and authored state remain resident. |
 | `retainsRuntimeServices` | function | @wildshard/game/shard/retainedHooks | Whether this trusted context retains its home resources while entered services are independently scoped. |
 | `resolveLevelBounds` | function | @wildshard/game/shard/runtime | Select the staged bounds override once before installing normal fall recovery; absent hooks retain authored policy. |

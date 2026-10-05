@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-111 members; 0 without a doc line (—).
+113 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -110,6 +110,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardRows` | type | @wildshard/sdk/rows | Numeric row declarations and registered view/presentation recipes. |
 | `simStrikes` | const | @wildshard/sdk/rows | Numeric strike catalogue suitable for the authoritative sim. |
 | `speciesResolver` | const | @wildshard/sdk/rows | Resolve declared variant health, collision dimensions and motion multipliers. |
+| `Firearm` | const | @wildshard/sdk/runtime/weapons/Firearm | The platform's one firearm constructor, preserving readiness, empty-trigger and reload hooks without a second implementation. |
+| `FirearmInstance` | type | @wildshard/sdk/runtime/weapons/Firearm | Trusted firearm trigger family for transitional shard runtime subclasses; views and tuning stay with the shard. |
 | `assertStateCompatibility` | function | @wildshard/sdk/shardfile | Refuse saved-state identity changes between two validated revisions of the same shard. |
 | `parseShardfile` | function | @wildshard/sdk/shardfile | Parse untrusted author output using the same contract as the client. |
 | `Shardfile` | type | @wildshard/sdk/shardfile | Author-facing serialisable renderer-neutral shardfile contract. |

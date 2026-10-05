@@ -1839,7 +1839,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2061 exports, grouped by the module to import them from.
+2066 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1925,11 +1925,12 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/combat/blocks/ads`: `ads`
 - `@wildshard/engine/combat/blocks/melee`: `aimRay`, `fovForAspect`, `melee`
 - `@wildshard/engine/combat/cues`: `audioCueMap`, `CombatCueMap`, `CombatCueOpts`, `CombatCues`, `HitStopProfile`, `resolveHitStop`, `WeaponChargePhase`
-- `@wildshard/engine/combat/effects/EffectService`: `EffectService`
+- `@wildshard/engine/combat/effects/EffectService`: `bindPlayerEffects`, `EffectService`
 - `@wildshard/engine/combat/effects/types`: `ActiveEffect`, `AttributeSet`, `CueId`, `EffectDef`, `EffectId`, `EffectTarget`, `matchesTag`, `SourceMulDef`, `sourceMultiplier`
 - `@wildshard/engine/combat/Equipment`: `BlockSet`, `EquipContext`, `Equipment`, `EquipmentBlock`, `EquipmentCues`, `EquipmentIcon`, `EquipmentIconMap`, `EquipmentId`, `EquipmentMeta`, `EquipmentRow`, `EquipmentSlotMap`, `EquipmentTouchMap`, `RangedFeelProfile`, `ToolId`, `WeaponId`, `WeaponUi`
 - `@wildshard/engine/combat/EquipmentPickup`: `EquipmentPickup`, `EquipmentPickupHost`, `EquipmentPickupSpec`, `PickupLoadout`
 - `@wildshard/engine/combat/EquipmentService`: `EquipmentService`
+- `@wildshard/engine/combat/Firearm`: `Firearm`
 - `@wildshard/engine/combat/health`: `HealthLifecycle`, `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
 - `@wildshard/engine/combat/itemFamilies`: `ItemFamily`, `ItemFamilyPorts`, `ItemViewRecipe`
 - `@wildshard/engine/combat/items`: `ItemAction`, `ItemAttack`, `ItemContact`, `ItemHook`, `ItemPorts`, `ItemRuntime`, `ItemSpec`, `ItemState`, `ItemTarget`, `scriptItemHook`
@@ -1962,7 +1963,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
-- `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
+- `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
 - `@wildshard/engine/core/practiceRoom`: `practiceRoom`
@@ -2071,7 +2072,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
 - `@wildshard/engine/render/frameCounter`: `installFrameCounter`, `renderCount`, `Renders`
-- `@wildshard/engine/render/graph/presets`: `emissiveGraph`, `pbrMeasureGraph`, `PRESET_GRAPH_BUDGET`
+- `@wildshard/engine/render/graph/presets`: `emissiveGraph`, `painterlyGraph`, `pbrMeasureGraph`, `PRESET_GRAPH_BUDGET`, `toonGraph`
 - `@wildshard/engine/render/graphBackend`: `GraphCompiler`, `loadGraphBackend`, `loadGraphCompiler`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
 - `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
@@ -2196,7 +2197,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-529 exports, grouped by the module to import them from.
+531 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2247,7 +2248,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
-- `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
+- `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `installEnteredRuntimeUpdate`, `installRetainedPlayerEffects`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
 - `@wildshard/game/shard/runtime`: `resolveLevelBounds`, `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
 - `@wildshard/game/shard/runtimeVariant`: `gridPage`, `runtimeVariantEnabled`
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`, `createScopedRuntimeBinding`, `ScopedRuntimeBinding`
@@ -2347,7 +2348,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-111 exports, grouped by the module to import them from.
+113 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2375,6 +2376,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
+- `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/sdk/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`
