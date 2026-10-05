@@ -4085,6 +4085,138 @@
         "from": "@wildshard/engine/core/ktx2"
       },
       {
+        "name": "DEFAULT_GRAPH_BUDGET",
+        "kind": "const",
+        "doc": "the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions)",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GRAPH_IR_VERSION",
+        "kind": "const",
+        "doc": "the IR version a graph declares; a graph of another version is refused",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GRAPH_OPS",
+        "kind": "const",
+        "doc": "The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphBinding",
+        "kind": "type",
+        "doc": "where a bound param's value comes from: a day-key channel or a declared public numeric shard-state field",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphBudget",
+        "kind": "interface",
+        "doc": "the per-program ceilings validation refuses past",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphCost",
+        "kind": "interface",
+        "doc": "what a valid graph costs: counted over every node a stage reaches, a loop's body times its count",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphIr",
+        "kind": "interface",
+        "doc": "a graph",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphLiteral",
+        "kind": "type",
+        "doc": "a literal input: a float or a 2–4 component vector",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphLoopBody",
+        "kind": "interface",
+        "doc": "a loop's body: its own nodes (they may read the outer graph's nodes too) and the node that is the next `acc`",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphNode",
+        "kind": "interface",
+        "doc": "one node of a graph",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphOpSpec",
+        "kind": "interface",
+        "doc": "one op of the vocabulary",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphParam",
+        "kind": "interface",
+        "doc": "a typed param: a uniform the graph reads",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphParamType",
+        "kind": "type",
+        "doc": "a param's type; a colour is written in sRGB and arrives linear, a texture names an admitted file",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphRef",
+        "kind": "type",
+        "doc": "an input: another node's id, or a literal",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphStages",
+        "kind": "interface",
+        "doc": "the stages",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphSurface",
+        "kind": "interface",
+        "doc": "the surface stage's outputs (each optional; an absent one keeps the lighting model's default)",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphValidation",
+        "kind": "type",
+        "doc": "the outcome of validation: the graph (typed) and its cost, or every reason it is refused",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphValidationOptions",
+        "kind": "interface",
+        "doc": "what validation checks bindings and the budget against",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphValueType",
+        "kind": "type",
+        "doc": "a value's type inside a graph",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "GraphVertexOffset",
+        "kind": "interface",
+        "doc": "the vertex stage: an object-space offset; `shadow` (a matching depth variant) is refused until the back-end emits one (§2.5)",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "LOOP_MAX",
+        "kind": "const",
+        "doc": "the most iterations a `loop` node may run",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "validateGraph",
+        "kind": "function",
+        "doc": "Validate a graph read from content (`unknown`): its shape, every op against the vocabulary, every input's type, no",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
         "name": "clamp",
         "kind": "const",
         "doc": "",
@@ -7920,138 +8052,6 @@
         "from": "@wildshard/engine/render/frameCounter"
       },
       {
-        "name": "DEFAULT_GRAPH_BUDGET",
-        "kind": "const",
-        "doc": "the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions)",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GRAPH_IR_VERSION",
-        "kind": "const",
-        "doc": "the IR version a graph declares; a graph of another version is refused",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GRAPH_OPS",
-        "kind": "const",
-        "doc": "The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphBinding",
-        "kind": "type",
-        "doc": "where a bound param's value comes from: a day-key channel or a declared public numeric shard-state field",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphBudget",
-        "kind": "interface",
-        "doc": "the per-program ceilings validation refuses past",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphCost",
-        "kind": "interface",
-        "doc": "what a valid graph costs: counted over every node a stage reaches, a loop's body times its count",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphIr",
-        "kind": "interface",
-        "doc": "a graph",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphLiteral",
-        "kind": "type",
-        "doc": "a literal input: a float or a 2–4 component vector",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphLoopBody",
-        "kind": "interface",
-        "doc": "a loop's body: its own nodes (they may read the outer graph's nodes too) and the node that is the next `acc`",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphNode",
-        "kind": "interface",
-        "doc": "one node of a graph",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphOpSpec",
-        "kind": "interface",
-        "doc": "one op of the vocabulary",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphParam",
-        "kind": "interface",
-        "doc": "a typed param: a uniform the graph reads",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphParamType",
-        "kind": "type",
-        "doc": "a param's type; a colour is written in sRGB and arrives linear, a texture names an admitted file",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphRef",
-        "kind": "type",
-        "doc": "an input: another node's id, or a literal",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphStages",
-        "kind": "interface",
-        "doc": "the stages",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphSurface",
-        "kind": "interface",
-        "doc": "the surface stage's outputs (each optional; an absent one keeps the lighting model's default)",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphValidation",
-        "kind": "type",
-        "doc": "the outcome of validation: the graph (typed) and its cost, or every reason it is refused",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphValidationOptions",
-        "kind": "interface",
-        "doc": "what validation checks bindings and the budget against",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphValueType",
-        "kind": "type",
-        "doc": "a value's type inside a graph",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "GraphVertexOffset",
-        "kind": "interface",
-        "doc": "the vertex stage: an object-space offset; `shadow` (a matching depth variant) is refused until the back-end emits one (§2.5)",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "LOOP_MAX",
-        "kind": "const",
-        "doc": "the most iterations a `loop` node may run",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
-        "name": "validateGraph",
-        "kind": "function",
-        "doc": "Validate a graph read from content (`unknown`): its shape, every op against the vocabulary, every input's type, no",
-        "from": "@wildshard/engine/render/graph/ir"
-      },
-      {
         "name": "pbrMeasureGraph",
         "kind": "function",
         "doc": "The PBR family with a measure layer as a graph preset: the same uniforms the family's patch declares (as params), the",
@@ -9722,6 +9722,30 @@
         "kind": "function",
         "doc": "a content library's icons, full SVGs by id (the kit's installKitIcons)",
         "from": "@wildshard/engine/ui/icons"
+      },
+      {
+        "name": "ItemCardPop",
+        "kind": "class",
+        "doc": "The pickup / reward card: one big card under the top bar, the newest replacing the last.",
+        "from": "@wildshard/engine/ui/ItemCard"
+      },
+      {
+        "name": "ItemCardSpec",
+        "kind": "interface",
+        "doc": "one item as the platform's card data (content hands this, never DOM)",
+        "from": "@wildshard/engine/ui/ItemCard"
+      },
+      {
+        "name": "ItemCardState",
+        "kind": "type",
+        "doc": "what the tile's foot says: a price to pay, a price out of reach, owned, locked, sold out, or just shown (a pickup)",
+        "from": "@wildshard/engine/ui/ItemCard"
+      },
+      {
+        "name": "itemCardTile",
+        "kind": "function",
+        "doc": "A grid tile for one item (a shop's goods). `selected` draws the accent frame.",
+        "from": "@wildshard/engine/ui/ItemCard"
       },
       {
         "name": "UiHandle",

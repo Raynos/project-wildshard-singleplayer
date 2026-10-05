@@ -1829,7 +1829,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2045 exports, grouped by the module to import them from.
+2049 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1952,6 +1952,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
+- `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
 - `@wildshard/engine/core/practiceRoom`: `practiceRoom`
@@ -2059,7 +2060,6 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
 - `@wildshard/engine/render/frameCounter`: `installFrameCounter`, `renderCount`, `Renders`
-- `@wildshard/engine/render/graph/ir`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
 - `@wildshard/engine/render/graph/presets`: `pbrMeasureGraph`
 - `@wildshard/engine/render/graphBackend`: `GraphCompiler`, `loadGraphBackend`, `loadGraphCompiler`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
@@ -2111,6 +2111,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ui/hudSlots`: `DiscOpts`, `DiscSpot`, `HudBand`, `hudSlots`, `HudSlots`, `ROW`, `TouchRelabel`
 - `@wildshard/engine/ui/HurtArc`: `deathCause`, `deathLine`, `HurtArc`, `respawnWhere`
 - `@wildshard/engine/ui/icons`: `icon`, `IconId`, `IconMap`, `iconParts`, `registerIcons`
+- `@wildshard/engine/ui/ItemCard`: `ItemCardPop`, `ItemCardSpec`, `ItemCardState`, `itemCardTile`
 - `@wildshard/engine/ui/layers`: `UiHandle`, `UiLayer`, `UiLayers`, `UiView`
 - `@wildshard/engine/ui/Loading`: `Loading`
 - `@wildshard/engine/ui/LockOn`: `LockOn`
