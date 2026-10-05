@@ -228,7 +228,7 @@ export class HUD {
       this.compassStrip.append(tick);
     }
     for (let lap = -1; lap <= 1; lap++) for (const [deg, label, major] of CARDINALS) {
-      const c = el('div', engineString('s_002ee98b1117', [major ? '' : engineString('s_09961a79c5fc'), label === 'N' ? engineString('s_ac5b2b82539a') : '']), label);
+      const c = el('div', engineString('s_002ee98b1117', [major ? '' : engineString('s_09961a79c5fc'), label === 'N' ? engineString('s_ac5b2b82539a') : ''])); c.textContent = label;
       c.style.left = `calc(${deg + lap * 360 + 360} * var(--ppd))`;
       this.compassStrip.append(c);
     }
@@ -521,7 +521,13 @@ export class HUD {
   }
 
   killFeed(text: string): void {
-    const item = el('div', engineString('s_b48e7827330f'), text.replaceAll(/\b(headshot|kill|killed)\b/gi, '<b>$1</b>'));
+    const item = el('div', engineString('s_b48e7827330f'));
+    let at = 0;
+    for (const match of text.matchAll(/\b(headshot|kill|killed)\b/gi)) {
+      const word = document.createElement('b'); word.textContent = match[0];
+      item.append(document.createTextNode(text.slice(at, match.index)), word); at = match.index + match[0].length;
+    }
+    item.append(document.createTextNode(text.slice(at)));
     this.feed.prepend(item);
     while (this.feed.children.length > 4) this.feed.lastElementChild?.remove();
     this.scope.timeout(4200, () => { item.classList.add('out'); this.scope.timeout(500, () => { item.remove(); }); });

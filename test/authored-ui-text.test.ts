@@ -52,6 +52,9 @@ it('renders hostile ammo labels and interaction prompts literally, retaining the
   expect(document.querySelector('.ws-game-ammo .l')?.textContent).toBe(hostile);
   expect(document.querySelector('.ws-game-prompt b')?.textContent).toBe('E');
   expect(document.querySelector('.ws-game-prompt')?.textContent).toBe(`E${hostile}`);
+  hud.killFeed(`${hostile} headshot killed`);
+  expect(document.querySelector('.ws-game-feed-item')?.textContent).toBe(`${hostile} headshot killed`);
+  expect([...document.querySelectorAll('.ws-game-feed-item b')].map((node) => node.textContent)).toEqual(['headshot', 'killed']);
   expect(document.querySelector('img,script')).toBeNull();
 });
 
