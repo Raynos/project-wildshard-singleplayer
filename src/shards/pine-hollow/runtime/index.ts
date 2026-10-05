@@ -1,6 +1,6 @@
 import { installPineScore } from './audio/score';
 import { STRINGS } from '../strings';
-import { installForestVoices } from './audio/synth';
+import { installEnteredPineVoices } from './audio/entered';
 import { installPineDebug } from '../debug/options';
 import { setCragView } from '../world/crags';
 import { PINE_SPAWNS } from '../combat/spawns';
@@ -124,7 +124,7 @@ export class PineHollow extends ShardPlugin {
   override async kit(ctx: ShardContext): Promise<void> {
     const audio = ctx.app.audio;
     if (audio === null) throw new Error('Pine synth bed needs its mixer');
-    installForestVoices(audio, ctx.scope);
+    installEnteredPineVoices(ctx, audio);
     registerKing();
     ctx.rows.species([...PINE_SPECIES, pineElk()]);
     ctx.rows.speciesLook(pineLooks());
