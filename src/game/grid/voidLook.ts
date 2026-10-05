@@ -58,6 +58,19 @@ void main() {
   gl_FragColor = vec4(colour, 1.0);
 }`;
 
+/**
+ * The void's floor material: black, unlit, cyan grid lines on the world grid, brightening toward the rectangle `rail`
+ * (minX, maxX, minZ, maxZ in the home frame). G167's refused cell reuses it with its own cell square as the rectangle.
+ */
+export function voidFloorMaterial(home: GridCell, rail: readonly [number, number, number, number]): ShaderMaterial {
+  const material = new ShaderMaterial({
+    vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
+    uniforms: { uOrigin: { value: [home.origin.x, home.origin.z] }, uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x02050a) }, uRail: { value: [...rail] } },
+  });
+  material.name = 'grid-void-floor';
+  return material;
+}
+
 /** The void floor: a square annulus from the rail box out to REACH, in the home frame. */
 function floorGeometry(box: RailBox, home: GridCell): BufferGeometry {
   const x0 = box.minX - home.origin.x, x1 = box.maxX - home.origin.x, z0 = box.minZ - home.origin.z, z1 = box.maxZ - home.origin.z;
@@ -121,11 +134,7 @@ export function installVoidLook(input: { readonly rail: RailBox; readonly home: 
   group.name = 'grid-void';
   const x0 = box.minX - home.origin.x, x1 = box.maxX - home.origin.x, z0 = box.minZ - home.origin.z, z1 = box.maxZ - home.origin.z;
   const build = (owner: LookScope): void => {
-    const floorMaterial = new ShaderMaterial({
-      vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
-      uniforms: { uOrigin: { value: [home.origin.x, home.origin.z] }, uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x02050a) }, uRail: { value: [x0, x1, z0, z1] } },
-    });
-    floorMaterial.name = 'grid-void-floor';
+    const floorMaterial = voidFloorMaterial(home, [x0, x1, z0, z1]);
     const floor = new Mesh(floorGeometry(box, home), floorMaterial);
     floor.name = 'grid-void-floor'; floor.frustumCulled = false;
     floor.castShadow = false; floor.receiveShadow = false; floor.matrixAutoUpdate = false; floor.updateMatrix(); group.add(floor);

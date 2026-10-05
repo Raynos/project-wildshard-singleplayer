@@ -4,3 +4,6 @@
 .ws-menu-card.ws-menu-card-upgrade .ws-menu-card-img { filter: grayscale(0.85) brightness(0.7); }
 .ws-menu-card.ws-menu-card-upgrade b { color: rgba(230, 242, 248, 0.7); }
 .ws-menu-card .ws-menu-card-tag.ws-menu-card-needs { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.7); background: rgba(20, 13, 2, 0.82); box-shadow: 0 0 10px rgba(255, 181, 71, 0.3); filter: none; }
+/* G167 (art/grid/round-18-refused-cell CARD): a shard this session could not load wears the same dimmed card, an amber
+   UNAVAILABLE badge and its reason in amber under the name; ENTER WORLD reads UNAVAILABLE / YOUR SAVE IS KEPT */
+.ws-menu-card-unavailable .ws-menu-card-reason { color: var(--ws-amber); }

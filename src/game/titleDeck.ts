@@ -17,7 +17,8 @@ import { listenDom } from '@wildshard/engine/input/dom';
  *
  * SF21a (G79 / G88): the Wildshard main menu (src/game/mainMenu.ts) sits over this deck; its SHARD SELECT opens it, unchanged
  * (G58 / G64), and its INFINITE WILDSHARD boots the grid. What ENTER WORLD may enter is §3.3's table. A card whose shardfile
- * needs a newer client (G86, temporary) is dimmed, badged NEEDS UPGRADE and promises YOUR SAVE IS KEPT.
+ * needs a newer client (G86, temporary) is dimmed, badged NEEDS UPGRADE and promises YOUR SAVE IS KEPT; a shard this session
+ * could not load (G167) is dimmed the same way, badged UNAVAILABLE with its reason, and keeps the save too.
  *
  * Cards use the generated, node-safe manifests; world builders remain lazy.
  * test/title-deck.test.ts keeps each card's name, label (the def's `biome`), badge and art equal to its ShardManifest.
@@ -29,6 +30,7 @@ import { DRAFT_TITLES, type DraftTitle } from './draftTitles';
 import { readSummary, summaryView } from './summary';
 import { GAME_STRINGS } from './strings';
 import { menuMode, selectEnters, selectExplores, type MenuMode } from './grid/menu';
+import { pageShardRefusals, refusalReason, type ShardRefusal } from './grid/refusal';
 import './summary.css';
 import './upgrade.css';
 
@@ -47,6 +49,8 @@ export interface TitleCard {
   heroLandscape: string;
   /** G86 (temporary): the shardfile format this shard was built for, when this client can no longer read it */
   upgrade?: { readonly built: number };
+  /** G167: this session refused the shard (memory, safety, format or load): the dimmed UNAVAILABLE card with its reason */
+  unavailable?: ShardRefusal;
 }
 
 /** Which shards need an upgrade before this client can enter them (G86): the shardfile version each was built for. Every
@@ -54,9 +58,12 @@ export interface TitleCard {
  *  admission (src/game/shardfile/product.ts, previous versions) is where an outside author's older shard will report one. */
 export type UpgradeNeeded = (slug: string) => number | null;
 const noUpgrades: UpgradeNeeded = () => null;
+/** Which shards this session refused (G167; `src/game/grid/refusal.ts`), default: the page's session record. */
+export type RefusedShard = (slug: string) => ShardRefusal | null;
+const sessionRefusals: RefusedShard = (slug) => pageShardRefusals().read(slug);
 
 /** Developer mode reveals hidden levels after every player-facing card. */
-export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades): readonly TitleCard[] {
+export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = noUpgrades, refused: RefusedShard = sessionRefusals): readonly TitleCard[] {
   const hidden = (m: ShardManifest): boolean => m.status === 'hidden' || m.slug.startsWith('_');
   const visible = shards().filter((m) => !hidden(m));
   const manifests = showHidden ? [...visible, ...shards().filter(hidden)] : visible;
@@ -70,6 +77,8 @@ export function titleCards(showHidden = isDev(), upgradeNeeded: UpgradeNeeded = 
     if (hidden(m)) card.badge = 'Developer only';
     const built = upgradeNeeded(m.slug);
     if (built !== null) card.upgrade = { built };
+    const refusal = built === null ? refused(m.slug) : null; // G86's card already says NEEDS UPGRADE
+    if (refusal !== null) card.unavailable = refusal;
     return card;
   });
 }
@@ -82,6 +91,7 @@ interface DeckEntry {
   readonly label: string;
   readonly badge?: TitleBadge | undefined;
   readonly upgrade?: { readonly built: number } | undefined;
+  readonly unavailable?: ShardRefusal | undefined;
   readonly thumbnail: string;
   readonly heroPortrait: string;
   readonly heroLandscape: string;
@@ -135,7 +145,7 @@ const restricted = (card: DeckEntry): boolean => card.badge === 'Experimental' |
 
 /** ENTER WORLD for a card: Select a shard enters what §3.3's table allows in this mode (SF21a: shipped, Developer, DEVSERVER) */
 function canEnter(card: DeckEntry, mode: MenuMode = menuMode()): boolean {
-  if (card.draft || card.upgrade !== undefined) return false;
+  if (card.draft || card.upgrade !== undefined || card.unavailable !== undefined) return false;
   return selectEnters(card.slug, restricted(card), mode);
 }
 
@@ -148,7 +158,7 @@ function canExplore(card: DeckEntry, mode: MenuMode = menuMode()): boolean {
 /** the tape over a card's image: a world that can't be entered reads COMING SOON, not EXPERIMENTAL (Jake, E386) */
 function ribbonFor(card: DeckEntry, mode: MenuMode = menuMode()): string {
   if (card.draft) return isDev() ? GAME_STRINGS.drafts.ribbon(card.draft.stage) : GAME_STRINGS.drafts.comingSoon;
-  if (card.upgrade !== undefined) return ''; // G86: the NEEDS UPGRADE badge says it, not a tape
+  if (card.upgrade !== undefined || card.unavailable !== undefined) return ''; // G86 / G167: the amber badge says it, not a tape
   if (!canEnter(card, mode)) return 'Coming soon';
   return card.badge === 'Developer only' ? GAME_STRINGS.developer.ribbon : card.badge ?? '';
 }
@@ -162,7 +172,7 @@ function dotTag(card: DeckEntry, mode: MenuMode): 'soon' | 'developer' | '' {
 
 function hintFor(card: DeckEntry, active: boolean, mode: MenuMode = menuMode()): string {
   if (card.draft) return isDev() ? card.draft.stageName : GAME_STRINGS.drafts.notPlayable;
-  if (card.upgrade !== undefined) return GAME_STRINGS.upgrade.saveKept;
+  if (card.upgrade !== undefined || card.unavailable !== undefined) return GAME_STRINGS.upgrade.saveKept;
   if (!canEnter(card, mode)) return '';
   if (!active) return `Loads ${card.name}`;
   return card.badge === 'Early access' ? 'Early access' : card.badge === 'Experimental' ? 'Developer only' : 'Play'; // Jake: experimental shards enter only in developer mode
@@ -190,13 +200,15 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
   const cardTrack = required(root, '.ws-menu-deck-track'), dotTrack = required(root, '.ws-menu-dots');
   entries.forEach((card, index) => {
     const active = index === activeIndex, button = document.createElement('button'); button.type = 'button'; button.dataset['i'] = String(index);
-    button.className = `ws-menu-card${active ? ' active' : ''}${card.upgrade !== undefined ? ' ws-menu-card-upgrade' : ''}`;
+    button.className = `ws-menu-card${active ? ' active' : ''}${card.upgrade !== undefined || card.unavailable !== undefined ? ' ws-menu-card-upgrade' : ''}${card.unavailable !== undefined ? ' ws-menu-card-unavailable' : ''}`;
     const image = document.createElement('span'); image.className = 'ws-menu-card-img'; image.style.backgroundImage = `url('${card.thumbnail}')`;
     if (card.upgrade !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.upgrade.badge));
+    else if (card.unavailable !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.unavailable.badge));
     if (canEnter(card, mode())) image.append(words('i', `ws-menu-card-tag${active ? ' ok' : ''}`, active ? 'Loaded' : 'Load'));
     const ribbon = ribbonFor(card, mode());
     if (ribbon !== '') image.append(words('i', `ws-menu-card-exp${card.badge === 'Early access' && canEnter(card, mode()) ? ' ws-menu-card-ea' : ''}`, ribbon));
-    button.append(image, words('b', '', card.name), words('small', '', card.upgrade !== undefined ? GAME_STRINGS.upgrade.built(card.upgrade.built) : card.label)); cardTrack.append(button);
+    const sub = card.upgrade !== undefined ? GAME_STRINGS.upgrade.built(card.upgrade.built) : card.unavailable !== undefined ? refusalReason(card.unavailable) : card.label;
+    button.append(image, words('b', '', card.name), words('small', card.unavailable !== undefined ? 'ws-menu-card-reason' : '', sub)); cardTrack.append(button);
     const dot = document.createElement('i'); dot.dataset['i'] = String(index); dot.dataset['tag'] = dotTag(card, mode()); dot.style.setProperty('--thumb', `url('${card.thumbnail}')`); dotTrack.append(dot);
   });
   if (opts.notice) {
@@ -253,7 +265,7 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     play.disabled = !canEnter(c, mode()) && c.draft === null;
     explore.disabled = !canExplore(c, mode());
     explore.classList.toggle('off', !canExplore(c, mode())); // menu.css hides .off
-    required(play, 'b').textContent = c.draft ? (isDev() ? GAME_STRINGS.drafts.draftMode : GAME_STRINGS.drafts.followBuild) : c.upgrade !== undefined ? GAME_STRINGS.upgrade.badge : canEnter(c, mode()) ? 'Enter world' : 'Coming soon';
+    required(play, 'b').textContent = c.draft ? (isDev() ? GAME_STRINGS.drafts.draftMode : GAME_STRINGS.drafts.followBuild) : c.upgrade !== undefined ? GAME_STRINGS.upgrade.badge : c.unavailable !== undefined ? GAME_STRINGS.unavailable.badge : canEnter(c, mode()) ? 'Enter world' : 'Coming soon';
     paintSummary(c);
   };
   const select = (raw: number, smooth = true): void => {

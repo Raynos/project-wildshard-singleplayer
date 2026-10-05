@@ -45,7 +45,7 @@ import { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
-import { farRingPorts, type FarPrepared } from './farView';
+import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import type { FarLookRuntime } from './farProxy';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
@@ -71,6 +71,8 @@ import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 import { farMapImage } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
+import { classifyRefusal, pageShardRefusals, refusalReason, type FarViewStatus, type ShardRefusal } from './refusal';
+import { installRefusedLook, type RefusedLookState } from './refusedLook';
 
 /**
  * In grid mode the level's own chunk-edge walls and veil yield to the platform, and so does its own horizon (G99: every
@@ -113,6 +115,8 @@ export interface GridSessionState {
   readonly softWalls: SoftWallState;
   /** G78's border shimmer and G119's save panel (status null: no panel up) */
   readonly shimmer: BorderShimmerState;
+  /** G167: the neighbours that can't load and what each shows (B frozen far view under a dome, A the void and the sign) */
+  readonly refused: RefusedLookState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
@@ -197,6 +201,11 @@ export class GridSession {
   private readonly life: NeighbourLife;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
   private readonly shimmer: { readonly step: () => void; readonly state: () => BorderShimmerState };
+  /** G167: why a neighbour's shard can't load (its product refused), its far view's status and the look over both */
+  private readonly refusals = new Map<string, ShardRefusal>();
+  private readonly farViews = new Map<string, FarProxyView>();
+  private readonly farMissing = new Set<string>();
+  private readonly refused: { readonly step: () => void; readonly state: () => RefusedLookState };
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost): Promise<GridSession> {
@@ -257,7 +266,9 @@ export class GridSession {
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
       ports: { closed: (id) => this.live === null || !this.live.live.ready(id), feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
-        name: (id) => { const slug = this.assembly.cell(id).slug; return findShard(slug)?.name ?? slug; } } });
+        name: (id) => this.shardName(id),
+        reason: (id) => { const refusal = this.refusal(id); return refusal === null ? null : GAME_STRINGS.unavailable.line(this.shardName(id), refusalReason(refusal)); } },
+      saveKept: GAME_STRINGS.upgrade.saveKept });
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
     let status: CrossingSaveStatus = null, polled = 0;
@@ -285,18 +296,32 @@ export class GridSession {
     const far = farRingPorts({
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {
-        const { prepared, bytes } = await loadFar(this.assembly.cell(id).slug); this.costs.set(id, bytes); frame?.declare(id, prepared.look);
+        let loaded: Awaited<ReturnType<typeof loadFar>>;
+        try { loaded = await loadFar(this.assembly.cell(id).slug); } catch (error) { this.farMissing.add(id); throw error; } // G167: no far view, A's fallback
+        this.farMissing.delete(id);
+        const { prepared, bytes } = loaded; this.costs.set(id, bytes); frame?.declare(id, prepared.look);
         if (!this.mapImages.has(id)) { const image = farMapImage(prepared.geometry); if (image !== null) this.mapImages.set(id, image); }
         return prepared;
       },
     });
-    const farPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
+    const framedPorts = frame === null ? far : { ...far, upload: (tile: { instance: string }, data: FarPrepared) => {
       const band = data.look.band, view = far.upload(tile, data), untag = frame.proxy(view), dispose = view.dispose;
       // SF19b (G94 / G95): a shard that declares a band shows its mood at its border from the road; inside its cell it owns the frame (G158)
       const root = roots.get(tile.instance), unband = band === undefined || root === undefined ? () => undefined : installHazeBand(root, band, CHUNK_HALF);
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };
+    // G167: the drawn far views, so a refused neighbour's can freeze grey (B) and a missing one falls back to the void (A)
+    const farPorts = { ...framedPorts, upload: (tile: { instance: string }, data: FarPrepared) => {
+      const view = framedPorts.upload(tile, data), dispose = view.dispose;
+      this.farViews.set(tile.instance, view);
+      view.dispose = () => { if (this.farViews.get(tile.instance) === view) this.farViews.delete(tile.instance); dispose(); };
+      return view;
+    } };
+    this.refused = installRefusedLook({ home, scope: host.scope,
+      cells: this.neighbours.flatMap((cell) => { const root = roots.get(cell.instance); return root === undefined ? [] : [{ cell, name: this.shardName(cell.instance), root }]; }),
+      ports: { refusal: (id) => this.refusal(id), far: (id) => this.farStatus(id), grey: (id, on) => { this.farViews.get(id)?.grey(on); },
+        feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
     // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
@@ -345,9 +370,20 @@ export class GridSession {
         if (scope.disposed) return;
         if (source.tiles.length > 0) instances.set(cell.instance, { source, assets, root, views });
         try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
-      } catch { /* the far proxy stays the neighbour's fallback */ }
+      } catch (error) { this.refuse(cell, error); } // G167: a refused shard keeps its far view frozen grey under a dome, else the void
     }
   }
+
+  /** G167: note a neighbour whose shard can't load (an M3 wait or a closing page is not a refusal), for its cell and SHARD SELECT. */
+  private refuse(cell: GridCell, error: unknown): void {
+    const refusal = classifyRefusal(error);
+    if (refusal === null || this.host.scope.disposed) return;
+    console.warn(`[grid] ${cell.instance} can't load (${refusal}):`, error);
+    this.refusals.set(cell.instance, refusal); pageShardRefusals().note(cell.slug, refusal);
+  }
+  private refusal(instance: string): ShardRefusal | null { return this.refusals.get(instance) ?? null; }
+  private farStatus(instance: string): FarViewStatus { return this.farViews.has(instance) ? 'resident' : this.farMissing.has(instance) ? 'none' : 'loading'; }
+  private shardName(instance: string): string { const slug = this.assembly.cell(instance).slug; return findShard(slug)?.name ?? slug; }
 
   /** Step 2: the live crossing, once the page's player health and equipment exist (play.ts). */
   attach(page: LiveGridPage): LiveGridSession {
@@ -378,6 +414,7 @@ export class GridSession {
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     this.softWalls.step();
+    this.refused.step();
     this.shimmer.step();
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
     if (inside === undefined || inside.instance !== active) gridCells.leave();
@@ -405,7 +442,7 @@ export class GridSession {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), refused: this.refused.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },
