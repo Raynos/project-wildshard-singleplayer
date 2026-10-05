@@ -1,0 +1,577 @@
+{
+  "sha": "d10450c027107903db07b2fc6f1cc0808864791b",
+  "surface": "Chromium / iPhone 16 Pro portrait",
+  "renderScale": 2,
+  "purpose": "SF57b controller/reload proof; timing is not an iOS reading",
+  "command": "bash scripts/browser-lane.sh --max 45 node scripts/soak/reload.mjs --url=http://127.0.0.1:4401/ --sha=d10450c027107903db07b2fc6f1cc0808864791b --runs=<2|50>",
+  "smoke": {
+    "pass": true,
+    "runs": [
+      {
+        "run": 1,
+        "seconds": 29.966,
+        "bootSeconds": 7.088199999809265,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283556
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 2,
+        "seconds": 11.733,
+        "bootSeconds": 7.700699999809265,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283565
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      }
+    ],
+    "errors": [],
+    "leak": {
+      "before": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": []
+    },
+    "retainedResourceCensusEntries": 234
+  },
+  "fifty": {
+    "pass": false,
+    "requested": 50,
+    "completed": 21,
+    "runs": [
+      {
+        "run": 1,
+        "seconds": 29.852,
+        "bootSeconds": 7.024300000190735,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283505
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 2,
+        "seconds": 12.135,
+        "bootSeconds": 8.090699999809265,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283614
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 3,
+        "seconds": 13.5,
+        "bootSeconds": 9.1395,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283570
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 4,
+        "seconds": 13.201,
+        "bootSeconds": 8.837400000095368,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283588
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 5,
+        "seconds": 11.284,
+        "bootSeconds": 7.168800000190735,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283531
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 6,
+        "seconds": 11.151,
+        "bootSeconds": 7.106299999713897,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283572
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 7,
+        "seconds": 10.951,
+        "bootSeconds": 6.936900000095368,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283563
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 8,
+        "seconds": 10.956,
+        "bootSeconds": 6.928700000286102,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283618
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 9,
+        "seconds": 10.9,
+        "bootSeconds": 6.88460000038147,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283615
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 10,
+        "seconds": 10.901,
+        "bootSeconds": 6.887200000286103,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283595
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 11,
+        "seconds": 10.972,
+        "bootSeconds": 6.957799999713898,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283601
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 12,
+        "seconds": 10.916,
+        "bootSeconds": 6.934299999713898,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283578
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 13,
+        "seconds": 10.992,
+        "bootSeconds": 6.9774000000953675,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283614
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 14,
+        "seconds": 10.926,
+        "bootSeconds": 6.911900000095367,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283596
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 15,
+        "seconds": 11.005,
+        "bootSeconds": 6.9902000002861024,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283602
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 16,
+        "seconds": 11.077,
+        "bootSeconds": 7.062800000190735,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283605
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 17,
+        "seconds": 11.016,
+        "bootSeconds": 6.9671999998092655,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283626
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 18,
+        "seconds": 10.887,
+        "bootSeconds": 6.871800000190735,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283592
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 19,
+        "seconds": 11.026,
+        "bootSeconds": 7.011199999809265,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283594
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 20,
+        "seconds": 10.955,
+        "bootSeconds": 6.9774000000953675,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283612
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      },
+      {
+        "run": 21,
+        "seconds": 11.071,
+        "bootSeconds": 7.054699999809265,
+        "coins": 5,
+        "facts": 1,
+        "continuation": {
+          "mode": "exact",
+          "storedChars": 283594
+        },
+        "menu": false,
+        "reveal": false,
+        "pending": null
+      }
+    ],
+    "errors": [
+      "[faults] system \"game.grid.live.post\" threw: Error: Point outside terrain\n    at Ut (http://127.0.0.1:4401/assets/revision-DzziSpAc.js:1:24581)\n    at Fn.heightAt (http://127.0.0.1:4401/assets/loader-B8xXh4_i.js:38:54014)\n    at Object.heightAt (http://127.0.0.1:4401/assets/loader-B8xXh4_i.js:1:9866)\n    at d.stepMotion (http://127.0.0.1:4401/assets/AnimalSim-CvcuSiGO.js:1:11424)\n    at d.step (http://127.0.0.1:4401/assets/AnimalSim-CvcuSiGO.js:1:9451)\n    at Fn.stepSystems (http://127.0.0.1:4401/assets/loader-B8xXh4_i.js:1:13978)\n    at Fn.stepExternal (http://127.0.0.1:4401/assets/loader-B8xXh4_i.js:1:12494)\n    at lg.afterPlayerStep (http://127.0.0.1:4401/assets/session-DGa1gpQD.js:291:37615)\n    at Object.run (http://127.0.0.1:4401/assets/session-DGa1gpQD.js:291:56140)\n    at http://127.0.0.1:4401/assets/runtime-DEkgUd-h.js:1:48762",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ],
+    "failure": "TimeoutError: page.waitForFunction: Timeout 120000ms exceeded.",
+    "last": {
+      "inside": null,
+      "live": {
+        "live": {
+          "current": null,
+          "worldFeet": {
+            "x": -284.49308678556804,
+            "y": 0.45000013406183376,
+            "z": -554.8381078523772
+          },
+          "crossings": 3,
+          "transitions": [
+            {
+              "from": "driftwood-isle",
+              "to": null
+            },
+            {
+              "from": null,
+              "to": "template-4"
+            },
+            {
+              "from": "template-4",
+              "to": null
+            }
+          ],
+          "residents": [
+            "template-4"
+          ],
+          "pending": [],
+          "issues": {
+            "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+            "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+          },
+          "gameplayReady": true,
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "crossing": {
+          "current": null,
+          "target": null,
+          "phase": "settled",
+          "issue": null
+        },
+        "stowed": true,
+        "renderOrigin": {
+          "x": 0,
+          "z": 0
+        },
+        "reloadStatus": "failed",
+        "hoverCap": 30,
+        "homeActive": null
+      },
+      "life": [
+        {
+          "instance": "template-1",
+          "creatures": 3,
+          "frozen": true,
+          "views": {
+            "targets": 3,
+            "posed": 3,
+            "particles": 2,
+            "capacity": 6,
+            "tick": 7392
+          },
+          "failed": null
+        },
+        {
+          "instance": "template-2",
+          "creatures": 3,
+          "frozen": true,
+          "views": {
+            "targets": 3,
+            "posed": 3,
+            "particles": 2,
+            "capacity": 6,
+            "tick": 7392
+          },
+          "failed": null
+        },
+        {
+          "instance": "template-4",
+          "creatures": 3,
+          "frozen": true,
+          "views": {
+            "targets": 3,
+            "posed": 3,
+            "particles": 0,
+            "capacity": 6,
+            "tick": 156
+          },
+          "failed": "Invalid value: Expected <=250 but received 250.02085305500725"
+        },
+        {
+          "instance": "template-6",
+          "creatures": 3,
+          "frozen": true,
+          "views": {
+            "targets": 3,
+            "posed": 3,
+            "particles": 2,
+            "capacity": 6,
+            "tick": 7392
+          },
+          "failed": null
+        }
+      ]
+    }
+  },
+  "attribution": {
+    "firstFailure": "Regional creature crossed x=250.020853; strict terrain query threw in game.grid.live.post before RoadRecovery.observe. Subsequent reload capture lacked a safe road recovery point.",
+    "fix": "e06a44173890389e3049eda4f33038ed7d69ee11",
+    "focused": "pnpm exec vitest run test/live-grid-durability.test.ts: 2/2; 600 ticks on each of four edges with native and analytic movement, exact restore reuses four BORDER handles, native snapshot overhead below 4096 bytes.",
+    "browserAfterFix": "pending post-floor window"
+  },
+  "limits": [
+    "Chromium timing is information only; no iOS reload-to-playable verdict.",
+    "The two-exit leak census passed; the failed fifty-exit run never reached its final census.",
+    "No fifty-exit PASS and no fade-reload soak verdict.",
+    "All owned browser and preview resources closed before the coordinator quiet floor."
+  ]
+}
