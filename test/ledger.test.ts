@@ -96,6 +96,14 @@ it('retries failed atomic writes without applying the reward twice, including re
   expect(first.local.writes).toHaveLength(1); expect(itemQuantity(fixture(first.local).ledger)).toBe(1);
   expect(first.ledger.flush()).toBe(true); expect(itemQuantity(first.ledger)).toBe(1);
 });
+it('does not collect entitled fact ids while the first atomic grant is waiting for storage', () => {
+  const first = fixture(); first.local.failures = 2;
+  expect(first.ledger.record(fact())).toMatchObject({ status: 'pending', recorded: true });
+  for (let tick = 142; tick < 1142; tick++) expect(first.ledger.record(fact({ tick }))).toMatchObject({ status: 'duplicate', recorded: false });
+  expect(Object.keys(first.ledger.state().facts)).toHaveLength(1); expect(first.local.getItem(PROFILE)).toBeNull();
+  expect(first.ledger.flush()).toBe(false); expect(first.ledger.flush()).toBe(true);
+  expect(first.local.writes).toHaveLength(1); expect(itemQuantity(fixture(first.local).ledger)).toBe(1);
+});
 
 it('keeps cell relocation and mode switches out of save/fact identity', () => {
   expect(firstPartyInstance('driftwood-isle')).toBe('driftwood-isle'); expect(firstPartyInstance('_template')).toBe('template-solo');
@@ -122,6 +130,21 @@ it('rejects forged provenance, identity reuse, unknown catalogue rewards and glo
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
+it('keeps native continuation receipts bounded when an entitled fact emits every tick', () => {
+  const { ledger, local } = fixture(), host = createSimHost(SIM_LEVEL, { rapier });
+  const emitter = installLedgerEmitter(host, ledger, { instance: 'template-1', shard: 'template', revision: 1 }, origin);
+  try {
+    expect(emitter.emit('arena.complete', host.player.id).status).toBe('granted');
+    const bytes = local.getItem(PROFILE);
+    for (let tick = 0; tick < 1000; tick++) {
+      host.step(); expect(emitter.emit('arena.complete', host.player.id).status).toBe('duplicate');
+    }
+    expect(host.slots.ledgerDedupe).toHaveLength(1);
+    expect(Object.keys(ledger.state().facts)).toHaveLength(1);
+    expect(local.getItem(PROFILE)).toBe(bytes); expect(local.writes).toHaveLength(1);
+    expect(snapshotSimHost(host).slots.ledgerDedupe).toHaveLength(1);
+  } finally { host.dispose(); }
+});
 it('records a real fixture quest fact and snapshot-restored suffix without a second profile grant', () => {
   const { ledger } = fixture();
   const install = (host: SimHost): void => {

@@ -18,7 +18,11 @@ export interface LedgerRewardPolicy { id: string; quantity: number; repeat?: { e
 /** Catalogue grants default to one item, once per stable instance and shard, independent of author facts or revisions. */
 export interface LedgerCatalogueItem { id: string; maxTier: number; reward?: LedgerRewardPolicy }
 /** A grant is confirmed only by a durable save write; a pending receipt may be retried. */
-export interface LedgerReceipt { id: string; status: 'granted' | 'duplicate' | 'pending' }
+export interface LedgerReceipt {
+  id: string; status: 'granted' | 'duplicate' | 'pending';
+  /** Whether this exact fact belongs to the atomic grant document, including a pending durable write. */
+  recorded: boolean;
+}
 /** Collision-free instance + package + revision + entity + tick + ordinal; relocation changes no key. */
 export function ledgerFactId(fact: LedgerFact): string { return JSON.stringify([fact.instance, fact.shard, fact.revision, fact.entity, fact.tick, fact.ordinal]); }
 
@@ -63,14 +67,14 @@ export class Ledger {
       let changed = false;
       for (const reward of mapping.rule.rewards) changed = this.grant(state, fact, reward) || changed;
       // An already entitled outcome cannot grow profile storage by minting fresh fact ids every tick.
-      if (!changed && this.pending.size === 0) return { id, status: 'duplicate' };
+      if (!changed) return { id, status: 'duplicate', recorded: false };
       state.facts[id] = fact;
     }
     // A duplicate also retries the identical document: SaveStore may contain a failed-write memory fallback,
     // even when this Ledger was reconstructed against that same store without its original pending set.
-    if (!this.slot.write(state)) { this.pending.add(id); return { id, status: 'pending' }; }
+    if (!this.slot.write(state)) { this.pending.add(id); return { id, status: 'pending', recorded: true }; }
     const retried = this.pending.has(id); this.pending.clear();
-    return { id, status: prior === undefined || retried ? 'granted' : 'duplicate' };
+    return { id, status: prior === undefined || retried ? 'granted' : 'duplicate', recorded: true };
   }
   private grant(state: LedgerState, fact: LedgerFact, reward: LedgerRule['rewards'][number]): boolean {
     if (reward.kind === 'catalogue') {
@@ -112,7 +116,8 @@ export class LedgerEmitter {
     if (tick !== this.tick) { this.tick = tick; this.ordinal = 0; }
     const fact = { ...this.identity, origin: this.origin, tick, ordinal: this.ordinal++, name, entity };
     const receipt = this.ledger.record(fact);
-    if (!this.dedupe.includes(receipt.id)) this.dedupe.push(receipt.id);
+    // An entitled outcome cannot grow the continuation by inventing fresh fact ids every tick.
+    if (receipt.recorded && !this.dedupe.includes(receipt.id)) this.dedupe.push(receipt.id);
     return receipt;
   }
   snapshot(): SimValue { return { tick: this.tick, ordinal: this.ordinal }; }
