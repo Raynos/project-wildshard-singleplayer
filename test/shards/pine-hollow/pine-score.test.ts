@@ -42,7 +42,7 @@ describe('Pine score policy', () => {
     try {
       await vi.waitFor(() => { expect(decode).toHaveBeenCalledOnce(); });
       first.dispose(); score.attach(second);
-      finish({ genre: 'piano', slots: new Map([['pine', theme]]), stings: new Map([['dawn', buffer], ['chunk', buffer]]) });
+      finish({ genre: 'piano', set: 'pine-hollow', log: [], slots: new Map([['pine', theme]]), stings: new Map([['dawn', buffer], ['chunk', buffer]]) });
       if (sting !== undefined) expect(await sting).toBeUndefined();
       else await vi.waitFor(() => { expect(score.pending).toBe(false); });
       expect(score.stings.size).toBe(0); expect(music.refreshScore).not.toHaveBeenCalled();
