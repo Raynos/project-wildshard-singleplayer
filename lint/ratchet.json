@@ -115,6 +115,7 @@
     "src/shards/nalati-grasslands/runtime/audio/synth.ts": 1,
     "src/shards/nalati-grasslands/runtime/index.ts": 2,
     "src/shards/nalati-grasslands/runtime/state.ts": 1,
+    "src/shards/pine-hollow/runtime/index.ts": 7,
     "src/shards/sunscar-dunes/runtime/audio/cues.ts": 1
   },
   "wildshard/shard-sandbox": {

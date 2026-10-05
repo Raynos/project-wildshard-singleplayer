@@ -1815,7 +1815,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2010 exports, grouped by the module to import them from.
+2020 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2049,6 +2049,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
 - `@wildshard/engine/render/look`: `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
 - `@wildshard/engine/render/lut`: `fetchLut`, `LUT_SIZE`
+- `@wildshard/engine/render/nodes/cascadeLightNode`: `EngineDirectionalLightNode`
 - `@wildshard/engine/render/nodes/engineFog`: `engineFog`
 - `@wildshard/engine/render/nodes/engineNodesHandler`: `EngineNodesHandler`, `EpilogueContext`, `EpilogueStage`, `outputTransform`, `targetTexture`
 - `@wildshard/engine/render/nodes/tentShadowFilter`: `tentShadowFilter`
@@ -2120,7 +2121,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/blenderArea`: `BlenderArea`, `blenderAreaFor`, `blenderModelsBase`, `CELL`, `STEP`
 - `@wildshard/engine/world/Boundary`: `Boundary`
 - `@wildshard/engine/world/bounds`: `BoundsHost`, `installBounds`
+- `@wildshard/engine/world/cascadeLights`: `cascadeOf`, `CascadeSet`, `ghostOf`, `isCascadeGhost`, `registerCascades`
 - `@wildshard/engine/world/coarseTileMask`: `coarseTileMask`
+- `@wildshard/engine/world/csmLightBlock`: `patchCSMShaderChunk`
 - `@wildshard/engine/world/dayCycle`: `compassDir`, `DayCycle`, `DayCycleClock`, `DayCycleSpec`, `DayKeys`, `DayPhase`, `LightPreset`, `PhaseListener`, `phaseOfHour`, `ScheduleSeg`, `smooth`, `TimePick`
 - `@wildshard/engine/world/declaredProps`: `DeclaredProps`, `installDeclaredProps`, `InstalledProps`
 - `@wildshard/engine/world/faunaLayout`: `FaunaCell`, `FaunaGroup`, `FaunaLayoutOpts`, `layoutFauna`, `layoutFaunaCells`
@@ -2144,6 +2147,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/pond`: `Water`
 - `@wildshard/engine/world/pondGrid`: `pondGrid`
 - `@wildshard/engine/world/registry`: `activeRegistry`, `boxDesc`, `ColliderDesc`, `DrawnAs`, `installWorldRegistry`, `ModelCategory`, `ModelEntry`, `ModelFacts`, `Piece`, `PieceCategory`, `Pipeline`, `RegisteredModel`, `RegisteredPick`, `RegisteredSet`, `SetPlacement`, `WorldRegistry`
+- `@wildshard/engine/world/shadowFade`: `installShadowFadeChunk`, `ShadowFade`, `sunFadeUniform`
 - `@wildshard/engine/world/shadowFilter`: `installShadowFilter`, `SOFT_RADII`, `tentShadowFilterOn`
 - `@wildshard/engine/world/skyRig`: `shadowRig`, `ShadowRig`, `SkyRig`
 - `@wildshard/engine/world/steppeWind`: `wind`, `Wind`, `WIND_GLSL`

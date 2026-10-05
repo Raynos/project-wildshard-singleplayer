@@ -8082,6 +8082,12 @@
         "from": "@wildshard/engine/render/lut"
       },
       {
+        "name": "EngineDirectionalLightNode",
+        "kind": "class",
+        "doc": "three's directional light node, gated as a cascade where the sky rig registered the light as one",
+        "from": "@wildshard/engine/render/nodes/cascadeLightNode"
+      },
+      {
         "name": "engineFog",
         "kind": "function",
         "doc": "fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off)",
@@ -10468,10 +10474,46 @@
         "from": "@wildshard/engine/world/bounds"
       },
       {
+        "name": "cascadeOf",
+        "kind": "function",
+        "doc": "the cascade a light draws, or undefined for any other light",
+        "from": "@wildshard/engine/world/cascadeLights"
+      },
+      {
+        "name": "CascadeSet",
+        "kind": "interface",
+        "doc": "one sky's cascades: the CSM, its fade ghosts (ghost i belongs to cascade i) and the fade's progress (0 old … 1 settled)",
+        "from": "@wildshard/engine/world/cascadeLights"
+      },
+      {
+        "name": "ghostOf",
+        "kind": "function",
+        "doc": "the fade ghost that belongs to cascade `index` of `set`, if any",
+        "from": "@wildshard/engine/world/cascadeLights"
+      },
+      {
+        "name": "isCascadeGhost",
+        "kind": "function",
+        "doc": "a fade ghost (intensity 0: it only lends its shadow map to its cascade)",
+        "from": "@wildshard/engine/world/cascadeLights"
+      },
+      {
+        "name": "registerCascades",
+        "kind": "function",
+        "doc": "the sky rig's cascades (after the CSM and its fade exist); a light belongs to the last set registered for it",
+        "from": "@wildshard/engine/world/cascadeLights"
+      },
+      {
         "name": "coarseTileMask",
         "kind": "function",
         "doc": "Mask a coarse tile's props by quadrant in one draw per mesh; returns the updater for the hidden quadrants.",
         "from": "@wildshard/engine/world/coarseTileMask"
+      },
+      {
+        "name": "patchCSMShaderChunk",
+        "kind": "function",
+        "doc": "three r186's CSMShader replaces `lights_fragment_begin` with a copy that predates the",
+        "from": "@wildshard/engine/world/csmLightBlock"
       },
       {
         "name": "compassDir",
@@ -11672,6 +11714,24 @@
         "kind": "class",
         "doc": "",
         "from": "@wildshard/engine/world/registry"
+      },
+      {
+        "name": "installShadowFadeChunk",
+        "kind": "function",
+        "doc": "Patch the CSM light loop (three r186 CSMShader, CSM_FADE branch) once, before anything compiles: the loop skips the",
+        "from": "@wildshard/engine/world/shadowFade"
+      },
+      {
+        "name": "ShadowFade",
+        "kind": "class",
+        "doc": "",
+        "from": "@wildshard/engine/world/shadowFade"
+      },
+      {
+        "name": "sunFadeUniform",
+        "kind": "const",
+        "doc": "the fade's progress, 0 = the old direction … 1 = the new (settled); every CSM material shares it",
+        "from": "@wildshard/engine/world/shadowFade"
       },
       {
         "name": "installShadowFilter",

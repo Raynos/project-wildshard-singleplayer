@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2027 members; 830 without a doc line (—).
+2037 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1352,6 +1352,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TerrainPainter` | interface | @wildshard/engine/render/look | a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) |
 | `fetchLut` | function | @wildshard/engine/render/lut | the LUT file's bytes; null (and a warning) when it is missing, unreadable or the wrong size |
 | `LUT_SIZE` | const | @wildshard/engine/render/lut | The one colour-LUT loader (10 §X5): a fitted 33³ RGB lookup, `scripts/fit-lut.py`'s format — 33³ × RGBA8, index |
+| `EngineDirectionalLightNode` | class | @wildshard/engine/render/nodes/cascadeLightNode | three's directional light node, gated as a cascade where the sky rig registered the light as one |
 | `engineFog` | function | @wildshard/engine/render/nodes/engineFog | fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off) |
 | `EngineNodesHandler` | class | @wildshard/engine/render/nodes/engineNodesHandler | three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` |
 | `EpilogueContext` | interface | @wildshard/engine/render/nodes/engineNodesHandler | what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer |
@@ -1749,7 +1750,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Boundary` | class | @wildshard/engine/world/Boundary | the level's edge: cyan light-lines, corner beacons and beams, and a gate across each entry road |
 | `BoundsHost` | interface | @wildshard/engine/world/bounds | — |
 | `installBounds` | function | @wildshard/engine/world/bounds | An authored play area keeps the last grounded registry floor as its soft respawn. |
+| `cascadeOf` | function | @wildshard/engine/world/cascadeLights | the cascade a light draws, or undefined for any other light |
+| `CascadeSet` | interface | @wildshard/engine/world/cascadeLights | one sky's cascades: the CSM, its fade ghosts (ghost i belongs to cascade i) and the fade's progress (0 old … 1 settled) |
+| `ghostOf` | function | @wildshard/engine/world/cascadeLights | the fade ghost that belongs to cascade `index` of `set`, if any |
+| `isCascadeGhost` | function | @wildshard/engine/world/cascadeLights | a fade ghost (intensity 0: it only lends its shadow map to its cascade) |
+| `registerCascades` | function | @wildshard/engine/world/cascadeLights | the sky rig's cascades (after the CSM and its fade exist); a light belongs to the last set registered for it |
 | `coarseTileMask` | function | @wildshard/engine/world/coarseTileMask | Mask a coarse tile's props by quadrant in one draw per mesh; returns the updater for the hidden quadrants. |
+| `patchCSMShaderChunk` | function | @wildshard/engine/world/csmLightBlock | three r186's CSMShader replaces `lights_fragment_begin` with a copy that predates the |
 | `compassDir` | function | @wildshard/engine/world/dayCycle | — |
 | `DayCycle` | class | @wildshard/engine/world/dayCycle | One clock mechanism. Its schedule, paths, curves and look keys belong to content. |
 | `DayCycleClock` | type | @wildshard/engine/world/dayCycle | — |
@@ -1950,6 +1957,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `RegisteredSet` | interface | @wildshard/engine/world/registry | A set (E306 / E315 M7): a named group of placements — a camp, a market square, a kurgan field — explorable as one |
 | `SetPlacement` | interface | @wildshard/engine/world/registry | one `place` call in a set, as Explore reads it (a `Placed`, src/engine/models/place.ts) |
 | `WorldRegistry` | class | @wildshard/engine/world/registry | — |
+| `installShadowFadeChunk` | function | @wildshard/engine/world/shadowFade | Patch the CSM light loop (three r186 CSMShader, CSM_FADE branch) once, before anything compiles: the loop skips the |
+| `ShadowFade` | class | @wildshard/engine/world/shadowFade | — |
+| `sunFadeUniform` | const | @wildshard/engine/world/shadowFade | the fade's progress, 0 = the old direction … 1 = the new (settled); every CSM material shares it |
 | `installShadowFilter` | function | @wildshard/engine/world/shadowFilter | Patch the filter into three's shadow chunk (once, at boot, before any material compiles) and return the shadow map |
 | `SOFT_RADII` | const | @wildshard/engine/world/shadowFilter | [near cascade, far cascade] `shadow.radius`: the 7×7 tent near, the 5×5 beyond (E138, the user: "do the shadows |
 | `tentShadowFilterOn` | function | @wildshard/engine/world/shadowFilter | the tent is installed (the TSL back-end gives node materials the same filter: render/nodes/tentShadowFilter.ts) |
