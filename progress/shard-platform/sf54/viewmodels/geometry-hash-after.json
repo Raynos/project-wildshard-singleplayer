@@ -1,0 +1,10 @@
+{
+ "rifle": "473faea3e4069409 meshes=7 verts=4615",
+ "crossbow": "389a80c1a25e4b58 meshes=14 verts=12008",
+ "bolt": "2de8b887df42d4a2 meshes=1 verts=354",
+ "displayExports": "crossbowDisplayModel",
+ "hands-crossbow": "5c4749de6763d2d0 meshes=4 verts=13794",
+ "hands-plain": "22e745760b38dfd5 meshes=2 verts=10572",
+ "sleeves-hunterPal": "5ca69eb37d23e4dc meshes=3 verts=4373",
+ "handsExports": "BUCKSKIN,COAT_FROM,HANDS_MATERIAL,HUNTER_PAL,WeaponHands,blendGrip,coatMaterialParams,coatTextures,gripPose,gripQuat,handGeometry,holdDef,hunterCoatSleeve,hunterGauntlet,hunterSleeve,withHunterPalette"
+}
