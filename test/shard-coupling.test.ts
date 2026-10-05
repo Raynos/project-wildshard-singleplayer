@@ -89,8 +89,8 @@ describe('SF54 exact kit weapon transfers', () => {
   }
   it('attributes only the two existing kit classes and still counts an extra subclass at the same site', () => {
     const root = transferred(), before = shardCoupling(root);
-    expect(before['nalati-grasslands']?.counts.engineSubclasses).toBe(0);
-    expect(before['pine-hollow']?.counts.engineSubclasses).toBe(0);
+    expect(before['nalati-grasslands']?.counts['engineSubclasses']).toBe(0);
+    expect(before['pine-hollow']?.counts['engineSubclasses']).toBe(0);
     expect(before['nalati-grasslands']?.transfers).toHaveLength(1);
     expect(before['pine-hollow']?.transfers).toHaveLength(1);
     put(root, 'src/shards/nalati-grasslands/weapons/Rifle.ts', "import { Weapon } from '../../../engine/combat/Weapon'; export class Rifle extends Weapon {} export class Extra extends Weapon {}");
