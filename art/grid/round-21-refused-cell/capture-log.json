@@ -1,0 +1,66 @@
+{
+ "a": {
+  "pose": {
+   "x": -290,
+   "y": 1.7,
+   "z": 290,
+   "yaw": 2.356194490192345,
+   "pitch": 0.14
+  },
+  "pick": "template-1",
+  "home": "driftwood-isle",
+  "cells": [
+   "template-1@-1,1",
+   "pine-hollow@0,1",
+   "template-2@1,1",
+   "sunscar-dunes@-1,0",
+   "driftwood-isle@0,0",
+   "nalati-grasslands@1,0",
+   "template-4@-1,-1",
+   "far-reach@0,-1",
+   "template-6@1,-1"
+  ],
+  "dressedAt": [
+   -555,
+   0,
+   555
+  ],
+  "player": [
+   -290,
+   0.02,
+   290,
+   2.36
+  ],
+  "refused": {
+   "cells": [
+    {
+     "instance": "template-1",
+     "look": "void",
+     "refusal": "upgrade"
+    },
+    {
+     "instance": "template-2",
+     "look": "void",
+     "refusal": "upgrade"
+    },
+    {
+     "instance": "template-4",
+     "look": "void",
+     "refusal": "upgrade"
+    },
+    {
+     "instance": "template-6",
+     "look": "void",
+     "refusal": "upgrade"
+    }
+   ]
+  },
+  "softWalls": {
+   "closed": 32,
+   "panel": "template-1"
+  }
+ },
+ "card": {
+  "index": 6
+ }
+}
