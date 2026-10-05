@@ -22,3 +22,30 @@ The packed `1463b1e92` SDK installed with no repository workspace aliases: **27 
 Policy clarification approved by the coordinator: CI/offline validation never passes or fails on contended wall time; it enforces deterministic limits and reports timing. Runtime workers enforce the declared wall deadline, with a bounded first-touch allowance. The template declares 5,000 µs to cover the measured ~1.1 ms Mac maximum and the documented ~2× phone throttle. Overdraw is a conservative pre-camera advisory, not a replacement for actual rendering measurements.
 
 No HUD look/layout/control change, new rendering family or asset look was introduced. SF58 has no G51 content exception. Signed manifests/first-party allowlists remain the plan's MMO note (G41). No owned browser, server, Simulator, gate or push remains.
+
+## Council-3 follow-ups: declared commons costs and raw graph limits
+
+`b46c74540` defines the exact, bounded `commonsCosts` table; `9aa8527d9`
+(sp-x5) wires the main format and SDK facade. `66661398d` and `14b2de582`
+migrate the existing nonempty fixtures without changing assertions.
+`232ddac08` derives selected commons wire and residency metadata from pinned
+bytes again, refusing mutated pins rather than trusting catalogue numbers.
+`f303e1a64` checks declared transitive bundles and the worst-location envelope
+before immutable cache reads, hashing or network requests; actual admitted
+header costs must then equal every declared commons cost field.
+
+The eight admission fixtures prove zero reads on an over-envelope or malformed
+cost table, exact header equality, eleven distinct downloads with a local alias
+sharing its admitted bytes, and a forged stream cancelled at its declared wire
+bound. Four focused files passed 37 checks; ten broader admission/format files
+passed 90/90. The missed product-lease fixture is separately 7/7 green.
+
+`76bda4045` caps untrusted raw graphs before typing: 64,000 UTF-8 JSON bytes,
+depth 64, and all 160 nested nodes, including unreachable nodes and loop bodies.
+It refuses accessors/cycles without invoking them. Eighteen graph checks include
+256 deterministic parser/compiler mutations. Trusted built-in presets keep
+their separate compile budget; material content cannot supply that override.
+`aa49543c2` (sp-x5) records this actual contract in SHARDFILE.md.
+
+These source steps ride the coordinator's serialized clean gate and push; they
+do not widen a policy budget, historical allowance or ratchet ceiling.
