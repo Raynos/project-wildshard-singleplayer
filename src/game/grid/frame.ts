@@ -1,7 +1,6 @@
 /**
- * One frame for the grid (SHARD-PLATFORM SF19a, re-aimed by G158): inside EXPERIMENTAL Wildshard, behind Settings ▸
- * Debug ▸ "Grid one frame" (default off until Jake's yes from the board, G122), the shard you stand in owns the whole
- * frame, and on the road the neutral road look does (`frameModel.ts`). There is no per-pixel region and no shard-id
+ * One frame for the grid (SHARD-PLATFORM SF19a, re-aimed by G158; on for everyone since Jake's G175 pick, E450): inside
+ * EXPERIMENTAL Wildshard the shard you stand in owns the whole frame, and on the road the neutral road look does (`frameModel.ts`). There is no per-pixel region and no shard-id
  * buffer: one look per frame, blended across 16 m at the cell edge.
  *
  * - **One clock, one sky, one sun**: the home look's backdrop is the world clock and draws the one dome and key light;
@@ -13,14 +12,18 @@
  *   LUT) fade with the home's weight (their blend opacity), and one small effect appended to the engine's one colour
  *   pass applies the rest of the frame's grade (a neighbour owner's declared exposure / saturation / contrast / tint,
  *   the road's G75 grey-blue) uniformly. No extra pass, no extra target.
+ * - **The road's sky** (G165, Jake: "A, road light over everything"): on the road the home look's sky gives way to the
+ *   road's own calm grey-blue dome (`roadSky.ts`, the road owner's first stack), so neighbours and sky alike sit under the
+ *   road look; a shard's own sky shows only once you are inside its cell (blended across the edge band).
  * - **Owner stacks** (`FrameStack`): each owner may hang a stack on the frame that is told its weight every frame. The
  *   home's grade fade is the first; SF59's per-shard post stacks (catalogue effects as data) hang here the same way.
- * Select a shard never builds this (grid page mode only), and with the row off nothing here is installed.
+ * Select a shard never builds this (grid page mode only).
  */
 import { Color, Uniform, Vector3, type Camera, type Scene } from 'three';
 import { BlendFunction, Effect, EffectPass, LUT3DEffect, type EffectComposer } from 'postprocessing';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { FarProxyView } from './farView';
+import { RoadSky } from './roadSky';
 import { NEUTRAL_GRADE, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
 /** What the frame reads from the page: the scene and camera, the engine's composer and its grade effects (late-bound). */
@@ -45,6 +48,8 @@ export interface GridFrameState {
   readonly air: readonly [number, number, number];
   /** the frame's own grade on top of the home's: exposure, saturation, contrast, then the tint */
   readonly grade: readonly [number, number, number, number, number, number];
+  /** the road sky's drawn opacity (G165: 1 on the road, 0 inside a cell) */
+  readonly roadSky: number;
 }
 
 /**
@@ -127,6 +132,7 @@ export class GridFrame {
   /** owner (an instance, or null for the road) → its stacks */
   private readonly stacks = new Map<string | null, Set<FrameStack>>();
   private readonly effect = new FrameGradeEffect();
+  private readonly roadSky = new RoadSky();
   private readonly restore: (() => void)[] = [];
   private faded = 0;
   private installed = false;
@@ -135,6 +141,7 @@ export class GridFrame {
   private readonly air = new Color();
   private readonly homeFog = new Color();
   private readonly written = new Color(Number.NaN, Number.NaN, Number.NaN);
+  private readonly eye = new Vector3();
 
   constructor(options: { host: GridFrameHost; scope: Scope; cells: readonly FrameCell[]; home: FrameCell; half: number; band?: number; feet: () => { readonly x: number; readonly z: number } }) {
     const { host, scope, home } = options;
@@ -143,8 +150,11 @@ export class GridFrame {
     // the scene fog is the owner's air while the scene draws (the backdrop has written its own by then)
     const prev = host.scene.onBeforeRender.bind(host.scene);
     host.scene.onBeforeRender = (...args) => { this.beforeScene(); prev(...args); };
+    // G165: the road's own sky, its opacity the road's weight
+    const detachSky = this.roadSky.attach(host.scene);
+    this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
     scope.onDispose(() => {
-      host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose();
+      host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); detachSky(); this.roadSky.dispose();
       for (const set of this.stacks.values()) for (const stack of set) stack.dispose?.();
       this.stacks.clear();
     });
@@ -216,6 +226,7 @@ export class GridFrame {
     this.air.setRGB(r, g, b);
     if (live !== null) { live.copy(this.air); this.written.copy(this.air); }
     for (const view of this.proxies) view.hazeColour(this.air);
+    this.roadSky.frame(this.host.camera.getWorldPosition(this.eye), this.air);
   }
 
   /** The readout. */
@@ -226,6 +237,7 @@ export class GridFrame {
       weights: Object.fromEntries([...this.weights.cells].map(([k, w]) => [k, round(w)])),
       air: [round(this.air.r), round(this.air.g), round(this.air.b)],
       grade: [round(g.exposure), round(g.saturation), round(g.contrast), round(g.tint[0]), round(g.tint[1]), round(g.tint[2])],
+      roadSky: round(this.roadSky.drawn),
     };
   }
 }

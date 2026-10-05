@@ -1,0 +1,72 @@
+{
+  "road-off": null,
+  "aerial-off": null,
+  "inside-off": null,
+  "road-on": {
+    "installed": true,
+    "faded": 4,
+    "owner": null,
+    "highway": 1,
+    "weights": {},
+    "air": [
+      0.523,
+      0.693,
+      0.843
+    ],
+    "grade": [
+      0,
+      0.8,
+      1,
+      0.95,
+      0.99,
+      1.07
+    ],
+    "roadSky": 1
+  },
+  "aerial-on": {
+    "installed": true,
+    "faded": 4,
+    "owner": null,
+    "highway": 0.908,
+    "weights": {
+      "nalati-grasslands": 0.092
+    },
+    "air": [
+      0.532,
+      0.701,
+      0.856
+    ],
+    "grade": [
+      0,
+      0.818,
+      1,
+      0.955,
+      0.991,
+      1.064
+    ],
+    "roadSky": 0.908
+  },
+  "inside-on": {
+    "installed": true,
+    "faded": 4,
+    "owner": "driftwood-isle",
+    "highway": 0,
+    "weights": {
+      "driftwood-isle": 1
+    },
+    "air": [
+      0.36,
+      0.7,
+      1
+    ],
+    "grade": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "roadSky": 0
+  }
+}

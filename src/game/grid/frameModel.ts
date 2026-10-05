@@ -32,6 +32,12 @@ export const NEUTRAL_GRADE: RegionGrade = { exposure: 0, saturation: 1, contrast
 export const HIGHWAY_GRADE: RegionGrade = { exposure: 0, saturation: 0.8, contrast: 1, tint: [0.95, 0.99, 1.07] };
 /** The neutral road look: its grey-blue grade, and its air is the home horizon with half its colour taken out. */
 export const HIGHWAY_LOOK = { grade: HIGHWAY_GRADE, fogDesaturate: 0.5 } as const;
+/**
+ * G165 (Jake: "A, road light over everything"): the road's own sky, which replaces the home look's sky while the player is
+ * on the road (`roadSky.ts`). Its horizon is the frame's air; its zenith a calm grey-blue (linear RGB, sRGB #7da2c6) with
+ * `zenithAir` of the air mixed in, so it always sits with the road's haze.
+ */
+export const ROAD_SKY = { zenith: [0.205, 0.361, 0.565] as const, zenithAir: 0.25 } as const;
 
 /** A grade with every field present (the frame's blended grade). */
 export interface FullGrade { readonly exposure: number; readonly saturation: number; readonly contrast: number; readonly tint: readonly [number, number, number] }

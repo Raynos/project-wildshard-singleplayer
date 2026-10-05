@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { PerspectiveCamera, type Uniform } from 'three';
+import { Fog, PerspectiveCamera, Scene, type Uniform } from 'three';
 import { BlendFunction, Effect, EffectPass } from 'postprocessing';
 import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
-import { FrameGradeEffect, opacityFade, passEffects } from '../src/game/grid/frame';
+import { FrameGradeEffect, GridFrame, opacityFade, passEffects } from '../src/game/grid/frame';
+import { ROAD_SKY_ORDER } from '../src/game/grid/roadSky';
+import { Scope } from '../src/engine/app/scope';
 
 // SHARD-PLATFORM SF19a re-aimed by G158: the shard the player stands in owns the whole frame, the road look the road
 const pitch = 555, half = 250;
@@ -88,5 +90,21 @@ describe('grid frame grade pieces', () => {
     if (list === null) throw new Error('no effect list');
     list.push(grade);
     expect(passEffects(pass)).toBe(list); expect(passEffects(pass)).toContain(grade);
+  });
+  it('G165: on the road the road sky covers the home sky (full), inside a cell it is not drawn, blended across the band', () => {
+    const scene = new Scene(), camera = new PerspectiveCamera(), scope = new Scope('g165-road-sky');
+    scene.fog = new Fog(0x88aacc, 10, 100);
+    const feet = { x: 0, z: 0 }, home = cells[4];
+    if (home === undefined) throw new Error('no home cell');
+    const frame = new GridFrame({ host: { scene, camera, composer: () => { throw new Error('not built'); }, post: () => null }, scope, cells, home, half, feet: () => feet });
+    const sky = scene.getObjectByName('road-sky');
+    expect(sky?.renderOrder).toBe(ROAD_SKY_ORDER);
+    const at = (x: number, z: number): number => { feet.x = x; feet.z = z; frame.frame(); return frame.state().roadSky; };
+    expect(at(0, 0)).toBe(0); expect(sky?.visible).toBe(false);          // inside the home cell: its own sky
+    expect(at(half + 27.5, 0)).toBe(1); expect(sky?.visible).toBe(true); // mid-strip on the road
+    expect(at(half, 0)).toBeCloseTo(0.5, 2);                            // on the cell edge: half and half
+    expect(at(pitch, 0)).toBe(0);                                       // inside a neighbour: no road sky
+    scope.dispose();
+    expect(scene.getObjectByName('road-sky')).toBeUndefined();
   });
 });
