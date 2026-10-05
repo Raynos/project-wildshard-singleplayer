@@ -65,6 +65,7 @@ export class LiveGridHost {
   private readonly cacheLease: ResidencyLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
   private readonly issues = new Map<string, string>();
+  private readonly refusals = new Map<string, unknown>();
   private readonly frames = new Set<() => void>();
   private readonly transitions: { from: string | null; to: string | null }[] = [];
   private crossings = 0;
@@ -184,7 +185,7 @@ export class LiveGridHost {
         lease.update({ needed: false, distance: this.distance(cell) });
       } catch (error) { try { region?.dispose(); } finally { lease.release(); } throw error; }
     } catch (error) {
-      this.readiness.invalidate(instance); this.issues.set(instance, error instanceof Error ? error.message : String(error));
+      this.readiness.invalidate(instance); this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
       throw error;
@@ -193,7 +194,9 @@ export class LiveGridHost {
   }
   private distance(cell: GridCell): number { const p = this.worldFeet(); return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
-  retry(instance: string): void { if (this.requests.has(instance)) throw new Error('Live admission is still pending'); this.issues.delete(instance); this.readiness.invalidate(instance); }
+  retry(instance: string): void { if (this.requests.has(instance)) throw new Error('Live admission is still pending'); this.issues.delete(instance); this.refusals.delete(instance); this.readiness.invalidate(instance); }
+  /** Preserve the original error identity for classified UI, instead of inferring failure type from a message. */
+  refusal(instance: string): unknown { return this.refusals.get(instance); }
   /** Before the existing page physics/player step: radial requests are U-turn safe, and current-world walls synchronize first. */
   beforeFixed(): void {
     if (this.disposed) return;

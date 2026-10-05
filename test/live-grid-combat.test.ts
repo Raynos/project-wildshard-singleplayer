@@ -58,6 +58,12 @@ it('gates real page and fresh/restored regional combat at geometry, irrespective
         expect(pageCombat.hit({ source: pageAnimal.combatActor(), sourceTags: [], target: page.player.health, amount: 1, point: traveller.position, dir: new Vector3() })?.dealt).toBe(1);
       }
     }
+    const originalRefusal = new TypeError('Fixture transport refused');
+    product.mockReturnValueOnce(Promise.reject(originalRefusal));
+    await expect(session.live.prefetch([target.instance])).rejects.toBe(originalRefusal);
+    expect(session.refusal(target.instance)).toBe(originalRefusal);
+    session.live.retry(target.instance);
+    expect(session.refusal(target.instance)).toBeUndefined();
     await session.live.prefetch([target.instance]);
     for (const restored of [false, true]) {
       if (restored) { expect(session.live.unload(target.instance)).toBe(true); await session.live.prefetch([target.instance]); }

@@ -11,6 +11,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { ReadinessWalls, type ReadinessEdge } from '../src/engine/physics/readinessWalls';
 import { installEntrySockets } from '../src/engine/physics/entrySockets';
 import { installGridBorders } from '../src/engine/physics/gridBorders';
+import { TransferWalls } from '../src/engine/physics/transferWalls';
 import { groups } from '../src/engine/physics/groups';
 import { tagOf } from '../src/engine/physics/surface';
 import { PLATFORM_COLLIDER_OWNER } from '../src/engine/physics/stripColliders';
@@ -60,7 +61,7 @@ function rimEdges(): ReadinessEdge[] {
 function socketHandles(sim: simulation.ShardfileSimulation): number[] {
   const handles: number[] = [];
   sim.host.physics.world.forEachCollider((collider) => {
-    if (tagOf(collider)?.owner === PLATFORM_COLLIDER_OWNER) {
+    if (tagOf(collider)?.owner === PLATFORM_COLLIDER_OWNER && tagOf(collider)?.material === 'stone') {
       expect(tagOf(collider)?.material).toBe('stone');
       expect(collider.translation().y).toBeCloseTo(-0.13, 6); // Rapier translation is float32
       handles.push(collider.handle);
@@ -80,9 +81,10 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     options: { base: 'https://fixture.invalid/', offline: false, firstParty: true, fetch: () => Promise.reject(new Error('No fixture network')), hash: () => Promise.reject(new Error('Already admitted')) } }));
   const regions: simulation.ShardfileSimulation[] = [], create = simulation.createShardfileSim;
   let pageScope: Scope | undefined;
-  vi.spyOn(simulation, 'createShardfileSim').mockImplementation((...args) => {
+  const created = vi.spyOn(simulation, 'createShardfileSim').mockImplementation((...args) => {
     const sim = withOwner(pageScope ?? null, () => create(...args)); regions.push(sim); return sim;
   });
+  const rebound = vi.spyOn(simulation, 'bindShardfileSim'), toast = vi.fn(), devAlert = vi.fn();
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
@@ -103,7 +105,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     const session = withOwner(scope, () => new LiveGridSession({ assembly, home, physics: pageHost.physics, scope, walls: new ReadinessWalls(pageHost.physics, [], scope),
       strips: [], allocator, neighbourEdges, rimEdges }, {
       traveller, health: pageHost.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: pageHost.events,
-      saves: store, checkpoint: () => homeDurable, catalogue: [], setPhysics: (physics) => { currentPhysics = physics; },
+      saves: store, checkpoint: () => homeDurable, catalogue: [], scriptNotices: { toast: text => { toast(text); }, devAlert: text => { devAlert(text); } }, setPhysics: (physics) => { currentPhysics = physics; },
       onFixedPre: (fn) => { pre.push(fn); }, onFixedPost: (fn) => { post.push(fn); }, onInput: () => undefined, onUpdate: () => undefined,
     }));
     return { session, scope, traveller, allocator, dismount, tick: () => withOwner(scope, () => { for (const fn of pre) fn(); currentPhysics.step(); for (const fn of post) fn(); }) };
@@ -123,6 +125,11 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     await first.session.live.prefetch([target.instance]);
     const admitted = first.session.simulation(target.instance);
     if (admitted === undefined) throw new Error('Missing admitted socket world');
+    const freshNotice = created.mock.calls.at(-1)?.[2].scriptDisabled;
+    if (freshNotice === undefined) throw new Error('Missing fresh regional notice');
+    freshNotice({ module: 'door.wasm', entity: 'door', reason: 'out of fuel', failures: 3 });
+    freshNotice({ module: 'other.wasm', entity: 'door', reason: 'script trap', failures: 3 });
+    expect(toast).toHaveBeenCalledOnce(); expect(devAlert).toHaveBeenCalledTimes(2);
     const sockets = socketHandles(admitted); expect(sockets).toHaveLength(4);
     const borders = borderHandles(admitted); expect(borders).toHaveLength(4);
     const boundaryActor = admitted.host.entities.get('grey-blob:1');
@@ -170,6 +177,8 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     const basisWithoutBorders = freshBasis.host.physics.snapshot().byteLength;
     installGridBorders(freshBasis.host.physics, freshBasis.host.scope);
     expect(freshBasis.host.physics.snapshot().byteLength - basisWithoutBorders).toBeLessThan(4096);
+    const transfer = new TransferWalls(() => freshBasis.host.physics, [{ x: 0, z: 0 }], first.traveller.motor.opts.radius, 'exit', freshBasis.host.scope);
+    freshBasis.host.onStep('platform.transferWalls', () => undefined, { snapshot: () => transfer.snapshot(), restore: value => { transfer.restore(value); } });
     try { reload.setPhysicsBasis(freshBasis.host.physics.snapshot()); } finally { freshBasis.dispose(); }
     expect(reload.read()?.flags).toContain('template.complete'); expect(reload.wallet.coins()).toBe(5);
     expect(Object.values(reload.ledger.state().facts)).toHaveLength(1);
@@ -182,6 +191,10 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     expect(first.session.simulation(target.instance)?.host.flags.has('template.complete')).toBe(true);
     const restored = first.session.simulation(target.instance);
     if (restored === undefined) throw new Error('Missing restored socket world');
+    const restoredNotice = rebound.mock.calls.at(-1)?.[3].scriptDisabled;
+    if (restoredNotice === undefined) throw new Error('Missing exact-restored regional notice');
+    restoredNotice({ module: 'door.wasm', entity: 'door', reason: 'out of fuel', failures: 3 });
+    expect(toast).toHaveBeenCalledTimes(2); expect(devAlert).toHaveBeenCalledTimes(3);
     expect(socketHandles(restored)).toEqual(sockets); // restored tags/handles, four floors, zero duplicate allocation
     expect(borderHandles(restored)).toEqual(borders); // exact restore reconnects four walls without allocating more
     expect([...restored.host.entities.values()].every((actor) => actor.motionConstraint !== null)).toBe(true);

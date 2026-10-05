@@ -138,6 +138,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
   // The installed play owner confirms its progress and pack writes; source clients supply their own durable handoff.
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
+    scriptNotices: { toast: (text) => { hud.toast(text, 'warn'); }, devAlert: (text) => { hud.devAlert(text); } },
     saves: app.saves, ...(authoredBounds === undefined ? {} : { homeFallFloor: authoredBounds.floor }), checkpoint: legacyHomeCheckpoint(() => boot.runtime.play), catalogue: [],
     setPhysics: (physics) => { world.physics = physics; app.physics = physics; },
     onFixedPre: (fn) => { game.onFixed('pre', fn, 'game.grid.live.pre'); }, onFixedPost: (fn) => { game.onFixed('post', fn, 'game.grid.live.post'); },
