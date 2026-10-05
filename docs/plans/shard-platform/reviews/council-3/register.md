@@ -56,13 +56,13 @@ B = Codex (evidence: every claim, path, SHA and number checked), C = Claude (red
 | C3-R2-B4 | 2 | B | should-fix | SF46; Handoff 2 | Live text still orders the sea-only change | fixed (round-2 commit) | G134 sentence marked superseded; Handoff 2 points at G164 |
 | C3-R2-B5 | 2 | B | nit | §5; §6 | SF56 still reads pending after G163 | fixed (round-2 commit) | shipped `e894412ca` |
 | C3-R2-B6 | 2 | B | nit | SF56 | Label size claim is not uniform | fixed (round-2 commit) | the clamp and supported sizes recorded |
-| C3-R2-C1 | 2 | C | must-fix · Jake | SF46; SF8c | After G164 the validator refuses every Driftwood entry | needs pick (2026-10-04) | asked; came back "Skip for now" (suspected stray Enter); recommendation the platform deck socket + `sea` clip; the lane holds the entries |
+| C3-R2-C1 | 2 | C | must-fix · Jake | SF46; SF8c | After G164 the validator refuses every Driftwood entry | decided by Jake | G170: road decks over the water |
 | C3-R2-C2 | 2 | C | should-fix | SF46 | How the player walks from the socket onto the island | fixed (round-2 commit) | pier ramps ≥ 8 m at ≤ 8°, or a deck to dry ground |
 | C3-R2-C3 | 2 | C | must-fix | SF46; SF33 | G164 changes the physics basis; old saves refuse | fixed (round-2 commit) | revision bump, logical migration, un-offset poses, toggle fixtures |
 | C3-R2-C4 | 2 | C | should-fix | SF46 | A root offset misses code that reads heights directly | fixed (round-2 commit) | offset in the height and water sources + ray fixture |
 | C3-R2-C5 | 2 | C | should-fix | SF46; Handoff 2 | G134 text survives next to G164 | fixed (round-2 commit) | as B4 |
 | C3-R2-C6 | 2 | C | must-fix | SF57b | A fourth reload path ignores the three that exist | fixed (round-2 commit) | reloadGuard `planned`, attempt marker, boot precedence, GpuRecovery |
-| C3-R2-C7 | 2 | C | must-fix · Jake | SF57b; G159 | Fade-reload never fires for a road-only drive | fixed (round-2 commit); remedy needs pick (2026-10-04) | road-only leg added; if it climbs, Developer-only and to Jake (asked; "Skip for now"; recommendation a roundabout trigger) |
+| C3-R2-C7 | 2 | C | must-fix · Jake | SF57b; G159 | Fade-reload never fires for a road-only drive | decided by Jake | road-only leg added; G171: never reload, a retention failure becomes a content-cut board |
 | C3-R2-C8 | 2 | C | should-fix | SF57b | The harness forbids the navigation SF57b needs | fixed (round-2 commit) | reload-aware soak mode |
 | C3-R2-C9 | 2 | C | should-fix | SF57b | Map coverage, vitals and late pagehide writes | fixed (round-2 commit) | carried in the handoff; ticks frozen; pagehide no-op |
 | C3-R2-C10 | 2 | C | should-fix | SF57b; §6 | No route if SF57b's own soak fails | fixed (round-2 commit) | both verdicts recorded; cut candidates to Jake; needs pick counts as Jake's gate |

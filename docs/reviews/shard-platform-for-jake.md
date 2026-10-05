@@ -15,10 +15,4 @@
 | SF48 Nalati look board (G148; not made yet) | Nalati's grid-ready look: OK? | ship only if the board matches | SF48-g, the public grid |
 | SF55 Blender Template board (G161, G162; not built yet) | Its accent and grid slot | `teal`, the DEVSERVER slot (−1, −1) | SF55 |
 | SF57 soak verdict (info, not a pick) | Continuous, or fade-reload at shard exits? | whatever the soak records; SF57b is built default-off either way (G159) | SF22, M2 |
-| E449 M1 fade-reload look: `art/grid/round-16-fade-reload/board.jpg` | A black dip, B cyan grid sweep, C the LEAVING card? | C | SF57b |
-| E449 M2 view from the road: `art/grid/round-17-road-view/board.jpg` | A road light, B each cell's sky, C haze curtains? | A | SF19a / SF19b |
-| E449 M3 Blender Template look: `art/blender-template/round-1-concept/board.jpg` | A dev map, B clay + one textured door, C textured ruin? | B | SF55 |
-| E449 M4 refused cell: `art/grid/round-18-refused-cell/board.jpg` | A void + sign, B frozen proxy, C sealed gate (+ the card)? | A + the card | SF58 |
-| C3-R2-C1 Driftwood entries over water after G164 | The road's 15 m entry piece as a deck at y = 0 over the sea? | yes, the deck | SF46-g |
-| C3-R2-C7 road-only memory climb | If the road-only soak leg climbs: a roundabout fade-reload trigger? | yes, built default-off | SF57b |
 | SF22c | Your normal INFINITE WILDSHARD playtest: three crossroads runs, no tab kill | no chore, just play | the format freeze, M2 |

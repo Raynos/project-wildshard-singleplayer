@@ -51,4 +51,4 @@ Order: M1–M4 are one batch (four questions); M5–M6 the next.
 | Item | Status |
 |---|---|
 | Wave 0 | answered 2026-10-04: 0a B, the dev map (G163); 0b neither option: lower the whole world 0.8 m, sea and island together (G164) |
-| M1–M6 | made 2026-10-04 (`c953c7a0f`); M1–M4 asked: all four came back "Skip for now" (suspected stray Enter), so `needs pick (2026-10-04)`, re-asked in plain chat; M5–M6 not asked yet |
+| M1–M6 | made 2026-10-04 (`c953c7a0f`); answered 2026-10-04 (the first "Skip for now" answers were Codex panes' stray Enters): M1 C, moot (G171: the grid never reloads); M2 A (G165); M3 B (G166); M4 B falling back to A (G167); M5 A + the Developer banner (G168); M6 B + C (G169) |
