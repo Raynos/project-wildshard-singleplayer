@@ -4,7 +4,7 @@
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
 // A long-lived parent retains both previews. --prepare writes its manifest and waits for <directory>/GO.
-// Continuous mode forbids navigation. Fade-reload mode accepts only witnessed production exits. No manual eviction or GC.
+// No document navigation, manual eviction or GC is allowed between drive start and the final leak census.
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
@@ -15,7 +15,6 @@ import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak } from './route.ts';
 import { installSoakDrive } from './drive.mjs';
-import { resumeSoakDocument, SoakDocuments } from './documents.ts';
 
 const root = resolvePath(import.meta.dirname, '../..');
 const flag = (name, fallback = '') => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -27,8 +26,7 @@ const run = (command, args, options = {}) => new Promise((resolve, reject) => {
 });
 function inspector(url) {
   const ws = new WebSocket(url), pending = new Map();
-  let serial = 0, target = null, closed = false;
-  ws.addEventListener('close', () => { closed = true; });
+  let serial = 0, target = null;
   const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
   const receive = (message) => {
     const waiter = pending.get(message.id);
@@ -37,15 +35,11 @@ function inspector(url) {
   ws.addEventListener('message', (event) => {
     const message = JSON.parse(String(event.data));
     if (message.method === 'Target.targetCreated' && message.params.targetInfo.type === 'page') target = message.params.targetInfo.targetId;
-    else if (message.method === 'Target.didCommitProvisionalTarget') {
-      target = message.params.newTargetId;
-      for (const waiter of pending.values()) { clearTimeout(waiter.timer); waiter.reject(new Error('Safari provisional target committed')); }
-      pending.clear();
-    }
+    else if (message.method === 'Target.didCommitProvisionalTarget') target = message.params.newTargetId;
     else if (message.method === 'Target.dispatchMessageFromTarget') receive(JSON.parse(message.params.message));
     else receive(message);
   });
-  return { opened, get closed() { return closed; }, close: () => ws.close(), evaluate: async (expression) => {
+  return { opened, close: () => ws.close(), evaluate: async (expression) => {
     const result = await new Promise((resolve, reject) => {
       const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error('Safari inspector timeout')); }, 10000);
       pending.set(id, { resolve, reject, timer });
@@ -77,16 +71,14 @@ async function until(driver, expression, timeout = 240000, observe = () => Promi
 async function worker() {
   const udid = process.env.SIM_UDID;
   if (!udid) throw new Error('Run the worker inside scripts/sim-lane.sh');
-  const base = flag('base'), layout = flag('layout'), out = flag('out'), sha = flag('rev'), leg = flag('leg', 'cells'), mode = flag('mode', 'continuous');
+  const base = flag('base'), layout = flag('layout'), out = flag('out'), sha = flag('rev'), leg = flag('leg', 'cells');
   if (leg !== 'cells' && leg !== 'road') throw new Error('Unknown soak leg');
-  if (mode !== 'continuous' && mode !== 'fade-reload') throw new Error('Unknown soak mode');
   const name = `${layout}-${leg}`;
-  const documents = new SoakDocuments(mode === 'fade-reload'), runId = `${sha}:${name}:${mode}`;
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
   const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
   const glFile = join(out, `${name}-gl.jsonl`), glRows = [];
   writeFileSync(glFile, '');
-  const result = { schema: 2, purpose: 'REHEARSAL: conversions not prepared', engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, leg, mode, boots: documents.boots, device: udid, surface: 'iPhone 17 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], leak: null };
+  const result = { schema: 2, purpose: 'REHEARSAL: conversions not prepared', engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, leg, device: udid, surface: 'iPhone 17 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], leak: null };
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
   const collectGl = async () => {
@@ -111,11 +103,7 @@ async function worker() {
     await driver.evaluate(`setTimeout(()=>location.replace(${JSON.stringify(gameUrl)}),100);true`);
     driver.close(); driver = null;
     driver = await connect(`${base}sf57-safari.html`);
-    await until(driver, 'Boolean(window.__sf57DocumentId)', 30000, collectGl);
-    result.documentId = await driver.evaluate('window.__sf57DocumentId');
-    documents.observe(result.documentId, await driver.evaluate('performance.timeOrigin/1000'));
     await until(driver, `Boolean(window.__wildshard?.shard?.grid?.simulation && !document.querySelector('.ws-load'))`, 240000, collectGl);
-    documents.ready(Date.now() / 1000);
     result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;w.hud.enterNow();return {href:location.href,clock:w.game.app.clock.mode,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state()};})()`);
     if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2) throw new Error('Soak must use live clock and 2x render scale');
     const cells = result.metadata.state.cells;
@@ -132,26 +120,12 @@ async function worker() {
     result.windows.push({ cycle: 0, start: initialStart, end: Date.now() / 1000 });
     phase('drive');
     const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString();
-    await driver.evaluate(`(${installSoakDrive.toString()})(${JSON.stringify(result.route)},1800,null,${JSON.stringify(runId)})`);
+    await driver.evaluate(`(${installSoakDrive.toString()})(${JSON.stringify(result.route)},1800)`);
     let windowStart = null;
     for (;;) {
-      await sleep(1000);
-      try { await collectGl(); }
-      catch (error) {
-        if (mode !== 'fade-reload' || (!driver.closed && !String(error).includes('provisional target'))) throw error;
-        driver.close(); driver = await connect(base);
-      }
-      const documentId = await driver.evaluate('window.__sf57DocumentId');
-      if (documentId !== result.documentId) {
-        documents.observe(documentId, await driver.evaluate('performance.timeOrigin/1000')); phase('loading');
-        await until(driver, `Boolean(window.__wildshard?.shard?.grid?.simulation && !document.querySelector('.ws-load') && !document.querySelector('.ws-grid-reload.opaque'))`, 10000, collectGl);
-        const resumed = await driver.evaluate(`({saved:JSON.parse(sessionStorage.getItem('sf57.drive')??'null'),planned:window.__sf57WasPlanned===true})`);
-        const continuation = resumeSoakDocument(resumed.saved, runId, result.route.steps.length, resumed.planned);
-        await driver.evaluate(`(${installSoakDrive.toString()})(${JSON.stringify(result.route)},1800,${JSON.stringify(continuation)},${JSON.stringify(runId)});window.__sf57.events.push(...${JSON.stringify(continuation.events)});sessionStorage.removeItem('sf57.drive');true`);
-        result.documentId = documentId; documents.ready(Date.now() / 1000); phase('drive');
-      }
+      await sleep(1000); await collectGl();
       const state = await driver.evaluate(`(() => {const s=window.__sf57;return {done:s.done,elapsed:s.elapsed,cycles:s.cycles,index:s.index,state:s.state,events:s.events.splice(0),errors:window.__sf57Errors,documentId:window.__sf57DocumentId};})()`);
-      if (state.documentId !== result.documentId) throw new Error('Unobserved soak document replacement');
+      if (state.documentId !== result.documentId && result.documentId !== undefined) throw new Error('Document changed during the soak');
       result.documentId = state.documentId; result.seconds = state.elapsed; result.circuits = state.cycles; result.lastState = state.state;
       for (const event of state.events) {
         result.events.push(event);
@@ -159,13 +133,13 @@ async function worker() {
         if (event.type === 'eviction') result.evictions.push(event);
         if (event.type === 'crossroads') result.crossroads.push(event.id);
         if (event.type === 'failure') result.errors.push(event.error);
-        if (event.type === 'settle-start') { windowStart = { cycle: event.cycle + 1, start: event.at + 10 }; phase(`settle-${event.cycle + 1}`); }
-        if (event.type === 'settle-end' && windowStart) { result.windows.push({ ...windowStart, end: event.at }); windowStart = null; phase('drive'); }
+        if (event.type === 'settle-start') { windowStart = { cycle: event.cycle + 1, start: driveStart / 1000 + event.seconds + 10 }; phase(`settle-${event.cycle + 1}`); }
+        if (event.type === 'settle-end' && windowStart) { result.windows.push({ ...windowStart, end: driveStart / 1000 + event.seconds }); windowStart = null; phase('drive'); }
       }
       result.errors = [...new Set([...result.errors, ...state.errors])];
       if (Math.floor(state.elapsed) % 60 === 0) console.log(JSON.stringify({ layout, seconds: state.elapsed, cycle: state.cycles, waypoint: state.index, current: state.state?.live?.live?.current, evictions: result.evictions.length }));
       if (state.done) break;
-      if (Date.now() - driveStart > 1850000 + documents.boots.reduce((sum, boot) => sum + boot.seconds * 1000, 0)) throw new Error('Drive exceeded active-play deadline');
+      if (Date.now() - driveStart > 1850000) throw new Error('Drive exceeded real-time deadline');
     }
     phase('unloaded');
     await driver.evaluate(`window.__sf57.stop();window.__wildshard.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true`);
@@ -200,12 +174,12 @@ async function worker() {
   console.log(JSON.stringify({ layout, ...result.grade, failure: result.failure }));
 }
 async function drivePrepared(manifest) {
-  const { sha, out, bases, mode = 'continuous' } = manifest;
+  const { sha, out, bases } = manifest;
   while (!existsSync(join(out, 'GO'))) await sleep(1000);
   for (const { layout, base } of bases) {
     for (const leg of ['cells', 'road']) {
       await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', '40', `sf57-sp-x1-${layout}-${process.pid}`, process.execPath, import.meta.filename,
-        '--worker', `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--mode=${mode}`, `--out=${out}`, `--rev=${sha}`], { cwd: out, echo: true });
+        '--worker', `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`], { cwd: out, echo: true });
     }
   }
   console.log(`SF57 DONE ${out}`);
@@ -213,26 +187,20 @@ async function drivePrepared(manifest) {
 async function closePreviews(bases) {
   for (const { base } of bases) await run(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port]).catch(() => undefined);
 }
-function writeHelper(base, layout, mode) {
+function writeHelper(base, layout) {
   const record = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
-  const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8').replace(/<script data-sf57>[\s\S]*?<\/script>/u, '');
+  const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto' } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' }),
-    saveFixtureCode({ scope: 'device', key: 'debug.global.gridOneFrame', data: 'on' }),
-    saveFixtureCode({ scope: 'device', key: 'debug.global.gridFadeReload', data: mode === 'fade-reload' ? 'on' : 'off' })].join(';');
-  const instrumentation = `${GL_INIT};(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();try {const pending=JSON.parse(localStorage.getItem('wildshard.save.v2.device')??'{}').keys?.['grid.reload.once']?.data;window.__sf57WasPlanned=pending?.mode==='grid'&&(pending.attempt??0)===0;}catch{window.__sf57WasPlanned=false;}`;
-  const pins = `${instrumentation};${fixtures};${saveFixtureCode({ scope: 'device', key: 'gridIntent.once', data: { instance: 'driftwood-isle', slug: 'driftwood-isle', at: 0 } })};(() => {const key='wildshard.save.v2.device',doc=JSON.parse(localStorage.getItem(key));doc.keys['gridIntent.once'].data.at=Date.now();doc.keys['titleArrival.once']={v:1,data:{slug:'driftwood-isle',mode:'enter',at:Date.now()}};localStorage.setItem(key,JSON.stringify(doc));})();`;
-  // Every replacement runs the census before renderer creation. Only the initial helper writes settings and a tap intent.
-  writeFileSync(join(dist, 'index.html'), html.replace('<head>', `<head><script data-sf57>${instrumentation}</script>`));
-  writeFileSync(join(dist, 'sf57-safari.html'), html.replace('<head>', `<head><script data-sf57>${pins}</script>`));
+    saveFixtureCode({ scope: 'device', key: 'debug.global.gridOneFrame', data: 'on' })].join(';');
+  const pins = `${GL_INIT};(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};${saveFixtureCode({ scope: 'device', key: 'gridIntent.once', data: { instance: 'driftwood-isle', slug: 'driftwood-isle', at: 0 } })};(() => {const key='wildshard.save.v2.device',doc=JSON.parse(localStorage.getItem(key));doc.keys['gridIntent.once'].data.at=Date.now();doc.keys['titleArrival.once']={v:1,data:{slug:'driftwood-isle',mode:'enter',at:Date.now()}};localStorage.setItem(key,JSON.stringify(doc));})();`;
+  writeFileSync(join(dist, 'sf57-safari.html'), html.replace('<head>', `<head><script>${pins}</script>`));
 }
 async function prepare() {
   const sha = execFileSync('git', ['rev-parse', flag('rev', 'origin/main')], { cwd: root, encoding: 'utf8' }).trim();
   const out = resolvePath(flag('out', `/private/tmp/claude-501/sp-builders/sp-x1/sf57-${process.pid}`)); mkdirSync(out, { recursive: true });
-  const mode = flag('mode', 'continuous');
-  if (mode !== 'continuous' && mode !== 'fade-reload') throw new Error('Select continuous or fade-reload');
-  const bases = [], manifest = { sha, out, bases, mode };
+  const bases = [], manifest = { sha, out, bases };
   const layouts = flag('layouts', 'shipped,dev').split(',');
   if (layouts.length === 0 || new Set(layouts).size !== layouts.length || layouts.some((layout) => layout !== 'shipped' && layout !== 'dev')) throw new Error('Select shipped and/or dev layouts');
   try {
@@ -242,7 +210,7 @@ async function prepare() {
       const version = await (await fetch(`${base}version.json`)).json();
       if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error('Preview pin mismatch');
       bases.push({ layout, base, version });
-      writeHelper(base, layout, mode);
+      writeHelper(base, layout);
     }
     writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
     console.log(`PREPARED ${join(out, 'manifest.json')} — waiting for coordinator quiet; touch ${join(out, 'GO')} only after go`);
@@ -256,7 +224,7 @@ else if (flag('prepared')) {
   try {
     for (const { base, version, layout } of manifest.bases) {
       if (JSON.stringify(await (await fetch(`${base}version.json`)).json()) !== JSON.stringify(version)) throw new Error('Prepared preview changed');
-      writeHelper(base, layout, manifest.mode ?? 'continuous');
+      writeHelper(base, layout);
     }
     console.log(`PREPARED (reused) ${flag('prepared')} — waiting for GO`);
     await drivePrepared(manifest);

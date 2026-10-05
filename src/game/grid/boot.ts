@@ -5,7 +5,6 @@ import { devserverCellOn } from './debug';
 import { findShard } from '../shard/registry';
 import { travel } from '../travel/travel';
 import type { HomeResidencyClaim } from './pageResidency';
-import { plannedGridReload } from './reloadBoot';
 /**
  * Infinite Wildshard's way in (SF21a). There is no assembled grid client yet (SF18a's residency, SF20a's in-page
  * crossing and SF18b's rings are not wired into a page), so the entry boots the furthest real thing: the grid catalogue's
@@ -107,16 +106,6 @@ export function pageMode(): PageMode { return mode; }
 /** The boot's one read of the intent (every boot consumes it, used or not). In grid mode the address becomes the bare
  *  title URL (`history.replaceState`), so nothing but a new tap can bring the grid back. */
 export function bootPageMode(slug: string): PageMode {
-  const reload = plannedGridReload();
-  if (reload !== null) {
-    if (!new Set([reload.home.slug]).has(slug)) throw new Error('Planned grid boot selected a different home');
-    mode = 'grid'; gridCells.leave(); // Planned exits arrive on the road, never inside the home runtime.
-    try { pageGridIntents().consume(''); } catch { /* The device transfer already took priority. */ }
-    if (typeof history !== 'undefined') {
-      try { history.replaceState(history.state, '', new URL(location.pathname, location.origin)); } catch { /* sandbox */ }
-    }
-    return mode;
-  }
   let intent = null;
   try { intent = pageGridIntents().consume(slug); } catch { /* blocked storage: no intent, the normal shard flow */ }
   mode = intent === null ? 'shard' : 'grid';
@@ -128,7 +117,7 @@ export function bootPageMode(slug: string): PageMode {
 }
 
 /** the catalogue instance this grid page booted into (null in shard mode) */
-export function pageGridInstance(): string | null { return mode === 'grid' ? plannedGridReload()?.home.instance ?? gridCells.cell?.instance ?? null : null; }
+export function pageGridInstance(): string | null { return mode === 'grid' ? gridCells.cell?.instance ?? null : null; }
 
 /** The title page's boot: a stale intent is consumed and dropped, never kept for a later page. */
 export function dropGridIntent(): void {

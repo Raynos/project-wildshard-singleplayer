@@ -6,18 +6,6 @@ import { CHUNK_HALF } from '../src/engine/core/config';
 const grid = new GridAssembly({ developer: false, devserver: false });
 const cell: RoadRecoveryCell = { instance: 'fixture', origin: { x: 555, z: 0 }, entryways: [{ edge: 'west', width: 8 }] };
 
-it('resumes on the road without transferring grounded time or ownership through a shallow fence hop', () => {
-  const road = new RoadRecovery(grid), point = { x: 281.1, z: 40, yaw: 1.2 };
-  road.restoreRoad(point);
-  road.observe({ x: 310, y: 3, z: 40 }, 0, false, cell);
-  for (let tick = 0; tick < 600; tick++) road.observe({ x: 310, y: 0, z: 40 }, 0, true, cell);
-  expect(road.target()).toEqual(point);
-  for (let tick = 0; tick < 299; tick++) road.observe({ x: 330, y: 0, z: 40 }, 0, true, cell);
-  expect(road.target()).toEqual(point);
-  road.observe({ x: 330, y: 0, z: 40 }, 0, true, cell); expect(road.target()).toBeNull();
-  expect(() => road.restoreRoad({ x: 0, z: 0, yaw: 0 })).toThrow('Invalid road');
-});
-
 it('knows the road: segment and junction asphalt inside the outer ring, never a strip, a cell or the void', () => {
   expect(onRoad(grid, 277.5, 100)).toBe(true); // the gap.x road between Driftwood and Nalati
   expect(onRoad(grid, 277.5 + 12, 100)).toBe(false); // the strip beside it
@@ -84,7 +72,7 @@ it('requires continuous grounded time at sufficient depth and never carries owne
 
 it('drops cell ownership immediately on an airborne exit, before touching the road again', () => {
   const road = new RoadRecovery(grid), point = { x: 281.1, z: 40, yaw: 1.2 };
-  road.restoreRoad(point);
+  road.observe({ x: point.x, y: 0, z: point.z }, point.yaw, true);
   for (let tick = 0; tick < 300; tick++) road.observe({ x: 330, y: 0, z: 40 }, 0, true, cell);
   expect(road.target()).toBeNull();
   road.observe({ x: 304, y: 2, z: 40 }, 0, false);

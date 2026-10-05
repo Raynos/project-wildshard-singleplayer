@@ -1,0 +1,1 @@
+SF57b is superseded by Jake G171 (2026-10-04): never fade-reload. These receipts are historical controller/teardown evidence, not an accepted traversal route. SF57 keeps continuous traversal and the separate road-only soak. Generic census, teardown and creature-border fixes remain shipped.

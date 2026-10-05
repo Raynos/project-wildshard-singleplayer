@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-unassigned-import -- evaluated for its effect: the app identity is installed before any other module body runs (E414)
 import './identity';
 import { startPageServices } from './pageServices';
-import { persistHomeScreen, saves } from './engine/saves/runtime';
+import { persistHomeScreen } from './engine/saves/runtime';
 /**
  * The page's module entry. Everything the game imports statically is evaluated in ONE task when a module graph
  * runs: three.js plus the ~150 game modules at once was a 115–157 ms long task at 4× CPU before the first boot step
@@ -30,25 +30,14 @@ const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(
 startPageServices();
 persistHomeScreen();
 const search = new URLSearchParams(location.search);
-let plannedResume = false;
 // Do not depend on the sibling sw.ts module finishing first; both entry points share the same consumed record.
 inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
 // renderer-free title until the player chooses a shard again.
-async function enterPage(): Promise<unknown> {
-  const { consumeGridReloadBoot, installPlannedGridReload } = await retried(() => import('@wildshard/game/grid/reloadBoot'));
-  const reload = consumeGridReloadBoot(saves, Date.now());
-  installPlannedGridReload(reload);
-  plannedResume = reload.kind === 'resume';
-  if (reload.kind === 'resume') {
-    // Existing content selection, never a variant switch: the consumed device transaction owns the road pose.
-    const url = new URL(location.href); url.searchParams.set('chunk', reload.home.slug);
-    history.replaceState(history.state, '', url);
-    document.documentElement.classList.remove('title-first');
-  }
+function enterPage(): Promise<unknown> {
   const route = bootRoute(search, { line: previousBootLine(), level: previousBootLevel() });
-  const rescueBoot = reload.kind === 'resume' ? false : reload.kind === 'invalid' || route.rescue;
-  const titleOnly = reload.kind === 'resume' ? false : reload.kind === 'invalid' || route.titleOnly;
+  const rescueBoot = route.rescue;
+  const titleOnly = route.titleOnly;
   if (rescueBoot) {
     history.replaceState(history.state, '', new URL('/', location.origin));
     // index.html picked the loading shell from the original URL before this module ran.
@@ -97,13 +86,7 @@ export async function start(): Promise<void> {
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
   const source = configuredShardfile(document);
-  const { preparePageResidency, validatePlannedGridReload } = await retried(() => import('@wildshard/game/grid/pageBoot'));
-  try { await validatePlannedGridReload(); }
-  catch (error) {
-    // The device transfer was cleared before admission. The renderer-free title is the only retry destination.
-    console.warn('[grid reload] refused before hydration', error);
-    location.replace(new URL('/', location.origin).href); return;
-  }
+  const { preparePageResidency } = await retried(() => import('@wildshard/game/grid/pageBoot'));
   const page = preparePageResidency(game.shard, source?.identity.slug);
   try {
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
@@ -130,10 +113,6 @@ export async function start(): Promise<void> {
     }, page === undefined ? {} : { mode: page.mode, ...(page.residency === undefined ? {} : { residency: page.residency }) });
   } catch (error) {
     page?.residency?.dispose();
-    if (plannedResume) {
-      console.warn('[grid reload] refused during hydration', error);
-      location.replace(new URL('/', location.origin).href); return;
-    }
     throw error;
   }
 }

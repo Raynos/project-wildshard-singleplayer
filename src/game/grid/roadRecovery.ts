@@ -89,9 +89,5 @@ export class RoadRecovery {
   /** Where a fall death recovers: the last road point when the fall began from the road, else null (the frame's own rule). */
   target(): RoadPoint | null { return this.owner === null ? this.last : null; }
 
-  /** A planned road resume starts a new grounded observation history, never counting time outside this document. */
-  restoreRoad(point: RoadPoint): void {
-    if (![point.x, point.z, point.yaw].every(Number.isFinite) || !onRoad(this.grid, point.x, point.z)) throw new RangeError('Invalid road recovery point');
-    this.last = { ...point }; this.owner = null; this.candidate = null; this.groundTicks = 0; this.previous = undefined;
-  }
+
 }

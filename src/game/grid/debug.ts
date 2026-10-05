@@ -41,11 +41,6 @@ export function gridMemoryAdmissionOn(): boolean {
   try { return saved('gridMemoryAdmission').read() === 'on'; } catch { return false; }
 }
 
-/** G159's planned fresh-document exit is built independently of the soak verdict and stays default-off. */
-export function gridFadeReloadOn(): boolean {
-  try { return saved('gridFadeReload').read() === 'on'; } catch { return false; }
-}
-
 /** A game-wide row over a device save: shown wherever Settings ▸ Debug opens, until the returned function removes it. */
 function globalRow(spec: GlobalRowSpec): () => void {
   const slot = saved(spec.id);
@@ -75,23 +70,18 @@ export function installGridFrameRow(): () => void {
 /** Install the row (a DEVSERVER build only); the title and the session each call it once and dispose it with their scope. */
 export function installGridDebug(devserver: boolean = DEVSERVER): () => void {
   const strings = GAME_STRINGS.grid;
-  const removeReload = grid.debugRow({
-    id: 'gridFadeReload', group: 'loading', label: strings.fadeReload,
-    choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off', reload: true,
-    change: () => undefined, note: strings.fadeReloadNote, ask: 'E435', reviewBy: '2026-12-30',
-  });
   const removeMemory = grid.debugRow({
     id: 'gridMemoryAdmission', group: 'loading', label: strings.memoryAdmission,
     choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off', reload: true,
     change: () => undefined, note: strings.memoryAdmissionNote, ask: 'E435', reviewBy: '2026-12-30',
   });
   const cell = parseGridCatalogue(catalogue.grid).devserver[0];
-  if (!devserver || cell === undefined) return () => { removeReload(); removeMemory(); };
+  if (!devserver || cell === undefined) return () => { removeMemory(); };
   const name = findShard(cell.slug)?.name ?? cell.slug;
   const removeCell = grid.debugRow({
     id: 'gridDevserverCell', group: 'tools', label: strings.devserverCell(cell.cell[0], cell.cell[1]),
     choices: [{ value: 'on', text: name }, { value: 'off', text: strings.template }], initial: 'on', change: () => undefined,
     note: strings.devserverCellNote, ask: 'E435', reviewBy: '2026-12-30',
   });
-  return () => { removeCell(); removeReload(); removeMemory(); };
+  return () => { removeCell(); removeMemory(); };
 }

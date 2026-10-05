@@ -10,7 +10,7 @@ void test('SF57 preserves labelled GL allocations, reconciliation and allocator 
   try {
     globalThis.setInterval = (callback, period) => { assert.equal(period, 1000); tick = callback; return 1; };
     globalThis.window = { __sc_gl: () => contexts, __sf57Errors: [], __sf57: { cycles: 2 },
-      __wildshard: { shard: { grid: { state: () => ({ residentMB: 400 }) } } },
+      __wildshard: { shard: { grid: { state: () => ({ accountedBytes: 400_000_000, rings: { inFlight: 0, queued: 0 }, live: { live: { pending: [], gameplayReady: true } } }) } } },
       addEventListener: (name, listener) => { assert.equal(name, 'webglcontextlost'); lost = listener; } };
     installSoakGl(); tick();
     const row = window.__sf57GL[0];

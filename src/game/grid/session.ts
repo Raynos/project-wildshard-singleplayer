@@ -264,7 +264,7 @@ export class GridSession {
     this.shimmer = installBorderShimmer({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
       cells: this.assembly.cells.map((cell) => ({ x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, edges: rows.get(cell.instance) ?? null })),
       ports: { feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
-        status: () => { if (++polled % 4 === 0) status = this.live?.state().reloadStatus ?? crossingSaveStatus(this.live?.state().crossing); return status; },
+        status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.

@@ -8,7 +8,6 @@
     "./newGame": "./newGame.ts",
     "./shard/runtimeVariant": "./shard/runtimeVariant.ts",
     "./grid/live": "./grid/live.ts",
-    "./grid/reloadBoot": "./grid/reloadBoot.ts",
     "./Boss": "./Boss.ts",
     "./Elite": "./Elite.ts",
     "./Inventory": "./Inventory.ts",

@@ -66,16 +66,12 @@ import { onReview, queuedCount, quickNote } from '@wildshard/engine/ui/review';
 import { installBounds } from '@wildshard/engine/world/bounds';
 import { gridCells, gridHomeSim, pageMode } from '../grid/boot';
 import { installGridReveal } from '../grid/reveal';
-import { gridFadeReloadOn } from '../grid/debug';
-import { finishPlannedGridReload, plannedGridReload } from '../grid/reloadBoot';
-import { gridReloadFade, installGridReload } from '../grid/reload';
 import { installGridHud } from '../grid/gridHud';
 import { ACCENTS } from '../shardfile/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
 import { findShard } from '../shard/registry';
 import { accentHex, hudAccent, onHudAccent, setHudAccent } from './hudAccent';
 import { firstPartyInstance } from '../grid/instances';
-import { preflightGridReload } from '../grid/pageBoot';
 import { installSavesSettings } from '../savesSettings';
 import { GridSession } from '../grid/session';
 import type { LiveGridSession } from '../grid/liveSession';
@@ -85,18 +81,6 @@ import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
-
-  const planned = plannedGridReload();
-  const reloadExitOn = pageMode() === 'grid' && gridFadeReloadOn();
-  let reloadHeld = planned !== null;
-  let resumePending = planned !== null;
-  const carriedBefore = player.carried;
-  if (planned !== null || reloadExitOn) {
-    game.levelScope.onDispose(() => { if (reloadHeld) player.carried = carriedBefore; });
-    // Keep fixed ticks available for failed-write retries; only this traveller's movement is held.
-    app.addSystem({ id: 'game.grid.reload.hold', phase: 'fixed.post', before: ['player.step'], run: () => { if (reloadHeld) player.carried = true; } }, game.levelScope);
-    app.addSystem({ id: 'game.grid.reload.input', phase: 'input', before: ['engine.input.collect'], run: () => { if (reloadHeld) app.input.clear(); } }, game.levelScope);
-  }
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
@@ -401,7 +385,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
   const resuming = params.has('glreload');
   const arrival = session.arrival;
-  const menuFirst = planned === null && arrival === null && !params.has('skipintro') && !params.has('tour') && !resuming;
+  const menuFirst = arrival === null && !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;
   let fromTitle = false; // pause → "Exit to main menu" → ENTER WORLD starts over at the spawn (E121), a plain resume does not
   const enter = () => {
@@ -472,15 +456,15 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const exploreMode: ExploreMode = exploreParam === 'world' || exploreParam === 'model' || exploreParam === 'sets' ? exploreParam : 'hub';
   hud.onExplore = () => { void openExplore('hub'); };
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
-  game.frameGate = () => !resumePending && ((hud.entered && !hud.paused) || exploring()) && !feedbackHeld && !rotateGated() && !shardCompleteUp(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
+  game.frameGate = () => ((hud.entered && !hud.paused) || exploring()) && !feedbackHeld && !rotateGated() && !shardCompleteUp(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else if (arrival?.mode === 'explore') { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); hud.setOnEnter(enter); } // Explore ▸ Practice enters through it without the title: no handler left the weapon off and the DODGE disc dead (E285)
   else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
   // the grid's player-facing moments: G98's sky-down reveal to the pier (it waits for the rings and the home handoff), then
   // G78's SAFE ZONE + dimmed ATTACK on the road, G82 / G105's title card on entering a shard, G97's speed look (gridHud.ts)
   if (grid !== null) {
-    const revealing = planned === null ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
-      home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered }) : () => resumePending;
+    const revealing = installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
+      home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered });
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
       title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },
       accent: (cell) => { const id = findShard(cell.slug)?.accent; return id === undefined ? null : ACCENTS[id]; },
@@ -648,31 +632,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
 
   app.ui.bind(game.levelScope, () => hud.promptText);
   boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues, firstHints, minimap, bodyShadow };
-  if (planned !== null) {
-    if (grid === null || gridLive === null) throw new Error('Planned grid resume has no admitted live frame');
-    const fade = gridReloadFade(game.levelScope.child('grid.resume'), true), value = planned.value;
-    await gridLive.resumeRoad(value.roadPose, value.recovery.lastSafeRoadPoint);
-    player.spawn(value.roadPose.x, value.roadPose.z, value.heading, value.roadPose.y);
-    if (value.loadout.tools.some((id) => !weapons.has(id)) || (value.mount === 'hoverboard' && !weapons.has('tool.hoverboard'))) throw new Error('Planned platform mount is no longer owned');
-    player.setHover(value.mount === 'hoverboard');
-    weapons.stowed = true;
-    for (const tool of weapons.tools) if (tool.id === 'tool.hoverboard' && value.loadout.tools.includes(tool.id)) tool.enabled = true;
-    if (!await grid.ready()) throw new Error('Planned grid critical coverage is not ready');
-    app.clock.restore(value.clock);
-    if (!finishPlannedGridReload(app.saves)) throw new Error('Planned grid handoff consumption is not durable');
-    resumePending = false; reloadHeld = false; player.carried = carriedBefore;
-    fade.into();
-  }
-  if (grid !== null && gridLive !== null && reloadExitOn) {
-    const live = gridLive;
-    installGridReload({ scope: game.levelScope, store: app.saves, assembly: grid.assembly, live, homeSlug: grid.home.slug,
-      admit: () => preflightGridReload(session.residency, grid.home.instance),
-      grounded: () => player.onGround,
-      capture: () => ({ heading: player.yaw, mount: player.hover ? 'hoverboard' : null,
-        loadout: { selected: null, tools: weapons.has('tool.hoverboard') ? ['tool.hoverboard'] : [] }, clock: { ...app.clock.snapshot(), version: 1 } }),
-      hold: (held) => { reloadHeld = held; player.carried = held || carriedBefore; if (held) app.input.clear(); },
-      onFixed: (run) => { game.onFixed('post', run, 'game.grid.reload.exit'); }, report: (error) => { console.warn('[grid reload]', error); } });
-  }
   const getPlayground = (): Playground | null => playground;
   return { ...ctx, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
 }

@@ -24,7 +24,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Events } from '@wildshard/engine/events/events';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import type { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
-import { castRay, floorBelow } from '@wildshard/engine/physics/query';
+import { castRay } from '@wildshard/engine/physics/query';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
@@ -99,8 +99,6 @@ export interface LiveGridSessionState {
   readonly live: LiveGridState; readonly crossing: GridCrossingState; readonly stowed: boolean; readonly renderOrigin: { x: number; z: number };
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
   readonly hoverCap: number | null; readonly homeActive: boolean | null;
-  /** The planned exit shares the existing G119 saving panel. */
-  readonly reloadStatus: 'saving' | 'failed' | null;
 }
 /** The highway's own surfaces: the deck and strips at road level, no water (G72: the outer ring is land). */
 const HIGHWAY_QUERIES: PlayerFrameQueries = { heightAt: () => 0, waterSurfaceAt: () => null, platforms: [] };
@@ -142,7 +140,6 @@ export class LiveGridSession {
   private readonly durability = new Map<string, GridRegionDurability>();
   private readonly offset = new Vector3();
   private framePhysics: Physics;
-  private reloadStatus: (() => 'saving' | 'failed' | null) | null = null;
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
@@ -260,36 +257,6 @@ export class LiveGridSession {
   checkpoint(): boolean {
     const current = this.live.current();
     return current === null ? this.checkpointHome() : this.live.checkpoint(current);
-  }
-
-  /** Retry every source-local and profile owner after the frame has reached the road, before a planned reload. */
-  checkpointInstance(instance: string): boolean {
-    if (instance === this.ports.home.instance) return this.checkpointHome();
-    const local = this.regionSave(instance).flush();
-    const native = this.live.checkpoint(instance);
-    return local && native;
-  }
-
-  /** A durable road point for the planned transfer, never a shard-owned respawn location. */
-  roadPoint(): ReturnType<RoadRecovery['target']> { return this.road.target(); }
-
-  /** Boot has not started fixed stepping: prepare the admitted highway controller, then restore road-only recovery. */
-  async resumeRoad(point: { readonly x: number; readonly y: number; readonly z: number }, recovery: { readonly x: number; readonly z: number; readonly yaw: number }): Promise<void> {
-    const traveller = this.page.traveller, previous = traveller.position.clone(), home = this.ports.home.origin;
-    this.road.restoreRoad(recovery);
-    traveller.position.set(point.x - home.x, point.y, point.z - home.z);
-    let prepared: Awaited<ReturnType<LiveGridHost['prepare']>> | undefined;
-    try {
-      prepared = await this.live.prepare(this.live.current(), null);
-      if (!this.live.ready(null)) throw new Error('Planned grid highway is not ready');
-      prepared.commit();
-      // The newly installed static deck must enter Rapier's broad phase before the boot readiness ray.
-      this.framePhysics.step();
-      const ground = floorBelow(this.framePhysics, point.x, point.z, 1, 2, traveller.motor.collider);
-      if (ground === undefined || Math.abs(ground) > 0.01) throw new Error('Planned grid road has no admitted deck collision');
-      this.crossing.crossing.dispose(); this.crossing = this.installCrossing();
-      this.loadout.stow();
-    } catch (error) { prepared?.cancel(); traveller.position.copy(previous); throw error; }
   }
 
   /** The traveller's world feet (grid metres), whatever frame it is in. */
@@ -424,16 +391,9 @@ export class LiveGridSession {
   /** The admitted native simulation for a browser witness; the page exposes this only when harness pins exist. */
   simulation(instance: string): ShardfileSimulation | undefined { return this.regions.get(instance)?.simulation; }
 
-  /** A scope-owned exit transaction supplies status without installing another HUD or frame loop. */
-  bindReloadStatus(read: () => 'saving' | 'failed' | null, scope: Scope): void {
-    if (this.reloadStatus !== null) throw new Error('Grid reload status already bound');
-    this.reloadStatus = read;
-    scope.onDispose(() => { if (this.reloadStatus === read) this.reloadStatus = null; });
-  }
-
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
     return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z },
-      reloadStatus: this.reloadStatus?.() ?? null, hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
+      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }

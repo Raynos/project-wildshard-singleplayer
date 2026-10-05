@@ -9,7 +9,7 @@ import { GridAssembly } from '../src/game/grid/assembly';
 import { gridIntents } from '../src/game/grid/intent';
 import { DEVSERVER, gridEntryShown, gridMode, selectEnters, selectExplores, type MenuMode } from '../src/game/grid/menu';
 import { GridCellEvents, gridHome } from '../src/game/grid/boot';
-import { devserverCellOn, gridMemoryAdmissionOn, gridFadeReloadOn, installGridDebug } from '../src/game/grid/debug';
+import { devserverCellOn, gridMemoryAdmissionOn, installGridDebug } from '../src/game/grid/debug';
 import { levelDebugRows } from '../src/engine/ui/debugOptions';
 import { shards } from '../src/game/shard/list';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
@@ -229,17 +229,7 @@ describe('a DEVSERVER build (§3.3)', () => {
     expect(gridMemoryAdmissionOn()).toBe(false);
     expect(levelDebugRows().some((entry) => entry.id === 'gridMemoryAdmission')).toBe(false);
   });
-  it('builds the G159 fade-reload row default-off without depending on a soak verdict', () => {
-    const remove = installGridDebug(false), row = levelDebugRows().find((entry) => entry.id === 'gridFadeReload');
-    try {
-      expect(row?.label).toBe('Fade-reload at shard exits'); expect(row?.group).toBe('loading');
-      expect(row?.reload).toBe(true); expect(row?.get()).toBe('off'); expect(gridFadeReloadOn()).toBe(false);
-      row?.set('on'); expect(gridFadeReloadOn()).toBe(true);
-      row?.set('invalid'); expect(gridFadeReloadOn()).toBe(true);
-    } finally { row?.set('off'); remove(); }
-    expect(gridFadeReloadOn()).toBe(false);
-    expect(levelDebugRows().some((entry) => entry.id === 'gridFadeReload')).toBe(false);
-  });
+
 });
 
 describe('the inside-cell enter / leave seam (SF46 consumes it; the grid client produces it)', () => {
