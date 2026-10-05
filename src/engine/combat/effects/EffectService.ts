@@ -42,9 +42,14 @@ export class EffectService {
     }
     return state;
   }
-  bind(target: EffectTarget, changed: (previous: AttributeSet) => void, scope?: Scope): void {
-    this.state(target).changed = changed;
-    scope?.onDispose(() => { this.clear(target); });
+  /** Detach an entered observer without clearing player-owned statuses when clearOnDispose is false. */
+  bind(target: EffectTarget, changed: (previous: AttributeSet) => void, scope?: Scope, options: { clearOnDispose?: boolean } = {}): void {
+    const state = this.state(target), previous = state.changed;
+    state.changed = changed;
+    scope?.onDispose(() => {
+      if (options.clearOnDispose !== false) this.clear(target);
+      else if (state.changed === changed) state.changed = previous;
+    });
   }
   private recompute(target: EffectTarget, state: TargetState): void {
     const previous = { ...target.attributes };
