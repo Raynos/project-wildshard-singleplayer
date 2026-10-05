@@ -75,7 +75,7 @@ export class RoadRecovery {
       if (this.groundTicks >= 300) this.owner = cell.instance;
       return;
     }
-    this.candidate = null; this.groundTicks = 0;
+    this.candidate = null; this.groundTicks = 0; this.owner = null;
     if (!grounded) return;
     if (Math.abs(feet.y) > ROAD_LEVEL || !onRoad(this.grid, feet.x, feet.z)) return;
     this.owner = null;

@@ -14,6 +14,8 @@ export interface BoundsHost {
   toSpawn: () => void;
   /** Grid traversal owns horizontal cell/strip limits; authored vertical fall recovery remains active. */
   grid?: () => boolean;
+  /** A caller-owned vertical limit in the current spatial region, independent of the motor frame. */
+  fallFloor?: () => number;
   /** The physics frame the player's coordinates are local to (a grid re-frame); a change drops the soft respawn. */
   frame?: () => unknown;
 }
@@ -28,12 +30,14 @@ export function installBounds(app: App, scope: Scope, bounds: Bounds | undefined
     const now = host.frame?.();
     if (now !== frame) { frame = now; safe.set = false; since = 0; }
     const { player } = host, p = player.position;
-    const horizontal = host.grid?.() !== true && (p.x < bounds.x0 || p.x > bounds.x1 || p.z < bounds.z0 || p.z > bounds.z1);
-    if (p.y < bounds.floor || horizontal) {
-      if (safe.set) player.spawn(safe.x, safe.z, player.yaw, safe.y); else host.toSpawn();
+    const grid = host.grid?.() === true;
+    const horizontal = !grid && (p.x < bounds.x0 || p.x > bounds.x1 || p.z < bounds.z0 || p.z > bounds.z1);
+    if (p.y < (host.fallFloor?.() ?? bounds.floor) || horizontal) {
+      if (!grid && safe.set) player.spawn(safe.x, safe.z, player.yaw, safe.y); else host.toSpawn();
       since = 0;
       return;
     }
+    if (grid) { safe.set = false; since = 0; return; } // The grid owns recovery; its entry threshold cannot use the 0.2 s soft checkpoint.
     since += dt;
     if (since < 0.2 || !player.onGround || player.hover) return;
     const floor = host.floorAt(p.x, p.z);

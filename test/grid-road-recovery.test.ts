@@ -80,3 +80,15 @@ it('requires continuous grounded time at sufficient depth and never carries owne
   road.observe({ ...point, x: 874 }, 0, false, { ...cell, instance: 'other-copy', origin: { x: 1110, z: 0 } });
   expect(road.target()).not.toBeNull();
 });
+
+
+it('drops cell ownership immediately on an airborne exit, before touching the road again', () => {
+  const road = new RoadRecovery(grid), point = { x: 281.1, z: 40, yaw: 1.2 };
+  road.restoreRoad(point);
+  for (let tick = 0; tick < 300; tick++) road.observe({ x: 330, y: 0, z: 40 }, 0, true, cell);
+  expect(road.target()).toBeNull();
+  road.observe({ x: 304, y: 2, z: 40 }, 0, false);
+  expect(road.target()).toEqual(point);
+  for (let tick = 0; tick < 299; tick++) road.observe({ x: 330, y: 0, z: 40 }, 0, true, cell);
+  expect(road.target()).toEqual(point);
+});

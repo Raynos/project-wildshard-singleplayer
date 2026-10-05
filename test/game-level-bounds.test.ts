@@ -32,3 +32,21 @@ it('selects a session-local area once while OFF retains the exact authored recov
     for (const boot of boots) { boot.scope.dispose(); expect(boot.app.systemsByPhase().update).toEqual([]); }
   }
 });
+
+
+it('delegates grid falls to the spatial policy without the standalone 0.2 s soft checkpoint', () => {
+  const app = new App(), scope = new Scope('grid.bounds'), recover = vi.fn<() => void>(), spawn = vi.fn<() => void>();
+  const player = { position: { x: 245, y: 0, z: 0 }, yaw: 0, onGround: true, hover: false, spawn };
+  let floor = -250;
+  installBounds(app, scope, { x0: -100, x1: 100, z0: -100, z1: 100, floor: -10 }, {
+    player, toSpawn: recover, floorAt: () => 0, suspended: () => false, grid: () => true, fallFloor: () => floor,
+  });
+  const system = app.systemsByPhase().update[0]; if (system === undefined) throw new Error('Missing grid bounds');
+  try {
+    system.run(1, 0); player.position.y = -249; system.run(1, 0);
+    expect(recover).not.toHaveBeenCalled(); player.position.y = -251; system.run(1, 0);
+    expect(recover).toHaveBeenCalledOnce(); expect(spawn).not.toHaveBeenCalled();
+    floor = -60; player.position.y = -59; system.run(1, 0); expect(recover).toHaveBeenCalledOnce();
+    player.position.y = -61; system.run(1, 0); expect(recover).toHaveBeenCalledTimes(2);
+  } finally { scope.dispose(); }
+});
