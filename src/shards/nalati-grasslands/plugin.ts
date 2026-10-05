@@ -16,6 +16,7 @@ async function prepareNalatiHybrid(ctx: ShardContext): Promise<ShardPlugin> {
   ]);
   return prepareHybridShard(source, { firstParty: true }, {
     residencyContext: ctx,
+    retainHomeRuntime: true,
     catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
     icon: () => { throw new Error('Transitional Nalati has no declared item icon'); },
   }, [{ slug: source.identity.slug, entry: 'runtime/index.ts', load: () => import('./runtime/index') }]);
