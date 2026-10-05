@@ -65,6 +65,9 @@ function placementSection(def, gridBuf) {
 const output = byteWriter(check, 'bake-chunk');
 for (const def of SHARDS) {
   if (!def.ground.terrain || def.ground.structures) continue;
+    // the bake holds the authored (unshifted) heights: a field shifted at runtime (its `datum`, Driftwood's G164 drop)
+    // installs this bake shifted by it (src/engine/world/Heightfield.ts)
+    const terrain = def.ground.terrain, datum = terrain.datum ?? 0, authored = { heightAt: (x, z) => terrain.heightAt(x, z) - datum };
     const res = TERRAIN_RES;
     const dir = resolve(OUT, def.slug);
     const meta = resolve(dir, 'terrain.json');
@@ -76,7 +79,7 @@ for (const def of SHARDS) {
     const buf = new ArrayBuffer(header + n * 4 + n * 4);
     const dv = new DataView(buf);
     dv.setUint8(0, 0x57); dv.setUint8(1, 0x53); dv.setUint8(2, 0x54); dv.setUint8(3, 0x52); // 'WSTR'
-    const lhash = landscapeHash(def.ground.terrain, CHUNK_SIZE); // retained header field; staleness is checked by comparing the full bake
+    const lhash = landscapeHash(authored, CHUNK_SIZE); // retained header field; staleness is checked by comparing the full bake
     dv.setUint32(4, VERSION, true); dv.setUint32(8, res, true); dv.setFloat32(12, CHUNK_SIZE, true); dv.setUint32(16, def.seed >>> 0, true); dv.setUint32(20, lhash, true);
     const heights = new Float32Array(buf, header, n);
     const splat = new Uint8Array(buf, header + n * 4, n * 4);
@@ -87,7 +90,7 @@ for (const def of SHARDS) {
       for (let ix = 0; ix < res; ix++) {
         const x = -CHUNK_HALF + ix * d;
         const i = iz * res + ix;
-        const h = def.ground.terrain.heightAt(x, z);
+        const h = authored.heightAt(x, z);
         heights[i] = h; if (h < min) min = h; if (h > max) max = h;
         const s = def.ground.terrain.splatAt(x, z);
         // quantise so the four bytes sum to exactly 255 (largest weight absorbs the rounding)

@@ -1,17 +1,17 @@
-// SHARD-PLATFORM SF46 (G164 details, council C3-R2-C4): with the hybrid row ON every height and water source of
-// Driftwood reads the same −0.8 m as `worldDrop()`, not only the scene root. In both row states, at 20 points, the
+// SHARD-PLATFORM SF46 (G164 details, council C3-R2-C4; shipped by G172): every height and water source of Driftwood
+// reads the same −0.8 m as `WORLD_DROP`, not only the scene root. In both frames (the authored one of the offline bake
+// and of pre-G164 saves, and the shipped dropped one), at 20 points, the
 // collider under the player (the physics heightfield built from the engine's terrain, as bootstrap builds it) agrees
 // with the engine's `heightAt` (the query creatures, props, spawns, audio and quests use), the waterline / sea level
 // (swim / wade, the ocean's `uSeaLevel`, the map, the audio's sea) sits at the dropped level, the baked navmesh answers
-// in the dropped frame, and a `?at=` pose written in one state stands on the same ground loaded in the other.
+// in the dropped frame, and a `?at=` pose written in one frame stands on the same ground loaded in the other.
 import { beforeAll, expect, it } from 'vitest';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 import driftwoodBake from '../../../public/assets/baked/driftwood-isle/terrain.bin?inline';
 import driftwoodNav from '../../../public/assets/baked/driftwood-isle/navmesh.bin?inline';
-import { Scope } from '../../../src/engine/app/scope';
 import manifest from '../../../src/shards/driftwood-isle/manifest';
 import source from '../../../src/shards/driftwood-isle/shard.config';
-import { LOWERED_SEA, WORLD_DROP, droppedTerrain, lowerSea, seaLevel } from '../../../src/shards/driftwood-isle/world/sea';
+import { DRIFTWOOD_SEA, LOWERED_SEA, SHORE_LEVEL, WORLD_DROP, droppedTerrain } from '../../../src/shards/driftwood-isle/world/sea';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { configureLevel } from '../../../src/engine/level/selection';
 import { _installBakedTerrain } from '../../../src/engine/world/Heightfield';
@@ -39,18 +39,18 @@ interface State {
   readonly at: readonly string[]; readonly fromAt: (at: string) => number; readonly nav: readonly (number | null)[];
 }
 
-function analytic(): NonNullable<typeof manifest.ground.terrain> {
-  const field = manifest.ground.terrain; if (field === undefined) throw new Error('Driftwood has an analytic terrain'); return field;
-}
-const authored = analytic();
+/** the authored field (the island round SHORE_LEVEL, the frame of the offline bake and of pre-G164 saves): the shipped
+ *  field raised back by the drop */
+const shipped = manifest.ground.terrain;
+if (shipped === undefined) throw new Error('Driftwood has an analytic terrain');
+const authored = { ...shipped, heightAt: (x: number, z: number) => shipped.heightAt(x, z) + WORLD_DROP, waterLevel: () => shipped.waterLevel() + WORLD_DROP, datum: 0 };
 const navmesh = (): Navmesh => { const n = parseNavmesh(nav); if (n === null) throw new Error('Driftwood has a navmesh'); return n; };
 
-/** The level booted as the page boots it in one row state: the manifest's field (row OFF, this file's saved pick) or that
- *  field dropped by WORLD_DROP (row ON: the same `droppedTerrain` the manifest applies with the row saved on), the offline
- *  bake installed under its datum, the physics heightfield built from the engine's heightAt. The page-wide sea readers
- *  that key on the saved row (OCEAN.level, the map's open water) are held by g164-row-on.test.ts. */
+/** The level booted in one frame: the authored field (off) or that field dropped by WORLD_DROP (on: the same
+ *  `droppedTerrain` the manifest ships), the offline bake installed under its datum, the physics heightfield built from
+ *  the engine's heightAt. The page-wide sea readers (OCEAN.level, the map's open water) are held by sea-lowered.test.ts. */
 async function boot(on: boolean): Promise<State> {
-  const field = on ? droppedTerrain(authored, () => WORLD_DROP) : authored;
+  const field = on ? droppedTerrain(authored) : authored;
   configureLevel(toLevelSpec({ ...manifest, ground: { ...manifest.ground, terrain: field } }));
   const grid = parseBakedTerrain(bake); if (grid === null) throw new Error('Driftwood has a bake');
   _installBakedTerrain(bakedSamplers(grid));
@@ -62,9 +62,8 @@ async function boot(on: boolean): Promise<State> {
     return 300 - hit.timeOfImpact;
   });
   physics.dispose();
-  // the registered sea the swim / wade body and the audio read: lowered while a hybrid resident (row ON) lives
-  const owner = new Scope('g164-test'); if (on) lowerSea(owner);
-  const sea = seaLevel(); owner.dispose();
+  // the registered sea the swim / wade body and the audio read (shipped); the authored frame's waterline (off)
+  const sea = on ? DRIFTWOOD_SEA.level : SHORE_LEVEL;
   const mesh = navmesh(), d = terrainDatum(), ground = POINTS.map(([x, z]) => terrainHeight(x, z));
   return {
     datum: d, ground, ray, water: terrainWaterLevel(), sea,
@@ -79,17 +78,17 @@ async function boot(on: boolean): Promise<State> {
 let off: State, on: State;
 beforeAll(async () => { off = await boot(false); on = await boot(true); }, 60_000);
 
-it('row OFF: no datum, the legacy levels; row ON: the datum, the waterline and the sea at worldDrop()', () => {
+it('authored: no datum, the authored levels; shipped: the datum, the waterline and the sea at WORLD_DROP', () => {
   expect(off.datum).toBeCloseTo(0, 12); expect(off.water).toBe(0.8); expect(off.sea).toBe(0.8);
   expect(on.datum).toBe(-WORLD_DROP);
   // waterLevel (swim / wade / placement through the engine's terrain port) and the registered sea the audio reads
-  // (runtime/audio/install.ts seaLevel())
+  // (runtime/audio/install.ts LOWERED_SEA)
   expect(on.water).toBeCloseTo(0, 12); expect(on.sea).toBe(0);
-  // the shardfile's spawn (row ON only) stands on the lowered deck
+  // the shardfile's spawn stands on the lowered deck
   expect(source.spawn.y).toBeCloseTo(LOWERED_SEA + 1.2, 9);
 });
 
-it('at 20 points in both states the collider ray agrees with heightAt (one residual in both states), and ON sits exactly 0.8 m under OFF', () => {
+it('at 20 points in both frames the collider ray agrees with heightAt (one residual in both), and the shipped frame sits exactly 0.8 m under the authored', () => {
   for (let i = 0; i < POINTS.length; i++) {
     const [x, z] = POINTS[i] ?? [0, 0];
     // the heightfield's triangles against the bake's bilinear sampler: a few cm on slopes (up to ~15 cm on the crags), the
@@ -101,7 +100,7 @@ it('at 20 points in both states the collider ray agrees with heightAt (one resid
   }
 });
 
-it('the baked navmesh (authored frame) answers in the dropped frame with the row ON', () => {
+it('the baked navmesh (authored frame) answers in the shipped dropped frame', () => {
   let checked = 0;
   for (let i = 0; i < POINTS.length; i++) {
     const a = off.nav[i] ?? null, b = on.nav[i] ?? null;
@@ -112,7 +111,7 @@ it('the baked navmesh (authored frame) answers in the dropped frame with the row
   expect(checked).toBeGreaterThanOrEqual(10);
 });
 
-it('a ?at= pose saved in one row state stands on the same ground loaded in the other', () => {
+it('a ?at= pose saved in one frame stands on the same ground loaded in the other', () => {
   for (let i = 0; i < POINTS.length; i++) {
     const gOff = off.ground[i] ?? Number.NaN, gOn = on.ground[i] ?? Number.NaN;
     // saved ON (feet on the lowered ground), loaded OFF: on the raised ground, not 0.8 m inside it

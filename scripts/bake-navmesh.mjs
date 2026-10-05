@@ -20,7 +20,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
 
 const ROOT = resolve(import.meta.dirname, '..');
@@ -74,6 +74,8 @@ Object.assign(globalThis, {
   Request: class extends NodeRequest { constructor(input, init) { super(typeof input === 'string' ? new URL(input, HOST).href : input, init); } },
   fetch: (input, init) => {
     const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, HOST);
+    // a module's own asset (`new URL('../assets/…', import.meta.url)`, a shard's declared mover scripts): the file itself
+    if (url.protocol === 'file:') { const file = fileURLToPath(url); return Promise.resolve(existsSync(file) ? new Response(readFileSync(file)) : new Response(null, { status: 404 })); }
     if (url.origin !== new URL(HOST).origin) return nodeFetch(input, init);
     const file = resolve(ROOT, 'public', decodeURIComponent(url.pathname).replace(/^\//, ''));
     return Promise.resolve(existsSync(file) ? new Response(readFileSync(file)) : new Response(null, { status: 404 }));
@@ -372,6 +374,10 @@ for (const def of SHARDS.filter(registry.playable)) {
   const soup = new Soup();
   const dropped = addTerrain(soup, ground, wetTest(def));
   for (const d of colliders) addDesc(soup, d);
+  // the navmesh is baked in the authored frame (src/engine/physics/navmesh.ts queries `y − datum`): a level shifted at
+  // runtime (its terrain field's `datum`, Driftwood's G164 drop) builds shifted, so its soup is raised back by the datum
+  const datum = def.ground.terrain?.datum ?? 0;
+  if (datum !== 0) for (let i = 1; i < soup.positions.length; i += 3) soup.positions[i] -= datum;
   const LAYERS = layersFor(def.slug);
   const dir = resolve(ROOT, 'public/assets/baked', def.slug), jsonFile = resolve(dir, 'navmesh.json'), binFile = resolve(dir, 'navmesh.bin');
   const tIn = performance.now() - t0;

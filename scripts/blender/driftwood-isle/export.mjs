@@ -9,7 +9,7 @@
 
 export async function groundColor({ THREE, imp, hf, def }) {
   const { lowPolyGroundColor } = await imp('src/shards/driftwood-isle/look/groundColor.ts');
-  const wl = def.ocean.level;
+  const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   const pathC = new THREE.Color('#d6bd84');
   const ss = THREE.MathUtils.smoothstep;
   const hash2 = (x, z) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
@@ -23,7 +23,7 @@ export async function groundColor({ THREE, imp, hf, def }) {
 
 export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF, ROAD_LENGTH }) {
   const island = await imp('src/shards/driftwood-isle/manifest.ts');
-  const wl = def.ocean.level;
+  const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
   const { Palms } = await imp('src/shards/driftwood-isle/world/Palms.ts');
   const { Boulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');

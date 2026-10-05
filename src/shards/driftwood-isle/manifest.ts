@@ -27,7 +27,7 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest, OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
-import { DRIFTWOOD_SEA, SHORE_LEVEL, declaredSeaLevel, droppedTerrain, waterline, worldDrop } from './world/sea';
+import { DRIFTWOOD_SEA, LOWERED_SEA, SHORE_LEVEL, WORLD_DROP, droppedTerrain } from './world/sea';
 import thumbnail from './thumbs/driftwood-isle.jpg';
 import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
 import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
@@ -42,9 +42,9 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
   ] } satisfies NonNullable<ShardManifest['explore']>;
 
 export const OCEAN: OceanDef = {
-  // the island's waterline in world space: the authored +0.8 m, less G164's whole-world drop with the hybrid row ON
+  // the island's waterline in world space: the authored +0.8 m, less G164's whole-world drop: road height
   // (./world/sea.ts); the landscape below is authored round SHORE_LEVEL
-  get level(): number { return waterline(); },
+  level: LOWERED_SEA,
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
   shallowColor: [0.0, 0.8, 0.88],
   deepColor: [0.008, 0.15, 0.52],
@@ -88,7 +88,7 @@ export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 9 };
 /** Wreck Cove: a bay bitten out of the east shore; the wreck lies half sunk on the reef at its mouth, bow run up the sand, heeled toward the beach (Wreck.ts) */
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
-export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, get floorY(): number { return 1.45 - worldDrop(); } }; // G164: the hold floor drops with the world
+export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 1.45 - WORLD_DROP }; // G164: the hold floor drops with the world
 /** the ring shrine on a knoll in the north-west jungle (rot: its stair faces south-east toward the hut path; its back points at the planet, so the ring frames it from the stair head) */
 export const SHRINE = { x: -98, z: 108, rot: 2.51 };
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
@@ -178,8 +178,8 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // registers them under these ids) — palms as crowns, the decks as planks, the hut / tower / wreck / zipline as timber, the
   // shrine as stone, the sea cave's vault as rock
   minimap: {
-    // SF46 (G164): the level reads the hybrid row (road height ON, the authored +0.8 m OFF), so the grid's edge reader sees the lowered sea
-    openWater: { get level() { return declaredSeaLevel(); }, deepDepth: OCEAN.deepDepth },
+    // SF46 (G164): road height, so the grid's edge reader sees the lowered sea
+    openWater: { level: LOWERED_SEA, deepDepth: OCEAN.deepDepth },
     outside: 'rgb(22,74,128)',
     paths: PATHS,
     pieces: [
@@ -200,7 +200,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   ],
 
   // the sea is a water body (app.world.water), registered at level.data: the edge step's Boundary and every sea reader ask it
-  // G164: the field is authored round SHORE_LEVEL and lowered as one with the hybrid row ON (droppedTerrain: heights,
+  // G164: the field is authored round SHORE_LEVEL and lowered as one (droppedTerrain: heights,
   // waterline and the bake's datum)
   ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: droppedTerrain(buildTerrain(SEED, {
     oceanLevel: SHORE_LEVEL,

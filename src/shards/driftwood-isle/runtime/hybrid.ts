@@ -2,8 +2,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { installDeclaredMovers } from '@wildshard/game/shardfile/moverRuntime';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import RuntimePlugin from './index';
-import { buildDriftwoodWorld, G164_LOWERED, type DriftwoodWorld } from '../world/build';
-import { lowerSea } from '../world/sea';
+import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { driftwoodMoverViews } from './movers';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { declaredCreatureRows } from './brains';
@@ -11,7 +10,7 @@ import { declaredCreatureRows } from './brains';
 // The static transitional world belongs to the resident, not a single entered play scope.
 const residentWorld = new HybridResidentWorld<DriftwoodWorld>();
 
-/** SF30 activation is confined to SF46's default-off hybrid path; the ordinary entry keeps the exact legacy world. */
+/** Driftwood's only boot (SF46 hybrid, G172): the admitted shardfile's declared movers and brains over the lowered world. */
 class DriftwoodMoverPlugin extends RuntimePlugin {
   private readonly binding: { context?: ShardContext };
   constructor() {
@@ -19,8 +18,8 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
     super(async (world, viewer) => {
       const context = binding.context;
       if (context === undefined) throw new Error('Declared Driftwood movers require their scoped world hook');
-      // SF46 (G164): the resident's world is built lowered as one, the sea at road level; the registered sea follows it while it lives
-      const built = await residentWorld.load(context, (owner) => { lowerSea(owner); return buildDriftwoodWorld(world, viewer, G164_LOWERED); });
+      // SF46 (G164): the resident's world is built lowered as one, the sea at road level
+      const built = await residentWorld.load(context, () => buildDriftwoodWorld(world, viewer));
       const options = driftwoodMoverViews(built);
       if (options === null) throw new Error('Declared Driftwood movers require the bridge and moored boat');
       await installDeclaredMovers(context, world, options);

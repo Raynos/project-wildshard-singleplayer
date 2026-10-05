@@ -37,7 +37,7 @@ import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.mo
 import { CELL } from '@wildshard/engine/world/blenderArea';
 import { area, inArea, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
-import { worldDrop } from './sea';
+import { WORLD_DROP } from './sea';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
@@ -237,10 +237,10 @@ export class BlenderIsland {
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
       lm('lm-ao'), lm('lm-bounce'),
     ]);
-    // G164: the cove was baked on the authored heights; with the hybrid row ON it drops with the whole world (its tiles,
+    // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles,
     // every placement and every collider box), so it stays on the dropped terrain exactly
-    const drop = worldDrop();
-    if (drop !== 0) for (const c of meta.colliders) { c.yTop -= drop; c.yBottom -= drop; }
+    const drop = WORLD_DROP;
+    for (const c of meta.colliders) { c.yTop -= drop; c.yBottom -= drop; }
     this.meta = meta;
     for (const t of [ao, bounce]) { t.flipY = false; t.colorSpace = THREE.NoColorSpace; t.channel = 0; t.anisotropy = 4; t.needsUpdate = true; }
 
@@ -299,7 +299,7 @@ export class BlenderIsland {
         // dequantisation lives there)
         if (o.name.startsWith('terrainlo') !== phone) continue;
         const m = new THREE.Mesh(o.geometry, terrainMat);
-        m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); if (drop !== 0) m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
+        m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
         m.name = `island-${o.name}`; m.castShadow = true; m.receiveShadow = true;
         terrainTiles.push(m);
         if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
@@ -327,7 +327,7 @@ export class BlenderIsland {
     //    VT×VT, drawn only near the camera ──
     const f = new Float32Array(place);
     const count = f.length / 10;
-    if (drop !== 0) for (let i = 0; i < count; i++) f[i * 10 + 2] = (f[i * 10 + 2] ?? 0) - drop; // G164: each placement's y
+    for (let i = 0; i < count; i++) f[i * 10 + 2] = (f[i * 10 + 2] ?? 0) - drop; // G164: each placement's y
     const cover = Math.round((count - meta.mustDraw) * (phone ? PHONE_COVER : 1));
     const used = meta.mustDraw + cover;
     const lodOf = new Map<number, number>(Object.entries(meta.lod).map(([k, lo]) => [Number(k), lo]));

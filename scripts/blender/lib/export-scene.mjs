@@ -49,7 +49,12 @@ const baked = await imp('src/engine/world/BakedTerrain.ts');
 const def = registry.getActiveChunk();
 const grid = baked.parseBakedTerrain(readFileSync(resolve(ROOT, `public/assets/baked/${SLUG}/terrain.bin`)).buffer.slice(0));
 if (!grid) throw new Error('no baked terrain');
-hf._installBakedTerrain(baked.bakedSamplers(grid));
+// the scene is exported in the raw bake's authored frame: a level shifted at runtime (its field's `datum`, Driftwood's G164
+// drop) would install the bake shifted, so it binds the raw bake and the authored waterline instead; the game shifts the
+// exported island by the same datum as it loads (BlenderIsland.ts)
+const field = def.ground.terrain, datum = field?.datum ?? 0, samplers = baked.bakedSamplers(grid);
+if (datum === 0) hf._installBakedTerrain(samplers);
+else hf.overrideTerrain({ heightAt: samplers.heightAt, normalAt: samplers.normalAt, splatAt: samplers.splatAt, waterLevel: () => field.waterLevel() - datum });
 const THREE = await import('three');
 const shard = await import(pathToFileURL(shardModule).href);
 const { blenderAreaFor, STEP } = await imp('src/engine/world/blenderArea.ts');
@@ -114,7 +119,7 @@ soup.set(soupPos, 1); soup.set(soupCol, 1 + soupPos.length);
 writeFileSync(`${CACHE}/structures.bin`, Buffer.from(soup.buffer));
 
 const scene = {
-  area: areaInfo, sea: def.ocean ? def.ocean.level : null,
+  area: areaInfo, sea: def.ocean ? def.ocean.level - datum : null,
   chunk: { size: CHUNK_SIZE, res },
   ...layout.scene,
 };

@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
-import { Scope } from '../../../src/engine/app/scope';
+import { toLevelSpec } from '../../../src/game/shard/spec';
+import { configureLevel } from '../../../src/engine/level/selection';
+import { terrainDatum } from '../../../src/engine/world/terrainHeight';
 import { entrywayRules } from '../../../src/game/shardfile/entryways';
 import { contentHash, validateProject } from '../../../src/sdk/project';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
@@ -13,26 +15,31 @@ import { boatColliders } from '../../../src/shards/driftwood-isle/models/boat';
 import { MOVERS } from '../../../src/shards/driftwood-isle/data/movers';
 import { WATER_UNBOUNDED, seaDamp, waterExtent } from '../../../src/engine/world/waves';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '../../../src/engine/core/config';
-import { DRIFTWOOD_SEA, DRY_ENTRIES, ENTRY_LANDINGS, LANDING_RUN, dryEntryRect, inEntryFootprint, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain, hybridRowOn, lowerSea, seaLevel, waterline, worldDrop } from '../../../src/shards/driftwood-isle/world/sea';
+import { DRIFTWOOD_SEA, DRY_ENTRIES, ENTRY_LANDINGS, LANDING_RUN, dryEntryRect, inEntryFootprint, LOWERED_SEA, PIER_START, SHORE_INNER_FACE, SHORE_LEVEL, WORLD_DROP, droppedTerrain } from '../../../src/shards/driftwood-isle/world/sea';
 import { DRIFTWOOD_EDGE_HEIGHTS } from '../../../src/shards/driftwood-isle/data/edges';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 
-// SHARD-PLATFORM SF46 (Jake's G164): with the hybrid row ON Driftwood's whole world drops 0.8 m together (terrain, seabed,
-// sea, pier, jetties, boat, props, colliders, movers), so the sea rests at road height; row OFF is the legacy world exactly.
+// SHARD-PLATFORM SF46 (Jake's G164, shipped by G172): Driftwood's whole world drops 0.8 m together (terrain, seabed, sea,
+// pier, jetties, boat, props, colliders, movers), so the sea rests at road height. The old (undropped) level is deleted.
 
-const authored = manifest.ground.terrain;
-if (authored === undefined) throw new Error('Driftwood has an analytic terrain');
+/** the authored field (the island round SHORE_LEVEL, the frame of the offline bake and of pre-G164 saves): the shipped
+ *  field raised back by the drop */
+const shipped = manifest.ground.terrain;
+if (shipped === undefined) throw new Error('Driftwood has an analytic terrain');
+const authored = { ...shipped, heightAt: (x: number, z: number) => shipped.heightAt(x, z) + WORLD_DROP, waterLevel: () => shipped.waterLevel() + WORLD_DROP, datum: 0 };
 const SAMPLES: readonly (readonly [number, number])[] = [[0, -194], [-4.2, -203], [0, -250], [-24, -62], [98, 96], [153, 2], [-98, 108], [24, 22], [-250, 0], [250, 250], [-180, -30]];
 
-it('row OFF: no drop, and the field, the waterline and the wreck read the authored numbers', () => {
-  expect(hybridRowOn()).toBe(false); expect(worldDrop()).toBe(0);
-  expect(OCEAN.level).toBe(0.8); expect(waterline()).toBe(SHORE_LEVEL); expect(WRECK.floorY).toBe(1.45);
-  expect(authored.waterLevel()).toBe(0.8); expect(authored.datum).toBeCloseTo(0, 12);
-  expect(manifest.minimap?.openWater?.level).toBe(0.8);
+it('the field, the waterline, OCEAN.level (uSeaLevel), the open water, the wreck and the engine datum all read -0.8 m', async () => {
+  expect(shipped.waterLevel()).toBeCloseTo(LOWERED_SEA, 12); expect(shipped.datum).toBe(-WORLD_DROP);
+  expect(OCEAN.level).toBe(LOWERED_SEA); expect(manifest.minimap?.openWater?.level).toBe(LOWERED_SEA);
+  expect(WRECK.floorY).toBeCloseTo(1.45 - WORLD_DROP, 9);
+  await import('../../../src/engine/world/Heightfield'); // installs the engine's terrain datum port
+  configureLevel(toLevelSpec(manifest)); expect(terrainDatum()).toBe(-WORLD_DROP);
 });
 
-it('row ON: the field drops WORLD_DROP as one (heights, waterline, the bake datum), normals unchanged', () => {
-  const on = droppedTerrain(authored, () => WORLD_DROP);
+it('the field drops WORLD_DROP as one (heights, waterline, the bake datum), normals unchanged', () => {
+  const on = droppedTerrain(authored);
+  for (const [x, z] of SAMPLES) expect(on.heightAt(x, z)).toBe(shipped.heightAt(x, z));
   expect(WORLD_DROP).toBe(0.8);
   for (const [x, z] of SAMPLES) expect(on.heightAt(x, z)).toBeCloseTo(authored.heightAt(x, z) - WORLD_DROP, 9);
   for (const [x, z] of SAMPLES) expect(on.normalAt(x, z)).toEqual(authored.normalAt(x, z));
@@ -89,19 +96,14 @@ it('declares every entry a socket over water: the sea row clips all four sockets
   }
 });
 
-it('lowers the registered sea only while a hybrid resident lives, and the ordinary sea is the old body exactly', () => {
+it('registers the lowered sea at road height, clipped out of the entry sockets', () => {
   expect(SHORE_LEVEL).toBe(0.8); expect(LOWERED_SEA).toBe(0);
   expect(manifest.ground.water).toEqual([DRIFTWOOD_SEA]);
-  expect(DRIFTWOOD_SEA.level).toBe(0.8); expect(DRIFTWOOD_SEA.restAt(0, -200)).toBe(0.8);
-  const resident = new Scope('test.driftwood.resident');
-  lowerSea(resident);
-  expect(seaLevel()).toBe(0); expect(DRIFTWOOD_SEA.level).toBe(0); expect(DRIFTWOOD_SEA.restAt(0, -200)).toBe(0);
+  expect(DRIFTWOOD_SEA.level).toBe(0); expect(DRIFTWOOD_SEA.restAt(0, -200)).toBe(0);
   expect(DRIFTWOOD_SEA.inside(0, -200, -0.5)).toBe(true); expect(DRIFTWOOD_SEA.inside(0, -200, 0.5)).toBe(false);
   // the lowered sea is clipped out of the four 8 × 15 m entry sockets
   for (const [x, z] of [[0, -249], [3.9, -236], [0, 249], [249, 0], [-236, 3.9]] as const) { expect(DRIFTWOOD_SEA.restAt(x, z)).toBeNull(); expect(DRIFTWOOD_SEA.inside(x, z, -0.5)).toBe(false); }
   for (const [x, z] of [[0, -234], [4.2, -249]] as const) expect(DRIFTWOOD_SEA.restAt(x, z)).toBe(0);
-  resident.dispose();
-  expect(seaLevel()).toBe(0.8); expect(DRIFTWOOD_SEA.restAt(0, -200)).toBe(0.8);
 });
 
 it('starts every pier and jetty where its 15 m socket ends, on whole piling bays, its ramp rising from road height', () => {
@@ -141,19 +143,12 @@ it("regenerated movers: the boat moored by the pier at road-height sea, the rope
 });
 
 it('stops the lowered sea at the shore revetment inner face once a grid cell confines it (G149), unbounded standalone', () => {
-  const resident = new Scope('test.driftwood.resident.g149');
-  lowerSea(resident);
-  try {
-    expect(G164_LOWERED.edgeInset).toBe(SHORE_INNER_FACE);
-    expect(DRIFTWOOD_SEA.restAt(249, 100)).toBe(0); // standalone: the sea runs on past the cell edge
-    waterExtent.uWaterHalf.value = CHUNK_HALF;
-    try {
-      const face = CHUNK_HALF - SHORE_INNER_FACE;
-      for (const [x, z] of [[face + 0.01, 100], [-100, -face - 0.01], [face + 0.5, face + 0.5]] as const) { expect(DRIFTWOOD_SEA.restAt(x, z)).toBeNull(); expect(DRIFTWOOD_SEA.inside(x, z, -0.5)).toBe(false); }
-      for (const [x, z] of [[face - 0.01, 100], [100, -face + 0.01]] as const) { expect(DRIFTWOOD_SEA.restAt(x, z)).toBe(0); expect(DRIFTWOOD_SEA.inside(x, z, -0.5)).toBe(true); }
-    } finally { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; }
-  } finally { resident.dispose(); }
-  // the shore sea (row OFF) keeps the plain cell square, exactly as before
+  expect(G164_LOWERED.edgeInset).toBe(SHORE_INNER_FACE);
+  expect(DRIFTWOOD_SEA.restAt(249, 100)).toBe(0); // standalone: the sea runs on past the cell edge
   waterExtent.uWaterHalf.value = CHUNK_HALF;
-  try { expect(DRIFTWOOD_SEA.restAt(CHUNK_HALF - 0.5, 100)).toBe(0.8); } finally { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; }
+  try {
+    const face = CHUNK_HALF - SHORE_INNER_FACE;
+    for (const [x, z] of [[face + 0.01, 100], [-100, -face - 0.01], [face + 0.5, face + 0.5]] as const) { expect(DRIFTWOOD_SEA.restAt(x, z)).toBeNull(); expect(DRIFTWOOD_SEA.inside(x, z, -0.5)).toBe(false); }
+    for (const [x, z] of [[face - 0.01, 100], [100, -face + 0.01]] as const) { expect(DRIFTWOOD_SEA.restAt(x, z)).toBe(0); expect(DRIFTWOOD_SEA.inside(x, z, -0.5)).toBe(true); }
+  } finally { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; }
 });

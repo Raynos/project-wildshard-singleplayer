@@ -46,7 +46,7 @@ import { LowPolyKit, bakeLight, lowPolyMaterial, type BakedLight } from '@wildsh
 import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { worldDrop } from './sea';
+import { WORLD_DROP } from './sea';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }
@@ -75,9 +75,9 @@ const ALC = { z0: 6.4, hw: 2.0, ceil: 3.4 };
 const RAMP = { z0: 5.8, z1: 6.8 };
 /** PHYSICS P4: the ramp's collision treads (see `colliderDescs`): 4 × 0.375 m, centred on the drawn ramp's middle, 5 cm clear of the sluice leaf */
 const STEPS = { z0: 5.65, z1: 7.15 };
-/** the antechamber and alcove floors: authored over the +0.8 m waterline, lowered with the whole world by G164's drop (the
- *  hybrid row, world/sea.ts) like the terrain they are cut into */
-const anteFloor = (): number => 1.2 - worldDrop(), alcFloor = (): number => 2.2 - worldDrop();
+/** the antechamber and alcove floors: authored over the +0.8 m waterline, lowered with the whole world by G164's drop
+ *  (world/sea.ts) like the terrain they are cut into */
+const ANTE_FLOOR = 1.2 - WORLD_DROP, ALC_FLOOR = 2.2 - WORLD_DROP;
 /**
  * PHYSICS P4: the baked terrain rises through the cave floor from lz ≈ 5 and stands over the alcove floor from lz ≈ 7,
  * so the physics heightfield is pushed under the cave inside this rectangle (local, from the mouth). It starts 1 m in
@@ -85,7 +85,7 @@ const anteFloor = (): number => 1.2 - worldDrop(), alcFloor = (): number => 2.2 
  * wall; ±4.2 m takes every grid column whose triangles reach the floor. `BACKFILL` walls off the triangles that climb
  * back out of the cut behind the back wall (one grid cell, ~2 m, past its far edge).
  */
-const CUT = { hw: 4.2, z0: 1.0, z1: 10.2, get below(): number { return anteFloor() - 0.6; } };
+const CUT = { hw: 4.2, z0: 1.0, z1: 10.2, below: ANTE_FLOOR - 0.6 };
 const BACKFILL = { hw: CUT.hw + 2.0, z1: CUT.z1 + 2.0 };
 
 export class Cove {
@@ -118,7 +118,7 @@ export class Cove {
       crabSites: [{ x: 130, z: 5 }, { x: 132, z: -9 }],
       fall: { top: [120.5, 24.5], foot: [127.5, 18], width: 1.7 },
       cave,
-      caveBounds: { x: cave.x + Math.sin(cave.yaw) * mid, z: cave.z + Math.cos(cave.yaw) * mid, r: 5.2, yMin: anteFloor() - 0.4, yMax: anteFloor() + 4.5 },
+      caveBounds: { x: cave.x + Math.sin(cave.yaw) * mid, z: cave.z + Math.cos(cave.yaw) * mid, r: 5.2, yMin: ANTE_FLOOR - 0.4, yMax: ANTE_FLOOR + 4.5 },
     };
   }
 
@@ -153,9 +153,9 @@ export class Cove {
   }
   /** the cave's floor under local lz (the antechamber, the ramp through the passage, the raised alcove) */
   private floorAt(lz: number): number {
-    if (lz < RAMP.z0) return anteFloor();
-    if (lz > RAMP.z1) return alcFloor();
-    return anteFloor() + ((lz - RAMP.z0) / (RAMP.z1 - RAMP.z0)) * (alcFloor() - anteFloor());
+    if (lz < RAMP.z0) return ANTE_FLOOR;
+    if (lz > RAMP.z1) return ALC_FLOOR;
+    return ANTE_FLOOR + ((lz - RAMP.z0) / (RAMP.z1 - RAMP.z0)) * (ALC_FLOOR - ANTE_FLOOR);
   }
   private halfWidth(lz: number): number { return lz < PASS.z0 ? ANTE.hw : lz < PASS.z1 ? PASS.hw : ALC.hw; }
   private ceil(lz: number): number { return lz < PASS.z0 ? ANTE.ceil : lz < PASS.z1 ? PASS.ceil : ALC.ceil; }
@@ -250,11 +250,11 @@ export class Cove {
       }
     }
     // the back wall of the alcove + a big rock burying the rising ground in its corner
-    for (const lx of [-1.4, 0, 1.4]) { const p = at(lx, alcFloor() + 1.0, cave.depth + 0.9); boulder(p.x, p.y, p.z, 1.3, C.rockIn, C.rockWet, 0.95, 0.2); }
-    { const p = at(-1.9, alcFloor() + 0.2, cave.depth - 0.4); boulder(p.x, p.y, p.z, 1.0, C.rockInB, C.rockWet, 0.8); }
+    for (const lx of [-1.4, 0, 1.4]) { const p = at(lx, ALC_FLOOR + 1.0, cave.depth + 0.9); boulder(p.x, p.y, p.z, 1.3, C.rockIn, C.rockWet, 0.95, 0.2); }
+    { const p = at(-1.9, ALC_FLOOR + 0.2, cave.depth - 0.4); boulder(p.x, p.y, p.z, 1.0, C.rockInB, C.rockWet, 0.8); }
     // the passage's shoulders: the wall steps in from the antechamber to the 2.5 m throat
     for (const side of [-1, 1]) for (const lz of [PASS.z0 - 0.15, PASS.z1 + 0.1]) {
-      const p = at(side * (PASS.hw + 1.0), anteFloor() + 1.3, lz); boulder(p.x, p.y, p.z, 1.2, C.rockInB, C.rockWet, 1.0, 0.18);
+      const p = at(side * (PASS.hw + 1.0), ANTE_FLOOR + 1.3, lz); boulder(p.x, p.y, p.z, 1.2, C.rockInB, C.rockWet, 1.0, 0.18);
     }
     // the outer mass: big grass-topped boulders heaped over and around the vault so it reads as the crag's foot
     const mass: [number, number, number, number][] = [
@@ -262,10 +262,10 @@ export class Cove {
       [-2.4, 5.4, 1.8, 2.5], [2.3, 5.5, 2.0, 2.6], [0, 5.9, 4.6, 2.9], [-2.6, 5.6, 7.2, 2.7], [2.4, 5.8, 7.4, 2.6], [0, 6.2, 9.8, 2.8],
       [-3.8, 4.4, -0.6, 1.6], [3.9, 4.2, -0.5, 1.7], [-6.8, 0.6, -1.2, 1.5], [6.9, 0.8, -1.0, 1.6],
     ];
-    for (const [lx, dy, lz, r] of mass) { const p = at(lx, anteFloor() + dy, lz); boulder(p.x, p.y, p.z, r, rng.next() < 0.5 ? C.rock : C.rockB, rng.next() < 0.5 ? C.grass : C.grassB, 0.8, 0.25); }
+    for (const [lx, dy, lz, r] of mass) { const p = at(lx, ANTE_FLOOR + dy, lz); boulder(p.x, p.y, p.z, r, rng.next() < 0.5 ? C.rock : C.rockB, rng.next() < 0.5 ? C.grass : C.grassB, 0.8, 0.25); }
     // the mouth arch: wet rocks low, a lintel of three over the opening
     for (const [lx, dy, r] of [[-2.9, 0.5, 0.9], [2.9, 0.4, 0.95], [-2.7, 2.0, 0.85], [2.8, 2.1, 0.85], [-1.6, 3.7, 0.9], [0, 4.0, 0.95], [1.6, 3.7, 0.9]] as const) {
-      const p = at(lx, anteFloor() + dy, -0.3); boulder(p.x, p.y, p.z, r, dy < 1 ? C.rockWet : C.rock, C.moss, 0.85, 0.2);
+      const p = at(lx, ANTE_FLOOR + dy, -0.3); boulder(p.x, p.y, p.z, r, dy < 1 ? C.rockWet : C.rock, C.moss, 0.85, 0.2);
     }
     // the floor: rock slabs over a sand bed, the ramp up to the alcove, a tide pool in the antechamber
     {
@@ -286,11 +286,11 @@ export class Cove {
         const lz = RAMP.z0 + (k + 0.5) * (RAMP.z1 - RAMP.z0) / 4, p = at(0, this.floorAt(lz) - 0.08, lz);
         kit.add(new THREE.BoxGeometry(PASS.hw * 1.7, 0.18, 0.32), C.slabB, { matrix: m4(p.x, p.y, p.z, cave.yaw + rng.range(-0.05, 0.05)), wobble: 0.02 });
       }
-      const pp = at(-1.3, anteFloor() + 0.005, 2.2);
+      const pp = at(-1.3, ANTE_FLOOR + 0.005, 2.2);
       const disc = new THREE.CircleGeometry(0.95, 9); disc.rotateX(-Math.PI / 2); disc.translate(pp.x, pp.y, pp.z);
       poolParts.push(disc);
-      for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2, q = at(-1.3 + Math.cos(a) * 1.05, anteFloor(), 2.2 + Math.sin(a) * 1.05); boulder(q.x, q.y + 0.05, q.z, rng.range(0.18, 0.3), C.rockWet, C.moss, 0.6); }
-      starfish(pp.x + 0.3, anteFloor() - 0.02, pp.z - 0.2, 0.16, C.starPurple);
+      for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2, q = at(-1.3 + Math.cos(a) * 1.05, ANTE_FLOOR, 2.2 + Math.sin(a) * 1.05); boulder(q.x, q.y + 0.05, q.z, rng.range(0.18, 0.3), C.rockWet, C.moss, 0.6); }
+      starfish(pp.x + 0.3, ANTE_FLOOR - 0.02, pp.z - 0.2, 0.16, C.starPurple);
     }
     // stalactites from the roof, a few stalagmites
     for (let i = 0; i < 16; i++) {
@@ -303,7 +303,7 @@ export class Cove {
     }
     // vines hanging over the mouth and down the outer face
     for (let i = 0; i < 24; i++) {
-      const lx = rng.range(-3.6, 3.6), lz = rng.range(-0.9, -0.4), top = anteFloor() + 3.9 + rng.range(0, 0.9) - Math.abs(lx) * 0.25, len = rng.range(0.8, 2.6), w = rng.range(0.07, 0.13);
+      const lx = rng.range(-3.6, 3.6), lz = rng.range(-0.9, -0.4), top = ANTE_FLOOR + 3.9 + rng.range(0, 0.9) - Math.abs(lx) * 0.25, len = rng.range(0.8, 2.6), w = rng.range(0.07, 0.13);
       const a = at(lx, top, lz), b = at(lx + rng.range(-0.15, 0.15), top - len, lz - rng.range(0.0, 0.2));
       const [ox, oz] = [Math.cos(cave.yaw) * w, -Math.sin(cave.yaw) * w];
       kit.add(tris([a.x - ox, a.y, a.z - oz, a.x + ox, a.y, a.z + oz, b.x, b.y, b.z]), rng.next() < 0.5 ? C.vine : C.vineB, { jitter: 0.1 });
@@ -323,7 +323,7 @@ export class Cove {
     }
     // a wall torch in the antechamber (its warm light is what you see from the beach), on an iron bracket
     {
-      const p = at(ANTE.hw - 0.25, anteFloor() + 1.7, 3.0);
+      const p = at(ANTE.hw - 0.25, ANTE_FLOOR + 1.7, 3.0);
       kit.add(new THREE.BoxGeometry(0.06, 0.06, 0.4).translate(0, 0, 0), '#3a3c42', { matrix: m4(p.x, p.y - 0.1, p.z, cave.yaw + Math.PI / 2) });
       kit.add(log(p.clone().add(new THREE.Vector3(0, -0.35, 0)), p.clone().add(new THREE.Vector3(0, 0.25, 0)), 0.05, 0.045, 5), C.torch);
       glow.add(new THREE.OctahedronGeometry(0.11, 0).scale(1, 1.9, 1).translate(p.x, p.y + 0.45, p.z), C.flame, { jitter: 0 });
@@ -386,12 +386,12 @@ export class Cove {
       this.colliders.push({ x, z, hw, hd, rot: -cave.yaw, yTop: y1, yBottom: y0 });
     };
     for (const side of [-1, 1]) {
-      box(side * (ANTE.hw + 0.6), ANTE.z1 / 2 - 0.3, 0.6, ANTE.z1 / 2 + 0.3, anteFloor() - 2, anteFloor() + 7);
-      box(side * (PASS.hw + 1.0), (PASS.z0 + PASS.z1) / 2, 1.0, (PASS.z1 - PASS.z0) / 2, anteFloor() - 2, anteFloor() + 7);
-      box(side * (ALC.hw + 0.6), (ALC.z0 + cave.depth) / 2, 0.6, (cave.depth - ALC.z0) / 2, anteFloor() - 2, anteFloor() + 7);
-      box(side * (ANTE.hw + 2.6), cave.depth / 2, 1.5, cave.depth / 2 + 0.8, anteFloor() - 2, anteFloor() + 7);
+      box(side * (ANTE.hw + 0.6), ANTE.z1 / 2 - 0.3, 0.6, ANTE.z1 / 2 + 0.3, ANTE_FLOOR - 2, ANTE_FLOOR + 7);
+      box(side * (PASS.hw + 1.0), (PASS.z0 + PASS.z1) / 2, 1.0, (PASS.z1 - PASS.z0) / 2, ANTE_FLOOR - 2, ANTE_FLOOR + 7);
+      box(side * (ALC.hw + 0.6), (ALC.z0 + cave.depth) / 2, 0.6, (cave.depth - ALC.z0) / 2, ANTE_FLOOR - 2, ANTE_FLOOR + 7);
+      box(side * (ANTE.hw + 2.6), cave.depth / 2, 1.5, cave.depth / 2 + 0.8, ANTE_FLOOR - 2, ANTE_FLOOR + 7);
     }
-    box(0, cave.depth + 0.6, ALC.hw + 1, 0.6, anteFloor() - 2, anteFloor() + 7);
+    box(0, cave.depth + 0.6, ALC.hw + 1, 0.6, ANTE_FLOOR - 2, ANTE_FLOOR + 7);
 
     // ── anchors ──
     const anchor = (lx: number, lz: number, yaw: number, floor = true): CoveAnchor => {
@@ -429,12 +429,12 @@ export class Cove {
       return { kind: 'box', x, y: (top + bottom) / 2, z, hx: hw, hy: (top - bottom) / 2, hz: (lz1 - lz0) / 2, yaw: c.yaw, surface: 'rock' };
     };
     const base = CUT.below - 0.4;
-    out.push(slab(ANTE.hw + 0.1, -0.3, PASS.z0, anteFloor(), base));
-    out.push(slab(PASS.hw + 0.1, PASS.z0, STEPS.z0, anteFloor(), base));
-    out.push(slab(ALC.hw + 0.1, STEPS.z1, c.depth, alcFloor(), base));
+    out.push(slab(ANTE.hw + 0.1, -0.3, PASS.z0, ANTE_FLOOR, base));
+    out.push(slab(PASS.hw + 0.1, PASS.z0, STEPS.z0, ANTE_FLOOR, base));
+    out.push(slab(ALC.hw + 0.1, STEPS.z1, c.depth, ALC_FLOOR, base));
     const at = (lz: number, y: number) => { const [x, z] = this.W(0, lz); return { x, y, z }; };
-    out.push({ kind: 'treads', from: at(STEPS.z0, anteFloor()), to: at(STEPS.z1, alcFloor()), width: (ALC.hw + 0.1) * 2, count: 4, surface: 'rock' });
-    out.push(slab(BACKFILL.hw, c.depth + 0.8, BACKFILL.z1, anteFloor() + 7, base));
+    out.push({ kind: 'treads', from: at(STEPS.z0, ANTE_FLOOR), to: at(STEPS.z1, ALC_FLOOR), width: (ALC.hw + 0.1) * 2, count: 4, surface: 'rock' });
+    out.push(slab(BACKFILL.hw, c.depth + 0.8, BACKFILL.z1, ANTE_FLOOR + 7, base));
     return out;
   }
 
