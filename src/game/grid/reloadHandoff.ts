@@ -11,6 +11,8 @@ const roadPoint = v.strictObject({ x: finite, z: finite, yaw: finite });
 /** Planned grid transfer only: local inventories and rewards stay in their stable instance saves. */
 export const GridReloadHandoffSchema = v.strictObject({
   v: v.literal(1), mode: v.literal('grid'),
+  // Existing strict v1 records omit this field and begin at attempt zero.
+  attempt: v.optional(v.union([v.literal(0), v.literal(1)])),
   layout: v.strictObject({ developer: v.boolean(), devserver: v.boolean(), nineDragon: v.boolean() }),
   instance: id, revision: v.pipe(natural, v.minValue(1)), cell: v.tuple([finite, finite]),
   roadPose: v.strictObject({ x: finite, y: finite, z: finite }), heading: finite,
@@ -48,6 +50,21 @@ export function consumeGridReload(slot: SaveSlot<GridReloadHandoff | null>, vali
   if (value === null) return null;
   if (!slot.write(null)) return null;
   return valid(value) ? value : null;
+}
+
+/** Mark before loading. A second boot refuses the same transaction even if session storage disappeared. */
+export function beginGridReload(slot: SaveSlot<GridReloadHandoff | null>, valid: (value: GridReloadHandoff) => boolean): GridReloadHandoff | null {
+  const value = slot.read();
+  if (value === null) return null;
+  if ((value.attempt ?? 0) !== 0 || !valid(value)) { slot.write(null); return null; }
+  const attempted: GridReloadHandoff = { ...value, attempt: 1 };
+  return slot.write(attempted) ? attempted : null;
+}
+/** Consume only when the admitted road is about to fade in; a failed deletion keeps the boot refused. */
+export function completeGridReload(slot: SaveSlot<GridReloadHandoff | null>, expected: GridReloadHandoff): boolean {
+  const value = slot.read();
+  return value?.attempt === 1 && value.at === expected.at
+    && value.instance === expected.instance && value.revision === expected.revision && slot.write(null);
 }
 
 /** The page supplies real durable checkpoint, motion hold, fade and fresh-document navigation ports. */

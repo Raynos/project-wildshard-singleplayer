@@ -91,7 +91,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     options.residency?.dispose(); // Pre-bootstrap failures have no consumers; runShardLoad disposes allocated ones first.
     markBootHandledError();
     if (plannedGridReload() !== null) {
-      // The transfer was consumed before hydration; returning to the bare title cannot repeat a failed resume.
+      // The durable attempt marker makes a bare-title boot refuse this failed resume.
       console.warn('[grid reload] refused during session boot', error);
       location.replace(new URL('/', location.origin).href); return;
     }

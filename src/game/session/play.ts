@@ -67,7 +67,7 @@ import { installBounds } from '@wildshard/engine/world/bounds';
 import { gridCells, gridHomeSim, pageMode } from '../grid/boot';
 import { installGridReveal } from '../grid/reveal';
 import { gridFadeReloadOn } from '../grid/debug';
-import { plannedGridReload } from '../grid/reloadBoot';
+import { finishPlannedGridReload, plannedGridReload } from '../grid/reloadBoot';
 import { gridReloadFade, installGridReload } from '../grid/reload';
 import { installGridHud } from '../grid/gridHud';
 import { ACCENTS } from '../shardfile/accent';
@@ -659,6 +659,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     for (const tool of weapons.tools) if (tool.id === 'tool.hoverboard' && value.loadout.tools.includes(tool.id)) tool.enabled = true;
     if (!await grid.ready()) throw new Error('Planned grid critical coverage is not ready');
     app.clock.restore(value.clock);
+    if (!finishPlannedGridReload(app.saves)) throw new Error('Planned grid handoff consumption is not durable');
     resumePending = false; reloadHeld = false; player.carried = carriedBefore;
     fade.into();
   }
