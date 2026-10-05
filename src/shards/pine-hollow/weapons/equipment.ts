@@ -1,5 +1,4 @@
 import type { EquipmentRow, RangedFeelProfile } from '@wildshard/engine/combat/Equipment';
-import { SWAP_GLYPHS } from '@wildshard/kit/weapons/ui';
 
 export const PINE_BOLT_HIT_STOP = { body: 0.035, head: 0.055, kill: 0.075 } as const;
 export const PINE_RANGED_FEEL: RangedFeelProfile = {
@@ -13,7 +12,7 @@ export const CROSSBOW: EquipmentRow = {
   "id": "weapon.crossbow",
   "legacySlot": "crossbow",
   "ui": {
-    "swapIcon": SWAP_GLYPHS.crossbow,
+    "swapIcon": "<path d=\"M4 7c4 3 12 3 16 0M12 5v15M8 17h8\"/>",
     "name": "Crossbow",
     "icon": "crossbow",
     "touch": "ranged",
@@ -42,7 +41,7 @@ export const LONGBOW: EquipmentRow = {
   "id": "weapon.longbow",
   "legacySlot": "bow",
   "ui": {
-    "swapIcon": SWAP_GLYPHS.bow,
+    "swapIcon": "<path d=\"M6 3c7 3.5 7 14.5 0 18\"/><path d=\"M6 3v18\" stroke-width=\"0.9\"/><path d=\"M4 12h15M16.5 9.5 19 12l-2.5 2.5\"/>",
     "name": "Warden's longbow",
     "icon": "longbow",
     "touch": "bow",
@@ -70,7 +69,7 @@ export const LEVER: EquipmentRow = {
   "id": "weapon.lever",
   "legacySlot": "rifle",
   "ui": {
-    "swapIcon": SWAP_GLYPHS.rifle,
+    "swapIcon": "<path d=\"M3 13h14l3-2h1v3h-4l-2 2H9l-1 3H5l1-3H3z\"/>",
     "name": "Lever-action",
     "icon": "lever",
     "touch": "ranged",

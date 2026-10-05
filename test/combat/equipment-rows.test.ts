@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SWAP_GLYPHS } from '../../src/kit/weapons/ui';
 import { Weapon } from '../../src/engine/combat/Weapon';
 import { WOODEN_SWORD, IRON_SWORD } from '../../src/kit/weapons/equipment';
 import { JIAN_ROW as JIAN } from '../../src/shards/nine-dragon-stack/vm/jianRow';
@@ -31,6 +32,9 @@ describe('C2 concrete weapon and UI row contracts', () => {
       ['weapon.rifle', 'ranged', false, false, true, 6], ['weapon.crossbow', 'ranged', false, false, true, 4],
       ['weapon.longbow', 'bow', false, false, false, 4], ['weapon.lever', 'ranged', false, false, true, 7],
     ]);
+  });
+  it('keeps exact existing Pine glyph markup as row data without a runtime kit dependency', () => {
+    expect([CROSSBOW.ui.swapIcon, LONGBOW.ui.swapIcon, LEVER.ui.swapIcon]).toEqual([SWAP_GLYPHS.crossbow, SWAP_GLYPHS.bow, SWAP_GLYPHS.rifle]);
   });
   it.each([Sword, Bow, Crossbow, Rifle, Sabre, Spear, LeverRifle])('%s inherits the concrete Weapon class', (weapon) => {
     expect(Object.prototype.isPrototypeOf.call(Weapon.prototype, weapon.prototype)).toBe(true);
