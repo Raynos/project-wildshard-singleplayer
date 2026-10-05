@@ -23,6 +23,12 @@
 //              (render/graph/presets.ts) through compileGraph (render/graph/compile.ts, loaded by loadGraphCompiler)
 //   family-roles / graph-roles  0.8 m boxes whose UV0 carries measure roles (sides structure, tops trim; under 1 m, so
 //              unlabelled): the role decode, the face grid and the role colours, family vs the graph preset
+//   family-labels / graph-labels  2 m boxes whose UV0 carries roles AND labelled sizes ("2.5×1.5" in front, "10.5×12" on the
+//              sides, "2×2" on top): the size-label glyphs, family vs the graph preset (SF59 step 4)
+//   family-emit / graph-emit  the boxes as the emissive family's opaque surface (HDR intensity, a flicker seed on the
+//              look's clock at 0) vs the emissive preset
+//   family-tube / graph-tube  the boxes as the emissive family's neon tube (opaque blend) over a procedural ring field
+//              (core, rim, seam, halo, a cell fade) vs the emissive preset
 // SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
 // render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
 // Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
@@ -37,11 +43,12 @@ import {
   luminance, hash, PCFShadowFilter,
 } from 'three/tsl';
 import { loadGraphBackend, loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
-import { pbrMeasureGraph } from '@wildshard/engine/render/graph/presets';
+import { emissiveGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET } from '@wildshard/engine/render/graph/presets';
 import { targetTexture } from '@wildshard/engine/render/nodes/engineNodesHandler';
 import { installFrameCounter, renderCount } from '@wildshard/engine/render/frameCounter';
 import { installShadowFilter } from '@wildshard/engine/world/shadowFilter';
 import { compilePbr } from '@wildshard/engine/render/families/pbr';
+import { compileEmissive, EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { parseFamilyMaterial, measureUv } from '@wildshard/engine/render/families/params';
 import { installAtmosphere, fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { patchShader, PATCH_ORDER, takeForeignHook } from '@wildshard/engine/render/shaderPatches';
@@ -83,6 +90,8 @@ if (VARIANT === 'tsl-raw') { handler = new StockNodesHandler(); renderer.setNode
 else if (tsl) handler = await loadGraphBackend(renderer); // the engine's back-end, as its own lazy chunk
 const GRAPH = VARIANT.startsWith('graph');
 const ROLES = VARIANT.endsWith('-roles');
+const LABELS = VARIANT.endsWith('-labels');
+const EMIT = VARIANT.endsWith('-emit') || VARIANT.endsWith('-tube');
 const compiler = GRAPH ? await loadGraphCompiler(renderer) : null; // the graph compiler, the same lazy door
 
 // ── the scene ──
@@ -147,6 +156,28 @@ if (params.family !== 'pbr' || params.measure === null) throw new Error('spike: 
 const measure = params.measure;
 const familyMat = () => compilePbr(params, () => { throw new Error('spike: no textures'); });
 
+// the emissive family (step 4): a surface, or a tube over a procedural ring field (R fill, 0.5 on the edge; G skeleton)
+const FIELD = (() => {
+  const n = 128, data = new Uint8Array(n * n * 4), fillSpread = 0.3, skeletonSpread = 0.4;
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const u = (x + 0.5) / n - 0.5, v = (y + 0.5) / n - 0.5, sk = Math.abs(Math.hypot(u, v) - 0.3);
+    const dFill = 0.07 - sk, k = (y * n + x) * 4;
+    data[k] = Math.round(Math.min(1, Math.max(0, 0.5 + dFill / (2 * fillSpread))) * 255);
+    data[k + 1] = Math.round(Math.min(1, sk / skeletonSpread) * 255);
+    data[k + 3] = 255;
+  }
+  const t = new THREE.DataTexture(data, n, n);
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
+  return t;
+})();
+const emitEntry = VARIANT.endsWith('-tube')
+  ? { family: 'emissive', colour: [0.3, 0.9, 1], intensity: 2.5, tube: { field: 'ring', fillSpread: 0.3, skeletonSpread: 0.4, seam: 0.4, cell: [0.5, 0.5] } }
+  : { family: 'emissive', colour: [1, 0.55, 0.2], intensity: 1.6, flicker: 3 };
+const emitParams = parseFamilyMaterial(emitEntry);
+if (emitParams.family !== 'emissive') throw new Error('spike: an emissive surface');
+const emitLook = new EmissiveLook({ gain: 1.25 });
+const emitTextures = () => FIELD;
+
 const lin = (rgb) => new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace);
 /** the measure layer's grid (measure.ts famMGrid), as TSL */
 const grid = Fn(([c, pitch, hw]) => {
@@ -191,7 +222,7 @@ function tslMat(sway) {
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120).rotateX(-Math.PI / 2), csmMaterial(familyMat()));
 ground.receiveShadow = true;
 scene.add(ground);
-const BOX = ROLES ? 0.8 : 1.6;
+const BOX = ROLES ? 0.8 : LABELS ? 2 : 1.6;
 const boxGeo = new THREE.BoxGeometry(BOX, 1, BOX, 1, 1, 1).translate(0, 0.5, 0);
 if (ROLES) {
   // BoxGeometry's faces are +x, −x, +y, −y, +z, −z, four vertices each: sides are structure (role 1), top and bottom trim
@@ -204,10 +235,26 @@ if (ROLES) {
   }
   uvs.needsUpdate = true;
 }
+if (LABELS) {
+  // faces +x, −x, +y, −y, +z, −z: sides structure, top and bottom trim; the declared sizes are labelled (whole or half metres)
+  const sizes = [[10.5, 12], [10.5, 12], [2, 2], [2, 2], [2.5, 1.5], [1.5, 1.5]];
+  const uvs = boxGeo.getAttribute('uv');
+  for (let i = 0; i < uvs.count; i++) {
+    const face = Math.floor(i / 4), [w, h] = sizes[face];
+    const [x, y] = measureUv(face === 2 || face === 3 ? 2 : 1, uvs.getX(i) * w, uvs.getY(i) * h, w, h);
+    uvs.setXY(i, x, y);
+  }
+  uvs.needsUpdate = true;
+}
 /** graph / graph-roles: the boxes from the compiler (the preset IR plus the page's cold-compile constant on the glow) */
 function graphMat() {
+  if (EMIT) {
+    const ir = emissiveGraph(emitParams, emitLook.params);
+    const g = compiler.compileGraph({ ...ir, nodes: { ...ir.nodes, outN: { op: 'add', in: ['out', Number(NONCE)] } }, stages: { surface: { colour: 'outN' } } }, { budget: PRESET_GRAPH_BUDGET, textures: emitTextures });
+    return g.material;
+  }
   const ir = pbrMeasureGraph(params, measure);
-  const g = compiler.compileGraph({ ...ir, nodes: { ...ir.nodes, glowN: { op: 'add', in: ['glow', Number(NONCE)] } }, stages: { surface: { ...ir.stages.surface, emissive: 'glowN' } } });
+  const g = compiler.compileGraph({ ...ir, nodes: { ...ir.nodes, glowN: { op: 'add', in: ['glow', Number(NONCE)] } }, stages: { surface: { ...ir.stages.surface, emissive: 'glowN' } } }, { budget: PRESET_GRAPH_BUDGET });
   return g.material;
 }
 /** the diagnostic pair plain / tsl-plain: the stock standard material, classic vs node, no measure layer (the cost of
@@ -219,7 +266,7 @@ function plainMat() {
   m.emissiveNode = vec3(float(Number(NONCE)));
   return m;
 }
-const boxMat = VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : familyMat();
+const boxMat = VARIANT === 'plain' || VARIANT === 'tsl-plain' ? plainMat() : GRAPH ? graphMat() : tsl ? tslMat(VARIANT === 'tsl-sway') : EMIT ? compileEmissive(emitParams, emitLook, emitTextures) : familyMat();
 if (!tsl && VARIANT !== 'warmup') {
   patchShader(boxMat, 'spike.nonce', PATCH_ORDER.decorate, (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(/\}\s*$/, `  gl_FragColor.rgb += vec3( ${NONCE} );\n}`);

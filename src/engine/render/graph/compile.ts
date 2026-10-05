@@ -24,7 +24,7 @@ import {
 } from 'three/webgpu';
 import {
   Fn, Loop, Var, and, cameraPosition, float, hash, instanceIndex, mx_noise_float, normalLocal, normalWorldGeometry, not, or,
-  positionLocal, positionWorld, texture, time, uniform, uv, vec2, vec3, vec4,
+  positionLocal, positionWorld, texture, time, uniform, uv, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { targetTexture } from '../nodes/engineNodesHandler';
 import {
@@ -171,6 +171,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'cameraPosition': return { t: 'vec3', n: cameraPosition };
       case 'time': return { t: 'float', n: time };
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
+      case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'screenUV': return { t: 'vec2', n: uv() };
       case 'sceneColour': {
         if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColour, so compile it with { scene }');
@@ -193,7 +194,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'step': return same((x, y) => new MathNode('step', x, y), two());
       case 'clamp': return same((x, lo, hi) => new MathNode('clamp', x, lo, hi), three());
       case 'smoothstep': return same((e0, e1, x) => new MathNode('smoothstep', e0, e1, x), three());
-      case 'abs': case 'floor': case 'fract': case 'sin': case 'cos': case 'negate': case 'fwidth': case 'normalize': {
+      case 'abs': case 'floor': case 'fract': case 'sin': case 'cos': case 'exp': case 'negate': case 'fwidth': case 'normalize': {
         const v = one();
         return { t: v.t, n: new MathNode(n.op, v.n) };
       }

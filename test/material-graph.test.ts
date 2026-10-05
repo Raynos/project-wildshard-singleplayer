@@ -1,11 +1,12 @@
-// SHARD-PLATFORM SF59 step 3: the material graph IR (validation) and its compiler (IR → TSL node material). Pixel parity of
-// the measure preset against the hand-written family is the bench's job (scripts/tsl-spike, the graph variants).
+// SHARD-PLATFORM SF59 steps 3–4: the material graph IR (validation), its compiler (IR → TSL node material) and the family
+// presets. Pixel parity of the presets against the hand-written families is the bench's job (scripts/tsl-spike, the graph
+// variants).
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { ConditionalNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, type Node } from 'three/webgpu';
 import { DEFAULT_GRAPH_BUDGET, LOOP_MAX, validateGraph, type GraphIr } from '../src/engine/core/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
-import { pbrMeasureGraph } from '../src/engine/render/graph/presets';
+import { emissiveGraph, pbrMeasureGraph, PRESET_GRAPH_BUDGET } from '../src/engine/render/graph/presets';
 import { parseFamilyMaterial } from '../src/engine/render/families/params';
 
 const pbr = parseFamilyMaterial({ family: 'pbr', colour: [0.8, 0.8, 0.8], roughness: 0.85, metalness: 0, measure: {} });
@@ -39,14 +40,17 @@ function reach(root: unknown): unknown[] {
 }
 
 describe('SF59 material graph IR: validation', () => {
-  it('admits the PBR + measure preset within the default budget', () => {
-    const r = validateGraph(preset);
+  it('admits the PBR + measure preset (labels included) within the preset budget, past the content budget', () => {
+    expect(refused(preset)).toMatch(/budget: \d+ nodes/);
+    const r = validateGraph(preset, { budget: PRESET_GRAPH_BUDGET });
     if (!r.ok) throw new Error(r.errors.join('\n'));
     expect(r.cost.samplers).toBe(0);
-    expect(r.cost.nodes).toBeGreaterThan(60);
-    expect(r.cost.nodes).toBeLessThanOrEqual(DEFAULT_GRAPH_BUDGET.nodes);
-    expect(r.cost.instructions).toBeLessThanOrEqual(DEFAULT_GRAPH_BUDGET.instructions);
+    expect(r.cost.nodes).toBeGreaterThan(DEFAULT_GRAPH_BUDGET.nodes);
+    expect(r.cost.nodes).toBeLessThanOrEqual(PRESET_GRAPH_BUDGET.nodes);
+    expect(r.cost.instructions).toBeLessThanOrEqual(PRESET_GRAPH_BUDGET.instructions);
     expect(r.types.get('out')).toBe('vec3');
+    expect(r.types.get('lch')).toBe('float');
+    expect(r.types.get('lBarsV')).toBe('vec4');
     expect(r.types.get('hasRole')).toBe('bool');
     expect(r.types.get('c')).toBe('vec2');
   });
@@ -122,17 +126,20 @@ describe('SF59 material graph IR: validation', () => {
 });
 
 describe('SF59 material graph compiler: IR → TSL', () => {
-  it('compiles the measure preset to a standard node material with the engine epilogue on, every select branch-free', () => {
-    const g = compileGraph(preset);
+  it('compiles the measure preset to a standard node material with the engine epilogue on, branching only for the label', () => {
+    const g = compileGraph(preset, { budget: PRESET_GRAPH_BUDGET });
     expect(g.material).toBeInstanceOf(MeshStandardNodeMaterial);
     expect(g.material.fog).toBe(true);
     if (!(g.material instanceof MeshStandardNodeMaterial)) throw new Error('standard');
     expect(g.material.colorNode).not.toBeNull();
     expect(g.material.emissiveNode).not.toBeNull();
     expect(g.material.roughnessNode).not.toBeNull();
-    // the preset's six selects (role colour ×2, floor plane ×2, face vs floor, line alpha) are all cheap: no branch
-    expect(g.selects).toEqual({ light: 6, branch: 0 });
-    expect(reach(g.material.colorNode).some((n) => n instanceof ConditionalNode)).toBe(false);
+    // the grid's six selects (role colour ×2, floor plane ×2, face vs floor, line alpha) and the label's character picks are
+    // cheap and branch-free; the glyph's distance (the '.' / '×' / digit pick, the bar loops, the digit's mask chain) is
+    // real branches nested under the label test, so only label pixels run the loops
+    expect(g.selects.light).toBeGreaterThan(6);
+    expect(g.selects.branch).toBeGreaterThanOrEqual(1);
+    expect(reach(g.material.colorNode).some((n) => n instanceof ConditionalNode)).toBe(true);
   });
 
   it('turns a select with an expensive, exclusive side into a real branch', () => {
@@ -179,5 +186,46 @@ describe('SF59 material graph compiler: IR → TSL', () => {
     const vertexNode: Node | null = p.material.vertexNode;
     expect(vertexNode).not.toBeNull();
     expect(() => compileGraph(withNodes({ x: { op: 'glslFn' } }, { colour: 'x' }))).toThrow(/material graph refused:[\s\S]*unknown op glslFn/);
+  });
+});
+
+describe('SF59 family presets', () => {
+  const look = { gain: 1.5, blend: 0 };
+  const emissive = (entry: Record<string, unknown>): ReturnType<typeof emissiveGraph> => {
+    const p = parseFamilyMaterial({ family: 'emissive', ...entry });
+    if (p.family !== 'emissive') throw new Error('an emissive surface');
+    return emissiveGraph(p, look);
+  };
+  const tube = { field: 'field.ktx2', fillSpread: 0.3, skeletonSpread: 0.4 };
+
+  it('re-expresses the emissive surface and tube as unlit graphs within the content budget', () => {
+    for (const entry of [{ colour: [1, 0.4, 0.1], intensity: 3, flicker: 4 }, { map: 'lamp.ktx2', vertexColours: true }, { tube, intensity: 4 }, { tube: { ...tube, cell: [0.25, 0.5] } }]) {
+      const g = emissive(entry);
+      const r = validateGraph(g);
+      if (!r.ok) throw new Error(r.errors.join('\n'));
+      expect(r.cost.samplers).toBe(('tube' in entry ? 1 : 0) + ('map' in entry ? 1 : 0));
+      const c = compileGraph(g, { textures: () => new THREE.Texture() });
+      expect(c.material).toBeInstanceOf(MeshBasicNodeMaterial);
+      expect(c.material.fog).toBe(true);
+      expect(c.bindings).toEqual([]);
+      c.setParam('clock', 12.5); // the look's clock moves the flicker as a uniform
+    }
+    expect(emissive({}).params?.['gain']?.value).toBe(1.5);
+  });
+
+  it('refuses the emissive shapes IR version 1 cannot express, naming each', () => {
+    expect(() => emissive({ blend: 'additive' })).toThrow(/additive blend/);
+    expect(() => emissive({ fog: 0.4 })).toThrow(/fog share of 0.4/);
+    expect(() => emissive({ sky: { maps: ['a.ktx2', null] }, fog: 0.5 })).toThrow(/a sky[\s\S]*fog share/);
+  });
+
+  it('admits exp and the vertex colour (added for the emissive preset)', () => {
+    const g = withNodes({ vc: { op: 'vertexColour' }, e0: { op: 'negate', in: ['w'] }, e: { op: 'exp', in: ['e0'] }, k: { op: 'mul', in: ['vc', 'e'] } }, { colour: 'k' });
+    const r = validateGraph(g);
+    if (!r.ok) throw new Error(r.errors.join('\n'));
+    expect(r.types.get('vc')).toBe('vec3');
+    expect(r.types.get('e')).toBe('float');
+    expect(refused(withNodes({ e: { op: 'exp', in: [[1, 2]] }, b: { op: 'gt', in: ['e', 0] } }, { roughness: 'b' }))).toMatch(/compares two floats/);
+    expect(() => compileGraph(g)).not.toThrow();
   });
 });

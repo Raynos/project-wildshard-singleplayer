@@ -152,6 +152,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   cameraPosition: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
   time: { arity: [0, 0], rule: 'input', cost: 0, type: 'float' },
   instanceHash: { arity: [0, 0], rule: 'input', cost: 4, type: 'float', places: ['vertex', 'fragment'] },
+  vertexColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['vertex', 'fragment'] }, // the geometry's `color` attribute (rgb, linear); white where it has none
   screenUV: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['post'] },
   sceneColour: { arity: [0, 0], rule: 'input', cost: 2, type: 'vec4', places: ['post'] },
   const: { arity: [0, 0], rule: 'const', cost: 0 },
@@ -171,6 +172,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   fract: { arity: [1, 1], rule: 'unary', cost: 1 },
   sin: { arity: [1, 1], rule: 'unary', cost: 4 },
   cos: { arity: [1, 1], rule: 'unary', cost: 4 },
+  exp: { arity: [1, 1], rule: 'unary', cost: 4 }, // e^x (the emissive family's halo falloff)
   negate: { arity: [1, 1], rule: 'unary', cost: 1 },
   oneMinus: { arity: [1, 1], rule: 'unary', cost: 1 },
   saturate: { arity: [1, 1], rule: 'unary', cost: 1 },
