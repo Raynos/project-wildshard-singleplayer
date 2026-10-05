@@ -34,6 +34,9 @@ import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { AntlerKing, KING_KIND } from '../runtime/antlerKing';
 
 import { registerPineLap } from '../dev/perfLap';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installPineCombatCallbacks } from '../runtime/combatService';
 
 /**
  * Pine Hollow's fights, wired in one call (PINE-HOLLOW-REMASTER: PH-C3 the four named elites, PH-C2 the Antler King,
@@ -49,6 +52,7 @@ import { registerPineLap } from '../dev/perfLap';
  */
 
 export interface PineCombatHost {
+  context?: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService;
   crossbow: Weapon; rifle: { displayModel: () => THREE.Group }; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
   /** the Warden's Longbow (PH-C11): the King's orb shows it, taking it hands it over (loadout.grantLongbow) */
@@ -74,6 +78,7 @@ export interface PineCombat {
 
 export function installPineCombat(h: PineCombatHost): PineCombat {
   const { game, sky, player, animals, weapons, params } = h;
+  const entered = h.context !== undefined && retainsRuntimeServices(h.context) ? h.context : undefined;
   const god = params.has('bossGod');
   // the player's legs: a roar's stun and the King's intro both root you; either one holds
   let introLock = false;
@@ -91,6 +96,9 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const park = new THREE.Group(); park.name = 'pine-drops-parked'; park.position.y = -500; game.scene.add(park);
   for (const id of ['ironhide', 'ghost-stag', 'blackpaw', 'imperial', 'warden'] as const) { const m = buildSkin(id); m.visible = false; park.add(m); parked.set(id, m); }
   const ctx: PineCtx = {
+    ...(entered === undefined ? {} : { onDamage: (listener: Parameters<NonNullable<PineCtx['onDamage']>>[0]) => {
+      installEnteredRuntimeService(entered, (scope) => { game.app.events.on('damage.dealt', listener, scope); });
+    } }),
     game, sky, player, animals, god,
     reach: (actor, target) => canReach(actor, target, app.physics),
     hurt: (a, dmg, throughWalls = false) => {
@@ -115,7 +123,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     } : null,
   };
 
-  const feel = installPinePresentation({ game, weapons, animals, makeTell: (color) => new GroundTell(game.scene, 'lane', color) });
+  const feel = installPinePresentation({ game, weapons, animals, ...(entered === undefined ? {} : { context: entered }), makeTell: (color) => new GroundTell(game.scene, 'lane', color) });
 
   // ── the elites ──
   swapRolledElites(animals);
@@ -154,15 +162,17 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
 
   // The shell split its original frame into world / creature / HUD passes. Lair spawns must
   // still precede the first world pass and creature sync, which installs their hitboxes.
-  game.app.addSystem({ id: 'elites', phase: 'update', before: ['main.world', 'engine.creatures.update', 'main.frame'], run: (dt, t) => {
+  installPineCombatCallbacks(entered, game, { id: 'elites', phase: 'update', before: ['main.world', 'engine.creatures.update', 'main.frame'], run: (dt, t) => {
     legs();
     feel.update(dt, t);
     if (perfLap.active) return; // E350 F-J1: the PERF LAP's teleports find no lair and wake no King
     pineElites.update(dt, t);
     king.update(dt, t);
-  } }, game.levelScope);
+  } }, () => { if (app.player !== null) app.effects?.remove(app.player, 'effect.stun'); player.carried = false; });
   Object.assign(window, { __pineElites: pineElites, __antlerKing: king });
-  registerPineLap({ game, player, animals, music: h.music, hud: h.hud, elites, king }); // E350 F-J1: the fps panel's PERF LAP
+  const lap = { game, player, animals, music: h.music, hud: h.hud, elites, king };
+  if (entered === undefined) registerPineLap(lap); // E350 F-J1: the fps panel's PERF LAP
+  else installEnteredRuntimeService(entered, (scope) => { registerPineLap(lap, scope); });
 
   return {
     weatherHold: () => king.fight.weatherHold,

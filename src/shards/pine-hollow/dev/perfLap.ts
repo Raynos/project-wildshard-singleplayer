@@ -32,7 +32,7 @@ export const PINE_LAP_SPOTS: readonly LapSpot[] = [
 /** animals within this of the player in a chase / attack state = a fight is on (main.ts's perf COUNTS `chase`) */
 const FIGHT_R = 80;
 
-export function registerPineLap(o: { game: Game; player: Player; animals: AnimalManager; music: Music; hud: HUD; elites: Elites; king: AntlerKing }): void {
+export function registerPineLap(o: { game: Game; player: Player; animals: AnimalManager; music: Music; hud: HUD; elites: Elites; king: AntlerKing }, scope: Scope = o.game.levelScope): void {
   const { game, player, animals, music, hud, elites, king } = o;
   let calmBefore = false;
   const previous = perfLap.host;
@@ -59,6 +59,5 @@ export function registerPineLap(o: { game: Game; player: Player; animals: Animal
     toast: (text) => { hud.toast(text); },
   };
   const host = perfLap.host;
-  const scope: Scope = game.levelScope;
   scope.onDispose(() => { if (perfLap.host === host) { if (perfLap.active) { host.hold(false); perfLap.active = false; } perfLap.host = previous; } });
 }

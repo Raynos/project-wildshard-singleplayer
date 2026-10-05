@@ -198,7 +198,7 @@ export class PineHollow extends ShardPlugin {
     rt.hooks.disposeRifleDrop = () => { rifleDrop?.dispose(); };
     rt.hooks.updatePickups = (dt, t) => { rifleDrop?.update(dt, t, game.renderer, game.camera); for (const drop of skinDrops) drop.update(dt, t, game.renderer, game.camera); };
     installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects });
-    const fights = installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
+    const fights = installPineCombat({ context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
       longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } });
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
     const compendium = installPineCompendium({ chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock });

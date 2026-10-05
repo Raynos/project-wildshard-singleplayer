@@ -10,6 +10,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 
 /**
  * What Pine Hollow's fights share (src/shards/pine-hollow/: the elites, the Antler King, the combat feel): the world, the player,
@@ -17,6 +18,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  * index.ts builds it from main.ts's host once.
  */
 export interface PineCtx {
+  /** Retained encounter listeners are installed only while this home cell is entered. */
+  onDamage?: (listener: (event: DamageDealt) => void) => void;
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
   reach: (actor: Animal, target: { x: number; y: number; z: number }) => boolean;
   /** `&bossGod=1`: nothing in Pine Hollow's fights hurts you (captures) */

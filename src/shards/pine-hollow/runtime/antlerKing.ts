@@ -6,6 +6,7 @@ import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Music } from '@wildshard/engine/audio/Music';
+import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { registerSpecies, speciesDef, variantDef, hasSpecies, type SpeciesDef } from '@wildshard/engine/entities/species/registry';
@@ -238,13 +239,15 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
     this.look = dressAntlerKing(a, this.kit);
     // bark, not blood: splinters and embers where a bolt lands
     const king = a.combatActor();
-    app.events.on('damage.dealt', ({ req }) => {
+    const onDamage = ({ req }: DamageDealt): void => {
       if (req.target !== king) return;
       const { point, dir } = req;
       _w.copy(dir).negate();
       Impacts.for(this.ctx.game).burst('wood', point, _w, 8);
       if (this.onRibs(point)) Impacts.for(this.ctx.game).burst('sparks', point, _w, this.open > 0.5 ? 14 : 5);
-    }, this.ctx.game.levelScope);
+    };
+    if (this.ctx.onDamage === undefined) app.events.on('damage.dealt', onDamage, this.ctx.game.levelScope);
+    else this.ctx.onDamage(onDamage);
     return a;
   }
 
