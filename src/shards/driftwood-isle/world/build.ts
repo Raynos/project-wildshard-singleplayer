@@ -53,9 +53,12 @@ export interface DriftwoodLowered {
    *  planks of the one at its sea end */
   readonly landings: readonly EntryLanding[];
 }
-/** G164's lowered world: the sea at road level, the decks (1.2 m above it, as they always stood) from 18 m in, a 6 m ramp
- *  up from road height (1.2 m: ≈ 11°) */
-export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: 6, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, landings: ENTRY_LANDINGS };
+/** G164 / council C3-R2-C2: each pier / jetty ramps from the socket's inner edge (15 m in, road height) up to its deck over
+ *  at least 8 m at no more than 8°; the deck stands 1.2 m above the sea, so 9 m (≈ 7.6°) */
+export const SEA_RAMP_RUN = 9;
+/** G164's lowered world: the sea at road level, the decks (1.2 m above it, as they always stood) from 15 m in (the socket's
+ *  inner edge), a `SEA_RAMP_RUN` ramp up from road height */
+export const G164_LOWERED: DriftwoodLowered = { level: LOWERED_SEA, pierStart: PIER_START, seaRamp: SEA_RAMP_RUN, dry: ENTRY_FOOTPRINTS, edgeInset: SHORE_INNER_FACE, landings: ENTRY_LANDINGS };
 
 /** the plank stage a pier / jetty starting at (x, z) (its sea end, on its socket's shard-side edge) draws: the declared landing
  *  there, `width` across the entry and `run` in */
