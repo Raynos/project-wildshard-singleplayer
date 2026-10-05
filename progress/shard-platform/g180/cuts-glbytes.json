@@ -1,0 +1,25 @@
+{
+ "$doc": "G180 per-cut labelled GL bytes (scripts/parity/glbytes.mjs census via the SF47 tool + gpuUrls, iPhone 16 Pro context, phone tier, render scale 2, GPU textures KTX2, after spawn + every capture pose; decimal MB). Builds: 208b2dc11 (B1 B4 B5, scratch) and 7ddbbe8ef (+ B2; the G180 code that landed in 3f8409900, on an earlier base). The landed commit message says B1 -16.1: the measured figure is -14.0 (below).",
+ "totalsMB": {
+  "off (208b2dc11)": 357.02,
+  "on, B1 B4 B5 (208b2dc11)": 308.98,
+  "on, + B2 (7ddbbe8ef)": 270.99
+ },
+ "offMatchesSf47Census": true,
+ "cutsMB": {
+  "B5 herd-shadow copies": -4.69,
+  "B1 512 sets": -13.98,
+  "other": -0.0,
+  "B4 environment (PMREM + equirect)": -12.58,
+  "sky keys RGB9_E5 (SF47-g)": -16.78,
+  "B2 ASTC 6x6 (on B1 B4 B5 -> + B2)": -37.99
+ },
+ "astc6FilesFetched": 83,
+ "errors": [],
+ "autoColdBootMB": {
+  "$doc": "GPU textures Auto, service worker blocked (a cold first visit), trim on, phone: before = e2ff38355 (images: no KTX2 marker), after = bc7181016 (Pine phone textures: ktx2 policy)",
+  "before e2ff38355": 555.39,
+  "after bc7181016": 270.99,
+  "afterEqualsForcedKtx2": true
+ }
+}

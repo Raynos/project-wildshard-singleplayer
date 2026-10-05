@@ -1,0 +1,188 @@
+{
+ "$doc": "G180 content-cut boards: per option the mean labelled GL bytes and JS heap over its runs (decimal MB), the delta against A (today, trim on)",
+ "levers": {
+  "view-distance": [
+   {
+    "option": "A",
+    "label": "base",
+    "step": "today",
+    "runs": 3,
+    "glMB": 285.27,
+    "heapMB": 246.42,
+    "glDeltaMB": 0.0,
+    "heapDeltaMB": 0.0,
+    "animals": 164,
+    "glRunsMB": [
+     285.27,
+     285.27,
+     285.27
+    ],
+    "heapRunsMB": [
+     240.52,
+     249.39,
+     249.36
+    ]
+   },
+   {
+    "option": "B",
+    "label": "view75",
+    "step": "75 %",
+    "runs": 2,
+    "glMB": 278.77,
+    "heapMB": 248.68,
+    "glDeltaMB": -6.5,
+    "heapDeltaMB": 2.26,
+    "animals": 164,
+    "glRunsMB": [
+     278.77,
+     278.77
+    ],
+    "heapRunsMB": [
+     248.2,
+     249.16
+    ]
+   },
+   {
+    "option": "C",
+    "label": "view50",
+    "step": "50 %",
+    "runs": 2,
+    "glMB": 278.77,
+    "heapMB": 244.25,
+    "glDeltaMB": -6.5,
+    "heapDeltaMB": -2.17,
+    "animals": 164,
+    "glRunsMB": [
+     278.77,
+     278.77
+    ],
+    "heapRunsMB": [
+     240.43,
+     248.08
+    ]
+   }
+  ],
+  "tree-density": [
+   {
+    "option": "A",
+    "label": "base",
+    "step": "today",
+    "runs": 3,
+    "glMB": 285.27,
+    "heapMB": 246.42,
+    "glDeltaMB": 0.0,
+    "heapDeltaMB": 0.0,
+    "animals": 164,
+    "glRunsMB": [
+     285.27,
+     285.27,
+     285.27
+    ],
+    "heapRunsMB": [
+     240.52,
+     249.39,
+     249.36
+    ]
+   },
+   {
+    "option": "B",
+    "label": "trees75",
+    "step": "75 %",
+    "runs": 2,
+    "glMB": 288.0,
+    "heapMB": 249.19,
+    "glDeltaMB": 2.73,
+    "heapDeltaMB": 2.77,
+    "animals": 157,
+    "glRunsMB": [
+     288.0,
+     288.0
+    ],
+    "heapRunsMB": [
+     238.7,
+     259.69
+    ]
+   },
+   {
+    "option": "C",
+    "label": "trees50",
+    "step": "50 %",
+    "runs": 2,
+    "glMB": 286.52,
+    "heapMB": 252.82,
+    "glDeltaMB": 1.24,
+    "heapDeltaMB": 6.4,
+    "animals": 157,
+    "glRunsMB": [
+     286.52,
+     286.52
+    ],
+    "heapRunsMB": [
+     248.11,
+     257.53
+    ]
+   }
+  ],
+  "herd-size": [
+   {
+    "option": "A",
+    "label": "base",
+    "step": "today",
+    "runs": 3,
+    "glMB": 285.27,
+    "heapMB": 246.42,
+    "glDeltaMB": 0.0,
+    "heapDeltaMB": 0.0,
+    "animals": 164,
+    "glRunsMB": [
+     285.27,
+     285.27,
+     285.27
+    ],
+    "heapRunsMB": [
+     240.52,
+     249.39,
+     249.36
+    ]
+   },
+   {
+    "option": "B",
+    "label": "herd50",
+    "step": "50 %",
+    "runs": 2,
+    "glMB": 287.9,
+    "heapMB": 245.75,
+    "glDeltaMB": 2.62,
+    "heapDeltaMB": -0.67,
+    "animals": 88,
+    "glRunsMB": [
+     287.9,
+     287.9
+    ],
+    "heapRunsMB": [
+     245.23,
+     246.27
+    ]
+   },
+   {
+    "option": "C",
+    "label": "herd25",
+    "step": "25 %",
+    "runs": 2,
+    "glMB": 286.41,
+    "heapMB": 255.02,
+    "glDeltaMB": 1.13,
+    "heapDeltaMB": 8.59,
+    "animals": 49,
+    "glRunsMB": [
+     286.41,
+     286.41
+    ],
+    "heapRunsMB": [
+     255.02,
+     255.01
+    ]
+   }
+  ]
+ }
+}

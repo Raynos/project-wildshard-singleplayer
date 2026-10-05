@@ -1,0 +1,157 @@
+{
+  "row": "G180 pineMemoryTrim off vs on",
+  "parent": "3f8409900eaccb5c8c2243b76ca679806fc1079a",
+  "current": "3f8409900eaccb5c8c2243b76ca679806fc1079a",
+  "a": "off",
+  "b": "on",
+  "when": "2026-10-05T03:33:41.926Z",
+  "elapsedSeconds": 558.664,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "reports": [
+    {
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 0.9823710691524973,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 0.9679448429090747,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9815694781136415,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        }
+      ],
+      "heapMB": {
+        "off": 109.326171875,
+        "on": 124.50395584106445
+      }
+    },
+    {
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "desktop",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 0.9977743168094767,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 0.9977305541155541,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9978349209505282,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        }
+      ],
+      "heapMB": {
+        "off": 172.14906311035156,
+        "on": 184.43202209472656
+      }
+    }
+  ]
+}
