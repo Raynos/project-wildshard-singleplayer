@@ -118,7 +118,7 @@ export function passEffects(pass: EffectPass): Effect[] | null {
   return isEffectList(found) ? found : null;
 }
 
-/** The live one frame. Built by the grid session when the row is on; disposed with the level scope. */
+/** The live one frame. Built by the grid session for every host with a frame (G175); disposed with the level scope. */
 export class GridFrame {
   private readonly host: GridFrameHost;
   private readonly cells: readonly FrameCell[];

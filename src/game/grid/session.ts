@@ -39,7 +39,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripMesh } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
 import { gridMode } from './menu';
-import { devserverCellOn, gridOneFrameOn, installGridFrameRow } from './debug';
+import { devserverCellOn } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
 import { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
@@ -122,7 +122,7 @@ export interface GridSessionState {
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
   readonly accountedBytes: number;
   readonly rings: { readonly far: number; readonly l1: number; readonly l0: number; readonly refused: number; readonly inFlight: number; readonly queued: number };
-  /** SF19a's one frame (null with its Debug row off) */
+  /** SF19a's one frame (null for a host with no frame: no camera / composer) */
   readonly frame: GridFrameState | null;
   /** step 2's live crossing (null until the page attaches its player) */
   readonly live: LiveGridSessionState | null;
@@ -243,11 +243,10 @@ export class GridSession {
     let strips: readonly GeneratedStrip[];
     try { strips = generatePlatform(edges ?? flat, empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform(flat, empty); }
     this.strips = strips;
-    // SF19a: one frame for the grid, behind its Debug row (default off; applies at the next grid start)
-    host.scope.onDispose(installGridFrameRow());
+    // SF19a / G158 (on for everyone since Jake's G175 pick, E450): the shard the player stands in owns the whole frame, the
+    // road look owns the road, blended over 16 m at the cell edge; a host with no camera / composer builds none
     const frameHost = host.frame;
-    // G158: the shard the player stands in owns the whole frame, the road look owns the road, blended at the cell edge
-    this.frame = frameHost !== undefined && gridOneFrameOn() ? new GridFrame({ host: frameHost, scope: host.scope, home, half: CHUNK_HALF, feet: () => this.world(),
+    this.frame = frameHost !== undefined ? new GridFrame({ host: frameHost, scope: host.scope, home, half: CHUNK_HALF, feet: () => this.world(),
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, origin: { x: cell.origin.x, z: cell.origin.z } })) }) : null;
     const frame = this.frame;
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)

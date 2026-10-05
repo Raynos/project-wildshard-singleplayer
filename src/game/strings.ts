@@ -62,8 +62,6 @@ export const GAME_STRINGS = {
     /** G119: on the border shimmer while a crossing waits for its durable save, and when that save fails (the crossing retries) */
     saving: 'SAVING…',
     saveFailed: 'SAVE FAILED, RETRY',
-    oneFrame: 'Grid one frame',
-    oneFrameNote: 'SF19a: the shard you stand in owns the whole frame (its air and grade on everything on screen), the road look owns the road, blended at the cell edge. Applies at the next grid start.',
     memoryAdmission: 'Grid memory admission',
     memoryAdmissionNote: 'G144: account the home, platform and neighbours through one early owner. Applies at the next grid start; retires after the admitted Infinite entry proof is green.',
     off: 'Off',

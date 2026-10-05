@@ -192,8 +192,7 @@ function writeHelper(base, layout) {
   const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto' } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
-    saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' }),
-    saveFixtureCode({ scope: 'device', key: 'debug.global.gridOneFrame', data: 'on' })].join(';');
+    saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
   const pins = `${GL_INIT};(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};${saveFixtureCode({ scope: 'device', key: 'gridIntent.once', data: { instance: 'driftwood-isle', slug: 'driftwood-isle', at: 0 } })};(() => {const key='wildshard.save.v2.device',doc=JSON.parse(localStorage.getItem(key));doc.keys['gridIntent.once'].data.at=Date.now();doc.keys['titleArrival.once']={v:1,data:{slug:'driftwood-isle',mode:'enter',at:Date.now()}};localStorage.setItem(key,JSON.stringify(doc));})();`;
   writeFileSync(join(dist, 'sf57-safari.html'), html.replace('<head>', `<head><script>${pins}</script>`));
 }

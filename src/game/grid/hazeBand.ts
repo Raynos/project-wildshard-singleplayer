@@ -1,7 +1,7 @@
 /**
  * A shard's haze band under the one frame (SHARD-PLATFORM SF19b, G94 / G95): a shard that declares a `band` in its far
  * look (Signal Dunes' warm dusk dust) shows its mood from the road through a tall band of its own haze rising from the
- * strip at its border, never a second sky. Drawn only while the "Grid one frame" Debug row is on. Under G158 the band
+ * strip at its border, never a second sky. Drawn wherever the grid builds its one frame (G175). Under G158 the band
  * is the outside half of the shard's mood: on the road the neutral road look owns the frame, so the band is what reads
  * as Signal Dunes' dusk from there; once the player crosses its cell edge Signal Dunes owns the whole frame (its
  * declared air and grade, `frame.ts`) and the band is the dust wall it walked through.

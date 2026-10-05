@@ -25,17 +25,6 @@ export function devserverCellOn(devserver: boolean = DEVSERVER): boolean {
   try { return saved().read() !== 'off'; } catch { return true; }
 }
 
-/**
- * SF19a's "Grid one frame" row: the shard the player stands in owns the whole frame and the road look owns the road,
- * blended at the cell edge (G158, `frame.ts`). Default off until Jake's yes from the board (G122); it shows inside the grid only and
- * applies at the next grid start, like every grid row. Select a shard never reads it.
- */
-const FRAME_ROW = 'gridOneFrame';
-/** the one-frame row's value (off by default) */
-export function gridOneFrameOn(): boolean {
-  try { return saved(FRAME_ROW).read() === 'on'; } catch { return false; }
-}
-
 /** G144's risky live-admission change remains opt-in until a truthful home enters and the grid proof is green. */
 export function gridMemoryAdmissionOn(): boolean {
   try { return saved('gridMemoryAdmission').read() === 'on'; } catch { return false; }
@@ -57,15 +46,6 @@ function globalRow(spec: GlobalRowSpec): () => void {
   return () => { live = false; authoredRows.delete(row); listeners.clear(); };
 }
 const grid = { debugRow: globalRow };
-
-/** Install the one-frame row (the grid session calls it once and disposes it with the level scope). */
-export function installGridFrameRow(): () => void {
-  const strings = GAME_STRINGS.grid;
-  return grid.debugRow({
-    id: 'gridOneFrame', group: 'look', label: strings.oneFrame, choices: [{ value: 'off', text: strings.off }, { value: 'on', text: strings.on }], initial: 'off',
-    change: () => undefined, note: strings.oneFrameNote, ask: 'E435', reviewBy: '2026-12-30',
-  });
-}
 
 /** Install the row (a DEVSERVER build only); the title and the session each call it once and dispose it with their scope. */
 export function installGridDebug(devserver: boolean = DEVSERVER): () => void {
