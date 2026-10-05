@@ -32,7 +32,14 @@ export class Compare {
     this.targets = world.game.level.explore?.compare?.map((t) => ({ id: t.id, name: t.label, live: t.live, target: t.image, file: t.target })) ?? [];
     this.button = html('button', 'ws-x-comparebtn', '<svg viewBox="0 0 24 24"><path d="M12 3v18 M4 5h6v14H4z M14 5h6v14h-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Compare</span>');
     (this.button as HTMLButtonElement).type = 'button';
-    this.picker = html('div', 'ws-x-picker', `<div class="ws-x-picker-head"><b>Compare with the mockup</b><button type="button" class="ws-x-picker-close" aria-label="Close">✕</button></div><div class="ws-x-picker-grid">${this.targets.map((t) => `<button type="button" class="ws-x-target" data-id="${t.id}"><span class="ws-x-target-img"></span><b>${t.name}</b></button>`).join('')}</div>`);
+    this.picker = html('div', 'ws-x-picker', '<div class="ws-x-picker-head"><b>Compare with the mockup</b><button type="button" class="ws-x-picker-close" aria-label="Close">✕</button></div><div class="ws-x-picker-grid"></div>');
+    const grid = this.picker.querySelector('.ws-x-picker-grid');
+    if (grid === null) throw new Error('Compare: missing picker grid');
+    for (const target of this.targets) {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'ws-x-target'; button.dataset['id'] = target.id;
+      const image = document.createElement('span'); image.className = 'ws-x-target-img';
+      const label = document.createElement('b'); label.textContent = target.name; button.append(image, label); grid.append(button);
+    }
     this.overlay = html('div', 'ws-x-compare', `
       <img class="ws-x-compare-live" alt="In-engine capture" draggable="false">
       <img class="ws-x-compare-target" alt="Target mockup" draggable="false">

@@ -1,5 +1,6 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_explore_playgrounds": "⟦0⟧ · playgrounds",
   "s_crossroads_check": "Memory check",
   "s_crossroads_run": "Run",
   "s_crossroads_note": "E435: Runs three memory checks and saves the results automatically.",

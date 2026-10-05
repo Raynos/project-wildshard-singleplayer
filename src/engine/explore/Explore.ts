@@ -119,6 +119,7 @@ interface ViewSearch { l: Landing; queue: number[]; from: THREE.Vector3; next: T
 const PARK = new THREE.Vector3(0, -600, -CHUNK_HALF * 12); // where the player waits: out of every animal's senses
 
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
+const fill = (root: ParentNode, selector: string, text: string): void => { const node = root.querySelector(selector); if (node === null) throw new Error(`Explore: missing ${selector}`); node.textContent = text; };
 /** the same switch the play HUD uses (TouchControls puts `touch` on #hud on coarse-pointer devices, `?touch=1` forces it) */
 const touchDevice = (): boolean => document.getElementById('hud')?.classList.contains('touch') === true;
 
@@ -130,7 +131,7 @@ class EmptyModels implements ExplorePane {
   constructor(explore: Explore, shardName: string) {
     this.el = html('div', 'ws-x-empty-models', `
       <div class="ws-x-empty-panel">
-        <div class="ws-x-empty-label">Model explorer / ${shardName}</div>
+        <div class="ws-x-empty-label"></div>
         <div class="ws-x-empty-count"><span>Catalog</span><span>00 models</span></div>
         <div class="ws-x-empty-symbol" aria-hidden="true">◇</div>
         <h2>No models<br>catalogued yet</h2>
@@ -138,6 +139,7 @@ class EmptyModels implements ExplorePane {
         <button type="button">Explore the world <span aria-hidden="true">›</span></button>
         <small>The model catalog will appear here as assets are added.</small>
       </div>`);
+    fill(this.el, '.ws-x-empty-label', `Model explorer / ${shardName}`);
     listenDom(this.uiScope, this.el.querySelector('button'), 'click', () => { explore.setMode('world'); });
   }
 
@@ -199,19 +201,23 @@ export class Explore {
     const practiceArt = hubArt?.practice ?? this.title.thumb;
     // E307: the shard's own feature playgrounds under the shared cards (placeholder art: the verb's glyph on a dev tile)
     const playgrounds = playgroundsFor(game.level.id);
-    const pgArt = (c: PlaygroundCard): string => {
-      const art = c.art; // the shard's own card art (its registration), or the verb's glyph on a dev tile
-      return art === undefined ? `<span class="ws-x-card-art ws-x-pg-art">${c.icon}</span>` : `<span class="ws-x-card-art" style="background-image:url('${art}')"></span>`;
-    };
-    const pgCards = playgrounds.map((c) => `<button class="ws-x-card" type="button" data-m="playground" data-pg="${c.id}" data-dev>${pgArt(c)}<span class="ws-x-card-text"><b>${c.title}</b><small>${c.blurb}</small></span><span class="ws-x-card-go">›</span></button>`).join('');
     // a scrolling list (E307, Jake: "this is going to have to be a scrollable list"), anchored to the bottom while it fits
     this.hubEl = html('div', 'ws-x-hub', `<div class="ws-x-hub-list">
       <div class="ws-x-hub-heading">Choose an explorer</div>
-      <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${modelsArt}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="sets"><span class="ws-x-card-art${hubArt?.sets === undefined ? ' ws-x-sets-art' : ''}" style="background-image:url('${setsArt}')"></span><span class="ws-x-card-text"><b>Set explorer</b><small>Camps, squares, fields: groups of models where they stand</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${this.title.name} in god mode</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="practice" data-dev><span class="ws-x-card-art ws-x-practice-art" style="background-image:url('${practiceArt}')"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>
-      ${playgrounds.length > 0 ? `<div class="ws-x-hub-heading ws-x-hub-level" data-dev>${this.title.name} · playgrounds</div>${pgCards}` : ''}</div>`);
+      <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="sets"><span class="ws-x-card-art${hubArt?.sets === undefined ? ' ws-x-sets-art' : ''}"></span><span class="ws-x-card-text"><b>Set explorer</b><small>Camps, squares, fields: groups of models where they stand</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art"></span><span class="ws-x-card-text"><b>World explorer</b><small></small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="practice" data-dev><span class="ws-x-card-art ws-x-practice-art"></span><span class="ws-x-card-text"><b>Practice arena</b><small>HUD · weapon explorer</small></span><span class="ws-x-card-go">›</span></button>
+      </div>`);
+    for (const [mode, art] of [['model', modelsArt], ['sets', setsArt], ['world', worldArt], ['practice', practiceArt]] as const) {
+      const image = this.hubEl.querySelector<HTMLElement>(`[data-m="${mode}"] .ws-x-card-art`); if (image === null) throw new Error('Explore: missing card art'); image.style.backgroundImage = `url('${art}')`;
+    }
+    fill(this.hubEl, '[data-m="world"] small', `Fly over ${this.title.name} in god mode`);
+    const hubList = this.hubEl.querySelector('.ws-x-hub-list'); if (hubList === null) throw new Error('Explore: missing hub list');
+    if (playgrounds.length > 0) {
+      const heading = html('div', 'ws-x-hub-heading ws-x-hub-level'); heading.dataset['dev'] = ''; heading.textContent = engineString('s_explore_playgrounds', [this.title.name]); hubList.append(heading);
+      for (const card of playgrounds) hubList.append(this.playgroundCard(card));
+    }
     this.hubEl.dataset['scroll'] = ''; // index.html swallows touchmove outside [data-scroll]: without it the list can't scroll on a phone
     // the developer-only entries: the Practice arena and the playgrounds (Settings ▸ Developer, live)
     const devOnly = [...this.hubEl.querySelectorAll<HTMLElement>('[data-dev]')];
@@ -270,6 +276,15 @@ export class Explore {
       this.onTap = (x, y) => { this.select?.pick(x, y); };
     } else this.addPane('model', new EmptyModels(this, this.title.name));
     this.addPane('sets', new SetExplorer(this, host.world, entries));
+  }
+
+  private playgroundCard(card: PlaygroundCard): HTMLElement {
+    const button = html('button', 'ws-x-card', '<span class="ws-x-card-art"></span><span class="ws-x-card-text"><b></b><small></small></span><span class="ws-x-card-go">›</span>');
+    (button as HTMLButtonElement).type = 'button'; button.dataset['m'] = 'playground'; button.dataset['pg'] = card.id; button.dataset['dev'] = '';
+    const art = button.querySelector<HTMLElement>('.ws-x-card-art'); if (art === null) throw new Error('Explore: missing playground art');
+    if (card.art === undefined) { art.classList.add('ws-x-pg-art'); art.innerHTML = card.icon; }
+    else art.style.backgroundImage = `url('${card.art}')`;
+    fill(button, 'b', card.title); fill(button, 'small', card.blurb); return button;
   }
 
   private select: Select | null = null;

@@ -74,7 +74,6 @@ const RIG_REACH = 1.8;
 /** the render zone's bottom: two thirds down the screen (the card and its rows have the third below) */
 const ZONE_BOTTOM = 2 / 3;
 /** a path as its folder (it gives way, an ellipsis in the middle of the path) and its file name (it never does) */
-const fileHtml = (path: string): string => { const i = path.lastIndexOf('/') + 1; return `<span class="ws-x-file-dir">${path.slice(0, i)}</span><span class="ws-x-file-name">${path.slice(i)}</span>`; };
 /** oneSided's threshold: the share of a piece's area its faces' level sum must reach */
 const ONE_SIDED = 0.3;
 /** a one-sided piece is flat when its depth along its face is at most this share of its width across it; its disc's
@@ -91,6 +90,8 @@ function setShadowMapSize(l: THREE.DirectionalLight, n: number): void {
 }
 
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
+const words = (tag: string, cls: string, text: string): HTMLElement => { const node = html(tag, cls); node.textContent = text; return node; };
+const fileNodes = (path: string): HTMLElement[] => { const i = path.lastIndexOf('/') + 1; return [words('span', 'ws-x-file-dir', path.slice(0, i)), words('span', 'ws-x-file-name', path.slice(i))]; };
 
 export class ModelExplorer implements ExplorePane {
   private readonly uiScope = (app.levelScope ?? app.engineScope).child('explore-widget');
@@ -161,8 +162,11 @@ export class ModelExplorer implements ExplorePane {
     this.world = world;
     this.entries = entries;
     this.el = html('div', 'ws-x-models');
-    const chips = CATEGORIES.filter((c) => c.id === 'all' || entries.some((e) => e.category === c.id)).map((c) => `<button type="button" data-f="${c.id}">${c.label}</button>`).join(''); // only the tabs this shard has
-    this.grid = html('div', 'ws-x-catalog', `<div class="ws-x-filter">${chips}<button type="button" class="ws-x-lineup">Lineup</button></div><div class="ws-x-grid"></div>`);
+    this.grid = html('div', 'ws-x-catalog', '<div class="ws-x-filter"><button type="button" class="ws-x-lineup">Lineup</button></div><div class="ws-x-grid"></div>');
+    const lineup = this.grid.querySelector('.ws-x-lineup'); if (lineup === null) throw new Error('ModelExplorer: missing lineup');
+    for (const category of CATEGORIES.filter((c) => c.id === 'all' || entries.some((e) => e.category === c.id))) {
+      const chip = words('button', '', category.label) as HTMLButtonElement; chip.type = 'button'; chip.dataset['f'] = category.id; lineup.before(chip);
+    }
     this.sheet = html('div', 'ws-x-turntable', `
       <div class="ws-x-views">${VIEWS.map(([v, l]) => `<button type="button" data-v="${v}">${l}</button>`).join('')}</div>
       <div class="ws-x-lights">${LIGHTS.map(([l], i) => `<button type="button" data-l="${i}">${l}</button>`).join('')}</div>
@@ -320,7 +324,8 @@ export class ModelExplorer implements ExplorePane {
     for (const e of this.entries) {
       if (this.filter !== 'all' && e.category !== this.filter) continue;
       const tris = e.live ? `${trisLabel(perCopy(e, measure(e.object()).tris))}${e.copies > 1 ? ' each' : ''}` : 'built on view';
-      const card = html('button', 'ws-x-model', `<span class="ws-x-model-thumb"></span><b>${e.name}</b><small>${factsLabel(e)}</small><small>${tris}</small>`);
+      const card = html('button', 'ws-x-model', '<span class="ws-x-model-thumb"></span>');
+      card.append(words('b', '', e.name), words('small', '', factsLabel(e)), words('small', '', tris));
       (card as HTMLButtonElement).type = 'button';
       const thumb = this.thumbs.get(e.id);
       if (thumb) card.querySelector('.ws-x-model-thumb')?.append(thumb);
@@ -355,7 +360,7 @@ export class ModelExplorer implements ExplorePane {
     const q = (s: string): HTMLElement | null => this.sheet.querySelector<HTMLElement>(s);
     const name = q('.ws-x-name'), file = q('.ws-x-file');
     if (name) { name.textContent = e.name; name.title = e.name; }
-    if (file) { file.innerHTML = fileHtml(e.file); file.title = e.file; }
+    if (file) { file.replaceChildren(...fileNodes(e.file)); file.title = e.file; }
     const worldAction = this.sheet.querySelector<HTMLButtonElement>('.ws-x-inworld');
     if (worldAction) worldAction.classList.toggle('off', e.worldView === false); // (its room kept: the card never changes height)
     this.renderPartOf(e);
@@ -377,7 +382,7 @@ export class ModelExplorer implements ExplorePane {
     const sets = this.lineup === null ? setsOf(e.id, registeredSets()) : [];
     row.classList.toggle('none', sets.length === 0); // (the row keeps its room: no set reads 'Part of —')
     box.replaceChildren(...sets.map((s) => {
-      const b = html('button', '', s.name);
+      const b = words('button', '', s.name);
       (b as HTMLButtonElement).type = 'button';
       b.dataset['set'] = s.id;
       listenDom(this.uiScope, b, 'click', () => { this.explore.openSet(s.id); });
@@ -630,7 +635,7 @@ export class ModelExplorer implements ExplorePane {
     if (!box) return;
     box.replaceChildren();
     for (const v of e.variants ?? []) {
-      const b = html('button', '', v.label);
+      const b = words('button', '', v.label);
       (b as HTMLButtonElement).type = 'button';
       listenDom(this.uiScope, b, 'click', () => {
         const p = e.animal ? this.pin.get(e.animal) : undefined;
@@ -684,7 +689,8 @@ export class ModelExplorer implements ExplorePane {
       group.add(r.e.object());
       base = Math.min(base, r.a.position.y);
       const m = measure(r.a.mesh);
-      const el = html('div', `ws-x-tierlabel ws-x-lineuplabel${i % 2 === 1 ? ' low' : ''}`, `<b>${r.e.name.replace('Coconut ', '').replace('Drowned ', '').replace('Reef ', '')}</b><small>${r.h.y.toFixed(1)} m · ${m.tris.toLocaleString()}</small>`);
+      const el = html('div', `ws-x-tierlabel ws-x-lineuplabel${i % 2 === 1 ? ' low' : ''}`);
+      el.append(words('b', '', r.e.name.replace('Coconut ', '').replace('Drowned ', '').replace('Reef ', '')), words('small', '', `${r.h.y.toFixed(1)} m · ${m.tris.toLocaleString()}`));
       this.sheet.append(el);
       labels.push({ a: r.a, el });
     });
@@ -695,7 +701,7 @@ export class ModelExplorer implements ExplorePane {
     ruler.computeLineDistances();
     group.add(ruler);
     const marks: HTMLElement[] = [];
-    for (let hgt = 0.5; hgt <= 2.51; hgt += 0.5) { const el = html('div', 'ws-x-rulemark', `${hgt.toFixed(1)} m`); this.sheet.append(el); marks.push(el); }
+    for (let hgt = 0.5; hgt <= 2.51; hgt += 0.5) { const el = words('div', 'ws-x-rulemark', `${hgt.toFixed(1)} m`); this.sheet.append(el); marks.push(el); }
     this.studio.add(group);
     const lineup = { group, labels, ruler, marks, base };
     const entry: CatalogEntry = {
@@ -744,7 +750,7 @@ export class ModelExplorer implements ExplorePane {
       t.position.set(Math.cos(this.yaw) * k, 0, -Math.sin(this.yaw) * k); // batch members are built in world space: offset from where the one on show stands
       this.studio.add(t);
       const m = measure(t);
-      const label = html('div', 'ws-x-tierlabel', `<b>${tier}</b><small>${m.tris.toLocaleString()} tris</small>`);
+      const label = html('div', 'ws-x-tierlabel'); label.append(words('b', '', tier), words('small', '', `${m.tris.toLocaleString()} tris`));
       this.sheet.append(label);
       this.tierShown.push({ tier, o: t, label });
     });

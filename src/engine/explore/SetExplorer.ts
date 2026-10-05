@@ -53,8 +53,9 @@ const CHIPS = 4;
 /** 86 · 5.3k · 1.24 M */
 const count = (n: number): string => (n < 1000 ? String(n) : n < 1e6 ? `${(n / 1000).toFixed(n < 1e4 ? 1 : 0)}k` : `${(n / 1e6).toFixed(2)} M`);
 const badge = (p: readonly Pipeline[]): string => (p.length === 0 ? '—' : p.map((x) => PIPELINE_LABEL[x]).join('+'));
-const esc = (s: string): string => s.replaceAll(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] ?? c);
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
+const words = (tag: string, cls: string, text: string): HTMLElement => { const node = html(tag, cls); node.textContent = text; return node; };
+const fill = (root: ParentNode, selector: string, text: string): void => { const node = root.querySelector(selector); if (node === null) throw new Error(`SetExplorer: missing ${selector}`); node.textContent = text; };
 
 /** a set and what the explorer learned about it */
 interface SetInfo {
@@ -121,10 +122,11 @@ export class SetExplorer implements ExplorePane {
     this.el = html('div', 'ws-x-sets');
     const levelName = explore.title.name;
     this.listEl = html('div', 'ws-x-setlist', `
-      <div class="ws-x-setlist-head"><span>Sets · ${esc(levelName)}</span><b class="ws-x-setcount"></b></div>
+      <div class="ws-x-setlist-head"><span></span><b class="ws-x-setcount"></b></div>
       <p class="ws-x-setlist-blurb">Every named place, camp and square: the models placed there. Each opens where it stands in the world.</p>
       <div class="ws-x-setsort">${ORDERS.map(([o, l]) => `<button type="button" data-o="${o}">${l}</button>`).join('')}</div>
       <div class="ws-x-setcards"></div>`);
+    fill(this.listEl, '.ws-x-setlist-head span', `Sets · ${levelName}`);
     this.cards = this.listEl.querySelector<HTMLElement>('.ws-x-setcards') ?? this.listEl;
     this.listEl.querySelectorAll<HTMLElement>('.ws-x-setsort button').forEach((b) => {
       listenDom(this.uiScope, b, 'click', () => { this.order = ORDERS.find(([o]) => o === b.dataset['o'])?.[0] ?? 'map'; this.renderList(); this.shots = this.listed().filter((i) => i.thumb === null && !i.set.bounds.isEmpty()); });
@@ -224,7 +226,8 @@ export class SetExplorer implements ExplorePane {
     this.listEl.classList.toggle('few', n < 4); // (no ordering to choose between a handful)
     this.cards.replaceChildren();
     if (n === 0) {
-      this.cards.append(html('div', 'ws-x-setempty', `<b>No sets on ${esc(this.explore.title.name)} yet</b><small>A set names a group of placed models — <code>placeSet</code> in src/models/sets.ts.</small>`));
+      const empty = html('div', 'ws-x-setempty', '<b></b><small>A set names a group of placed models — <code>placeSet</code> in src/models/sets.ts.</small>');
+      fill(empty, 'b', `No sets on ${this.explore.title.name} yet`); this.cards.append(empty);
       return;
     }
     let region: string | null = null;
@@ -232,7 +235,7 @@ export class SetExplorer implements ExplorePane {
       if (this.order === 'map' && r !== region) {
         region = r;
         const inRegion = this.infos.filter((i) => !i.set.bounds.isEmpty() && regionOf(i.set.bounds, CHUNK_HALF) === r).length;
-        this.cards.append(html('div', 'ws-x-setregion', `<span>${r ?? 'Not placed yet'}</span><b>${r === null ? '' : inRegion}</b>`));
+        const header = html('div', 'ws-x-setregion'); header.append(words('span', '', r ?? 'Not placed yet'), words('b', '', r === null ? '' : String(inRegion))); this.cards.append(header);
       }
       this.cards.append(this.card(info));
     }
@@ -243,14 +246,20 @@ export class SetExplorer implements ExplorePane {
     const { set, totals, facts } = info;
     const pending = pendingOf(set), empty = set.bounds.isEmpty();
     const shown = facts.slice(0, CHIPS);
-    const chips = shown.map((f) => `<span class="ws-x-setchip"><em>${badge(f.pipeline)}</em>${esc(f.name)}<small>× ${f.copies.toLocaleString()}</small></span>`).join('')
-      + (facts.length > shown.length ? `<span class="ws-x-setchip ws-x-setchip-more">+ ${facts.length - shown.length} more</span>` : '')
-      + (pending.length > 0 ? `<span class="ws-x-setchip ws-x-setchip-pending">+ ${pending.length} to come</span>` : '');
     const card = html('button', 'ws-x-set', `
       <span class="ws-x-set-thumb">${empty ? '<i>no models placed yet</i>' : ''}</span>
-      <span class="ws-x-set-text"><b>${esc(set.name)}</b><small>${totals.models} model${totals.models === 1 ? '' : 's'} · ${totals.copies.toLocaleString()} ${totals.copies === 1 ? 'copy' : 'copies'}</small><small class="ws-x-set-cost">${empty ? '—' : this.costLabel(info)}</small></span>
+      <span class="ws-x-set-text"><b></b><small></small><small class="ws-x-set-cost"></small></span>
       <span class="ws-x-set-go">›</span>
-      <span class="ws-x-setchips">${chips}</span>`);
+      <span class="ws-x-setchips"></span>`);
+    fill(card, '.ws-x-set-text b', set.name);
+    fill(card, '.ws-x-set-text small', `${totals.models} model${totals.models === 1 ? '' : 's'} · ${totals.copies.toLocaleString()} ${totals.copies === 1 ? 'copy' : 'copies'}`);
+    fill(card, '.ws-x-set-cost', empty ? '—' : this.costLabel(info));
+    const chips = card.querySelector('.ws-x-setchips'); if (chips === null) throw new Error('SetExplorer: missing chips');
+    for (const fact of shown) {
+      const chip = html('span', 'ws-x-setchip'); chip.append(words('em', '', badge(fact.pipeline)), document.createTextNode(fact.name), words('small', '', `× ${fact.copies.toLocaleString()}`)); chips.append(chip);
+    }
+    if (facts.length > shown.length) chips.append(words('span', 'ws-x-setchip ws-x-setchip-more', `+ ${facts.length - shown.length} more`));
+    if (pending.length > 0) chips.append(words('span', 'ws-x-setchip ws-x-setchip-pending', `+ ${pending.length} to come`));
     (card as HTMLButtonElement).type = 'button';
     (card as HTMLButtonElement).disabled = empty;
     card.dataset['id'] = set.id;
@@ -327,14 +336,18 @@ export class SetExplorer implements ExplorePane {
     for (const f of info.facts) {
       const row = html('div', 'ws-x-member', `
         <button class="ws-x-locate" type="button" aria-label="Show its copies"><i></i></button>
-        <button class="ws-x-member-open" type="button"${f.drawnAs === null ? ' disabled' : ''}><em>${badge(f.pipeline)}</em><b>${esc(f.name)}</b><small>${this.memberLine(f)}</small><strong class="ws-x-member-tris">${this.memberTris(f)}</strong><span>›</span></button>`);
+        <button class="ws-x-member-open" type="button"${f.drawnAs === null ? ' disabled' : ''}><em></em><b></b><small></small><strong class="ws-x-member-tris"></strong><span>›</span></button>`);
+      fill(row, 'em', badge(f.pipeline)); fill(row, 'b', f.name); fill(row, 'small', this.memberLine(f)); fill(row, 'strong', this.memberTris(f));
       row.dataset['model'] = f.model;
       listenDom(this.uiScope, row.querySelector('.ws-x-locate'), 'click', () => { this.locate(this.locatedModel === f.model ? null : f.model); });
       listenDom(this.uiScope, row.querySelector('.ws-x-member-open'), 'click', () => { const c = this.current; if (c && f.drawnAs !== null) this.explore.openModelFromSet(f.model, c.set.id); });
       this.members.append(row);
     }
     const pending = pendingOf(info.set);
-    if (pending.length > 0) this.members.append(html('div', 'ws-x-setpending', `<b>To come</b> ${pending.map((m) => esc(this.entries.find((e) => e.id === m)?.name ?? m)).join(' · ')}: this place's models not on the model contract yet`));
+    if (pending.length > 0) {
+      const row = html('div', 'ws-x-setpending', '<b>To come</b>');
+      row.append(document.createTextNode(` ${pending.map((m) => this.entries.find((e) => e.id === m)?.name ?? m).join(' · ')}: this place's models not on the model contract yet`)); this.members.append(row);
+    }
   }
 
   private memberLine(f: MemberFact): string {

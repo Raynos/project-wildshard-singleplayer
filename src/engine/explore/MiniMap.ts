@@ -55,7 +55,7 @@ export class MiniMap {
     this.sheet = html('div', 'ws-x-map', `
       <i class="ws-x-map-grab"></i>
       <div class="ws-x-map-head">
-        <div><b>${explore.title.name}</b><small>World explorer · tap a place to fly there</small></div>
+        <div><b></b><small>World explorer · tap a place to fly there</small></div>
         <button type="button" class="ws-x-map-spawn"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7 M6 9.5V20h12V9.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>Spawn</button>
         <button type="button" class="ws-x-map-close" aria-label="Close map">✕</button>
       </div>
@@ -65,11 +65,13 @@ export class MiniMap {
         <div class="ws-x-map-north"><svg viewBox="0 0 16 16"><path d="M8 1l5 12-5-3-5 3z" fill="currentColor"/></svg>N</div>
         <div class="ws-x-map-scale" style="width:${bar.toFixed(2)}%"><i></i><span>0</span><span>${SCALE_M / 2}</span><span>${SCALE_M} m</span></div>
       </div>`);
+    const title = this.sheet.querySelector('.ws-x-map-head b'); if (title === null) throw new Error('MiniMap: missing title'); title.textContent = explore.title.name;
     this.board = this.sheet.querySelector<HTMLElement>('.ws-x-map-board') ?? this.sheet;
     this.canvas = this.board.querySelector('canvas') ?? document.createElement('canvas');
     this.arrow = this.sheet.querySelector<HTMLElement>('.ws-x-map-me') ?? this.sheet;
     for (const p of this.pois) {
-      const pin = html('button', 'ws-x-pin', `<i></i><span>${p.name}</span>`);
+      const pin = html('button', 'ws-x-pin', '<i></i><span></span>');
+      const label = pin.querySelector('span'); if (label === null) throw new Error('MiniMap: missing pin label'); label.textContent = p.name;
       (pin as HTMLButtonElement).type = 'button';
       const [u, v] = this.toMap(p.x, p.z);
       pin.style.left = `${u * 100}%`; pin.style.top = `${v * 100}%`;
