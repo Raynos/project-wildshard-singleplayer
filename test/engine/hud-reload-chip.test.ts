@@ -9,7 +9,7 @@ import { LEVER, CROSSBOW, LONGBOW } from '../../src/shards/pine-hollow/weapons/e
 import { AR15 } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { SWORD } from '../../src/kit/weapons/equipment';
 import { LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';
-import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
+import { Rifle } from '../../src/shards/nalati-grasslands/weapons/Rifle';
 import { legacyActor } from '../fake/legacyActor';
 
 let scope: Scope;

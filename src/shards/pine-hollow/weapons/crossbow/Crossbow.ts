@@ -13,7 +13,7 @@ import type { Player } from '@wildshard/engine/player/Player';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../../viewmodel/hunterHands';
+import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, coatMaterialParams, holdDef, type HandHold } from '../hunterHands';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from './profiles';
 
 

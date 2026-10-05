@@ -6,8 +6,8 @@ import { SABRE, SPEAR, BOW, AR15 } from '../../src/shards/nalati-grasslands/weap
 import { CROSSBOW, LONGBOW, LEVER } from '../../src/shards/pine-hollow/weapons/equipment';
 import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
 import { Bow } from '../../src/kit/weapons/bow/family';
-import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
-import { Rifle } from '../../src/kit/weapons/firearm/Rifle';
+import { Crossbow } from '../../src/shards/pine-hollow/weapons/crossbow/Crossbow';
+import { Rifle } from '../../src/shards/nalati-grasslands/weapons/Rifle';
 import { Sabre } from '../../src/shards/nalati-grasslands/weapons/Sabre';
 import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
 import { LeverRifle } from '../../src/shards/pine-hollow/weapons/LeverRifle';

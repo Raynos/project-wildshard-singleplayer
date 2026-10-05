@@ -1,9 +1,9 @@
-import { CROSSBOW_PROFILE } from '../../src/kit/weapons/crossbow/profiles';
+import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { app } from '../../src/engine/app/runtime';
 import { damageFor } from '../../src/engine/entities/AnimalView';
-import { Crossbow } from '../../src/kit/weapons/crossbow/Crossbow';
+import { Crossbow } from '../../src/shards/pine-hollow/weapons/crossbow/Crossbow';
 import type { TargetHit } from '../../src/engine/combat/types';
 import { Projectiles } from '../../src/engine/combat/view/projectile';
 import { boltDamage } from '../../src/shards/pine-hollow/loadout/ammo';

@@ -96,6 +96,7 @@ export const DONE = {
     'src/shards/nalati-grasslands/campPeople.ts': { why: 'the camp people are People (M5)', counts: { 'registry add with object': 1, BatchedMesh: 1 } },
     'src/shards/nalati-grasslands/combat/stormTitan.ts': { why: 'Jel Ata the Storm Titan is a creature (M5)', counts: { InstancedMesh: 3 } },
     'src/shards/nalati-grasslands/combat/stormTitanLook.ts': { why: "the Storm Titan's look (M5)", counts: { InstancedMesh: 2 } },
+    'src/shards/nalati-grasslands/weapons/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
   },
   'nine-dragon-stack': {
     'src/shards/nine-dragon-stack/playground/GrapplePlayground.ts': { why: "a playground's own floor and blocks (a practice scene, not a shard)", counts: { 'registry add with object': 1 } },
@@ -112,6 +113,8 @@ export const DONE = {
     'src/shards/pine-hollow/world/crags.ts': { why: 'the ONE batch the crag models are placed into, sized for the face skin and the cave (world, welded to the ground)', counts: { BatchedMesh: 1 } },
     'src/shards/pine-hollow/world/landmarks.ts': { why: "the landmarks' lights — the waystones' glow and anchors, the cave's shaft and drips — added as world, without colliders", counts: { 'registry add with object': 1 } },
     'src/shards/pine-hollow/world/streams.ts': { why: 'the creek, the waterfall and the plunge foam are water (world); the spray at the foot is an effect', counts: { InstancedMesh: 1 } },
+    'src/shards/pine-hollow/weapons/crossbow/Crossbow.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 4 } },
+    'src/shards/pine-hollow/weapons/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
   },
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
@@ -122,11 +125,8 @@ export const DONE = {
     'src/game/loot/CoinBurst.ts': { why: 'the coins bursting from a kill: an effect', counts: { InstancedMesh: 1 } },
     'src/game/cosmetics/bodyShadow.ts': { why: "the player's own shadow-casting body: the player, not a thing in the world", counts: { mergeGeometries: 2 } },
     'src/kit/weapons/bow/recurve.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
-    'src/kit/weapons/crossbow/Crossbow.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 4 } },
-    'src/kit/weapons/firearm/Rifle.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 5 } },
     'src/kit/weapons/melee/SweptMelee.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/engine/player/nalatiArms.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 1 } },
-    'src/kit/viewmodel/hunterHands.ts': { why: "Gear: the held weapon's own first-person build (M5 lists it on the Gear tab)", counts: { mergeGeometries: 2 } },
     'src/engine/combat/view/projectile.ts': { why: 'bolts and arrows in flight: an effect of the held gear', counts: { InstancedMesh: 1 } },
     'src/engine/player/WeaponPickup.ts': { why: "a weapon lying in the world to pick up: its Gear model's display copy", counts: { mergeGeometries: 1 } },
     'src/engine/practice/playground/devGrid.ts': { why: "the playgrounds' grid floor (a practice scene, not a shard)", counts: { mergeGeometries: 1 } },

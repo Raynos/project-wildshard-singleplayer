@@ -1,6 +1,6 @@
 import { BOW } from '../../src/kit/weapons/bow/profiles';
 import { LONGBOW } from '../../src/shards/pine-hollow/weapons/longbowProfile';
-import { CROSSBOW_PROFILE } from '../../src/kit/weapons/crossbow/profiles';
+import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import { AR15 } from '../../src/kit/weapons/firearm/profiles';
 import { LEVER_PROFILE } from '../../src/shards/pine-hollow/weapons/LeverRifle';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';

@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import { QUIVER_MAX } from '@wildshard/kit/weapons/bow/index';
 import type { BowStyle } from '@wildshard/kit/weapons/bow/profile';
 import { arrowMaterial, bowSpecimen, buildArrowGeometry } from '@wildshard/kit/weapons/bow/recurve';
-import { buildRifleParts } from '@wildshard/kit/weapons/firearm/Rifle';
+import { buildRifleParts } from '../weapons/Rifle';
 import { buildSabre } from '../weapons/Sabre';
 import { buildJavelin, buildSpear, type SpearParts } from '../weapons/Spear';
 import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';

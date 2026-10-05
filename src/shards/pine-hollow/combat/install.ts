@@ -23,8 +23,8 @@ import * as THREE from 'three';
 
 
 
-import { Crossbow, MAX_BOLTS } from '@wildshard/kit/weapons/crossbow/Crossbow';
-import { crossbowDisplayModel } from '@wildshard/kit/weapons/crossbow/display';
+import { Crossbow, MAX_BOLTS } from '../weapons/crossbow/Crossbow';
+import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { SKINS, type SkinId } from '../loadout/skins';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
