@@ -161,7 +161,9 @@ export const PINE_HOLLOW: ShardManifest = {
     cloudSunColor: [1.0, 0.82, 0.62],
     hemiSky: 0x8fa8d0, hemiGround: 0x4a3a28, hemiIntensity: 0.45,
   },
-  tiers: { phone: { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40, slices: true, skipRaysOffscreen: true, envSteps: true, pointLightSkip: true }, desktop: { pointLightSkip: true } },
+  // G180: the phone boots KTX2 from the first visit (Auto's level policy, gpuFiles.ts): Pine's ASTC sets are what keep it
+  // under the phone's 1.0 GB, and an images first visit decoded them to RGBA8 (+250 MB GL); an explicit Debug pick still wins
+  tiers: { phone: { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40, slices: true, skipRaysOffscreen: true, envSteps: true, pointLightSkip: true, textures: 'ktx2' }, desktop: { pointLightSkip: true } },
   atmosphere: {
     edgeHaze: true, wetSurfaces: true,
     fogHeight: -14.0,

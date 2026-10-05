@@ -27,8 +27,10 @@ const texPick = (v: string | undefined): (typeof OPTION_VALUES.tex)[number] => O
  * A page load on a tier and a shard: the tier picked explicitly (initializeTier's named form), the GPU-textures pick saved
  * through Settings, the level selected, and the texture mode resolved afresh (setTexturePolicy) — not a module reload (E422).
  */
+/** a shard whose phone tier sets no texture policy, so Auto's own rule shows (Pine's phone boots KTX2 by policy, G180) */
+const AUTO_SHARD = 'driftwood-isle';
 async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (prefetch: SP, playable: readonly ShardManifest[]) => [string, string] | null } = {}) {
-  const chunk = opts.chunk ?? 'pine-hollow', tier = opts.tier ?? 'phone';
+  const chunk = opts.chunk ?? AUTO_SHARD, tier = opts.tier ?? 'phone';
   localStorage.clear();
   saveSetting('tex', texPick(opts.tex));
   initializeTier(tier);
@@ -43,7 +45,7 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   if (m) saveFixture('device', 'ktx2set', { [m[0].slice('ktx2set:'.length)]: m[1] });
   return { SHARDS, PLAYABLE_SHARDS, sp, gf, chunkFiles, packFor, bootParts, def: PLAYABLE_SHARDS.find((c) => c.slug === chunk) };
 }
-const current = (prefetch: SP, shards: readonly ShardManifest[], slug = 'pine-hollow'): [string, string] | null => {
+const current = (prefetch: SP, shards: readonly ShardManifest[], slug = AUTO_SHARD): [string, string] | null => {
   const def = shards.find((c) => c.slug === slug);
   return def ? [prefetch.ktx2MarkerKey(slug), prefetch.setHash(prefetch.ktx2Set(def))] : null;
 };
@@ -57,6 +59,14 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     const desktop = await load({ chunk: 'nine-dragon-stack', tier: 'desktop' });
     expect(desktop.gf.texMode()).toBe('img');
   });
+  it('Pine Hollow\'s phone boots KTX2 from the first visit by its level policy (G180); its desktop keeps Auto\'s rule', async () => {
+    const phone = await load({ chunk: 'pine-hollow', tier: 'phone' });
+    expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2', why: 'auto: level tier texture policy' });
+    const desktop = await load({ chunk: 'pine-hollow', tier: 'desktop' });
+    expect(desktop.gf.texMode()).toBe('img');
+    const picked = await load({ chunk: 'pine-hollow', tier: 'phone', tex: 'img' });
+    expect(picked.gf.texMode()).toBe('img');
+  });
   it('a first visit (no marker) loads images', async () => {
     await load();
     expect(gf.texModeWhy().mode).toBe('img');
@@ -66,7 +76,7 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     expect(gf.texModeWhy()).toMatchObject({ mode: 'ktx2' });
   });
   it('a stale marker (another build\'s set) → images', async () => {
-    await load({ marker: (p) => [p.ktx2MarkerKey('pine-hollow'), '1-deadbeef'] });
+    await load({ marker: (p) => [p.ktx2MarkerKey(AUTO_SHARD), '1-deadbeef'] });
     expect(gf.texMode()).toBe('img');
   });
   it('another shard\'s marker does not count', async () => {
@@ -85,9 +95,9 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     const phone = await load();
     const def = phone.def;
     if (!def) throw new Error('no def');
-    const phoneMarker = phone.sp.setHash(phone.sp.ktx2Set(def)), phoneKey = phone.sp.ktx2MarkerKey('pine-hollow');
-    const desk = await load({ tier: 'desktop', marker: (p) => [p.ktx2MarkerKey('pine-hollow'), phoneMarker] });
-    expect(desk.sp.ktx2MarkerKey('pine-hollow')).not.toBe(phoneKey);
+    const phoneMarker = phone.sp.setHash(phone.sp.ktx2Set(def)), phoneKey = phone.sp.ktx2MarkerKey(AUTO_SHARD);
+    const desk = await load({ tier: 'desktop', marker: (p) => [p.ktx2MarkerKey(AUTO_SHARD), phoneMarker] });
+    expect(desk.sp.ktx2MarkerKey(AUTO_SHARD)).not.toBe(phoneKey);
     expect(desk.gf.texMode()).toBe('img');
   });
   it('is resolved once: a marker written mid-session changes nothing until the next load', async () => {
