@@ -1,0 +1,16 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:6:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 /private/tmp/claude-501/sp-builders/sp-x3/sf58-sdk-clean-07727be4b
+
+
+ Test Files  17 passed (17)
+      Tests  117 passed (117)
+   Start at  20:27:32
+   Duration  12.52s (transform 61%, tests 27%, setup 7%, import 4%, environment 1%)
+
+  Transform  transforming modules took 32.73s · 61% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+

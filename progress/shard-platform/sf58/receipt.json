@@ -1,0 +1,64 @@
+{
+  "row": "SF58",
+  "ask": "E435",
+  "sourcePin": "55a0ee50d",
+  "packagePin": "1463b1e92",
+  "status": "source complete; serialized final gate/push owned by coordinator",
+  "focused": {
+    "files": 17,
+    "tests": 117,
+    "pass": true,
+    "command": "pnpm exec vitest run test/shardfile-preflight.test.ts test/shardfile-preflight-product.test.ts test/shardfile-admission-schema.test.ts test/shardfile-product.test.ts test/shardfile-parser-fuzz.test.ts test/sdk-source-admission.test.ts test/compendium-sketch-admission.test.ts test/asset-overdraw.test.ts test/ledger.test.ts test/grid-product-leases.test.ts test/live-grid-admission.test.ts test/live-grid-durability.test.ts test/authored-html-lint.test.ts test/authored-ui-text.test.ts test/authored-explore-text.test.ts test/shardfile-load.test.ts test/headless-watchdog.test.ts"
+  },
+  "package": {
+    "pass": true,
+    "tarballBytes": 55200978,
+    "files": 550,
+    "identicalBuilds": 2,
+    "installedBy": "file:",
+    "standaloneTypes": true,
+    "publicModules": 27,
+    "normalClient": true
+  },
+  "worker": {
+    "pass": true,
+    "worker": "installed JS",
+    "workspaceAliases": false,
+    "exactSnapshot": true,
+    "aggregateOverflow": true,
+    "terminalValidation": true,
+    "ticks": 60,
+    "lanes": 92,
+    "steps": 46094,
+    "timing": {
+      "medianMicros": 33.75,
+      "maxMicros": 267.375,
+      "samples": 60
+    }
+  },
+  "parserPayloads": 1285,
+  "rawSourceBytes": 2000000,
+  "distinctWireBytes": 256000000,
+  "rewardFlood": {
+    "ticks": 1000,
+    "profileFacts": 1,
+    "nativeContinuationReceipts": 1,
+    "pendingStorageDistinctFacts": 1000,
+    "pendingStorageFacts": 1
+  },
+  "htmlGuard": {
+    "fixtures": 33,
+    "allowances": 0,
+    "authorTextSink": "textContent"
+  },
+  "runtimeDeadlinePolicy": "worker preemption and atomic last-committed checkpoint; bounded first-touch allowance",
+  "offlineDeadlinePolicy": "deterministic fuel/aggregate commands/bounded queries; measured tick timing advisory only",
+  "overdrawPolicy": "advisory primitive bounds; maximum of three local-axis projected-area/bbox estimates; copies conservatively stacked; no camera/occlusion claim",
+  "ownedResources": {
+    "browsers": 0,
+    "servers": 0,
+    "simulators": 0,
+    "gates": 0,
+    "pushers": 0
+  }
+}
