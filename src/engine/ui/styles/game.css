@@ -138,6 +138,9 @@
 .ws-game-toasts { position: absolute; right: var(--ws-toast-right, 22px); top: var(--ws-toast-top, 60px); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; max-width: min(70vw, 460px); }
 .ws-game-toasts .ws-game-toast { text-align: right; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 12px; color: var(--ws-text); animation: ws-feed-in 0.25s ease-out; }
 .ws-game-toasts .ws-game-toast.out { animation: ws-feed-out 0.5s ease-in forwards; }
+/* G168 (art/hud/round-22-script-error A): the amber notice under the quest chip, a warning triangle before the line */
+.ws-game-toasts .ws-game-toast.ws-game-toast-warn { position: relative; max-width: 190px; padding-left: 34px; text-align: left; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.75); box-shadow: 0 0 10px rgba(255, 181, 71, 0.25); line-height: 1.35; white-space: normal; }
+.ws-game-toasts .ws-game-toast.ws-game-toast-warn::before { content: '!'; position: absolute; left: 10px; top: 50%; width: 16px; height: 14px; margin-top: -7px; clip-path: polygon(50% 0, 100% 100%, 0 100%); background: var(--ws-amber); color: #1a1002; font-size: 9px; font-weight: 800; line-height: 17px; text-align: center; letter-spacing: 0; }
 /* ONE queue (src/engine/ui/ToastStack.ts): ≤ 3 up, the newest at the bottom at full strength, the older ones dimmed; the column
    steps down under the top bars (the elite's pinned bar / banner, the boss bar, the quest chip) with a transform */
 .ws-game-toasts { transition: transform 0.22s ease-out; }
@@ -275,3 +278,9 @@
 /* E373: hidden-level notice; no input surface, stays clear of the touch controls. */
 .ws-game-developer { position: absolute; left: 50%; top: calc(var(--ws-top, 16px) + 116px); transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 5px 9px; border: 1px solid var(--ws-cyan); background: rgba(13, 27, 38, 0.8); color: var(--ws-cyan); font-family: var(--ws-mono); font-size: 9px; line-height: 1.3; letter-spacing: 0.09em; white-space: nowrap; pointer-events: none; }
 .ws-game-developer[hidden], #hud.intro .ws-game-developer { display: none; }
+/* G168 (art/hud/round-22-script-error C): the Developer-only red strip naming a disabled script and its cause, full width under
+   the top bar; the DEV chip is drawn here, the line is the game's (textContent). */
+.ws-game-dev-alert { position: absolute; left: 6px; right: 6px; top: calc(var(--ws-top, 16px) + 84px); display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid rgba(255, 90, 74, 0.9); background: rgba(48, 6, 8, 0.86); box-shadow: 0 0 12px rgba(255, 90, 74, 0.35); color: #ff8a7e; font-family: var(--ws-mono); font-size: 9px; line-height: 1.3; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; overflow: hidden; pointer-events: none; }
+.ws-game-dev-alert::before { content: 'DEV'; flex: none; padding: 1px 6px; background: var(--ws-red); color: #1a0203; font-weight: 700; letter-spacing: 0.14em; }
+.ws-game-dev-alert span { overflow: hidden; text-overflow: ellipsis; }
+.ws-game-dev-alert[hidden], #hud.intro .ws-game-dev-alert { display: none; }

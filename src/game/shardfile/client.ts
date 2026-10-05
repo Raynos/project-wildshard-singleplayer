@@ -40,6 +40,7 @@ import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from './simulation';
+import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
 import type { Shardfile } from './schema';
 import type { DeclaredBrainPorts } from './brainRuntime';
@@ -233,6 +234,8 @@ export class ShardfileClient {
       ...(this.bindings.brains === undefined ? {} : { brains: this.bindings.brains }),
       ...(this.bindings.groups === undefined ? {} : { groups: this.bindings.groups }),
       ...(this.bindings.scriptBrains === undefined ? {} : { scriptBrains: this.bindings.scriptBrains }),
+      // G168: a module switched off after its strikes tells the player once, and Developer mode names it
+      scriptDisabled: scriptDisabledNotice({ toast: (text) => { play.hud.toast(text, 'warn'); }, devAlert: (text) => { play.hud.devAlert(text); } }),
       player: { id: health.id, position: world.player.position, get yaw() { return world.player.yaw; }, set yaw(value) { world.player.yaw = value; }, health, get motor() { return world.player.motor; } },
       events: ctx.app.events, clock: ctx.app.clock, combat: ctx.app.combat, scope: ctx.scope, water: ctx.app.world.water,
       fixedStep: clientSimStep({ scope: ctx.scope, app: ctx.app, active: () => simulationActive, freeCamera: () => world.freeCamera, system: ctx.system }), hud: ui,

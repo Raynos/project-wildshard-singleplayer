@@ -23,7 +23,9 @@ export interface ScriptEventDelivery { targets: ReadonlySet<number>; consume: Re
 /** Results expose validated requests only after the atomic world-state transaction succeeds. */
 export interface ScriptCall { ok: boolean; effects: readonly ScriptEffect[]; events: readonly ScriptEvent[]; fuel: number; reason: string | undefined; disabled: boolean }
 /** Host dependencies are explicitly installed; no import creates an instance or changes a service. */
-export interface ScriptHostOptions { world: ScriptWorld; query: ScriptQuery; limits?: Partial<ScriptLimits>; development?: boolean; toast?: (text: string) => void }
+export interface ScriptHostOptions { world: ScriptWorld; query: ScriptQuery; limits?: Partial<ScriptLimits>; development?: boolean; toast?: (text: string) => void; onDisabled?: (disabled: ScriptDisabled) => void }
+/** A module crossed its failure limit and stays switched off (G168): told once per module, never on a restored checkpoint. */
+export interface ScriptDisabled { module: string; entity: string; reason: string; failures: number }
 interface Layout { input: number; inputBytes: number; output: number; outputRecords: number }
 interface Running { memory: WebAssembly.Memory; instance: WebAssembly.Instance }
 interface ModuleState { bytes: Uint8Array; admission: ScriptAdmission; maximumPages: number; running: Running | undefined; layout: Layout; good: ScriptSnapshot; failures: number; disabled: boolean; remaining: number; depth: number; entity: number; busy: boolean }
@@ -203,6 +205,8 @@ export class ScriptHost {
       this.world.freeze(entity, true);
       const reason = error instanceof Error ? error.message : 'Script trap';
       if (this.options.development) this.options.toast?.(scriptFailure(current.name, name, reason, state.disabled));
+      // a disabled module never reaches this call, so this is its one crossing
+      if (state.disabled) this.options.onDisabled?.({ module: name, entity: current.name, reason, failures: state.failures });
       return { ok: false, effects: [], events: [], fuel, reason, disabled: state.disabled };
     } finally { state.busy = false; this.active = false; }
   }

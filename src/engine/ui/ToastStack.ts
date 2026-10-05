@@ -11,6 +11,8 @@ const OBSTACLES = [
 ].join(', ');
 
 interface Toast { el: HTMLElement; timer: ReturnType<typeof setTimeout> | 0; text: string }
+/** `warn`: the amber notice with a warning glyph (G168, a shard's script stopped); `plain`: every other toast. */
+export type ToastTone = 'plain' | 'warn';
 
 /** where the toasts are on screen right now (viewport px; empty = none up) — the elite's floating name dims under them */
 export const toastArea = { left: 0, right: 0, top: 0, bottom: 0 };
@@ -24,11 +26,11 @@ export class ToastStack {
   private readonly box: HTMLElement;
   constructor(box: HTMLElement) { this.box = box; }
 
-  push(text: string): void {
+  push(text: string, tone: ToastTone = 'plain'): void {
     const last = this.live.at(-1);
     if (last?.text === text && !last.el.classList.contains('out')) { this.arm(last); return; }
     const el = document.createElement('div');
-    el.className = 'ws-glass ws-game-toast';
+    el.className = tone === 'warn' ? 'ws-glass ws-game-toast ws-game-toast-warn' : 'ws-glass ws-game-toast';
     el.textContent = text;
     const t: Toast = { el, timer: 0, text };
     this.box.append(el);

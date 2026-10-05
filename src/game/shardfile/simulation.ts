@@ -39,6 +39,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   commands?: () => ReadonlyMap<string, number>;
   query?: Parameters<typeof createShardfileScriptLane>[2]['query']; navigation?: Parameters<typeof scriptPhysicsQueries>[0]['navigation'];
   restoring?: boolean;
+  /** G168: a declared module crossed its failure limit and stays off (the client tells the player; Node ignores it). */
+  scriptDisabled?: ShardScriptPorts['onDisabled'];
 }
 /** Authoritative handles for UI, quests and the existing client fixed-step driver. */
 export interface ShardfileSimulation {
@@ -138,6 +140,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       const options: ShardScriptPorts = {
         rules: ports.scriptRules ?? { fields: {}, archetypes: [], events: [...new Set([...hooks.scenes.map((scene) => scene.type), ...shard.items.rows.flatMap((row) => row.hook === null ? [] : [row.hook.event])])], maxEntities: shard.serverBudget.entities },
         entities: [...entities.values()], actors: reverse,
+        ...(ports.scriptDisabled === undefined ? {} : { onDisabled: ports.scriptDisabled }),
         query: ports.query ?? ((kind, input, entity) => scriptPhysicsQueries({ physics: host.physics, navigation: ports.navigation ?? { closestWalkable: () => null, findPath: () => null }, handle: (owner) => typeof owner === 'string' ? actors.get(owner) : undefined })(kind, input, entity)),
       };
       if (brainBindings.length > 0) {

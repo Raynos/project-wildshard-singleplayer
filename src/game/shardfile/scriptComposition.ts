@@ -26,6 +26,7 @@ export function createShardfileComposedLane(content: ShardScriptContent, assets:
     ...(ports.limits === undefined ? {} : { limits: ports.limits }),
     ...(ports.development === undefined ? {} : { development: ports.development }),
     ...(ports.toast === undefined ? {} : { toast: ports.toast }),
+    ...(ports.onDisabled === undefined ? {} : { onDisabled: ports.onDisabled }),
   });
   return { host: composition.host, world: numeric.world, divisor: numeric.divisor,
     step: (tick, input = new Map()) => { commands = input; return composition.step(tick); },

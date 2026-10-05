@@ -8,8 +8,8 @@ import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
 import { isDev, onDev } from '../core/devMode';
-import { mountDeveloperBanner } from './developerBanner';
-import { ToastStack } from './ToastStack';
+import { mountDeveloperAlert, mountDeveloperBanner } from './developerBanner';
+import { ToastStack, type ToastTone } from './ToastStack';
 import { ItemCardPop, type ItemCardSpec } from './ItemCard';
 import { setting } from './Settings';
 import { ROW, hudSlots } from './hudSlots';
@@ -537,7 +537,12 @@ export class HUD {
 
   /** one queue (src/engine/ui/ToastStack.ts: ≤ 3 up, the older ones dimmed, stepping down under the elite / boss bars), placed per
    *  A1 (E130): right-aligned under the quest chip */
-  toast(text: string): void { this.placeToasts(); this.toasts.push(text); }
+  toast(text: string, tone: ToastTone = 'plain'): void { this.placeToasts(); this.toasts.push(text, tone); }
+
+  /** A red strip under the top bar, shown only with Settings ▸ Developer on (G168: the technical reason behind a player toast).
+   *  The text is content-supplied and set through textContent; a new alert replaces the last. */
+  devAlert(text: string): void { (this.alert ??= mountDeveloperAlert(this.root, this.scope))(text); }
+  private alert: ((text: string) => void) | undefined;
 
   /** the level's HUD accent for the big item cards (a hex; null: the HUD cyan) — the game sets it from the level's declared accent */
   cardAccent: string | null = null;
