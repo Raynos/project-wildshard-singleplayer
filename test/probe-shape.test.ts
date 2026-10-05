@@ -60,7 +60,7 @@ function fixture(): ProbeWorld {
   const app = new App(), levelScope = new Scope('level'); app.setState('play'); app.clock.tick(10);
   const game = fake<Game>({ level: fake<LevelSpec>({ id: 'driftwood-isle', budgets: {}, spawn: { x: 0, z: 0, yaw: 0 } }), app, levelScope, hudBaseline: 0, scene, renderer, frameTime: 10, levelSystemIds: () => [], systemLabels: () => ({ input: ['input'], 'fixed.pre': [], 'fixed.step': ['physics'], 'fixed.post': [], update: [], late: [] }) });
   const player = fake<Player>({ position: new THREE.Vector3(1.0004, 2, 3), velocity: new THREE.Vector3(), yaw: 0.1, pitch: 0.2, keys: new Set<string>(), spawn: vi.fn<() => void>(), setHover: vi.fn<() => void>() });
-  const physics = fake<Physics>({ scopedCensus: () => ({ bodies: 0, colliders: 0 }), world: fake<RapierWorld>({ bodies: fake<RigidBodySet>({ len: () => 1, forEach: () => { /* observation fixture has no side effects */ } }), colliders: fake<ColliderSet>({ len: () => 2 }) }) });
+  const physics = fake<Physics>({ scopedCensus: () => ({ bodies: 0, colliders: 0 }), captureRetainedCensus: () => () => ({ bodies: 1, colliders: 2 }), world: fake<RapierWorld>({ bodies: fake<RigidBodySet>({ len: () => 1, forEach: () => { /* observation fixture has no side effects */ } }), colliders: fake<ColliderSet>({ len: () => 2 }) }) });
   const hud = fake<HUD>({ paused: false, entered: true, enterArenaNow: vi.fn<() => void>() });
   const animal = fake<Animal>({ kind: 'wolf', alive: true, hp: 20, position: new THREE.Vector3(5, 0, 6), state: 'idle', harnessHold: false });
   const animals = fake<AnimalManager>({ animals: [animal] });
@@ -160,6 +160,33 @@ describe('probe contract', () => {
       expect(result.disposalErrors).toEqual([]); expect(result.after.bodies).toBe(0); expect(result.after.colliders).toBe(0);
       expect(page.world.colliders.len()).toBe(1); // Actual retained engine collider, excluded by its own baseline.
     } finally { vi.useRealTimers(); world.game.app.engineScope.dispose(); page.dispose(); }
+  });
+  it('forgets deleted retained native identities and exposes later unowned handles without clamping', async () => {
+    const R = await loadRapier(new Uint8Array(readFileSync('node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm')));
+    const physics = new Physics(R), level = new Scope('retained-identities');
+    const retainedBody = physics.world.createRigidBody(R.RigidBodyDesc.fixed());
+    const retainedCollider = physics.world.createCollider(R.ColliderDesc.ball(1), retainedBody);
+    withOwner(level, () => {
+      const body = physics.world.createRigidBody(R.RigidBodyDesc.fixed());
+      physics.world.createCollider(R.ColliderDesc.ball(1), body);
+    });
+    const retained = physics.captureRetainedCensus(level);
+    try {
+      expect(retained()).toEqual({ bodies: 1, colliders: 1 });
+      physics.world.removeCollider(retainedCollider, true);
+      expect(retained()).toEqual({ bodies: 1, colliders: 0 });
+      physics.world.removeRigidBody(retainedBody);
+      expect(retained()).toEqual({ bodies: 0, colliders: 0 });
+      const later = physics.world.createRigidBody(R.RigidBodyDesc.fixed());
+      physics.world.createCollider(R.ColliderDesc.ball(1), later);
+      level.dispose();
+      expect(retained()).toEqual({ bodies: 0, colliders: 0 });
+      expect(physics.world.bodies.len() - retained().bodies).toBe(1);
+      expect(physics.world.colliders.len() - retained().colliders).toBe(1);
+      physics.world.removeRigidBody(later);
+      expect(physics.world.bodies.len() - retained().bodies).toBe(0);
+      expect(physics.world.colliders.len() - retained().colliders).toBe(0);
+    } finally { level.dispose(); physics.dispose(); }
   });
   it('shares its exact declared type with scripts and captures the boot synchronously', () => {
     expectTypeOf<ScriptProbe>().toEqualTypeOf<EngineProbe>();

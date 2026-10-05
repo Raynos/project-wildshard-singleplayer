@@ -287,9 +287,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     events: app.events.census(game.levelScope), dom: { hud: 0, body: 0 }, sceneObjects: 0,
   };
   const leakPhysics = deps.leakPhysics ?? world.physics;
-  const ownedPhysics = leakPhysics.scopedCensus(game.levelScope);
-  const retainedPhysics = { bodies: leakPhysics.world.bodies.len() - ownedPhysics.bodies,
-    colliders: leakPhysics.world.colliders.len() - ownedPhysics.colliders };
+  const retainedPhysicsAtBoot = leakPhysics.captureRetainedCensus(game.levelScope);
   app.debug.leakBaseline = { ...baseline };
   app.debug.expose('leakBaseline', app.debug.leakBaseline);
   const engineSystemIds = new Set(Object.values(app.systemsByPhase()).flat().filter((system) => !game.levelSystemIds().includes(system.id)).map((system) => system.id));
@@ -306,6 +304,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     let objects = 0; game.scene.traverse(() => { objects++; });
     const audio = world.audio.census();
     const phases = app.systemsByPhase(), phaseCount = (phase: Phase): number => phases[phase].filter((s) => !engineSystemIds.has(s.id)).length;
+    const retainedPhysics = retainedPhysicsAtBoot();
     return { geometries: game.renderer.info.memory.geometries - gpu.geometries, textures: game.renderer.info.memory.textures - gpu.textures,
       programs: (game.renderer.info.programs?.length ?? 0) - gpu.programs,
       bodies: leakPhysics.world.bodies.len() - retainedPhysics.bodies, colliders: leakPhysics.world.colliders.len() - retainedPhysics.colliders,

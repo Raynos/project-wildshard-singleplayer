@@ -7,7 +7,7 @@
  * against the stepped world in `post`. Rapier 0.21's World owns its empty SoftBodySet and supplies it to the
  * changed low-level step/remove/debug APIs; gameplay uses only these World wrappers.
  */
-import type { World } from '@dimforge/rapier3d-simd';
+import type { Collider, RigidBody, World } from '@dimforge/rapier3d-simd';
 import type { Rapier } from './rapier';
 import { FIXED_STEP } from '../core/fixedStep';
 import { currentOwner } from '../app/ownership';
@@ -64,6 +64,21 @@ export class Physics {
       let total = 0; for (const owner of owners.values()) if (owner.belongsTo(scope)) total++; return total;
     };
     return { bodies: count(this.bodyOwners), colliders: count(this.colliderOwners) };
+  }
+
+  /** Capture outside-scope native identities; later reads exclude only those exact handles still alive. */
+  captureRetainedCensus(scope: Scope): () => { bodies: number; colliders: number } {
+    const bodies: RigidBody[] = [], colliders: Collider[] = [];
+    this.world.forEachRigidBody((body) => {
+      if (this.bodyOwners.get(body.handle)?.belongsTo(scope) !== true) bodies.push(body);
+    });
+    this.world.forEachCollider((collider) => {
+      if (this.colliderOwners.get(collider.handle)?.belongsTo(scope) !== true) colliders.push(collider);
+    });
+    return () => ({
+      bodies: bodies.filter((body) => this.world.bodies.contains(body.handle) && this.world.getRigidBody(body.handle) === body).length,
+      colliders: colliders.filter((collider) => this.world.colliders.contains(collider.handle) && this.world.getCollider(collider.handle) === collider).length,
+    });
   }
 
   /** Rapier's complete same-version continuation; a fresh Physics instance can consume it. */
