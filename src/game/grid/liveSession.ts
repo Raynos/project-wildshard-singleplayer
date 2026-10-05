@@ -33,6 +33,7 @@ import { createSimHost, SIM_API_VERSION, type SimLevel } from '@wildshard/engine
 import { restoreSimHost } from '@wildshard/engine/sim/snapshot';
 import { installStripCollider } from '@wildshard/engine/physics/stripColliders';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
+import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/physics/gridBorders';
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
 import type { GeneratedStrip } from '@wildshard/engine/sim/strips';
@@ -306,7 +307,8 @@ export class LiveGridSession {
     const groundResolution = source.edge.north.heights.length === 256 ? 256 : 257;
     const generatedGroundBytes = source.terrain === null ? 2 * groundResolution ** 2 * Float32Array.BYTES_PER_ELEMENT : 0;
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
-    return { bytes: source.budgets.sim.resident + generatedGroundBytes, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
+    // Four native creature-only walls and their shape/query adapters belong to this regional claim.
+    return { bytes: source.budgets.sim.resident + generatedGroundBytes + 4096, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
       let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest, groundResolution });
       let releaseBasis: () => void = () => undefined;
       try {
@@ -314,6 +316,7 @@ export class LiveGridSession {
         // Admission proves real, clear, dry ground first. A 5mm backstop avoids coplanar ghost contacts. Include it
         // in the immutable basis; exact restore carries its tagged handles and must not install another four floors.
         installEntrySockets(sim.host.physics, sim.host.scope, [{ x: 0, z: 0 }], 'backstop');
+        installGridBorders(sim.host.physics, sim.host.scope);
         const basis = sim.host.physics.snapshot();
         const basisLease = this.ports.allocator.reserve({ id: `sim-basis:${cell.instance}`, category: 'sim', owner: cell.instance,
           bytes: basis.byteLength, distance: 0, needed: true });
@@ -332,6 +335,9 @@ export class LiveGridSession {
           if (!savedRegion.restoreLogical(sim)) throw new Error('Regional logical migration was refused');
         }
         const region = sim, start = region.host.level.player, host = region.host, water = region.water;
+        // Motors collide with BORDER; analytic/flying motion uses the same walls before sampling admitted terrain.
+        // Restore already carries the four colliders in its native basis, so only these live readers reconnect.
+        for (const actor of host.entities.values()) actor.motionConstraint = gridCreatureConstraint(() => host.physics, actor.dims.bodyRadius * actor.scale);
         this.regions.set(cell.instance, { spawn: { x: start.at.x, y: undefined, z: start.at.z, yaw: start.yaw },
           // the admitted terrain inside the cell (one source of truth); its strips are road level (the terrain tile ends at the cell edge)
           queries: { heightAt: (x, z) => (Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? host.groundHeightAt(x, z) : 0), waterSurfaceAt: (x, z) => water.restAt(x, z), platforms: [] }, simulation: region });

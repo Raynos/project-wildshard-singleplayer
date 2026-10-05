@@ -10,6 +10,8 @@ import { fnv1a32 } from '../src/engine/core/rng';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { ReadinessWalls, type ReadinessEdge } from '../src/engine/physics/readinessWalls';
 import { installEntrySockets } from '../src/engine/physics/entrySockets';
+import { installGridBorders } from '../src/engine/physics/gridBorders';
+import { groups } from '../src/engine/physics/groups';
 import { tagOf } from '../src/engine/physics/surface';
 import { PLATFORM_COLLIDER_OWNER } from '../src/engine/physics/stripColliders';
 import { createSimHost } from '../src/engine/sim';
@@ -66,6 +68,11 @@ function socketHandles(sim: simulation.ShardfileSimulation): number[] {
   });
   return handles.sort((a, b) => a - b);
 }
+function borderHandles(sim: simulation.ShardfileSimulation): number[] {
+  const handles: number[] = [];
+  sim.host.physics.world.forEachCollider((collider) => { if (collider.collisionGroups() === groups('BORDER')) handles.push(collider.handle); });
+  return handles.sort((a, b) => a - b);
+}
 
 it('holds a real live crossing on home or region save refusal and reloads the earned quest and coins', async () => {
   const assets = new Map(source.files.map((file) => [file.hash, readFileSync(`src/shards/_template/assets/${file.hash}`)]));
@@ -117,6 +124,22 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     const admitted = first.session.simulation(target.instance);
     if (admitted === undefined) throw new Error('Missing admitted socket world');
     const sockets = socketHandles(admitted); expect(sockets).toHaveLength(4);
+    const borders = borderHandles(admitted); expect(borders).toHaveLength(4);
+    const boundaryActor = admitted.host.entities.get('grey-blob:1');
+    if (boundaryActor === undefined) throw new Error('Missing admitted boundary actor');
+    const beforeBoundary = boundaryActor.snapshot(), motor = boundaryActor.motor;
+    try {
+      for (const analytic of [false, true]) {
+        boundaryActor.motor = analytic ? null : motor;
+        for (const [x, z] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+          boundaryActor.place(x * 248, z * 248, Math.atan2(x, z));
+          boundaryActor.setMotion(Math.atan2(x, z), 30, 100);
+          for (let tick = 0; tick < 600; tick++) { admitted.host.physics.step(); boundaryActor.step(1 / 60); }
+          expect(Math.max(Math.abs(boundaryActor.position.x), Math.abs(boundaryActor.position.z))).toBeLessThan(250);
+          expect(() => admitted.host.groundHeightAt(boundaryActor.position.x, boundaryActor.position.z)).not.toThrow();
+        }
+      }
+    } finally { boundaryActor.motor = motor; boundaryActor.restore(beforeBoundary); }
     expect(first.allocator.entries().find((entry) => entry.id === `sim-basis:${target.instance}`)?.bytes).toBeGreaterThan(300_000);
     expect(first.scope.census.colliders).toBe(0); // admitted terrain and props also stay in their regional scope
     pageHost.player.position.set(270, 1, 270); await settle(first.tick);
@@ -144,6 +167,9 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     const reload = new GridRegionDurability(new SaveStore({ local, session: null }), { id: target.instance, shard: target.slug }, source, []);
     const freshBasis = create(source, assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });
     installEntrySockets(freshBasis.host.physics, freshBasis.host.scope, [{ x: 0, z: 0 }], 'backstop');
+    const basisWithoutBorders = freshBasis.host.physics.snapshot().byteLength;
+    installGridBorders(freshBasis.host.physics, freshBasis.host.scope);
+    expect(freshBasis.host.physics.snapshot().byteLength - basisWithoutBorders).toBeLessThan(4096);
     try { reload.setPhysicsBasis(freshBasis.host.physics.snapshot()); } finally { freshBasis.dispose(); }
     expect(reload.read()?.flags).toContain('template.complete'); expect(reload.wallet.coins()).toBe(5);
     expect(Object.values(reload.ledger.state().facts)).toHaveLength(1);
@@ -157,6 +183,8 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     const restored = first.session.simulation(target.instance);
     if (restored === undefined) throw new Error('Missing restored socket world');
     expect(socketHandles(restored)).toEqual(sockets); // restored tags/handles, four floors, zero duplicate allocation
+    expect(borderHandles(restored)).toEqual(borders); // exact restore reconnects four walls without allocating more
+    expect([...restored.host.entities.values()].every((actor) => actor.motionConstraint !== null)).toBe(true);
   } finally {
     try {
       withOwner(first.scope, () => { first.scope.dispose(); });
