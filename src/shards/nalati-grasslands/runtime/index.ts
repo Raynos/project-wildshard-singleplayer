@@ -1,3 +1,4 @@
+import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { NALATI_SPECIES, NALATI_LOOKS } from '../species/rows';
 import { STRINGS } from '../strings';
 import { NALATI_FEATS } from '../feats';
@@ -65,9 +66,9 @@ export class NalatiPlugin extends ShardPlugin {
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
-    ctx.app.registerDayCycle(rt.weather.clock, ctx.scope);
+    installEnteredRuntimeService(ctx, (scope) => { ctx.app.registerDayCycle(rt.weather.clock, scope); });
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
-    ctx.scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); }));
+    installEnteredRuntimeService(ctx, (scope) => { scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); })); });
   }
 
   override kit(ctx: ShardContext): void {
@@ -104,7 +105,9 @@ export class NalatiPlugin extends ShardPlugin {
     Object.assign(shell.objects, { wildlife, ride });
     ctx.on('weather.changed', (state) => { hud.setWeather(state); });
     rt.sound?.bind(audio, music, animals, wildlife);
-    h.cues.use((id, options) => options.surface === undefined ? rt.sound?.fire(id) === true : rt.sound?.impact(id, options.surface === 'flesh' || options.surface === 'wood' ? options.surface : 'ground', options.pan ?? 0, options.gain ?? 1) === true, ctx.scope);
+    installEnteredRuntimeService(ctx, (scope) => {
+      h.cues.use((id, options) => options.surface === undefined ? rt.sound?.fire(id) === true : rt.sound?.impact(id, options.surface === 'flesh' || options.surface === 'wood' ? options.surface : 'ground', options.pan ?? 0, options.gain ?? 1) === true, scope);
+    });
     rt.weather.bind({ audio, hurt: (amount, why) => { hurt('env.lightning', amount, { kind: 'env.lightning', label: 'Struck by lightning', text: 'Struck by lightning' }, why); } });
     const common = { animals, setWeaponsEnabled: (on: boolean) => { weapons.setEnabled(on); }, refill: () => { kit.refill(); }, interactables: shell.interactables, params,
       toast: (text: string) => { hud.toast(text); }, feed: (text: string) => { hud.killFeed(text); }, pickupHum: (on: boolean) => { audio.pickupHum(on); },
@@ -120,8 +123,10 @@ export class NalatiPlugin extends ShardPlugin {
     ctx.on('player.died', () => { if (ride?.mounted === true) ride.mount.dismount(); });
     ctx.on('player.respawned', () => { kit.refill(); });
     const health = ctx.app.player;
-    health?.checkpoint(ctx.scope, () => rt.boss.onPlayerDeath(), () => ctx.app.player === health);
-    health?.checkpoint(ctx.scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
+    installEnteredRuntimeService(ctx, (scope) => {
+      health?.checkpoint(scope, () => rt.boss.onPlayerDeath(), () => ctx.app.player === health);
+      health?.checkpoint(scope, () => rt.titan.onPlayerDeath(), () => ctx.app.player === health);
+    });
     ctx.answer('feat.toast', (value) => ({ ...value, allowed: value.allowed && (value.event === undefined || !CAPTIONED_EVENTS.has(value.event)) }));
     const quest = installNalatiAdventure({ ctx, game, sky, player, chunk, prompts: shell.interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: rt, params });
     await quest?.people.ready;

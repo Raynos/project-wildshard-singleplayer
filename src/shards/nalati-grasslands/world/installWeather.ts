@@ -1,3 +1,4 @@
+import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { wildEnv } from '../creatures/env';
 import { clockForSun, steppeClock, nightKeys, blendSteppeKey } from '../look/dayKeys';
 import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, lightLevel, type SkyLook } from '../look/skyRig';
@@ -189,7 +190,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   if (tq) { const h = Number.parseFloat(tq); if (Number.isFinite(h)) void clock.set(h); else if (isTimeName(tq)) void clock.set(tq); }
   // Debug ▸ Sky & weather ▸ Clock speed (E162, live)
   clock.scale = Number(setting('clockSpeed'));
-  ctx.ctx.scope.onDispose(onSettingChange('clockSpeed', (v) => { clock.scale = Number(v); }));
+  installEnteredRuntimeService(ctx.ctx, (scope) => { scope.onDispose(onSettingChange('clockSpeed', (v) => { clock.scale = Number(v); })); });
   clock.paused = qs.get('clock') === '0';
 
   const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey }, def);

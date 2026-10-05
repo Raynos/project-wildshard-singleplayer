@@ -1,4 +1,4 @@
-import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { bindEnteredEnvironment } from './enteredEnvironment';
 import { Wildlife, type SheepHit } from '../creatures/wildlife';
 import { wildEnv } from '../creatures/env';
@@ -392,7 +392,8 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
     });
 
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/shards/nalati-grasslands/sound.ts ──
-  const sound = wireSound(nalati, { player: ctx.player, weather, scope: plugin.scope, on: plugin.on, debug: plugin.debug });
+  const sound = wireSound(nalati, { player: ctx.player, weather, scope: plugin.scope, on: plugin.on, debug: plugin.debug },
+    retainsRuntimeServices(plugin) ? (install) => { installEnteredRuntimeService(plugin, install); } : undefined);
   nalati.sound = sound;
   updates.push((dt) => { sound.update(dt); });
 

@@ -93,7 +93,8 @@ function brookDistance(x: number, z: number): number {
   return best;
 }
 
-export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on']; debug: ShardContext['debug'] }): NalatiSound {
+export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player: Player; weather: NalatiWeather; scope: Scope; on: ShardContext['on']; debug: ShardContext['debug'] },
+  entered?: (install: (scope: Scope) => void) => void): NalatiSound {
   const { player, weather } = ctx;
   let audio: Audio | null = null;
   let voices: SteppeVoices | null = null;
@@ -148,35 +149,54 @@ export function wireSound(nalati: Pick<Nalati, 'boss' | 'titan'>, ctx: { player:
 
   const sound: NalatiSound = {
     bind(a, music, animals, wildlife) {
-      if (animals) manager = animals;
-      if (wildlife) wildlife.onSound = emit;
-      audio = a;
-      a.hoofSurfaceAt = hoofSurfaceAt;
-      voices = installSteppeVoices(a, ctx.scope, hoofSurfaceAt);
-      // the manager's footfalls are 'hoofsteps' for every animal: only a horse's are hooves — a wolf's or the dog's paws
-      // are silent in the grass (bind runs after main.ts sets animals.onSound, so this wraps it)
-      const m = manager;
-      if (m) {
-        m.onSound = (name, pos) => {
-          if (name === 'hoofsteps') {
-            const who = m.animals.find((animal) => animal.position === pos);
-            if (who && who.kind !== 'horse') return;
+      const install = (scope: Scope): void => {
+        if (animals) manager = animals;
+        const previousHoof = a.hoofSurfaceAt, previousBed = a.bedId;
+        const m = manager;
+        const previousWildlife = wildlife && Object.getOwnPropertyDescriptor(wildlife, 'onSound');
+        const previousAnimal = m && Object.getOwnPropertyDescriptor(m, 'onSound');
+        if (wildlife) wildlife.onSound = emit;
+        audio = a;
+        a.hoofSurfaceAt = hoofSurfaceAt;
+        voices = installSteppeVoices(a, scope, hoofSurfaceAt);
+        // the manager's footfalls are 'hoofsteps' for every animal: only a horse's are hooves — a wolf's or the dog's paws
+        // are silent in the grass (bind runs after main.ts sets animals.onSound, so this wraps it)
+        let animalSound: AnimalManager['onSound'];
+        if (m) {
+          animalSound = (name, pos) => {
+            if (name === 'hoofsteps') {
+              const who = m.animals.find((animal) => animal.position === pos);
+              if (who && who.kind !== 'horse') return;
+            }
+            a.animal(name, pos, player.position, player.yaw);
+          };
+          m.onSound = animalSound;
+        }
+        a.setAmbient(STEPPE_BED);
+        // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
+        if (music) {
+          score = createSteppeScore((url) => import('@wildshard/engine/audio/preload').then(({ cachedBytes }) => cachedBytes(url)), (bytes) => import('@wildshard/engine/audio/preload').then(({ decodeBytes }) => decodeBytes(bytes)), () => { music.refreshScore(); });
+          refresh = () => { music.refreshScore(); };
+          const release = music.setScore(MUSIC.id, score);
+          scope.onDispose(release);
+          a.onLevelBank((bank) => { score?.useBank(bank.score); }, scope);
+        }
+        amb = new SteppeAmbience(a);
+        scope.onDispose(() => { amb?.dispose(); amb = null; audio = null; voices = null; });
+        amb.onZone = (zone) => { setScene({ zone }); };
+        if (entered !== undefined) scope.onDispose(() => {
+          if (a.hoofSurfaceAt === hoofSurfaceAt) a.hoofSurfaceAt = previousHoof;
+          if (a.bedId === STEPPE_BED) a.setAmbient(previousBed);
+          if (wildlife?.onSound === emit) {
+            if (previousWildlife === undefined) delete wildlife.onSound; else Object.defineProperty(wildlife, 'onSound', previousWildlife);
           }
-          a.animal(name, pos, player.position, player.yaw);
-        };
-      }
-      a.setAmbient(STEPPE_BED);
-      // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
-      if (music) {
-        score = createSteppeScore((url) => import('@wildshard/engine/audio/preload').then(({ cachedBytes }) => cachedBytes(url)), (bytes) => import('@wildshard/engine/audio/preload').then(({ decodeBytes }) => decodeBytes(bytes)), () => { music.refreshScore(); });
-        refresh = () => { music.refreshScore(); };
-        const release = music.setScore(MUSIC.id, score);
-        ctx.scope.onDispose(release);
-        a.onLevelBank((bank) => { score?.useBank(bank.score); }, ctx.scope);
-      }
-      amb = new SteppeAmbience(a);
-      ctx.scope.onDispose(() => { amb?.dispose(); amb = null; audio = null; voices = null; });
-      amb.onZone = (zone) => { setScene({ zone }); };
+          if (m && m.onSound === animalSound) {
+            if (previousAnimal === null || previousAnimal === undefined) delete m.onSound; else Object.defineProperty(m, 'onSound', previousAnimal);
+          }
+          thrustPending = false; score = undefined; refresh = () => { /* No entered score. */ };
+        });
+      };
+      if (entered === undefined) install(ctx.scope); else entered(install);
     },
     fire(id) { return id.startsWith('cue.') && cues.cue(id as `cue.${string}`); },
     impact(id, surface, pan, gain) { return id.startsWith('cue.') && cues.cue(id as `cue.${string}`, { surface, pan, gain }); },
