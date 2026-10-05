@@ -60,7 +60,7 @@ describe('SF23 far proxies', () => {
     const part = { positions: Float32Array.from([10, 30, -100, 140, 32, -100, 20, 40, -60]), colours: new Float32Array(9).fill(0.4), index: Uint32Array.from([0, 2, 1]) }; // counter-clockwise from above: faces up
     const mesh = buildFarProxy(grid, look, [part]);
     expect(mesh.triangles).toBe(16 * (2 + 4 * 2) + 1);
-    expect([...mesh.region.slice(-3)]).toEqual([6, 6, 6]);
+    expect(Array.from(mesh.region.slice(-3))).toEqual([6, 6, 6]);
     expect(mesh.normals[mesh.normals.length - 2]).toBeGreaterThan(0.9);
     expect(() => buildFarProxy(grid, look, [{ ...part, positions: Float32Array.from([10, 30, -100, 260, 32, -100, 20, 40, -60]) }])).toThrow(/outside the cell/u);
   });
