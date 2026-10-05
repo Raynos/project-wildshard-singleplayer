@@ -56,8 +56,13 @@ it('lets the template pass all four cell entrances without legacy horizontal rec
     }
   }
   expect(spawn).not.toHaveBeenCalled(); expect(toSpawn).not.toHaveBeenCalled();
-  player.position.y = -21; system.run(1 / 60, 0); expect(spawn).toHaveBeenCalledOnce();
-  player.position.y = 0; grid = false; player.position.x = 101; system.run(1 / 60, 0); expect(spawn).toHaveBeenCalledTimes(2);
+  player.position.y = -21; system.run(1 / 60, 0); expect(toSpawn).toHaveBeenCalledOnce(); expect(spawn).not.toHaveBeenCalled();
+  // G129 delegates grid falls to its owner; standalone still establishes and uses its own 0.2 s soft checkpoint.
+  player.position.y = 0; grid = false; player.position.x = 0; player.position.z = 0;
+  for (let tick = 0; tick < 13; tick++) system.run(1 / 60, 0);
+  player.position.x = 101; system.run(1 / 60, 0); expect(spawn).toHaveBeenCalledOnce();
+  player.position.x = 0; player.position.y = -21; system.run(1 / 60, 0); expect(spawn).toHaveBeenCalledTimes(2);
+  expect(toSpawn).toHaveBeenCalledOnce();
   scope.dispose(); expect(app.systemsByPhase().update).toEqual([]);
 });
 
