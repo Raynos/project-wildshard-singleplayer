@@ -11,6 +11,16 @@ import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
 afterEach(() => { setDev(false); });
 
 describe('title deck cards', () => {
+  it('renders authored card names and blurbs literally without changing the card actions or badge', () => {
+    const base = titleCards()[0]; if (base === undefined) throw new Error('Missing first card');
+    const hostile = '<img src=x onerror="bad()"><script>bad()</script>& literal', onEnter = vi.fn<() => void>();
+    const card = { ...base, name: hostile, label: hostile };
+    const deck = buildTitleDeck({ cards: [card], active: card.slug, onEnter, onExplore: () => undefined, onSettings: () => undefined });
+    const selected = deck.root.querySelector<HTMLButtonElement>('.ws-menu-card');
+    expect(selected?.querySelector('b')?.textContent).toBe(hostile); expect(selected?.querySelector('small')?.textContent).toBe(hostile);
+    expect(deck.root.querySelector('img,script,[onerror]')).toBeNull(); expect(selected?.dataset['i']).toBe('0');
+    deck.activate(); expect(onEnter).toHaveBeenCalledOnce(); deck.dispose();
+  });
   it('uses Developer mode to hide the template or show it last with its ribbon', () => {
     setDev(false);
     expect(isDev()).toBe(false);

@@ -181,18 +181,24 @@ export function buildTitleDeck(opts: TitleDeckOptions): TitleDeck {
     <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div>
       <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${EYE}</span><span class="ws-menu-explore-text"><b>Explore world</b><small>Fly · inspect</small></span></button></div>
     <div class="ws-menu-deck">
-      <div class="ws-menu-cards"><div class="ws-menu-deck-track">${entries.map((c, i) => {
-        const active = i === activeIndex;
-        return `
-        <button class="ws-menu-card${active ? ' active' : ''}${c.upgrade !== undefined ? ' ws-menu-card-upgrade' : ''}" type="button" data-i="${i}">
-          <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')">${c.upgrade !== undefined ? `<i class="ws-menu-card-tag ws-menu-card-needs">${GAME_STRINGS.upgrade.badge}</i>` : ''}${canEnter(c, mode()) ? `<i class="ws-menu-card-tag${active ? ' ok' : ''}">${active ? 'Loaded' : 'Load'}</i>` : ''}${ribbonFor(c, mode()) ? `<i class="ws-menu-card-exp${c.badge === 'Early access' && canEnter(c, mode()) ? ' ws-menu-card-ea' : ''}">${ribbonFor(c, mode())}</i>` : ''}</span>
-          <b>${c.name}</b><small>${c.upgrade !== undefined ? GAME_STRINGS.upgrade.built(c.upgrade.built) : c.label}</small>
-        </button>`;
-      }).join('')}</div></div>
-      <div class="ws-menu-dots">${entries.map((c, i) => `<i data-i="${i}" data-tag="${dotTag(c, mode())}" style="--thumb:url('${c.thumbnail}')"></i>`).join('')}</div>
+      <div class="ws-menu-cards"><div class="ws-menu-deck-track"></div></div>
+      <div class="ws-menu-dots"></div>
       <div class="ws-menu-modes"><button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${SWORD}</span><b>Enter world</b><small></small></button></div>
       <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button></div>
     </div>`;
+  const words = (tag: string, cls: string, text: string): HTMLElement => { const node = document.createElement(tag); node.className = cls; node.textContent = text; return node; };
+  const cardTrack = required(root, '.ws-menu-deck-track'), dotTrack = required(root, '.ws-menu-dots');
+  entries.forEach((card, index) => {
+    const active = index === activeIndex, button = document.createElement('button'); button.type = 'button'; button.dataset['i'] = String(index);
+    button.className = `ws-menu-card${active ? ' active' : ''}${card.upgrade !== undefined ? ' ws-menu-card-upgrade' : ''}`;
+    const image = document.createElement('span'); image.className = 'ws-menu-card-img'; image.style.backgroundImage = `url('${card.thumbnail}')`;
+    if (card.upgrade !== undefined) image.append(words('i', 'ws-menu-card-tag ws-menu-card-needs', GAME_STRINGS.upgrade.badge));
+    if (canEnter(card, mode())) image.append(words('i', `ws-menu-card-tag${active ? ' ok' : ''}`, active ? 'Loaded' : 'Load'));
+    const ribbon = ribbonFor(card, mode());
+    if (ribbon !== '') image.append(words('i', `ws-menu-card-exp${card.badge === 'Early access' && canEnter(card, mode()) ? ' ws-menu-card-ea' : ''}`, ribbon));
+    button.append(image, words('b', '', card.name), words('small', '', card.upgrade !== undefined ? GAME_STRINGS.upgrade.built(card.upgrade.built) : card.label)); cardTrack.append(button);
+    const dot = document.createElement('i'); dot.dataset['i'] = String(index); dot.dataset['tag'] = dotTag(card, mode()); dot.style.setProperty('--thumb', `url('${card.thumbnail}')`); dotTrack.append(dot);
+  });
   if (opts.notice) {
     const notice = document.createElement('div');
     notice.className = 'ws-menu-recovery';
