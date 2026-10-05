@@ -64,6 +64,7 @@ export class TickWorkerHost {
   get lastTickMicros(): number { return Number(Atomics.load(this.clock, 2)) / 1000; }
   async step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> {
     const commands = tickCommands(sources, this.budget.commandsPerTick);
+    if (this.finished) throw new Error('Headless validation finished; resume a fresh worker from the committed checkpoint');
     await this.initialized(); if (this.closed || this.pending !== undefined) throw new Error('Headless worker unavailable or busy');
     this.tickBudgetMicros = this.cold ? 16_666 : this.budget.tickMicros; this.cold = false;
     Atomics.store(this.clock, 0, 0n); const result = this.wait();
@@ -72,11 +73,14 @@ export class TickWorkerHost {
     const reply = await result; if (reply.kind !== 'commit') throw new Error('Missing worker tick checkpoint'); return reply.value;
   }
   async finish(): Promise<v.InferOutput<typeof proofSchema>> {
+    if (this.finished) throw new Error('Headless validation already finished');
     await this.initialized(); if (this.closed || this.pending !== undefined) throw new Error('Headless worker unavailable or busy');
+    this.finished = true;
     const result = this.wait();
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Node Worker messages have no browser target origin.
     this.worker.postMessage({ kind: 'finish' });
     const reply = await result; if (reply.kind !== 'proof') throw new Error('Missing headless validation proof'); return reply.value;
   }
   async dispose(): Promise<void> { this.closed = true; this.scope.dispose(); this.pending?.reject(new Error('Headless worker disposed')); this.pending = undefined; await this.worker.terminate(); }
+  private finished = false;
 }

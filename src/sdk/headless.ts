@@ -41,7 +41,7 @@ export class HeadlessSimulation {
   get lastTickMicros(): number { return this.runner.lastTickMicros; }
   /** Admit the aggregate command count across all sources, then atomically return state and effects from one bounded tick. */
   step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
-  /** Walk every declared entry against installed colliders inside the worker, under a separate validation request deadline. */
+  /** Final validation walks every entry under a separate request deadline. Further ticks refuse; resume from the last committed checkpoint in a fresh worker. */
   finish(): Promise<{ ticks: number; lanes: number; steps: number }> { return this.runner.finish(); }
   /** Terminate the owned worker and release its complete native world. */
   dispose(): Promise<void> { return this.runner.dispose(); }
