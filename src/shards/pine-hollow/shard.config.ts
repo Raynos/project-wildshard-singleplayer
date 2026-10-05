@@ -2,6 +2,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { PINE_AUDIO } from './data/audio';
 import { PINE_EDGE_HEIGHTS } from './data/edges';
+import { PINE_RUNTIME_COST } from './data/runtimeCost';
 
 // The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
 // SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the
@@ -14,5 +15,5 @@ export default parseShardfile({
   ...emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1337 }),
   accent: 'moss',
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
-  runtime: { entry: 'runtime/index.ts' }, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
+  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST }, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });
