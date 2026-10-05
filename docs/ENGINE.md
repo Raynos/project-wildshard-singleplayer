@@ -946,8 +946,12 @@ branch-light `select`, swizzles, MaterialX noise, an admitted texture, a constan
 or a declared shard-state field; `setParam` never recompiles), and a per-program budget. `validateGraph(ir, opts)`
 refuses unknown ops, type mismatches, cycles and over-budget graphs before any node exists. A select with cheap sides
 compiles branch-free (`mix`); one with an expensive side nothing else reads becomes a real `if / else`. Presets
-(`render/graph/presets.ts`, `pbrMeasureGraph`) re-express a family for the parity bench (`scripts/tsl-spike/`, the
-`graph` variants); no shipped material uses one yet, and today's families stay hand-written GLSL.
+(`render/graph/presets.ts`) re-express a family for the parity bench (`scripts/tsl-spike/`, the `graph` variants):
+`pbrMeasureGraph` (PBR + the SF56 measure layer, size labels included) and `emissiveGraph` (the emissive surface and
+tube), compiled under `PRESET_GRAPH_BUDGET` (the labelled measure preset runs past the content budget). The toon and
+painterly families redefine three's light model, which is the reserved `lighting` stage, so they have no preset yet;
+`emissiveGraph` refuses a sky, an additive blend or a fog share other than 1. No shipped material uses a preset, and
+today's families stay hand-written GLSL.
 
 ### 13.3 Tiers as data
 
