@@ -15,7 +15,8 @@ import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { BUCKSKIN, HANDS_MATERIAL, WeaponHands, blendGrip, gripPose, holdDef, type HandHold } from '../../weapons/hunterHands';
 import { Firearm } from '@wildshard/sdk/runtime/weapons/Firearm';
-import { AR15, type FirearmProfile } from '@wildshard/kit/weapons/firearm/profiles';
+import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
+import { AR15 } from '../../data/firearmProfile';
 
 
 

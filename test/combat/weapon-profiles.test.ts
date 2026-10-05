@@ -1,7 +1,8 @@
 import { BOW } from '../../src/kit/weapons/bow/profiles';
 import { LONGBOW } from '../../src/shards/pine-hollow/weapons/longbowProfile';
 import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/profiles';
-import { AR15 } from '../../src/kit/weapons/firearm/profiles';
+import { AR15 } from '../../src/shards/nalati-grasslands/data/firearmProfile';
+import { AR15 as PINE_AR15 } from '../../src/shards/pine-hollow/data/firearmProfile';
 import { LEVER_PROFILE } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
 import { JIAN_ROW } from '../../src/shards/nine-dragon-stack/vm/jianRow';
@@ -60,6 +61,7 @@ describe('weapon tuning parity (09 §1.4)', () => {
       inspectHidesArms: true, transparentParts: true, poses: LONGBOW.poses, arrowX: -0.017, arrowY: 0.052, arrowLength: 0.76, build: LONGBOW.build, arrow: LONGBOW.arrow, wind: LONGBOW.wind });
     expect(CROSSBOW_PROFILE).toEqual({ family: 'crossbow', quiver: 30, speed: 62, gravity: 9.8, drag: 0.012, radius: 0.03, bury: 0.08,
       reload: 1.35, autoReload: 1.4, cooldown: 0.3, kick: rad(0.8), adsBlend: 0.18, adsMotion: 0.3, maxFlying: 8, maxStuck: 200 });
+    expect(PINE_AR15).toEqual(AR15);
     expect(AR15).toMatchObject({ family: 'firearm', action: 'semi', magazine: 30, reserve: 90, interval: 0.09, reload: 1.6, autoReload: 0.35,
       damageScale: 0.55, range: 300, kick: rad(0.35), spreadAds: 0.12, spreadHip: 1.1, spreadRadius: 'linear', bloomShot: 0.35, bloomMax: 1.6,
       brass: { count: 3, life: 1.4 }, tracer: { count: 3, life: 0.09, width: 3 }, ads: { blend: 0.16, motion: 0.3, nearMargin: 0.03, sightY: 0.064, rearZ: 0.1, frontZ: -0.455, muzzleZ: -0.645 } });

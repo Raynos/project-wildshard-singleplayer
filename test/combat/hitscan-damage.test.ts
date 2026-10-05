@@ -1,4 +1,4 @@
-import { AR15 } from '../../src/kit/weapons/firearm/profiles';
+import { AR15 } from '../../src/shards/nalati-grasslands/data/firearmProfile';
 import { LEVER_PROFILE, LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import type * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
