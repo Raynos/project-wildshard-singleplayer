@@ -1,4 +1,5 @@
 import { pineScore } from '../runtime/audio/score';
+import { installEnteredKingBindings } from './kingLifetime';
 import { AntlerKingGoals } from './KingGoals';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES, PINE_STRIKES, pineContact } from '../combat/strikes';
@@ -163,7 +164,7 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
   private readonly parked: Animal[] = [];
   private readonly spawner: Spawner<Animal> | null;
 
-  constructor(protected override readonly ctx: PineCtx) {
+  constructor(protected override readonly ctx: PineCtx, entered?: (install: () => () => void) => void) {
     super();
     this.spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => {
       const v = thrallVariant(kind), actor = ctx.animals.spawn(kind, x, z, yaw, v.variant);
@@ -187,12 +188,15 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
     // until the fight; released between fights so an elite's orb can borrow it
     this.light = LightPool.for(scene).acquire(0xffa040, 0, 18, 1.6);
     registerKing();
-    kingDamage = (a, p) => this.damageMul(a, p);
+    if (entered === undefined) kingDamage = (a, p) => this.damageMul(a, p);
     for (const f of this.fallen) f.group.add(this.kitLantern());
     // the sky rewrites the fog / lights every frame AFTER the updaters (Game.loop: updaters → sky.update → render), so the
     // fight's thick air is laid on at the scene's render, on top of this frame's sky
-    const prev = scene.onBeforeRender.bind(scene);
-    scene.onBeforeRender = (...args) => { this.atmosphere(); prev(...args); };
+    if (entered === undefined) {
+      const prev = scene.onBeforeRender.bind(scene);
+      scene.onBeforeRender = (...args) => { this.atmosphere(); prev(...args); };
+    } else installEnteredKingBindings(scene, { read: () => kingDamage, write: (value) => { kingDamage = value; } },
+      (a: Animal, p: THREE.Vector3) => this.damageMul(a, p), () => { this.atmosphere(); }, entered);
   }
 
   /** boot: the King and a thrall of each kind made now (their models + programs compile with the rest), parked */
@@ -553,6 +557,8 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
 // ─────────────────────────────── the wiring ───────────────────────────────
 
 export interface AntlerKingHost {
+  /** The resident fight remains frozen while these borrowed bindings leave with its entered scope. */
+  entered?: (install: () => () => void) => void;
   ctx: PineCtx;
   interactables: Interactable[];
   params: URLSearchParams;
@@ -570,7 +576,7 @@ export class AntlerKing {
 
   constructor(private readonly host: AntlerKingHost) {
     const { ctx } = host;
-    this.fight = new AntlerKingFight(ctx);
+    this.fight = new AntlerKingFight(ctx, host.entered);
     this.fight.prewarm();
     const def: BossDef = {
       ...ANTLER_KING_ENCOUNTER, phases: ANTLER_KING_ENCOUNTER.phases.map(({ at, caption, name }) => ({ at, caption, name })),

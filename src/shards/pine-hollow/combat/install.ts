@@ -36,7 +36,7 @@ import { AntlerKing, KING_KIND } from '../runtime/antlerKing';
 import { registerPineLap } from '../dev/perfLap';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { installPineCombatCallbacks } from '../runtime/combatService';
+import { installPineCombatCallbacks, installPineCombatObservers } from '../runtime/combatService';
 
 /**
  * Pine Hollow's fights, wired in one call (PINE-HOLLOW-REMASTER: PH-C3 the four named elites, PH-C2 the Antler King,
@@ -143,6 +143,9 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
   const king = new AntlerKing({
+    ...(entered === undefined ? {} : { entered: (install: () => () => void) => {
+      installEnteredRuntimeService(entered, (scope) => { scope.onDispose(install()); });
+    } }),
     ctx, interactables: h.interactables, params, music: h.music,
     refill: () => { h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },
     setWeaponsEnabled: (on) => { introLock = !on; legs(); weapons.setEnabled(on); },
@@ -169,7 +172,8 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     pineElites.update(dt, t);
     king.update(dt, t);
   } }, () => { if (app.player !== null) app.effects?.remove(app.player, 'effect.stun'); player.carried = false; });
-  Object.assign(window, { __pineElites: pineElites, __antlerKing: king });
+  if (entered === undefined) Object.assign(window, { __pineElites: pineElites, __antlerKing: king });
+  else installPineCombatObservers(entered, { elites: pineElites, king });
   const lap = { game, player, animals, music: h.music, hud: h.hud, elites, king };
   if (entered === undefined) registerPineLap(lap); // E350 F-J1: the fps panel's PERF LAP
   else installEnteredRuntimeService(entered, (scope) => { registerPineLap(lap, scope); });
