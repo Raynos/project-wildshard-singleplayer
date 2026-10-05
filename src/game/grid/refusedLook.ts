@@ -32,7 +32,7 @@ export interface RefusedLookPorts {
 /** The readout: each dressed cell's look and reason. */
 export interface RefusedLookState { readonly cells: readonly { readonly instance: string; readonly look: RefusedLook; readonly refusal: ShardRefusal }[] }
 
-const DOME_SCALE = 1.18, DOME_HEIGHT = 0.42, SIGN_Y = 46, SIGN_W = 92, SIGN_H = 28.75;
+const DOME_SCALE = 1.18, DOME_HEIGHT = 0.42, SIGN_Y = 70, SIGN_W = 160, SIGN_H = 50;
 
 const domeVertex = /* glsl */ `
 varying vec3 vNormalW;

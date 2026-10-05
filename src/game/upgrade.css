@@ -7,3 +7,6 @@
 /* G167 (art/grid/round-18-refused-cell CARD): a shard this session could not load wears the same dimmed card, an amber
    UNAVAILABLE badge and its reason in amber under the name; ENTER WORLD reads UNAVAILABLE / YOUR SAVE IS KEPT */
 .ws-menu-card-unavailable .ws-menu-card-reason { color: var(--ws-amber); }
+.ws-menu-card.ws-menu-card-unavailable .ws-menu-card-img .ws-menu-card-tag.ws-menu-card-needs { left: 10px; right: auto; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.8); background: rgba(20, 13, 2, 0.86); }
+/* a filter on the picture would grey its amber badge too: the picture is dimmed by blending it to luminosity instead */
+.ws-menu-card.ws-menu-card-unavailable .ws-menu-card-img { filter: none; background-color: rgb(58, 64, 70); background-blend-mode: luminosity; }
