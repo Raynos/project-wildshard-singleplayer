@@ -40,7 +40,9 @@ const CROSS = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement, html?: string): HTMLElementTagNameMap[K] => {
   const e = document.createElement(tag); e.className = cls; if (html !== undefined) e.innerHTML = html; parent?.append(e); return e;
 };
-const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+const text = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, value: string, parent: HTMLElement): HTMLElementTagNameMap[K] => {
+  const e = el(tag, cls, parent); e.textContent = value; return e;
+};
 
 export class ShopPanel<G extends ShopGood> {
   readonly scope = uiScope('shop');
@@ -63,10 +65,10 @@ export class ShopPanel<G extends ShopGood> {
     const close = el('button', 'ws-shop-close', top, `<i>${CROSS}</i>Close`);
     close.type = 'button';
     this.scope.listen(close, 'click', (e) => { e.stopPropagation(); this.close(); });
-    el('div', 'ws-shop-title', top, `<b>${esc(o.trader)}'s counter</b><span>${esc(o.place)}</span>`);
+    const title = el('div', 'ws-shop-title', top); text('b', '', `${o.trader}'s counter`, title); text('span', '', o.place, title);
 
     const sheet = el('div', 'ws-shop-sheet ws-glass', this.root);
-    el('div', 'ws-shop-who', sheet, `${esc(o.trader)} · Trader`);
+    text('div', 'ws-shop-who', `${o.trader} · Trader`, sheet);
     this.line = el('div', 'ws-shop-line', sheet);
     const row = el('div', 'ws-shop-row', sheet);
     this.count = el('span', 'ws-shop-count', row);
@@ -155,15 +157,17 @@ export class ShopPanel<G extends ShopGood> {
     this.count.textContent = `${this.i + 1} / ${goods.length}`;
     this.purse.innerHTML = `<i class="ws-shop-coin">${COIN}</i><b>${this.o.coins()}</b>`;
     this.card.className = `ws-shop-card ${st}`;
-    const tail = st === 'owned' ? '<span class="ws-shop-stamp">Owned</span>' : `<span class="ws-shop-price">${g.price}<i class="ws-shop-coin">${COIN}</i></span>`;
-    this.card.innerHTML = `<i class="ws-shop-icon">${icon(g.icon)}</i><b class="ws-shop-name">${esc(g.name)}</b><span class="ws-shop-rule"></span><span class="ws-shop-does">${esc(g.does)}</span>${tail}`;
+    this.card.replaceChildren();
+    el('i', 'ws-shop-icon', this.card, icon(g.icon)); text('b', 'ws-shop-name', g.name, this.card);
+    el('span', 'ws-shop-rule', this.card); text('span', 'ws-shop-does', g.does, this.card);
+    if (st === 'owned') text('span', 'ws-shop-stamp', 'Owned', this.card);
+    else { const price = text('span', 'ws-shop-price', String(g.price), this.card); el('i', 'ws-shop-coin', price, COIN); }
     this.dots.innerHTML = goods.map((x, k) => `<i class="${k === this.i ? 'on' : ''}${this.o.state(x) === 'owned' ? ' got' : ''}"></i>`).join('');
     this.buy.className = `ws-shop-buy ${st}`;
     this.buy.disabled = st !== 'buy';
-    this.buy.innerHTML = st === 'owned' ? 'Owned'
-      : st === 'locked' ? `Needs ${esc(this.o.needs(g))}`
-      : st === 'short' ? `Buy · ${g.price}<i class="ws-shop-coin">${COIN}</i><small>Need ${g.price - this.o.coins()} more</small>`
-      : `Buy · ${g.price}<i class="ws-shop-coin">${COIN}</i>`;
+    this.buy.textContent = st === 'owned' ? 'Owned' : st === 'locked' ? `Needs ${this.o.needs(g)}` : `Buy · ${g.price}`;
+    if (st === 'short' || st === 'buy') el('i', 'ws-shop-coin', this.buy, COIN);
+    if (st === 'short') text('small', '', `Need ${g.price - this.o.coins()} more`, this.buy);
   }
 
   private tryBuy(): void {
