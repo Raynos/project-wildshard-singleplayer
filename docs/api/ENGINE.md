@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2078 members; 831 without a doc line (—).
+2078 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -607,9 +607,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `loadGLTF` | function | @wildshard/engine/core/assets | — |
 | `loadHDR` | function | @wildshard/engine/core/assets | — |
 | `loadImage` | function | @wildshard/engine/core/assets | — |
-| `loadPBR` | function | @wildshard/engine/core/assets | Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per call. |
+| `loadPBR` | function | @wildshard/engine/core/assets | Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per |
 | `loadPBRArray` | function | @wildshard/engine/core/assets | Load several Poly Haven sets into three DataArrayTextures (diffuse / normal / ARM), one layer |
-| `loadTexture` | function | @wildshard/engine/core/assets | — |
+| `loadTexture` | function | @wildshard/engine/core/assets | One texture file. `maxSize` (default: the tier's cap) is the largest edge it keeps: a level's own memory trim may ask |
 | `pbrMaterial` | function | @wildshard/engine/core/assets | — |
 | `PBRSet` | interface | @wildshard/engine/core/assets | — |
 | `pbrUrls` | const | @wildshard/engine/core/assets | — |

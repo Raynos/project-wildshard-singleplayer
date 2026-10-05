@@ -2226,7 +2226,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/loot/Owned`: `CosmeticId`, `isCosmetic`, `isOwnedId`, `Owned`, `OWNED`, `OwnedId`, `OwnedKind`
 - `@wildshard/game/loot/runtime`: `installLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
 - `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
-- `@wildshard/game/loot/ui/ShopPanel`: `ShopCost`, `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopSlate`, `ShopState`
+- `@wildshard/game/loot/ui/ShopPanel`: `ShopCost`, `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
 - `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`
 - `@wildshard/game/Progress`: `Progress`, `ProgressRow`, `ProgressSink`
 - `@wildshard/game/quest/declared`: `createQuestScriptPorts`, `DeclaredQuests`, `DialogueView`, `QuestDataPorts`, `QuestScriptBindings`, `QuestScriptPorts`
@@ -2243,7 +2243,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
 - `@wildshard/game/shard/runtime`: `resolveLevelBounds`, `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
-- `@wildshard/game/shard/runtimeVariant`: `runtimeVariantEnabled`
+- `@wildshard/game/shard/runtimeVariant`: `gridPage`, `runtimeVariantEnabled`
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`, `createScopedRuntimeBinding`, `ScopedRuntimeBinding`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `accentVars`, `parseAccent`, `ROAD_ACCENT`
@@ -2297,9 +2297,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-217 exports, grouped by the module to import them from.
+177 exports, grouped by the module to import them from.
 
-- `@wildshard/kit/audio/creatureVoices`: `CREATURE_VOICES`, `CreatureVoice`, `CreatureWindup`, `vocal`, `windup`
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
 - `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
@@ -2323,20 +2322,15 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/kit/species/view/boar`: `BOAR_LOOK`, `BOAR_PALETTE`
 - `@wildshard/kit/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
 - `@wildshard/kit/viewmodel/armRig`: `armConst`, `ArmConst`, `ArmWorld`, `BONES`, `buildBones`, `frameYZ`, `GRIP`, `HandSpec`, `JointAngles`, `LEFT_HAND`, `LEFT_SCALE`, `LIMITS`, `measure`, `Pose`, `RIGHT_HAND`, `settleLeft`, `Side`, `signedAngle`, `softLimit`, `solveArm`, `TWISTS`, `twoBone`
-- `@wildshard/kit/viewmodel/hunterHands`: `blendGrip`, `BUCKSKIN`, `COAT_FROM`, `coatMaterialParams`, `coatTextures`, `gripPose`, `GripPose`, `gripQuat`, `HandDef`, `handGeometry`, `HandGeometry`, `HandHold`, `HANDS_MATERIAL`, `HandSpec`, `holdDef`, `HUNTER_PAL`, `hunterCoatSleeve`, `hunterGauntlet`, `hunterSleeve`, `V3`, `WeaponHands`, `withHunterPalette`
 - `@wildshard/kit/viewmodel/rigArms`: `RigArms`, `RigMeta`, `RigState`, `swordArmsOf`, `VM_FOV`, `VmFrame`, `vmScale`
 - `@wildshard/kit/weapons/bow/family`: `Bow`, `BowOptions`, `BowWorld`
 - `@wildshard/kit/weapons/bow/index`: `AIM_IN`, `AIM_SPREAD`, `AIM_SWAY`, `AIM_VM_ZOOM`, `AIM_ZOOM`, `QUIVER_MAX`
 - `@wildshard/kit/weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
 - `@wildshard/kit/weapons/bow/profiles`: `BOW`
 - `@wildshard/kit/weapons/bow/recurve`: `ARROW_LEN`, `arrowKind`, `arrowMaterial`, `bowSpecimen`, `BowStyle`, `buildArrowGeometry`, `buildRecurve`, `POSE`, `VM_SHADE`
-- `@wildshard/kit/weapons/crossbow/Crossbow`: `boltFlightStep`, `BoltMod`, `buildBolt`, `buildCrossbow`, `Crossbow`, `CrossbowParts`, `MAX_BOLTS`, `PLAIN_BOLT`
-- `@wildshard/kit/weapons/crossbow/display`: `crossbowDisplayModel`
-- `@wildshard/kit/weapons/crossbow/profiles`: `CROSSBOW_PROFILE`, `CrossbowProfile`
 - `@wildshard/kit/weapons/equipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
 - `@wildshard/kit/weapons/firearm/Firearm`: `Firearm`
 - `@wildshard/kit/weapons/firearm/profiles`: `AR15`, `FirearmProfile`
-- `@wildshard/kit/weapons/firearm/Rifle`: `buildRifleParts`, `Rifle`, `RifleOptions`, `RifleParts`
 - `@wildshard/kit/weapons/melee/Melee`: `isMeleeProfile`, `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/kit/weapons/melee/moves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
 - `@wildshard/kit/weapons/melee/profiles`: `SWORD_IRON`, `SWORD_WOOD`

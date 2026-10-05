@@ -179,7 +179,6 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShopGood` | interface | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopOpts` | interface | @wildshard/game/loot/ui/ShopPanel | — |
 | `ShopPanel` | class | @wildshard/game/loot/ui/ShopPanel | — |
-| `ShopSlate` | interface | @wildshard/game/loot/ui/ShopPanel | a Classic look other than the flip deck: every good a row on a chalk slate, under a kicker and a hand-lettered title |
 | `ShopState` | type | @wildshard/game/loot/ui/ShopPanel | 'full': the buyer has no room for what the good gives (a full quiver) |
 | `NewGameProgress` | interface | @wildshard/game/newGame | Detached before/after progress for the Settings confirmation. Null quest counts mean legacy flags exist without a declared quest catalogue. |
 | `NewGameQuest` | interface | @wildshard/game/newGame | Optional quest identities let an unloaded shard's card count completion from its legacy flags without executing its runtime. |
@@ -294,6 +293,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardPlayHooks` | interface | @wildshard/game/shard/runtime | — |
 | `ShardPlayHost` | interface | @wildshard/game/shard/runtime | Services supplied by the gameplay shell after it has built the player kit and UI. |
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
+| `gridPage` | function | @wildshard/game/shard/runtimeVariant | Whether this page runs the grid (home or neighbour cell): a reload variant may default differently there (G180: Pine |
 | `runtimeVariantEnabled` | function | @wildshard/game/shard/runtimeVariant | Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. |
 | `bindScopedRuntime` | function | @wildshard/game/shard/scopedRuntime | Bind every staged runtime slot to this play scope, retaining the resident world's previous handoff on exit. |
 | `createScopedRuntimeBinding` | function | @wildshard/game/shard/scopedRuntime | Prepare a local handoff without publishing it; each activation restores the descriptors it borrowed on leave. |

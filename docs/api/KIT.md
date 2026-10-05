@@ -4,15 +4,10 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-220 members; 100 without a doc line (—).
+178 members; 84 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
-| `CREATURE_VOICES` | const | @wildshard/kit/audio/creatureVoices | — |
-| `CreatureVoice` | type | @wildshard/kit/audio/creatureVoices | — |
-| `CreatureWindup` | type | @wildshard/kit/audio/creatureVoices | — |
-| `vocal` | function | @wildshard/kit/audio/creatureVoices | a creature's voice: its aggro / hurt bark |
-| `windup` | function | @wildshard/kit/audio/creatureVoices | a creature's telegraph, 400–700 ms before its attack lands |
 | `createForestAudio` | function | @wildshard/kit/audio/forest | Asset-free profile; installForestAmbience supplies the shared synth wind bed. |
 | `installForestAmbience` | function | @wildshard/kit/audio/forest | A reusable wind bed; mkWind registers its sources with the mixer's bed-node lifetime. |
 | `installSilentScore` | function | @wildshard/kit/audio/forest | Silence this score's output, preserving the user's volume setting and the other sound buses. |
@@ -125,28 +120,6 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `solveArm` | function | @wildshard/kit/viewmodel/armRig | Solve one arm. `owner` = the authored pose of the hand's owner frame (right: the jian, JIAN-local → rig; left: the |
 | `TWISTS` | const | @wildshard/kit/viewmodel/armRig | twist bones: position along the forearm (share of its length from the elbow) and the share of the roll they carry |
 | `twoBone` | function | @wildshard/kit/viewmodel/armRig | two-bone IK: shoulder S, target W (moved into reach), pole P → elbow E (and the W it reached) |
-| `blendGrip` | function | @wildshard/kit/viewmodel/hunterHands | `a` → `b` by t (0..1), into `out` (the directions re-normalised) |
-| `BUCKSKIN` | const | @wildshard/kit/viewmodel/hunterHands | the gloves' tint over the hunter palette (linear, per channel): a pale buckskin that reads against the walnut stocks |
-| `COAT_FROM` | const | @wildshard/kit/viewmodel/hunterHands | where the coat's cuff starts past the glove's wrist (m, along the forearm): the gauntlet runs on inside it |
-| `coatMaterialParams` | function | @wildshard/kit/viewmodel/hunterHands | the coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas) |
-| `coatTextures` | function | @wildshard/kit/viewmodel/hunterHands | The coat's waxed canvas, one 128² tile (drawn once, a few ms): a plain weave (16 threads a tile — it melts into the |
-| `gripPose` | const | @wildshard/kit/viewmodel/hunterHands | — |
-| `GripPose` | interface | @wildshard/kit/viewmodel/hunterHands | Where a fist closes on a weapon, in its model space: the grip's centre, the grip's direction toward the index / thumb |
-| `gripQuat` | function | @wildshard/kit/viewmodel/hunterHands | grip space → model space: +Y along `axis`, the back of the hand (+X on a right hand, −X on a left) against `palm`, +Z (the |
-| `HandDef` | interface | @wildshard/kit/viewmodel/hunterHands | — |
-| `handGeometry` | function | @wildshard/kit/viewmodel/hunterHands | — |
-| `HandGeometry` | interface | @wildshard/kit/viewmodel/hunterHands | A hand's geometry: `geometry` = the gloved fist in grip space, with its forearm merged in along the bent wrist — or, |
-| `HandHold` | interface | @wildshard/kit/viewmodel/hunterHands | a hold as a weapon declares it (a dev knob: edit, then the weapon's `rebuildHands()`) |
-| `HANDS_MATERIAL` | const | @wildshard/kit/viewmodel/hunterHands | the hands' material parameters (the Longbow's: the viewmodels' shared lit program, vertex colours × the 1×1 fillers) |
-| `HandSpec` | interface | @wildshard/kit/viewmodel/hunterHands | — |
-| `holdDef` | const | @wildshard/kit/viewmodel/hunterHands | — |
-| `HUNTER_PAL` | const | @wildshard/kit/viewmodel/hunterHands | a hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches |
-| `hunterCoatSleeve` | function | @wildshard/kit/viewmodel/hunterHands | The hunter's coat sleeve, along +Y from its cuff's edge (0) to `len`: a turned-back cuff (a rolled lip, two stitched |
-| `hunterGauntlet` | function | @wildshard/kit/viewmodel/hunterHands | the glove's gauntlet alone, `len` m along +Y from the wrist: flared leather, a rolled edge (it tucks into the coat's cuff) |
-| `hunterSleeve` | function | @wildshard/kit/viewmodel/hunterHands | The forearm from the wrist along +Y, `len` m: the glove's flared gauntlet with a rolled, stitched edge, a ribbed grey |
-| `V3` | type | @wildshard/kit/viewmodel/hunterHands | — |
-| `WeaponHands` | class | @wildshard/kit/viewmodel/hunterHands | A weapon's two gloved hands under its model (they move, scale and hide with it): the left fixed where `left.pose` puts |
-| `withHunterPalette` | function | @wildshard/kit/viewmodel/hunterHands | build with the hunter's palette, then put Nalati's back (the module's palette is shared) |
 | `RigArms` | class | @wildshard/kit/viewmodel/rigArms | first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag) |
 | `RigMeta` | interface | @wildshard/kit/viewmodel/rigArms | vm_root's extras (bake.mjs): each clip's side / loop / the engine's timing, the blade per weapon, the swim water line |
 | `RigState` | interface | @wildshard/kit/viewmodel/rigArms | — |
@@ -177,27 +150,12 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `buildRecurve` | function | @wildshard/kit/weapons/bow/recurve | — |
 | `POSE` | const | @wildshard/kit/weapons/bow/recurve | — |
 | `VM_SHADE` | const | @wildshard/kit/weapons/bow/recurve | the viewmodel's shade-side fill (painterly `shade`; 1 = the world's) |
-| `boltFlightStep` | function | @wildshard/kit/weapons/crossbow/Crossbow | Deterministic bolt substep, including the selected ammo/weather multipliers. |
-| `BoltMod` | interface | @wildshard/kit/weapons/crossbow/Crossbow | Special bolts (optional — Pine Hollow's loadout, src/shards/pine-hollow/loadout/loadout.ts): the flight + damage of the NEXT bolt to leave |
-| `buildBolt` | function | @wildshard/kit/weapons/crossbow/Crossbow | The bolt (E348): its atlas (the iron shaft, the steel head, the feather vanes), its geometry along −Z (tip at −Z, 0.36 m) |
-| `buildCrossbow` | function | @wildshard/kit/weapons/crossbow/Crossbow | The crossbow in model space (−Z the bolt, +Y up, the rail top at y 0; the nut at z +0.14, the prod at z −0.30): the stock, |
-| `Crossbow` | class | @wildshard/kit/weapons/crossbow/Crossbow | — |
-| `CrossbowParts` | interface | @wildshard/kit/weapons/crossbow/Crossbow | the crossbow's parts `buildCrossbow` hands back: the ones the viewmodel animates, and its measured rest points |
-| `MAX_BOLTS` | const | @wildshard/kit/weapons/crossbow/Crossbow | Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel, |
-| `PLAIN_BOLT` | const | @wildshard/kit/weapons/crossbow/Crossbow | — |
-| `crossbowDisplayModel` | function | @wildshard/kit/weapons/crossbow/display | A world-space copy of the crossbow for a floor drop: the viewmodel's meshes with plain render flags, no depth |
-| `CROSSBOW_PROFILE` | const | @wildshard/kit/weapons/crossbow/profiles | — |
-| `CrossbowProfile` | interface | @wildshard/kit/weapons/crossbow/profiles | — |
 | `IRON_SWORD` | const | @wildshard/kit/weapons/equipment | — |
 | `SWORD` | const | @wildshard/kit/weapons/equipment | — |
 | `WOODEN_SWORD` | const | @wildshard/kit/weapons/equipment | — |
 | `Firearm` | class | @wildshard/kit/weapons/firearm/Firearm | The trigger template is shared; custom actions override readiness, cycling and reload hooks. |
 | `AR15` | const | @wildshard/kit/weapons/firearm/profiles | — |
 | `FirearmProfile` | interface | @wildshard/kit/weapons/firearm/profiles | — |
-| `buildRifleParts` | function | @wildshard/kit/weapons/firearm/Rifle | — |
-| `Rifle` | class | @wildshard/kit/weapons/firearm/Rifle | — |
-| `RifleOptions` | interface | @wildshard/kit/weapons/firearm/Rifle | — |
-| `RifleParts` | interface | @wildshard/kit/weapons/firearm/Rifle | The AR-15's parts in model space (−Z the bore, +Y up, the bore axis at y 0; the receiver z −0.10 … +0.13, the muzzle at |
 | `isMeleeProfile` | function | @wildshard/kit/weapons/melee/Melee | Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning. |
 | `Melee` | class | @wildshard/kit/weapons/melee/Melee | Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies. |
 | `meleeActor` | function | @wildshard/kit/weapons/melee/Melee | Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior. |

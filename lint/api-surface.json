@@ -3605,7 +3605,7 @@
       {
         "name": "loadPBR",
         "kind": "function",
-        "doc": "Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per call.",
+        "doc": "Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per",
         "from": "@wildshard/engine/core/assets"
       },
       {
@@ -3617,7 +3617,7 @@
       {
         "name": "loadTexture",
         "kind": "function",
-        "doc": "",
+        "doc": "One texture file. `maxSize` (default: the tier's cap) is the largest edge it keeps: a level's own memory trim may ask",
         "from": "@wildshard/engine/core/assets"
       },
       {
@@ -13518,12 +13518,6 @@
         "from": "@wildshard/game/loot/ui/ShopPanel"
       },
       {
-        "name": "ShopSlate",
-        "kind": "interface",
-        "doc": "a Classic look other than the flip deck: every good a row on a chalk slate, under a kicker and a hand-lettered title",
-        "from": "@wildshard/game/loot/ui/ShopPanel"
-      },
-      {
         "name": "ShopState",
         "kind": "type",
         "doc": "'full': the buyer has no room for what the good gives (a full quiver)",
@@ -14206,6 +14200,12 @@
         "kind": "interface",
         "doc": "Typed, per-build handoff between the staged shell and an authored plugin.",
         "from": "@wildshard/game/shard/runtime"
+      },
+      {
+        "name": "gridPage",
+        "kind": "function",
+        "doc": "Whether this page runs the grid (home or neighbour cell): a reload variant may default differently there (G180: Pine",
+        "from": "@wildshard/game/shard/runtimeVariant"
       },
       {
         "name": "runtimeVariantEnabled",
@@ -15668,36 +15668,6 @@
     ],
     "kit": [
       {
-        "name": "CREATURE_VOICES",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/audio/creatureVoices"
-      },
-      {
-        "name": "CreatureVoice",
-        "kind": "type",
-        "doc": "",
-        "from": "@wildshard/kit/audio/creatureVoices"
-      },
-      {
-        "name": "CreatureWindup",
-        "kind": "type",
-        "doc": "",
-        "from": "@wildshard/kit/audio/creatureVoices"
-      },
-      {
-        "name": "vocal",
-        "kind": "function",
-        "doc": "a creature's voice: its aggro / hurt bark",
-        "from": "@wildshard/kit/audio/creatureVoices"
-      },
-      {
-        "name": "windup",
-        "kind": "function",
-        "doc": "a creature's telegraph, 400–700 ms before its attack lands",
-        "from": "@wildshard/kit/audio/creatureVoices"
-      },
-      {
         "name": "createForestAudio",
         "kind": "function",
         "doc": "Asset-free profile; installForestAmbience supplies the shared synth wind bed.",
@@ -16370,138 +16340,6 @@
         "from": "@wildshard/kit/viewmodel/armRig"
       },
       {
-        "name": "blendGrip",
-        "kind": "function",
-        "doc": "`a` → `b` by t (0..1), into `out` (the directions re-normalised)",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "BUCKSKIN",
-        "kind": "const",
-        "doc": "the gloves' tint over the hunter palette (linear, per channel): a pale buckskin that reads against the walnut stocks",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "COAT_FROM",
-        "kind": "const",
-        "doc": "where the coat's cuff starts past the glove's wrist (m, along the forearm): the gauntlet runs on inside it",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "coatMaterialParams",
-        "kind": "function",
-        "doc": "the coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas)",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "coatTextures",
-        "kind": "function",
-        "doc": "The coat's waxed canvas, one 128² tile (drawn once, a few ms): a plain weave (16 threads a tile — it melts into the",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "gripPose",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "GripPose",
-        "kind": "interface",
-        "doc": "Where a fist closes on a weapon, in its model space: the grip's centre, the grip's direction toward the index / thumb",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "gripQuat",
-        "kind": "function",
-        "doc": "grip space → model space: +Y along `axis`, the back of the hand (+X on a right hand, −X on a left) against `palm`, +Z (the",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "HandDef",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "handGeometry",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "HandGeometry",
-        "kind": "interface",
-        "doc": "A hand's geometry: `geometry` = the gloved fist in grip space, with its forearm merged in along the bent wrist — or,",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "HandHold",
-        "kind": "interface",
-        "doc": "a hold as a weapon declares it (a dev knob: edit, then the weapon's `rebuildHands()`)",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "HANDS_MATERIAL",
-        "kind": "const",
-        "doc": "the hands' material parameters (the Longbow's: the viewmodels' shared lit program, vertex colours × the 1×1 fillers)",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "HandSpec",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "holdDef",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "HUNTER_PAL",
-        "kind": "const",
-        "doc": "a hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "hunterCoatSleeve",
-        "kind": "function",
-        "doc": "The hunter's coat sleeve, along +Y from its cuff's edge (0) to `len`: a turned-back cuff (a rolled lip, two stitched",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "hunterGauntlet",
-        "kind": "function",
-        "doc": "the glove's gauntlet alone, `len` m along +Y from the wrist: flared leather, a rolled edge (it tucks into the coat's cuff)",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "hunterSleeve",
-        "kind": "function",
-        "doc": "The forearm from the wrist along +Y, `len` m: the glove's flared gauntlet with a rolled, stitched edge, a ribbed grey",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "V3",
-        "kind": "type",
-        "doc": "",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "WeaponHands",
-        "kind": "class",
-        "doc": "A weapon's two gloved hands under its model (they move, scale and hide with it): the left fixed where `left.pose` puts",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
-        "name": "withHunterPalette",
-        "kind": "function",
-        "doc": "build with the hunter's palette, then put Nalati's back (the module's palette is shared)",
-        "from": "@wildshard/kit/viewmodel/hunterHands"
-      },
-      {
         "name": "RigArms",
         "kind": "class",
         "doc": "first-person arms on a skinned rig, posed by the weapon's moves (walk bob, look lag)",
@@ -16682,72 +16520,6 @@
         "from": "@wildshard/kit/weapons/bow/recurve"
       },
       {
-        "name": "boltFlightStep",
-        "kind": "function",
-        "doc": "Deterministic bolt substep, including the selected ammo/weather multipliers.",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "BoltMod",
-        "kind": "interface",
-        "doc": "Special bolts (optional — Pine Hollow's loadout, src/shards/pine-hollow/loadout/loadout.ts): the flight + damage of the NEXT bolt to leave",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "buildBolt",
-        "kind": "function",
-        "doc": "The bolt (E348): its atlas (the iron shaft, the steel head, the feather vanes), its geometry along −Z (tip at −Z, 0.36 m)",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "buildCrossbow",
-        "kind": "function",
-        "doc": "The crossbow in model space (−Z the bolt, +Y up, the rail top at y 0; the nut at z +0.14, the prod at z −0.30): the stock,",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "Crossbow",
-        "kind": "class",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "CrossbowParts",
-        "kind": "interface",
-        "doc": "the crossbow's parts `buildCrossbow` hands back: the ones the viewmodel animates, and its measured rest points",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "MAX_BOLTS",
-        "kind": "const",
-        "doc": "Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "PLAIN_BOLT",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/crossbow/Crossbow"
-      },
-      {
-        "name": "crossbowDisplayModel",
-        "kind": "function",
-        "doc": "A world-space copy of the crossbow for a floor drop: the viewmodel's meshes with plain render flags, no depth",
-        "from": "@wildshard/kit/weapons/crossbow/display"
-      },
-      {
-        "name": "CROSSBOW_PROFILE",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/crossbow/profiles"
-      },
-      {
-        "name": "CrossbowProfile",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/crossbow/profiles"
-      },
-      {
         "name": "IRON_SWORD",
         "kind": "const",
         "doc": "",
@@ -16782,30 +16554,6 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/kit/weapons/firearm/profiles"
-      },
-      {
-        "name": "buildRifleParts",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/firearm/Rifle"
-      },
-      {
-        "name": "Rifle",
-        "kind": "class",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/firearm/Rifle"
-      },
-      {
-        "name": "RifleOptions",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/firearm/Rifle"
-      },
-      {
-        "name": "RifleParts",
-        "kind": "interface",
-        "doc": "The AR-15's parts in model space (−Z the bore, +Y up, the bore axis at y 0; the receiver z −0.10 … +0.13, the muzzle at",
-        "from": "@wildshard/kit/weapons/firearm/Rifle"
       },
       {
         "name": "isMeleeProfile",

@@ -6,6 +6,9 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 ## Bake and asset build
 
+- [bake-astc6.cache.json](./bake-astc6.cache.json)
+- [bake-astc6.list.json](./bake-astc6.list.json)
+- [bake-astc6.mjs](./bake-astc6.mjs)
 - [bake-cards.mjs](./bake-cards.mjs)
 - [bake-check.mjs](./bake-check.mjs)
 - [bake-chunk.mjs](./bake-chunk.mjs)
