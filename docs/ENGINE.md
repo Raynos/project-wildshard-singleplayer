@@ -1833,7 +1833,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2053 exports, grouped by the module to import them from.
+2061 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1956,7 +1956,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
-- `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
+- `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
 - `@wildshard/engine/core/practiceRoom`: `practiceRoom`
@@ -2031,6 +2031,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/surface`: `clearTags`, `ColliderTag`, `Material`, `tagCollider`, `tagOf`, `untagCollider`
 - `@wildshard/engine/physics/terrain`: `addEdgeWalls`, `addTerrain`, `cutTerrain`, `EDGE_WALL_INSET`, `TerrainCut`, `terrainGrid`, `toColumnMajor`
 - `@wildshard/engine/physics/terrainTiles`: `addBakedTerrainCollider`
+- `@wildshard/engine/physics/transferWalls`: `TRANSFER_ENTER_LIMIT`, `TRANSFER_EXIT_LIMIT`, `TRANSFER_WALL_BYTES`, `TransferWallCell`, `TransferWalls`
 - `@wildshard/engine/player/AimTargets`: `AimTarget`, `getAimTargets`, `lockOn`, `meleeLock`, `setAimTargets`, `targetRadius`
 - `@wildshard/engine/player/bladeGlow`: `BladeGlow`
 - `@wildshard/engine/player/CameraFX`: `CameraFX`
@@ -2087,7 +2088,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/script/client`: `CLIENT_SCRIPT_LIMITS`, `CLIENT_SCRIPT_OP`, `ClientParticleRequest`, `ClientScriptBinding`, `ClientScriptEmitter`, `ClientScriptFrame`, `ClientScriptLane`, `ClientScriptObservation`, `ClientScriptOptions`
 - `@wildshard/engine/script/composition`: `ScheduledScriptBinding`, `ScriptComposition`, `ScriptCompositionOptions`, `ScriptRole`, `ScriptSchedule`
 - `@wildshard/engine/script/effects`: `EffectRules`, `EffectTransaction`, `SCRIPT_OP`, `ScriptEffect`, `ScriptEntity`, `ScriptEvent`, `ScriptWorld`
-- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `SCRIPT_PARAMETER_QUERY`, `ScriptCall`, `ScriptEventDelivery`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
+- `@wildshard/engine/script/host`: `SCRIPT_LIMITS`, `SCRIPT_PARAMETER_QUERY`, `ScriptCall`, `ScriptDisabled`, `ScriptEventDelivery`, `ScriptHost`, `ScriptHostOptions`, `ScriptHostState`, `ScriptLimits`, `ScriptQuery`, `ScriptSnapshot`
 - `@wildshard/engine/script/lane`: `installScriptLane`, `ScriptBinding`, `ScriptDriver`, `ScriptDriverOptions`, `ScriptLane`, `ScriptLaneOptions`, `ScriptLanePort`, `ScriptModule`
 - `@wildshard/engine/script/queries`: `SCRIPT_QUERY`, `ScriptPhysics`, `scriptPhysicsQueries`
 - `@wildshard/engine/script/state`: `DeclaredScriptWorld`, `SCRIPT_STATE_OP`, `ScriptStateDeclaration`, `ScriptStateField`, `ScriptWorldState`
@@ -2189,7 +2190,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-534 exports, grouped by the module to import them from.
+528 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2207,12 +2208,11 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
 - `@wildshard/game/grid/assembly`: `EmptyNeighbour`, `GridAssembly`, `GridCell`, `GridPoint`, `GridSide`
 - `@wildshard/game/grid/catalogue`: `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `parseGridCatalogue`
-- `@wildshard/game/grid/crossing`: `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`
+- `@wildshard/game/grid/crossing`: `GridCheckpointResult`, `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`
 - `@wildshard/game/grid/edgeProfiles`: `GridEdgeObservations`, `GridEdgeSource`, `loadGridEdgeProfiles`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHome`, `LiveGridHost`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
-- `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preflightGridReload`, `preparePageResidency`, `validatePlannedGridReload`
-- `@wildshard/game/grid/reloadBoot`: `consumeGridReloadBoot`, `finishPlannedGridReload`, `GridReloadBoot`, `installPlannedGridReload`, `plannedGridReload`
+- `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `installGridTravellerCombat`, `reframeGridUnit`
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
@@ -2290,10 +2290,10 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
-- `@wildshard/game/shardfile/validate`: `validateShardfileAssets`
+- `@wildshard/game/shardfile/validate`: `preflightDeclaredCosts`, `validateShardfileAssets`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
-- `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `replaceTravelDocument`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
+- `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 

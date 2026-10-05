@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2070 members; 831 without a doc line (—).
+2078 members; 831 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -688,8 +688,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `readTexturePixels` | function | @wildshard/engine/core/ktx2 | Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h |
 | `releaseAfterUpload` | function | @wildshard/engine/core/ktx2 | Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the |
 | `DEFAULT_GRAPH_BUDGET` | const | @wildshard/engine/core/materialGraph | the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions) |
+| `GRAPH_ADMISSION_LIMITS` | const | @wildshard/engine/core/materialGraph | Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget. |
 | `GRAPH_IR_VERSION` | const | @wildshard/engine/core/materialGraph | the IR version a graph declares; a graph of another version is refused |
 | `GRAPH_OPS` | const | @wildshard/engine/core/materialGraph | The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons |
+| `graphAdmissionErrors` | function | @wildshard/engine/core/materialGraph | Check JSON bytes, all nested nodes and inert structure without invoking authored getters or toJSON methods. |
 | `GraphBinding` | type | @wildshard/engine/core/materialGraph | where a bound param's value comes from: a day-key channel or a declared public numeric shard-state field |
 | `GraphBudget` | interface | @wildshard/engine/core/materialGraph | the per-program ceilings validation refuses past |
 | `GraphCost` | interface | @wildshard/engine/core/materialGraph | what a valid graph costs: counted over every node a stage reaches, a loop's body times its count |
@@ -1157,6 +1159,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `terrainGrid` | function | @wildshard/engine/physics/terrain | The mesh's vertex heights, row-major (index iz × res + ix), x and z from −size/2 to +size/2. |
 | `toColumnMajor` | function | @wildshard/engine/physics/terrain | The row-major grid in Rapier's column-major (row = z, column = x) layout. |
 | `addBakedTerrainCollider` | function | @wildshard/engine/physics/terrainTiles | Install the baked critical heightfield in the local physics world; the owning scope removes it on unload. |
+| `TRANSFER_ENTER_LIMIT` | const | @wildshard/engine/physics/transferWalls | Incoming contact reaches the <=6 m target threshold without crossing the cell boundary in the highway frame. |
+| `TRANSFER_EXIT_LIMIT` | const | @wildshard/engine/physics/transferWalls | Outgoing feet may reach the >10 m target threshold, but never pass this solid hold line before a durable commit. |
+| `TRANSFER_WALL_BYTES` | const | @wildshard/engine/physics/transferWalls | Conservative native wall/handle allowance per four-sided cell, reserved before construction. |
+| `TransferWallCell` | interface | @wildshard/engine/physics/transferWalls | Cell centres in this physics frame; entry walls enclose highway destinations, exit walls enclose the active region. |
+| `TransferWalls` | class | @wildshard/engine/physics/transferWalls | Always-solid transfer fences, independent of asset readiness. The current capsule reaches the hysteresis query |
 | `AimTarget` | interface | @wildshard/engine/player/AimTargets | — |
 | `getAimTargets` | function | @wildshard/engine/player/AimTargets | — |
 | `lockOn` | const | @wildshard/engine/player/AimTargets | The Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md — src/engine/player/LockOnTarget.ts runs it): `state` 'off' (nothing to lock), |
@@ -1470,6 +1477,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SCRIPT_LIMITS` | const | @wildshard/engine/script/host | Conservative defaults; all are hard platform ceilings and may only be lowered by a host. |
 | `SCRIPT_PARAMETER_QUERY` | const | @wildshard/engine/script/host | Read-only declared numeric parameters; the host supplies the trusted calling entity to the query adapter. |
 | `ScriptCall` | interface | @wildshard/engine/script/host | Results expose validated requests only after the atomic world-state transaction succeeds. |
+| `ScriptDisabled` | interface | @wildshard/engine/script/host | A module crossed its failure limit and stays switched off (G168): told once per module, never on a restored checkpoint. |
 | `ScriptEventDelivery` | interface | @wildshard/engine/script/host | Trusted schedulers retain events for sleeping bindings and consume request-only outputs without redelivery. |
 | `ScriptHost` | class | @wildshard/engine/script/host | One module instance per host; every call carries its current entity handle in IN[3]. |
 | `ScriptHostOptions` | interface | @wildshard/engine/script/host | Host dependencies are explicitly installed; no import creates an instance or changes a service. |

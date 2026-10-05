@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-534 members; 112 without a doc line (—).
+528 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -90,6 +90,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GridMode` | interface | @wildshard/game/grid/catalogue | Runtime switches originate from Settings and build-time DEVSERVER; Nine Dragon defaults on only in DEVSERVER. |
 | `GridPlacement` | type | @wildshard/game/grid/catalogue | Catalogue placement before its render origin is derived. |
 | `parseGridCatalogue` | function | @wildshard/game/grid/catalogue | Reject malformed or duplicate placement data before allocating an assembly. |
+| `GridCheckpointResult` | type | @wildshard/game/grid/crossing | Poll pending durability without capturing an old asynchronous snapshot; true must checkpoint the current fixed boundary. |
 | `GridCrossing` | class | @wildshard/game/grid/crossing | Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit. |
 | `GridCrossingDriver` | interface | @wildshard/game/grid/crossing | Residency owns frame selection, admission, whole-world checkpoints and prepared physics transfers. |
 | `GridCrossingPorts` | interface | @wildshard/game/grid/crossing | Destination admission runs ahead of the fixed step; local checkpoints and stow never transfer shard possessions. |
@@ -110,14 +111,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LiveGridRegion` | interface | @wildshard/game/grid/live | An owned region has authored colliders and logical player state, but no second traveller capsule. |
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
 | `PageResidencyBoot` | interface | @wildshard/game/grid/pageBoot | The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. |
-| `preflightGridReload` | function | @wildshard/game/grid/pageBoot | Preflight the fresh page's already measured mandatory home/platform claims without evicting the current world. |
 | `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
-| `validatePlannedGridReload` | function | @wildshard/game/grid/pageBoot | Verify the consumed transfer against today's layout and authored revision before any home hydration. |
-| `consumeGridReloadBoot` | function | @wildshard/game/grid/reloadBoot | The first boot marks the attempt durably; a kill during admission cannot retry the same transfer. |
-| `finishPlannedGridReload` | function | @wildshard/game/grid/reloadBoot | Called at fade-in after collision, ground and critical coverage are ready. |
-| `GridReloadBoot` | type | @wildshard/game/grid/reloadBoot | Entry routing happens before the crash-rescue path, without loading the renderer or a runtime chunk. |
-| `installPlannedGridReload` | function | @wildshard/game/grid/reloadBoot | Only the composition root installs the attempted transfer; imports alone never change page routing. |
-| `plannedGridReload` | function | @wildshard/game/grid/reloadBoot | The attempted transfer is shared by early residency, the live frame restore and the reveal gate. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
@@ -527,6 +521,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |
 | `uiRules` | function | @wildshard/game/shardfile/ui | Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab. |
 | `UiSchema` | const | @wildshard/game/shardfile/ui | The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots. |
+| `preflightDeclaredCosts` | function | @wildshard/game/shardfile/validate | Check declared residency before immutable reads; exact parsed headers are checked again on admission. |
 | `validateShardfileAssets` | function | @wildshard/game/shardfile/validate | Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. |
 | `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | The shardfile format and script ABI revision; v0 is provisional until the phone gate. |
 | `shardfileWater` | function | @wildshard/game/shardfile/water | Validate untrusted declarations and return fresh motor-compatible bodies for one level instance. |
@@ -535,7 +530,6 @@ The game layer's public modules (src/game/package.json `exports`).
 | `applyTravelCarry` | function | @wildshard/game/travel/travel | Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. |
 | `bindTravelInventory` | function | @wildshard/game/travel/travel | The composition root binds the live Bag and rows; the cold title has no running shard. |
 | `consumeTravelHandoff` | function | @wildshard/game/travel/travel | — |
-| `replaceTravelDocument` | function | @wildshard/game/travel/travel | A fresh document releases the previous WebKit heap. Call only after the caller's durable transfer succeeds. |
 | `travel` | function | @wildshard/game/travel/travel | — |
 | `TravelHandoff` | interface | @wildshard/game/travel/travel | — |
 | `TravelRequest` | interface | @wildshard/game/travel/travel | — |

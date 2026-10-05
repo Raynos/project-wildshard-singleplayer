@@ -4091,6 +4091,12 @@
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
+        "name": "GRAPH_ADMISSION_LIMITS",
+        "kind": "const",
+        "doc": "Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget.",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
         "name": "GRAPH_IR_VERSION",
         "kind": "const",
         "doc": "the IR version a graph declares; a graph of another version is refused",
@@ -4100,6 +4106,12 @@
         "name": "GRAPH_OPS",
         "kind": "const",
         "doc": "The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "graphAdmissionErrors",
+        "kind": "function",
+        "doc": "Check JSON bytes, all nested nodes and inert structure without invoking authored getters or toJSON methods.",
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
@@ -6912,6 +6924,36 @@
         "from": "@wildshard/engine/physics/terrainTiles"
       },
       {
+        "name": "TRANSFER_ENTER_LIMIT",
+        "kind": "const",
+        "doc": "Incoming contact reaches the <=6 m target threshold without crossing the cell boundary in the highway frame.",
+        "from": "@wildshard/engine/physics/transferWalls"
+      },
+      {
+        "name": "TRANSFER_EXIT_LIMIT",
+        "kind": "const",
+        "doc": "Outgoing feet may reach the >10 m target threshold, but never pass this solid hold line before a durable commit.",
+        "from": "@wildshard/engine/physics/transferWalls"
+      },
+      {
+        "name": "TRANSFER_WALL_BYTES",
+        "kind": "const",
+        "doc": "Conservative native wall/handle allowance per four-sided cell, reserved before construction.",
+        "from": "@wildshard/engine/physics/transferWalls"
+      },
+      {
+        "name": "TransferWallCell",
+        "kind": "interface",
+        "doc": "Cell centres in this physics frame; entry walls enclose highway destinations, exit walls enclose the active region.",
+        "from": "@wildshard/engine/physics/transferWalls"
+      },
+      {
+        "name": "TransferWalls",
+        "kind": "class",
+        "doc": "Always-solid transfer fences, independent of asset readiness. The current capsule reaches the hysteresis query",
+        "from": "@wildshard/engine/physics/transferWalls"
+      },
+      {
         "name": "AimTarget",
         "kind": "interface",
         "doc": "",
@@ -8788,6 +8830,12 @@
         "name": "ScriptCall",
         "kind": "interface",
         "doc": "Results expose validated requests only after the atomic world-state transaction succeeds.",
+        "from": "@wildshard/engine/script/host"
+      },
+      {
+        "name": "ScriptDisabled",
+        "kind": "interface",
+        "doc": "A module crossed its failure limit and stays switched off (G168): told once per module, never on a restored checkpoint.",
         "from": "@wildshard/engine/script/host"
       },
       {
@@ -12936,6 +12984,12 @@
         "from": "@wildshard/game/grid/catalogue"
       },
       {
+        "name": "GridCheckpointResult",
+        "kind": "type",
+        "doc": "Poll pending durability without capturing an old asynchronous snapshot; true must checkpoint the current fixed boundary.",
+        "from": "@wildshard/game/grid/crossing"
+      },
+      {
         "name": "GridCrossing",
         "kind": "class",
         "doc": "Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit.",
@@ -13056,52 +13110,10 @@
         "from": "@wildshard/game/grid/pageBoot"
       },
       {
-        "name": "preflightGridReload",
-        "kind": "function",
-        "doc": "Preflight the fresh page's already measured mandatory home/platform claims without evicting the current world.",
-        "from": "@wildshard/game/grid/pageBoot"
-      },
-      {
         "name": "preparePageResidency",
         "kind": "function",
         "doc": "G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply",
         "from": "@wildshard/game/grid/pageBoot"
-      },
-      {
-        "name": "validatePlannedGridReload",
-        "kind": "function",
-        "doc": "Verify the consumed transfer against today's layout and authored revision before any home hydration.",
-        "from": "@wildshard/game/grid/pageBoot"
-      },
-      {
-        "name": "consumeGridReloadBoot",
-        "kind": "function",
-        "doc": "The first boot marks the attempt durably; a kill during admission cannot retry the same transfer.",
-        "from": "@wildshard/game/grid/reloadBoot"
-      },
-      {
-        "name": "finishPlannedGridReload",
-        "kind": "function",
-        "doc": "Called at fade-in after collision, ground and critical coverage are ready.",
-        "from": "@wildshard/game/grid/reloadBoot"
-      },
-      {
-        "name": "GridReloadBoot",
-        "kind": "type",
-        "doc": "Entry routing happens before the crash-rescue path, without loading the renderer or a runtime chunk.",
-        "from": "@wildshard/game/grid/reloadBoot"
-      },
-      {
-        "name": "installPlannedGridReload",
-        "kind": "function",
-        "doc": "Only the composition root installs the attempted transfer; imports alone never change page routing.",
-        "from": "@wildshard/game/grid/reloadBoot"
-      },
-      {
-        "name": "plannedGridReload",
-        "kind": "function",
-        "doc": "The attempted transfer is shared by early residency, the live frame restore and the reveal gate.",
-        "from": "@wildshard/game/grid/reloadBoot"
       },
       {
         "name": "gridCanAct",
@@ -15558,6 +15570,12 @@
         "from": "@wildshard/game/shardfile/ui"
       },
       {
+        "name": "preflightDeclaredCosts",
+        "kind": "function",
+        "doc": "Check declared residency before immutable reads; exact parsed headers are checked again on admission.",
+        "from": "@wildshard/game/shardfile/validate"
+      },
+      {
         "name": "validateShardfileAssets",
         "kind": "function",
         "doc": "Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated.",
@@ -15603,12 +15621,6 @@
         "name": "consumeTravelHandoff",
         "kind": "function",
         "doc": "",
-        "from": "@wildshard/game/travel/travel"
-      },
-      {
-        "name": "replaceTravelDocument",
-        "kind": "function",
-        "doc": "A fresh document releases the previous WebKit heap. Call only after the caller's durable transfer succeeds.",
         "from": "@wildshard/game/travel/travel"
       },
       {
