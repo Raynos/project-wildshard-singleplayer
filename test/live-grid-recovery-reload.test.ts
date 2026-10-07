@@ -59,6 +59,16 @@ it('recovers GPU/background to the highway and a successful New game cannot resu
   try {
     durable = false; expect(session.prepareRecovery('gpu')).toBe(false); expect(record.consume(assembly)).toEqual({ kind: 'none' });
     durable = true;
+    traveller.position.set(21, 3, -17);
+    expect(session.prepareRecovery('gpu')).toBe(true);
+    const cellRecovery = record.consume(assembly);
+    if (cellRecovery.kind !== 'resume') throw new Error('No durable cell recovery');
+    expect(cellRecovery.record.saved?.location).toEqual({ kind: 'cell', x: 21, y: 3, z: -17, yaw: traveller.yaw });
+    traveller.position.set(0, 0, 0);
+    expect(await session.resumeRecovery(cellRecovery.record)).toEqual({ x: 21, y: 3, z: -17, yaw: traveller.yaw, road: false });
+    expect(session.frame()).toBe(home.instance); expect(equipment.stowed).toBe(false);
+    expect(session.worldFeet()).toEqual({ x: 21, y: 3, z: -17 });
+    record.clearLoop();
     const road = { x: 281.1, z: 12, yaw: traveller.yaw };
     await session.resumeRoad(road);
     expect(session.frame()).toBeNull(); expect(session.worldFeet()).toEqual({ x: road.x, y: 0.5, z: road.z });

@@ -50,7 +50,7 @@ import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
 import { gridShardfileProduct } from './products';
-import { gridRecovery, type GridRecoveryReason } from './recovery';
+import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
 import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './roadRecovery';
 import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
@@ -305,7 +305,14 @@ export class LiveGridSession {
   checkpoint(): boolean {
     if (this.checkpointsSuppressed) return false;
     const current = this.live.current();
-    return current === null ? this.checkpointHome() : this.live.checkpoint(current);
+    const durable = current === null ? this.checkpointHome() : this.live.checkpoint(current);
+    if (!durable) return false;
+    const cell = current === null ? this.ports.home : this.ports.assembly.cell(current);
+    const feet = this.worldFeet();
+    const inside = this.ports.assembly.at(feet.x, feet.z)?.instance === current;
+    const local = this.ports.assembly.local(feet, cell);
+    return gridRecovery(this.page.saves).save(this.ports.assembly, cell, this.recoveryRoad(), inside
+      ? { kind: 'cell', ...local, yaw: this.page.traveller.yaw } : { kind: 'road' });
   }
 
   /** Last grounded road lane; before the first road visit use the admitted home's adjacent lane. */
@@ -326,7 +333,8 @@ export class LiveGridSession {
     return () => {
       this.checkpointsSuppressed = true;
       this.homeSim?.suppressCheckpoint?.();
-      gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, road, 'new-game');
+      const recovery = gridRecovery(this.page.saves);
+      if (recovery.save(this.ports.assembly, this.ports.home, road, { kind: 'road' })) recovery.write(this.ports.assembly, this.ports.home, road, 'new-game');
     };
   }
 
@@ -343,6 +351,23 @@ export class LiveGridSession {
     this.crossing.crossing.dispose(); this.crossing = this.installCrossing();
     this.page.traveller.position.set(road.x, 0.5, road.z);
     this.road.observe({ x: road.x, y: 0, z: road.z }, road.yaw, true);
+  }
+
+  /** Normal boot admits the saved instance and its continuation before applying its durable local pose. */
+  async resumeRecovery(record: NonNullable<GridRecoveryRecord>): Promise<{ x: number; y: number; z: number; yaw: number; road: boolean }> {
+    if (record.instance !== this.ports.home.instance || ![record.slug].includes(this.ports.home.slug)) throw new Error('Recovery instance was not admitted');
+    const saved = record.saved;
+    if (saved?.location.kind !== 'cell') {
+      await this.resumeRoad(record.road);
+      return { ...record.road, y: 0.5, road: true };
+    }
+    if (saved.instance !== record.instance || ![saved.slug].includes(record.slug) || this.live.current() !== record.instance) throw new Error('Recovery continuation does not match the active instance');
+    const { x, y, z, yaw } = saved.location;
+    const world = this.ports.assembly.world(saved.location, this.ports.home);
+    if (this.ports.assembly.at(world.x, world.z)?.instance !== record.instance) throw new Error('Recovery pose is outside the admitted cell');
+    this.page.traveller.position.set(x, y, z);
+    this.loadout.interior();
+    return { x, y, z, yaw, road: false };
   }
 
   /** The traveller's world feet (grid metres), whatever frame it is in. */

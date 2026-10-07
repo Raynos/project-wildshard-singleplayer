@@ -23,10 +23,9 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   // leaving during buildPlay disposes its kit scope before that hook runs and makes recovery fall back to title.
   if (ctx.session.recovery !== undefined) {
     if (ctx.gridLive === null) throw new Error('Recovery requires the admitted live grid');
-    const road = ctx.session.recovery.road;
-    await ctx.gridLive.resumeRoad(road);
-    player.spawn(road.x, road.z, road.yaw, 0.5); player.pitch = 0;
-    gridCells.leave();
+    const pose = await ctx.gridLive.resumeRecovery(ctx.session.recovery);
+    player.spawn(pose.x, pose.z, pose.yaw, pose.y); player.pitch = 0;
+    if (pose.road) gridCells.leave();
   }
 
   await macrotask();
