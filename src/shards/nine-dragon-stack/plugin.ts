@@ -12,6 +12,7 @@ import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { STRINGS } from './strings';
 import { ndEntriesEnabled } from './debug';
+import { installLifts, type Lifts } from './world/liftRide';
 
 
 /** `entries`: the SF51-g landing decks at road height (pause ▸ Settings ▸ Debug ▸ Nine Dragon entries, default off) */
@@ -43,11 +44,17 @@ export class NdPlugin extends ShardPlugin {
         ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) }), rifle: null, secondary: null });
     };
   }
-  override play(ctx: ShardContext): void {
+  override async play(ctx: ShardContext): Promise<void> {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
     equipment.add(new FeiZhua(ctx), { locked: false });
+    // SF51-p (G184): the lantern lifts from the decks ride their movers (only with the entries on: the cages are built then)
+    const built = this.builtLifts, rt = this.shell;
+    if (built !== undefined && built.cages.size > 0 && rt?.world !== null && rt?.world !== undefined) this.lifts = await installLifts(ctx, rt.world, rt.interactables, built);
   }
+  /** SF51-p: the lantern lifts while they ride (captures and walks read and drive them through the shard handle) */
+  lifts: Lifts | null = null;
+  private builtLifts: NineDragonWorld['lifts'];
   private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
@@ -59,8 +66,10 @@ export class NdPlugin extends ShardPlugin {
     ctx.playground(GRAPPLE_PLAYGROUND);
     const entries = ndEntriesEnabled(ctx);
     this.shell = ctx.game.runtime;
-    if (entries && this.shell !== undefined) this.shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { ...bounds, floor: -20 };
+    // with the entries on the player walks from the cell's edges (the decks) up the lifts: the whole cell is in bounds
+    if (entries && this.shell !== undefined) this.shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { x0: -250, x1: 250, z0: -250, z1: 250, floor: -20 };
     const { world, camera } = await this.build(ctx, entries);
+    this.builtLifts = world.lifts;
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     const rt = installWorld(ctx, world, camera, entries);
     installSpecimenLight(ctx.app.events, ctx.scope, (on, key) => { rt.specimenLight(on, key); });

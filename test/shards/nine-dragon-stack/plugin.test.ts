@@ -18,6 +18,7 @@ import { WorldRegistry } from '../../../src/engine/world/registry';
 import { entryDeckColliders, entryDeckFloor } from '../../../src/shards/nine-dragon-stack/world/entries';
 import { withDecks } from '../../../src/shards/nine-dragon-stack/world/install';
 import { Y0 } from '../../../src/shards/nine-dragon-stack/layout';
+import { NORTH_DOOR } from '../../../src/shards/nine-dragon-stack/world/liftPlan';
 
 const noop = (): void => { /* No GPU work in this node contract. */ };
 const loaded = new Set<App>();
@@ -92,10 +93,11 @@ describe('Nine Dragon world hook', () => {
     expect(built).toEqual([false, true]);
     const floors = on.app.registry.get('nds-floors');
     expect(on.app.registry.pieces).toHaveLength(4);
-    expect(floors?.colliders).toEqual([...fragmentColliders().floors, ...entryDeckColliders()]); expect(floors?.floor).toBe(withDecks);
+    expect(floors?.colliders).toEqual([...fragmentColliders({ door: NORTH_DOOR }).floors, ...entryDeckColliders()]); expect(floors?.floor).toBe(withDecks);
+    expect(on.app.registry.get('nds-fronts')?.colliders).toEqual(fragmentColliders({ door: NORTH_DOOR }).fronts); expect(withDecks(6, -200)).toBe(Y0);
     expect(withDecks(0, 240)).toBe(0); expect(withDecks(5, 0)).toBe(Y0);
     expect(toLevelSpec(manifest).bounds?.floor).toBe(Y0 - 100);
-    expect(resolveLevelBounds(toLevelSpec(manifest).bounds, on.hooks)?.floor).toBe(-20);
+    expect(resolveLevelBounds(toLevelSpec(manifest).bounds, on.hooks)).toEqual({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -20 });
     expect(resolveLevelBounds(toLevelSpec(manifest).bounds, off.hooks)?.floor).toBe(Y0 - 100);
     expect(off.hooks.levelBounds).toBeUndefined();
     await on.app.unloadLevel();
@@ -112,7 +114,9 @@ describe('Nine Dragon world hook', () => {
         expect(entryDeckFloor(x, z)).toBe(0);
       }
     }
-    expect(boxes).toHaveLength(16);
+    // 16 deck boxes; the north deck's end wall opens on its lantern lift (threshold, two jambs, lintel: +3) and the lift's
+    // shaft adds its pit floor, footing and winch-house back wall (+3, SF51-p)
+    expect(boxes).toHaveLength(22);
   });
 
   it.each(['world', 'kit', 'play'] as const)('releases the world when the %s hook throws', async (stage) => {

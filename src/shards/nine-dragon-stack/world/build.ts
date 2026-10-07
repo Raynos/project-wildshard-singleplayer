@@ -60,6 +60,8 @@ import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';
 import { cableGondola, drone, monorailTrain } from '../models/movers';
+import { liftCage } from '../models/lift';
+import { LIFTS, liftBottom, liftYaw } from './liftPlan';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { buildWell } from './well';
@@ -154,6 +156,11 @@ export interface NineDragonWorld {
   cull: (camera: PerspectiveCamera) => void;
   /** the per-instance culling (its `stats` for the budget ruler) */
   readonly culler: InstanceCuller;
+  /**
+   * SF51-p: the lantern lifts' cages by mover id (world/lifts.ts; only with the entries on) and the view the plugin sets
+   * to pose them each frame (world/liftRide.ts), run by `update`
+   */
+  readonly lifts?: { readonly cages: ReadonlyMap<string, Object3D>; view: (() => void) | null };
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
@@ -410,6 +417,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const droneAt = [0, 1].map((i) => ({ phase: i * 2.4, r: 22 + i * 14, y: Y0 + 58 + i * 16 }));
   const bodies = movers(drone, droneAt.map((d) => ({ x: 8 + Math.cos(d.phase) * d.r, y: d.y + Math.sin(d.phase) * 1.5, z: -8 + Math.sin(d.phase) * d.r, yaw: -d.phase })), 'nds-drones');
   const drones = droneAt.flatMap((d, i) => { const body = bodies[i]; return body === undefined ? [] : [{ body, ...d }]; });
+  // SF51-p: the lantern lifts' cages at the decks (the plugin moves them to their movers' poses)
+  const cageObjects = opts.entries === true ? movers(liftCage, LIFTS.map((l) => ({ ...liftBottom(l), yaw: liftYaw(l) })), 'nds-lift-cages') : [];
+  const lifts = { cages: new Map(LIFTS.flatMap((l, i) => { const o = cageObjects[i]; return o === undefined ? [] : [[l.id, o] as const]; })), view: null as (() => void) | null };
   const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
   root.add(signsMesh);
   // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
@@ -492,6 +502,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
     shared.bandWindow();
+    lifts.view?.();
     train.position.set(-100 + ((t * 16) % 300), Y0 + 25.5, -27);
     const gx = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(t * 0.12 - 0.62));
     gondola.position.set(gx, CABLE.y + ((gx - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, CABLE.z);
@@ -507,5 +518,5 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   };
   // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
   // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  return { root, shared, ctx: { hooks: ctx.hooks }, update, cull, culler };
+  return { root, shared, ctx: { hooks: ctx.hooks }, update, cull, culler, lifts };
 }

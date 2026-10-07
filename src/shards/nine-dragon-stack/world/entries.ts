@@ -9,6 +9,8 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { SURF } from '../look/paint';
 import type { Ctx } from './ctx';
 import { K, type Look } from './kit';
+import { buildLifts } from './lifts';
+import { DOOR, LIFTS, liftColliders, type Lift } from './liftPlan';
 
 /** how deep each deck runs in from the edge (the 15 m socket plus a metre to the end wall) */
 export const DECK_DEPTH = 16;
@@ -40,13 +42,22 @@ function inFrame(f: Frame, a0: number, a1: number, c0: number, c1: number, y0: n
   return { x: (x0 + x1) / 2, z: (z0 + z1) / 2, sx: x1 - x0, sz: z1 - z0, y0, y1 };
 }
 
-/** each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket */
-function parts(f: Frame): { slab: ReturnType<typeof inFrame>; rails: ReturnType<typeof inFrame>[]; wall: ReturnType<typeof inFrame> } {
-  const h = ENTRY_WIDTH / 2;
+/** the lantern lift that starts from a deck (SF51-p, world/lifts.ts), if one is built there */
+function liftOf(f: Frame): Lift | undefined { return LIFTS.find((l) => l.mx === f.mx && l.mz === f.mz); }
+
+/**
+ * each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket. Where a lantern
+ * lift starts (SF51-p) the end wall opens on its cage: a threshold flush with the deck, two jambs and a lintel.
+ */
+function parts(f: Frame): { slab: ReturnType<typeof inFrame>; rails: ReturnType<typeof inFrame>[]; walls: ReturnType<typeof inFrame>[] } {
+  const h = ENTRY_WIDTH / 2, lift = liftOf(f), c0 = -h - RAIL_T, c1 = h + RAIL_T;
+  const wall = (w0: number, w1: number, y0: number, y1: number): ReturnType<typeof inFrame> => inFrame(f, DECK_DEPTH, DECK_DEPTH + WALL_T, w0, w1, y0, y1);
+  const d0 = lift === undefined ? 0 : lift.across + DOOR.c0, d1 = lift === undefined ? 0 : lift.across + DOOR.c1;
   return {
-    slab: inFrame(f, 0, DECK_DEPTH, -h - RAIL_T, h + RAIL_T, -SLAB, 0),
+    slab: inFrame(f, 0, DECK_DEPTH, c0, c1, -SLAB, 0),
     rails: [inFrame(f, 0, DECK_DEPTH, -h - RAIL_T, -h, 0, RAIL_H), inFrame(f, 0, DECK_DEPTH, h, h + RAIL_T, 0, RAIL_H)],
-    wall: inFrame(f, DECK_DEPTH, DECK_DEPTH + WALL_T, -h - RAIL_T, h + RAIL_T, -SLAB, WALL_H),
+    walls: lift === undefined ? [wall(c0, c1, -SLAB, WALL_H)]
+      : [wall(c0, c1, -SLAB, 0), wall(c0, d0, 0, WALL_H), wall(d1, c1, 0, WALL_H), wall(d0, d1, DOOR.h, WALL_H)],
   };
 }
 
@@ -54,7 +65,7 @@ const box = (b: ReturnType<typeof inFrame>): ColliderDesc => ({ kind: 'box', x: 
 
 /** the four decks' collision: the slabs (tops at y = 0), the parapets and the end walls */
 export function entryDeckColliders(): ColliderDesc[] {
-  return FRAMES.flatMap((f) => { const p = parts(f); return [box(p.slab), ...p.rails.map(box), box(p.wall)]; });
+  return [...FRAMES.flatMap((f) => { const p = parts(f); return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box)]; }), ...LIFTS.flatMap(liftColliders)];
 }
 
 /** the floor on a deck (placement, footsteps), else undefined */
@@ -73,9 +84,11 @@ export function buildEntryDecks(ctx: Ctx): void {
     const p = parts(f);
     k.box(p.slab.x, p.slab.y0, p.slab.z, p.slab.sx, p.slab.y1 - p.slab.y0, p.slab.sz, STONE, { top: FLAGS });
     for (const r of p.rails) k.box(r.x, r.y0, r.z, r.sx, r.y1 - r.y0, r.sz, STONE);
-    k.box(p.wall.x, p.wall.y0, p.wall.z, p.wall.sx, p.wall.y1 - p.wall.y0, p.wall.sz, STONE);
+    for (const w of p.walls) k.box(w.x, w.y0, w.z, w.sx, w.y1 - w.y0, w.sz, STONE);
     // the cinnabar band across the end wall's face, a hand over head height
     const band = inFrame(f, DECK_DEPTH - 0.05, DECK_DEPTH, -ENTRY_WIDTH / 2, ENTRY_WIDTH / 2, 3.2, 4.0);
     k.box(band.x, band.y0, band.z, band.sx, band.y1 - band.y0, band.sz, BAND);
   }
+  // SF51-p: the lantern lifts from the decks up to the street (world/lifts.ts)
+  buildLifts(ctx);
 }

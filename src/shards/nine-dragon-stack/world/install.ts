@@ -2,21 +2,23 @@
 import { Group, type PerspectiveCamera } from 'three';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { NineDragonWorld } from './build';
-import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
+import { fragmentColliders, fragmentFloor, fragmentGrappleGuard, northStreetFloor } from './colliders';
+import { NORTH_DOOR } from './liftPlan';
 import { crossingColliders } from './well-mid';
 import { entryDeckColliders, entryDeckFloor } from './entries';
 import { NdRuntime, ownNdRuntime } from '../runtime/state';
 
 const FILE = 'src/shards/nine-dragon-stack/world/colliders.ts';
 
-/** the fragment's floor, else a road-height entry deck's (SF51-g) */
-export function withDecks(x: number, z: number): number | undefined { return fragmentFloor(x, z) ?? entryDeckFloor(x, z); }
+/** the fragment's floor, else a road-height entry deck's (SF51-g), else the north street carried on to its lift (SF51-p) */
+export function withDecks(x: number, z: number): number | undefined { return fragmentFloor(x, z) ?? entryDeckFloor(x, z) ?? northStreetFloor(x, z); }
 
 /** Legacy and staged boots share identical piece fields. */
 export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system'>, world: NineDragonWorld, camera: PerspectiveCamera, entries = false): NdRuntime {
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(ctx.scope, rt);
-    const c = fragmentColliders();
+    // SF51-p: with the entries on, the north street runs on to the north deck's lantern lift (world/lifts.ts)
+    const c = fragmentColliders(entries ? { door: NORTH_DOOR } : undefined);
     // SF51-g: with Debug ▸ Nine Dragon entries on, the four landing decks at road height on the edge midpoints
     // (world/entries.ts; drawn in the world's `entries` kit) are floors of this piece
     ctx.piece({
