@@ -121,3 +121,13 @@ real-DOM registry separation and saved audition retention/public fallback are co
 
 SF61 remains open for protected owners' rows. Nalati legacy flock retirement still waits for the coordinator's
 ON floor after the serialized push. No browser, full gate, or push was started by this lane.
+
+## G221 useful-tools purge (2026-10-07)
+
+Jake keeps only time, weather, AI overlay, storage readout, clear downloads, budget readout,
+Enter Template and frame cap. Director policies remain until their parity closes; protected comparison rows
+remain owner-controlled. Coordinator released tool-owned hunks; native gameplay, current pack/loading pipelines,
+and needed CLI-only engine hooks remain.
+
+- Aim-ring row, saved option, DOM/projection/text/global debug plumbing deleted. Actual touch aim assistance
+  keeps its friction/snap/tracking math. Inventory: **9 comparisons / 19 Developer tools**.

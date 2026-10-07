@@ -1,5 +1,4 @@
 import { app } from '../app/runtime';
-import { engineString } from '../strings';
 /**
  * AimAssist — console-style (CoD / GTA pad) aim help for TOUCH play. Mouse users never get it: only TouchControls
  * drives it. Three classic parts, all against alive animals within RANGE m and in front of the camera, all gated by
@@ -20,7 +19,7 @@ import { engineString } from '../strings';
  * The aim point is the upper body — halfway between the body centre and the head — so a snapped bolt is a body hit;
  * the head is still the player's to find. No bullet magnetism: bolts fly true.
  *
- *   const assist = new AimAssist(touchLayerEl)                // `?aimdebug=1` draws the active bubble as a cyan ring in that layer
+ *   const assist = new AimAssist()
  *   assist.noteLook(dx, dy)                                   // raw pad delta (px) — for the "dragging away" test
  *   assist.update(dt, player, adsOn, lookDragPxPerSec)        // once per frame, BEFORE the player sets its camera
  *   assist.lookScale()                                        // 0.45..1 — multiply the pad delta by this
@@ -30,8 +29,7 @@ import { engineString } from '../strings';
 import * as THREE from 'three';
 import type { Player } from './Player';
 import type { AimTarget } from './AimTargets';
-import { getSetting, setting } from '../ui/Settings';
-import { viewportHeight } from '../core/viewport';
+import { getSetting } from '../ui/Settings';
 
 const DEG = Math.PI / 180;
 const RANGE = 60;                                            // m — nothing farther gets any help
@@ -48,7 +46,7 @@ const TRACK_STALE = 0.25;                                    // s — a bearing 
 interface Candidate { target: AimTarget; dist: number; angle: number; yawTo: number; pitchTo: number; radius: number; wy: number; wp: number; hasVel: boolean }
 interface Bearing { yaw: number; pitch: number; t: number }
 
-const _aim = new THREE.Vector3(), _head = new THREE.Vector3(), _body = new THREE.Vector3(), _bdir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _dir = new THREE.Vector3(), _ndc = new THREE.Vector3();
+const _aim = new THREE.Vector3(), _head = new THREE.Vector3(), _body = new THREE.Vector3(), _bdir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _dir = new THREE.Vector3();
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const easeOut = (p: number) => 1 - (1 - p) ** 3;
@@ -61,23 +59,6 @@ export class AimAssist {
   private bearings = new Map<AimTarget, Bearing>();
   private dragX = 0; private dragY = 0;
   private clock = 0;
-  private debug?: HTMLElement;
-  /** the animal currently inside its bubble (read by the debug ring / tests) */
-  active: AimTarget | null = null;
-  /** what happened last frame — for Debug ▸ Combat & weapons ▸ Aim assist ring and the console */
-  readonly last = { angleDeg: 0, coneDeg: 0, snapping: false, tracking: false, trackYaw: 0, trackPitch: 0 };
-
-  constructor(layer?: HTMLElement) {
-    if (layer) { // the ring: drawn only while Debug ▸ Combat & weapons ▸ Aim assist ring is On (E162; live)
-      const d = document.createElement('div');
-      d.className = 'ws-touch-aimdebug';
-      d.style.cssText = 'position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:1.5px solid rgba(143,227,255,0.9);box-shadow:0 0 12px rgba(143,227,255,0.5),inset 0 0 12px rgba(143,227,255,0.25);pointer-events:none;display:none;z-index:3;font:9px/1 ui-monospace,monospace;color:#8fe3ff;letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;';
-      layer.append(d);
-      this.debug = d;
-      (window as unknown as { __aimAssist: AimAssist }).__aimAssist = this; // for the console / the verification script
-    }
-  }
-
   /** raw LOOK-pad delta (px, screen y down) since the last frame — TouchControls calls this from pointermove */
   noteLook(dx: number, dy: number): void { this.dragX += dx; this.dragY += dy; }
 
@@ -89,8 +70,8 @@ export class AimAssist {
     const dragX = this.dragX, dragY = this.dragY; this.dragX = this.dragY = 0;
     const engaged = adsOn && !this.wasAds; this.wasAds = adsOn;
     const on = getSetting('aimAssist');
-    this.scale = 1; this.active = null; this.last.snapping = this.last.tracking = false; this.last.trackYaw = this.last.trackPitch = 0;
-    if (!on) { this.snap = null; this.bearings.clear(); this.showDebug(null, player); return; }
+    this.scale = 1;
+    if (!on) { this.snap = null; this.bearings.clear(); return; }
 
     // ── candidates: alive, close, in front — bearings are sampled for all of them so a target that becomes active already has a velocity ──
     const yaw = player.yaw, pitch = player.pitch, p = player.camera.position;
@@ -125,8 +106,6 @@ export class AimAssist {
     }
 
     if (best) {
-      this.active = best.target;
-      this.last.angleDeg = best.angle / DEG; this.last.coneDeg = best.radius / DEG;
       // 1. friction: full strength at the centre, none at the edge
       const strength = adsOn ? FRICTION_ADS : FRICTION_HIP;
       this.scale = strength + (1 - strength) * clamp(best.angle / best.radius, 0, 1);
@@ -152,7 +131,6 @@ export class AimAssist {
         const k = mag > SNAP_SHORT ? (mag - SNAP_SHORT) / mag : 0; // land short of the aim point — not a pixel lock
         dy *= k; dp *= k;
         player.yaw += dy * frac; player.pitch = clamp(player.pitch + dp * frac, -1.45, 1.45);
-        this.last.snapping = true;
         if (ease >= 1) this.snap = null;
       }
     }
@@ -171,32 +149,9 @@ export class AimAssist {
         if (!away) {
           const ay = wy * TRACK_GAIN * dt, ap = wp * TRACK_GAIN * dt;
           player.yaw += ay; player.pitch = clamp(player.pitch + ap, -1.45, 1.45);
-          this.last.tracking = true; this.last.trackYaw = ay; this.last.trackPitch = ap;
         }
       }
     }
-    this.showDebug(best, player);
-  }
-
-  private showDebug(best: Candidate | null, player: Player) {
-    const d = this.debug;
-    if (!d) return;
-    if (!best || setting('aimRing') !== 'on') { d.style.display = 'none'; return; }
-    const cam = player.camera;
-    aimPoint(best.target, _aim);
-    _ndc.copy(_aim).project(cam);
-    if (_ndc.z > 1) { d.style.display = 'none'; return; }
-    const w = innerWidth, h = viewportHeight();
-    const x = (_ndc.x + 1) / 2 * w, y = (1 - _ndc.y) / 2 * h;
-    const r = Math.tan(best.radius) / Math.tan(cam.fov * DEG / 2) * h / 2;
-    d.style.display = 'block';
-    d.style.width = d.style.height = `${r * 2}px`;
-    d.style.margin = `${-r}px 0 0 ${-r}px`;
-    d.style.left = `${x}px`; d.style.top = `${y}px`;
-    d.style.borderColor = this.last.tracking ? '#fff' : this.last.snapping ? '#ffd166' : 'rgba(143,227,255,0.9)';
-    d.textContent = engineString('s_65b23d5a8765', [best.target.kind ?? engineString('s_34a04005bcaf'), best.dist.toFixed(0), this.last.angleDeg.toFixed(1), this.last.coneDeg.toFixed(1), this.scale.toFixed(2), this.last.snapping ? engineString('s_31f76fc754ad') : '', this.last.tracking ? engineString('s_4697e30341e4') : '']);
-    d.style.paddingTop = `${r * 2 + 4}px`;
-    d.style.textAlign = 'center';
   }
 }
 

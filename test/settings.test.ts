@@ -12,21 +12,20 @@ function fresh(): Promise<Settings> { return Promise.resolve(createSettings(save
 
 describe('Settings', () => {
   it('ignores saved diagnostic picks outside Developer and restores them without rewriting storage', () => {
-    fixtures.setItem(STORE, JSON.stringify({ aimRing: 'on', bootPack: 'off', weather: 'rain', fps: '60', ghosts: 'line', musicStyle: 'folk' }));
+    fixtures.setItem(STORE, JSON.stringify({ weather: 'rain', fps: '60', musicStyle: 'folk' }));
     let enabled = false;
     const changed = new Set<() => void>();
     const s = createSettings(saveStorage('global'), () => '', { enabled: () => enabled,
       on: (fn) => { changed.add(fn); return () => { changed.delete(fn); }; } });
-    expect(s.setting('aimRing')).toBe('off'); expect(s.setting('bootPack')).toBe('on');
-    expect(s.setting('weather')).toBe('live'); expect(s.setting('fps')).toBe('auto'); expect(s.setting('ghosts')).toBe('auto');
-    expect(s.getMusicStyle()).toBe('folk'); expect(s.savedSetting('aimRing')).toBe('on');
-    s.saveSetting('aimRing', 'off'); expect(s.savedSetting('aimRing')).toBe('on');
-    const picks: string[] = [], off = s.onSettingChange('aimRing', value => { picks.push(value); });
+    expect(s.setting('weather')).toBe('live'); expect(s.setting('fps')).toBe('auto');
+    expect(s.getMusicStyle()).toBe('folk'); expect(s.savedSetting('weather')).toBe('rain');
+    s.saveSetting('weather', 'clear'); expect(s.savedSetting('weather')).toBe('rain');
+    const picks: string[] = [], off = s.onSettingChange('weather', value => { picks.push(value); });
     enabled = true; for (const fn of changed) fn();
-    expect(s.setting('aimRing')).toBe('on'); expect(s.setting('bootPack')).toBe('off'); expect(s.setting('fps')).toBe('60');
+    expect(s.setting('weather')).toBe('rain'); expect(s.setting('fps')).toBe('60');
     enabled = false; for (const fn of changed) fn();
-    expect(picks).toEqual(['on', 'off']); off(); expect(changed.size).toBe(0);
-    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ aimRing: 'on', bootPack: 'off' });
+    expect(picks).toEqual(['rain', 'live']); off(); expect(changed.size).toBe(0);
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ weather: 'rain' });
     // The existing fps capture parameter remains an explicit harness override.
     expect(createSettings(saveStorage('global'), () => '?fps=60', { enabled: () => false }).setting('fps')).toBe('60');
   });

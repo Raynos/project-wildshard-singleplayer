@@ -196,7 +196,7 @@ export class TouchControls {
     }, this.scope);
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
-    const assist = this.assist = new AimAssist(root);
+    const assist = this.assist = new AimAssist();
     const aim = el(root, '.aim'), attack = el(root, '.ws-touch-attack'), dodge = el(root, '.dodge');
     const prevPre = player.preUpdate;
     this.scope.onDispose(() => { if (prevPre === undefined) delete player.preUpdate; else player.preUpdate = prevPre; });

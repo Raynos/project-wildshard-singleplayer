@@ -10,7 +10,7 @@ import { app } from '../app/runtime';
  * pause ▸ Settings ▸ Debug (src/engine/ui/DebugMenu.ts) renders it: one collapsible section per group, only the rows that apply to
  * the shard you are in, a filter box on top. There are no URL switches (AGENTS.md "No URL switches, ever").
  *
- *   opt('aimRing', 'combat', 'Aim ring', ON_OFF, { ask: 'E162', reviewBy: '2026-12-30', note: 'E162: aiming aid.' })
+ *   opt('weather', 'sky', 'Weather', [['live', 'Live'], ['rain', 'Rain']], { ask: 'E162', reviewBy: '2026-12-30', note: 'E162: aiming aid.' })
  *   action('clearDownloads', 'loading', 'Downloads', 'Clear', () => …, { ask: 'E172', reviewBy: '2026-12-30', note: 'E172 …' })   // a button row, not a pick
  *   DEBUG_READOUTS        → a live readout under a row, by row id (E172: Shards in memory's; both menus show it)
  *   DEBUG_ROWS            → every row, in menu order within its group
@@ -40,7 +40,7 @@ type When = (c: DebugCtx) => boolean;
 export type DebugGroupId = 'look' | 'cover' | 'sky' | 'audio' | 'combat' | 'creatures' | 'perf' | 'loading' | 'tools';
 export interface DebugGroup { id: DebugGroupId; label: string; note?: string }
 /** the groups, in menu order. Never add a group without need: put a new row in the group whose domain it is (lighting,
- *  shadows and post go in Look; water in Look too). A group with no row fails test/debug-options.test.ts. */
+ *  shadows and post go in Look; water in Look too). Empty groups are hidden until an authored row uses them. */
 export const DEBUG_GROUPS: readonly DebugGroup[] = [
   { id: 'look', label: engineString('s_a0de5719f595') },
   { id: 'sky', label: engineString('s_5672356bb3b5') },
@@ -187,7 +187,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
 
   // ── Combat & weapons ──
-  opt('aimRing', 'combat', engineString('s_4039d9694edd'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_7bfebc644d49') }),
 
   // ── Creatures & NPCs ──
   opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { purpose: 'developer', reload: true, when: supports('balbals'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),

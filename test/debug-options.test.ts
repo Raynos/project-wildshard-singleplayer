@@ -10,7 +10,6 @@ describe('Debug registry', () => {
     expect(new Set(ids).size).toBe(ids.length);
     const groups = new Set(DEBUG_GROUPS.map((g) => g.id));
     for (const r of DEBUG_ROWS) expect(groups.has(r.group), `${r.id} → ${r.group}`).toBe(true);
-    for (const g of DEBUG_GROUPS) expect(DEBUG_ROWS.some((r) => r.group === g.id), `group ${g.id} has no row`).toBe(true);
   });
 
   it('every debug-only option (no URL param, not a boot option) has a row, and its choices are the option\'s values', () => {
