@@ -127,19 +127,19 @@ describe('the KTX2 sets', () => {
     for (const def of SHARDS.filter((manifest) => manifest.shardfile !== undefined)) expect(def.boot).toBeUndefined();
     for (const def of LEGACY_SHARDS) {
       const set = sp.ktx2Set(def);
-      const gpu = [...Object.values(chunkFiles(def, 'ktx2')).flat(), ...sp.lateReads(def, 'ktx2')].filter((url) => url.startsWith('/assets/gpu/'));
+      const gpu = [...Object.values(chunkFiles(def, 'ktx2')).flat(), ...sp.lateReads(def, 'ktx2')].filter(gf.isRegisteredGpuFile);
       if (gpu.length === 0) {
         expect(set, def.slug).toEqual([]);
         expect(sp.ktx2Ready(def), `${def.slug}: no empty-set cache hit`).toBe(false);
       } else {
         expect(set.length, def.slug).toBeGreaterThan(2);
-        expect(set.filter((url) => url.startsWith('/assets/gpu/')).sort(), def.slug).toEqual([...new Set(gpu)].sort());
+        expect(set.filter(gf.isRegisteredGpuFile).sort(), def.slug).toEqual([...new Set(gpu)].sort());
         expect(set.some((url) => url.endsWith('/basis_transcoder.js')), def.slug).toBe(true);
         expect(set.some((url) => url.endsWith('/basis_transcoder.wasm')), def.slug).toBe(true);
       }
-      for (const u of set) expect(/^\/assets\/gpu\/|^\/basis\/r\d+\/basis_transcoder\.(js|wasm)$/.test(u), u).toBe(true);
+      for (const u of set) expect(gf.isRegisteredGpuFile(u) || /^\/basis\/r\d+\/basis_transcoder\.(js|wasm)$/.test(u), u).toBe(true);
       // every KTX2 file the KTX2 boot declares is in the set (a KTX2 boot then reads nothing the set lacks, offline too)
-      for (const f of Object.values(chunkFiles(def, 'ktx2')).flat()) if (f.startsWith('/assets/gpu/')) expect(set, `${def.slug} ${f}`).toContain(f);
+      for (const f of Object.values(chunkFiles(def, 'ktx2')).flat()) if (gf.isRegisteredGpuFile(f)) expect(set, `${def.slug} ${f}`).toContain(f);
     }
   });
   it.each(['phone', 'desktop'] as const)('the %s images boot declares no KTX2 file, and its lists are what they were before B (the packs do not change)', async (tier) => {
@@ -155,6 +155,24 @@ describe('the KTX2 sets', () => {
     expect(ktx.parts.length).toBeLessThanOrEqual(pack.parts.length);
     const declared = new Set(Object.values(chunkFiles(def, 'ktx2')).flat());
     for (const part of ktx.parts) expect(part.files.some(([p]) => declared.has(p))).toBe(true);
+  });
+  it.each(['phone', 'desktop'] as const)('the %s marker includes registered shard overlays, rejects unrelated files and invalidates older sets', async (tier) => {
+    const { def } = await load({ tier });
+    if (def?.boot === undefined) throw new Error('No boot fixture');
+    const original = sp.ktx2Set(def);
+    const overlay = `/assets/overlay-fixture/${tier}-12345678.ktx2`;
+    gf.registerGpuFiles({ phone: { '/overlay.phone.webp': '/assets/overlay-fixture/phone-12345678.ktx2' }, desktop: { '/overlay.webp': '/assets/overlay-fixture/desktop-12345678.ktx2' } });
+    expect(gf.isRegisteredGpuFile(`${overlay}?v=fixture#fragment`)).toBe(true);
+    expect(gf.isRegisteredGpuFile('/assets/overlay-fixture/not-registered.ktx2')).toBe(false);
+    const sources = chunkFiles(def, 'ktx2');
+    const withOverlay = { ...def, boot: { ...def.boot, sources: () => ({ ...sources, terrain: [...sources.terrain, overlay, '/assets/overlay-fixture/not-registered.ktx2'] }) } };
+    const updated = sp.ktx2Set(withOverlay);
+    expect(updated.filter(gf.isRegisteredGpuFile).sort()).toEqual([...new Set([...original.filter(gf.isRegisteredGpuFile), overlay])].sort());
+    expect(sp.setHash(updated)).not.toBe(sp.setHash(original));
+    saveFixture('device', 'ktx2set', { [sp.ktx2MarkerKey(def.slug).slice('ktx2set:'.length)]: sp.setHash(original) });
+    expect(sp.ktx2Ready(withOverlay)).toBe(false);
+    saveFixture('device', 'ktx2set', { [sp.ktx2MarkerKey(def.slug).slice('ktx2set:'.length)]: sp.setHash(updated) });
+    expect(sp.ktx2Ready(withOverlay)).toBe(true);
   });
   it('the set hash names the set (order-free) and changes with any file', async () => {
     await load();

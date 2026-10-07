@@ -38,7 +38,7 @@ import { bootCatalog, type BootLevel } from './catalog';
 import { bootFiles } from './extras';
 import { bootParts, packFor } from './pack';
 import { gpuUrl, versionedUrl } from './bytes';
-import { registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
+import { isRegisteredGpuFile, registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
 import { BASIS_PATH } from '../core/ktx2';
 import { TIER } from '../core/tier';
 import { lutUrl } from '../world/lut';
@@ -89,7 +89,9 @@ export function shardPrefetchList(def: BootLevel, tex: TexMode = texMode()): str
  * does not), plus the Basis transcoder they need. Empty when the tier has no stand-ins (both tiers are baked since E173).
  */
 export function ktx2Set(def: BootLevel): string[] {
-  const own = shardPrefetchList(def, 'ktx2').filter((u) => u.startsWith('/assets/gpu/'));
+  // Pack parts replace stand-in URLs on the wire; the marker must still name every logical stand-in.
+  const own = [...Object.values(bootFiles(def, 'ktx2')).flat(), ...lateReads(def, 'ktx2')]
+    .filter(isRegisteredGpuFile).map(versionedUrl);
   return own.length === 0 ? [] : [...new Set([...own, `${BASIS_PATH}basis_transcoder.js`, `${BASIS_PATH}basis_transcoder.wasm`])];
 }
 /** the set's identity: FNV-1a over its sorted names — they are content-addressed, so the same hash means the same bytes */

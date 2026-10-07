@@ -37,9 +37,16 @@ import { setting } from '../ui/Settings';
 
 export interface Ktx2Table { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> }
 const GPU_FILES = { phone: { ...ENGINE_GPU_FILES.phone }, desktop: { ...ENGINE_GPU_FILES.desktop } };
+let registered = { phone: new Set(Object.values(GPU_FILES.phone)), desktop: new Set(Object.values(GPU_FILES.desktop)) };
 export function registerGpuFiles(table: Ktx2Table): void {
   Object.assign(GPU_FILES.phone, table.phone);
   Object.assign(GPU_FILES.desktop, table.desktop);
+  registered = { phone: new Set(Object.values(GPU_FILES.phone)), desktop: new Set(Object.values(GPU_FILES.desktop)) };
+}
+
+/** Whether this tier's registered KTX2 mappings name a URL, including shard overlays outside /assets/gpu/. */
+export function isRegisteredGpuFile(url: string): boolean {
+  return registered[TIER].has(url.replace(/[?#].*$/u, ''));
 }
 
 export type TexMode = 'ktx2' | 'img';
