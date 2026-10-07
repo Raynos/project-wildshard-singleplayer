@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the actual lint and pre-commit binaries against isolated fixtures.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixtures own their temporary directories and never mutate shared source files.
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary fixture repositories are outside the shared tree.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Platform independent fixture paths.
@@ -25,12 +25,24 @@ function temp(): string { const root = mkdtempSync(join(tmpdir(), 'arch-guards-'
 function put(root: string, file: string, source: string): void { const path = join(root, file); mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, source); }
 const cases = JSON.parse(readFileSync('test/fixtures/arch-guards/cases.json', 'utf8')) as Case[];
 const fixtureRoot = temp();
-for (const item of cases) put(fixtureRoot, item.file, item.code);
+const ownedCases = cases.filter((item) => item.id === 'owned-setting' || item.id === 'owned-setting-const');
+for (const item of cases.filter((candidate) => !ownedCases.includes(candidate))) put(fixtureRoot, item.file, item.code);
+// Raw setting reads have retired from shipping shards. Declare ownership in this isolated fixture,
+// using the real generator and plugin, so literal/const acceptance never depends on a shipping tool.
+const ownedRoot = temp();
+cpSync('lint', join(ownedRoot, 'lint'), { recursive: true });
+copyFileSync('.oxlintrc.ratchet.json', join(ownedRoot, '.oxlintrc.ratchet.json'));
+symlinkSync(resolve('node_modules'), join(ownedRoot, 'node_modules'));
+put(ownedRoot, 'src/shards/nalati-grasslands/manifest.ts', "export default { slug: 'nalati-grasslands', debugOptions: ['nalatiHybrid'] };");
+genShardWords(ownedRoot);
+for (const item of ownedCases) put(ownedRoot, item.file, item.code);
+const ownedLint = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(ownedRoot, '.oxlintrc.ratchet.json'), '-f', 'json', 'src'], { cwd: ownedRoot, encoding: 'utf8' });
+const ownedDiagnostics = (JSON.parse(ownedLint.stdout) as { diagnostics: Diagnostic[] }).diagnostics;
 const lint = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', resolve('.oxlintrc.ratchet.json'), '-f', 'json', 'src'], { cwd: fixtureRoot, encoding: 'utf8' });
 const diagnostics = (JSON.parse(lint.stdout) as { diagnostics: Diagnostic[] }).diagnostics;
 describe('E362 AST guards through oxlint', () => {
   it('loads the real plugin', () => { expect(lint.status).toBe(1); expect(lint.stderr).toBe(''); });
-  it.each(cases)('$id', (item) => { expect(diagnostics.filter((d) => d.filename === item.file && d.code === `wildshard(${item.rule})`), item.code).toHaveLength(item.count); });
+  it.each(cases)('$id', (item) => { expect((ownedCases.includes(item) ? ownedDiagnostics : diagnostics).filter((d) => d.filename === item.file && d.code === `wildshard(${item.rule})`), item.code).toHaveLength(item.count); });
 });
 
 describe('E405 AG24 no dead exemptions', () => {
