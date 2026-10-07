@@ -68,13 +68,22 @@ export class MoverRuntime {
   }
   /** Queue a host-validated interact command; scene dispatch resolves the stable mover id, never an arbitrary function export. */
   command(id: string, action: 1 | 2 | 3): void { if (!this.data.some((m) => m.id === id)) throw new Error('Unknown mover'); this.pending.set(id, action); }
+  /** Read this mover role's ABI input without starting a tick or touching any other script role's allowance. */
+  scriptInput(id: string, tick: number, permission = 0): readonly number[] {
+    const m = this.data.find(row => row.id === id), e = m === undefined ? undefined : this.host.world.entity(m.entity);
+    if (m === undefined || e === undefined) throw new Error('Missing mover');
+    return [tick, 1 / 60, this.pending.get(m.id) ?? 0, m.entity, permission, m.input.length, ...Object.values(MOVER_FIELDS).map(field => e.fields[field] ?? 0)];
+  }
+  /** Apply an admitted call once; a composed scheduler already owns execution and the global host tick. */
+  publish(id: string, ok: boolean): void {
+    if (!this.data.some(row => row.id === id)) throw new Error('Unknown mover');
+    this.pending.delete(id); if (ok) this.sinks.get(id)?.(this.pose(id));
+  }
   /** Fixed.pre after beginTick, before physics; parameter data and current state are explicit ABI input. */
   step(tick: number, permissions: ReadonlyMap<string, number> = new Map()): void {
     for (const m of this.data) {
-      const e = this.host.world.entity(m.entity); if (e === undefined) throw new Error('Missing mover');
-      const input = [tick, 1 / 60, this.pending.get(m.id) ?? 0, m.entity, permissions.get(m.id) ?? 0, m.input.length, ...Object.values(MOVER_FIELDS).map((field) => e.fields[field] ?? 0)];
-      const call = this.host.call(m.module, m.entity, input); this.pending.delete(m.id);
-      if (call.ok) this.sinks.get(m.id)?.(this.pose(m.id));
+      const call = this.host.call(m.module, m.entity, this.scriptInput(m.id, tick, permissions.get(m.id) ?? 0));
+      this.publish(m.id, call.ok);
     }
   }
   /** Capture chain poses after the world step, then let the existing bridge renderer interpolate them. */

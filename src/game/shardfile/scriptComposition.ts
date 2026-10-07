@@ -1,4 +1,4 @@
-import { ScriptComposition } from '@wildshard/engine/script/composition';
+import { ScriptComposition, type ScriptRole, type ScriptSchedule } from '@wildshard/engine/script/composition';
 import { ScriptDriver, type ScriptLanePort } from '@wildshard/engine/script/lane';
 import { ScriptBrainDriver, type ScriptBrainOptions } from '@wildshard/engine/ai/scriptBrain';
 import { parseScriptBrain, type ShardScriptBrain } from './brains';
@@ -9,19 +9,20 @@ export interface DeclaredScriptBrainActor { actorId: string; entity: number; bra
 /** The loader supplies actor identities, observations, physics queries and authoritative strike execution. */
 export interface DeclaredScriptBrainPorts extends Pick<ScriptBrainOptions, 'actors' | 'query' | 'ports'> { bindings: readonly DeclaredScriptBrainActor[] }
 /** One authoritative module union and allowance set for numeric state, items, directors and custom creature decisions. */
-export function createShardfileComposedLane(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts, brains: DeclaredScriptBrainPorts): ScriptLanePort {
+export function createShardfileComposedLane(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts, brains?: DeclaredScriptBrainPorts,
+  extra?: { roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[] }): ScriptLanePort {
   const options = prepareShardfileScriptOptions(content, assets, ports);
-  const rows = brains.bindings.map(row => ({ ...row, brain: parseScriptBrain(row.brain) }));
+  const rows = brains?.bindings.map(row => ({ ...row, brain: parseScriptBrain(row.brain) })) ?? [];
   if (rows.some(row => !content.sim.scripts.includes(row.brain.module))) throw new Error('Brain module must be declared in sim.scripts');
   const numeric = new ScriptDriver(options);
-  const brain = new ScriptBrainDriver({ ...brains, modules: options.modules, divisor: 1,
+  const brain = brains === undefined ? undefined : new ScriptBrainDriver({ ...brains, modules: options.modules, divisor: 1,
     bindings: rows.map(({ actorId, entity, brain: spec }) => ({ actorId, entity, module: spec.module,
       maxSpeed: spec.maxSpeed, maxStrafe: spec.maxStrafe, maxTurnRate: spec.maxTurnRate, parameters: spec.parameters, strikes: spec.strikes })),
   }, new Map(rows.map(row => [row.entity, row.brain.thinkDivisor])));
   let commands: ReadonlyMap<string, number> = new Map();
   const composition = new ScriptComposition({ modules: options.modules,
-    roles: [numeric.role('numeric'), brain.role('brain')],
-    schedules: [numeric.schedule('numeric', 'numeric', () => commands), brain.schedule('brain', 'brain')],
+    roles: [numeric.role('numeric'), ...(brain === undefined ? [] : [brain.role('brain')]), ...(extra?.roles ?? [])],
+    schedules: [numeric.schedule('numeric', 'numeric', () => commands), ...(brain === undefined ? [] : [brain.schedule('brain', 'brain')]), ...(extra?.schedules ?? [])],
     maxEntities: ports.rules.maxEntities,
     ...(ports.limits === undefined ? {} : { limits: ports.limits }),
     ...(ports.development === undefined ? {} : { development: ports.development }),
