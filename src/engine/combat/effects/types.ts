@@ -16,9 +16,14 @@ export interface EffectDef {
   /** Exclusive cosmetics and upgrades replace their predecessor without multiplying both. */
   group?: string; removes?: readonly EffectId[];
 }
-/** Status/debuff tags and positive periodic damage identify harmful effects without content-specific ids. */
-export function harmfulEffect(def: EffectDef): boolean {
-  return (def.tickDamage ?? 0) > 0 || def.tags.some((tag) => tag.startsWith('status.') || tag.startsWith('debuff.'));
+/** Harm is derived from periodic damage, status/debuff tags or an attribute lowered from its unmodified base. */
+export function harmfulEffect(def: EffectDef, bases: AttributeSet = {}): boolean {
+  return (def.tickDamage ?? 0) > 0 || def.tags.some((tag) => tag.startsWith('status.') || tag.startsWith('debuff.'))
+    || def.modifiers.some((modifier) => {
+      const base = bases[modifier.attr] ?? 0;
+      const value = modifier.op === 'add' ? base + modifier.value : modifier.op === 'mul' ? base * modifier.value : modifier.value;
+      return value < base;
+    });
 }
 export interface ActiveEffect { readonly def: EffectDef; stacks: number; remaining: number; elapsed: number; source: Actor | undefined; sourceTags: readonly CombatTag[] }
 export interface SourceMulDef {

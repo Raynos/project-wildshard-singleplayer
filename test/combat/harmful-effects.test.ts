@@ -37,3 +37,20 @@ it('clears poison, slow and other harmful data without changing a timed buff or 
     expect(effects.active(health).find((effect) => effect.def.id === buff.id)).toMatchObject({ stacks: 2, remaining: 18.75 });
   } finally { scope.dispose(); }
 });
+
+it('derives untagged attribute harm from original bases while keeping buffs and nonlowering overrides', () => {
+  const effects = new EffectService([
+    { id: 'effect.fixture-add-loss', tags: [], kind: 'permanent', modifiers: [{ attr: 'damage', op: 'add', value: -3 }], stacking: 'none' },
+    { id: 'effect.fixture-mul-loss', tags: [], kind: 'permanent', modifiers: [{ attr: 'speed', op: 'mul', value: 0.5 }], stacking: 'none' },
+    { id: 'effect.fixture-override-loss', tags: [], kind: 'permanent', modifiers: [{ attr: 'armour', op: 'override', value: 2 }], stacking: 'none' },
+    { id: 'effect.fixture-buff', tags: [], kind: 'permanent', modifiers: [{ attr: 'damage', op: 'add', value: 5 }], stacking: 'none' },
+    { id: 'effect.fixture-neutral', tags: [], kind: 'permanent', modifiers: [{ attr: 'armour', op: 'override', value: 10 }], stacking: 'none' },
+    { id: 'effect.fixture-negative-base', tags: [], kind: 'permanent', modifiers: [{ attr: 'offset', op: 'mul', value: 0.5 }], stacking: 'none' },
+  ]);
+  const target = { attributes: { damage: 10, speed: 1, armour: 10, offset: -2 } };
+  for (const id of ['effect.fixture-add-loss', 'effect.fixture-mul-loss', 'effect.fixture-override-loss', 'effect.fixture-buff', 'effect.fixture-neutral', 'effect.fixture-negative-base'] as const) effects.apply(target, id);
+  effects.clearHarmful(target);
+  expect(effects.active(target).map(effect => effect.def.id)).toEqual(['effect.fixture-buff', 'effect.fixture-neutral', 'effect.fixture-negative-base']);
+  expect(target.attributes).toEqual({ damage: 15, speed: 1, armour: 10, offset: -1 });
+  effects.clear(target);
+});

@@ -141,7 +141,8 @@ export class EffectService {
   }
   /** Remove harmful statuses through normal notifications, preserving every buff's stacks, clock and source. */
   clearHarmful(target: EffectTarget): void {
-    for (const effect of this.active(target)) if (harmfulEffect(effect.def)) this.remove(target, effect.def.id);
+    const bases = this.targets.get(target)?.bases;
+    for (const effect of this.active(target)) if (harmfulEffect(effect.def, bases)) this.remove(target, effect.def.id);
   }
   clear(target: EffectTarget): void {
     const state = this.targets.get(target);
