@@ -1,16 +1,28 @@
 import type { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { createLevelInstallation } from '@wildshard/engine/level/installation';
+import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import { authoredTargets } from '@wildshard/engine/combat/targets';
+import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
-import type { ShardContext } from '../shard/context';
+import { shardContext, type ShardContext } from '../shard/context';
 import type { ShardManifest } from '../shard/manifest';
-import type { ShardPlayHost } from '../shard/runtime';
+import type { ShardPlayHost, ShardRuntime } from '../shard/runtime';
 import type { ShardWorld } from '../shard/world';
 import type { HybridResident } from '../shardfile/hybrid';
 import type { AdmittedProduct } from '../shardfile/product';
 import type { GridCell } from './assembly';
-import type { ResidencyAllocator } from './allocator';
+import type { ResidencyAllocator, ResidencyLease } from './allocator';
 import type { LiveGridRegion } from './live';
 import type { GridLoadout } from './wallet';
 import { runtimeAccountedBytes, type RuntimeCost } from './runtimeCost';
+import { createRegionalView, type RegionalView } from './regionalView';
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
+import { Progress } from '../Progress';
+import { Inventory } from '../Inventory';
+import { Owned } from '../loot/Owned';
+import { SkinLocker } from '../cosmetics/locker';
 
 function sameMeasurement(a: RuntimeCost, b: RuntimeCost): boolean {
   return (['webContentMB', 'glMB', 'engineBaseMB', 'rev', 'device', 'evidence'] as const).every(key => a[key] === b[key]);
@@ -48,6 +60,8 @@ export interface RegionalRuntimeRequest {
   readonly manifest: ShardManifest;
   readonly page: RegionalRuntimePage;
   readonly allocator: ResidencyAllocator;
+  /** Already reserved through the ordinary page allocator at the full measured runtime cost. */
+  readonly claim: ResidencyLease;
   readonly scope: Scope;
 }
 
@@ -68,3 +82,138 @@ export interface PreparedRegionalRuntime {
 
 /** Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only. */
 export type RegionalRuntimeFactory = (request: RegionalRuntimeRequest) => Promise<PreparedRegionalRuntime>;
+
+/**
+ * TODO SF47 engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine
+ * adapter supplies per-region Heightfield, level, baked terrain, navmesh and water bindings, restored on each leave.
+ * Keeping this port required prevents an unfinished foundation from silently becoming an enterable empty world.
+ */
+export interface RegionalRuntimeFoundation {
+  readonly region: LiveGridRegion;
+  readonly ground: Pick<PlayerFrameQueries, 'heightAt' | 'waterSurfaceAt'>;
+  /** The one renderer/player, but a regional scene facade, level scope, sky, terrain and forest. */
+  readonly world: (view: RegionalView) => ShardWorld;
+  readonly enter: (scope: Scope) => void;
+  readonly afterWorld?: (context: ShardContext, world: ShardWorld) => Promise<void> | void;
+  /** Build regional creatures after kit registrations; apply skins through the existing regional view adapter. */
+  readonly afterKit: (context: ShardContext, world: ShardWorld) => Promise<{
+    animals: AnimalManager; wearSkin: (equipment: EquipmentService, skin: SkinDef) => void;
+  }>;
+  /** Real opaque-runtime continuation, local purse/ownership and encounter writes; refusal keeps the source frame. */
+  readonly checkpoint: () => boolean;
+}
+
+/** Composition ports owned by the page root, with explicit absence until the engine's regional binding lands. */
+export interface RegionalRuntimeFactoryPorts {
+  readonly home: Readonly<{ x: number; z: number }>;
+  readonly prepareFoundation?: (request: RegionalRuntimeRequest) => Promise<RegionalRuntimeFoundation>;
+}
+
+/** Compose the trusted regional stages without changing discovery, module admission or the fixed crossing driver. */
+export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts): RegionalRuntimeFactory {
+  return async request => {
+    const declaration = request.admitted.source.runtime;
+    if (declaration === null) throw new Error('Regional factory requires a declared trusted runtime');
+    const bytes = regionalRuntimeAccountedBytes(request.admitted, request.manifest);
+    const { slug: cellIdentity } = request.cell, { slug: manifestIdentity } = request.manifest;
+    if (cellIdentity !== manifestIdentity) throw new Error('Regional factory identity differs from its catalogue cell');
+    const claim = request.allocator.entries().find(row => row.id === request.claim.id);
+    if (claim === undefined || claim.owner !== request.cell.instance || claim.bytes !== bytes) throw new Error('Regional factory requires its whole-runtime lease');
+    const prepare = ports.prepareFoundation;
+    if (prepare === undefined) throw new Error('Regional terrain/forest/animals binding is not prepared');
+    const scope = request.scope.child(`grid.runtime:${request.cell.instance}`);
+    try {
+      const foundation = await prepare({ ...request, scope });
+      if (scope.disposed) { foundation.region.dispose(); throw new Error('Regional runtime left during foundation admission'); }
+      scope.onDispose(foundation.region.dispose);
+      const host = foundation.region.host;
+      if (host.embedded || host.hasPlayerMotor || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
+      const app = request.page.context.app, parent = request.page.context.game.runtime;
+      if (parent === undefined) throw new Error('Regional factory requires the page runtime');
+      const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.scene,
+        physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
+        scope, ground: foundation.ground });
+      const world = foundation.world(view);
+      if (world.physics !== host.physics || world.player !== request.page.world.player || world.game.renderer !== request.page.world.game.renderer) throw new Error('Regional world must keep the page renderer/player and destination physics');
+      const skinRows: SkinDef[] = [];
+      let localPlay: ShardPlayHost | null = null;
+      let localRuntime: ShardRuntime | undefined;
+      let stowed = false;
+      const checkpoint = (): boolean => {
+        if (scope.disposed || localPlay === null) return false;
+        // Attempt all owners even after a refusal; neither gameplay death/reset hooks nor a constant true is a save.
+        const progress = localPlay.progress.checkpoint(), inventory = localPlay.inventory.checkpoint(), native = foundation.checkpoint();
+        return progress && inventory && native;
+      };
+      const resident: HybridResident = { instance: request.cell.instance, slug: request.cell.slug, declaration, firstParty: true,
+        scope, runtime: parent, retainRuntime: true, context: (owner, runtime) => {
+          localRuntime = runtime; runtime.world = { ...world, registry: view.registry }; runtime.play = null;
+          runtime.interactables.length = 0; runtime.overhead.length = 0;
+          for (const key of Reflect.ownKeys(runtime.hooks)) Reflect.deleteProperty(runtime.hooks, key);
+          for (const key of Reflect.ownKeys(runtime.objects)) Reflect.deleteProperty(runtime.objects, key);
+          Reflect.deleteProperty(runtime, 'buildEquipment'); Reflect.deleteProperty(runtime, 'menu');
+          runtime.step = (_key, work) => Promise.resolve().then(() => work(request.page.context.progress));
+          const installation = createLevelInstallation(app, owner, app.levelAdapters, () => request.page.context.progress);
+          view.root.add(installation.context.root);
+          const base = shardContext(installation.context, request.manifest, { ...request.page.context.game,
+            runtime, shard: request.manifest, rows: new Map() });
+          const context: ShardContext = { ...base, rows: { ...base.rows, skin: values => {
+            base.rows.skin(values);
+            const list: readonly SkinDef[] = Array.isArray(values) ? values : [values as SkinDef];
+            skinRows.push(...list);
+          } } };
+          return { ...installation, context,
+            beforeWorld: entered => { installEnteredRuntimeService(entered, entry => {
+              foundation.enter(entry); view.enter(entry);
+              app.addSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
+            }); },
+            afterWorld: entered => foundation.afterWorld?.(entered, world),
+            afterKit: async entered => {
+              const left = (): boolean => owner.disposed;
+              const regional = await foundation.afterKit(entered, world);
+              if (left()) throw new Error('Regional runtime left while building creatures');
+              runtime.hooks.animalsReady?.(regional.animals);
+              const targets = authoredTargets(app.events, regional.animals, () => null);
+              const build = runtime.buildEquipment;
+              if (build === undefined) throw new Error('Regional kit did not install its equipment factory');
+              const kit = await withOwner(owner, () => build(targets, request.page.play.nolock));
+              if (left()) {
+                for (const weapon of [kit.primary, kit.rifle, kit.secondary, ...(kit.extras ?? [])]) weapon?.dispose();
+                throw new Error('Regional runtime left while building equipment');
+              }
+              withOwner(owner, () => {
+                const weapons = new EquipmentService(kit.primary, { scope: owner, events: app.events,
+                  input: { bind: (action, run, _scope, allowed) => { installEnteredRuntimeService(entered, entry => {
+                    app.input.bind(action, run, entry, allowed ?? (() => weapons.enabled));
+                  }); } }, ...(kit.order === undefined ? {} : { order: [...kit.order] }) });
+                for (const weapon of [kit.rifle, kit.secondary, ...(kit.extras ?? [])]) if (weapon !== null) weapons.add(weapon, { locked: true });
+                kit.install?.(weapons); app.registerEquipment(weapons, world.game.levelScope);
+                const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance);
+                const skins = new SkinLocker(request.cell.instance, skinRows);
+                localPlay = { ...request.page.play, animals: regional.animals, weapons, primary: kit.primary,
+                  rifle: kit.rifle, secondary: kit.secondary, progress, inventory, owned, skins,
+                  wearSkin: skin => { regional.wearSkin(weapons, skin); skins.wear(skin.weapon, skin.id); },
+                  disposeRifleDrop: () => { runtime.hooks.disposeRifleDrop?.(); } };
+                runtime.play = localPlay;
+                installEnteredRuntimeService(entered, entry => {
+                  weapons.enabled = true; weapons.visible = !stowed; weapons.stowed = stowed;
+                  entry.onDispose(() => { weapons.enabled = false; weapons.visible = false; weapons.adsHeld = false; weapons.altHeld = false; });
+                });
+              });
+            },
+          };
+        } };
+      return { resident, region: { ...foundation.region, dispose: () => { scope.dispose(); } }, queries: view.queries, checkpoint,
+        loadout: { checkpoint, stow: () => {
+          stowed = true;
+          if (localPlay !== null) { localPlay.weapons.stowed = true; localPlay.weapons.visible = false; localPlay.weapons.adsHeld = false; localPlay.weapons.altHeld = false; }
+        }, interior: () => {
+          stowed = false;
+          if (localPlay !== null && localRuntime?.play === localPlay) { localPlay.weapons.stowed = false; localPlay.weapons.visible = true; }
+        } } };
+    } catch (error) {
+      try { scope.dispose(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Regional admission and cleanup failed', { cause: cleanup }); }
+      throw error;
+    }
+  };
+}

@@ -28,6 +28,8 @@ export interface HybridResident {
     context: ShardContext;
     openKit: () => void;
     closeKit: () => void;
+    /** Apply entered regional bindings before any trusted world hook reads ambient engine services. */
+    beforeWorld?: (context: ShardContext) => Promise<void> | void;
     /** Finish the regional shell's world stage, after trusted world and before its kit registration window. */
     afterWorld?: (context: ShardContext) => Promise<void> | void;
     /** Create actual creature/equipment/play services from kit rows before trusted play. */
@@ -312,8 +314,10 @@ export class HybridRuntimeSession {
       scope.onDispose(() => { residentScopes.delete(scope); });
       const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context);
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
-      const context = hooks?.context ?? installation.context, plugin = withOwner(scope, () => new Plugin());
+      const context = hooks?.context ?? installation.context;
       const live = (): boolean => !scope.disposed && this.active === active && generation === this.generation;
+      await withOwner(scope, () => installation.beforeWorld?.(context)); if (!live()) return false;
+      const plugin = withOwner(scope, () => new Plugin());
       await withOwner(scope, () => plugin.world?.(context)); if (!live()) return false;
       await withOwner(scope, () => installation.afterWorld?.(context)); if (!live()) return false;
       installation.openKit();
