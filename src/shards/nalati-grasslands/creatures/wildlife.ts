@@ -11,7 +11,7 @@ import * as THREE from 'three';
 
 import type { PackController, PackPrey, HerdController } from '../runtime/groupRegistry';
 import { declaredGroupFactories } from '../runtime/groupDeclared';
-import { Flock, SheepPrey, dogWolves } from './flock';
+import { Flock, SheepPrey, dogWolves, type FlockOpts } from './flock';
 import { wildEnv } from './env';
 import { Marmots } from './marmots';
 import { HITCH_HORSE_SPOTS } from '../world/layout';
@@ -66,7 +66,7 @@ export interface WildlifeControllers {
   pack: (members: Animal[], x: number, z: number) => PackController;
   herd: (members: Animal[]) => HerdController;
 }
-export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; layout?: WildlifeLayout; controllers?: WildlifeControllers }
+export interface WildlifeOpts { scene: THREE.Scene; sky: Sky; seed: number; layout?: WildlifeLayout; controllers?: WildlifeControllers; flock?: (options: FlockOpts, index: number) => Flock }
 export interface SheepHit { flock: Flock; index: number; distance: number }
 
 /** the player surface Wildlife reads (Player satisfies it) */
@@ -173,7 +173,8 @@ export class Wildlife {
   }
 
   spawnFlock(x: number, z: number, count: number, dog: boolean, range?: number): Flock {
-    const f = new Flock(this.opts.sky, { x, z, count, seed: this.opts.seed + this.flocks.length * 101, ...(range !== undefined ? { range } : {}) }).build();
+    const options = { x, z, count, seed: this.opts.seed + this.flocks.length * 101, ...(range !== undefined ? { range } : {}) };
+    const f = this.opts.flock?.(options, this.flocks.length) ?? new Flock(this.opts.sky, options).build();
     this.opts.scene.add(f.mesh);
     f.onSound = (name, sx, sz) => { this._v.set(sx, heightAt(sx, sz) + 0.6, sz); this.onSound?.(name, this._v); };
     if (dog) {
@@ -217,7 +218,8 @@ export class Wildlife {
   }
 
   /** every frame: the player into wildEnv, the flocks' crowd update */
-  update(dt: number, t: number, player: WildPlayer, extra: { mounted?: boolean; health01?: number } = {}): void {
+  update(dt: number, t: number, player: WildPlayer, extra: { mounted?: boolean; health01?: number } = {},
+    advanceFlock?: (flock: Flock, index: number, playerSpeed: number) => void): void {
     const p = player.position;
     if (!this.init) { this.prev.copy(p); this.init = true; }
     const moved = Math.hypot(p.x - this.prev.x, p.z - this.prev.z);
@@ -238,7 +240,9 @@ export class Wildlife {
       const r = (a.kind === 'horse' ? 0.8 : a.kind === 'wolf' ? 0.5 : 0.4) * a.scale;
       wildEnv.trample(a.position.x, a.position.z, r, Math.min(1, a.speed / 6), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
     }
-    for (const f of this.flocks) f.update(dt, t, p, this.speed, dogWolves);
+    for (const [index, f] of this.flocks.entries()) {
+      if (advanceFlock !== undefined) advanceFlock(f, index, this.speed); else f.update(dt, t, p, this.speed, dogWolves);
+    }
     this.marmots?.update(dt, p, this.speed, player.crouching);
     // a wolf pack running through the flock scatters it (Flock reads the wolves); a stampede scatters packs in its path
     for (const h of this.herds) if (h.stampeding) for (const pk of this.packs) pk.scare(h.cx, h.cz, 20);

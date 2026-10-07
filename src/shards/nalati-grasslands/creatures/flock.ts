@@ -51,6 +51,18 @@ import { wildEnv, angDiff } from './env';
 
 export interface FlockOpts { x: number; z: number; count: number; seed: number; /** m the flock may wander from home (default 45) */ range?: number }
 
+/** Native renderer inputs only; the optional declared owner supplies all decisions and randomness. */
+export interface SheepPose {
+  x: number; y: number; z: number; yaw: number; speed: number; phase: number; graze: number;
+  dead: boolean; deathTime: number; scale: number; wool: number;
+}
+/** G51 structural view/prey port; no engine policy subclass or second scheduler executes when installed. */
+export interface FlockController {
+  readonly n: number; readonly alive: number; readonly cx: number; readonly cz: number; readonly panicking: boolean;
+  readPose: (index: number, out: SheepPose) => SheepPose;
+  kill: (index: number) => void; scare: (x: number, z: number, seconds: number) => void;
+  straggler: (minimum?: number) => number;
+}
 const RUN = 4.6, WALK = 0.9, GRAZE_STEP = 0.35;
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
 const flockOfDog = new WeakMap<Animal, Flock>();
@@ -91,8 +103,9 @@ export class Flock extends GroupBrain<SheepPrey> {
   /** living sheep */
   alive: number;
 
-  constructor(private readonly sky: Sky, opts: FlockOpts) {
+  constructor(private readonly sky: Sky, opts: FlockOpts, private readonly controller?: FlockController) {
     super([]);
+    if (controller !== undefined && controller.n !== opts.count) throw new Error('Flock view roster mismatch');
     this.n = opts.count; this.alive = opts.count;
     this.cx = this.tx = this.homeX = opts.x; this.cz = this.tz = this.homeZ = opts.z; this.range = opts.range ?? 45;
     const n = this.n;
@@ -128,7 +141,13 @@ export class Flock extends GroupBrain<SheepPrey> {
     // wool colours: mostly cream, some fawn, brown and a few near-black (sheep-1 mockup)
     const wool = [new THREE.Color(1, 1, 1), new THREE.Color(0.86, 0.74, 0.58), new THREE.Color(0.52, 0.36, 0.26), new THREE.Color(0.30, 0.22, 0.18)];
     const rng = this.rng;
-    for (let i = 0; i < this.n; i++) {
+    if (this.controller !== undefined) {
+      this.project();
+      for (let i = 0; i < this.n; i++) {
+        const pose = this.controller.readPose(i, this.pose);
+        mesh.setColorAt(i, wool[pose.wool] ?? new THREE.Color(1, 1, 1));
+      }
+    } else for (let i = 0; i < this.n; i++) {
       let x = this.homeX, z = this.homeZ;
       for (let k = 0; k < 20; k++) {
         const a = rng.range(0, Math.PI * 2), r = Math.sqrt(rng.next()) * 11;
@@ -217,6 +236,7 @@ export class Flock extends GroupBrain<SheepPrey> {
 
   /** a sheep dies (arrow, wolf): it rolls over in the shader; the flock panics away from it */
   kill(i: number): void {
+    if (this.controller !== undefined) { this.controller.kill(i); this.project(); return; }
     if (this.dead[i] === 1) return;
     this.dead[i] = 1; this.deadT[i] = 0; this.alive--;
     this.scare(this.px[i] ?? 0, this.pz[i] ?? 0, 6);
@@ -224,9 +244,10 @@ export class Flock extends GroupBrain<SheepPrey> {
   }
 
   /** panic the flock away from (x, z) for `secs` */
-  scare(x: number, z: number, secs: number): void { this.panic = Math.max(this.panic, secs); this.panicX = x; this.panicZ = z; }
+  scare(x: number, z: number, secs: number): void { if (this.controller !== undefined) { this.controller.scare(x, z, secs); return; } this.panic = Math.max(this.panic, secs); this.panicX = x; this.panicZ = z; }
 
   update(dt: number, t: number, player: THREE.Vector3, playerSpeed: number, wolves: readonly Animal[]): void {
+    if (this.controller !== undefined) throw new Error('Declared flock requires its owning frame adapter');
     this.scheduler.beginFrame(dt, player);
     this.tickActor.position.set(this.cx, heightAt(this.cx, this.cz), this.cz);
     const brainDt = this.scheduler.takeBrainDt('ai', this.tickActor);
@@ -351,6 +372,7 @@ export class Flock extends GroupBrain<SheepPrey> {
 
   /** a straggler for the dog: the living sheep farthest from the centre past `minD` m, or -1 */
   straggler(minD = 12): number {
+    if (this.controller !== undefined) return this.controller.straggler(minD);
     let bi = -1, bd = minD;
     for (let i = 0; i < this.n; i++) {
       if (this.dead[i] === 1) continue;
@@ -359,7 +381,22 @@ export class Flock extends GroupBrain<SheepPrey> {
     }
     return bi;
   }
-  get panicking(): boolean { return this.panic > 0; }
+  get panicking(): boolean { return this.controller?.panicking ?? this.panic > 0; }
+
+  private readonly pose: SheepPose = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, graze: 0, dead: false, deathTime: 0, scale: 1, wool: 0 };
+  /** Copy pose inputs into the existing material/rig recipe; paused bodies preserve shader time and upload state. */
+  project(time?: number): void {
+    const controller = this.controller;
+    if (controller === undefined) throw new Error('Flock has no declared view owner');
+    this.cx = controller.cx; this.cz = controller.cz; this.alive = controller.alive;
+    for (let i = 0; i < this.n; i++) {
+      const pose = controller.readPose(i, this.pose);
+      this.px[i] = pose.x; this.py[i] = pose.y; this.pz[i] = pose.z; this.yaw[i] = pose.yaw;
+      this.spd[i] = pose.speed; this.phase[i] = pose.phase; this.graze[i] = pose.graze;
+      this.dead[i] = pose.dead ? 1 : 0; this.deadT[i] = pose.deathTime; this.scale[i] = pose.scale;
+    }
+    if (time !== undefined) { this.uTime.value = time; this.writeInstances(); }
+  }
 
   private writeInstances(): void {
     const a = this.anim.array as Float32Array;
