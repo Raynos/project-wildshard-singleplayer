@@ -57,6 +57,19 @@ export class MemoryAdmission {
   subscribe(read: () => void): () => void { this.listeners.add(read); read(); return () => { this.listeners.delete(read); }; }
   /** Remove warnings for released resident claims after the total falls back under the envelope. */
   clearResidents(): void { let changed = false; for (const [key, row] of this.warnings) if (row.stage === 'resident') { this.warnings.delete(key); changed = true; } if (changed) this.notify(); }
+  /** Released claims stop warning; retained claims report the current full page total even while it remains over cap. */
+  syncResidents(ids: ReadonlySet<string>, cost: { accounted: number; playing: number; loading: number; input: ContentCostInput }): void {
+    let changed = false;
+    for (const [key, row] of this.warnings) {
+      if (row.stage !== 'resident') continue;
+      const playingOverBytes = Math.max(0, cost.playing - row.playingCap), loadingOverBytes = Math.max(0, cost.loading - row.loadingCap);
+      if (!ids.has(row.id) || playingOverBytes + loadingOverBytes === 0) { this.warnings.delete(key); changed = true; continue; }
+      if (row.accountedBytes === cost.accounted) continue;
+      this.warnings.set(key, Object.freeze({ ...row, accountedBytes: cost.accounted, playingBytes: cost.playing,
+        loadingBytes: cost.loading, playingOverBytes, loadingOverBytes, categories: Object.freeze({ ...cost.input }) })); changed = true;
+    }
+    if (changed) this.notify();
+  }
   /** Page disposal forgets every warning and listener; no later admission resurrects a UI subscription. */
   dispose(): void { this.warnings.clear(); this.listeners.clear(); }
   private notify(): void { for (const read of this.listeners) read(); }

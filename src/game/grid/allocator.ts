@@ -134,7 +134,7 @@ export class ResidencyAllocator {
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
     this.entries_.delete(entry.id); this.totals[entry.category] -= entry.bytes;
-    if (this.cost().playing <= this.playing) this.memory.clearResidents();
+    this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
   }
   private lease(entry: Entry): ResidencyLease {
     let released = false;
