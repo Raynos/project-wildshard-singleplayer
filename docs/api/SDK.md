@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-154 members; 0 without a doc line (—).
+157 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -147,6 +147,9 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `Shardfile` | type | @wildshard/sdk/shardfile | Author-facing serialisable renderer-neutral shardfile contract. |
 | `shardfileRules` | function | @wildshard/sdk/shardfile | Inspect semantic author errors using the client contract. |
 | `ShardfileSchema` | const | @wildshard/sdk/shardfile | Author-facing strict schema, sharing the client's validator without a barrel. |
+| `parseSocketLift` | function | @wildshard/sdk/socketLift | Validate the lift declaration before building its world and immutable assets. |
+| `SocketLift` | type | @wildshard/sdk/socketLift | The platform resolves mover/gate ids, commands and collision; authors supply no callbacks. |
+| `SocketLiftSchema` | const | @wildshard/sdk/socketLift | Bounded data-only link from a road socket through an admitted lift to playable ground. |
 | `parseTraversal` | function | @wildshard/sdk/traversal | Compile a lowered interior cap, bounded by the platform's 15 m/s ceiling. |
 | `ShardTraversal` | type | @wildshard/sdk/traversal | Callback-free interior traversal tuning. |
 | `TraversalSchema` | const | @wildshard/sdk/traversal | Optional author tuning for the grid's interior board cap. |

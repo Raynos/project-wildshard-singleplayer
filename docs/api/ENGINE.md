@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2123 members; 830 without a doc line (—).
+2124 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1761,6 +1761,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `rotateGated` | const | @wildshard/engine/ui/RotateGate | true while the rotate page covers the game |
 | `BOOT_OPTIONS` | const | @wildshard/engine/ui/Settings | read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). |
 | `createSettings` | function | @wildshard/engine/ui/Settings | One set of settings over a storage: what the page reads (the page's, below, over the global save storage and the URL); |
+| `DEVELOPER_OPTIONS` | const | @wildshard/engine/ui/Settings | Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. |
 | `getMusicStyle` | function | @wildshard/engine/ui/Settings | — |
 | `getNumber` | function | @wildshard/engine/ui/Settings | — |
 | `getSetting` | function | @wildshard/engine/ui/Settings | — |

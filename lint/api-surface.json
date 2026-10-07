@@ -10540,6 +10540,12 @@
         "from": "@wildshard/engine/ui/Settings"
       },
       {
+        "name": "DEVELOPER_OPTIONS",
+        "kind": "const",
+        "doc": "Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode.",
+        "from": "@wildshard/engine/ui/Settings"
+      },
+      {
         "name": "getMusicStyle",
         "kind": "function",
         "doc": "",
@@ -14520,6 +14526,12 @@
         "from": "@wildshard/game/shard/runtime"
       },
       {
+        "name": "developerToolsEnabled",
+        "kind": "function",
+        "doc": "Unfinished systems and diagnostics run only in the page's Developer build (E451).",
+        "from": "@wildshard/game/shard/runtimeVariant"
+      },
+      {
         "name": "gridPage",
         "kind": "function",
         "doc": "Whether this page runs the grid (home or neighbour cell): a reload variant may default differently there (G180: Pine",
@@ -15886,6 +15898,60 @@
         "kind": "function",
         "doc": "Validate table sizes, periodic endpoints and joint references before compiling float buffers.",
         "from": "@wildshard/game/shardfile/skinLayers"
+      },
+      {
+        "name": "parseSocketLift",
+        "kind": "function",
+        "doc": "Parse without invoking an accessor or serializer from an author object.",
+        "from": "@wildshard/game/shardfile/socketLift"
+      },
+      {
+        "name": "SocketLift",
+        "kind": "type",
+        "doc": "Data-only lift link; gameplay commands and physics remain platform-owned.",
+        "from": "@wildshard/game/shardfile/socketLift"
+      },
+      {
+        "name": "SocketLiftEntry",
+        "kind": "interface",
+        "doc": "An edge's declared lift; shared structural shape avoids a schema dependency cycle.",
+        "from": "@wildshard/game/shardfile/socketLift"
+      },
+      {
+        "name": "socketLiftRules",
+        "kind": "function",
+        "doc": "Before physics allocation, prove stable references and the real deck's complete road-height boarding line.",
+        "from": "@wildshard/game/shardfile/socketLift"
+      },
+      {
+        "name": "SocketLiftSchema",
+        "kind": "const",
+        "doc": "A bounded entry ride names admitted mover/gate rows and feet-level stops; the route is walked, never teleported.",
+        "from": "@wildshard/game/shardfile/socketLift"
+      },
+      {
+        "name": "commandSocketLift",
+        "kind": "function",
+        "doc": "The normal interaction queues these commands on both the deck and its road gate. No author callback is invoked.",
+        "from": "@wildshard/game/shardfile/socketLiftProof"
+      },
+      {
+        "name": "proveSocketLift",
+        "kind": "function",
+        "doc": "Walk, command, ride and return through actual collision. Feet are initialized once; every later move comes from the motor.",
+        "from": "@wildshard/game/shardfile/socketLiftProof"
+      },
+      {
+        "name": "SocketLiftProof",
+        "kind": "interface",
+        "doc": "Counts come from actual fixed steps and motor moves, including both stop calls and the automatic idle return.",
+        "from": "@wildshard/game/shardfile/socketLiftProof"
+      },
+      {
+        "name": "SocketLiftProofPorts",
+        "kind": "interface",
+        "doc": "Trusted admission world: advance the existing one host/runtime/world fixed step before moving the real capsule.",
+        "from": "@wildshard/game/shardfile/socketLiftProof"
       },
       {
         "name": "ShardTerrain",
@@ -17876,6 +17942,24 @@
         "kind": "const",
         "doc": "Author-facing strict schema, sharing the client's validator without a barrel.",
         "from": "@wildshard/sdk/shardfile"
+      },
+      {
+        "name": "parseSocketLift",
+        "kind": "function",
+        "doc": "Validate the lift declaration before building its world and immutable assets.",
+        "from": "@wildshard/sdk/socketLift"
+      },
+      {
+        "name": "SocketLift",
+        "kind": "type",
+        "doc": "The platform resolves mover/gate ids, commands and collision; authors supply no callbacks.",
+        "from": "@wildshard/sdk/socketLift"
+      },
+      {
+        "name": "SocketLiftSchema",
+        "kind": "const",
+        "doc": "Bounded data-only link from a road socket through an admitted lift to playable ground.",
+        "from": "@wildshard/sdk/socketLift"
       },
       {
         "name": "parseTraversal",

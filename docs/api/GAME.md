@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-549 members; 112 without a doc line (—).
+559 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -301,6 +301,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardPlayHooks` | interface | @wildshard/game/shard/runtime | — |
 | `ShardPlayHost` | interface | @wildshard/game/shard/runtime | Services supplied by the gameplay shell after it has built the player kit and UI. |
 | `ShardRuntime` | interface | @wildshard/game/shard/runtime | Typed, per-build handoff between the staged shell and an authored plugin. |
+| `developerToolsEnabled` | function | @wildshard/game/shard/runtimeVariant | Unfinished systems and diagnostics run only in the page's Developer build (E451). |
 | `gridPage` | function | @wildshard/game/shard/runtimeVariant | Whether this page runs the grid (home or neighbour cell): a reload variant may default differently there (G180: Pine |
 | `runtimeVariantEnabled` | function | @wildshard/game/shard/runtimeVariant | Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. |
 | `bindScopedRuntime` | function | @wildshard/game/shard/scopedRuntime | Bind every staged runtime slot to this play scope, retaining the resident world's previous handoff on exit. |
@@ -529,6 +530,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `SkinPoseLayer` | type | @wildshard/game/shardfile/skinLayers | Callback-free pose samples, bounded and owned by the skin binding. |
 | `SkinPoseLayerSchema` | const | @wildshard/game/shardfile/skinLayers | Independent sampled clocks supplement a base clip; optional phase tables preserve coupled gait and breath. |
 | `validateSkinLayers` | function | @wildshard/game/shardfile/skinLayers | Validate table sizes, periodic endpoints and joint references before compiling float buffers. |
+| `parseSocketLift` | function | @wildshard/game/shardfile/socketLift | Parse without invoking an accessor or serializer from an author object. |
+| `SocketLift` | type | @wildshard/game/shardfile/socketLift | Data-only lift link; gameplay commands and physics remain platform-owned. |
+| `SocketLiftEntry` | interface | @wildshard/game/shardfile/socketLift | An edge's declared lift; shared structural shape avoids a schema dependency cycle. |
+| `socketLiftRules` | function | @wildshard/game/shardfile/socketLift | Before physics allocation, prove stable references and the real deck's complete road-height boarding line. |
+| `SocketLiftSchema` | const | @wildshard/game/shardfile/socketLift | A bounded entry ride names admitted mover/gate rows and feet-level stops; the route is walked, never teleported. |
+| `commandSocketLift` | function | @wildshard/game/shardfile/socketLiftProof | The normal interaction queues these commands on both the deck and its road gate. No author callback is invoked. |
+| `proveSocketLift` | function | @wildshard/game/shardfile/socketLiftProof | Walk, command, ride and return through actual collision. Feet are initialized once; every later move comes from the motor. |
+| `SocketLiftProof` | interface | @wildshard/game/shardfile/socketLiftProof | Counts come from actual fixed steps and motor moves, including both stop calls and the automatic idle return. |
+| `SocketLiftProofPorts` | interface | @wildshard/game/shardfile/socketLiftProof | Trusted admission world: advance the existing one host/runtime/world fixed step before moving the real capsule. |
 | `ShardTerrain` | type | @wildshard/game/shardfile/terrain | A validated terrain section, containing no landscape closures. |
 | `TerrainSchema` | const | @wildshard/game/shardfile/terrain | The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. |
 | `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |

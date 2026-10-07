@@ -1842,7 +1842,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2106 exports, grouped by the module to import them from.
+2107 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2151,7 +2151,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ui/review`: `CATEGORIES`, `Category`, `ContextValue`, `flushQueue`, `INBOX_URL`, `loadState`, `lockReview`, `NotePayload`, `onReview`, `QUEUE_MAX`, `queuedCount`, `quickNote`, `readQueue`, `ReviewDesk`, `reviewUnlocked`, `sendNote`, `setQuickNote`, `StorageLike`, `unlockReview`, `writeQueue`
 - `@wildshard/engine/ui/roomMap`: `arenaMap`, `fitRoom`, `paintRoom`, `ROOM_BG`, `RoomMap`, `RoomMarker`, `RoomShape`, `RoomView`
 - `@wildshard/engine/ui/RotateGate`: `rotateGated`
-- `@wildshard/engine/ui/Settings`: `BOOT_OPTIONS`, `createSettings`, `getMusicStyle`, `getNumber`, `getSetting`, `getSfxSet`, `MUSIC_STYLES`, `MusicStyle`, `NUM_RANGE`, `NumberKey`, `onMusicStyle`, `onNumber`, `onSetting`, `onSettingChange`, `onSfxSet`, `OPTION_VALUES`, `OptionKey`, `OptionValue`, `overrideSetting`, `pendingReload`, `savedSetting`, `saveSetting`, `setMusicStyle`, `setNumber`, `setSetting`, `setSfxSet`, `setting`, `settingFromUrl`, `SettingKey`, `settingParams`, `Settings`, `settingsReloadUrl`, `SFX_SETS`, `SfxSet`
+- `@wildshard/engine/ui/Settings`: `BOOT_OPTIONS`, `createSettings`, `DEVELOPER_OPTIONS`, `getMusicStyle`, `getNumber`, `getSetting`, `getSfxSet`, `MUSIC_STYLES`, `MusicStyle`, `NUM_RANGE`, `NumberKey`, `onMusicStyle`, `onNumber`, `onSetting`, `onSettingChange`, `onSfxSet`, `OPTION_VALUES`, `OptionKey`, `OptionValue`, `overrideSetting`, `pendingReload`, `savedSetting`, `saveSetting`, `setMusicStyle`, `setNumber`, `setSetting`, `setSfxSet`, `setting`, `settingFromUrl`, `SettingKey`, `settingParams`, `Settings`, `settingsReloadUrl`, `SFX_SETS`, `SfxSet`
 - `@wildshard/engine/ui/SpeedLines`: `SpeedLines`
 - `@wildshard/engine/ui/tabs`: `TabFragment`, `TabId`, `TabRegistry`, `TabSpec`
 - `@wildshard/engine/ui/WeaponStrip`: `WeaponStrip`
@@ -2209,7 +2209,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-549 exports, grouped by the module to import them from.
+559 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2263,7 +2263,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeAttachment`, `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `installEnteredRuntimeUpdate`, `installRetainedPlayerEffects`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
 - `@wildshard/game/shard/runtime`: `resolveLevelBounds`, `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
-- `@wildshard/game/shard/runtimeVariant`: `gridPage`, `runtimeVariantEnabled`
+- `@wildshard/game/shard/runtimeVariant`: `developerToolsEnabled`, `gridPage`, `runtimeVariantEnabled`
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`, `createScopedRuntimeBinding`, `ScopedRuntimeBinding`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `accentVars`, `parseAccent`, `ROAD_ACCENT`
@@ -2309,6 +2309,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `prepareShardfileScriptOptions`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
 - `@wildshard/game/shardfile/skinLayers`: `skinLayerDecoded`, `SkinPoseLayer`, `SkinPoseLayerSchema`, `validateSkinLayers`
+- `@wildshard/game/shardfile/socketLift`: `parseSocketLift`, `SocketLift`, `SocketLiftEntry`, `socketLiftRules`, `SocketLiftSchema`
+- `@wildshard/game/shardfile/socketLiftProof`: `commandSocketLift`, `proveSocketLift`, `SocketLiftProof`, `SocketLiftProofPorts`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
@@ -2360,7 +2362,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-154 exports, grouped by the module to import them from.
+157 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2399,6 +2401,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/runtime/weapons/Thrown`: `Thrown`, `ThrownInstance`
 - `@wildshard/sdk/runtime/weapons/Weapon`: `Weapon`, `WeaponInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
+- `@wildshard/sdk/socketLift`: `parseSocketLift`, `SocketLift`, `SocketLiftSchema`
 - `@wildshard/sdk/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`
 - `@wildshard/sdk/weapons/bowProfile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
