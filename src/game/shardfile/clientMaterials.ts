@@ -19,6 +19,9 @@ import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
 import { materialTextureRefs } from './materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
 import { SKIN_LOOK_RECIPE, parseSkinFile, skinLookParameters } from './skins';
+import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
+import { propMaterialTextureRefs, propMaterialsOf } from './propMaterials';
+import { propSurfaces } from './clientPropMaterials';
 
 /** Does the shard carry a graph material, in its catalogue or in an admitted skin binding? */
 function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): boolean {
@@ -37,14 +40,17 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * lazy graph back-end only while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on (`options.graphs` overrides the row);
  * otherwise it falls back to its family preset (`clientGraphs.ts`). `outline` is the mesh-level hook the views call wherever
  * they bind a catalogue material: a compiled graph that declares `stages.outline` adds its hull as each mesh's second draw
- * (scope-owned with the material); every other material attaches nothing.
+ * (scope-owned with the material); every other material attaches nothing. `surfaces` (SF55) resolves a props GLB material
+ * name to its base material and texture slots when the props declare named materials (`clientPropMaterials.ts`); null
+ * keeps the one-family path.
  */
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources } = {}): Promise<{
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown) => Material; tick: (dt: number) => void;
-  outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout };
+  outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
-  const refs = new Set([...materialTextureRefs(shard.look.materials), ...(shard.props?.textures.map((entry) => entry.colour) ?? [])]);
+  const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
+  const refs = new Set([...materialTextureRefs(shard.look.materials), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named)]);
   if (refs.size > 0) {
     const loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
     scope.onDispose(() => { loader.dispose(); });
@@ -80,6 +86,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     return scope.own(material);
   };
   for (const [id, entry] of Object.entries(shard.look.materials)) materials.set(id, compile(entry));
+  const surfaces = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture });
   // a further entry (an exported skin's binding, SF16) compiles on the same looks, compiler and admitted textures, scope-owned
-  return { materials, textures, compile, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); }, graphs: { bind: graphs.bind, readout: graphs.readout } };
+  return { materials, textures, compile, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); }, graphs: { bind: graphs.bind, readout: graphs.readout }, surfaces };
 }

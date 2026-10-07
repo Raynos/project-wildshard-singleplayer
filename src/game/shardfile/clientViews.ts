@@ -11,7 +11,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainTileData } from '@wildshard/engine/world/terrainTileData';
 import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
 import { coarseTileMask } from '@wildshard/engine/world/coarseTileMask';
-import { installDeclaredProps } from '@wildshard/engine/world/declaredProps';
+import { installDeclaredProps, type PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import type { ClientWorldViews, ResidentTile } from './clientWorld';
 import type { GraphOutlineHook } from './clientGraphs';
 import type { Shardfile } from './schema';
@@ -30,8 +30,23 @@ export interface ClientTileViews {
   props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, root: Object3D, scope: Scope) => Promise<ResidentTile | null>;
 }
 
-/** The view ports: the terrain family's material id, the family `materials`, admitted `textures` and the graph outline hook. */
-interface ViewPorts { terrain: string | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook }
+/**
+ * The view ports: the terrain family's material id, the family `materials`, admitted `textures`, the graph outline hook and
+ * the named prop surfaces (SF55; null or absent: every prop draws with `props.family`).
+ */
+interface ViewPorts { terrain: string | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding) | null }
+
+/**
+ * Outline what a props root draws: with named surfaces each mesh by its own material (a graph that declares
+ * `stages.outline` adds its hull), else the whole root by the family material.
+ */
+function outlineProps(root: Object3D, ports: ViewPorts, family: Material | undefined, scope: Scope): void {
+  const outline = ports.outline; if (outline === undefined) return;
+  if (ports.surfaces === null || ports.surfaces === undefined) { if (family !== undefined) outline(root, family, scope); return; }
+  const meshes: Mesh[] = []; root.traverse((object) => { if (isMesh(object)) meshes.push(object); });
+  for (const mesh of meshes) for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) outline(mesh, material, scope);
+}
+const surfacePort = (ports: ViewPorts): { surfaces?: (name: string) => PropSurfaceBinding } => (ports.surfaces === null || ports.surfaces === undefined ? {} : { surfaces: ports.surfaces });
 
 /** Ring-tile views over the terrain family's material id (null: no terrain), the family `materials` and admitted `textures`. */
 export function clientTileViews(ports: ViewPorts): ClientTileViews {
@@ -50,10 +65,9 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       const row = props.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key);
       if (row === undefined) throw new Error(`shardfile views: no props tile ${key}`);
       const installed = await installDeclaredProps(props, { scene, scope, assets: new Map([[row.file, bytes]]), materials: ports.materials, textures: ports.textures,
-        lod: row.lod, selectedTiles: new Set([key]), includeLibrary: false });
+        lod: row.lod, selectedTiles: new Set([key]), includeLibrary: false, ...surfacePort(ports) });
       const root = installed.tiles.get(key); if (root === undefined) return null;
-      const family = ports.materials.get(props.family);
-      if (row.lod !== 1 && family !== undefined) ports.outline?.(root, family, scope);
+      if (row.lod !== 1) outlineProps(root, ports, ports.materials.get(props.family), scope);
       // what each mesh was baked to do (a GLB node's castShadow flag); the shadow disc only ever turns it off
       const casters: Mesh[] = []; root.traverse((object) => { if (isMesh(object) && object.castShadow) casters.push(object); });
       const shadow = (enabled: boolean): void => { for (const mesh of casters) mesh.castShadow = enabled; };
@@ -72,9 +86,9 @@ export function clientViews(ports: ViewPorts & { root: Object3D }): ClientWorldV
   return {
     terrain: (bytes, scope, shadow) => tiles.terrain(bytes, ports.root, scope, shadow),
     library: async (props, assets, scope) => {
-      const installed = await installDeclaredProps(props, { scene: ports.root, scope, assets, materials: ports.materials, textures: ports.textures, lod: 0, selectedTiles: new Set() });
-      const family = ports.materials.get(props.family), outline = ports.outline;
-      if (family !== undefined && outline !== undefined) for (const root of [...installed.panels.values(), ...installed.models.values()]) outline(root, family, scope);
+      const installed = await installDeclaredProps(props, { scene: ports.root, scope, assets, materials: ports.materials, textures: ports.textures, lod: 0, selectedTiles: new Set(), ...surfacePort(ports) });
+      const family = ports.materials.get(props.family);
+      for (const root of [...installed.panels.values(), ...installed.models.values()]) outlineProps(root, ports, family, scope);
       return installed;
     },
     props: (props, key, bytes, scope) => tiles.props(props, key, bytes, ports.root, scope),

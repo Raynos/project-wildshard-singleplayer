@@ -1,4 +1,4 @@
-import { Group, Mesh, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, type Texture } from 'three';
+import { Group, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, type Texture } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Scope } from '../app/scope';
 import { familyVariant } from '../render/families/registry';
@@ -10,10 +10,39 @@ function surfaceOf(m: Material): MeshStandardMaterial | MeshLambertMaterial | nu
   return m instanceof MeshStandardMaterial || m instanceof MeshLambertMaterial ? m : null;
 }
 
+/**
+ * A named prop surface (SHARD-PLATFORM SF55): what one GLB material name resolves to, the base material it draws with (a
+ * family material, or a graph's node material, which is shared as it is) and the admitted texture slots it binds, each
+ * already carrying its sampler. A null slot keeps the base material's own map.
+ */
+export interface PropSurfaceBinding {
+  readonly material: Material;
+  readonly maps: {
+    readonly colour: Texture | null; readonly normal: Texture | null; readonly normalScale: number; readonly metallicRoughness: Texture | null;
+    readonly occlusion: Texture | null; readonly occlusionStrength: number; readonly emissive: Texture | null;
+  };
+}
+type SurfaceMaps = PropSurfaceBinding['maps'];
 /** What a prop mesh takes from its GLB material onto the family's: one shared family variant per distinct set. */
-interface Surface { colour: Color | null; roughness: number | null; metalness: number | null; map: Texture | undefined; vertexColours: boolean; side: Material['side']; transparent: boolean; opacity: number }
+interface Surface { colour: Color | null; roughness: number | null; metalness: number | null; map: Texture | undefined; vertexColours: boolean; side: Material['side']; transparent: boolean; opacity: number; named?: { maps: SurfaceMaps; emissive: Color | null } }
+const mapsKey = (n: NonNullable<Surface['named']>): string =>
+  `|${[n.maps.colour, n.maps.normal, n.maps.metallicRoughness, n.maps.occlusion, n.maps.emissive].map((t) => t?.uuid ?? '-').join(',')}|${n.maps.normalScale}|${n.maps.occlusionStrength}|${n.emissive?.getHexString() ?? '-'}`;
 const surfaceKey = (s: Surface): string =>
-  `${s.colour?.getHexString() ?? '-'}|${s.roughness ?? '-'}|${s.metalness ?? '-'}|${s.map?.uuid ?? '-'}|${s.vertexColours ? 'v' : ''}|${s.side}|${s.transparent ? 't' : ''}|${s.opacity}`;
+  `${s.colour?.getHexString() ?? '-'}|${s.roughness ?? '-'}|${s.metalness ?? '-'}|${s.map?.uuid ?? '-'}|${s.vertexColours ? 'v' : ''}|${s.side}|${s.transparent ? 't' : ''}|${s.opacity}${s.named === undefined ? '' : mapsKey(s.named)}`;
+/** a graph's node material (three/webgpu) is drawn as compiled: its textures are its own params */
+const isNodeMaterial = (m: Material): boolean => Reflect.get(m, 'isNodeMaterial') === true;
+/** bind a named surface's slots (glTF's unflipped UV convention: the normal map's green runs the other way, as GLTFLoader sets it) */
+function applyMaps(m: Material, named: NonNullable<Surface['named']>): void {
+  const { maps } = named;
+  if (m instanceof MeshBasicMaterial) { if (maps.colour !== null) m.map = maps.colour; return; }
+  const own = surfaceOf(m); if (own === null) return;
+  if (maps.colour !== null) own.map = maps.colour;
+  if (maps.normal !== null) { own.normalMap = maps.normal; own.normalScale.set(maps.normalScale, -maps.normalScale); }
+  if (maps.occlusion !== null) { own.aoMap = maps.occlusion; own.aoMapIntensity = maps.occlusionStrength; }
+  if (maps.emissive !== null) own.emissiveMap = maps.emissive;
+  if (named.emissive !== null) own.emissive.copy(named.emissive);
+  if (m instanceof MeshStandardMaterial && maps.metallicRoughness !== null) { m.roughnessMap = maps.metallicRoughness; m.metalnessMap = maps.metallicRoughness; }
+}
 
 /**
  * The family variants every installed prop shares, per family material: a toon or painterly prop draws with its family's
@@ -36,6 +65,7 @@ function acquireVariant(family: Material, surface: Surface): Material {
     }
     if (m instanceof MeshStandardMaterial) { if (surface.roughness !== null) m.roughness = surface.roughness; if (surface.metalness !== null) m.metalness = surface.metalness; }
     m.vertexColors = surface.vertexColours; m.side = surface.side; m.transparent = surface.transparent; m.opacity = surface.opacity;
+    if (surface.named !== undefined) applyMaps(m, surface.named);
   });
   byKey.set(key, { material, holders: 1, scope });
   return material;
@@ -61,15 +91,22 @@ export interface InstalledProps { tiles: ReadonlyMap<string, Object3D>; panels: 
  * Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level. Every
  * prop mesh draws with a shared variant of the family material that keeps the family's program (toon and painterly
  * shading survive), so props add no programs beyond the family's own variants.
+ *
+ * `surfaces` (SF55, named prop materials) replaces the one family: each GLB material's exact name resolves to its own base
+ * material and texture slots (the port throws for a name it does not carry, so an unmapped material refuses the install,
+ * never draws a guess). A family base draws as a shared variant carrying the GLB's factors and the slots; a graph's node
+ * material is shared as compiled. Without `surfaces` nothing changes.
  */
 export async function installDeclaredProps(props: DeclaredProps, ports: {
   scene: Object3D; scope: Scope; assets: ReadonlyMap<string, Uint8Array>; materials: ReadonlyMap<string, Material>;
   textures?: ReadonlyMap<string, Texture>; lod?: 0 | 1 | 'far'; selectedTiles?: ReadonlySet<string>; includeLibrary?: boolean;
+  surfaces?: (name: string) => PropSurfaceBinding;
 }): Promise<InstalledProps> {
-  const roots = new Group(), geometries = new Set<BufferGeometry>(), held: Material[] = [];
+  const roots = new Group(), geometries = new Set<BufferGeometry>(), held: Material[] = [], bases = new Map<Material, Material>();
   const family = ports.materials.get(props.family); if (family === undefined) throw new Error(`Unresolved props family ${props.family}`);
   let disposed = false;
-  const releaseAll = (): void => { for (const g of geometries) g.dispose(); geometries.clear(); for (const m of held.splice(0)) releaseVariant(family, m); };
+  const release = (m: Material): void => { releaseVariant(bases.get(m) ?? family, m); };
+  const releaseAll = (): void => { for (const g of geometries) g.dispose(); geometries.clear(); for (const m of held.splice(0)) release(m); };
   ports.scope.onDispose(() => { disposed = true; roots.removeFromParent(); releaseAll(); });
   const parse = async (hash: string): Promise<Object3D> => {
     const bytes = ports.assets.get(hash); if (bytes === undefined) throw new Error('Missing admitted props GLB');
@@ -81,12 +118,21 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
       geometries.add(o.geometry);
       const original = Array.isArray(o.material) ? o.material : [o.material];
       const vertexColours = o.geometry.hasAttribute('color');
-      const convert = (source: Material | undefined): Material => {
+      const named = ports.surfaces;
+      const convert = named === undefined ? (source: Material | undefined): Material => {
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null;
         const m = acquireVariant(family, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: texture, vertexColours,
           side: source?.side ?? family.side, transparent: source?.transparent ?? family.transparent, opacity: source?.opacity ?? family.opacity });
         // the GLB's own material is only read: it never reaches the GPU
         source?.dispose(); held.push(m); return m;
+      } : (source: Material | undefined): Material => {
+        const binding = named(source?.name ?? '');
+        if (isNodeMaterial(binding.material)) { source?.dispose(); return binding.material; }
+        const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null, base = binding.material;
+        const m = acquireVariant(base, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: undefined, vertexColours,
+          side: source?.side ?? base.side, transparent: source?.transparent ?? base.transparent, opacity: source?.opacity ?? base.opacity,
+          named: { maps: binding.maps, emissive: glb?.emissive ?? null } });
+        source?.dispose(); held.push(m); bases.set(m, base); return m;
       };
       o.material = Array.isArray(o.material) ? original.map(convert) : convert(original[0]);
       o.castShadow = o.userData['castShadow'] !== false; o.receiveShadow = true;
@@ -104,7 +150,7 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
       const root = tiles.get(key); if (root === undefined) return; root.removeFromParent(); tiles.delete(key);
       root.traverse((o) => {
         if (!isMesh(o)) return; if (geometries.delete(o.geometry)) o.geometry.dispose();
-        for (const m of Array.isArray(o.material) ? o.material : [o.material]) { const at = held.indexOf(m); if (at !== -1) { held.splice(at, 1); releaseVariant(family, m); } }
+        for (const m of Array.isArray(o.material) ? o.material : [o.material]) { const at = held.indexOf(m); if (at !== -1) { held.splice(at, 1); release(m); } }
       });
     };
     ports.scene.add(roots); return { tiles, panels, models, far, disposeTile };

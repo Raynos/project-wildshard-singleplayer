@@ -94,10 +94,10 @@ function standIn(): THREE.BufferGeometry {
   return g;
 }
 
-/** the parts of a family material that change its program, beyond the family's shared key */
+/** the parts of a family material that change its program, beyond the family's shared key (a named prop surface's maps among them, SF55) */
 function variantKey(m: THREE.Material): string {
   const s = m as THREE.MeshStandardMaterial;
-  return `${m.customProgramCacheKey()}|${m.type}|${s.vertexColors ? 'v' : ''}${s.flatShading ? 'f' : ''}${s.map ? 'm' : ''}|${m.side}|${m.alphaTest > 0 ? 't' : ''}|${m.transparent ? 'a' : ''}|${m.toneMapped ? 'k' : ''}`;
+  return `${m.customProgramCacheKey()}|${m.type}|${s.vertexColors ? 'v' : ''}${s.flatShading ? 'f' : ''}${s.map ? 'm' : ''}${s.normalMap ? 'n' : ''}${s.aoMap ? 'o' : ''}${s.emissiveMap ? 'e' : ''}${s.roughnessMap ? 'r' : ''}|${m.side}|${m.alphaTest > 0 ? 't' : ''}|${m.transparent ? 'a' : ''}|${m.toneMapped ? 'k' : ''}`;
 }
 
 /**
