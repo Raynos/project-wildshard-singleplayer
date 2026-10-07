@@ -136,6 +136,12 @@ export const GroundLayerSchema = v.strictObject({
   saturation: v.optional(v.strictObject({ flat: nonNegative, facing: nonNegative, coolTint: linear, keep: unit }), { flat: 1.2, facing: 2.2, coolTint: [0.9, 0.9, 1.28], keep: 0.4 }),
   /** faces turned from a glow direction (x, z) fall dark by amount (an adapter raises it as the light goes) */
   away: v.optional(v.strictObject({ from: v.tuple([finite, finite]), amount: unit }), { from: [0, -1], amount: 0 }),
+  /**
+   * up to four light pools on the ground (campfires, lanterns): each adds the albedo × its colour × its strength × gain ×
+   * (1 − d / radius)³ to the sky light; a pool weaker than `split` takes `low` (a lamp), from it `high` (a fire). The points
+   * and strengths move every frame through `setGroundPools` (uniforms only); null = none.
+   */
+  pools: v.optional(v.nullable(v.strictObject({ low: linear, high: linear, split: unit, radius: positive, gain: nonNegative })), null),
 });
 /** A ground layer with every default filled. */
 export type GroundLayerParams = v.InferOutput<typeof GroundLayerSchema>;

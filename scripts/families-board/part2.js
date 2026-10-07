@@ -12,7 +12,6 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { Scope } from '@wildshard/engine/app/scope';
 import { paintGeometry, painterlyMaterial, painterlyUniforms, setPainterlyLook } from '@wildshard/engine/world/painterly';
-import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
@@ -22,11 +21,6 @@ import { Shared } from '../../src/shards/nine-dragon-stack/look/style';
 import { GlyphAtlas } from '../../src/shards/nine-dragon-stack/look/glyphs';
 import { NeonSigns, NEON_LOOK } from '../../src/shards/nine-dragon-stack/look/neonsigns';
 import { chars } from '../../src/shards/nine-dragon-stack/util';
-import { loadPaintedSky, paintedSkyMaterial, PAINTED } from '../../src/shards/sunscar-dunes/look/painted';
-import { DUSK } from '../../src/shards/sunscar-dunes/look/dusk';
-import { KEY, FOG, signalDunesLook } from '../../src/shards/sunscar-dunes/look/render';
-import { duneHeight, WIND } from '../../src/shards/sunscar-dunes/world/dunes';
-import { GROUND_HALF, SEED, SPAWN, TOWER, TRAIL } from '../../src/shards/sunscar-dunes/layout';
 
 /** @param {THREE.WebGLRenderer} renderer @param {number} size */
 export function part2(renderer, size) {
@@ -175,75 +169,8 @@ export function part2(renderer, size) {
     return { today: today.url, family: frame.url, diff: compare(today.pixels, frame.pixels), precompile: reading, notes };
   }
 
-  /** Signal Dunes: the painted dusk dome, its own program, then the emissive family's sky (the dusk fed as the look's blend) */
-  async function sky(dusk) {
-    const stages = await loadPaintedSky();
-    if (stages === null) throw new Error('the painted dusk strips did not load');
-    DUSK.value = dusk;
-    const scene = new THREE.Scene();
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(120, 48, 24), paintedSkyMaterial(stages, DUSK));
-    dome.renderOrder = -1000; dome.frustumCulled = false;
-    scene.add(dome);
-    const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 300);
-    camera.position.set(0, 0, 0); camera.lookAt(0.18, 0.28, -1);
-    const draw = display(scene, camera);
-    const today = shot(draw);
-    const scope = new Scope('families-board-2');
-    const look = new EmissiveLook({ blend: dusk });
-    const fctx = { toon: new ToonLook(), emissive: look, textures: (ref) => { const t = { 'sd:early': stages[0], 'sd:late': stages[1] }[ref]; if (t === undefined) throw new Error(ref); return t; }, scope };
-    dome.material = familyMaterial({ family: 'emissive', sky: { maps: ['sd:early', 'sd:late'], elevation: [PAINTED.elevBottom, PAINTED.elevTop], window: [...PAINTED.dusk], firstGain: [0.64, 1], hold: 2.5 } }, fctx);
-    const { frame, reading } = precompiled(scene, camera, () => shot(draw), draw.rt);
-    look.set({ blend: dusk > 0.5 ? 0 : 1 });
-    const control = compare(today.pixels, shot(draw).pixels);
-    const notes = [`control (the other end of the blend): mean ${control.mean}, ${control.over8}% of pixels off by > 8`];
-    scope.dispose();
-    return { today: today.url, family: frame.url, diff: compare(today.pixels, frame.pixels), precompile: reading, notes };
-  }
+  // (SF50 retired Signal Dunes' own sky and sand shaders under G112: the shard now draws the emissive family's sky and the PBR
+  // family's ground layer, so their today-vs-family rows are history in progress/families/sf10a-painterly-emissive.jpg)
 
-  /** Signal Dunes: the sand at the spawn, its own patched MeshStandard, then the PBR family's ground layer (same baked maps) */
-  async function sand() {
-    DUSK.value = 0;
-    const field = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
-    const scope = new Scope('families-board-2');
-    const terrain = { group: new THREE.Group(), mesh: null, material: null };
-    const look = signalDunesLook();
-    if (look.terrainPainter === undefined) throw new Error('Signal Dunes paints its own ground');
-    await look.terrainPainter.build(terrain, field, scope);
-    const scene = new THREE.Scene();
-    scene.add(terrain.group);
-    scene.background = new THREE.Color(FOG.color);
-    scene.fog = new THREE.Fog(new THREE.Color(FOG.color), FOG.near, FOG.far);
-    const sun = new THREE.DirectionalLight(KEY.color, KEY.intensity);
-    sun.position.copy(KEY.dir).multiplyScalar(100);
-    scene.add(sun, sun.target, new THREE.HemisphereLight(new THREE.Color(0.42, 0.36, 0.55), new THREE.Color(0.3, 0.17, 0.1), 0.9));
-    const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 900);
-    const gy = field.heightAt(SPAWN.x, SPAWN.z);
-    camera.position.set(SPAWN.x, gy + 1.7, SPAWN.z);
-    camera.lookAt(TOWER.x * 0.4, gy - 1.2, SPAWN.z - 30);
-    const draw = display(scene, camera);
-    const today = shot(draw);
-
-    // the baked maps the shard made, as texture references (a shardfile would carry them as files)
-    const todayMat = terrain.material;
-    const u = renderer.properties.get(todayMat).uniforms;
-    const grain = u.uSandGrain.value, maps = { 'sd:shadow': u.uSandShadow.value, 'sd:trail': u.uSandTrail.value, 'sd:grain': grain };
-    const fctx = { toon: new ToonLook(), textures: (ref) => { const t = maps[ref]; if (t === undefined) throw new Error(ref); return t; }, scope };
-    const fam = familyMaterial({ family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: {
-      wind: [WIND.x, WIND.z],
-      grain: { map: 'sd:grain', mean: grain.userData.meanR, glintMean: grain.userData.meanGlint, strength: 1 },
-      trail: { map: 'sd:trail', rect: [-GROUND_HALF, -GROUND_HALF, GROUND_HALF, GROUND_HALF], ripples: 0.5, tint: [1.1, 1.05, 0.98], amount: 0.6 },
-      keyShadow: { map: 'sd:shadow', rect: [-520, -520, 520, 520], edge: [0.25, 0.75], floor: 0.28 },
-    } }, fctx);
-    terrain.group.traverse((o) => { if (o instanceof THREE.Mesh && o.material === todayMat) o.material = fam; });
-    const { frame, reading } = precompiled(scene, camera, () => shot(draw), draw.rt);
-    const notes = ['sand: Signal Dunes\' dune field and baked shadow / trail / grain maps; fire pools (lights at the dusk steps) not in the family'];
-    const { updateGround } = await import('@wildshard/engine/render/families/ground');
-    updateGround(fam, { contrast: { near: 0.52, far: 0.26, window: [4, 26], strength: 0 } });
-    const control = compare(today.pixels, shot(draw).pixels);
-    notes.push(`control (ripple contrast 0): mean ${control.mean}, ${control.over8}% of pixels off by > 8`);
-    scope.dispose();
-    return { today: today.url, family: frame.url, diff: compare(today.pixels, frame.pixels), precompile: reading, notes };
-  }
-
-  return { painterly, neon, sky, sand };
+  return { painterly, neon };
 }

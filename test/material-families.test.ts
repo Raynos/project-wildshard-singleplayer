@@ -4,7 +4,7 @@ import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
 import { parseFamilyMaterial, parseGroundLayer, parsePainterlyLook, parseToonLook } from '../src/engine/render/families/params';
 import { compileEmissive, EMISSIVE_PROGRAM_KEY, EmissiveLook, injectEmissive } from '../src/engine/render/families/emissive';
-import { GROUND_PROGRAM_KEY, updateGround } from '../src/engine/render/families/ground';
+import { GROUND_POOLS, GROUND_PROGRAM_KEY, setGroundPools, updateGround } from '../src/engine/render/families/ground';
 import { compilePainterly, gradeRgb, PAINTERLY_PROGRAM_KEY, PainterlyLook } from '../src/engine/render/families/painterly';
 import { ungrade } from '../src/shards/nalati-grasslands/look/grade';
 import { compilePbr, pbrFillers, type TextureUse } from '../src/engine/render/families/pbr';
@@ -83,7 +83,10 @@ describe('the PBR family', () => {
     expect(asked).toEqual([['o', 'data'], ['c', 'colour']]);
     expect(m.normalMap).toBe(pbrFillers().flatNormal);
     expect([m.map, m.aoMap, m.roughnessMap, m.metalnessMap]).toEqual([tex, tex, tex, tex]);
-    expect([m.aoMapIntensity, m.normalScale.x, m.normalScale.y]).toEqual([0, 0.5, -0.5]);
+    // the flat filler (128 / 255) is not exactly zero: with no normal map the scale is zero, so the geometry normal stands (SF50)
+    expect([m.aoMapIntensity, m.normalScale.x, m.normalScale.y]).toEqual([0, 0, 0]);
+    const mapped = compilePbr(parsePbr({ maps: { colour: null, normal: 'n', orm: null }, normalScale: 0.5 }), () => tex);
+    expect([mapped.normalScale.x, mapped.normalScale.y]).toEqual([0.5, -0.5]);
     const bare = compilePbr(parsePbr({}), () => tex);
     expect([bare.map, bare.aoMap, bare.aoMapIntensity]).toEqual([pbrFillers().white, pbrFillers().white, 0]);
   });
@@ -244,6 +247,32 @@ describe('the PBR family\'s ground layer', () => {
     expect(() => { updateGround(new THREE.MeshStandardMaterial(), {}); }).toThrow(/ground layer/);
     expect(compilePbr(parsePbr({}), () => tex).customProgramCacheKey()).not.toBe(GROUND_PROGRAM_KEY);
     expect(() => parseGroundLayer({ trail: { map: 't', rect: [1, 0, 0, 1], ripples: 0.5, tint: [1, 1, 1], amount: 0.6 } })).toThrow(/rect/);
+  });
+
+  it('lights up to four pools (SF50: Signal Dunes\' fires) by uniforms, kept live across updateGround', () => {
+    const tex = new THREE.Texture();
+    const m = compilePbr(parsePbr({ ground: { pools: { low: [1, 0.72, 0.32], high: [1, 0.42, 0.14], split: 0.5, radius: 10, gain: 0.17 } } }), () => tex);
+    expect(m.customProgramCacheKey()).toBe(GROUND_PROGRAM_KEY);
+    const sh = compiled(m);
+    expect(sh.fragmentShader.indexOf('famGPools[ i ]')).toBeGreaterThan(sh.fragmentShader.indexOf('famGShadeFloor;\n'));
+    expect(sh.fragmentShader.indexOf('famGPools[ i ]')).toBeLessThan(sh.fragmentShader.indexOf('float away ='));
+    expect(vec3(sh.uniforms['famGPoolK'])).toEqual(new THREE.Vector3(0.5, 10, 0.17));
+    const pools: unknown = sh.uniforms['famGPools']?.value;
+    if (!Array.isArray(pools)) throw new Error('famGPools is an array');
+    expect(pools).toHaveLength(GROUND_POOLS);
+    setGroundPools(m, [{ x: 1, y: 2, z: 3, w: 1 }, new THREE.Vector4(4, 5, 6, 0.3)]);
+    expect(pools[0]).toEqual(new THREE.Vector4(1, 2, 3, 1));
+    expect(pools[1]).toEqual(new THREE.Vector4(4, 5, 6, 0.3));
+    expect(pools[2]).toEqual(new THREE.Vector4(0, 0, 0, 0));
+    updateGround(m, { sheen: 0.2 });
+    expect(sh.uniforms['famGPools']?.value).toBe(pools);
+    expect(pools[0]).toEqual(new THREE.Vector4(1, 2, 3, 1));
+    setGroundPools(m, []);
+    expect(pools[0]).toEqual(new THREE.Vector4(0, 0, 0, 0));
+    expect(() => { setGroundPools(m, [{ x: Number.NaN, y: 0, z: 0, w: 1 }]); }).toThrow(RangeError);
+    expect(() => { setGroundPools(new THREE.MeshStandardMaterial(), []); }).toThrow(/ground layer/);
+    const plain = compiled(compilePbr(parsePbr({ ground: {} }), () => tex));
+    expect(vec3(plain.uniforms['famGPoolK']).z).toBe(0);
   });
 });
 

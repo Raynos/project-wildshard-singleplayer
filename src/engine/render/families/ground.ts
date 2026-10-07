@@ -9,7 +9,8 @@
  * - broad albedo drifts, pale wind streaks and an optional trail mask;
  * - **terrain light shaping** for the key (the scene's first directional light): a baked visibility map, a crisp
  *   terminator on the ground's own normal, a brighter grazing band, a sheen, a coloured shade fill, a light-saturation
- *   split and an "away from the glow" darkening an adapter raises as the light goes.
+ *   split and an "away from the glow" darkening an adapter raises as the light goes;
+ * - up to four **light pools** (campfires, lanterns) warming the ground round them, moved every frame by `setGroundPools`.
  * It is Signal Dunes' sand shader with its numbers as parameters (GroundLayerSchema); a runtime adapter moves them with
  * `updateGround` (uniforms only). Identifiers carry a `famG` prefix.
  */
@@ -60,6 +61,10 @@ uniform vec3 famGShadeK;     // gain, amount, edge
 uniform vec2 famGSat;        // flat, facing
 uniform vec4 famGCool;       // cool tint, keep
 uniform vec3 famGAway;       // from (x, z), amount
+uniform vec4 famGPools[ 4 ]; // xyz the pool, w its strength (0 = out)
+uniform vec3 famGPoolLow;
+uniform vec3 famGPoolHigh;
+uniform vec3 famGPoolK;      // split, radius, gain
 float famGAA( float phase ) { return 1.0 - smoothstep( 0.5, 1.8, fwidth( phase ) ); }
 float famGH( vec2 p ) { return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 ); }
 float famGN( vec2 p ) { vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f );
@@ -157,6 +162,10 @@ const FRAG_LIGHT = /* glsl */`
 		vec3 fill = reflectedLight.indirectDiffuse;
 		reflectedLight.indirectDiffuse = mix( reflectedLight.indirectDiffuse, fill * famGShadeTint * famGShadeK.x + famGShadeLift * shadeK, shadeK * famGShadeK.y );
 		reflectedLight.indirectDiffuse += famGShadeFloor;
+		for ( int i = 0; i < 4; i ++ ) {
+			float poolD = length( vFamGPos - famGPools[ i ].xyz );
+			reflectedLight.indirectDiffuse += diffuseColor.rgb * mix( famGPoolLow, famGPoolHigh, step( famGPoolK.x, famGPools[ i ].w ) ) * famGPools[ i ].w * pow( max( 0.0, 1.0 - poolD / famGPoolK.y ), 3.0 ) * famGPoolK.z;
+		}
 		vec2 glowXZ = normalize( famGAway.xy + vec2( 1e-6 ) );
 		float away = famGAway.z * ( 1.0 - smoothstep( -0.45, -0.05, dot( famGNrm.xz, glowXZ ) ) ) * smoothstep( 0.08, 0.3, length( famGNrm.xz ) );
 		reflectedLight.indirectDiffuse *= 1.0 - away; reflectedLight.directDiffuse *= 1.0 - away;
@@ -191,7 +200,9 @@ function filler(): THREE.DataTexture {
 }
 
 type Uniforms = Record<string, THREE.IUniform>;
-interface GroundState { params: GroundLayerParams; readonly uniforms: Uniforms; readonly textures: TextureResolver }
+interface GroundState { params: GroundLayerParams; readonly uniforms: Uniforms; readonly textures: TextureResolver; readonly pools: readonly THREE.Vector4[] }
+/** how many light pools a ground layer draws */
+export const GROUND_POOLS = 4;
 const states = new WeakMap<THREE.Material, GroundState>();
 
 const v2 = (a: number, b: number): THREE.Vector2 => new THREE.Vector2(a, b);
@@ -236,13 +247,17 @@ function uniformsOf(p: GroundLayerParams, textures: TextureResolver): Uniforms {
     famGSat: { value: v2(p.saturation.flat, p.saturation.facing) },
     famGCool: { value: v4(...p.saturation.coolTint, p.saturation.keep) },
     famGAway: { value: v3(p.away.from[0], p.away.from[1], p.away.amount) },
+    famGPoolLow: { value: p.pools === null ? v3(0, 0, 0) : v3(...p.pools.low) },
+    famGPoolHigh: { value: p.pools === null ? v3(0, 0, 0) : v3(...p.pools.high) },
+    famGPoolK: { value: p.pools === null ? v3(0.5, 1, 0) : v3(p.pools.split, p.pools.radius, p.pools.gain) },
   };
 }
 
 /** Add a ground layer to a PBR family material (the PBR compiler calls it; the program becomes the ground program). */
 export function applyGround(m: THREE.MeshStandardMaterial, params: GroundLayerParams, textures: TextureResolver): void {
-  const uniforms = uniformsOf(params, textures);
-  states.set(m, { params, uniforms, textures });
+  const pools = Array.from({ length: GROUND_POOLS }, () => new THREE.Vector4());
+  const uniforms: Uniforms = { ...uniformsOf(params, textures), famGPools: { value: pools } };
+  states.set(m, { params, uniforms, textures, pools });
   m.userData['familyUniforms'] = uniforms;
   patchShader(m, 'engine.family.ground', PATCH_ORDER.material, (shader) => {
     Object.assign(shader.uniforms, uniforms);
@@ -269,5 +284,23 @@ export function updateGround(m: THREE.Material, params: Partial<GroundLayerParam
     else if (cur instanceof THREE.Vector3 && val instanceof THREE.Vector3) cur.copy(val);
     else if (cur instanceof THREE.Vector2 && val instanceof THREE.Vector2) cur.copy(val);
     else live.value = val;
+  }
+}
+
+/** A light pool's place (x, y, z) and strength (w: 0 = out). */
+export interface GroundPool { readonly x: number; readonly y: number; readonly z: number; readonly w: number }
+/**
+ * Move a ground layer's light pools (a runtime adapter: Signal Dunes' burning fires): up to `GROUND_POOLS` points, the
+ * rest go out. Uniforms only, cheap enough for every frame; the layer's `pools` colours / radius / gain light them.
+ */
+export function setGroundPools(m: THREE.Material, points: readonly GroundPool[]): void {
+  const state = states.get(m);
+  if (state === undefined) throw new Error('setGroundPools: not a PBR family material with a ground layer');
+  for (let i = 0; i < state.pools.length; i++) {
+    const p = points[i], live = state.pools[i];
+    if (live === undefined) continue;
+    if (p === undefined) { live.set(0, 0, 0, 0); continue; }
+    if (![p.x, p.y, p.z, p.w].every(Number.isFinite) || p.w < 0) throw new RangeError('setGroundPools: a pool is finite with a strength >= 0');
+    live.set(p.x, p.y, p.z, p.w);
   }
 }

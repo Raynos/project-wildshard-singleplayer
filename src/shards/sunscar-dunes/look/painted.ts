@@ -1,5 +1,4 @@
-import { ClampToEdgeWrapping, LinearFilter, RepeatWrapping, ShaderMaterial, BackSide, SRGBColorSpace, Texture } from 'three';
-import { SKY_VERTEX } from './sky';
+import { ClampToEdgeWrapping, LinearFilter, RepeatWrapping, SRGBColorSpace, Texture } from 'three';
 import { PAINTED_STAGES, paintedUrl, type PaintedStage } from '../boot/files';
 
 /**
@@ -42,58 +41,5 @@ export async function loadPaintedSky(): Promise<readonly [Texture, Texture] | nu
   return null;
 }
 
-const SKY_PAINTED_FRAGMENT = /* glsl */ `
-uniform sampler2D uEarly;
-uniform sampler2D uLate;
-uniform float uDusk;
-varying vec3 vDir;
-float starHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
-vec3 strip(sampler2D t, vec2 uv) { return texture2D(t, uv).rgb; }
-void main() {
-  vec3 d = normalize(vDir);
-  float heading = fract(atan(d.x, -d.z) / 6.2831853 + 1.0);
-  float elev = degrees(asin(clamp(d.y, -1.0, 1.0)));
-  // round 19 (seat C: the painted ranges floated above the real 3-D ranges, a second violet horizon): under 2.5 deg the sky
-  // holds the painting's colour at 2.5 deg, so the 3-D horizon rings own the silhouette
-  float v = clamp((max(elev, 2.5) - ${PAINTED.elevBottom.toFixed(1)}) / ${(PAINTED.elevTop - PAINTED.elevBottom).toFixed(1)}, 0.002, 0.998);
-  vec2 uv = vec2(heading, v);
-  // the stages by the dusk: early up to its own dusk, late past its own
-  // round 18b (the lead: A's sky 1.4-1.9x the mockup's, 134 against 97 at the band, 76 against 40 at the top): the early
-  // stage at 0.64
-  float wL = smoothstep(${PAINTED.dusk[0].toFixed(2)}, ${PAINTED.dusk[1].toFixed(2)}, uDusk);
-  // round 19b (seat B: the early stage's 0.64 clipped B's and C's navy tops to pure blue): the gain only low, where the
-  // early re-colour lives; the top keeps the late painting's own values
-  float eGain = mix(0.64, 1.0, smoothstep(10.0, 30.0, elev));
-  vec3 c = mix(strip(uEarly, uv) * eGain, strip(uLate, uv), wL);
-  // round 19b (seat B: the 2.5 deg hold stretched each heading's row into vertical streaks): under 5 deg the sky eases into
-  // its colour averaged over +-4 deg of heading at the true elevation (held at >= 1.2 deg, over the painted ranges), so the
-  // bright line just above the horizon keeps its peak (seat C: D 125 against 166 under a 3 deg hold)
-  vec3 low = vec3(0.0);
-  float v3 = (max(elev, 0.8) - ${PAINTED.elevBottom.toFixed(1)}) / ${(PAINTED.elevTop - PAINTED.elevBottom).toFixed(1)};
-  for (int k = -4; k <= 4; k++) { vec2 q = vec2(heading + float(k) / 720.0, v3); low += mix(strip(uEarly, q) * 0.64, strip(uLate, q), wL); }
-  c = mix(low / 9.0, c, smoothstep(2.0, 4.0, elev)); // round 21: +-2 deg, held at 0.8 deg (seat C: D's peak 129 against 166, h3 a flat violet band)
-  // round 19 (seat B: h3 showed a ragged electric-blue seam where the painting ends at 45 deg, its top row's stars
-  // stretched upward): from 38 deg the sky eases into the strips' top averaged round the heading, a little darker to the zenith
-  vec3 top = vec3(0.0);
-  for (int k = 0; k < 8; k++) { vec2 q = vec2(heading + float(k) / 8.0, 0.96); top += mix(strip(uEarly, q), strip(uLate, q), wL); }
-  top /= 8.0;
-  c = mix(c, top, smoothstep(38.0, 45.0, elev)) * (1.0 - 0.3 * smoothstep(${PAINTED.elevTop.toFixed(1)}, 90.0, elev));
-  // crisp stars where the painted sky is dark (the mockups' stars are sharp white points; the strip is magnified ~3x)
-  vec3 cellP = d * 300.0, cell = floor(cellP);
-  vec3 spot = cell + 0.5 + (vec3(starHash(cell + 1.7), starHash(cell + 5.3), starHash(cell + 9.1)) - 0.5) * 0.5;
-  float starDot = 1.0 - smoothstep(0.08, 0.4, length(cellP - spot));
-  float dark = 1.0 - smoothstep(0.02, 0.08, dot(c, vec3(0.2126, 0.7152, 0.0722)));
-  float star = step(0.9955, starHash(cell)) * starDot * dark * smoothstep(8.0, 20.0, elev) * smoothstep(0.45, 0.7, uDusk);
-  c += vec3(0.75, 0.78, 0.85) * star * (0.5 + 0.6 * starHash(cell + 3.1));
-  // dithered: a smooth dark gradient crossed one 8-bit step in a visible line
-  c += (starHash(vec3(gl_FragCoord.xy, 7.0)) - 0.5) * 0.004;
-  gl_FragColor = vec4(max(c, vec3(0.0)), 1.0);
-}`;
-
-/** The painted dome's material (the stages already linear: the strips are sRGB textures). */
-export function paintedSkyMaterial(stages: readonly [Texture, Texture], dusk: { value: number }): ShaderMaterial {
-  const [early, late] = stages;
-  return new ShaderMaterial({ side: BackSide, depthWrite: false, depthTest: false, fog: false,
-    uniforms: { uEarly: { value: early }, uLate: { value: late }, uDusk: dusk },
-    vertexShader: SKY_VERTEX, fragmentShader: SKY_PAINTED_FRAGMENT });
-}
+// The dome itself is the emissive family's sky (look/families.ts SKY_ENTRY: these numbers, the strips as its two maps, the
+// dusk as its look's blend; SF50 retired this shard's own painted-sky shader under G112).

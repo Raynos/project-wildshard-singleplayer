@@ -204,16 +204,13 @@ async function pbr() {
   return { today: today.url, family: frame.url, diff: compare(today.pixels, frame.pixels), precompile: reading, notes };
 }
 
-/** @param {'toon-midday' | 'toon-golden' | 'pbr' | 'painterly' | 'neon' | 'sky-early' | 'sky-late' | 'sand'} kind */
+/** @param {'toon-midday' | 'toon-golden' | 'pbr' | 'painterly' | 'neon'} kind */
 window.familiesBoard = (kind) => {
   const p2 = part2(renderer, SIZE);
   switch (kind) {
     case 'pbr': return pbr();
     case 'painterly': return Promise.resolve(p2.painterly());
     case 'neon': return Promise.resolve(p2.neon());
-    case 'sky-early': return p2.sky(0);
-    case 'sky-late': return p2.sky(0.8);
-    case 'sand': return p2.sand();
     case 'toon-golden': return Promise.resolve(toon(true));
     case 'toon-midday': return Promise.resolve(toon(false));
     default: return Promise.reject(new Error(`unknown panel ${String(kind)}`));

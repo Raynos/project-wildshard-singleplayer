@@ -5,7 +5,7 @@
 //
 //   scripts/browser-lane.sh node scripts/families-board/run.mjs [--set=part1|part2] [--out=<jpg>] [--scratch=<dir>]
 //   part1 (default): toon + PBR → progress/families/sf10a-toon-pbr.jpg
-//   part2: painterly (Nalati), emissive (Nine Dragon's neon, Signal Dunes' sky), PBR ground (Signal Dunes' sand)
+//   part2: painterly (Nalati), emissive (Nine Dragon's neon); Signal Dunes' sky and sand rows retired with their old shaders (SF50, G112)
 //          → progress/families/sf10a-painterly-emissive.jpg
 //
 // Prints one JSON line per panel: the pixel difference (mean / max per channel on 0–255, % of pixels off by > 8, PSNR)
@@ -22,7 +22,7 @@ const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };
 const SET = flag('set', 'part1');
 const OUT = resolvePath(ROOT, flag('out', SET === 'part2' ? 'progress/families/sf10a-painterly-emissive.jpg' : 'progress/families/sf10a-toon-pbr.jpg'));
-const KINDS = flag('kinds', '') !== '' ? flag('kinds', '').split(',') : SET === 'part2' ? ['painterly', 'neon', 'sky-early', 'sky-late', 'sand'] : ['toon-midday', 'toon-golden', 'pbr'];
+const KINDS = flag('kinds', '') !== '' ? flag('kinds', '').split(',') : SET === 'part2' ? ['painterly', 'neon'] : ['toon-midday', 'toon-golden', 'pbr'];
 const SCRATCH = resolvePath(flag('scratch', join(tmpdir(), `families-board-${process.pid}`)));
 const DIST = join(SCRATCH, 'dist');
 mkdirSync(SCRATCH, { recursive: true });
@@ -84,7 +84,7 @@ rows = [('toon-midday', 'Driftwood Isle - sailboat - midday', 'toon family'), ('
 title, sub = 'Material families v1: today vs family', 'SF10a part 1 - same light, camera and ground; only the prop material changes'
 if part == 'part2':
     P = 440
-    rows = [('painterly', 'Nalati Grasslands - camp still life (today: material + grade pass)', 'painterly + grade'), ('neon', 'Nine Dragon Stack - neon calligraphy sign (tubes)', 'emissive tube'), ('sky-early', 'Signal Dunes - painted dusk sky, sunset step (dusk 0)', 'emissive sky'), ('sky-late', 'Signal Dunes - painted dusk sky, blue hour (dusk 0.8)', 'emissive sky'), ('sand', 'Signal Dunes - sand at the spawn, dusk 0', 'PBR + ground layer')]
+    rows = [('painterly', 'Nalati Grasslands - camp still life (today: material + grade pass)', 'painterly + grade'), ('neon', 'Nine Dragon Stack - neon calligraphy sign (tubes)', 'emissive tube')]
     title, sub = 'Material families v1 part 2: today vs family', 'SF10a part 2 - painterly, emissive and the PBR ground layer; same light, camera and display per row'
 H = 150 + len(rows) * (P + 140) + 30
 board = Image.new('RGB', (W, H), (24, 26, 30))

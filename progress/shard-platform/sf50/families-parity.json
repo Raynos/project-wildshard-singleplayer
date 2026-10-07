@@ -1,0 +1,173 @@
+{
+ "$doc": "SF50: Signal Dunes sky + sand on the material families vs today (scripts/shard-progress.mjs shots, iPhone 16 Pro portrait, phone tier, muted). today = 1900948f7 export; family = 15cc648f2 (b6b71578a + this change); rerun = a second capture of today (the noise floor: creatures, fire flicker, HUD). Per-pixel max-channel difference in 0..255 on the 780x1688 JPEGs.",
+ "stats": {
+  "aerial-overview": {
+   "family_vs_today": {
+    "mean": 0.334,
+    "p99": 3,
+    "over8pct": 0.01,
+    "max": 60
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.007,
+    "p99": 0,
+    "over8pct": 0.01,
+    "max": 61
+   }
+  },
+  "aerial-spawn": {
+   "family_vs_today": {
+    "mean": 0.396,
+    "p99": 3,
+    "over8pct": 0.02,
+    "max": 51
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.005,
+    "p99": 0,
+    "over8pct": 0.01,
+    "max": 47
+   }
+  },
+  "first-frame": {
+   "family_vs_today": {
+    "mean": 0.467,
+    "p99": 5,
+    "over8pct": 0.03,
+    "max": 90
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.036,
+    "p99": 2,
+    "over8pct": 0.0,
+    "max": 19
+   }
+  },
+  "h1-spawn-crest": {
+   "family_vs_today": {
+    "mean": 0.373,
+    "p99": 4,
+    "over8pct": 0.0,
+    "max": 44
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.227,
+    "p99": 3,
+    "over8pct": 0.01,
+    "max": 44
+   }
+  },
+  "h2-caravan": {
+   "family_vs_today": {
+    "mean": 0.812,
+    "p99": 7,
+    "over8pct": 0.63,
+    "max": 126
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.497,
+    "p99": 5,
+    "over8pct": 0.12,
+    "max": 54
+   }
+  },
+  "h3-waymark": {
+   "family_vs_today": {
+    "mean": 0.283,
+    "p99": 4,
+    "over8pct": 0.03,
+    "max": 181
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.19,
+    "p99": 4,
+    "over8pct": 0.01,
+    "max": 69
+   }
+  },
+  "h4-tower-deck": {
+   "family_vs_today": {
+    "mean": 0.406,
+    "p99": 4,
+    "over8pct": 0.12,
+    "max": 195
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.298,
+    "p99": 5,
+    "over8pct": 0.04,
+    "max": 138
+   }
+  },
+  "mock-A-spawn": {
+   "family_vs_today": {
+    "mean": 0.489,
+    "p99": 4,
+    "over8pct": 0.08,
+    "max": 123
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.281,
+    "p99": 4,
+    "over8pct": 0.05,
+    "max": 117
+   }
+  },
+  "mock-B-logbook": {
+   "family_vs_today": {
+    "mean": 0.361,
+    "p99": 4,
+    "over8pct": 0.21,
+    "max": 102
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.31,
+    "p99": 4,
+    "over8pct": 0.05,
+    "max": 33
+   }
+  },
+  "mock-C-waymark": {
+   "family_vs_today": {
+    "mean": 1.034,
+    "p99": 14,
+    "over8pct": 1.63,
+    "max": 211
+   },
+   "today_vs_today_rerun": {
+    "mean": 1.084,
+    "p99": 17,
+    "over8pct": 2.1,
+    "max": 215
+   }
+  },
+  "mock-D-hands": {
+   "family_vs_today": {
+    "mean": 0.189,
+    "p99": 3,
+    "over8pct": 0.05,
+    "max": 66
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.12,
+    "p99": 2,
+    "over8pct": 0.03,
+    "max": 63
+   }
+  },
+  "mock-dusk-fire": {
+   "family_vs_today": {
+    "mean": 0.479,
+    "p99": 4,
+    "over8pct": 0.02,
+    "max": 124
+   },
+   "today_vs_today_rerun": {
+    "mean": 0.257,
+    "p99": 4,
+    "over8pct": 0.01,
+    "max": 45
+   }
+  }
+ }
+}

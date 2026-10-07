@@ -48,7 +48,9 @@ export function compilePbr(params: PbrMaterialParams, textures: TextureResolver)
     normalMap: normal === null ? flatNormal : textures(normal, 'data'),
     // glTF's UV convention (unflipped textures, as GLB and KTX2 load): three's tangent frame expects flipped ones, so the
     // normal map's green runs the other way, as GLTFLoader sets it
-    normalScale: new THREE.Vector2(params.normalScale, -params.normalScale),
+    // (SF50: the 8-bit filler's 128 / 255 is not zero, so a 0.3 degree tilt along the UVs moved a low key's light by ~1 %;
+    // with no normal map the scale is zero and the geometry normal stands exactly)
+    normalScale: normal === null ? new THREE.Vector2(0, 0) : new THREE.Vector2(params.normalScale, -params.normalScale),
     aoMap: ormMap, aoMapIntensity: orm === null ? 0 : params.occlusion,
     roughnessMap: ormMap, metalnessMap: ormMap,
     roughness: params.roughness, metalness: params.metalness,
