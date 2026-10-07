@@ -1,0 +1,22 @@
+/* ─── SF38 / G30: the points budget overlay (src/game/grid/budgetOverlay.ts) ─── prefix ws-grid-budget- ───
+   Developer mode only, grid pages only: one line under the top bar and the quest tracker (below G168's red DEV strip's row), the crossroads'
+   score against 1.0 GB and each shard's against its §3.2 budget; a tap expands the raw bytes. Green / amber / red. */
+.ws-grid-budget { position: absolute; left: 6px; top: calc(var(--ws-top, 16px) + 150px); z-index: calc(var(--ws-layer-hud) + 6); max-width: min(360px, calc(100vw - 12px));
+  padding: 4px 7px; border: 1px solid rgba(255, 90, 74, 0.9); background: rgba(48, 6, 8, 0.82); color: #ffd9d4; font-family: var(--ws-mono); font-size: 9px; line-height: 1.35; letter-spacing: 0.08em;
+  pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.ws-grid-budget[hidden], #hud.intro .ws-grid-budget { display: none; }
+.ws-grid-budget-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; }
+.ws-grid-budget-title { flex: none; padding: 0 5px; background: var(--ws-red); color: #1a0203; font-weight: 700; letter-spacing: 0.14em; }
+.ws-grid-budget-x { font-weight: 700; }
+.ws-grid-budget-chip, .ws-grid-budget-x { white-space: nowrap; }
+.ws-grid-budget-chip[hidden] { display: none; }
+.ws-grid-budget [data-tone='green'] { color: #6ee08f; }
+.ws-grid-budget [data-tone='amber'] { color: #ffc35a; }
+.ws-grid-budget [data-tone='red'] { color: #ff6b5c; }
+.ws-grid-budget-detail { margin-top: 5px; max-height: 46vh; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid rgba(255, 90, 74, 0.45); padding-top: 4px; }
+.ws-grid-budget-detail[hidden] { display: none; }
+.ws-grid-budget-sec + .ws-grid-budget-sec { margin-top: 5px; }
+.ws-grid-budget-h { margin: 0 0 1px; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; color: #ffd9d4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-grid-budget-row { display: flex; justify-content: space-between; gap: 10px; padding-left: 6px; color: rgba(255, 217, 212, 0.82); }
+.ws-grid-budget-k { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-grid-budget-v { flex: none; white-space: nowrap; }

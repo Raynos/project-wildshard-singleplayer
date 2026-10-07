@@ -67,6 +67,7 @@ import { installBounds } from '@wildshard/engine/world/bounds';
 import { gridCells, gridHomeSim, pageMode } from '../grid/boot';
 import { installGridReveal } from '../grid/reveal';
 import { installGridHud } from '../grid/gridHud';
+import { installBudgetOverlay } from '../grid/budgetOverlay';
 import { ACCENTS } from '../shardfile/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
 import { findShard } from '../shard/registry';
@@ -474,6 +475,14 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     // G107: the minimap blends at the road boundary (the shard + the road + the neighbours' names inside; faded terrain on the road)
     const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
       name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope);
+    // SF38 / G30: Developer mode's points budget over the one live allocator (no element or timer until Developer is on)
+    const slugCount = new Map<string, number>();
+    for (const cell of grid.assembly.cells) slugCount.set(cell.slug, (slugCount.get(cell.slug) ?? 0) + 1);
+    const cellName = new Map(grid.assembly.cells.map((cell) => { const name = findShard(cell.slug)?.name ?? cell.slug; return [cell.instance, (slugCount.get(cell.slug) ?? 0) > 1 ? `${name} ${cell.cell[0]},${cell.cell[1]}` : name]; }));
+    const cellCost = new Map(grid.assembly.cells.map((cell) => [cell.instance, findShard(cell.slug)?.runtimeCost] as const));
+    const budget = installBudgetOverlay({ scope: game.levelScope, hudRoot: hud.root, allocator: grid.allocator, name: (owner) => cellName.get(owner) ?? owner, shard: (owner) => cellName.has(owner),
+      measuredMB: (owner) => { const cost = cellCost.get(owner); return cost === undefined ? null : cost.webContentMB + cost.glMB; } });
+    game.levelScope.onDispose(app.debug.scopedExpose('gridBudget', budget));
     game.levelScope.onDispose(app.debug.scopedExpose('gridHud', { state: gridHud, minimap: () => { const o = blend(); return { baseAlpha: o.baseAlpha ?? 1, images: o.images.map((m) => ({ x: m.x, z: m.z, alpha: m.alpha })), labels: o.labels.map((l) => l.text) }; } }));
   }
   // ?explore=hub|world|model|sets[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ShardManifest.explore — D4, E66; a note's "go there")
