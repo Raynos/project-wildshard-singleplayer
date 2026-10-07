@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-113 members; 0 without a doc line (—).
+116 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -112,6 +112,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `speciesResolver` | const | @wildshard/sdk/rows | Resolve declared variant health, collision dimensions and motion multipliers. |
 | `Firearm` | const | @wildshard/sdk/runtime/weapons/Firearm | The platform's one firearm constructor, preserving readiness, empty-trigger and reload hooks without a second implementation. |
 | `FirearmInstance` | type | @wildshard/sdk/runtime/weapons/Firearm | Trusted firearm trigger family for transitional shard runtime subclasses; views and tuning stay with the shard. |
+| `Weapon` | const | @wildshard/sdk/runtime/weapons/Weapon | The single platform weapon constructor; the trusted SDK surface adds no runtime state or implementation. |
+| `WeaponInstance` | type | @wildshard/sdk/runtime/weapons/Weapon | Trusted platform weapon instance for transitional runtime subclasses until declared items replace them. |
 | `assertStateCompatibility` | function | @wildshard/sdk/shardfile | Refuse saved-state identity changes between two validated revisions of the same shard. |
 | `parseShardfile` | function | @wildshard/sdk/shardfile | Parse untrusted author output using the same contract as the client. |
 | `Shardfile` | type | @wildshard/sdk/shardfile | Author-facing serialisable renderer-neutral shardfile contract. |
@@ -121,3 +123,4 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardTraversal` | type | @wildshard/sdk/traversal | Callback-free interior traversal tuning. |
 | `TraversalSchema` | const | @wildshard/sdk/traversal | Optional author tuning for the grid's interior board cap. |
 | `SHARDFILE_VERSION` | const | @wildshard/sdk/version | Author-facing revision of the shardfile format and script ABI. |
+| `FirearmProfile` | interface | @wildshard/sdk/weapons/firearmProfile | Numeric firearm tuning for authored rows consumed by the trusted trigger family. |

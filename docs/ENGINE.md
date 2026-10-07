@@ -2197,7 +2197,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-531 exports, grouped by the module to import them from.
+532 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2248,7 +2248,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
-- `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `installEnteredRuntimeUpdate`, `installRetainedPlayerEffects`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
+- `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeAttachment`, `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `installEnteredRuntimeUpdate`, `installRetainedPlayerEffects`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
 - `@wildshard/game/shard/runtime`: `resolveLevelBounds`, `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
 - `@wildshard/game/shard/runtimeVariant`: `gridPage`, `runtimeVariantEnabled`
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`, `createScopedRuntimeBinding`, `ScopedRuntimeBinding`
@@ -2304,7 +2304,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-177 exports, grouped by the module to import them from.
+174 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
 - `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
@@ -2336,8 +2336,6 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/kit/weapons/bow/profiles`: `BOW`
 - `@wildshard/kit/weapons/bow/recurve`: `ARROW_LEN`, `arrowKind`, `arrowMaterial`, `bowSpecimen`, `BowStyle`, `buildArrowGeometry`, `buildRecurve`, `POSE`, `VM_SHADE`
 - `@wildshard/kit/weapons/equipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
-- `@wildshard/kit/weapons/firearm/Firearm`: `Firearm`
-- `@wildshard/kit/weapons/firearm/profiles`: `AR15`, `FirearmProfile`
 - `@wildshard/kit/weapons/melee/Melee`: `isMeleeProfile`, `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/kit/weapons/melee/moves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
 - `@wildshard/kit/weapons/melee/profiles`: `SWORD_IRON`, `SWORD_WOOD`
@@ -2348,7 +2346,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-113 exports, grouped by the module to import them from.
+116 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2377,9 +2375,11 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`
+- `@wildshard/sdk/runtime/weapons/Weapon`: `Weapon`, `WeaponInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/sdk/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`
+- `@wildshard/sdk/weapons/firearmProfile`: `FirearmProfile`
 
 ### `@wildshard/commons` (`src/commons/package.json`)
 

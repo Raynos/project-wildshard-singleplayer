@@ -14184,6 +14184,12 @@
         "from": "@wildshard/game/shard/registry"
       },
       {
+        "name": "installEnteredRuntimeAttachment",
+        "kind": "function",
+        "doc": "Keep a resident HUD root's exact slot while detaching it outside the entered home.",
+        "from": "@wildshard/game/shard/retainedHooks"
+      },
+      {
         "name": "installEnteredRuntimeObserver",
         "kind": "function",
         "doc": "Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor.",
@@ -16580,24 +16586,6 @@
         "from": "@wildshard/kit/weapons/equipment"
       },
       {
-        "name": "Firearm",
-        "kind": "class",
-        "doc": "The trigger template is shared; custom actions override readiness, cycling and reload hooks.",
-        "from": "@wildshard/kit/weapons/firearm/Firearm"
-      },
-      {
-        "name": "AR15",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/firearm/profiles"
-      },
-      {
-        "name": "FirearmProfile",
-        "kind": "interface",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/firearm/profiles"
-      },
-      {
         "name": "isMeleeProfile",
         "kind": "function",
         "doc": "Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning.",
@@ -17404,6 +17392,18 @@
         "from": "@wildshard/sdk/runtime/weapons/Firearm"
       },
       {
+        "name": "Weapon",
+        "kind": "const",
+        "doc": "The single platform weapon constructor; the trusted SDK surface adds no runtime state or implementation.",
+        "from": "@wildshard/sdk/runtime/weapons/Weapon"
+      },
+      {
+        "name": "WeaponInstance",
+        "kind": "type",
+        "doc": "Trusted platform weapon instance for transitional runtime subclasses until declared items replace them.",
+        "from": "@wildshard/sdk/runtime/weapons/Weapon"
+      },
+      {
         "name": "assertStateCompatibility",
         "kind": "function",
         "doc": "Refuse saved-state identity changes between two validated revisions of the same shard.",
@@ -17456,6 +17456,12 @@
         "kind": "const",
         "doc": "Author-facing revision of the shardfile format and script ABI.",
         "from": "@wildshard/sdk/version"
+      },
+      {
+        "name": "FirearmProfile",
+        "kind": "interface",
+        "doc": "Numeric firearm tuning for authored rows consumed by the trusted trigger family.",
+        "from": "@wildshard/sdk/weapons/firearmProfile"
       }
     ],
     "commons": [

@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-178 members; 83 without a doc line (—).
+175 members; 81 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -153,9 +153,6 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `IRON_SWORD` | const | @wildshard/kit/weapons/equipment | — |
 | `SWORD` | const | @wildshard/kit/weapons/equipment | — |
 | `WOODEN_SWORD` | const | @wildshard/kit/weapons/equipment | — |
-| `Firearm` | class | @wildshard/kit/weapons/firearm/Firearm | The trigger template is shared; custom actions override readiness, cycling and reload hooks. |
-| `AR15` | const | @wildshard/kit/weapons/firearm/profiles | — |
-| `FirearmProfile` | interface | @wildshard/kit/weapons/firearm/profiles | — |
 | `isMeleeProfile` | function | @wildshard/kit/weapons/melee/Melee | Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning. |
 | `Melee` | class | @wildshard/kit/weapons/melee/Melee | Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies. |
 | `meleeActor` | function | @wildshard/kit/weapons/melee/Melee | Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior. |

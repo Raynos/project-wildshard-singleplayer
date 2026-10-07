@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-531 members; 112 without a doc line (—).
+532 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -285,6 +285,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `playable` | const | @wildshard/game/shard/registry | — |
 | `setActiveChunk` | function | @wildshard/game/shard/registry | Select a chunk by slug. Unknown slugs fall back to the default (and warn). |
 | `shardSlugFromUrl` | function | @wildshard/game/shard/registry | — |
+| `installEnteredRuntimeAttachment` | function | @wildshard/game/shard/retainedHooks | Keep a resident HUD root's exact slot while detaching it outside the entered home. |
 | `installEnteredRuntimeObserver` | function | @wildshard/game/shard/retainedHooks | Publish a trusted browser debug observer only during its cell entry, restoring the exact borrowed descriptor. |
 | `installEnteredRuntimeService` | function | @wildshard/game/shard/retainedHooks | Install a transient service for each home entry; ordinary staged contexts keep their original level scope. |
 | `installEnteredRuntimeUpdate` | function | @wildshard/game/shard/retainedHooks | Register entered-only updates on a clock that does not advance while the resident is parked. |
