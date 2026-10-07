@@ -1,7 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The same-engine oracle executes the immutable authored module.
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { isDev, setDev } from '../src/engine/core/devMode';
 import { Scope } from '../src/engine/app/scope';
+import type { DebugRowSpec } from '../src/engine/level/context';
 import type { SystemSpec } from '../src/engine/app/systems';
 import { parseDirector } from '../src/game/shardfile/director';
 import { createDirectorLane } from '../src/game/shardfile/directorRuntime';
@@ -47,6 +49,7 @@ describe('SF24 Pine script against the actual shipping night/dawn clock', () => 
     expect(() => lane.enqueue('arbitrary.call')).toThrow('subscribed');
   });
   it('installs the saved shared setting, with no script fetch on the legacy path and fixed next-tick requests on Script', async () => {
+    const previous = isDev(); setDev(false);
     const native = fixture(true), systems: SystemSpec[] = [], scope = new Scope('pine.clock.fixture');
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(Uint8Array.from(bytes))));
     try {
@@ -54,13 +57,17 @@ describe('SF24 Pine script against the actual shipping night/dawn clock', () => 
       const legacy = await installPineClock(base, native.ports, false); legacy.night();
       expect(fetch).not.toHaveBeenCalled(); expect(systems).toEqual([]);
       native.events.length = 0;
-      const scripted = await installPineClock({ ...base, debugRow: (row) => { row.change('on'); } }, native.ports, false);
+      const selected = { ...base, debugRow: (row: DebugRowSpec) => { row.change('on'); } };
+      await installPineClock(selected, native.ports, false);
+      expect(fetch).not.toHaveBeenCalled(); expect(systems).toEqual([]);
+      setDev(true);
+      const scripted = await installPineClock(selected, native.ports, false);
       expect(fetch).toHaveBeenCalledTimes(1); expect(systems[0]?.phase).toBe('fixed.post');
       scripted.night(); scripted.dawn(); expect(native.events).toEqual([]);
       native.tick(1); systems[0]?.run(1 / 60, 1 / 60);
       expect(native.events.map((event) => event.key)).toEqual(['night.consume', 'night.start', 'dawn.start']);
       scope.dispose(); native.events.length = 0; systems[0]?.run(1 / 60, 2 / 60); expect(native.events).toEqual([]);
-    } finally { scope.dispose(); }
+    } finally { scope.dispose(); setDev(previous); }
   });
   it('restores full author state in the middle of dawn and exactly repeats a 10,000-tick suffix', async () => {
     const native = fixture(true), recipe = pineDirectorRecipe(native.ports, true), lane = await createDirectorLane(data, bytes, 357);

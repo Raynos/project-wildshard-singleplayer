@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
+import { setDev } from '../src/engine/core/devMode';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
 import type { SystemSpec } from '../src/engine/app/systems';
@@ -12,7 +13,7 @@ import type { AdvAnimal } from '../src/shards/driftwood-isle/quest/adventure';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 
 const scopes: Scope[] = [];
-afterEach(() => { scopes.splice(0).forEach((scope) => { scope.dispose(); }); vi.unstubAllGlobals(); document.body.replaceChildren(); });
+afterEach(() => { setDev(false); scopes.splice(0).forEach((scope) => { scope.dispose(); }); vi.unstubAllGlobals(); document.body.replaceChildren(); });
 function fixture() {
   const scope = new Scope('finale.boot'); scopes.push(scope);
   const flags = new Flags('driftwood-isle', false), events: { tick: number; key: string }[] = [], frames: ((dt: number, time: number) => void)[] = [], systems: SystemSpec[] = [];
@@ -43,6 +44,7 @@ describe('SF24 shipping Driftwood director boot', () => {
     expect(h.events).toEqual([{ tick: 10, key: 'captain.wake' }]); expect(installed.captain()?.mem['awake']).toBe(1);
   });
   it('runs the saved Script choice through the real recipe with exactly the legacy event ticks and poses', async () => {
+    setDev(true);
     const bytes = Uint8Array.from(readFileSync(`src/shards/driftwood-isle/assets/${declaration.module}`));
     vi.stubGlobal('fetch', () => Promise.resolve(new Response(bytes)));
     const legacy = fixture(), directed = fixture();
