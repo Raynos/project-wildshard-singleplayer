@@ -42,13 +42,23 @@ export interface AddedPiece {
   sync: () => void;
 }
 
-const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
+const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _m = new THREE.Matrix4();
+
+/** The followed object's pose in the physics world's frame: its world matrix, or relative to `frame` when given. */
+function poseOf(follows: THREE.Object3D, frame: THREE.Object3D | undefined): void {
+  follows.updateWorldMatrix(true, false);
+  if (frame === undefined) { follows.matrixWorld.decompose(_p, _q, _s); return; }
+  frame.updateWorldMatrix(true, false);
+  _m.copy(frame.matrixWorld).invert().multiply(follows.matrixWorld).decompose(_p, _q, _s);
+}
 
 /**
  * Build the piece's colliders into the world: static ones in world space, or — for a piece that `follows` a moving
  * object — attached to a kinematic body in that object's frame. Returns them, so a caller can remove the piece later.
+ * `frame`: the scene node that stands for this physics world's origin (a grid region drawn at its render offset); a
+ * followed object is posed relative to it. Absent: the scene's origin is the world's.
  */
-export function addPiece(physics: Physics, piece: Piece): AddedPiece {
+export function addPiece(physics: Physics, piece: Piece, frame?: THREE.Object3D): AddedPiece {
   const owner = currentOwner();
   if (owner?.disposed === true) throw new Error('Cannot add a piece to a disposed scope');
   const out: Collider[] = [];
@@ -56,8 +66,7 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
   let body: RigidBody | null = null;
   const follows = piece.follows;
   if (follows) {
-    follows.updateWorldMatrix(true, false);
-    follows.matrixWorld.decompose(_p, _q, _s);
+    poseOf(follows, frame);
     if (piece.followRotation === false) _q.identity();
     body = world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(_p.x, _p.y, _p.z).setRotation({ x: _q.x, y: _q.y, z: _q.z, w: _q.w }));
   }
@@ -94,8 +103,7 @@ export function addPiece(physics: Physics, piece: Piece): AddedPiece {
       if (want !== on) { on = want; for (const c of out) c.setEnabled(want); }
     }
     if (!b || !follows) return;
-    follows.updateWorldMatrix(true, false);
-    follows.matrixWorld.decompose(_p, _q, _s);
+    poseOf(follows, frame);
     if (piece.followRotation === false) _q.identity();
     b.setNextKinematicTranslation({ x: _p.x, y: _p.y, z: _p.z });
     b.setNextKinematicRotation({ x: _q.x, y: _q.y, z: _q.z, w: _q.w });
