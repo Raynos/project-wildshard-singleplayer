@@ -47,6 +47,11 @@ describe('static socket lift approach geometry', () => {
     if (kind === 'activation') r.source.targets.panels = [{ colliders: [row.id] }];
     expect(r.errors()).toContain('Static approach requires permanent active declared colliders');
   });
+  it.each(['entry.lift', 'entry.gate'])('refuses a static floor owner aliasing %s', id => {
+    const r = fixture(), row = r.props.colliders[0]; if (row === undefined || r.entry.lift.approach === undefined) throw new Error('Missing fixture');
+    row.id = id; r.entry.lift.approach.colliders = [id];
+    expect(r.errors()).toContain('Static approach collider cannot alias its moving deck or road gate');
+  });
   it('requires the full eight metre mouth even when a narrower capsule route fits', () => {
     const r = fixture(), box = r.props.colliders[0]?.shapes[0]; if (box?.kind !== 'box') throw new Error('Missing fixture');
     box.hx = 3; expect(r.errors()).toContain('Static approach must cover the eight metre road-height mouth');

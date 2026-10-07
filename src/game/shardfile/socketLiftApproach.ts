@@ -96,6 +96,7 @@ function coverage(surfaces: readonly EntryVertex[][]): (polygon: EntryVertex[], 
 export function validateLiftApproach(entry: SocketLiftEntry, deck: readonly EntryVertex[][], source: LiftApproachSource): void {
   const approach = entry.lift.approach; if (approach === undefined) return;
   const rows = approach.colliders.map(id => {
+    if (id === entry.lift.mover || id === entry.lift.gate) throw new Error('Static approach collider cannot alias its moving deck or road gate');
     const row = source.props?.colliders.find(candidate => candidate.id === id);
     if (row === undefined || !row.initialActive || row.panel !== null || source.targets.panels.some(target => target.colliders.includes(id))) throw new Error('Static approach requires permanent active declared colliders');
     return row;
