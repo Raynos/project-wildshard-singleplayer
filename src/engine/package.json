@@ -368,6 +368,7 @@
     "./combat/thrownProfile": "./combat/thrownProfile.ts",
     "./combat/bowDraw": "./combat/bowDraw.ts",
     "./combat/view/Bow": "./combat/view/Bow.ts",
-    "./combat/view/bowProfile": "./combat/view/bowProfile.ts"
+    "./combat/view/bowProfile": "./combat/view/bowProfile.ts",
+    "./combat/view/SweptMelee": "./combat/view/SweptMelee.ts"
   }
 }

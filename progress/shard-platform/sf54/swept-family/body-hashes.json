@@ -1,0 +1,237 @@
+{
+  "records": [
+    {
+      "name": "Stars",
+      "original": "da6f90a2d69099a36f76b318a13d739f1cd2ad38e7af38bf706c01eee945cbad",
+      "platform": "da6f90a2d69099a36f76b318a13d739f1cd2ad38e7af38bf706c01eee945cbad",
+      "identical": true
+    },
+    {
+      "name": "Glint",
+      "original": "642de4d60408d62e979315c3f20adb9c9e09efb7f2d20fb98c698e84378332c0",
+      "platform": "642de4d60408d62e979315c3f20adb9c9e09efb7f2d20fb98c698e84378332c0",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.damage",
+      "original": "f96bf4afc21266d5f073732e332d63ee137561017b88138eef3ff1fe2df59a39",
+      "platform": "f96bf4afc21266d5f073732e332d63ee137561017b88138eef3ff1fe2df59a39",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.set.damage",
+      "original": "f15cbe11fa1b0679f92d99595ee64d643c25752790282923f7570c9c05d280e5",
+      "platform": "f15cbe11fa1b0679f92d99595ee64d643c25752790282923f7570c9c05d280e5",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.heavyMult",
+      "original": "ac99db39e3a2f59e97728dcd16de7bef2bf1ae356ad9375baa119cab2b8cd4d6",
+      "platform": "ac99db39e3a2f59e97728dcd16de7bef2bf1ae356ad9375baa119cab2b8cd4d6",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.set.heavyMult",
+      "original": "c2d36f537af723a311f6148b30d52971ee0529320f052ad614e61a68cbf648dd",
+      "platform": "c2d36f537af723a311f6148b30d52971ee0529320f052ad614e61a68cbf648dd",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.install",
+      "original": "843f7008c4d783b195e53c66a2328bdfd5ca60da1f98eebb0a8c88408369362a",
+      "platform": "843f7008c4d783b195e53c66a2328bdfd5ca60da1f98eebb0a8c88408369362a",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.bindInput",
+      "original": "f877bbd4b02fda272df7316c9c4715961003dbcf2e3ec57bc6f87fbc674b89e5",
+      "platform": "f877bbd4b02fda272df7316c9c4715961003dbcf2e3ec57bc6f87fbc674b89e5",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.tryFire",
+      "original": "97f3778213cec231e0ab9dee494573874b1249b0937c91c3af431529fc1366c5",
+      "platform": "97f3778213cec231e0ab9dee494573874b1249b0937c91c3af431529fc1366c5",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.strikeMove",
+      "original": "7914199cf4ad0e1cbc55e0276ffa10d9ff96d373178ba487e60c892e78fe6bbd",
+      "platform": "7914199cf4ad0e1cbc55e0276ffa10d9ff96d373178ba487e60c892e78fe6bbd",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.pickMove",
+      "original": "adcc21539af94e89267107f6c4528b47e1f6b89e690e75bd9026350d789958ff",
+      "platform": "adcc21539af94e89267107f6c4528b47e1f6b89e690e75bd9026350d789958ff",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.moveDamage",
+      "original": "215f196c45e122924c65ba527a92496c90277ca17c6644fd6c6f86542190c898",
+      "platform": "215f196c45e122924c65ba527a92496c90277ca17c6644fd6c6f86542190c898",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.startSwing",
+      "original": "1fb4829b8aa73633a7b471a665f6b13e1cb7ee2d03f37cd9d7224950fb598f7c",
+      "platform": "d8502970c25fc01e892dc3646e74250c88c04071313f995599ec2493f19cf8ee",
+      "identical": false,
+      "port": "Explicit supplied event hooks and starter move identities"
+    },
+    {
+      "name": "SweptMelee.method.findLunge",
+      "original": "49ece99bcebd587c7c688038e58544e1567365b3f41dd65f7bc4cc0644282b59",
+      "platform": "49ece99bcebd587c7c688038e58544e1567365b3f41dd65f7bc4cc0644282b59",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.beginCharge",
+      "original": "2b5138d79164ce27029cdba900804466f4550126519fdcb808bc1a5e68caf093",
+      "platform": "2b5138d79164ce27029cdba900804466f4550126519fdcb808bc1a5e68caf093",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.releaseHeavy",
+      "original": "54bbcf7d8a599c364544c6073d4d4659526d003e87b4abe8120af9ba4fc43f38",
+      "platform": "54bbcf7d8a599c364544c6073d4d4659526d003e87b4abe8120af9ba4fc43f38",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.addBolts",
+      "original": "92671a79ebcb085ede9392f894560983bf7f3eab1ca9fc95d3fa02b90e6a80b2",
+      "platform": "92671a79ebcb085ede9392f894560983bf7f3eab1ca9fc95d3fa02b90e6a80b2",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.reload",
+      "original": "92671a79ebcb085ede9392f894560983bf7f3eab1ca9fc95d3fa02b90e6a80b2",
+      "platform": "92671a79ebcb085ede9392f894560983bf7f3eab1ca9fc95d3fa02b90e6a80b2",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.aimRay",
+      "original": "f94108548ee75922ee19b1067baca9da3b7b8d7a9e91b32e90df818c75d9c365",
+      "platform": "f94108548ee75922ee19b1067baca9da3b7b8d7a9e91b32e90df818c75d9c365",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.setActive",
+      "original": "edc679993f073ade9e893564948c4073159045bdfcd64d023740d57a19d59e7c",
+      "platform": "edc679993f073ade9e893564948c4073159045bdfcd64d023740d57a19d59e7c",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.swinging",
+      "original": "ea5149b2436a7354bf8afae778b73a611cdd42001698ecc2b1170b4ef2e0d67a",
+      "platform": "ea5149b2436a7354bf8afae778b73a611cdd42001698ecc2b1170b4ef2e0d67a",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.swingName",
+      "original": "601b780ff8a58e659c9cc40c08ed8a67e701aef0fa4377f5c821408b856ada49",
+      "platform": "601b780ff8a58e659c9cc40c08ed8a67e701aef0fa4377f5c821408b856ada49",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.heavySwing",
+      "original": "a42967c1f62186645045239afacc8511e20fbb04a9ea6033cde13e97cdb12d6b",
+      "platform": "a42967c1f62186645045239afacc8511e20fbb04a9ea6033cde13e97cdb12d6b",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.chargingHeavy",
+      "original": "366bb69d5bfae1805b6160119cdad153de27c64b795dd5fdc8047c7a9541cbed",
+      "platform": "366bb69d5bfae1805b6160119cdad153de27c64b795dd5fdc8047c7a9541cbed",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.charge",
+      "original": "e9cb48e800468680eab07046eb514d28bf45fa872b8899b17f724c061cb80d3f",
+      "platform": "e9cb48e800468680eab07046eb514d28bf45fa872b8899b17f724c061cb80d3f",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.get.comboStep",
+      "original": "4dfaa6048fb7c6ca258d2eb6f6fac376af5b2c283cf3c7eebf0dcecd39a2e9f5",
+      "platform": "4dfaa6048fb7c6ca258d2eb6f6fac376af5b2c283cf3c7eebf0dcecd39a2e9f5",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.buildViewmodel",
+      "original": "17b8e21a5dc97f51e719b1bf4e5b532ebe2bf75f13bf71024dfc349fa7dffd62",
+      "platform": "50148914f9e249adb5d6af400df2186352448d9b63e79929a6895cdb29afe4c2",
+      "identical": false,
+      "port": "Content-specific missing-rig diagnostic becomes generic"
+    },
+    {
+      "name": "SweptMelee.method.useArms",
+      "original": "fecab025f7233b18021afdbf312ef67a29a469fe2e97429d36e79b91feb981bc",
+      "platform": "fecab025f7233b18021afdbf312ef67a29a469fe2e97429d36e79b91feb981bc",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.buildTrail",
+      "original": "686f9883cc0823d8f155c84aefa851ad3116413c0d77e36994cf6e56d281e502",
+      "platform": "686f9883cc0823d8f155c84aefa851ad3116413c0d77e36994cf6e56d281e502",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.trailSample",
+      "original": "e3e533f97163a0d9e13ad9647919f7acb016ef6f6e6b61b120b273e3e9376d71",
+      "platform": "e3e533f97163a0d9e13ad9647919f7acb016ef6f6e6b61b120b273e3e9376d71",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.trailRebuild",
+      "original": "7ff7ef1f4f79d7788f12c258d408d5193668e80893dd047f00d28423df51fab9",
+      "platform": "7ff7ef1f4f79d7788f12c258d408d5193668e80893dd047f00d28423df51fab9",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.bladeDirs",
+      "original": "726ced76824247de076787c0c9684eeb41ceeb329adff55f545ae9b017b0a45d",
+      "platform": "726ced76824247de076787c0c9684eeb41ceeb329adff55f545ae9b017b0a45d",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.sweepHit",
+      "original": "01dc31e0e1a26fb7bd7b1e0ab35a2206b93faadbd432db46a95271525a181584",
+      "platform": "01dc31e0e1a26fb7bd7b1e0ab35a2206b93faadbd432db46a95271525a181584",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.clangTest",
+      "original": "14054ddd110c847894715a32d2cbef9acf424b16de3d3d48ffb6b44ff51fffe4",
+      "platform": "47581116590030d787f954125cc60bc5608c499e2284cefb528684b9c98896e1",
+      "identical": false,
+      "port": "Explicit supplied event hooks and starter move identities"
+    },
+    {
+      "name": "SweptMelee.method.anyInReach",
+      "original": "ec7753844ebd6eedbfc652c029ec46187230cba4eb8d2fa5dd35f485ed8d8a3f",
+      "platform": "ec7753844ebd6eedbfc652c029ec46187230cba4eb8d2fa5dd35f485ed8d8a3f",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.strike",
+      "original": "5fcb7f69adfc54ae716143d4199407c5b82d9743ac9c13607cfc40ab5d966ff8",
+      "platform": "3265b6a3d2a37dabb6c17723cea3c03a201d1ad1435d7a3a60b9260c22402ef7",
+      "identical": false,
+      "port": "Injected debris classifier; independent crab/sailor/other wood/iron traces prove equivalent output"
+    },
+    {
+      "name": "SweptMelee.method.evalSwing",
+      "original": "f4012ddd35e68f5ef8330be72b4e52500bfcd621d54d2bf4ce921ffc67734015",
+      "platform": "f4012ddd35e68f5ef8330be72b4e52500bfcd621d54d2bf4ce921ffc67734015",
+      "identical": true
+    },
+    {
+      "name": "SweptMelee.method.update",
+      "original": "2c0f22563606dfa371d52c21a25c5f1745a092feb2ef744f25a7157c4c22aa67",
+      "platform": "2c0f22563606dfa371d52c21a25c5f1745a092feb2ef744f25a7157c4c22aa67",
+      "identical": true
+    }
+  ],
+  "ports": "Constructor receives input context, profile and starter move/event/debris defaults. Starter constants and creature mapping remain kit-owned. No rig/model generation moves into the engine. Independent original traces cover 600 frames x 14 combinations, including all dynamic geometry buffers."
+}
