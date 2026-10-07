@@ -11,6 +11,13 @@ const STORE = 'settings';
 function fresh(): Promise<Settings> { return Promise.resolve(createSettings(saveStorage('global'))); }
 
 describe('Settings', () => {
+  it('drops the retired colour-grade opt-out when saving current settings (E85)', () => {
+    fixtures.setItem(STORE, JSON.stringify({ learnedLut: 'off', volume: 0.25 }));
+    const s = createSettings(saveStorage('global'));
+    expect(s.getNumber('volume')).toBe(0.25);
+    s.setNumber('volume', 0.5);
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).not.toHaveProperty('learnedLut');
+  });
   it('defaults: aim assist + tracers on, volume 0.8, music 0.7', async () => {
     const s = await fresh();
     expect(s.getSetting('aimAssist')).toBe(true);
@@ -221,4 +228,3 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
     expect(settingParams('time')).toEqual(['tod', 'clock']);
   });
 });
-

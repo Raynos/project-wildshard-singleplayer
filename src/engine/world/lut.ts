@@ -4,7 +4,7 @@
  * palette lands on the mockups' (Driftwood: turquoise shallows, cobalt deep water, golden sand, saturated foliage)
  * without hand-tuning every def colour.
  *
- *   const lut = await loadLUT(slug);   // Sky: null when the shard has no LUT file, or Debug ▸ Look ▸ Learned LUT is Off (the fit's own captures)
+ *   const lut = await loadLUT(slug);   // Sky: null when the shard has no readable LUT file
  *   new LUT3DEffect(lut, { inputColorSpace: SRGBColorSpace })   // Game.buildComposer: the last grade step
  *
  * File: public/assets/lut/<slug>.bin — 33³ × RGBA8, index (b · 33 + g) · 33 + r, display sRGB in → display sRGB out.
@@ -15,7 +15,6 @@
 import { publicBytes } from '../boot/tables';
 import * as THREE from 'three';
 import { LookupTexture } from 'postprocessing';
-import { setting } from '../ui/Settings';
 import { LUT_SIZE, fetchLut } from '../render/lut';
 
 /** the shard's LUT file when the build has one, else null */
@@ -25,7 +24,6 @@ export function lutUrl(slug: string): string | null {
 }
 
 export async function loadLUT(slug: string): Promise<LookupTexture | null> {
-  if (setting('learnedLut') === 'off') return null;
   const url = lutUrl(slug);
   if (url === null) return null;
   const data = await fetchLut(url); // the one loader (render/lut.ts)

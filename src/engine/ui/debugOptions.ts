@@ -157,7 +157,6 @@ const SFX_TEXT: Record<SfxSet, string> = { best: engineString('s_827ec8d9f99d'),
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
-  opt('learnedLut', 'look', engineString('s_567ce8e61d83'), ON_OFF, { reload: true, ask: 'E85', reviewBy: '2026-12-30', note: engineString('s_e028d004f425') }),
   opt('graphMaterials', 'look', engineString('s_graph_materials'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_materials_note') }),
 
   // ── Sky & weather ──
