@@ -16,7 +16,7 @@ import { initializeTier } from '../src/engine/core/tier';
 import * as sp from '../src/engine/boot/shardPrefetch';
 import { bootFiles, extraFetches } from '../src/engine/boot/extras';
 import { bootFetches } from '../src/engine/boot/prefetch';
-import { packFor } from '../src/engine/boot/pack';
+import { bootParts, packFor } from '../src/engine/boot/pack';
 import { versionedUrl } from '../src/engine/boot/bytes';
 import { registerGpuFiles } from '../src/engine/boot/gpuFiles';
 import { setBootCatalog } from '../src/engine/boot/catalog';
@@ -95,7 +95,7 @@ describe('shardBootRequests: the boot request list of each shard', () => {
         for (const other of PLAYABLE_SHARDS) if (other !== def) for (const image of other.boot?.explore?.art ?? []) {
           if (!neededArt.has(artPath(image))) expect(files.art).not.toContain(artPath(image));
         }
-        const pack = packFor(def);
+        const whole = packFor(def), pack = whole === null ? null : bootParts(whole, files);
         const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
         // main.ts: streamPack(pack) · prefetch(bootFetches(...) minus packed) · prefetchAfter(extraFetches(files)) — and the
         // physics source (Rapier's WASM, the navmesh) fetched by src/engine/physics at boot
@@ -120,13 +120,24 @@ describe('shardBootRequests: the boot request list of each shard', () => {
     for (const def of phone.PLAYABLE_SHARDS) {
       const pack = packFor(def);
       expect(pack, `${def.slug}: phone pack inventory`).toEqual(PACKS[def.slug]?.['phone'] ?? null);
-      if (pack) expect(sp.shardBootRequests(def).slice(0, pack.parts.length)).toEqual(pack.parts.map((part) => part.url));
+      if (pack) {
+        // The baked pack follows the tier policy; the actual boot may explicitly select the other texture mode.
+        // Only parts containing current declared files are streamed, exactly as streamPack does.
+        const files = bootFiles(def), selected = bootParts(pack, files), requests = sp.shardBootRequests(def);
+        expect(requests.slice(0, selected.parts.length)).toEqual(selected.parts.map((part) => versionedUrl(part.url)));
+        const declared = new Set(Object.values(files).flat());
+        for (const part of pack.parts) {
+          const reads = part.files.some(([path]) => declared.has(path));
+          expect(requests.includes(versionedUrl(part.url)), `${def.slug}: selected pack part ${part.url}`).toBe(reads);
+        }
+      }
     }
     const desktop = await load('desktop');
     for (const def of desktop.PLAYABLE_SHARDS) {
       const pack = PACKS[def.slug]?.['desktop'];
       expect(packFor(def), `${def.slug}: desktop pack inventory`).toEqual(pack ?? null);
-      expect(sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe((pack?.parts.length ?? 0) > 0);
+      const selected = pack === undefined ? null : bootParts(pack, bootFiles(def));
+      expect(sp.shardBootRequests(def).some((u) => u.startsWith('/assets/packs/'))).toBe((selected?.parts.length ?? 0) > 0);
     }
   });
 });
