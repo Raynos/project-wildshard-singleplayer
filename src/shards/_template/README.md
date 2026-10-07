@@ -9,7 +9,10 @@ identity in `shard.config.ts`, then run `wildshard build <folder>` and
 water, look, HUD, audio, ledger and interactions. `behaviour/` holds admitted numeric
 AssemblyScript for the door and item hooks; `quests/` declares the adventure. Stable
 state-field IDs and item handles preserve the script ABI across declaration reorder.
-`generators/` and `layout.ts` are build-time source metadata, never client runtime.
+`generators/` and `layout.ts` are build-time source metadata, never client runtime. `generators/cell.ts` fills the
+500 m cell (G220): a road from each entry socket to a square loop around the yard, a set piece just inside each entry
+(north gate, south container yard, east signal mast, west covered drive), four hub corners outside the loop and lamp
+posts, all dev-map boxes on ground the terrain levels to y = 0.
 
 The first-party manifest keeps the canonical `_template` slug, grey picker art and
 `template-solo` save identity, and points at `/shardfiles/_template/shard.json`.

@@ -22,6 +22,8 @@ import { templateProps } from '../scripts/bake/templatePropsSource';
 const cleanups: (() => void)[] = [];
 afterEach(() => { for (const cleanup of cleanups.splice(0)) cleanup(); });
 const source = () => { const fixture = templateProps(); cleanups.push(fixture.dispose); return fixture; };
+/** the yard's 20 (hut 5, door 1, ramp 11, practice pads 3) and G220's cell fill: 94 set-piece and hub boxes, 56 lamp posts */
+const COLLIDERS = 20 + 94 + 56;
 const terrain = () => bakeTerrain({ heightAt: () => 0, colourAt: () => [0.2, 0.2, 0.2] });
 
 describe('declared prop baker', () => {
@@ -34,7 +36,7 @@ describe('declared prop baker', () => {
       physics.world.forEachCollider((collider) => expect(typeof tagOf(collider)?.owner).toBe('string'));
       const states = new Map([...ports].map(([id, port]) => [id, port.snapshot()])), bytes = physics.world.takeSnapshot();
       const restored = installDeclaredPropColliders(rows, () => physics, restoredScope, states);
-      expect(physics.world.colliders.len()).toBe(20);
+      expect(physics.world.colliders.len()).toBe(COLLIDERS);
       physics.dispose(); physics = new Physics(R, bytes);
       const restoredDoor = restored.get('template.door'); if (restoredDoor === undefined) throw new Error('Missing restored door');
       expect(restoredDoor.active()).toBe(false); restoredDoor.setActive(true); expect(restoredDoor.active()).toBe(true);
@@ -50,7 +52,7 @@ describe('declared prop baker', () => {
     expect(wall.y - wall.hy).toBeCloseTo(hutY, 12);
     try {
       const ports = installDeclaredPropColliders(propColliderDescriptors(baked.props), physics, scope); physics.world.step();
-      expect(physics.world.colliders.len()).toBe(20);
+      expect(physics.world.colliders.len()).toBe(COLLIDERS);
       expect(castRay(physics, { x: 0, y: 1.2, z: -7 }, { x: 0, y: 0, z: -1 }, 2.5)).not.toBeNull();
       const door = ports.get('template.door'), course = ports.get('template.jump'); if (door === undefined || course === undefined) throw new Error('Missing collider port');
       door.setActive(false); physics.world.step(); expect(castRay(physics, { x: 0, y: 1.2, z: -7 }, { x: 0, y: 0, z: -1 }, 2.5)).toBeNull();

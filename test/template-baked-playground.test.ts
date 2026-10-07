@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect shipped immutable prop bytes, not a re-bake.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { Box3, InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
+import { Box3, Group, InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
 import metadata from '../src/shards/_template/data/props.json' with { type: 'json' };
@@ -65,7 +65,8 @@ it('ships the ten stair treads, slope, twenty cubes and three practice pads with
     const scatter = fixture.source.scatter?.[0];
     if (scatter === undefined || !isMesh(scatter.model)) throw new Error('Missing generator cubes');
     expect(scatter.transforms).toHaveLength(20);
-    const authored = scatter.transforms.map((matrix) => pointKey(new Vector3().setFromMatrixPosition(matrix)));
+    // every instance is an authored cube or one of G220's lamp posts (the second scatter)
+    const authored = (fixture.source.scatter ?? []).flatMap((batch) => batch.transforms.map((matrix) => pointKey(new Vector3().setFromMatrixPosition(matrix))));
     for (const point of positions) expect(authored).toContain(point);
     // A cube crossing a tile boundary is merged and clipped, rather than instanced in either tile.
     const cubeVertices = scatter.model.geometry.getAttribute('position');
@@ -102,10 +103,13 @@ it('keeps hidden practice pads in the library while automatic coarse and far byt
     const course = baked.props.panels.find((row) => row.id === 'template.jump');
     expect(course?.visible).toBe(false); expect(baked.library).toContain(course?.file);
     expect(baked.props.colliders).toEqual(fixture.source.colliders);
-    // Inspect the shipped bytes as well as a fresh bake: no proxy vertex can contain the y=30 practice pads.
+    // Inspect the shipped bytes as well as a fresh bake: no proxy vertex can sit in the y=30 practice pads (G220's tall
+    // towers stand elsewhere in the cell).
+    const pads = new Box3().setFromObject(fixture.source.panels?.find((panel) => panel.id === 'template.jump')?.model ?? new Group()).expandByScalar(0.5);
+    expect(pads.isEmpty()).toBe(false);
     for (const hash of [...metadata.props.tiles.filter((row) => row.lod === 1).map((row) => row.file), metadata.props.far]) {
       const root = await shipped(hash); roots.push(root);
-      expect(new Box3().setFromObject(root).max.y).toBeLessThan(5);
+      for (const point of vertices(root)) { const [x = 0, y = 0, z = 0] = point.split(',').map(Number); expect(pads.containsPoint(new Vector3(x, y, z)), `proxy vertex ${point} in the practice pads`).toBe(false); }
     }
     expect(metadata.props.panels.find((row) => row.id === 'template.jump')?.file).toBe(course?.file);
     expect(metadata.props.tiles.filter((row) => row.lod === 1)).toEqual(baked.props.tiles.filter((row) => row.lod === 1));
