@@ -1,4 +1,5 @@
 import { MathUtils, Vector3 } from 'three';
+import * as v from 'valibot';
 import { Rng } from '../core/rng';
 import { TickScheduler, type TickPoint } from '../app/scheduler';
 
@@ -25,6 +26,11 @@ export interface FlockFrame {
   phase: number[]; graze: number[]; dead: number[]; deadT: number[]; shuffle: number[]; scale: number[];
   time: number; rng: ReturnType<Rng['snapshot']>;
 }
+/** Reused native-view buffer; sheep rigs, materials, prey identities and ray shapes stay outside the policy. */
+export interface FlockPose {
+  x: number; y: number; z: number; yaw: number; speed: number; phase: number;
+  graze: number; dead: boolean; deathTime: number; scale: number; wool: number;
+}
 function validateSpec(spec: FlockSpec): void {
   if (!Object.values(spec).every(value => Number.isFinite(value)) || !Number.isInteger(spec.count) || spec.count < 1 || spec.count > 256
     || !Number.isInteger(spec.seed) || spec.seed < 0 || spec.seed > 0xffffffff || Math.abs(spec.x) > 100000 || Math.abs(spec.z) > 100000
@@ -32,6 +38,20 @@ function validateSpec(spec: FlockSpec): void {
     || spec.grazeStep < 0 || spec.grazeStep > 15) throw new Error('Invalid flock parameters');
 }
 function angleDifference(a: number, b: number): number { return Math.atan2(Math.sin(a - b), Math.cos(a - b)); }
+const finite = v.pipe(v.number(), v.finite());
+const floats = v.pipe(v.array(finite), v.maxLength(256), v.check(values => values.every(value => value === Math.fround(value)), 'Lossless Float32 values'));
+const byte = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1));
+const count = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256));
+const continuation = v.strictObject({ contract: v.string(), initialized: v.boolean(), scheduler: v.string(),
+  state: v.strictObject({ n: count, alive: count, cx: finite, cz: finite, tx: finite, tz: finite, tT: finite,
+    panic: v.pipe(finite, v.minValue(0)), panicX: finite, panicZ: finite, bleatT: finite,
+    wool: v.pipe(v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(3))), v.maxLength(256)),
+    px: floats, pz: floats, py: floats, yaw: floats, spd: floats, dspd: floats, dyaw: floats,
+    phase: floats, graze: floats, dead: v.pipe(v.array(byte), v.maxLength(256)), deadT: floats, shuffle: floats, scale: floats,
+    time: finite, rng: v.strictObject({ version: v.literal(1), state: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff)),
+      initial: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff)), scrambledFork: v.literal(false) }),
+  }),
+});
 
 /** Renderer-free ordered flock decisions and integration with distance-based cadence. */
 export class FlockBrain {
@@ -53,10 +73,10 @@ export class FlockBrain {
   private readonly ports: FlockPorts;
   private readonly spec: FlockSpec;
   private readonly contract: string;
-  private readonly scheduler = new TickScheduler();
+  private readonly scheduler = TickScheduler.isolated();
   private readonly tickActor = { position: new Vector3() };
   private uTime = { value: 0 };
-  readonly wool: number[] = [];
+  private readonly wool: number[] = [];
   alive: number;
   constructor(ports: FlockPorts, spec: FlockSpec) {
     validateSpec(spec);
@@ -99,6 +119,7 @@ export class FlockBrain {
   }
   /** a sheep dies (arrow, wolf): it rolls over in the shader; the flock panics away from it */
   kill(i: number): void {
+    this.member(i);
     if (this.dead[i] === 1) return;
     this.dead[i] = 1; this.deadT[i] = 0; this.alive--;
     this.scare(this.px[i] ?? 0, this.pz[i] ?? 0, 6);
@@ -245,8 +266,55 @@ export class FlockBrain {
   }
   get panicking(): boolean { return this.panic > 0; }
 
-  /** Ordered policy state; the cadence continuation is added with the isolated scheduler port. */
-  snapshot(): string { return JSON.stringify({ contract: this.contract, initialized: this.initialized, state: this.state() }); }
+  private member(i: number): void { if (!Number.isInteger(i) || i < 0 || i >= this.n) throw new Error('Invalid flock member'); }
+  /** Project one ordered member into a reused native-view buffer without frame-array allocation. */
+  readPose(i: number, out: FlockPose): FlockPose {
+    this.member(i);
+    out.x = this.px[i] ?? 0; out.y = this.py[i] ?? 0; out.z = this.pz[i] ?? 0; out.yaw = this.yaw[i] ?? 0;
+    out.speed = this.spd[i] ?? 0; out.phase = this.phase[i] ?? 0; out.graze = this.graze[i] ?? 0;
+    out.dead = this.dead[i] === 1; out.deathTime = this.deadT[i] ?? 0; out.scale = this.scale[i] ?? 1;
+    out.wool = this.wool[i] ?? 0;
+    return out;
+  }
+  /** Native prey and sheepdog reads retain the shipping height offset and authored index. */
+  positions(i: number, out: Vector3): Vector3 { this.member(i); return out.set(this.px[i] ?? 0, (this.py[i] ?? 0) + 0.6, this.pz[i] ?? 0); }
+  /** Native hit/raid ports read the authoritative heading and living fence. */
+  headingOf(i: number): number { this.member(i); return this.yaw[i] ?? 0; }
+  /** Invalid indices are never alive, matching the shipping prey guard. */
+  isAlive(i: number): boolean { return Number.isInteger(i) && i >= 0 && i < this.n && this.dead[i] === 0; }
+  /** Nearest living ordered member; ties retain the first shipping prey index. */
+  nearest(x: number, z: number): number {
+    let bi = -1, bd = Infinity;
+    for (let i = 0; i < this.n; i++) {
+      if (this.dead[i] === 1) continue;
+      const d = Math.hypot((this.px[i] ?? 0) - x, (this.pz[i] ?? 0) - z);
+      if (d < bd) { bd = d; bi = i; }
+    }
+    return bi;
+  }
+
+  /** Complete ordered policy, seeded random stream and isolated cadence continuation. */
+  snapshot(): string { return JSON.stringify({ contract: this.contract, initialized: this.initialized,
+    scheduler: this.scheduler.captureIsolated(this.tickActor), state: this.state() }); }
+  /** Validate the entire continuation before mutation; no setup, decisions, view writes or RNG draws occur. */
+  restore(saved: string): void {
+    if (saved.length > 262144) throw new Error('Invalid flock continuation');
+    const parsed: unknown = JSON.parse(saved), data = v.parse(continuation, parsed), s = data.state;
+    const arrays = [s.px, s.pz, s.py, s.yaw, s.spd, s.dspd, s.dyaw, s.phase, s.graze, s.dead, s.deadT, s.shuffle, s.scale];
+    if (data.contract !== this.contract || s.n !== this.n || s.rng.initial !== this.spec.seed
+      || s.alive !== s.dead.filter(dead => dead === 0).length || arrays.some(array => array.length !== this.n)
+      || s.wool.length !== (data.initialized ? this.n : 0)) throw new Error('Incompatible flock continuation');
+    // Probe both owners before changing either one, keeping malformed-clock restore atomic.
+    const rng = new Rng(this.spec.seed), scheduler = TickScheduler.isolated();
+    rng.restore(s.rng); scheduler.restoreIsolated(this.tickActor, data.scheduler);
+    this.scheduler.restoreIsolated(this.tickActor, data.scheduler); this.rng.restore(s.rng);
+    this.initialized = data.initialized; this.alive = s.alive; this.cx = s.cx; this.cz = s.cz;
+    this.tx = s.tx; this.tz = s.tz; this.tT = s.tT; this.panic = s.panic; this.panicX = s.panicX; this.panicZ = s.panicZ;
+    this.bleatT = s.bleatT; this.uTime.value = s.time; this.wool.splice(0, this.wool.length, ...s.wool);
+    this.px.set(s.px); this.pz.set(s.pz); this.py.set(s.py); this.yaw.set(s.yaw); this.spd.set(s.spd);
+    this.dspd.set(s.dspd); this.dyaw.set(s.dyaw); this.phase.set(s.phase); this.graze.set(s.graze);
+    this.dead.set(s.dead); this.deadT.set(s.deadT); this.shuffle.set(s.shuffle); this.scale.set(s.scale);
+  }
 
   /** Complete native pose inputs and replay state, copied in authored member order. */
   state(): FlockFrame { return { n: this.n, alive: this.alive, cx: this.cx, cz: this.cz, tx: this.tx, tz: this.tz, tT: this.tT, panic: this.panic, panicX: this.panicX, panicZ: this.panicZ, bleatT: this.bleatT, wool: [...this.wool], px: [...this.px], pz: [...this.pz], py: [...this.py], yaw: [...this.yaw], spd: [...this.spd], dspd: [...this.dspd], dyaw: [...this.dyaw], phase: [...this.phase], graze: [...this.graze], dead: [...this.dead], deadT: [...this.deadT], shuffle: [...this.shuffle], scale: [...this.scale], time: this.uTime.value, rng: this.rng.snapshot() }; }

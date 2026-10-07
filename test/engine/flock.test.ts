@@ -1,13 +1,14 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash every replay frame instead of retaining hundreds of megabytes of copied crowd state.
 import { createHash } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Vector3 } from 'three';
-import { FlockBrain, type FlockSpec, type FlockPorts } from '../../src/engine/ai/flock';
+import { FlockBrain, type FlockSpec, type FlockPorts, type FlockPose } from '../../src/engine/ai/flock';
+import { Rng } from '../../src/engine/core/rng';
 import { ShippingFlock, type OraclePorts } from '../fixtures/flock-oracle/flock';
 
 const SPEC: FlockSpec = { x: 0, z: 0, count: 24, seed: 357, range: 45, runSpeed: 4.6, walkSpeed: 0.9, grazeStep: 0.35 };
 type Scenario = 'grazing' | 'sprint' | 'stealth' | 'wolf' | 'dog' | 'death' | 'water-rim' | 'distance';
-function fixture(platform: boolean, scenario: Scenario): {
+function fixture(platform: boolean, scenario: Scenario, initialize = true): {
   policy: FlockBrain | ShippingFlock; player: Vector3; dog: { alive: boolean; position: Vector3 };
   wolves: { alive: boolean; position: Vector3 }[]; sounds: object[]; centres: number[][]; tramples: number[][];
   ports: FlockPorts; oraclePorts: OraclePorts;
@@ -28,7 +29,7 @@ function fixture(platform: boolean, scenario: Scenario): {
   policy.onSound = (name, x, z) => { sounds.push({ name, x, z }); };
   const dog = { alive: true, position: new Vector3(500, 0, 0) };
   policy.dog = scenario === 'dog' ? dog : null;
-  policy.initialize();
+  if (initialize) policy.initialize();
   return { policy, player: new Vector3(home + 30, 0, 30), dog,
     wolves: [{ alive: true, position: new Vector3(500, 0, 0) }], sounds, centres, tramples, ports, oraclePorts };
 }
@@ -77,5 +78,48 @@ describe('ordered distance-scheduled flock', () => {
     const before = policy.snapshot();
     expect(() => policy.update(1 / 60, 0, f.player, 0, [])).toThrow('not initialized');
     expect(policy.snapshot()).toBe(before);
+  });
+  it.each([1, 799, 802, 1599, 1602, 2499, 2502])('restores an exact fresh-policy suffix at %i without setup RNG or native effects', at => {
+    const f = fixture(true, 'distance');
+    if (!(f.policy instanceof FlockBrain)) throw new Error('Expected declared policy');
+    for (let tick = 0; tick < at; tick++) drive(f, tick, 'distance');
+    const saved = f.policy.snapshot(), draw = vi.spyOn(Rng.prototype, 'next');
+    const restored = fixture(true, 'distance', false);
+    if (!(restored.policy instanceof FlockBrain)) throw new Error('Expected declared policy');
+    restored.policy.restore(saved);
+    expect(draw).not.toHaveBeenCalled(); draw.mockRestore();
+    expect(restored.sounds).toEqual([]); expect(restored.centres).toEqual([]); expect(restored.tramples).toEqual([]);
+    expect(restored.policy.snapshot()).toBe(saved);
+    f.sounds.length = 0; f.centres.length = 0; f.tramples.length = 0;
+    for (let tick = at; tick < at + 2000; tick++) {
+      drive(f, tick, 'distance'); drive(restored, tick, 'distance');
+      expect(restored.policy.snapshot()).toBe(f.policy.snapshot());
+    }
+    expect(restored.sounds).toEqual(f.sounds); expect(restored.tramples).toEqual(f.tramples); expect(restored.centres).toEqual(f.centres);
+  });
+  it('rejects incompatible or malformed continuation atomically, including an invalid owned clock', () => {
+    const f = fixture(true, 'grazing');
+    if (!(f.policy instanceof FlockBrain)) throw new Error('Expected declared policy');
+    for (let tick = 0; tick < 100; tick++) drive(f, tick, 'grazing');
+    const saved = f.policy.snapshot();
+    expect(() => f.policy instanceof FlockBrain && f.policy.restore(saved.replace('"phase":', '"unknown":'))).toThrow();
+    expect(() => f.policy instanceof FlockBrain && f.policy.restore(saved.replace('"alive":24', '"alive":23'))).toThrow('Incompatible');
+    expect(() => f.policy instanceof FlockBrain && f.policy.restore(saved.replace(String.raw`\"credit\":`, String.raw`\"unknown\":`))).toThrow();
+    expect(f.policy.snapshot()).toBe(saved);
+    expect(() => new FlockBrain(f.ports, { ...SPEC, seed: 358 }).restore(saved)).toThrow('Incompatible');
+  });
+  it('projects one authoritative ordered pose without allocation and retains prey/death identity', () => {
+    const f = fixture(true, 'grazing');
+    if (!(f.policy instanceof FlockBrain)) throw new Error('Expected declared policy');
+    const pose: FlockPose = { x: 0, y: 0, z: 0, yaw: 0, speed: 0, phase: 0, graze: 0, dead: false, deathTime: 0, scale: 1, wool: 0 };
+    expect(f.policy.readPose(4, pose)).toBe(pose);
+    const point = new Vector3();
+    expect(f.policy.positions(4, point)).toBe(point); expect(point.toArray()).toEqual([pose.x, pose.y + 0.6, pose.z]);
+    expect(f.policy.headingOf(4)).toBe(pose.yaw); expect(f.policy.nearest(pose.x, pose.z)).toBe(4);
+    f.policy.kill(4); const saved = f.policy.snapshot(); f.policy.kill(4);
+    expect(f.policy.snapshot()).toBe(saved); expect(f.policy.isAlive(4)).toBe(false);
+    expect(f.policy.nearest(pose.x, pose.z)).not.toBe(4); expect(f.policy.readPose(4, pose).dead).toBe(true);
+    expect(() => f.policy instanceof FlockBrain && f.policy.kill(256)).toThrow('member');
+    expect(f.policy.isAlive(0.5)).toBe(false);
   });
 });
