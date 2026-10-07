@@ -32,11 +32,6 @@ async function samples(ports: Ports, set: Parameters<Ports['decodeSfxSet']>[0],
   return base;
 }
 
-export async function driftwoodSampleDecoder(): Promise<(set: Parameters<Ports['decodeSfxSet']>[0]) => Promise<SfxBank>> {
-  const ports = await audioPorts();
-  return (set) => samples(ports, set, ports.cachedBytes, ports.decodeBytes);
-}
-
 /** Preserve every base-style download and decode only title + island for the selected style. */
 export async function createDriftwoodAudio(): Promise<LevelAudioProfile> {
   const ports = await audioPorts();

@@ -25,7 +25,7 @@ import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { lastEndLine, markUnload } from '../boot/lastEnd';
-import { getSfxSet, onSettingChange, onSfxSet, saveSetting, setSfxSet, setting, settingsReloadUrl, SFX_SETS, type OptionKey, type OptionValue, type SfxSet } from './Settings';
+import { onSettingChange, saveSetting, setting, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 import { MOBILE_DEVICE } from '../core/tier';
 import { tierPickLine } from '../render/tierBoot';
 import type { DebugRowSpec } from '../level/context';
@@ -166,7 +166,6 @@ const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59
 });
 const TIMES = [['live', 'Live'], ['midday', 'Midday'], ['golden', 'Golden'], ['sunset', 'Sunset'], ['night', 'Night']] as const;
 
-const SFX_TEXT: Record<SfxSet, string> = { best: engineString('s_827ec8d9f99d'), synth: engineString('s_3cedb71562fd') };
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
@@ -177,14 +176,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('dayCycle'), ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
   opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('weather'), ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
   opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { purpose: 'developer', when: supports('clockSpeed'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
-
-  // ── Audio: the score's source and the sound effects (Settings musicStyle / sfxSet) ──
-  {
-    purpose: 'developer', id: 'sfxSet', group: 'audio', label: engineString('s_a7180005e20c'), reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_fd46c9f22595'),
-    choices: () => SFX_SETS.map((v) => ({ v, text: SFX_TEXT[v] })), get: getSfxSet,
-    set: (s) => { const v = SFX_SETS.find((x) => x === s); if (v) setSfxSet(v); }, on: (fn) => { onSfxSet(() => { fn(); }); },
-  },
-
 
   // ── Combat & weapons ──
 

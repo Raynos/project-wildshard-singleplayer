@@ -137,33 +137,12 @@ describe('Settings', () => {
     expect((await fresh()).getMusicStyle()).toBe('piano');
   });
 
-  it('keeps Best as the public SFX fallback and retains the Developer audition pick', () => {
+  it('ignores retired SFX audition picks and saves only the Best shipping set', async () => {
     fixtures.setItem(STORE, JSON.stringify({ sfxSet: 'synth', musicStyle: 'folk' }));
-    let enabled = false;
-    const changed = new Set<() => void>();
-    const s = createSettings(saveStorage('global'), () => '', { enabled: () => enabled,
-      on: fn => { changed.add(fn); return () => { changed.delete(fn); }; } });
-    expect(s.getSfxSet()).toBe('best'); expect(s.getMusicStyle()).toBe('folk');
-    s.setSfxSet('best'); expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth' });
-    const heard: string[] = [], off = s.onSfxSet(value => { heard.push(value); });
-    enabled = true; for (const fn of changed) fn(); expect(s.getSfxSet()).toBe('synth');
-    enabled = false; for (const fn of changed) fn(); expect(s.getSfxSet()).toBe('best');
-    expect(heard).toEqual(['synth', 'best']); off(); expect(changed.size).toBe(0);
-    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth', musicStyle: 'folk' });
-  });
-  it('sfxSet: best by default, a retired saved set reads as best, persisted beside musicStyle, no URL override (E162)', async () => {
-    fixtures.setItem(STORE, JSON.stringify({ sfxSet: 'moss' })); // a set from SFX round 2, retired by the merged one
-    expect((await fresh()).getSfxSet()).toBe('best');
-    localStorage.clear();
-    const s = await fresh();
-    expect(s.getSfxSet()).toBe('best');
-    s.setSfxSet('synth');
-    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth', musicStyle: 'piano' });
-    s.setSfxSet('best');
-    vi.stubGlobal('location', new URL('http://localhost:5173/?sfx=synth'));
-    try {
-      expect((await fresh()).getSfxSet()).toBe('best'); // the old ?sfx= switch is ignored
-    } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
+    const s = await fresh(); expect(s.getSfxSet()).toBe('best');
+    s.setMusicStyle('piano');
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).not.toHaveProperty('sfxSet');
+    expect(s.getMusicStyle()).toBe('piano');
   });
 
   it('the old ?music=<style> switch is ignored: the saved style plays (E162)', async () => {

@@ -11,7 +11,6 @@ import { IslandAmbience } from './ambience';
 import { ShrineHum } from './shrineHum';
 import { driftwoodCueMap } from './cues';
 import { installDriftwoodScore } from './score';
-import { driftwoodSampleDecoder } from './files';
 import { driftwoodAudioSystems } from './systems';
 
 /** Runs in level.play after the shell supplies its host. Constructors make no cosmetic draws. */
@@ -20,7 +19,6 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   if (shell?.world === undefined || shell.world === null || shell.play === null) throw new Error('Driftwood audio requires its play host');
   const { game, sky, player } = shell.world, { audio, music } = shell.play;
   installDriftwoodScore(audio, music, ctx.scope);
-  audio.installSampleDecoder(await driftwoodSampleDecoder(), ctx.scope);
   const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
   const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z });
   const islandSfx = new IslandSfx(audio, ctx.scope);

@@ -18,9 +18,8 @@ import { activeLevel } from '../level/selection';
 import type { LevelSpec } from '../level/spec';
 import type { FullMap } from './Map';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getSfxSet, onSfxSet, type SettingKey, type NumberKey } from './Settings';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getSfxSet, type SettingKey, type NumberKey } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
-import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 import { isDev, onDev } from '../core/devMode';
@@ -454,11 +453,10 @@ export class GameMenu {
       paint(); on(paint); row.append(box); return row;
     };
     // a pick decodes from the offline cache (project/archive/2026-09-23-preload-offline.md): a spinner by the label only past 300 ms
-    onAudioBusy((kind, on) => { if (kind === 'sfx') this.debug?.row('sfxSet')?.classList.toggle('busy', on); });
     // the licences ask for the models' names in the UI: MiniMax-Music3, and the sfx set's credit ("Powered by Stability AI")
     const sfxNote = el('ws-gmenu-note');
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
-    paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
+    paintCredit(); onSfxCredit(paintCredit);
     const audio = [cats.head(el('ws-gmenu-label', engineString('s_bc1b88907d3b'))), vol, mus, buildMusicStyleRow(this.scope), el('ws-gmenu-note', MUSIC_CREDIT), sfxNote];
     p.append(...audio); cats.tag('audio', ...audio);
     // lock-on (E50, src/engine/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the

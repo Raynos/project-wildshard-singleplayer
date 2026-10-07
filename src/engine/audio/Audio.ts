@@ -6,9 +6,9 @@ import { ownAudioSource } from './ownership';
 import { currentOwner } from '../app/ownership';
 import { tap, ambientTick } from '../core/harnessTap';
 import type { Vector3 } from 'three';
-import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
+import { getSfxSet, type SfxSet } from '../ui/Settings';
 import { setSfxCredit } from './credits';
-import { cachedBytes, decodeSfxSet, trackBusy, type SfxBank, type SfxDecodePolicy } from './preload';
+import type { SfxBank } from './preload';
 import { Voices } from './Voices';
 import type { Scope } from '../app/scope';
 import type { CueMap, CueOpts } from './Cues';
@@ -39,7 +39,7 @@ import type { LevelAudioBank } from './levelAudio';
  *   audio.voices                         // the procedural one-shot bank (src/engine/audio/Voices.ts + gen.ts): a level's footsteps + combat layers (its voice table)
  *
  * Samples (project/archive/2026-09-23-music.md v3 row 7): `audio.useSamples(bank)` — the loading bar decoded (src/engine/audio/preload.ts,
- * project/archive/2026-09-23-preload-offline.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'best' — the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium — · 'synth')
+ * project/archive/2026-09-23-preload-offline.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Best: the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium)
  * when the build ships one and decodes what it lists: ambient `beds` (the level's selected bed and
  * underwater, looped loopStart → loopEnd, replacing that synth bed), `hums` (pickup / shrine) and `oneshots` (a family →
  * variant files; each call picks one at random with ±40 cents / −1.5 dB of jitter). Every sound sfx.json does not cover
@@ -163,13 +163,9 @@ export class Audio extends PlayerVoices {
     this.worldMuted = true;
   }
 
-  private readonly profile: { bed?: string; samples?: SfxDecodePolicy; decode?: (set: SfxSet) => Promise<SfxBank> };
-  /** `decode`: the sample decoder when no scope installed one (the offline cache's by default; a test passes its own) */
-  constructor(profile: { bed?: string; samples?: SfxDecodePolicy; decode?: (set: SfxSet) => Promise<SfxBank> } = {}) {
+  constructor(profile: { bed?: string } = {}) {
     super();
-    this.profile = profile;
     this.bed = profile.bed ?? '';
-    onSfxSet((v) => { this.switchSet(v); });
   }
 
   /** the graph, built on first use: master → muffle → compressor → out, with the sfx and ambient buses and a 2 s noise buffer */
@@ -261,19 +257,6 @@ export class Audio extends PlayerVoices {
     if (this.started && (hadBed || this.loops.has(this.bed))) { this.stopBed(); this.startBed(); }
     if (this.underGain && (hadUnder || this.loops.has('underwater'))) this.feedUnder();
     if (this.hum && (hadHum || this.loops.has('pickup'))) { const h = this.hum; this.hum = undefined; h.stop(); if (this.humOn) this.pickupHum(true); }
-  }
-  /** the pause menu picked another set: decoded from the offline cache (the bar downloaded every set), swapped in when ready */
-  private switchSet(v: SfxSet): void {
-    if (v === this.sfxSet) return;
-    this.sfxSet = v;
-    const decoded = this.sampleDecoder?.(v) ?? this.profile.decode?.(v) ?? decodeSfxSet(v, this.bed, cachedBytes, undefined, undefined, this.profile.samples);
-    void (async () => { this.useSamples(await trackBusy('sfx', decoded)); })();
-  }
-  private sampleDecoder: ((set: SfxSet) => Promise<SfxBank>) | undefined;
-  /** A level can decode its owned samples alongside the shared bank when Settings changes the set. */
-  installSampleDecoder(decode: (set: SfxSet) => Promise<SfxBank>, scope: Scope): void {
-    this.sampleDecoder = decode;
-    scope.onDispose(() => { if (this.sampleDecoder === decode) this.sampleDecoder = undefined; });
   }
   /** a random variant of `family` with a little pitch / gain jitter, routed like the synth call; false = not sampled, play the synth */
   override shot(family: string, o: { pan?: number; gain?: number; out?: AudioNode; t?: number; rate?: number } = {}): boolean {

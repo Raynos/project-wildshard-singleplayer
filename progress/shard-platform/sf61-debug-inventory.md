@@ -141,3 +141,6 @@ and needed CLI-only engine hooks remain.
 
 - Crag channel row, saved reader and shader forcing deleted; the picked shaded crags and owner memory-trim
   policy remain. Inventory: **9 comparisons / 16 Developer tools**.
+
+- SFX audition selector, saved pick and set-change decoders deleted (G221 supersedes G218). Best ships;
+  sample-failure synth fallbacks and native audio loading remain. Inventory: **9 comparisons / 15 Developer tools**.

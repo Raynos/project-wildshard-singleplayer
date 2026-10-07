@@ -9,10 +9,7 @@ import { saveStorage } from '../saves/slots';
 //   factor while a sword swing is running — TouchControls / Player.ts read them per event, nothing to subscribe)
 //   getMusicStyle() / setMusicStyle('orchestral') / onMusicStyle(fn)   → the score's source (project/archive/2026-09-23-music.md v3):
 //   'piano' | 'orchestral' | 'folk' (MiniMax-Music3 stems) | 'synth' (the v1 WebAudio score); default 'piano'.
-//   getSfxSet() / setSfxSet('synth') / onSfxSet(fn)   → the sound effects: 'best' (the generated set, public/assets/sfx/best/
-//   sfx.json — per sound the better take of MOSS-SoundEffect v2 and Stable Audio 3 Medium, AGENTS.md "Audio engines") | 'synth'
-//   (every sound synthesised); default 'best'. A saved set that no longer exists (moss, sa3-medium, ezaudio) reads as 'best'.
-//   Neither has a URL override (E162): Audio settings pick music styles; sound-set diagnostics remain developer-only.
+//   getSfxSet() → Best samples; missing samples retain the synth fallback (G221).
 //
 //
 // The OPTIONS (E55) — every player-facing toggle that used to be a query param, one lookup for all of them:
@@ -36,8 +33,8 @@ export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'hun
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
 export const MUSIC_STYLES = ['piano', 'orchestral', 'folk', 'synth'] as const;
 export type MusicStyle = (typeof MUSIC_STYLES)[number];
-export const SFX_SETS = ['best', 'synth'] as const;
-export type SfxSet = (typeof SFX_SETS)[number];
+export const SFX_SETS = ['best'] as const;
+export type SfxSet = 'best' | 'synth';
 
 const STORE = 'settings';
 // autoLock: a kill re-locks the next enemy (E50); huntersEye: the bow's dotted drop arc while drawing (Nalati, src/engine/player/Bow.ts) — on by default on touch, off with a mouse
@@ -174,8 +171,6 @@ export interface Settings {
   setMusicStyle: (v: MusicStyle) => void;
   onMusicStyle: (fn: (v: MusicStyle) => void) => () => void;
   getSfxSet: () => SfxSet;
-  setSfxSet: (v: SfxSet) => void;
-  onSfxSet: (fn: (v: SfxSet) => void) => () => void;
 }
 
 const ISOLATED_DEVELOPER = { enabled: (): boolean => true };
@@ -193,7 +188,6 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const ctx = { saved, persist: (): void => { writer.persist(); }, search };
   // Music style is a player preference; SFX comparison stays in the registry. Neither has a URL override (E162).
   const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null, false, ctx);
-  const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null, false, ctx);
   const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
     const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
     const def = OPTION_SPECS[k].def ?? values[0];
@@ -212,7 +206,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};
     for (const k of OPTION_KEYS) picks[k] = options[k].stored;
-    try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored, ...picks })); } catch { /* not persisted this session */ }
+    try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, ...picks })); } catch { /* not persisted this session */ }
   };
   writer.persist = persist;
   const readOption = <K extends OptionKey>(key: K): OptionValue<K> => {
@@ -278,15 +272,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     getMusicStyle: (): MusicStyle => musicStyle.value,
     setMusicStyle: (v: MusicStyle): void => { musicStyle.set(v); },
     onMusicStyle: (fn: (v: MusicStyle) => void): (() => void) => musicStyle.on(fn),
-    getSfxSet: (): SfxSet => developer.enabled() ? sfxSet.value : 'best',
-    setSfxSet: (v: SfxSet): void => { if (developer.enabled()) sfxSet.set(v); },
-    onSfxSet: (fn: (v: SfxSet) => void): (() => void) => {
-      const read = (): SfxSet => developer.enabled() ? sfxSet.value : 'best';
-      const off = sfxSet.on(() => { fn(read()); });
-      const modeOff = developer.on?.(() => { fn(read()); });
-      const unsubscribe = (): void => { off(); modeOff?.(); };
-      onOwnerDispose(unsubscribe); return unsubscribe;
-    },
+    getSfxSet: (): SfxSet => 'best',
   };
 }
 
@@ -319,5 +305,3 @@ export function getMusicStyle(): MusicStyle { return page.getMusicStyle(); }
 export function setMusicStyle(v: MusicStyle): void { page.setMusicStyle(v); }
 export function onMusicStyle(fn: (v: MusicStyle) => void): () => void { return page.onMusicStyle(fn); }
 export function getSfxSet(): SfxSet { return page.getSfxSet(); }
-export function setSfxSet(v: SfxSet): void { page.setSfxSet(v); }
-export function onSfxSet(fn: (v: SfxSet) => void): () => void { return page.onSfxSet(fn); }
