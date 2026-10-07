@@ -78,6 +78,7 @@
     "./combat/EquipmentService": "./combat/EquipmentService.ts",
     "./combat/Tool": "./combat/Tool.ts",
     "./combat/Weapon": "./combat/Weapon.ts",
+    "./calibrate/entry": "./calibrate/entry.ts",
     "./combat/ammo": "./combat/ammo.ts",
     "./combat/blocks/ads": "./combat/blocks/ads.ts",
     "./combat/blocks/melee": "./combat/blocks/melee.ts",

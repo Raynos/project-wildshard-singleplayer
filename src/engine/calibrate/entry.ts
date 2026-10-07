@@ -6,6 +6,7 @@ import { mountUi } from '../ui/ownership';
 import { runCalibration, type CalibrationRun, type CalibrationMeasurements } from './run';
 
 declare const __BUILD_ID__: string;
+/** Run the standalone browser calibration without installing a playable level or a Developer tool. */
 export async function enterCalibration(): Promise<void> {
   app.setState('capture'); frameProbe.uncapped = true;
   // No level is loaded, hence no gameplay/render systems can run beside the synthetic scene.

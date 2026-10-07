@@ -4,4 +4,4 @@ import { startPageServices } from './pageServices';
 
 startPageServices();
 // Separate from the game entry: no level, renderer, title or Developer tool is installed here.
-void import('./engine/calibrate/entry').then((module) => module.enterCalibration());
+void import('@wildshard/engine/calibrate/entry').then((module) => module.enterCalibration());
