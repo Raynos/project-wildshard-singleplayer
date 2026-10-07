@@ -49,8 +49,6 @@ interface Vec3 { x: number; y: number; z: number }
 
 /** the ground probe: a ray from this far above the feet to this far below them */
 const GROUND_PROBE_UP = 0.1, GROUND_PROBE_DOWN = 0.25;
-/** how near a kinematic body must be for Rapier's platform friction to act on a move (its skin plus its prediction) */
-const DECK_REACH = 0.1;
 
 export interface MoveResult {
   grounded: boolean;
@@ -89,7 +87,6 @@ export class CharacterMotor {
   private readonly probe = { x: 0, y: 0, z: 0 };
   private readonly flat = { x: 0, y: 0, z: 0 };
   private touchShape: Capsule | null = null; private touchMargin = -1;
-  private deckProbe: Capsule | null = null;
 
   private readonly physics: Physics;
   readonly opts: MotorOptions;
@@ -203,24 +200,6 @@ export class CharacterMotor {
     return true;
   }
 
-  /**
-   * The capsule at `feet` is within reach of a kinematic body (SF49 / SF51). Rapier's controller runs a
-   * platform pass for such a body after every hit of a move: it resets the move's normal part to the platform's own
-   * motion and adds the platform's sideways motion. Feet that rest a hair inside the controller's skin (`offset`) hit
-   * the deck's own top at time 0 on a sideways move; on static ground the controller's normal nudge lifts the capsule
-   * clear after a pass or two, but the platform pass erases that nudge, so all 20 passes hit the same floor and the
-   * player stalls on a resting deck (and on a moving one); and every hit adds the deck's motion a second time on top of
-   * `carry`. A move that starts a skin higher hits nothing on a flat deck, and snap-to-ground puts the feet back at the
-   * skin's distance.
-   */
-  private nearDeck(feet: Vec3): boolean {
-    const { R, world } = this.physics, p = this.probe;
-    this.deckProbe ??= new R.Capsule(this.halfAxis, this.opts.radius + DECK_REACH);
-    p.x = feet.x; p.y = feet.y + this.lift; p.z = feet.z;
-    return world.intersectionWithShape(p, this.rot, this.deckProbe,
-      R.QueryFilterFlags.ONLY_KINEMATIC | R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, this.collider) !== null;
-  }
-
   /** the steepest slope climbed from now on (degrees); it slides on ground 5° steeper */
   setClimb(deg: number): void {
     this.kcc.setMaxSlopeClimbAngle(deg * Math.PI / 180);
@@ -269,14 +248,10 @@ export class CharacterMotor {
     if (!this.enabled) { feet.x += want.x; feet.y += want.y; feet.z += want.z; r.grounded = false; r.groundNormalY = 1; r.horizontalFreedom = 1; r.groundCollider = null; this.anchorBody = null; return r; }
     const { R } = this.physics;
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
-    const wantH = Math.hypot(want.x, want.z);
-    // SF49 / SF51: a sideways move near a kinematic body (a mover's deck, at rest or ridden) starts a skin higher (see
-    // `nearDeck`); a move with no sideways part isn't snapped back down by the controller, so it starts where it is.
-    const lifted = wantH > 1e-6 && want.y <= 0 && this.nearDeck(feet) ? this.kcc.offset() : 0;
-    if (lifted > 0) this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + lifted, z: feet.z });
     const pred = ignoreGround ? this.notGround : undefined;
     this.kcc.computeColliderMovement(this.collider, want, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
     let m = this.kcc.computedMovement();
+    const wantH = Math.hypot(want.x, want.z);
     // E285: now and then Rapier stops the whole move on the floor the capsule already rests on (one contact, normal
     // straight up, time of impact 0), and a dash ended on that "wall" (~1 dodge in 5). Such a stall is retried flat;
     // the snap still keeps the feet on the ground, and anything that really blocks the way blocks the retry too.
@@ -285,7 +260,7 @@ export class CharacterMotor {
       this.kcc.computeColliderMovement(this.collider, this.flat, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, pred);
       m = this.kcc.computedMovement();
     }
-    feet.x += m.x; feet.y += m.y + lifted; feet.z += m.z;
+    feet.x += m.x; feet.y += m.y; feet.z += m.z;
     this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift, z: feet.z });
     r.grounded = this.kcc.computedGrounded();
     r.horizontalFreedom = wantH > 1e-6 ? Math.min(1, Math.hypot(m.x, m.z) / wantH) : 1;

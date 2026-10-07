@@ -241,14 +241,11 @@ for (const f of walk(join(ASSETS, 'models')).filter((x) => /\/textures\/[^/]+\.(
 
 /**
  * GLBs whose textures the game reads back on the CPU, so they must stay images: a compressed texture has no pixels to
- * draw on a canvas. Nalati's creature hulls' coats are recoloured per variant from the atlas (creatureCoats.ts), and the
- * camp's people are packed into one atlas (src/shards/nalati-grasslands/campPeopleModels.ts). Pine Hollow's hulls are
- * baked (G187 cut 2): their coats come pre-painted from scripts/bake-pine-coats.mjs (merged below), and the trophy wall
- * reads a KTX2 coat back through the GPU (src/shards/pine-hollow/world/trophyWall.ts).
+ * draw on a canvas. The creature hulls' coats are recoloured per variant from the atlas (src/engine/entities/pineCoats.ts,
+ * creatureCoats.ts; the trophy wall samples the Pine Hollow hulls, src/shards/pine-hollow/world/trophyWall.ts), and the camp's people are
+ * packed into one atlas (src/shards/nalati-grasslands/campPeopleModels.ts).
  */
-const CPU_READ = [/^\/assets\/nalati\/models\/[^/]+\.rigged\.glb$/, /^\/assets\/nalati\/models\/people\//];
-/** G187 cut 2: Pine Hollow's coats, painted and encoded by scripts/bake-pine-coats.mjs (table name → KTX2, per tier) */
-const COATS = existsSync(resolve(ROOT, 'scripts/bake-pine-coats.json')) ? JSON.parse(readFileSync(resolve(ROOT, 'scripts/bake-pine-coats.json'), 'utf8')) : {};
+const CPU_READ = [/^\/assets\/pine-hollow\/creatures\//, /^\/assets\/nalati\/models\/[^/]+\.rigged\.glb$/, /^\/assets\/nalati\/models\/people\//];
 /** GLBs with embedded images, per tier: [tier, served URL, file] */
 const glbJobs = [];
 for (const f of walk(ASSETS).filter((x) => x.endsWith('.glb') && !CPU_READ.some((re) => re.test(pub(x))))) {
@@ -438,12 +435,6 @@ for (const [tier, served, file] of gltfJobs) {
   mkdirSync(dirname(out), { recursive: true });
   if (!existsSync(out)) writeFileSync(out, bytes);
   map[tier][served] = pub(out);
-}
-
-// G187 cut 2: the coats (scripts/bake-pine-coats.mjs owns their encode; this table and the pruning below keep them)
-for (const tier of ['phone', 'desktop']) if (TIERS.has(tier)) for (const [served, out] of Object.entries(COATS[tier] ?? {})) {
-  if (!existsSync(abs(out))) { if (CHECK) staleSource(served); continue; }
-  map[tier][served] = out;
 }
 
 // ── outputs ──

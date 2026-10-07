@@ -5,7 +5,6 @@
  *
  *   const map = pineCoatAtlas(key, spec, rig, variantDef, bones)   // a CanvasTexture (cached by key), or the rig's map
  *                                                                  // itself when the coat is the hull's own
- *   adoptPineCoat(key, ktx2)                                       // the KTX2 path: the baked coat stands in (G187)
  *
  * 1. Recolour (Nalati's creatureCoats.ts method, made shard-agnostic): the species' palette names three coat keys — dark,
  *    body and light. The atlas's own levels for them are measured (texel luminance sampled over the mesh at the 12th / 55th
@@ -318,13 +317,6 @@ function boneAt(bones: readonly BoneDef[], name: string): THREE.Vector3 | null {
 }
 
 /**
- * G187 cut 2: a coat baked offline (scripts/bake-pine-coats.mjs renders every coat with pineCoatAtlas itself, then encodes
- * it as KTX2) stands in for the canvas under the same key; the KTX2 path adopts them at preload (hulls.ts), so
- * pineCoatAtlas returns the compressed texture and never reads the hull's pixels.
- */
-export function adoptPineCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex); }
-
-/**
  * The hull's atlas in variant `v`'s coat (cached by `key`). `bones` are the rest joints the rig is bound to (they place
  * the blaze and the scars). Returns `rig.map` itself when nothing changes, or when the atlas can't be read.
  */
@@ -335,9 +327,6 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
   if (!coatDiffers(spec, v) && flap === null) return map;
   const hit = cache.get(key);
   if (hit) return hit;
-  // a KTX2 hull has no pixels to paint: its coats are baked (scripts/bake-pine-coats.mjs) and adopted at preload; a coat
-  // the bake doesn't hold keeps the hull's own
-  if (map instanceof THREE.CompressedTexture) return map;
   const img = map.image as (CanvasImageSource & { width: number; height: number }) | null;
   if (!img || typeof document === 'undefined') return map;
   const W = img.width, H = img.height;

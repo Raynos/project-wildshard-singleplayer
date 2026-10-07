@@ -4,24 +4,27 @@ import { contentHash } from '../../../src/sdk/project';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
 import { validateSocketLandings } from '../../../src/game/shardfile/entryLanding';
 import { validateEntrywayClearance } from '../../../src/game/shardfile/entryClearance';
-import { ENTRY_RAMPS, SWITCHBACK } from '../../../src/shards/far-reach/world/ramps';
-import { entryColliders } from '../../../src/shards/far-reach/world/entries';
-import { rimAlong } from '../../../src/shards/far-reach/layout';
+import { parseMovers } from '../../../src/game/shardfile/movers';
+import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
+import { ISLET_ISLE, isletBoxes, lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
+import { CROWN, ISLES, KEEPER, STEP, apothem, rimAlong, type Isle } from '../../../src/shards/far-reach/layout';
+import { MOVERS } from '../../../src/shards/far-reach/data/movers';
 import source from '../../../src/shards/far-reach/shard.config';
 
-// SHARD-PLATFORM SF49-g (Jake's G99 / G102): Sky Reach's four switchback entries, from a road-level landing at each edge
-// midpoint up to the nearest island.
-const MAX_CLIMB = 40, deg = (rise: number, run: number): number => (Math.atan2(Math.abs(rise), run) * 180) / Math.PI;
+// SHARD-PLATFORM SF49-g (Jake's G99 / G183, the Rising Islet): at each edge midpoint a stone lip at road height, a grass
+// islet resting against it that rises on chains to a gate isle ~50 m in and 25 m up, a rope bridge on to an island.
+const deg = (rise: number, run: number): number => (Math.atan2(Math.abs(rise), run) * 180) / Math.PI;
+const inside = (isle: Isle, x: number, z: number): boolean => Math.hypot(x - isle.x, z - isle.z) < rimAlong(isle, Math.atan2(z - isle.z, x - isle.x));
 
-describe('Sky Reach switchback entries', () => {
-  it('declares four sockets over the void, each proven by a full-width road landing at y = 0', () => {
+describe('Sky Reach Rising Islet entries', () => {
+  it('declares four sockets over the void, each proven by a full-width stone lip at y = 0', () => {
     expect(source.entryways.map((row) => [row.edge, row.kind, row.width])).toEqual(['north', 'east', 'south', 'west'].map((edge) => [edge, 'socketOverWater', ENTRY_WIDTH]));
     expect(source.accent).toBe('pink'); // G104: 18 PINK
     expect(() => validateShardfileAssets(source, new Map(), contentHash)).not.toThrow();
-    // no landing, one 0.5 m short of the full 8 m, or one 1 cm proud of the road: refused
+    // no landing, one shifted 9.5 m along the edge, or one 1 cm proud of the road: refused
     expect(() => validateShardfileAssets({ ...source, props: null }, new Map(), contentHash)).toThrow('full-width collision landing');
     const props = source.props; if (props === null) throw new Error('Sky Reach declares its landings');
-    const shifted = (dy: number, dt: number) => ENTRY_RAMPS.map(({ edge, landing: l }) => {
+    const shifted = (dy: number, dt: number) => RISING_ISLETS.map(({ edge, landing: l }) => {
       const k = edge === 'north' ? 1 : 0;
       return { id: `landing.${edge}`, panel: null, initialActive: true, shapes: [{ kind: 'box' as const, x: l.x + k * dt, y: l.y + k * dy, z: l.z, hx: l.hx, hy: l.hy, hz: l.hz, surface: l.surface }] };
     });
@@ -29,13 +32,12 @@ describe('Sky Reach switchback entries', () => {
     expect(() => validateSocketLandings({ ...source, props: { ...props, colliders: shifted(0.01, 0) } }, new Map())).toThrow('full-width collision landing');
   });
 
-  it('keeps every deck, rail and the landing inside the cell and out of the 8 × 15 m socket above road height', () => {
-    const shapes: { kind: 'box'; x: number; y: number; z: number; hx: number; hy: number; hz: number; rot?: { x: number; y: number; z: number; w: number }; surface: 'wood' }[] = [];
-    for (const c of ENTRY_RAMPS.flatMap(entryColliders)) {
-      if (c.kind !== 'box') throw new Error('entries are boxes');
-      const shape: (typeof shapes)[number] = { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, surface: 'wood' };
-      if (c.rot !== undefined) shape.rot = c.rot;
-      shapes.push(shape);
+  it('keeps the lips and the resting islets inside the cell and out of the 8 × 15 m socket above road height', () => {
+    const shapes: { kind: 'box'; x: number; y: number; z: number; hx: number; hy: number; hz: number; rot?: { x: number; y: number; z: number; w: number }; surface: 'stone' }[] = [];
+    for (const entry of RISING_ISLETS) {
+      const c = lipCollider(entry); if (c.kind !== 'box') throw new Error('lips are boxes');
+      shapes.push({ kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, surface: 'stone' });
+      for (const b of isletBoxes()) shapes.push({ kind: 'box', x: entry.rest.x + b.x, y: entry.rest.y + b.y, z: entry.rest.z + b.z, hx: b.hx, hy: b.hy, hz: b.hz, rot: b.rot, surface: 'stone' });
     }
     for (const s of shapes) expect(Math.max(Math.abs(s.x), Math.abs(s.z)) + Math.hypot(s.hx, s.hy, s.hz)).toBeLessThan(CHUNK_HALF);
     const props = source.props; if (props === null) throw new Error('Sky Reach declares its landings');
@@ -43,28 +45,48 @@ describe('Sky Reach switchback entries', () => {
     expect(() => validateEntrywayClearance({ entryways: source.entryways, props: all, water: [] }, new Map())).not.toThrow();
   });
 
-  it('is walkable: gentle flights, level turn landings, a causeway onto each island top', () => {
-    for (const entry of ENTRY_RAMPS) {
-      expect(entry.flights % 2).toBe(0); expect(entry.flights).toBeGreaterThanOrEqual(2);
-      for (const slab of entry.slabs) {
-        const run = Math.hypot(slab.b.x - slab.a.x, slab.b.z - slab.a.z);
-        expect(deg(slab.b.y - slab.a.y, run)).toBeLessThanOrEqual(12); // a flight 11.3°, the causeway ≤ 8°
-      }
-      // the walk climbs from the landing's road height to the island's deck without a step taller than the controller's
-      const path = entry.path, first = path[0], last = path[path.length - 1];
-      expect(first?.y).toBe(0); expect(last?.y).toBe(entry.isle.y);
-      for (let i = 1; i < path.length; i++) {
-        const a = path[i - 1], b = path[i]; if (a === undefined || b === undefined) throw new Error('path');
-        expect(deg(b.y - a.y, Math.hypot(b.x - a.x, b.z - a.z))).toBeLessThan(MAX_CLIMB / 3);
-      }
-      // the walk ends on the island's top (inside its rim), and starts on the socket's far edge at the midpoint
-      if (last === undefined || first === undefined) throw new Error('path');
-      expect(Math.hypot(last.x - entry.isle.x, last.z - entry.isle.z)).toBeLessThan(rimAlong(entry.isle, Math.atan2(last.z - entry.isle.z, last.x - entry.isle.x)));
-      expect(Math.max(Math.abs(first.x), Math.abs(first.z))).toBeCloseTo(CHUNK_HALF - ENTRY_ASPHALT - 0.5, 9);
-      expect(Math.min(Math.abs(first.x), Math.abs(first.z))).toBe(0);
-      // stacked flights of a lane leave head room
-      expect(2 * SWITCHBACK.rise - SWITCHBACK.deck).toBeGreaterThan(2.5);
+  it('rides: the islet rests against the lip at road height and docks against its gate isle ~50 m in, 25 m up', () => {
+    const isletR = apothem(ISLET_ISLE);
+    for (const entry of RISING_ISLETS) {
+      const inward = Math.max(Math.abs(entry.rest.x), Math.abs(entry.rest.z));
+      expect(entry.rest.y).toBe(0);
+      // the islet's deck edge meets the lip's inner edge (a walk gap under 10 cm), on the midpoint's axis
+      expect(CHUNK_HALF - inward - isletR - (ENTRY_ASPHALT + ISLET.lip.depth)).toBeCloseTo(ISLET.gap, 9);
+      expect(Math.min(Math.abs(entry.rest.x), Math.abs(entry.rest.z))).toBe(0);
+      // docked: level with the gate isle, its deck edge the same gap from the gate isle's rim
+      expect(entry.dock.y).toBe(entry.gate.y); expect(entry.gate.y).toBe(25);
+      expect(Math.hypot(entry.dock.x - entry.gate.x, entry.dock.z - entry.gate.z) - apothem(entry.gate) - isletR).toBeCloseTo(ISLET.gap, 9);
+      expect(CHUNK_HALF - Math.max(Math.abs(entry.gate.x), Math.abs(entry.gate.z))).toBe(52);
+      // a ride of a few seconds per ten metres, and the eased peak a gentle 1.5× the average
+      expect(entry.travel).toBeGreaterThan(10); expect(entry.travel).toBeLessThan(30);
     }
-    expect(ENTRY_RAMPS.map((e) => [e.edge, e.isle.id, e.flights])).toEqual([['north', 'sunrest', 4], ['east', 'roost', 6], ['south', 'crown', 14], ['west', 'grove', 4]]);
+    // one mover row per islet, on the islet module, parameters exactly the entry's rest, dock, rests and travel
+    const rows = MOVERS.filter((m) => m.id.startsWith('far.islet.'));
+    expect(() => parseMovers(MOVERS)).not.toThrow();
+    expect(rows.map((m) => [m.id, m.kind, m.input])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, 'platform',
+      [e.rest.x, e.rest.y, e.rest.z, e.dock.x, e.dock.y, e.dock.z, ISLET.dwell, e.travel, 0]]));
+  });
+
+  it('lands on playable island ground past no quest, clear of every island and the crown overhead', () => {
+    expect(RISING_ISLETS.map((e) => [e.edge, e.isle.id])).toEqual([['north', 'sunrest'], ['east', 'roost'], ['south', 'ruin'], ['west', 'grove']]);
+    for (const entry of RISING_ISLETS) {
+      // never the storm crown, the high step or the winch's isle (G183: no entry lands past a quest)
+      expect([CROWN.id, STEP.id, KEEPER.id]).not.toContain(entry.isle.id);
+      // the gate isle and the islet's whole climb stay clear of every island (and its keel below)
+      for (const isle of ISLES) {
+        expect(Math.hypot(entry.gate.x - isle.x, entry.gate.z - isle.z)).toBeGreaterThan(isle.r + entry.gate.r + 4);
+        for (let f = 0; f <= 1; f += 0.05) {
+          const x = entry.rest.x + (entry.dock.x - entry.rest.x) * f, z = entry.rest.z + (entry.dock.z - entry.rest.z) * f;
+          expect(Math.hypot(x - isle.x, z - isle.z)).toBeGreaterThan(isle.r + ISLET_ISLE.r + 4);
+        }
+      }
+      // the rope bridge: off the gate isle's rim onto the island's, gently sloped
+      const b = entry.bridge, run = Math.hypot(b.x1 - b.x0, b.z1 - b.z0);
+      expect(inside(entry.gate, b.x0, b.z0)).toBe(true); expect(inside(entry.isle, b.x1, b.z1)).toBe(true);
+      expect(deg(b.y1 - b.y, run)).toBeLessThan(8);
+      // the walk ends on the island's top
+      const last = entry.climb[entry.climb.length - 1]; if (last === undefined) throw new Error('climb');
+      expect(inside(entry.isle, last.x, last.z)).toBe(true); expect(last.y).toBe(entry.isle.y);
+    }
   });
 });

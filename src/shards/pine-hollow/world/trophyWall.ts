@@ -22,7 +22,6 @@ import { uiScope, mountUi } from '@wildshard/engine/ui/ownership';
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { readTexturePixels } from '@wildshard/engine/core/ktx2';
 import { loadHandFont } from '@wildshard/game/compendium/Journal';
 import type { CompendiumState } from '@wildshard/game/compendium/state';
 import type { TrophySlot } from '@wildshard/game/compendium/types';
@@ -81,15 +80,6 @@ function texturePixels(map: THREE.Texture): { data: Uint8ClampedArray; w: number
   if (!img || typeof document === 'undefined' || !(img.width > 0)) return null;
   const k = Math.min(1, 512 / Math.max(img.width, img.height));
   const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
-  if (map instanceof THREE.CompressedTexture) {
-    // G187 cut 2: a KTX2 coat has no pixels on the CPU; read it back through the GPU (rows top-first = the texture's last
-    // row first), then put the rows back in the texture's own order, as a canvas holds an uncompressed coat
-    const rows = readTexturePixels(map, w, h);
-    if (rows === null) return null;
-    const data = new Uint8ClampedArray(rows.length), stride = w * 4;
-    for (let y = 0; y < h; y++) data.set(rows.subarray((h - 1 - y) * stride, (h - y) * stride), y * stride);
-    return { data, w, h, flipY: map.flipY };
-  }
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const g = c.getContext('2d', { willReadFrequently: true });
   if (!g) return null;

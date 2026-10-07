@@ -22,10 +22,8 @@ import { setting } from '@wildshard/engine/ui/Settings';
  * flagged per vertex by `aOvergrown` (x = own vertex colour instead of the atlas, y = glow).
  */
 import * as THREE from 'three';
-import { texMode } from '@wildshard/engine/boot/gpuFiles';
-import { ktx2Texture } from '@wildshard/engine/core/ktx2';
-import { pineCoatUrl, pineCreatureRigUrl, PINE_CREATURE_RIGS, type PineRigName } from './rigs';
-import { adoptPineCoat, pineCoatAtlas, type CoatSpec } from './coats';
+import { pineCreatureRigUrl, PINE_CREATURE_RIGS, type PineRigName } from './rigs';
+import { pineCoatAtlas, type CoatSpec } from './coats';
 import { DEER_PALETTE, ELK_PALETTE } from './palettes';
 import { BEAR_PALETTE } from '@wildshard/kit/species/view/bear';
 import { BOAR_PALETTE } from '@wildshard/kit/species/view/boar';
@@ -148,50 +146,10 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
   return p;
 }
 
-/** every Pine Hollow rig, loaded (failures are logged: those species stay procedural); on the KTX2 path, every baked coat */
+/** every Pine Hollow rig, loaded (failures are logged: those species stay procedural) */
 export async function preloadPineCreatures(): Promise<void> {
   if (!pineCreaturesOn()) return;
-  await Promise.all(PINE_CREATURE_RIGS.map((n) => loadPineRig(n).then((rig) => (texMode() === 'ktx2' ? adoptBakedCoats(n, rig) : undefined))
-    .catch((e: unknown) => { console.warn(`[pine-hollow] creature rig ${n} failed`, e); })));
-}
-
-/**
- * G187 cut 2: on the KTX2 path the hull's atlas is a compressed texture (no pixels to recolour), so each coat comes baked
- * (scripts/bake-pine-coats.mjs: pineCoatAtlas's own canvas, per tier, as UASTC KTX2) and is adopted under pineCoatAtlas's
- * key. A coat with no stand-in keeps the hull's own.
- */
-async function adoptBakedCoats(name: PineRigName, rig: PineRig): Promise<void> {
-  const map = rig.map;
-  if (map === null) return;
-  await Promise.all(Object.entries(HULL).filter(([, hull]) => hull === name).map(async ([kv]) => {
-    const [kind = '', variant = ''] = kv.split(':');
-    const tex = await ktx2Texture(pineCoatUrl(name, kind, variant));
-    if (tex === null) return;
-    tex.flipY = map.flipY; tex.anisotropy = map.anisotropy; tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
-    tex.name = `${map.name}:${name}:${kv}`;
-    adoptPineCoat(`${name}:${kv}`, retainCachedResources(tex));
-  }));
-}
-
-/** the coat spec of hull `name` (the brown bear's measured onto real bear tones, E322 F-M2) */
-const coatSpec = (name: PineRigName): CoatSpec => (name === 'bear-brown' ? { ...COATS[name], measured: BEAR_FIX_COATS } : COATS[name]);
-
-/**
- * G187 cut 2, the bake's source (scripts/bake-pine-coats.mjs, through the `harness.shard.pine-hollow` capture handle's `coats` on an images page):
- * every coat that repaints its hull, exactly as the game paints it (pineCoatAtlas over the loaded rig, the variant as the
- * species resolves it, the rig's own joints), as a lossless PNG data URL keyed by its KTX2 table name for this tier.
- */
-export function pineCoatSources(): { url: string; png: string }[] {
-  const out: { url: string; png: string }[] = [];
-  for (const [kv, name] of Object.entries(HULL)) {
-    const rig = ready.get(name), map = rig?.map ?? null;
-    if (!rig || map === null) continue;
-    const [kind = '', variant = ''] = kv.split(':');
-    const bones: BoneDef[] = rig.joints.map((j) => ({ name: j.name, parent: null, pos: [j.pos.x, j.pos.y, j.pos.z] }));
-    const tex = pineCoatAtlas(`${name}:${kv}`, coatSpec(name), { geometry: rig.geometry, map, flap: rig.flap }, variantDef(kind, variant), bones);
-    if (tex !== map && tex.image instanceof HTMLCanvasElement) out.push({ url: pineCoatUrl(name, kind, variant), png: tex.image.toDataURL('image/png') });
-  }
-  return out;
+  await Promise.all(PINE_CREATURE_RIGS.map((n) => loadPineRig(n).catch((e: unknown) => { console.warn(`[pine-hollow] creature rig ${n} failed`, e); })));
 }
 
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions are the rig's) */
@@ -220,7 +178,8 @@ export function skinPineHull(kind: string, variant: string, bones: readonly Bone
   const thrall = Boolean(v.traits?.['thrall']);
   // E322 F-M2: the brown hull's coats measured onto real bear tones; either bear's pressed flap toned in
   const fix = isBear(name);
-  const map = rig.map ? pineCoatAtlas(`${name}:${kind}:${variant}`, coatSpec(name), { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
+  const spec: CoatSpec = name === 'bear-brown' ? { ...COATS[name], measured: BEAR_FIX_COATS } : COATS[name];
+  const map = rig.map ? pineCoatAtlas(`${name}:${kind}:${variant}`, spec, { geometry: rig.geometry, map: rig.map, flap: rig.flap }, v, out) : null;
   let geometry = rig.geometry;
   if (thrall) {
     const key = `${name}:${kind}:${variant}`;

@@ -16,6 +16,7 @@ import { toLevelSpec } from '../../../src/game/shard/spec';
 import { resolveLevelBounds, type ShardPlayHooks } from '../../../src/game/shard/runtime';
 import { installBounds } from '../../../src/engine/world/bounds';
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
+import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
 import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/plugin';
 import { WarFan, GUST, inCone } from '../../../src/shards/far-reach/weapons/WarFan';
@@ -43,10 +44,12 @@ async function boot(entries = false): Promise<{ app: App; plugin: SkyReachPlugin
     step: null, play: null, interactables: [], overhead: [], hooks: {}, objects: {}, viewer: () => surface.player.position, horizonVeil: null,
   } };
   const originalFetch = globalThis.fetch;
-  const module = '1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd';
+  // the admitted mover modules: the bridges' and (SF49-g) the Rising Islets'
+  const modules = ['1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', '9e858467b8536bad90ccb55aa5213c5ad8e8a1f48ed0963f20cb250014bc90a7'];
   vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    if (url.endsWith(`/assets/${module}`)) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${module}`))));
+    const module = modules.find((hash) => url.endsWith(`/assets/${hash}`));
+    if (module !== undefined) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${module}`))));
     return originalFetch(input, init);
   });
   app.registryValue = new WorldRegistry();
@@ -78,6 +81,22 @@ const piece = (app: App, id: string): { active?: () => boolean } | undefined => 
 
 describe('Sky Reach contract', () => {
   beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  it('SF49-g (G183): each Rising Islet rests at the road, rises to its gate isle in the fixed step and comes back', async () => {
+    const off = await boot(false); expect(off.plugin.isletAt('north')).toBeNull(); await off.app.unloadLevel();
+    const { app, plugin } = await boot(true), at = (edge: string) => plugin.isletAt(edge);
+    for (const entry of RISING_ISLETS) expect(at(entry.edge)).toEqual(entry.rest);
+    tick(app, ISLET.dwell - 0.5, 0);
+    for (const entry of RISING_ISLETS) expect(at(entry.edge)?.y).toBeCloseTo(0, 6);
+    const longest = Math.max(...RISING_ISLETS.map((e) => e.travel));
+    tick(app, 0.5 + longest / 2, 0);
+    for (const entry of RISING_ISLETS) expect(at(entry.edge)?.y).toBeGreaterThan(0);
+    tick(app, longest / 2 + 1, 0);
+    for (const entry of RISING_ISLETS) {
+      const p = at(entry.edge); if (p === null) throw new Error('islet');
+      if (entry.travel === longest) { expect(p.y).toBeCloseTo(entry.dock.y, 3); expect(p.x).toBeCloseTo(entry.dock.x, 3); expect(p.z).toBeCloseTo(entry.dock.z, 3); }
+    }
+    await app.unloadLevel();
+  });
   it.each([false, true])('keeps shipping fall recovery until the entry row is ON (%s)', async (entries) => {
     const { app, hooks } = await boot(entries), authored = toLevelSpec(manifest).bounds;
     expect(authored).toEqual({ x0: -120, x1: 120, z0: -240, z1: 60, floor: 12 });
