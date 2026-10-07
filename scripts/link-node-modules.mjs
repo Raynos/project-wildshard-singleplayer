@@ -45,6 +45,33 @@ export function linkNodeModules(repo, tree) {
       symlinkSync(relative(join(to, name), join(resolve(tree), inRepo)), join(to, name, pkg));
     }
   }
+  linkPackageNodeModules(repo, tree);
+}
+
+/**
+ * a workspace package's own dependencies (pnpm installs them in `src/<package>/node_modules`, e.g. the SDK's `sharp`):
+ * each entry links to the checkout's installed copy, and a workspace package (`@wildshard/*`) to the tree's own sources
+ */
+function linkPackageNodeModules(repo, tree) {
+  const src = resolve(repo, 'src');
+  if (!existsSync(src)) return;
+  for (const pkg of readdirSync(src)) {
+    const from = join(src, pkg, 'node_modules'), to = resolve(tree, 'src', pkg, 'node_modules');
+    if (!existsSync(from) || !existsSync(resolve(tree, 'src', pkg)) || existsSync(to)) continue;
+    mkdirSync(to);
+    const mirror = (fromDir, toDir) => {
+      for (const name of readdirSync(fromDir)) {
+        if (name === '.bin') continue;
+        const entry = join(fromDir, name);
+        if (lstatSync(entry).isSymbolicLink()) {
+          const target = realpathSync(entry), inSrc = relative(src, target);
+          // a workspace package resolves to the tree's copy of the same source; anything else is the installed package
+          symlinkSync(inSrc.startsWith('..') ? target : resolve(tree, 'src', inSrc), join(toDir, name));
+        } else if (lstatSync(entry).isDirectory()) { mkdirSync(join(toDir, name)); mirror(entry, join(toDir, name)); }
+      }
+    };
+    mirror(from, to);
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

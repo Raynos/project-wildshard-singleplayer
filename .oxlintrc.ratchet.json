@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "jsPlugins": ["./lint/wildshard-plugin.js"],
-  "ignorePatterns": ["**/*.generated.ts"],
+  "ignorePatterns": ["**/*.generated.ts", "**/node_modules/**"],
   "categories": {
     "correctness": "off", "suspicious": "off", "perf": "off", "pedantic": "off",
     "restriction": "off", "style": "off", "nursery": "off"
