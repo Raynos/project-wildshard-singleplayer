@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' };
-import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak } from '../scripts/soak/route';
+import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDuration } from '../scripts/soak/route';
 
+const cut = { receipt: 'art/fixture/round-1-cut/README.md', sourceRevision: 'a'.repeat(40), approvedBy: 'Jake' as const };
 const witness = () => ({
   samples: [{ type: 'sample', phase: 'loading', elapsed: -1, footprint: 422_000_000, interval: 422_000_000, gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: 0, settled: true } }, ...Array.from({ length: 3641 }, (_, elapsed) => ({ type: 'sample', phase: 'drive', elapsed, footprint: 422_000_000, interval: 422_000_000,
     gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: Math.min(2, Math.floor(elapsed / 600)), settled: true } }))],
@@ -30,7 +31,7 @@ describe('SF57 honest drive and native memory gate', () => {
     }
     let roadMetres = 0, walkingMetres = 0; previous = route.reference;
     for (const step of route.steps) { const metres = Math.hypot(step.x - previous.x, step.z - previous.z); if (step.kind === 'enter') walkingMetres += metres; else roadMetres += metres; previous = step; }
-    // Two complete eviction circuits fit the real 60-minute drive, including slow walks and refused-cell waits.
+    // Two complete eviction circuits fit the ordinary 30-minute drive, including slow walks and refused-cell waits.
     expect(roadMetres / 30 + walkingMetres / 4 + 9 * 15 + 20).toBeLessThan(900);
   });
   it('uses the production Developer catalogue and refuses DEVSERVER replacements', () => {
@@ -52,11 +53,13 @@ describe('SF57 honest drive and native memory gate', () => {
     expect(gradeSoak(road).gatePass).toBe(true);
     expect(gradeSoak({ ...road, entries: witness().entries }).memoryPass).toBe(false);
     for (const row of road.samples) if (row.elapsed >= 1200) row.footprint += 31_000_000;
-    // G186 keeps drift visible without vetoing a bounded, calibrated 60-minute route.
+    // Only an explicit picked-cut receipt permits G186 to print drift without gating it.
     for (const row of road.samples) row.gl.accountedBytes = (row.footprint + row.gl.totalBytes - 300_000_000) / 1.11;
     expect(gradeSoak(road).recovery).toBe(false);
     expect(gradeSoak(road).baselineDeltaBytes[0]).toBe(-31_000_000);
-    expect(gradeSoak(road).gatePass).toBe(true);
+    expect(gradeSoak(road).gatePass).toBe(false);
+    expect(gradeSoak({ ...road, contentCut: cut }).gatePass).toBe(true);
+    expect(gradeSoak({ ...road, contentCut: cut, seconds: 3599 }).gatePass).toBe(false);
   });
   it('enforces both inclusive calibration bounds on settled samples only', () => {
     for (const [footprint, pass] of [[402_000_000, true], [442_000_000, true], [401_999_999, false], [442_000_001, false]] as const) {
@@ -74,10 +77,19 @@ describe('SF57 honest drive and native memory gate', () => {
     const negative = witness(); negative.leak.scope.colliders = -1;
     expect(gradeSoak(negative).leakZero).toBe(false);
   });
-  it('passes only a complete 60-minute native witness with repeated eviction and leak zero', () => {
+  it('passes an ordinary 30-minute native witness with repeated eviction and leak zero', () => {
     expect(gradeSoak(witness()).gatePass).toBe(true);
     expect(gradeSoak(witness()).ratios[0]).toEqual({ cycle: 1, raw: 2.61, adjusted: 1.11 });
-    for (const patch of [{ seconds: 3599 }, { seconds: 1800 }, { circuits: 1 }, { evictions: 0 }, { errors: ['WebContent gone'] }, { crossroads: [] }]) expect(gradeSoak({ ...witness(), ...patch }).gatePass).toBe(false);
+    expect(gradeSoak({ ...witness(), seconds: 1800 }).gatePass).toBe(true);
+    for (const patch of [{ seconds: 1799 }, { circuits: 1 }, { evictions: 0 }, { errors: ['WebContent gone'] }, { crossroads: [] }]) expect(gradeSoak({ ...witness(), ...patch }).gatePass).toBe(false);
+  });
+  it('requires strict picked-cut provenance and retains all remaining gates at minute sixty', () => {
+    expect(soakDuration()).toBe(1800); expect(soakDuration(cut)).toBe(3600);
+    expect(parseSoakContentCut(cut)).toEqual(cut);
+    for (const invalid of [{ ...cut, approvedBy: 'agent' }, { ...cut, receipt: '' }, { ...cut, sourceRevision: 'short' }, { ...cut, extra: true }]) expect(() => parseSoakContentCut(invalid)).toThrow();
+    const selected = { ...witness(), contentCut: cut };
+    expect(gradeSoak(selected)).toMatchObject({ gatePass: true, requiredSeconds: 3600, contentCut: cut });
+    for (const patch of [{ seconds: 3599 }, { errors: ['lost document'] }, { evictions: 0 }]) expect(gradeSoak({ ...selected, ...patch }).gatePass).toBe(false);
   });
   it('counts interval highs, refuses missing readings and reports baseline growth', () => {
     const high = witness(); const row = high.samples[20]; if (row === undefined) throw new Error('Missing witness reading'); row.interval = 1_000_000_000; expect(gradeSoak(high).memoryPass).toBe(false);

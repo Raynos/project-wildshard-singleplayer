@@ -6,9 +6,22 @@ interface Sample { readonly type: string; readonly phase: string; readonly elaps
 interface Window { readonly start: number; readonly end: number }
 interface Entry { readonly instance: string; readonly admitted: boolean }
 interface Leak { readonly disposalErrors: readonly string[]; readonly scope: { readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown }; readonly before?: { readonly events?: { readonly listeners: number; readonly answerers: number } }; readonly after: { readonly events?: { readonly listeners: number; readonly answerers: number }; readonly bodies: number; readonly colliders: number; readonly [key: string]: unknown } }
-interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road' }
+/** A picked visible content cut, distinct from invisible savings; the pinned run must contain this source revision. */
+export interface SoakContentCut { readonly receipt: string; readonly sourceRevision: string; readonly approvedBy: 'Jake' }
+/** Strict provenance prevents an unlabelled run from dropping the ordinary loop-bound gate. */
+export function parseSoakContentCut(input: unknown): SoakContentCut {
+  if (input === null || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid content-cut receipt');
+  const receipt: unknown = Reflect.get(input, 'receipt'), sourceRevision: unknown = Reflect.get(input, 'sourceRevision'), approvedBy: unknown = Reflect.get(input, 'approvedBy');
+  if (Object.keys(input).sort().join(',') !== 'approvedBy,receipt,sourceRevision' || approvedBy !== 'Jake'
+    || typeof receipt !== 'string' || !/^(art|docs)\/[a-zA-Z0-9_./-]+$/u.test(receipt) || receipt.includes('..')
+    || typeof sourceRevision !== 'string' || !/^[a-f0-9]{40}$/u.test(sourceRevision)) throw new Error('Invalid content-cut receipt');
+  return { receipt, sourceRevision, approvedBy };
+}
+/** Ordinary routes are thirty minutes; a picked content-cut route qualifies at minute sixty (G186). */
+export function soakDuration(contentCut?: SoakContentCut | null): number { return contentCut === undefined || contentCut === null ? 1800 : 3600; }
+interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road'; readonly contentCut?: SoakContentCut | null }
 interface Loop { cycle: number; peakBytes: number; troughBytes: number }
-interface Grade { memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; missingGlSamples: number; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
+interface Grade { contentCut: SoakContentCut | null; requiredSeconds: number; memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; missingGlSamples: number; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
 /** The drive uses the admitted catalogue, never a second hand-maintained shard list. */
 export function soakRoute(cells: readonly Cell[], pitch = 555, leg: 'cells' | 'road' = 'cells'): { reference: Point; steps: readonly Step[] } {
   const roads = [-1.5, -0.5, 0.5, 1.5].map((n) => n * pitch);
@@ -60,7 +73,9 @@ export function validateSoakCatalogue(actual: readonly Cell[], expected: readonl
 
 const median = (values: readonly number[]): number => { const sorted = [...values].sort((a, b) => a - b); const result = sorted.at(Math.floor(sorted.length / 2)); if (result === undefined) throw new Error('No native readings'); return result; };
 /** Grade native readings at the same road pose, after natural production eviction circuits. No reload is allowed. */
-export function gradeSoak({ samples, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads, engineBase = 300_000_000, rehearsal = false, leg = 'cells' }: Witness): Grade {
+export function gradeSoak({ samples, windows, seconds, circuits, evictions, errors, leak, expected, entries, crossroads, engineBase = 300_000_000, rehearsal = false, leg = 'cells', contentCut }: Witness): Grade {
+  const cut = contentCut === undefined || contentCut === null ? null : parseSoakContentCut(contentCut);
+  const requiredSeconds = soakDuration(cut);
   const combined = (row: Sample, peak = false): number => (peak ? Math.max(row.footprint, row.interval ?? row.footprint) : row.footprint) + (row.gl?.totalBytes ?? Number.POSITIVE_INFINITY);
   const active = samples.filter((row) => row.type === 'sample' && /^(baseline|drive|settle|unloaded)/u.test(row.phase));
   const drive = active.filter((row) => row.phase !== 'unloaded');
@@ -107,9 +122,9 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
       listeners: (leak.after.events?.listeners ?? 0) - (leak.before?.events?.listeners ?? 0),
       answerers: (leak.after.events?.answerers ?? 0) - (leak.before?.events?.answerers ?? 0),
     } });
-  // G186: drift is diagnostic; the qualifying continuous route runs for a full hour.
-  const memoryPass = seconds >= 3600 && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && calibration && leakZero && errors.length === 0;
-  return { memoryPass, gatePass: !rehearsal && memoryPass && refused.length === 0 && visited && new Set(crossroads).size === 16,
+  // G186 amends the ordinary drift rule only after a picked content cut. Invisible savings keep it gated.
+  const memoryPass = (cut !== null || recovery) && seconds >= requiredSeconds && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && calibration && leakZero && errors.length === 0;
+  return { contentCut: cut, requiredSeconds, memoryPass, gatePass: !rehearsal && memoryPass && refused.length === 0 && visited && new Set(crossroads).size === 16,
     peakBytes, loadingPeakBytes, phoneEstimateBytes: peakBytes * 1.4, baselines, baselineDeltaBytes, loops, recovery, calibration, ratios, missingGlSamples, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size, rehearsal,
     limitation: refused.length === 0 ? null : 'Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48.' };
 }
