@@ -3,10 +3,10 @@ import catalogue from '../src/game/grid/singleplayer.json' with { type: 'json' }
 import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak } from '../scripts/soak/route';
 
 const witness = () => ({
-  samples: [{ type: 'sample', phase: 'loading', elapsed: -1, footprint: 422_000_000, interval: 422_000_000, gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: 0, settled: true } }, ...Array.from({ length: 1841 }, (_, elapsed) => ({ type: 'sample', phase: 'drive', elapsed, footprint: 422_000_000, interval: 422_000_000,
+  samples: [{ type: 'sample', phase: 'loading', elapsed: -1, footprint: 422_000_000, interval: 422_000_000, gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: 0, settled: true } }, ...Array.from({ length: 3641 }, (_, elapsed) => ({ type: 'sample', phase: 'drive', elapsed, footprint: 422_000_000, interval: 422_000_000,
     gl: { totalBytes: 100_000_000, reconciled: true, unlabelled: 0, accountedBytes: 200_000_000, cycle: Math.min(2, Math.floor(elapsed / 600)), settled: true } }))],
   windows: [{ start: 0, end: 10 }, { start: 600, end: 610 }, { start: 1200, end: 1210 }],
-  seconds: 1800, circuits: 2, evictions: 6, errors: [],
+  seconds: 3600, circuits: 2, evictions: 6, errors: [],
   leak: { disposalErrors: [], scope: { bodies: 0, colliders: 0 }, before: { events: { listeners: 7, answerers: 5 } }, after: { events: { listeners: 7, answerers: 5 }, bodies: 0, colliders: 0, listeners: { window: 0 }, timers: { intervals: 0 } } },
   expected: ['template-1'], entries: [{ instance: 'template-1', admitted: true }], crossroads: Array.from({ length: 16 }, (_, index) => String(index)),
 });
@@ -30,7 +30,7 @@ describe('SF57 honest drive and native memory gate', () => {
     }
     let roadMetres = 0, walkingMetres = 0; previous = route.reference;
     for (const step of route.steps) { const metres = Math.hypot(step.x - previous.x, step.z - previous.z); if (step.kind === 'enter') walkingMetres += metres; else roadMetres += metres; previous = step; }
-    // Two complete eviction circuits fit the real 30-minute drive, including slow walks and refused-cell waits.
+    // Two complete eviction circuits fit the real 60-minute drive, including slow walks and refused-cell waits.
     expect(roadMetres / 30 + walkingMetres / 4 + 9 * 15 + 20).toBeLessThan(900);
   });
   it('uses the production Developer catalogue and refuses DEVSERVER replacements', () => {
@@ -52,7 +52,11 @@ describe('SF57 honest drive and native memory gate', () => {
     expect(gradeSoak(road).gatePass).toBe(true);
     expect(gradeSoak({ ...road, entries: witness().entries }).memoryPass).toBe(false);
     for (const row of road.samples) if (row.elapsed >= 1200) row.footprint += 31_000_000;
-    expect(gradeSoak(road).gatePass).toBe(false); // Border reloads cannot remedy road-only retention.
+    // G186 keeps drift visible without vetoing a bounded, calibrated 60-minute route.
+    for (const row of road.samples) row.gl.accountedBytes = (row.footprint + row.gl.totalBytes - 300_000_000) / 1.11;
+    expect(gradeSoak(road).recovery).toBe(false);
+    expect(gradeSoak(road).baselineDeltaBytes[0]).toBe(-31_000_000);
+    expect(gradeSoak(road).gatePass).toBe(true);
   });
   it('enforces both inclusive calibration bounds on settled samples only', () => {
     for (const [footprint, pass] of [[402_000_000, true], [442_000_000, true], [401_999_999, false], [442_000_001, false]] as const) {
@@ -70,12 +74,12 @@ describe('SF57 honest drive and native memory gate', () => {
     const negative = witness(); negative.leak.scope.colliders = -1;
     expect(gradeSoak(negative).leakZero).toBe(false);
   });
-  it('passes only a complete 30-minute native witness with repeated eviction, recovery and leak zero', () => {
+  it('passes only a complete 60-minute native witness with repeated eviction and leak zero', () => {
     expect(gradeSoak(witness()).gatePass).toBe(true);
     expect(gradeSoak(witness()).ratios[0]).toEqual({ cycle: 1, raw: 2.61, adjusted: 1.11 });
-    for (const patch of [{ seconds: 1799 }, { circuits: 1 }, { evictions: 0 }, { errors: ['WebContent gone'] }, { crossroads: [] }]) expect(gradeSoak({ ...witness(), ...patch }).gatePass).toBe(false);
+    for (const patch of [{ seconds: 3599 }, { seconds: 1800 }, { circuits: 1 }, { evictions: 0 }, { errors: ['WebContent gone'] }, { crossroads: [] }]) expect(gradeSoak({ ...witness(), ...patch }).gatePass).toBe(false);
   });
-  it('counts interval highs, refuses missing readings and baseline growth even when the final unload is small', () => {
+  it('counts interval highs, refuses missing readings and reports baseline growth', () => {
     const high = witness(); const row = high.samples[20]; if (row === undefined) throw new Error('Missing witness reading'); row.interval = 1_000_000_000; expect(gradeSoak(high).memoryPass).toBe(false);
     const gap = witness(); gap.samples.splice(20, 5); expect(gradeSoak(gap).sampling).toBe(false);
     const drift = witness(); for (const sample of drift.samples) if (sample.elapsed >= 1200) sample.footprint = 453_000_000;
@@ -89,7 +93,7 @@ describe('SF57 honest drive and native memory gate', () => {
     const result = gradeSoak({ ...witness(), expected: ['template-1', 'runtime-cell'], entries: [...witness().entries, { instance: 'runtime-cell', admitted: false }] });
     expect(result.memoryPass).toBe(true); expect(result.gatePass).toBe(false); expect(result.refused).toEqual(['runtime-cell']); expect(result.attemptedEveryCell).toBe(true);
   });
-  it('allows loop-one warmup, then requires loop-two peak and trough stability', () => {
+  it('prints loop-two peak and trough drift after loop-one warmup', () => {
     const result = witness(); for (const sample of result.samples) if (sample.elapsed < 600) sample.footprint = 350_000_000;
     expect(gradeSoak(result).recovery).toBe(true);
   });
@@ -108,7 +112,7 @@ describe('SF57 honest drive and native memory gate', () => {
     const broken = witness(); for (const sample of broken.samples) sample.gl.reconciled = false;
     expect(gradeSoak(broken).sampling).toBe(false);
     const absent = gradeSoak({ ...witness(), samples: witness().samples.map(({ gl: _gl, ...sample }) => sample) });
-    expect(absent.memoryPass).toBe(false); expect(absent.missingGlSamples).toBe(1842);
+    expect(absent.memoryPass).toBe(false); expect(absent.missingGlSamples).toBe(3642);
     expect(Number.isFinite(absent.peakBytes)).toBe(true);
   });
 });

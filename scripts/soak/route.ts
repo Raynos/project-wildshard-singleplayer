@@ -107,7 +107,8 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
       listeners: (leak.after.events?.listeners ?? 0) - (leak.before?.events?.listeners ?? 0),
       answerers: (leak.after.events?.answerers ?? 0) - (leak.before?.events?.answerers ?? 0),
     } });
-  const memoryPass = seconds >= 1800 && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && recovery && calibration && leakZero && errors.length === 0;
+  // G186: drift is diagnostic; the qualifying continuous route runs for a full hour.
+  const memoryPass = seconds >= 3600 && circuits >= 2 && (leg === 'road' ? entries.length === 0 : evictions > 0) && sampling && peakBytes <= 1_000_000_000 && loadingPeakBytes <= 1_800_000_000 && calibration && leakZero && errors.length === 0;
   return { memoryPass, gatePass: !rehearsal && memoryPass && refused.length === 0 && visited && new Set(crossroads).size === 16,
     peakBytes, loadingPeakBytes, phoneEstimateBytes: peakBytes * 1.4, baselines, baselineDeltaBytes, loops, recovery, calibration, ratios, missingGlSamples, sampling, leakZero, admitted, refused, attemptedEveryCell: visited, crossroads: new Set(crossroads).size, rehearsal,
     limitation: refused.length === 0 ? null : 'Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48.' };

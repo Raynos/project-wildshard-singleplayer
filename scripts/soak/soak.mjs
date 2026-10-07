@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SF57: each selected production layout has a 30-minute cell drive and a separate 30-minute road-only drive.
+// SF57: each selected production layout has a 60-minute cell drive and a separate 60-minute road-only drive.
 // --layouts=shipped runs the M2 layout; the default shipped,dev also prepares the M3 Developer evidence.
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
@@ -120,7 +120,7 @@ async function worker() {
     result.windows.push({ cycle: 0, start: initialStart, end: Date.now() / 1000 });
     phase('drive');
     const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString();
-    await driver.evaluate(`(${installSoakDrive.toString()})(${JSON.stringify(result.route)},1800)`);
+    await driver.evaluate(`(${installSoakDrive.toString()})(${JSON.stringify(result.route)},3600)`);
     let windowStart = null;
     for (;;) {
       await sleep(1000); await collectGl();
