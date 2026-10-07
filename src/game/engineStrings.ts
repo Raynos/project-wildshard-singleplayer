@@ -8,6 +8,5 @@ export const ENGINE_CONTENT_STRINGS = {
   "s_86170799a9ce": "This shard has no achievements yet.",
   "s_da4ea1a751fa": "Shard achievements",
   "s_b053c961f2ac": "Bag",
-  "s_3f242f34c200": "The day clock (was ?timescale)",
   "s_8d282280dca8": "PERF LAP: this level has no lap"
 } as const;

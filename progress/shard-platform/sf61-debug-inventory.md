@@ -1,4 +1,7 @@
-# SF61 Debug-row inventory (E435, E451, G204)
+# SF61 Debug-row inventory (E435, E451, G204, G221)
+
+**Current G221 inventory: 8 comparisons, 9 Developer tools.** The eight allowed tools ship;
+`shardDirectors` is held until the remaining parity closes. The historical inventory and retirement receipts follow.
 
 Inventory taken from committed `b64c2a908` on 2026-10-07, after the E451 rules in `dfddbc370` / `f8d404cee`.
 `lint/debug-flags.mjs` finds 32 definitions; the inline `runtimeVariantEnabled` call for `pineMemoryTrim` adds
@@ -109,7 +112,7 @@ coordinator; these local receipts do not claim shipped status until that green p
 
 Nalati flock G112 retirement remains separately open until its ON frame floor is green.
 
-## SFX audition follow-up: current count 9 / 20
+## Historical SFX audition follow-up: 9 / 20 (superseded by G221)
 
 Coordinator accepted the remaining SFX selector as a Developer audition tool, with the current `best` take
 as the shipping fallback and **no new pick for Jake**. `ecf829af6` gates reads/writes and live subscriptions;
@@ -165,3 +168,17 @@ and needed CLI-only engine hooks remain.
 - Calibration row/option and game-entry branch deleted. `scripts/calibrate.mjs` uses the standalone
   `/calibration/` harness, without Developer state; its measurement engine remains.
   Inventory: **9 comparisons / 9 Developer tools**: G221 eight plus held `shardDirectors`.
+
+## Current G221 rows
+
+| Purpose | IDs | State |
+|---|---|---|
+| Allowed Developer tools | `time`, `weather`, `ai.brains`, `storage`, `clearDownloads`, `budgetReadout`, `game.template`, `fps` | Kept by Jake G221. |
+| Held Developer policy | `shardDirectors` | Coordinator holds retirement until remaining creature parity/floor closes. |
+| Protected comparisons | `graphMaterials`, `tex`, `memorySaver`, `gridDevserverCell`, `nalatiHybrid`, `nineDragonEntries`, `pineMemoryTrim`, `pineHybrid` | Live owners retire their own rows. |
+
+The comparison cap is already **8** after the Far owner retired `farReachEntries` (G194); G221 preserves that policy.
+Deleted 11 tools (20 → 9), including the G218 SFX audition now superseded by G221.
+No new taste board, gameplay policy, scheduler or loading pipeline was added.
+
+Unused tool-only copy was also removed from the engine/content string tables. CLI calibration remains a documented defining-module API; Boot-pack recording keeps its headless fetch adapter.

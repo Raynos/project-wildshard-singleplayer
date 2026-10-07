@@ -440,7 +440,7 @@ export class GameMenu {
     this.scope.listen(mslider, 'pointerdown', (e) => e.stopPropagation());
     mus.append(mslider);
     // music style (Settings 'musicStyle', project/archive/2026-09-23-music.md v3): the MiniMax-Music3 scores or the v1 synth — Music.ts crossfades on a bar;
-    // sound effects (Settings 'sfxSet'): the generated set (MOSS-SoundEffect v2 + Stable Audio 3 Medium) or all-synth — Audio.ts swaps them
+    // Best sound samples (MOSS-SoundEffect v2 + Stable Audio 3 Medium); synth covers missing samples.
     const picker = <T extends string>(label: string, options: { v: T; text: string }[], get: () => T, set: (v: T) => void, on: (fn: () => void) => void) => {
       const row = el('ws-gmenu-row', engineString('s_54fa835c7c85', [label]));
       const box = el('ws-gmenu-seg');
