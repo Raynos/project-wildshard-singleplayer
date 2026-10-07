@@ -1,0 +1,16 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite/rapier" without a file extension (vitest.config.ts:6:29). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v5.0.1 /Users/raynos/projects/games/wildshard-singleplayer
+
+
+ Test Files  3 passed (3)
+      Tests  17 passed (17)
+   Start at  17:54:16
+   Duration  1.10s (transform 83%, setup 13%, environment 3%)
+
+  Transform  transforming modules took 2.47s · 83% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+

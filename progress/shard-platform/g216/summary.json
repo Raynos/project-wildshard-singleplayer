@@ -1,0 +1,80 @@
+{
+  "source": "1d498c25e40f21642b77154927b58850512d9781",
+  "initialSource": "dc6065869f96b235b0c00cc582390be24bd81d6e",
+  "build": "1d498c2-muyplbe6",
+  "browser": "Chromium Metal, iPhone 16 Pro portrait, one muted browser, four sequential cold contexts, real title taps",
+  "publicPine": {
+    "allocated": false,
+    "fatalCard": true,
+    "pageErrors": 0
+  },
+  "developerPine": {
+    "claimedBytes": 804680577,
+    "playingBytes": 1273195441,
+    "playingCap": 1000000000,
+    "visible": true,
+    "pageErrors": 0
+  },
+  "publicDriftwood": {
+    "loaded": "driftwood-isle",
+    "warningVisible": false,
+    "pageErrors": 0
+  },
+  "developerGrid": {
+    "playingMB": 907.44,
+    "accountedBytes": 475169262,
+    "rings": {
+      "far": 8,
+      "l1": 4,
+      "l0": 0,
+      "refused": 0,
+      "inFlight": 0,
+      "queued": 0
+    },
+    "live": {
+      "live": {
+        "current": "driftwood-isle",
+        "worldFeet": {
+          "x": -6.068920354818097e-06,
+          "y": 1.214082767516811,
+          "z": -194.00000856097006
+        },
+        "crossings": 0,
+        "transitions": [],
+        "residents": [
+          "template-4",
+          "template-6"
+        ],
+        "pending": [],
+        "issues": {},
+        "gameplayReady": true,
+        "continuations": {
+          "entries": 0,
+          "storedChars": 0,
+          "capacityChars": 0,
+          "claimedBytes": 0
+        }
+      },
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "stowed": false,
+      "renderOrigin": {
+        "x": 0,
+        "z": 0
+      },
+      "hoverCap": 14,
+      "homeActive": null
+    },
+    "pageErrors": 0
+  },
+  "strictCleanTests": 20,
+  "focusedTests": 16,
+  "entryPageRecoveryTests": 17,
+  "rootTypecheck": "passed",
+  "resources": "browser and preview closed",
+  "capsChanged": false
+}

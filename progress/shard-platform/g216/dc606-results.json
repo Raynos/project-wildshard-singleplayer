@@ -1,0 +1,367 @@
+[
+  {
+    "variant": {
+      "slug": "pine-hollow",
+      "dev": false
+    },
+    "version": {
+      "build": "dc60658-muyp4hj0",
+      "time": "2026-10-07T22:45:33.393Z"
+    },
+    "state": {
+      "world": null,
+      "developer": false,
+      "warning": [],
+      "warningVisible": false,
+      "body": "\n    \n      // iOS Safari: no rubber-band scroll of the fixed page, no pinch zoom — the game owns every gesture.\n      document.addEventListener('touchmove', (e) => { if (!e.target.closest('[data-scroll]')) e.preventDefault(); }, { passive: false });\n      document.addEventListener('gesturestart', (e) => e.preventDefault());\n      // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)\n      if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');\n      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.\n      const homeParams = new URLSearchParams(location.search);\n      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');\n      // The loader uses a small, already-approved portrait of the selected shard from its first paint.\n      // Whitelist the filename: ?chunk is a shard selector, never an arbitrary asset path.\n      const loadShard = homeParams.get('chunk') || 'driftwood-isle';\n      if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {\n        document.documentElement.style.setProperty('--ws-load-portrait', 'url(\"/assets/title/' + loadShard + '-portrait.jpg\")');\n      }\n      // developer mode (E140, src/engine/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the\n      // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)\n      try { if (JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.devMode?.data === true) document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }\n    \n    \n    \n    \n    \nProject Wildshard\nA world that does not exist yet, arriving one chunk at a time.\n\n\n\nLoading chunk ·00:00.0\nLoading\n\ntier\n\n\ndownload—0\n\n\n\nsetup—0\n\n\n\nMemory: checking · CPU: checking\n\n\n\n    \n    Project WildshardResumingReload\n    \n      try {\n        if (new URLSearchParams(location.search).has('glreload')) {\n          const r = document.querySelector('.ws-resume'), shot = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.shot']?.data;\n          if (shot) r.firstElementChild.style.backgroundImage = 'url(\"' + shot + '\")';\n          // the shard's name + title art (E99), before any bundle runs\n          const brand = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.brand']?.data || {};\n          if (brand.name) r.querySelector('.ws-resume-level').textContent = brand.name;\n          if (brand.hero) r.querySelector('.ws-resume-hero').style.backgroundImage = 'url(\"' + brand.hero + '\")';\n          r.querySelector('.ws-resume-bar').classList.add('busy');\n          r.classList.add('show');\n          document.querySelector('.ws-load').style.display = 'none';\n        }\n      } catch { /* the first-boot loader shows instead */ }\n    \n    \n    \n\n\n\n\n\nPortrait only\nRotate to portrait\nWildshard is played upright · turn your phone to continue\n\n\n  \n\ndc60658 · reload",
+      "grid": null,
+      "ktx2": 0
+    },
+    "errors": [
+      "Error: Home residency admission deferred by the shared budget\n    at u (http://127.0.0.1:4400/assets/pageBoot-B-vcmO_n.js:1:2352)\n    at qr (http://127.0.0.1:4400/assets/index-DGbI4Fw5.js:82:3027)\n    at async Kr (http://127.0.0.1:4400/assets/index-DGbI4Fw5.js:82:202)"
+    ]
+  },
+  {
+    "variant": {
+      "slug": "pine-hollow",
+      "dev": true
+    },
+    "version": {
+      "build": "dc60658-muyp4hj0",
+      "time": "2026-10-07T22:45:33.393Z"
+    },
+    "state": {
+      "build": "dc60658-muyp4hj0",
+      "world": "pine-hollow",
+      "developer": true,
+      "warning": [
+        {
+          "text": "pine-hollow · sim:pine-hollow\nPLAYING 1273.195 MB / 1000.000 MB · OVER 273.195 MB\nLOADING 1353.195 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 804.681 MB · TOTAL ACCOUNTED 804.681 MB\nMEASURED WEBCONTENT 569.495 MB + GL 622.700 MB\nCALIBRATED BASE 299.000 MB · 6c0aaea4f\niOS Simulator iPhone 17 Pro Safari + desktop labelled GL census · progress/memory/sf22a-refresh-6c0aaea4f/summary.json",
+          "owner": "pine-hollow",
+          "claimedBytes": "804680577",
+          "playingBytes": "1273195441",
+          "loadingBytes": "1353195441",
+          "playingCap": "1000000000",
+          "loadingCap": "1800000000"
+        },
+        {
+          "text": "pine-hollow · sim:pine-hollow\nPLAYING 1273.195 MB / 1000.000 MB · OVER 273.195 MB\nLOADING 1353.195 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 804.681 MB · TOTAL ACCOUNTED 804.681 MB\nL0 0.000 MB\nL1 0.000 MB\nFAR 0.000 MB\nLIBRARIES 0.000 MB\nSIMS 804.681 MB\nCOMMONS 0.000 MB\nOVERLAP 80.000 MB\nPRODUCTS 0.000 MB",
+          "owner": "pine-hollow",
+          "claimedBytes": "804680577",
+          "playingBytes": "1273195441",
+          "loadingBytes": "1353195441",
+          "playingCap": "1000000000",
+          "loadingCap": "1800000000"
+        }
+      ],
+      "warningVisible": true,
+      "body": "\n    \n      // iOS Safari: no rubber-band scroll of the fixed page, no pinch zoom — the game owns every gesture.\n      document.addEventListener('touchmove', (e) => { if (!e.target.closest('[data-scroll]')) e.preventDefault(); }, { passive: false });\n      document.addEventListener('gesturestart', (e) => e.preventDefault());\n      // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)\n      if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');\n      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.\n      const homeParams = new URLSearchParams(location.search);\n      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');\n      // The loader uses a small, already-approved portrait of the selected shard from its first paint.\n      // Whitelist the filename: ?chunk is a shard selector, never an arbitrary asset path.\n      const loadShard = homeParams.get('chunk') || 'driftwood-isle';\n      if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {\n        document.documentElement.style.setProperty('--ws-load-portrait', 'url(\"/assets/title/' + loadShard + '-portrait.jpg\")');\n      }\n      // developer mode (E140, src/engine/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the\n      // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)\n      try { if (JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.devMode?.data === true) document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }\n    \n    \n    \n      Use\n      100VitalsCrossbowBolts30 / 30Note0Journal\n      Aim\n      Lock\n      Dodge\n      Throw\n      Jump\n      Surface\n      Dive\n      Pause\n      \n        MoveSprint\n        Look\n      \n      AttackFireHold = heavyHold = draw\n      Hover30BoltsNNEESESSWWNWNNEESESSWWNWNNEESESSWWNWCabin · 201 mVitals100/ 100CrossbowBolts30 / 30\n      LoadedChunk boundaryNo-man's land beyond · nothing has been generated herePREPARING TRAINING TARGETSWoodStraw + clothWood + steelDEVELOPER · MEMORY LIMIT EXCEEDEDpine-hollow · sim:pine-hollow\nPLAYING 1273.195 MB / 1000.000 MB · OVER 273.195 MB\nLOADING 1353.195 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 804.681 MB · TOTAL ACCOUNTED 804.681 MB\nMEASURED WEBCONTENT 569.495 MB + GL 622.700 MB\nCALIBRATED BASE 299.000 MB · 6c0aaea4f\niOS Simulator iPhone 17 Pro Safari + desktop labelled GL census · progress/memory/sf22a-refresh-6c0aaea4f/summary.jsonpine-hollow · sim:pine-hollow\nPLAYING 1273.195 MB / 1000.000 MB · OVER 273.195 MB\nLOADING 1353.195 MB / 1800.000 MB · OVER 0.000 MB\nCLAIM 804.681 MB · TOTAL ACCOUNTED 804.681 MB\nL0 0.000 MB\nL1 0.000 MB\nFAR 0.000 MB\nLIBRARIES 0.000 MB\nSIMS 804.681 MB\nCOMMONS 0.000 MB\nOVERLAP 80.000 MB\nPRODUCTS 0.000 MB‹›N\n      \n      \n      \n      \n      \n  \n  \n  \n  \n    NAMED ELITE NEARBY\n\n\n\n\n\nHOLD TO SKIPThe hunting lodgeContractsCloseCloseMott's counterPine HollowMott · TraderFind the rangerRANGER197 m▲Dawn over the HollowThe Warden's HollowEvery lantern burns. The fog is going home.\n    \n    \n    \n    Project WildshardResumingPine HollowReload\n    \n      try {\n        if (new URLSearchParams(location.search).has('glreload')) {\n          const r = document.querySelector('.ws-resume'), shot = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.shot']?.data;\n          if (shot) r.firstElementChild.style.backgroundImage = 'url(\"' + shot + '\")';\n          // the shard's name + title art (E99), before any bundle runs\n          const brand = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.brand']?.data || {};\n          if (brand.name) r.querySelector('.ws-resume-level').textContent = brand.name;\n          if (brand.hero) r.querySelector('.ws-resume-hero').style.backgroundImage = 'url(\"' + brand.hero + '\")';\n          r.querySelector('.ws-resume-bar').classList.add('busy');\n          r.classList.add('show');\n          document.querySelector('.ws-load').style.display = 'none';\n        }\n      } catch { /* the first-boot loader shows instead */ }\n    \n    \n    \n\n\n\n\n\nPortrait only\nRotate to portrait\nWildshard is played upright · turn your phone to continue\n\n\n  \n\ndc60658 · reload3033 ms33.3 / 35.2 ms · 109 calls · 1.0M tris · phone · mobile · Phone or tablet · 2.00×Frame meter3033 msCLOSE ✕Frame p5033.3 msFrame p9535.2 msDraw calls109Triangles1.0MTier · DPRphone · 2.00×GLokRecordREC 30 S COPYLapPERF LAP COPYA/B offanimblurelitemaphudpostProbeRUN PROBE COPY\n      \n        Resume\n        \n          Paused\n          Pine Hollow\n        \n        Exit to main\n      \n  \n  Map\n  \n    \n    \n    \n    \n  Gear\n  \n  Finds\n  \n  \n  PackFeatsSettingsFeedbackPine Hollow1×2×4×POIYouVideoAudioControlsKey bindingsGameplaySAVEReviewDebugVideoSettingsSAVESVideoQualityPhoneRenderer, quality, render scale and touch controls are main menu ▸ Settings picks: they apply on reload.GameplayAim assistTracer boltsHunter's eyeVibrationControlsLook speed1.00×Swing turn speed0.70×AudioMaster volumeMusicMusic stylePianoOrchestralFolkSynthMusic: MiniMax-Music3Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AILock-onLock-on cameraFollowGentleOffAuto re-lockLOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.ReviewUnlockPlaytesters: the password turns on in-game notes (F8 / ✎) with a screenshot.DeveloperDeveloper modeShows the frame meter, the build id, the loading details and the Debug settings.Developer toolsDiagnostics and unfinished workSky & weather2Time of dayE55 · hold the day clock at one timeLiveMiddayGoldenSunsetNightWeatherE357 S2.4 · live = authored weather; clear = dry; fog / rain hold a phaseLiveClearFogRainClock speedThe day clock (was ?timescale)1×10×60×Audio1Sound effectsthe generated set (MOSS v2 + Stable Audio 3) or all synthGeneratedSynthCombat & weapons1Aim assist ringthe aim-assist bubble on screen, with its angle and snap (was ?aimdebug)OffOnCreatures & NPCs1Balbal warriorsreloadB11 · the statues that wake at night (was ?balbals)At duskWake nowNeverGhost ridersreloadB11 · the night riders (was ?ghosts)At nightAny hourNeverPine Hollow lifereloadE357: birds, hares, ravens and the skinning beat.OnOffPerformance2Frame capE193 · desktop only: mobile is locked at 30 · auto = the display's rateAuto30UncappedLoad profilingreloadload-perf · logs every shader program the load builds (window.__perfload)OffOnCalibrated budgetsE357 S1.6 · derived targets, current enforced ceilings and the phone:M5 assumptionREAD BUDGETSLoading & memory3Boot packreloadboot files as one pack; off = one by one (the KTX2 record run)OnOffStorageE357 F10 · persistent storage and origin usageClear downloadsE172 · the next load is a true cold load (bytes as a first visit)Clear downloadsDeletes the downloaded game files (every cache and the service worker) so the next load is a first visit. Keeps saves, settings and the review login.Developer tools3CalibrationE357 S1.6 · synthetic M5 unit costs; consumes the one-shot setting at entryRUN CALIBRATIONTemplate shardE357 Z1: hidden grey-box teaching level.EnterCrag channelE357: inspect one crag shading channel.ShadedAOSunWetNormalAlbedoNo toggle matches.Debugfor playtests — goes away when the game shipsLook1Graph materialsreloadSF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. ReloadsOffOnLoading & memory4GPU texturesreloadE157 · KTX2 stays compressed on the GPU; auto = images until the set is cachedAuto · now KTX2KTX2ImagesMemory saverreloadSF22d · E435: frees image and mesh copies once on the GPU, loads the practice dummies when the room opens, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. ReloadsOffOnPine Hollow hybrid bootreloadE435 SF47: transitional trusted home boot; retires under G112 after parity and residency proof.OffOnPine memory trimreloadE435 SF47-g / G180: RGB9_E5 sky keys; on the phone 512² building sets, ASTC 6×6, a 128 environment cube, herd shadows from the visible herd. On by default in the grid.OffOnNo toggle matches.SAVEExport your progress as a file, or import a saved file.EXPORTIMPORTRELOAD TO APPLYKey bindingsClick a key, then press the new one. Esc cancels; Backspace clears an alt.Reset to defaultsTap outside or Esc to resumeBeastsElitesPlacesTrophiesClose",
+      "grid": null,
+      "ktx2": 0
+    },
+    "errors": []
+  },
+  {
+    "variant": {
+      "slug": "driftwood-isle",
+      "dev": false
+    },
+    "version": {
+      "build": "dc60658-muyp4hj0",
+      "time": "2026-10-07T22:45:33.393Z"
+    },
+    "state": {
+      "build": "dc60658-muyp4hj0",
+      "world": "driftwood-isle",
+      "developer": false,
+      "warning": [],
+      "warningVisible": false,
+      "body": "\n    \n      // iOS Safari: no rubber-band scroll of the fixed page, no pinch zoom — the game owns every gesture.\n      document.addEventListener('touchmove', (e) => { if (!e.target.closest('[data-scroll]')) e.preventDefault(); }, { passive: false });\n      document.addEventListener('gesturestart', (e) => e.preventDefault());\n      // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)\n      if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');\n      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.\n      const homeParams = new URLSearchParams(location.search);\n      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');\n      // The loader uses a small, already-approved portrait of the selected shard from its first paint.\n      // Whitelist the filename: ?chunk is a shard selector, never an arbitrary asset path.\n      const loadShard = homeParams.get('chunk') || 'driftwood-isle';\n      if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {\n        document.documentElement.style.setProperty('--ws-load-portrait', 'url(\"/assets/title/' + loadShard + '-portrait.jpg\")');\n      }\n      // developer mode (E140, src/engine/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the\n      // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)\n      try { if (JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.devMode?.data === true) document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }\n    \n    \n    \n      Use\n      100VitalsWooden sword30 / 30Note0\n      Aim\n      Lock\n      Dodge\n      Throw\n      Jump\n      Surface\n      Dive\n      Pause\n      \n        MoveSprint\n        Look\n      \n      AttackFireHold = heavyHold = draw\n      Hover0NNEESESSWWNWNNEESESSWWNWNNEESESSWWNWVitals100/ 100Wooden sword30 / 30\n      ReadyChunk boundaryNo-man's land beyond · nothing has been generated herePREPARING TRAINING TARGETSWoodStraw + clothWood + steel‹›N\n      \n      \n      \n      \n      \n  \n  \n  \n  \n    DRAG TO MOVEWho lit the fire?CASTAWAY123 m▲\n\n\n\n\n\nHOLD TO SKIPThe Sealed Ring · openedDriftwood IsleThe planet in the ring, at golden hourCloseMaren's counterDriftwood IsleMaren · Trader\n    \n    \n    \n    Project WildshardResumingDriftwood IsleReload\n    \n      try {\n        if (new URLSearchParams(location.search).has('glreload')) {\n          const r = document.querySelector('.ws-resume'), shot = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.shot']?.data;\n          if (shot) r.firstElementChild.style.backgroundImage = 'url(\"' + shot + '\")';\n          // the shard's name + title art (E99), before any bundle runs\n          const brand = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.brand']?.data || {};\n          if (brand.name) r.querySelector('.ws-resume-level').textContent = brand.name;\n          if (brand.hero) r.querySelector('.ws-resume-hero').style.backgroundImage = 'url(\"' + brand.hero + '\")';\n          r.querySelector('.ws-resume-bar').classList.add('busy');\n          r.classList.add('show');\n          document.querySelector('.ws-load').style.display = 'none';\n        }\n      } catch { /* the first-boot loader shows instead */ }\n    \n    \n    \n\n\n\n\n\nPortrait only\nRotate to portrait\nWildshard is played upright · turn your phone to continue\n\n\n  \n\ndc60658 · reload3033 ms33.3 / 33.4 ms · 259 calls · 1.5M tris · phone · mobile · Phone or tablet · 2.00×Frame meter3033 msCLOSE ✕Frame p5033.3 msFrame p9533.4 msDraw calls259Triangles1.5MTier · DPRphone · 2.00×GLokRecordREC 30 S COPYLapPERF LAP COPYA/B offanimblurelitemaphudpostProbeRUN PROBE COPY\n      \n        Resume\n        \n          Paused\n          Driftwood Isle\n        \n        Exit to main\n      \n  \n  Map\n  \n    \n    \n    \n    \n  Gear\n  \n  Finds\n  \n  \n  PackFeatsSettingsFeedbackDriftwood Isle1×2×4×POIYouVideoAudioControlsKey bindingsGameplaySAVEReviewDebugVideoSettingsSAVESVideoQualityPhoneRenderer, quality, render scale and touch controls are main menu ▸ Settings picks: they apply on reload.GameplayAim assistTracer boltsHunter's eyeVibrationControlsLook speed1.00×Swing turn speed0.70×AudioMaster volumeMusicMusic stylePianoOrchestralFolkSynthMusic: MiniMax-Music3Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AILock-onLock-on cameraFollowGentleOffAuto re-lockLOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.ReviewUnlockPlaytesters: the password turns on in-game notes (F8 / ✎) with a screenshot.DeveloperDeveloper modeShows the frame meter, the build id, the loading details and the Debug settings.Developer toolsDiagnostics and unfinished workSky & weather1Time of dayE55 · hold the day clock at one timeLiveMiddayGoldenSunsetNightWeatherE357 S2.4 · live = authored weather; clear = dry; fog / rain hold a phaseLiveClearFogRainClock speedThe day clock (was ?timescale)1×10×60×Audio1Sound effectsthe generated set (MOSS v2 + Stable Audio 3) or all synthGeneratedSynthCombat & weapons1Aim assist ringthe aim-assist bubble on screen, with its angle and snap (was ?aimdebug)OffOnCreatures & NPCs0Balbal warriorsreloadB11 · the statues that wake at night (was ?balbals)At duskWake nowNeverGhost ridersreloadB11 · the night riders (was ?ghosts)At nightAny hourNeverPerformance2Frame capE193 · desktop only: mobile is locked at 30 · auto = the display's rateAuto30UncappedLoad profilingreloadload-perf · logs every shader program the load builds (window.__perfload)OffOnCalibrated budgetsE357 S1.6 · derived targets, current enforced ceilings and the phone:M5 assumptionREAD BUDGETSLoading & memory3Boot packreloadboot files as one pack; off = one by one (the KTX2 record run)OnOffStorageE357 F10 · persistent storage and origin usageClear downloadsE172 · the next load is a true cold load (bytes as a first visit)Clear downloadsDeletes the downloaded game files (every cache and the service worker) so the next load is a first visit. Keeps saves, settings and the review login.Developer tools2CalibrationE357 S1.6 · synthetic M5 unit costs; consumes the one-shot setting at entryRUN CALIBRATIONTemplate shardE357 Z1: hidden grey-box teaching level.EnterNo toggle matches.Debugfor playtests — goes away when the game shipsLook1Graph materialsreloadSF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. ReloadsOffOnLoading & memory2GPU texturesreloadE157 · KTX2 stays compressed on the GPU; auto = images until the set is cachedAuto · now ImagesKTX2ImagesMemory saverreloadSF22d · E435: frees image and mesh copies once on the GPU, loads the practice dummies when the room opens, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. ReloadsOffOnNo toggle matches.SAVEExport your progress as a file, or import a saved file.EXPORTIMPORTRELOAD TO APPLYKey bindingsClick a key, then press the new one. Esc cancels; Backspace clears an alt.Reset to defaultsTap outside or Esc to resume",
+      "grid": null,
+      "ktx2": 0
+    },
+    "errors": []
+  },
+  {
+    "variant": {
+      "slug": "grid",
+      "dev": true
+    },
+    "version": {
+      "build": "dc60658-muyp4hj0",
+      "time": "2026-10-07T22:45:33.393Z"
+    },
+    "state": {
+      "build": "dc60658-muyp4hj0",
+      "world": "driftwood-isle",
+      "developer": true,
+      "warning": [],
+      "warningVisible": false,
+      "body": "\n    \n      // iOS Safari: no rubber-band scroll of the fixed page, no pinch zoom — the game owns every gesture.\n      document.addEventListener('touchmove', (e) => { if (!e.target.closest('[data-scroll]')) e.preventDefault(); }, { passive: false });\n      document.addEventListener('gesturestart', (e) => e.preventDefault());\n      // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)\n      if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');\n      // Plain launch: the shard selector is the first screen, with no world or loading panel underneath it.\n      const homeParams = new URLSearchParams(location.search);\n      if (homeParams.size === 0 || (homeParams.size === 1 && homeParams.has('v'))) document.documentElement.classList.add('title-first');\n      // The loader uses a small, already-approved portrait of the selected shard from its first paint.\n      // Whitelist the filename: ?chunk is a shard selector, never an arbitrary asset path.\n      const loadShard = homeParams.get('chunk') || 'driftwood-isle';\n      if (['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack'].includes(loadShard)) {\n        document.documentElement.style.setProperty('--ws-load-portrait', 'url(\"/assets/title/' + loadShard + '-portrait.jpg\")');\n      }\n      // developer mode (E140, src/engine/core/devMode.ts reads the same key): the loading screen's details, the frame meter, the\n      // build id show only under <html data-dev> — set here, before the first paint of the loading panel. No URL switch (E162)\n      try { if (JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.devMode?.data === true) document.documentElement.setAttribute('data-dev', ''); } catch { /* storage blocked: player mode */ }\n    \n    \n    \n      Use\n      100VitalsWooden sword30 / 30Note0\n      Aim\n      Lock\n      Dodge\n      Throw\n      Jump\n      Surface\n      Dive\n      Pause\n      \n        MoveSprint\n        Look\n      \n      AttackFireHold = heavyHold = draw\n      HoverSAFE ZONE0NNEESESSWWNWNNEESESSWWNWNNEESESSWWNWVitals100/ 100Wooden sword30 / 30\n      ReadyChunk boundaryNo-man's land beyond · nothing has been generated herePREPARING TRAINING TARGETSWoodStraw + clothWood + steel‹›N\n      \n      \n      \n      \n      \n  \n  \n  \n  \n    DRAG TO MOVEPTSXROADS 91 · 905.2/1000.0 MBDRIFTWOOD ISLE 318TEMPLATE SHARD 1,-1 19TEMPLATE SHARD -1,-1 19TEMPLATE SHARD -1,1 2NALATI GRASSLANDS 2PINE HOLLOW 2SIGNAL DUNES 2SKY REACH 1TEMPLATE SHARD 1,1 1ROAD 72.1PLATFORM.HIGHWAY 5.4GRID 3.48 OKPLATFORM 80.9Who lit the fire?CASTAWAY123 m▲\n\n\n\n\n\nHOLD TO SKIPThe Sealed Ring · openedDriftwood IsleThe planet in the ring, at golden hourCloseMaren's counterDriftwood IsleMaren · TraderArriving at Driftwood IsleTap to skip\n    \n    \n    \n    Project WildshardResumingDriftwood IsleReload\n    \n      try {\n        if (new URLSearchParams(location.search).has('glreload')) {\n          const r = document.querySelector('.ws-resume'), shot = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.shot']?.data;\n          if (shot) r.firstElementChild.style.backgroundImage = 'url(\"' + shot + '\")';\n          // the shard's name + title art (E99), before any bundle runs\n          const brand = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.['resume.brand']?.data || {};\n          if (brand.name) r.querySelector('.ws-resume-level').textContent = brand.name;\n          if (brand.hero) r.querySelector('.ws-resume-hero').style.backgroundImage = 'url(\"' + brand.hero + '\")';\n          r.querySelector('.ws-resume-bar').classList.add('busy');\n          r.classList.add('show');\n          document.querySelector('.ws-load').style.display = 'none';\n        }\n      } catch { /* the first-boot loader shows instead */ }\n    \n    \n    \n\n\n\n\n\nPortrait only\nRotate to portrait\nWildshard is played upright · turn your phone to continue\n\n\n  \n\ndc60658 · reload3033 ms33.3 / 46.9 ms · 243 calls · 1.3M tris · phone · mobile · Phone or tablet · 2.00×Frame meter3033 msCLOSE ✕Frame p5033.3 msFrame p9546.9 msDraw calls243Triangles1.3MTier · DPRphone · 2.00×GLokRecordREC 30 S COPYLapPERF LAP COPYA/B offanimblurelitemaphudpostProbeRUN PROBE COPY\n      \n        Resume\n        \n          Paused\n          Driftwood Isle\n        \n        Exit to main\n      \n  \n  Map\n  \n    \n    \n    \n    \n  Gear\n  \n  Finds\n  \n  \n  PackFeatsSettingsFeedbackDriftwood Isle1×2×4×POIYouVideoAudioControlsKey bindingsGameplaySAVEReviewDebugVideoSettingsSAVESVideoQualityPhoneRenderer, quality, render scale and touch controls are main menu ▸ Settings picks: they apply on reload.GameplayAim assistTracer boltsHunter's eyeVibrationControlsLook speed1.00×Swing turn speed0.70×AudioMaster volumeMusicMusic stylePianoOrchestralFolkSynthMusic: MiniMax-Music3Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AILock-onLock-on cameraFollowGentleOffAuto re-lockLOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.ReviewUnlockPlaytesters: the password turns on in-game notes (F8 / ✎) with a screenshot.DeveloperDeveloper modeShows the frame meter, the build id, the loading details and the Debug settings.Developer toolsDiagnostics and unfinished workSky & weather1Time of dayE55 · hold the day clock at one timeLiveMiddayGoldenSunsetNightWeatherE357 S2.4 · live = authored weather; clear = dry; fog / rain hold a phaseLiveClearFogRainClock speedThe day clock (was ?timescale)1×10×60×Audio1Sound effectsthe generated set (MOSS v2 + Stable Audio 3) or all synthGeneratedSynthCombat & weapons1Aim assist ringthe aim-assist bubble on screen, with its angle and snap (was ?aimdebug)OffOnCreatures & NPCs0Balbal warriorsreloadB11 · the statues that wake at night (was ?balbals)At duskWake nowNeverGhost ridersreloadB11 · the night riders (was ?ghosts)At nightAny hourNeverPerformance2Frame capE193 · desktop only: mobile is locked at 30 · auto = the display's rateAuto30UncappedLoad profilingreloadload-perf · logs every shader program the load builds (window.__perfload)OffOnCalibrated budgetsE357 S1.6 · derived targets, current enforced ceilings and the phone:M5 assumptionREAD BUDGETSLoading & memory3Boot packreloadboot files as one pack; off = one by one (the KTX2 record run)OnOffStorageE357 F10 · persistent storage and origin usageClear downloadsE172 · the next load is a true cold load (bytes as a first visit)Clear downloadsDeletes the downloaded game files (every cache and the service worker) so the next load is a first visit. Keeps saves, settings and the review login.Developer tools2CalibrationE357 S1.6 · synthetic M5 unit costs; consumes the one-shot setting at entryRUN CALIBRATIONTemplate shardE357 Z1: hidden grey-box teaching level.EnterNo toggle matches.Debugfor playtests — goes away when the game shipsLook1Graph materialsreloadSF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. ReloadsOffOnLoading & memory2GPU texturesreloadE157 · KTX2 stays compressed on the GPU; auto = images until the set is cachedAuto · now ImagesKTX2ImagesMemory saverreloadSF22d · E435: frees image and mesh copies once on the GPU, loads the practice dummies when the room opens, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. ReloadsOffOnNo toggle matches.SAVEExport your progress as a file, or import a saved file.EXPORTIMPORTRELOAD TO APPLYKey bindingsClick a key, then press the new one. Esc cancels; Backspace clears an alt.Reset to defaultsTap outside or Esc to resume",
+      "grid": {
+        "home": "driftwood-isle",
+        "inside": "driftwood-isle",
+        "feet": {
+          "x": 0,
+          "z": -194
+        },
+        "cells": [
+          {
+            "instance": "template-1",
+            "slug": "_template",
+            "cell": [
+              -1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "pine-hollow",
+            "slug": "pine-hollow",
+            "cell": [
+              0,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-2",
+            "slug": "_template",
+            "cell": [
+              1,
+              1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "sunscar-dunes",
+            "slug": "sunscar-dunes",
+            "cell": [
+              -1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "driftwood-isle",
+            "slug": "driftwood-isle",
+            "cell": [
+              0,
+              0
+            ],
+            "shows": "playing"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "slug": "nalati-grasslands",
+            "cell": [
+              1,
+              0
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-4",
+            "slug": "_template",
+            "cell": [
+              -1,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "far-reach",
+            "slug": "far-reach",
+            "cell": [
+              0,
+              -1
+            ],
+            "shows": "far proxy"
+          },
+          {
+            "instance": "template-6",
+            "slug": "_template",
+            "cell": [
+              1,
+              -1
+            ],
+            "shows": "far proxy"
+          }
+        ],
+        "strips": 40,
+        "road": {
+          "segments": 24,
+          "junctions": 16,
+          "roundabouts": 4,
+          "signs": 124,
+          "lights": 364,
+          "draws": 3
+        },
+        "seams": {
+          "triangles": 102140,
+          "draws": 5,
+          "buckets": {
+            "ground": 86844,
+            "stone": 8244,
+            "rock": 6428,
+            "rail": 312,
+            "curtain": 312
+          }
+        },
+        "softWalls": {
+          "closed": 24
+        },
+        "shimmer": {
+          "borders": 36,
+          "status": null
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "far-reach",
+              "status": "waiting"
+            },
+            {
+              "instance": "nalati-grasslands",
+              "status": "waiting"
+            },
+            {
+              "instance": "sunscar-dunes",
+              "status": "waiting"
+            }
+          ],
+          "draws": 9
+        },
+        "ringsReady": true,
+        "residentMB": 473.17,
+        "playingMB": 905.22,
+        "accountedBytes": 473167954,
+        "rings": {
+          "far": 8,
+          "l1": 4,
+          "l0": 0,
+          "refused": 0,
+          "inFlight": 0,
+          "queued": 0
+        },
+        "frame": {
+          "installed": true,
+          "faded": 4,
+          "owner": "driftwood-isle",
+          "highway": 0,
+          "weights": {
+            "driftwood-isle": 1
+          },
+          "air": [
+            0.36,
+            0.7,
+            1
+          ],
+          "grade": [
+            0,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "roadSky": 0
+        },
+        "live": {
+          "live": {
+            "current": "driftwood-isle",
+            "worldFeet": {
+              "x": -0.00000538203174005325,
+              "y": 1.2139814263056905,
+              "z": -194.00000787588334
+            },
+            "crossings": 0,
+            "transitions": [],
+            "residents": [
+              "template-4",
+              "template-6"
+            ],
+            "pending": [],
+            "issues": {},
+            "gameplayReady": true,
+            "continuations": {
+              "entries": 0,
+              "storedChars": 0,
+              "capacityChars": 0,
+              "claimedBytes": 0
+            }
+          },
+          "crossing": {
+            "current": "driftwood-isle",
+            "target": "driftwood-isle",
+            "phase": "settled",
+            "issue": null
+          },
+          "stowed": false,
+          "renderOrigin": {
+            "x": 0,
+            "z": 0
+          },
+          "hoverCap": 14,
+          "homeActive": null
+        },
+        "life": [
+          {
+            "instance": "template-1",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 174
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-2",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 174
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-4",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 174
+            },
+            "failed": null
+          },
+          {
+            "instance": "template-6",
+            "creatures": 3,
+            "frozen": true,
+            "views": {
+              "targets": 3,
+              "posed": 3,
+              "particles": 2,
+              "capacity": 6,
+              "tick": 174
+            },
+            "failed": null
+          }
+        ]
+      },
+      "ktx2": 0
+    },
+    "errors": []
+  }
+]
