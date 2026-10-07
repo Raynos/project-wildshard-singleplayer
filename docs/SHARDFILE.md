@@ -364,6 +364,63 @@ model is `@wildshard/engine/core/contentCost`, consumed by the game's
 `@wildshard/game/shardfile/budget`. The validator expands its 5 m search grid's
 radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc.
 
+## Authored world source (SF55a, build input)
+
+`@wildshard/sdk/worldSource` exports `WorldSourceSchema`, `WorldSource` and
+`parseWorldSource`. This validates the build-only `world` declaration planned for
+`shard.config.ts`; `world` is not a compiled `Shardfile` field. This first contract
+slice does not yet make `wildshard build` ingest a world GLB: the CLI currently still
+requires compiled shardfile data. GLB normalization, texture/LOD tools, mesh collision
+and the build adapter follow in SF55a before the Blender Template (SF55).
+
+```ts
+import { parseWorldSource } from '@wildshard/sdk/worldSource';
+
+const world = parseWorldSource({
+  glb: 'assets/world.glb',
+  materials: { 'Grey clay': 'world.clay', 'Door paint': 'world.door' },
+  colliders: 'nodes:ws_collision_',
+  objects: { Bridge: 'bridge' },
+  interactive: [
+    { node: 'Hall door', id: 'hall.door', colliderId: 'hall.door.collider' },
+  ],
+});
+```
+
+The GLB path is project-relative with forward slashes, a `.glb` suffix and no
+absolute path, traversal, URL, query, encoded path segment or backslash. Material
+names and node names are exact, case-sensitive glTF names (spaces and Blender's
+numeric suffixes are preserved), at most 128 characters, without controls or edge
+whitespace. Mapping keys `__proto__`, `prototype` and `constructor` are refused.
+Every referenced glTF material must map to an admitted material ID in `look.materials`
+or a platform default; the GLB ingest stage will check that coverage and refuse
+unsupported materials instead of skipping them. The table has 1–256 mappings.
+
+`colliders: 'mesh'` selects world mesh geometry; `nodes:<prefix>` explicitly selects
+collision nodes by a nonempty literal name prefix. The ingest stage must refuse a
+missing selection, apply node transforms, and preserve bridges and overhangs with
+mesh collision. Nodes named with the `ws_terrain` prefix identify terrain sampling
+inputs; they do not make non-heightfield geometry disappear.
+
+Optional `objects` maps up to 1,024 noninteractive node names to stable object IDs.
+Optional `interactive` lists up to 64 named nodes with stable panel `id` and
+`colliderId`. Both collections default empty. Names and object/panel IDs are unique
+across the two collections; interactive collider IDs are unique within their own
+namespace. IDs are lowercase `[a-z][a-z0-9.-]*`, at most 128 characters. An interactive
+node is excluded from static tiles and merged collision and becomes its own panel
+and collider with the authored transform. Annotations live in config data, never
+glTF extras or callbacks. Node existence and overlapping selected hierarchies are
+checked when the GLB is ingested, not by this declaration-only parser.
+
+Export from Blender as **glTF Binary**, **+Y up**, with **Apply Modifiers** and
+materials exported. Units are metres and the shard-local origin is the cell centre;
+the full transformed world stays in the 500 m cube. Author four clear, dry, flat
+8×15 m entry footprints at the midpoints, at y=0. Existing entryways, spawn, material
+look, gameplay data rows and admitted AssemblyScript remain separate author inputs;
+the platform draws the asphalt socket after admission. The SDK ingest will produce
+content-addressed tiles, LODs, collision, edge profiles and far geometry without
+requiring a project generator or runtime.
+
 ## Minimal singleplayer load
 
 The normal client accepts an embedded `<script id="ws-shardfile" type="application/json">` source. The game validates it before selecting the level, then uses the existing session, Game, player, physics, HUD and staged LevelLoader. `loadShardfile(app, input)` also feeds an installed level driver; `app.unloadLevel()` owns disposal. External names cross `parseShardSlug`; built-in names keep their generated union.

@@ -35,7 +35,8 @@
     "./commonsCosts": "./commonsCosts.ts",
     "./runtime/weapons/Firearm": "./runtime/weapons/Firearm.ts",
     "./runtime/weapons/Weapon": "./runtime/weapons/Weapon.ts",
-    "./weapons/firearmProfile": "./weapons/firearmProfile.ts"
+    "./weapons/firearmProfile": "./weapons/firearmProfile.ts",
+    "./worldSource": "./worldSource.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -194,6 +195,10 @@
       "./weapons/firearmProfile": {
         "types": "./dist/types/sdk/weapons/firearmProfile.d.ts",
         "default": "./dist/weapons/firearmProfile.js"
+      },
+      "./worldSource": {
+        "types": "./dist/types/sdk/worldSource.d.ts",
+        "default": "./dist/worldSource.js"
       }
     }
   }
