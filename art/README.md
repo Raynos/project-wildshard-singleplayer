@@ -102,6 +102,7 @@ when the images were generated.
 | `settings/` | `round-2-new-game` (10-04) | E438 / E439: New game per shard (G83: C save cards + before/after sheet) |
 | `driftwood-isle/`, `far-reach/`, `sunscar-dunes/`, `nine-dragon-stack/`, `nalati-grasslands/` | `round-15-grid-entries`, `round-38-grid-edges`, `round-30-grid-look`, `round-29-grid-look`, `round-13-grid-look` (10-04) | E438: each shard meeting the grid (G93 midpoint entries, G99 Sky Reach rules, G94 Dunes haze, G95 Nine Dragon dusk fog, G96 Nalati painterly kept) |
 | `grid/`, `far-reach/`, `hud/`, `menu/`, `minimap/` | `grid/round-13-turn-in` … `round-15-cell-aerial`, `far-reach/round-39-entryways`, `hud/round-20-accent-palette`, `hud/round-21-crossing-storyboard`, `menu/round-8-shard-select`, `minimap/round-3-road-blend` (10-04) | E438 waves 8–9: midpoint turn-in (G100 T-junction), railing + wall (G101 cyan rail), Sky Reach switchback entries (G102), one cell from the air + 15 m of road asphalt into each entry (G103), the 20 HUD accents + reserved road cyan (G104), crossing storyboard (G105), shard select (G106 carousel), minimap at the road (G107) |
+| `menu/` | `round-11-whats-new` (10-07) | SF60 / G201: where the daily "WHAT'S NEW · WHAT TO TRY" playtest card sits on the main menu (A card over the title art, recommended · B strip above the doors · C chip + sheet) |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
