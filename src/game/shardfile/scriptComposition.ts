@@ -10,7 +10,7 @@ export interface DeclaredScriptBrainActor { actorId: string; entity: number; bra
 export interface DeclaredScriptBrainPorts extends Pick<ScriptBrainOptions, 'actors' | 'query' | 'ports'> { bindings: readonly DeclaredScriptBrainActor[] }
 /** One authoritative module union and allowance set for numeric state, items, directors and custom creature decisions. */
 export function createShardfileComposedLane(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts, brains?: DeclaredScriptBrainPorts,
-  extra?: { roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[] }): ScriptLanePort {
+  extra?: { roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[]; transientModules?: readonly string[] }): ScriptLanePort {
   const options = prepareShardfileScriptOptions(content, assets, ports);
   const rows = brains?.bindings.map(row => ({ ...row, brain: parseScriptBrain(row.brain) })) ?? [];
   if (rows.some(row => !content.sim.scripts.includes(row.brain.module))) throw new Error('Brain module must be declared in sim.scripts');
@@ -24,6 +24,7 @@ export function createShardfileComposedLane(content: ShardScriptContent, assets:
     roles: [numeric.role('numeric'), ...(brain === undefined ? [] : [brain.role('brain')]), ...(extra?.roles ?? [])],
     schedules: [numeric.schedule('numeric', 'numeric', () => commands), ...(brain === undefined ? [] : [brain.schedule('brain', 'brain')]), ...(extra?.schedules ?? [])],
     maxEntities: ports.rules.maxEntities,
+    ...(extra?.transientModules === undefined ? {} : { transientModules: extra.transientModules }),
     ...(ports.limits === undefined ? {} : { limits: ports.limits }),
     ...(ports.development === undefined ? {} : { development: ports.development }),
     ...(ports.toast === undefined ? {} : { toast: ports.toast }),

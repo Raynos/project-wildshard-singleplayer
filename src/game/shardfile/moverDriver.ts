@@ -14,8 +14,16 @@ export class MoverScriptDriver {
   readonly world: ScriptWorld;
   private readonly contract: string;
   private readonly query: ScriptQuery;
-  constructor(input: MoverData, physicsQueries: ScriptQuery) {
-    this.data = parseMovers(input); this.contract = JSON.stringify(this.data); this.query = moverQueries(this.data, physicsQueries);
+  private readonly resetIds: ReadonlySet<string>;
+  /** Lift-only modules reset on load; sharing their memory with persistent movers is refused. */
+  readonly transientModules: readonly string[];
+  constructor(input: MoverData, physicsQueries: ScriptQuery, resetIds: readonly string[] = []) {
+    this.data = parseMovers(input); this.query = moverQueries(this.data, physicsQueries);
+    this.resetIds = new Set(resetIds);
+    if (this.resetIds.size !== resetIds.length || resetIds.some(id => !this.data.some(row => row.id === id))) throw new Error('Invalid transient mover identity');
+    this.transientModules = [...new Set(this.data.filter(row => this.resetIds.has(row.id)).map(row => row.module))].sort();
+    if (this.data.some(row => !this.resetIds.has(row.id) && this.transientModules.includes(row.module))) throw new Error('Lift module cannot own persistent movers');
+    this.contract = JSON.stringify(resetIds.length === 0 ? this.data : { data: this.data, resetIds: [...resetIds].sort() });
     this.world = new ScriptWorld({ fields: MOVER_FIELD_RANGES, archetypes: [], events: [], maxEntities: 32 }, moverScriptEntities(this.data));
   }
   /** No events cross into mover entity fields from the numeric/brain role. */
@@ -34,12 +42,17 @@ export class MoverScriptDriver {
     };
   }
   /** Typed role state; the owning composition captures module memories and host quotas once. */
-  snapshot(): string { return JSON.stringify({ contract: this.contract, entities: this.world.state() }); }
+  snapshot(): string {
+    const initial = new Map(moverScriptEntities(this.data).map(row => [row.id, row]));
+    return JSON.stringify({ contract: this.contract, entities: this.world.state().map(row => this.resetIds.has(row.name) ? initial.get(row.id) : row) });
+  }
   /** Restore matching entity identities atomically without commands, body movement or script execution. */
   restore(text: string): void {
     const saved = v.parse(v.strictObject({ contract: v.string(), entities: v.pipe(v.array(entity), v.maxLength(32)) }), JSON.parse(text));
     if (saved.contract !== this.contract || saved.entities.length !== this.data.length
       || saved.entities.some(row => !this.data.some(mover => mover.entity === row.id && mover.id === row.name))) throw new Error('Incompatible mover role continuation');
+    const initial = new Map(moverScriptEntities(this.data).map(row => [row.id, row]));
+    if (saved.entities.some(row => this.resetIds.has(row.name) && JSON.stringify(row) !== JSON.stringify(initial.get(row.id)))) throw new Error('Lift continuation must reset at the road stop');
     this.world.restore(saved.entities);
   }
 }

@@ -23,14 +23,14 @@ export function out_ptr():i32{return 24576;} export function out_cap():i32{retur
 export function on_tick():void{store<f64>(24576,5);store<f64>(24584,101);store<f64>(24592,load<f64>(16448)+1);store<f64>(24600,0);store<f64>(24608,0);}`, { maximumPages: 2 });
 });
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
-async function rig(effects = 128, entityId = 2001) {
+async function rig(effects = 128, entityId = 2001, liftReset = false) {
   const physics = new Physics(await loadRapier(await (await fetch(wasmInline)).arrayBuffer())), scope = new Scope('composed-mover');
   const module = hash(moverBytes), numeric = hash(numericBytes);
   const data = parseMovers(['deck', 'gate'].map((id, index) => ({ id, entity: 1001 + index, module, kind: 'platform', at: { x: 0, y: index, z: 0 },
     euler: { x: 0, y: 0, z: 0 }, enabled: index === 0, boxes: [{ x: 0, y: -0.25, z: 0, hx: 4, hy: 0.25, hz: 5, rot: { x: 0, y: 0, z: 0, w: 1 } }],
     input: index === 0 ? [0, 0, 0, 0, 5, 0, 10, 0] : [0, 1, 0, 0, 1, 0, 10, 1],
   })));
-  const driver = new MoverScriptDriver(data, () => []);
+  const driver = new MoverScriptDriver(data, () => [], liftReset ? ['deck', 'gate'] : []);
   let runtime: MoverRuntime | undefined;
   try {
     const lane = createShardfileComposedLane({ identity: { seed: 1 }, sim: { scripts: [module, numeric], scriptTickDivisor: 1,
@@ -39,7 +39,7 @@ async function rig(effects = 128, entityId = 2001) {
       rules: { fields: {}, archetypes: [], events: [], maxEntities: 3 },
       entities: [{ id: entityId, name: 'player', position: [0, 0, 0], fields: {}, frozen: false, interactive: true }], actors: new Map([[entityId, 'player']]),
       query: () => [], limits: { effects },
-    }, undefined, { roles: [driver.role()], schedules: [driver.schedule(() => { if (runtime === undefined) throw new Error('Missing composed runtime'); return runtime; })] });
+    }, undefined, { roles: [driver.role()], schedules: [driver.schedule(() => { if (runtime === undefined) throw new Error('Missing composed runtime'); return runtime; })], transientModules: driver.transientModules });
     runtime = new MoverRuntime(data, { host: lane.host, physics, scope });
     return { lane, runtime, driver, physics, scope, dispose: () => { scope.dispose(); physics.dispose(); } };
   } catch (error) { scope.dispose(); physics.dispose(); throw error; }
@@ -71,5 +71,23 @@ describe('one authoritative host with numeric state and movers', () => {
   });
   it('refuses a mover alias overlapping numeric state before any body is allocated', async () => {
     await expect(rig(128, 1001)).rejects.toThrow('Overlapping script roles');
+  });
+  it('reloads a mid-travel lift at the road while preserving numeric state and one host tick', async () => {
+    const original = await rig(128, 2001, true), fresh = await rig(128, 2001, true);
+    try {
+      original.runtime.command('deck', 1); original.runtime.command('gate', 1);
+      for (let tick = 1; tick <= 120; tick++) { original.lane.step(tick); original.physics.step(); }
+      expect(original.runtime.pose('deck').position.y).toBeGreaterThan(0);
+      fresh.lane.restore(original.lane.snapshot());
+      expect(fresh.runtime.pose('deck').position.y).toBe(0);
+      expect(fresh.runtime.pose('gate').enabled).toBe(false);
+      expect(fresh.lane.world.view('player').shared['count']).toBe(120);
+      expect(fresh.lane.host.currentTick).toBe(120);
+      expect(fresh.lane.step(121).every(call => call.ok)).toBe(true); fresh.physics.step();
+      expect(fresh.runtime.pose('deck').position.y).toBe(0);
+      expect(fresh.lane.world.view('player').shared['count']).toBe(121);
+      expect(fresh.physics.world.bodies.len()).toBe(2);
+      expect(() => new MoverScriptDriver(original.driver.data, () => [], ['deck'])).toThrow('persistent movers');
+    } finally { original.dispose(); fresh.dispose(); }
   });
 });
