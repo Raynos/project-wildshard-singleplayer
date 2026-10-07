@@ -18,8 +18,8 @@ M3 waits remain behind soft walls and far proxies: Developer Sunscar Dunes, Nala
 Reproduce with a clean preview:
 
 ```sh
-scripts/serve-build.sh --rev=920a530be --port=4400
-scripts/browser-lane.sh run --max=15 -- node progress/memory/grid-admission-920a530be/probe.mjs http://127.0.0.1:4400/ /tmp/grid-admission.json
+scripts/serve-build.sh --rev 920a530be --port 4400
+scripts/browser-lane.sh --max 15 node progress/memory/grid-admission-920a530be/probe.mjs http://127.0.0.1:4400/ /tmp/grid-admission.json
 python3 progress/memory/grid-admission-920a530be/verify.py
 ```
 
