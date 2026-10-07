@@ -1842,7 +1842,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2107 exports, grouped by the module to import them from.
+2108 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2063,7 +2063,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/player/Player`: `HOVER_TOP`, `Player`, `PlayerFrameQueries`, `STROKE_PERIOD`, `SWIM_SPEED`
 - `@wildshard/engine/player/Skins`: `applySkin`, `clearSkin`, `SkinDef`, `SkinId`, `WeaponKind`
 - `@wildshard/engine/player/TouchControls`: `IS_TOUCH`, `TouchControls`
-- `@wildshard/engine/player/viewmodelTextures`: `clamp01`, `CLASSIC_SETS`, `Ctx2D`, `makeNoise`, `makePixels`, `MODERN_SETS`, `Noise`, `normalPixels`, `Pixels`, `SetName`, `sstep`
+- `@wildshard/engine/player/viewmodelTextures`: `clamp01`, `CLASSIC_SETS`, `Ctx2D`, `makeNoise`, `makePixels`, `MODERN_SETS`, `Noise`, `normalPixels`, `Pixels`, `SetName`, `sstep`, `viewmodelBakeUrl`
 - `@wildshard/engine/player/WeaponPickup`: `ItemPickup`, `ItemPickupOptions`, `PickupTier`, `TIER_COLOUR`, `WeaponPickup`
 - `@wildshard/engine/practice/playground/catalog`: `asPlaygroundId`, `PLAYGROUND_CARDS`, `playgroundCard`, `PlaygroundCard`, `PlaygroundId`, `playgroundsFor`, `registeredPlayground`, `registerPlayground`
 - `@wildshard/engine/practice/playground/devGrid`: `DevKit`, `devLabel`, `devMaterial`, `devTexture`, `DevTone`, `TILE`

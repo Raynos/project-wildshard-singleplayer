@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2124 members; 830 without a doc line (—).
+2125 members; 829 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -679,7 +679,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `contentCost` | function | @wildshard/engine/core/contentCost | Simulator-measured v1 model, used by validation and the future residency allocator. |
 | `ContentCostInput` | interface | @wildshard/engine/core/contentCost | Shared resident-cost input: dependency-deduplicated category bytes, including persistent CPU and GPU data. |
 | `isDev` | function | @wildshard/engine/core/devMode | — |
-| `onDev` | function | @wildshard/engine/core/devMode | — |
+| `onDev` | function | @wildshard/engine/core/devMode | Browser mode changes are scoped; headless consumers have no DOM event source to subscribe to. |
 | `setDev` | function · game only | @wildshard/engine/core/devMode | — |
 | `ContextValue` | type | @wildshard/engine/core/errorReport | — |
 | `ErrorPayload` | interface | @wildshard/engine/core/errorReport | — |
@@ -1269,6 +1269,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Pixels` | interface | @wildshard/engine/player/viewmodelTextures | RGBA8 colour (sRGB), normal and ARM (ao · roughness · metalness; absent for the cord) planes, `w × h` |
 | `SetName` | type | @wildshard/engine/player/viewmodelTextures | — |
 | `sstep` | const | @wildshard/engine/player/viewmodelTextures | — |
+| `viewmodelBakeUrl` | function | @wildshard/engine/player/viewmodelTextures | G187 cut 3 (E435): the name a set plane's baked KTX2 is keyed by in a level's KTX2 table (scripts/bake-viewmodel-sets.mjs |
 | `ItemPickup` | class | @wildshard/engine/player/WeaponPickup | an item lying in the world in a glowing orb, taken with USE (also exported as WeaponPickup) |
 | `ItemPickupOptions` | interface | @wildshard/engine/player/WeaponPickup | — |
 | `PickupTier` | type | @wildshard/engine/player/WeaponPickup | ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like |

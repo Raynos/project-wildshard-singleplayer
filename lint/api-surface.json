@@ -4038,7 +4038,7 @@
       {
         "name": "onDev",
         "kind": "function",
-        "doc": "",
+        "doc": "Browser mode changes are scoped; headless consumers have no DOM event source to subscribe to.",
         "from": "@wildshard/engine/core/devMode"
       },
       {
@@ -7581,6 +7581,12 @@
         "name": "sstep",
         "kind": "const",
         "doc": "",
+        "from": "@wildshard/engine/player/viewmodelTextures"
+      },
+      {
+        "name": "viewmodelBakeUrl",
+        "kind": "function",
+        "doc": "G187 cut 3 (E435): the name a set plane's baked KTX2 is keyed by in a level's KTX2 table (scripts/bake-viewmodel-sets.mjs",
         "from": "@wildshard/engine/player/viewmodelTextures"
       },
       {
