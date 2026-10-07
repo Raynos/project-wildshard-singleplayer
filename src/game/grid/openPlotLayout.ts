@@ -268,8 +268,9 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
     { const p = frame.at(26, 7.5); solid.box(p.x, p.z, 0, 0.12, 0.12, 4.6, frame.yaw, C.steelLight); const q = frame.at(25.9, 9.7); solid.box(q.x, q.z, 4.2, 2.6, 0.06, 0.8, frame.yaw, C.navy); text.add(P(25.8, 9.7, 4.6), n, 5.0, 0.94, labelRect(demo)); lines.seg([p.x, 4.6, p.z], [p.x, 9, p.z]); }
   }
   // the centrepiece: a stepped octagonal plinth, a hologram of a shard being built turning above it, cards of every idea
-  solid.prism(0, 0, 0, 24, 24, 0.5, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.5, 19, 19, 0.5, 8, C.steel, C.steelLight); solid.prism(0, 0, 1.0, 14, 13.5, 0.6, 8, C.navy, C.steel);
-  for (let k = 0; k < 8; k++) { const a = (k + 0.5) / 8 * Math.PI * 2; solid.prism(Math.cos(a) * 21.5, Math.sin(a) * 21.5, 0.5, 0.45, 0.45, 1.6, 6, C.cyan); }
+  // steps of 0.3 m: the player climbs them without a jump (the motor steps 0.35 m)
+  solid.prism(0, 0, 0, 24, 24, 0.3, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.3, 20.5, 20.5, 0.3, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.6, 17, 17, 0.3, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.9, 13.5, 13.2, 0.3, 8, C.navy, C.steel);
+  for (let k = 0; k < 8; k++) { const a = (k + 0.5) / 8 * Math.PI * 2; solid.prism(Math.cos(a) * 18.8, Math.sin(a) * 18.8, 0.6, 0.45, 0.45, 1.6, 6, C.cyan); }
   for (const side of PLOT_SIDES) { const f = entryFrame(side), p = f.at(H - 25.5, 0), n = f.out; text.add([p.x + n.x * 0.06, 0.78, p.z + n.z * 0.06], n, 8.4, 1.05, PLAQUE_RECT); }
   for (let k = 0; k < 48; k++) { const a0 = k / 48 * Math.PI * 2, a1 = (k + 1) / 48 * Math.PI * 2; lines.seg([Math.cos(a0) * 34, 0.08, Math.sin(a0) * 34], [Math.cos(a1) * 34, 0.08, Math.sin(a1) * 34]); }
   // the hologram: a 30 m shard cube, its terrain as a wire height field, half its towers solid-edged, beams from the plinth
