@@ -108,7 +108,6 @@ export function registerLevelDebugRow(spec: DebugRowSpec, levelId: string): () =
 }
 
 // Authored levels opt into each core option independently.
-const supports = (id: string): When => (c) => c.chunk.debugOptions?.includes(id) === true;
 const always: When = () => true;
 
 interface RowOpts { purpose?: 'developer'; reload?: boolean; when?: When; note: string; ask: `E${number}`; reviewBy: string }
@@ -175,7 +174,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // Authored clocks and weather opt in through level mechanisms.
   opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('dayCycle'), ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
   opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('weather'), ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
-  opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { purpose: 'developer', when: supports('clockSpeed'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
 
   // ── Combat & weapons ──
 

@@ -117,9 +117,7 @@
         "weapon.sabre",
         "weapon.spear"
       ],
-      "settings": [
-        "clockSpeed"
-      ],
+      "settings": [],
       "assets": [
         "public/assets/nalati/**",
         "public/assets/gpu/nalati/**",

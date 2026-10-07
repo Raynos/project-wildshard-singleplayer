@@ -150,3 +150,6 @@ and needed CLI-only engine hooks remain.
 
 - Ghost forcing deleted; natural night activation and native boss/captain spawnLine ports remain.
   Inventory: **9 comparisons / 13 Developer tools**.
+
+- Clock-speed forcing and subscription deleted; the native day clock keeps its normal rate.
+  Inventory: **9 comparisons / 12 Developer tools**.

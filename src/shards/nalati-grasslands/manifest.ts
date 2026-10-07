@@ -42,7 +42,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   kitLook: 'painterly',
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true },
   creatures: { lowPoly: false, waitForModels: true, furRim: false, tintRange: 0.2, oneMaterial: false },
-  debugOptions: ['clockSpeed'],
+  debugOptions: [],
   assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],
   ktx2: () => import('./ktx2.generated'),
   order: 3,

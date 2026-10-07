@@ -116,7 +116,6 @@ export const OPTION_VALUES = {
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/engine/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
-  clockSpeed: ['1', '10', '60'],                       // Nalati's day clock speed — live
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -134,11 +133,11 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tex: { def: 'auto', params: [], url: () => null },
   calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY,
-  clockSpeed: DEBUG_ONLY, memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
+  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
-export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps', 'calibrate', 'loadProfile', 'bootPack', 'clockSpeed'];
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps', 'calibrate', 'loadProfile', 'bootPack'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -198,7 +197,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     tex: option('tex'),
     calibrate: option('calibrate'),
     loadProfile: option('loadProfile'), bootPack: option('bootPack'),
-    clockSpeed: option('clockSpeed'),
+    
     memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'),
   };
   const persist = (): void => {

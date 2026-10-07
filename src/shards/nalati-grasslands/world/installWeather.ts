@@ -1,4 +1,3 @@
-import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { wildEnv } from '../creatures/env';
 import { clockForSun, steppeClock, nightKeys, blendSteppeKey } from '../look/dayKeys';
 import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, lightLevel, type SkyLook } from '../look/skyRig';
@@ -13,7 +12,7 @@ import { type SkyKey as SteppeKey, SkyRig, makeLook, copyLook, lightLevel, type 
  *   w.clock    — DayClock: .phase ('dawn' | 'day' | 'golden' | 'dusk' | 'night'), .hour, .onDusk / onNight / onDawn(fn)
  *   w.weather  — Weather: .state, .stormActive, .onStrike(fn), .onPhase(fn), .hold (a boss fight), .force(phase)
  *
- * Dev params: `?time=dawn|day|noon|golden|dusk|night|midnight|<hour>` · Debug ▸ Sky & weather ▸ Clock speed (the clock runs n× fast) ·
+ * Dev params: `?time=dawn|day|noon|golden|dusk|night|midnight|<hour>` ·
  * `?clock=0` (freeze the clock) · `?weather=clear|building|gust|storm|clearing|after[:0..1]` (jump into a phase,
  * optionally part-way). `window.__weather` = the lot.
  *
@@ -28,7 +27,6 @@ import { TIER } from '@wildshard/engine/core/tier';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { HUD } from '@wildshard/engine/ui/HUD';
-import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import type { DayCycle, DayPhase } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -188,9 +186,6 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   const clock = def.sky.sun ? clockForSun(def.sky.sun) : steppeClock();
   const tq = qs.get('time');
   if (tq) { const h = Number.parseFloat(tq); if (Number.isFinite(h)) void clock.set(h); else if (isTimeName(tq)) void clock.set(tq); }
-  // Debug ▸ Sky & weather ▸ Clock speed (E162, live)
-  clock.scale = Number(setting('clockSpeed'));
-  installEnteredRuntimeService(ctx.ctx, (scope) => { scope.onDispose(onSettingChange('clockSpeed', (v) => { clock.scale = Number(v); })); });
   clock.paused = qs.get('clock') === '0';
 
   const rig = new SkyRig(game, sky, { frames: nightKeys, blend: blendSteppeKey }, def);
