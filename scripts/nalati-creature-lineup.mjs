@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 // nalati-creature-lineup.mjs — every wolf / horse coat side by side (dev/nalati-creatures.html?scene=lineup), frozen
-// at a few gait phases, for ?creatures=proc and ?creatures=glb: one sheet, rows = (look × pose).
+// at a few gait phases, for the picked model creatures: one sheet, rows = (look × pose).
 //   node scripts/nalati-creature-lineup.mjs [--url=http://127.0.0.1:5192] [--out=progress/…jpg] [--tier=desktop]
-//   [--poses=idle:0,walk:0.25,gallop:0.3] [--looks=proc,glb] [--q=extra=1]
+//   [--poses=idle:0,walk:0.25,gallop:0.3] [--looks=glb] [--q=extra=1]
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
-import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -16,7 +15,8 @@ const URL_BASE = flag('url', 'http://127.0.0.1:5192');
 const OUT = resolvePath(ROOT, flag('out', 'progress/nalati-look/creatures/lineup.jpg'));
 const TIER = flag('tier', 'desktop');
 const POSES = flag('poses', 'idle:0,gallop:0.3').split(',').map((p) => p.split(':'));
-const LOOKS = flag('looks', 'proc,glb').split(',');
+const LOOKS = ['glb'];
+if (flag('looks', 'glb') !== 'glb') throw new Error('E136: procedural creature selection was retired; capture the picked models.');
 const EXTRA = flag('q', '');
 const W = 1600, H = 700;
 mkdirSync(dirname(OUT), { recursive: true });
@@ -26,7 +26,6 @@ const shots = [];
 try {
   for (const look of LOOKS) for (const [gait, phase] of POSES) {
     const page = await (await browser.newContext({ viewport: { width: W, height: H } })).newPage();
-    await debugSettings(page, { creatures: look === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
     const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', 'weather=clear', 'clock=0', `tier=${TIER}`,
       `scene=${flag('scene', 'lineup')}`, `gait=${gait}`, `phase=${phase}`, `x=${flag('x', '-60')}`, `z=${flag('z', '60')}`, 'yaw=3.14', 'pitch=-0.05', EXTRA].filter(Boolean).join('&');
     await page.goto(`${URL_BASE}/dev/nalati-creatures.html?${q}`);

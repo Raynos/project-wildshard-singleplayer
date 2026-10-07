@@ -2,11 +2,10 @@
 // nalati-creature-motion.mjs — the creatures LIVE, their own AI moving them: a herd stampeding, a pack hunting, the flock
 // with a wolf through it, each named elite — a frame every `--dt` s from the player's camera, one row per scene.
 //   node scripts/nalati-creature-motion.mjs [--url=http://127.0.0.1:5192] [--out=progress/…jpg] [--tier=desktop]
-//   [--scenes=herd,pack,flock,aqbars,kokbori,argymaq,qyran] [--creatures=glb|proc] [--x=-55 --z=60] [--frames=6 --dt=0.4]
+//   [--scenes=herd,pack,flock,aqbars,kokbori,argymaq,qyran] [--creatures=glb] [--x=-55 --z=60] [--frames=6 --dt=0.4]
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
-import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -15,7 +14,8 @@ const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); re
 const URL_BASE = flag('url', 'http://127.0.0.1:5192');
 const OUT = resolvePath(ROOT, flag('out', 'progress/nalati-look/creatures/motion.jpg'));
 const TIER = flag('tier', 'desktop');
-const LOOK = flag('creatures', 'glb');
+const LOOK = 'glb';
+if (flag('creatures', 'glb') !== LOOK) throw new Error('E136: procedural creature selection was retired; capture the picked models.');
 const SCENES = flag('scenes', 'herd,pack,flock,aqbars,kokbori,argymaq,qyran').split(',');
 const FRAMES = Number(flag('frames', '6')), DT = Number(flag('dt', '0.4'));
 const X = flag('x', '-55'), Z = flag('z', '60');
@@ -40,8 +40,7 @@ try {
     const s = SETUP[sc];
     if (!s) continue;
     const page = await (await browser.newContext({ viewport: { width: W, height: H } })).newPage();
-    await debugSettings(page, { creatures: LOOK === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
-    const errs = [];
+      const errs = [];
     page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
     const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'perf=0', 'weather=clear', `tier=${TIER}`, `x=${X}`, `z=${Z}`, 'yaw=3.14', 'pitch=-0.08', s.q].join('&');
     await page.goto(`${URL_BASE}/${s.page}?${q}`);

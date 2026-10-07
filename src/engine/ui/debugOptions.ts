@@ -182,7 +182,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('aimRing', 'combat', engineString('s_4039d9694edd'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_7bfebc644d49') }),
 
   // ── Creatures & NPCs ──
-  opt('creatures', 'creatures', engineString('s_9915bdfb4d7c'), [['models', engineString('s_d17d2d78d76e')], ['proc', engineString('s_2e3e91ffbdca')]], { reload: true, when: () => app.species.hasProceduralFallback(), ask: 'E136', reviewBy: '2026-12-30', note: engineString('s_193b70a278ba') }),
   opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: supports('balbals'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
   opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: supports('ghosts'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
 

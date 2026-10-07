@@ -1,10 +1,10 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash every real native continuation frame instead of retaining a large trace.
 import { createHash } from 'node:crypto';
 import { Vector3 } from 'three';
 import { app } from '../../../src/engine/app/runtime';
 import { overrideTerrain } from '../../../src/engine/world/Heightfield';
-import { setting, saveSetting } from '../../../src/engine/ui/Settings';
+import * as modelLook from '../../../src/shards/nalati-grasslands/world/glbPaint';
 import { Pack, HorseHerd } from '../../../src/shards/nalati-grasslands/runtime/groupRegistry';
 import { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
 import { createNativeFlocks } from '../../../src/shards/nalati-grasslands/runtime/flockDeclared';
@@ -14,9 +14,9 @@ import { manager } from '../../fake/manager';
 const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(terrain);
 const packs = Pack.all, herds = HorseHerd.all;
-let creatures = setting('creatures');
-beforeEach(() => { creatures = setting('creatures'); saveSetting('creatures', 'proc'); });
-afterEach(() => { Pack.all = packs; HorseHerd.all = herds; saveSetting('creatures', creatures); });
+// Keep the loading fallback deterministic; shipped creature selection is unconditionally Models (E136).
+beforeEach(() => { vi.spyOn(modelLook, 'modelsOn').mockReturnValue(false); });
+afterEach(() => { Pack.all = packs; HorseHerd.all = herds; vi.restoreAllMocks(); });
 const layout = { packs: [{ x: 20, z: 0, variants: ['alpha', 'grey', 'scout'] }],
   herds: [{ x: -20, z: 0, mares: 2, foals: 1, stallion: true }], flocks: [{ x: 0, z: 20, count: 8, dog: true }] };
 function replay(on: boolean, hz: number): object {

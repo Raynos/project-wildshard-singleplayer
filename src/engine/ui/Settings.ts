@@ -119,7 +119,6 @@ export const OPTION_VALUES = {
   calibrate: ['off', 'run'],                          // E357 S1.6 one-shot empty capture state; consumed at entry
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/engine/boot/perflog.ts) — a reload
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/engine/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
-  creatures: ['models', 'proc'],                       // Pine Hollow + Nalati: the rigged GLB creatures or the procedural ones (the rig bakes need proc) — a reload
   aimRing: ['off', 'on'],                              // the aim-assist bubble drawn on screen (src/engine/player/AimAssist.ts) — live
   balbals: ['auto', 'wake', 'off'],                    // Nalati's balbal warriors: wake at dusk / at load / never — a reload
   ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
@@ -144,7 +143,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tex: { def: 'auto', params: [], url: () => null },
   calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY,
-  creatures: DEBUG_ONLY,
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
@@ -207,7 +205,6 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     tex: option('tex'),
     calibrate: option('calibrate'),
     loadProfile: option('loadProfile'), bootPack: option('bootPack'),
-    creatures: option('creatures'),
     aimRing: option('aimRing'), balbals: option('balbals'), ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
     memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'),
   };

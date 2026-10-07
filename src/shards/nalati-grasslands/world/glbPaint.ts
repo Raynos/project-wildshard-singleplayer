@@ -28,7 +28,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '@wildshard/engine/core/tier';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { painterlyMaterial, painterlyKnobs } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { voxelAO, hemisphere } from '@wildshard/engine/world/voxelAO';
@@ -76,14 +75,13 @@ export interface ModelLook {
  * orbit, 2026-09-23: the generated yurt's felt read stained up close; N20, the user's pick over NALATI-MERGE D1's Blender
  * yurt, whose model left the tree). The camp props, rocks and balbals have no switch: they are the models (E136, the
  * user's "keep the 3D models, procedural can go"; the procedural geometry stays only as the stand-in while a model loads).
- * The creatures follow Debug ▸ Creatures (Models = the rigged GLBs, src/engine/entities/glbCreatures.ts; Procedural = what the rig
- * bakes need, scripts/nalati-rig-bake.mjs).
+ * Creature models are always selected (E136); procedural geometry remains the loading/failure and bake recipe.
  */
 export type ModelPart = 'rocks' | 'balbal' | 'creatures';
 const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { rocks: true, balbal: true, creatures: true };
 
 export function modelsOn(part: ModelPart): boolean {
-  return part === 'creatures' ? setting('creatures') !== 'proc' : PART_DEFAULT[part];
+  return PART_DEFAULT[part];
 }
 
 const DIR = '/assets/nalati/models/';

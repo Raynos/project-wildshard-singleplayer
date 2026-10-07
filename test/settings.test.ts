@@ -18,6 +18,13 @@ describe('Settings', () => {
     s.setNumber('volume', 0.5);
     expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).not.toHaveProperty('learnedLut');
   });
+  it('drops the retired procedural creature override without changing player settings (E136)', () => {
+    fixtures.setItem(STORE, JSON.stringify({ creatures: 'proc', aimAssist: false }));
+    const s = createSettings(saveStorage('global'));
+    expect(s.getSetting('aimAssist')).toBe(false);
+    s.setNumber('volume', 0.5);
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).not.toHaveProperty('creatures');
+  });
   it('defaults: aim assist + tracers on, volume 0.8, music 0.7', async () => {
     const s = await fresh();
     expect(s.getSetting('aimAssist')).toBe(true);

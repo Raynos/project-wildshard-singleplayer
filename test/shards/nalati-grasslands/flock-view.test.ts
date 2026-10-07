@@ -7,11 +7,11 @@ import { Flock } from '../../../src/shards/nalati-grasslands/creatures/flock';
 import { wildEnv } from '../../../src/shards/nalati-grasslands/creatures/env';
 import { fakeWorld } from '../../fake/world';
 
-import { setting, saveSetting } from '../../../src/engine/ui/Settings';
+import * as modelLook from '../../../src/shards/nalati-grasslands/world/glbPaint';
 
-let creatures = setting('creatures');
-beforeEach(() => { creatures = setting('creatures'); saveSetting('creatures', 'proc'); });
-afterEach(() => { saveSetting('creatures', creatures); });
+// Exercise the native loading fallback synchronously without a retired production Settings variant.
+beforeEach(() => { vi.spyOn(modelLook, 'modelsOn').mockReturnValue(false); });
+afterEach(() => { vi.restoreAllMocks(); });
 const undoTerrain = overrideTerrain({ heightAt: (x, z) => Math.sin(x * 0.02) + Math.cos(z * 0.03), normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(undoTerrain);
 const options = { x: 0, z: 0, count: 8, seed: 357, range: 32 };

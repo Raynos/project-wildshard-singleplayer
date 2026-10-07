@@ -2,7 +2,6 @@ import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
-import { setting } from '@wildshard/engine/ui/Settings';
 /**
  * pineCreatures — Pine Hollow's generated creature hulls (PINE-HOLLOW-REMASTER PH-M1 / PH-M2, Jake's PH-U11), pre-skinned
  * to the procedural species' own skeletons, so the species' bones, gaits and AI drive them. On by default in Pine Hollow;
@@ -30,12 +29,6 @@ import { BEAR_PALETTE } from '@wildshard/kit/species/view/bear';
 import { BOAR_PALETTE } from '@wildshard/kit/species/view/boar';
 import { BEAR_FIX_COATS, BEAR_FIX_FUR, BEAR_TAIL_TRIM, trimTail } from './bearFix';
 
-
-/** Pine Hollow's creatures are the rigged hulls (PH-U11, Jake's pick), unless Debug ▸ Creatures = Procedural (the rig
- *  bakes, scripts/creature-rig-bake.mjs, set it: they need the procedural skeletons) or the shard isn't Pine Hollow */
-export function pineCreaturesOn(): boolean {
-  return setting('creatures') !== 'proc';
-}
 
 /** E322 F-M2 (Jake picked B): the bears' stub-tail flap pressed away and their coats measured onto real brown-bear tones
  *  (bearFix.ts) */
@@ -69,7 +62,6 @@ const COATS: Readonly<Record<PineRigName, CoatSpec>> = {
 
 /** the hull for (kind, variant) when the generated creatures are on, else null */
 export function pineHull(kind: string, variant: string): PineRigName | null {
-  if (!pineCreaturesOn()) return null;
   return HULL[`${kind}:${variant}`] ?? null;
 }
 
@@ -149,7 +141,6 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
 
 /** every Pine Hollow rig, loaded (failures are logged: those species stay procedural); a KTX2 rig (its atlas compressed), every baked coat */
 export async function preloadPineCreatures(): Promise<void> {
-  if (!pineCreaturesOn()) return;
   await Promise.all(PINE_CREATURE_RIGS.map((n) => loadPineRig(n).then((rig) => (rig.map instanceof THREE.CompressedTexture ? adoptBakedCoats(n, rig) : undefined))
     .catch((e: unknown) => { console.warn(`[pine-hollow] creature rig ${n} failed`, e); })));
 }

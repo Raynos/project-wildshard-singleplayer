@@ -4,12 +4,11 @@
 // Shard-agnostic stand-in for Nalati's scripts/nalati-creature-lineup.mjs (which needs Nalati's dev page): the chunk
 // picks the spot and the species rows (PINE-HOLLOW-REMASTER PH-M1: every rarity coat + the King's thralls).
 //
-//   node scripts/creature-lineup.mjs --chunk=pine-hollow [--creatures=glb|proc] [--gait=idle:0] [--tier=desktop]
+//   node scripts/creature-lineup.mjs --chunk=pine-hollow [--creatures=glb] [--gait=idle:0] [--tier=desktop]
 //   [--out=progress/pine-hollow-creatures-lineup.jpg] [--url=http://127.0.0.1:5176] [--q=tod=golden]
 // One headless Chromium on Metal (--mute-audio), closed at the end.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath, dirname } from 'node:path';
-import { debugSettings } from './debug-settings.mjs';
 
 const { chromium } = await import('playwright');
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
@@ -30,7 +29,8 @@ const CREATURE_CONFIGS = {
 const CFG = CREATURE_CONFIGS[CHUNK];
 if (!CFG) throw new Error(`creature-lineup: no table for chunk '${CHUNK}'`);
 const URL_BASE = flag('url', 'http://127.0.0.1:5176');
-const LOOK = flag('creatures', 'glb');
+const LOOK = 'glb';
+if (flag('creatures', 'glb') !== LOOK) throw new Error('E136: procedural creature selection was retired; capture the picked models.');
 const TIER = flag('tier', 'desktop');
 const [GAIT, PHASE] = flag('gait', 'idle:0').split(':');
 const OUT = resolvePath(ROOT, flag('out', `progress/${CHUNK}-creatures-lineup-${LOOK}.jpg`));
@@ -41,7 +41,6 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 const shots = [];
 try {
   const page = await (await browser.newContext({ viewport: { width: W, height: H } })).newPage();
-  await debugSettings(page, { creatures: LOOK === 'proc' ? 'proc' : 'models' }); // E162: a saved Debug option, not a URL switch
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message.slice(0, 160)));
   const q = [`chunk=${CHUNK}`, 'mute=1', 'nolock=1', 'skipintro=1', 'sw=0', 'perf=0', `tier=${TIER}`, `x=${CFG.spot.x}`, `z=${CFG.spot.z + 30}`, CFG.q, flag('q', '')].filter(Boolean).join('&');
