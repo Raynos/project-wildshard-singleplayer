@@ -2,7 +2,7 @@ import type { Scope } from '../../app/scope';
 import { Vector3 } from 'three';
 import type { Events } from '../../events/events';
 import type { Actor, CombatPipeline, CombatTag } from '../pipeline';
-import { matchesTag, type ActiveEffect, type AttributeSet, type EffectDef, type EffectId, type EffectTarget } from './types';
+import { harmfulEffect, matchesTag, type ActiveEffect, type AttributeSet, type EffectDef, type EffectId, type EffectTarget } from './types';
 
 declare module '../../events/maps' {
   interface EventMap {
@@ -138,6 +138,10 @@ export class EffectService {
     const state = this.targets.get(target);
     if (state === undefined || !state.active.delete(id)) return;
     this.recompute(target, state); this.events?.emit('effect.removed', { target, id });
+  }
+  /** Remove harmful statuses through normal notifications, preserving every buff's stacks, clock and source. */
+  clearHarmful(target: EffectTarget): void {
+    for (const effect of this.active(target)) if (harmfulEffect(effect.def)) this.remove(target, effect.def.id);
   }
   clear(target: EffectTarget): void {
     const state = this.targets.get(target);

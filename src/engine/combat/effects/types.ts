@@ -16,6 +16,10 @@ export interface EffectDef {
   /** Exclusive cosmetics and upgrades replace their predecessor without multiplying both. */
   group?: string; removes?: readonly EffectId[];
 }
+/** Status/debuff tags and positive periodic damage identify harmful effects without content-specific ids. */
+export function harmfulEffect(def: EffectDef): boolean {
+  return (def.tickDamage ?? 0) > 0 || def.tags.some((tag) => tag.startsWith('status.') || tag.startsWith('debuff.'));
+}
 export interface ActiveEffect { readonly def: EffectDef; stacks: number; remaining: number; elapsed: number; source: Actor | undefined; sourceTags: readonly CombatTag[] }
 export interface SourceMulDef {
   id: string;
