@@ -22,15 +22,24 @@ export interface HybridResident {
   readonly firstParty: boolean;
   readonly scope: Scope;
   readonly runtime: ShardRuntime;
+  /** Adapted runtimes park geometry/state while their entered services and singleton bindings leave. */
+  readonly retainRuntime?: boolean;
   readonly context: (scope: Scope, runtime: ShardRuntime) => {
     context: ShardContext;
     openKit: () => void;
     closeKit: () => void;
+    /** Finish the regional shell's world stage, after trusted world and before its kit registration window. */
+    afterWorld?: (context: ShardContext) => Promise<void> | void;
+    /** Create actual creature/equipment/play services from kit rows before trusted play. */
+    afterKit?: (context: ShardContext) => Promise<void> | void;
   };
 }
 /** Runtime activation status is separate from data residency and asynchronous module preparation. */
 export interface HybridRuntimeState { readonly instance: string | null; readonly ready: boolean }
-interface ActiveRuntime { resident: HybridResident; scope: Scope; ready: boolean }
+interface ActiveRuntime {
+  resident: HybridResident; scope: Scope; ready: boolean;
+  retained?: { slots: ScopedRuntimeBinding; hooks: RetainedRuntimeHooks };
+}
 
 const residentScopes = new WeakMap<Scope, Scope>();
 
@@ -251,12 +260,17 @@ export class HybridRuntimeSession {
   private readonly residents: ReadonlyMap<string, HybridResident>;
   private readonly entries: readonly TrustedRuntimeEntry[];
   private readonly prepared = new Map<string, Promise<new () => ShardPlugin>>();
+  private readonly retained = new Map<string, ActiveRuntime>();
   private active: ActiveRuntime | undefined;
   private generation = 0;
   private disposed = false;
   constructor(residents: ReadonlyMap<string, HybridResident>, entries: readonly TrustedRuntimeEntry[], scope: Scope) {
     this.residents = residents; this.entries = entries;
-    scope.onDispose(() => { this.disposed = true; this.leave(); this.prepared.clear(); });
+    scope.onDispose(() => {
+      this.disposed = true; this.leave();
+      for (const active of this.retained.values()) active.scope.dispose();
+      this.retained.clear(); this.prepared.clear();
+    });
   }
   /** Module admission can run while a neighbour is frozen; no constructor or world/kit/play hook runs here. */
   prepare(instance: string): Promise<new () => ShardPlugin> {
@@ -279,22 +293,37 @@ export class HybridRuntimeSession {
     if (this.active?.resident === resident) return this.active.ready;
     this.leave(); const generation = this.generation;
     try {
+      const parked = this.retained.get(cell.instance);
+      if (parked !== undefined && !parked.scope.disposed && parked.retained !== undefined) {
+        parked.retained.slots.activate();
+        try { parked.retained.hooks.activate(); }
+        catch (error) { parked.retained.slots.deactivate(); throw error; }
+        this.active = parked; return true;
+      }
       const Plugin = await this.prepare(cell.instance);
       if (generation !== this.generation || resident.scope.disposed) return false;
-      const scope = resident.scope.child(`runtime:${cell.instance}`), active = { resident, scope, ready: false };
+      const scope = resident.scope.child(`runtime:${cell.instance}`), active: ActiveRuntime = { resident, scope, ready: false };
       this.active = active;
-      scope.onDispose(() => { if (this.active === active) this.active = undefined; });
-      const runtime = bindScopedRuntime(resident.runtime, scope), installation = resident.context(scope, runtime);
+      scope.onDispose(() => { if (this.active === active) this.active = undefined; if (this.retained.get(cell.instance) === active) this.retained.delete(cell.instance); });
+      const slots = resident.retainRuntime === true ? createScopedRuntimeBinding(resident.runtime, scope) : undefined;
+      slots?.activate();
+      const runtime = slots?.runtime ?? bindScopedRuntime(resident.runtime, scope), installation = resident.context(scope, runtime);
       residentScopes.set(scope, resident.scope);
       scope.onDispose(() => { residentScopes.delete(scope); });
-      const context = installation.context, plugin = withOwner(scope, () => new Plugin());
+      const hooks = slots === undefined ? undefined : new RetainedRuntimeHooks(installation.context);
+      if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
+      const context = hooks?.context ?? installation.context, plugin = withOwner(scope, () => new Plugin());
       const live = (): boolean => !scope.disposed && this.active === active && generation === this.generation;
       await withOwner(scope, () => plugin.world?.(context)); if (!live()) return false;
+      await withOwner(scope, () => installation.afterWorld?.(context)); if (!live()) return false;
       installation.openKit();
       try { await withOwner(scope, () => plugin.kit?.(context)); } finally { installation.closeKit(); }
       if (!live()) return false;
+      await withOwner(scope, () => installation.afterKit?.(context)); if (!live()) return false;
       await withOwner(scope, () => plugin.play?.(context)); if (!live()) return false;
-      active.ready = true; return true;
+      active.ready = true;
+      if (active.retained !== undefined) this.retained.set(cell.instance, active);
+      return true;
     } catch (error) {
       if (generation !== this.generation) return false;
       try { this.leave(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Hybrid activation and cleanup failed', { cause: cleanup }); }
@@ -302,7 +331,12 @@ export class HybridRuntimeSession {
     }
   }
   /** Remove only play resources and runtime aliases; the admitted shardfile world, tiles and frozen simulation remain. */
-  leave(): void { this.generation++; const active = this.active; this.active = undefined; active?.scope.dispose(); }
+  leave(): void {
+    this.generation++; const active = this.active; this.active = undefined;
+    if (active === undefined) return;
+    if (active.retained === undefined || !active.ready) { active.scope.dispose(); return; }
+    try { active.retained.hooks.deactivate(); } finally { active.retained.slots.deactivate(); }
+  }
   /** Admission fences can observe whether the current inside-cell runtime finished its trusted stages. */
   state(): HybridRuntimeState { return { instance: this.active?.resident.instance ?? null, ready: this.active?.ready ?? false }; }
 }

@@ -83,6 +83,67 @@ function fixture() {
   });
   return { app, parent, cells, session, calls, census, residents, entries };
 }
+
+it('stages an admitted regional shell only inside the cell and parks retained services across two visits', async () => {
+  const f = fixture(), resident = f.residents.get('template-1');
+  if (resident === undefined) throw new Error('Missing fixture resident');
+  let ticks = 0, worldBuilds = 0;
+  class Regional extends ShardPlugin {
+    override world(ctx: ShardContext): void {
+      worldBuilds++; f.calls.push('trusted.world');
+      ctx.piece({ id: 'regional.static', name: 'Static', file: 'fixture', category: 'props' });
+      const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing scoped runtime');
+      rt.objects['regional.state'] = { visits: 0 };
+    }
+    override kit(ctx: ShardContext): void { f.calls.push('trusted.kit'); ctx.rows.ammo({ id: 'regional.ammo' }); }
+    override play(ctx: ShardContext): void {
+      f.calls.push('trusted.play');
+      installEnteredRuntimeService(ctx, scope => {
+        ctx.app.addSystem({ id: 'regional.tick', phase: 'update', run: () => { ticks++; } }, scope);
+        scope.onDispose(ctx.app.debug.scopedExpose('regional.entered', true));
+      });
+    }
+  }
+  f.entries[0] = { slug: 'template', entry, load: () => { f.calls.push('module'); return Promise.resolve({ default: Regional }); } };
+  f.residents.set('template-1', { ...resident, retainRuntime: true, context: (scope, rt) => ({
+    ...resident.context(scope, rt), afterWorld: () => { f.calls.push('shell.world'); }, afterKit: () => { f.calls.push('shell.kit'); },
+  }) });
+  const before = Object.getOwnPropertyDescriptors(f.parent);
+  try {
+    await f.session.prepare('template-1'); expect(f.calls).toEqual(['module']); expect(f.app.registry.pieceList()).toEqual([]);
+    for (let visit = 0; visit < 2; visit++) {
+      expect(await f.session.enter({ instance: 'template-1', slug: 'template' })).toBe(true);
+      expect(f.session.state()).toEqual({ instance: 'template-1', ready: true });
+      for (const system of f.app.systemsByPhase().update) system.run(1 / 60, visit);
+      f.session.leave(); expect(f.session.state().ready).toBe(false); expect(f.app.debug.snapshot()).toEqual({});
+      expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
+      for (let tick = 0; tick < 600; tick++) for (const system of f.app.systemsByPhase().update) system.run(1 / 60, tick);
+      expect(ticks).toBe(visit + 1); expect(f.app.registry.pieceList().map(piece => piece.id)).toEqual(['regional.static']);
+    }
+    expect(worldBuilds).toBe(1);
+    expect(f.calls).toEqual(['module', 'trusted.world', 'shell.world', 'trusted.kit', 'shell.kit', 'trusted.play']);
+  } finally { f.app.engineScope.dispose(); }
+  expect(f.app.registry.pieceList()).toEqual([]); expect(Object.getOwnPropertyDescriptors(f.parent)).toEqual(before);
+});
+
+it('cannot continue a regional shell callback into the next entered cell after leaving during an await', async () => {
+  const f = fixture(), resident = f.residents.get('template-1');
+  if (resident === undefined) throw new Error('Missing fixture resident');
+  let release = noop, reachedKit = false;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.residents.set('template-1', { ...resident, retainRuntime: true, context: (scope, rt) => ({
+    ...resident.context(scope, rt), afterWorld: () => gate, afterKit: () => { reachedKit = true; },
+  }) });
+  try {
+    const pending = f.session.enter({ instance: 'template-1', slug: 'template' });
+    for (let turn = 0; turn < 20; turn++) await Promise.resolve();
+    expect(f.session.state()).toEqual({ instance: 'template-1', ready: false });
+    f.session.leave(); await f.session.enter({ instance: 'hybrid-b', slug: 'hybrid-b' }); release();
+    expect(await pending).toBe(false); expect(reachedKit).toBe(false);
+    expect(f.session.state()).toEqual({ instance: 'hybrid-b', ready: true });
+    expect(f.parent.objects['hybrid']).toBe('hybrid-b');
+  } finally { release(); f.app.engineScope.dispose(); }
+});
 it('admits only the declared same-shard first-party runtime entry without importing data-controlled paths', async () => {
   for (const path of ['../runtime/index.ts', 'runtime/../index.ts', 'https://example.test/runtime.ts', '/runtime/index.ts', 'runtime/index.js']) expect(v.safeParse(RuntimeSchema, { entry: path }).success).toBe(false);
   let imports = 0;
