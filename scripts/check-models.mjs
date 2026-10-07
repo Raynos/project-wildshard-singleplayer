@@ -121,6 +121,7 @@ export const DONE = {
   // M6: the code every shard shares — systems, effects, gear, the fields that scatter — declared, so a new thing drawn or
   // registered by hand here fails too
   'shared (src/world, src/player, src/entities, …)': {
+    'src/engine/render/graph/compile.ts': { why: "SF59 step 7: a material graph's outline stage is a second draw of the mesh it outlines (an inverted hull sharing that mesh's geometry and instance matrices), never a thing of its own", counts: { InstancedMesh: 1 } },
     'src/engine/render/calibrationGpu.ts': { why: 'E357 S1.6 synthetic unit-cost scene: temporary calibration geometry, never shard content or a Model Explorer asset', counts: { InstancedMesh: 1 } },
     'src/engine/entities/AnimalFactory.ts': { why: "the species rigs' builder: a creature's parts merged per bone (creatures are models, M5: each shard's roster)", counts: { mergeGeometries: 4 } },
     'src/engine/fx/Impacts.ts': { why: 'hit sparks and debris: an effect', counts: { InstancedMesh: 1 } },
