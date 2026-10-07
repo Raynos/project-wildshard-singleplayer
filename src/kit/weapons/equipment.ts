@@ -1,65 +1,8 @@
-import type { EquipmentRow } from '@wildshard/engine/combat/Equipment';
-import { SWAP_GLYPHS } from './ui';
+import { SWORD as StarterSWORD, WOODEN_SWORD as StarterWOODEN_SWORD, IRON_SWORD as StarterIRON_SWORD } from '@wildshard/game/weapons/starterEquipment';
 
-export const SWORD: EquipmentRow = {
-  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
-  "id": "weapon.sword",
-  "legacySlot": "sword",
-  "ui": {
-    "swapIcon": SWAP_GLYPHS.sword,
-    "name": "Sword",
-    "icon": "sword",
-    "touch": "melee",
-    "lockOn": true,
-    "melee": true,
-    "tracers": false
-  },
-  "meta": {
-    "name": "Sword",
-    "icon": "sword",
-    "blurb": "",
-    "category": "weapon"
-  }
-};
-
-export const WOODEN_SWORD: EquipmentRow = {
-  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
-  "id": "weapon.sword",
-  "legacySlot": "sword",
-  "ui": {
-    "swapIcon": SWAP_GLYPHS.sword,
-    "name": "Wooden sword",
-    "icon": "sword",
-    "touch": "melee",
-    "lockOn": true,
-    "melee": true,
-    "tracers": false
-  },
-  "meta": {
-    "name": "Wooden sword",
-    "icon": "sword",
-    "blurb": "",
-    "category": "weapon"
-  }
-};
-
-export const IRON_SWORD: EquipmentRow = {
-  cues: {"fire": "cue.sword.swing", "reload": "cue.reload", "impact": "cue.sword.hit"},
-  "id": "weapon.sword-iron",
-  "legacySlot": "sword-iron",
-  "ui": {
-    "swapIcon": SWAP_GLYPHS.sword,
-    "name": "Iron sword",
-    "icon": "sword",
-    "touch": "melee",
-    "lockOn": true,
-    "melee": true,
-    "tracers": false
-  },
-  "meta": {
-    "name": "Iron sword",
-    "icon": "sword",
-    "blurb": "",
-    "category": "weapon"
-  }
-};
+/** Compatibility name for the original starter SWORD binding; all trusted callers share its identity. */
+export const SWORD: typeof StarterSWORD = StarterSWORD;
+/** Compatibility name for the original starter WOODEN_SWORD binding; all trusted callers share its identity. */
+export const WOODEN_SWORD: typeof StarterWOODEN_SWORD = StarterWOODEN_SWORD;
+/** Compatibility name for the original starter IRON_SWORD binding; all trusted callers share its identity. */
+export const IRON_SWORD: typeof StarterIRON_SWORD = StarterIRON_SWORD;

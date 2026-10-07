@@ -1,12 +1,8 @@
-import { wind } from '@wildshard/engine/world/steppeWind';
-import type { BowProfile } from './profile';
+import { BOW as StarterBOW, type BowStyle as StarterBowStyle, type BowProfile as StarterBowProfile } from '@wildshard/game/weapons/starterBowProfile';
 
-/** The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into
- *  Nalati (src/shards/nalati-grasslands/weapons/loadout.ts NALATI_BOW); a bow brings its own, as Pine's longbow does. */
-export const BOW: Omit<BowProfile, 'poses' | 'arrowX' | 'arrowY' | 'arrowLength' | 'build' | 'arrow'> = {
-  family: 'bow', quiver: 24, swayMax: 1.5 * (Math.PI / 180), speedBase: 30, speedDraw: 28, damageScale: 1.2,
-  aimZoom: 2, aimVmZoom: 0.85, aimSway: 0.5, aimSpread: 0.5, aimIn: 10,
-  arcFrom: 0.25, arcColour: 0x8fe3ff, arcMode: 'setting', zoomLook: true,
-  inspectZ: -0.5, inspectHidesArms: false, transparentParts: false, vmScale: 0.72,
-  wind,
-};
+/** The starter view recipes retain their closed repaint vocabulary. */
+export type BowStyle = StarterBowStyle;
+/** Compatibility name for the original starter numeric bow profile with trusted injected view strategies. */
+export type BowProfile = StarterBowProfile;
+/** Compatibility name for the original starter BOW binding; all trusted callers share its identity. */
+export const BOW: typeof StarterBOW = StarterBOW;

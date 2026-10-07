@@ -10,6 +10,8 @@ import * as originalEquipment from '../../src/kit/weapons/equipment';
 import * as equipment from '../../src/sdk/runtime/weapons/starterEquipment';
 import { SWAP_GLYPHS as originalGlyphs } from '../../src/kit/weapons/ui';
 import { SWAP_GLYPHS } from '../../src/sdk/runtime/weapons/starterGlyphs';
+import { Sword as LegacySword, swordEvents as legacyEvents } from '../../src/kit/weapons/melee/SweptMelee';
+import { Bow as LegacyBow } from '../../src/kit/weapons/bow/family';
 import { Sword, swordEvents } from '../../src/sdk/runtime/weapons/Sword';
 import { Sword as GameSword, swordEvents as gameEvents } from '../../src/game/weapons/Sword';
 import { Bow } from '../../src/sdk/runtime/weapons/starterBow';
@@ -31,6 +33,8 @@ describe('trusted starter recipes leave the kit without a second content identit
   });
   it('exposes exactly one starter constructor and reaction registry through the trusted SDK', () => {
     expect(Sword).toBe(GameSword); expect(Bow).toBe(GameBow); expect(swordEvents).toBe(gameEvents);
+    expect(LegacySword).toBe(Sword); expect(LegacyBow).toBe(Bow); expect(legacyEvents).toBe(swordEvents);
+    expect(legacyMoves.COMBO).toBe(starterMoves.COMBO); expect(originalWood).toBe(SWORD_WOOD); expect(originalIron).toBe(SWORD_IRON);
     expect(SWORD_WOOD.moves?.combo).toBe(starterMoves.COMBO);
     expect(SWORD_WOOD.moves?.combo[0]).toBe(starterMoves.SLASH);
     expect(SWORD_IRON.moves).toBe(SWORD_WOOD.moves);

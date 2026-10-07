@@ -1,14 +1,13 @@
-import { Bow as PlatformBow, type BowOptions as PlatformBowOptions, type BowWorld as PlatformBowWorld } from '@wildshard/engine/combat/view/Bow';
-import type { Targets } from '@wildshard/engine/combat/types';
-import type { BowStyle } from './profile';
+import { Bow as StarterBow, type BowOptions as StarterOptions, type BowWorld as StarterWorld } from '@wildshard/game/weapons/Bow';
 
-/** Transitional host ports for the trusted platform bow family. */
-export type BowWorld = PlatformBowWorld;
-/** Existing kit callers retain their row/profile options; the bridge supplies current input and style defaults. */
-export type BowOptions = Omit<PlatformBowOptions<BowStyle>, 'inputContext' | 'initialStyle'>;
-/** Compatibility constructor only; draw clocks, arrows and view strategy execution have one platform implementation. */
-export class Bow extends PlatformBow<BowStyle> {
-  constructor(world: BowWorld, targets: Targets | undefined, opts: BowOptions) {
-    super(world, targets, { ...opts, inputContext: 'weapon.bow', initialStyle: 'recurve' });
-  }
-}
+/** Options for the trusted starter bow constructor. */
+export type BowOptions = StarterOptions;
+/** The one shared starter bow instance. */
+export type BowInstance = StarterBow;
+/** The starter bow host ports. */
+export type BowWorld = StarterWorld;
+/** Compatibility name for the original starter Bow binding; all trusted callers share its identity. */
+// oxlint-disable-next-line eslint/no-redeclare -- TypeScript has separate value/type namespaces; retain the old class API while both names alias the one constructor.
+export const Bow: typeof StarterBow = StarterBow;
+/** Compatibility instance type for the one starter constructor. */
+export type Bow = StarterBow;
