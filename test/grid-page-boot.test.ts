@@ -4,13 +4,29 @@ import * as boot from '../src/game/grid/boot';
 import { preparePageResidency } from '../src/game/grid/pageBoot';
 import { jsonSlot } from '../src/engine/saves/slots';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
+import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 
 afterEach(() => { vi.restoreAllMocks(); });
 const manifest = { slug: 'driftwood-isle' as const, runtimeCost: DRIFTWOOD_RUNTIME_COST };
 
-it('leaves Select a shard without a grid claim', () => {
+it.each(['shard', 'grid'] as const)('uses truthful early runtime admission for %s and only Developer can exceed the cap', mode => {
+  vi.spyOn(boot, 'bootPageMode').mockReturnValue(mode);
+  vi.spyOn(boot, 'pageGridInstance').mockReturnValue(manifest.slug);
+  const costly = { ...manifest, runtimeCost: { ...DRIFTWOOD_RUNTIME_COST, webContentMB: 1000, glMB: 300 } };
+  expect(() => preparePageResidency(costly, undefined, new MemoryAdmission())).toThrow('Home residency admission deferred');
+  const page = preparePageResidency(costly, undefined, new MemoryAdmission(() => true));
+  expect(page.residency?.home().bytes).toBe(901_801_802);
+  expect(page.memory.reports().find(row => row.stage === 'runtime')).toMatchObject({ claimedBytes: 901_801_802,
+    playingCap: 1_000_000_000, measured: { webContentBytes: 1_000_000_000, glBytes: 300_000_000, engineBaseBytes: 299_000_000 } });
+  page.residency?.dispose(); expect(page.residency?.allocator.cost().accounted).toBe(0);
+});
+
+it('charges a measured Select a shard home before bootstrap without creating a grid', () => {
   const consume = vi.spyOn(boot, 'bootPageMode').mockReturnValue('shard');
-  expect(preparePageResidency(manifest)).toEqual({ mode: 'shard', instance: null });
+  const selected = preparePageResidency(manifest);
+  expect(selected.mode).toBe('shard'); expect(selected.instance).toBe(manifest.slug);
+  expect(selected.residency?.home().bytes).toBe(341_781_982);
+  selected.residency?.dispose();
   expect(consume).toHaveBeenCalledExactlyOnceWith(manifest.slug);
 });
 
