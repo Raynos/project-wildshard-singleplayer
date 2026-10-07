@@ -1,6 +1,6 @@
-# Shardfile v0
+# Shardfile 0.x
 
-`SHARDFILE_VERSION = 0` covers both the format and script ABI. This is the provisional
+`SHARDFILE_VERSION = "0.1"` covers both the format and script ABI. This is the provisional
 author contract, published by `@wildshard/sdk/shardfile` (`ShardfileSchema`,
 `parseShardfile`, `Shardfile`, `shardfileRules`) and `@wildshard/sdk/version`.
 The build product is `shard.json` plus immutable files named by SHA-256. No placement,
@@ -209,7 +209,7 @@ keys also admit `fog.near` and `fog.far`. Day bindings require at least one key;
 scalar channels use float params and colour channels use colour/vec3 params.
 Bindings change uniforms only. Runtime graph compilation and binding are SF59's
 renderer adapter; existing preset entries keep their defaults. This additive slot
-keeps SHARDFILE_VERSION at 0; version 1 is not frozen.
+keeps SHARDFILE_VERSION in 0.x; the format never freezes.
 
 `@wildshard/sdk/commonsCosts` exposes the defining cost schemas and
 `assertCommonsCosts(hashes, table)`. A product declares one entry per required
@@ -339,14 +339,26 @@ working storage. This is a rest-pose, local-axis estimate before camera selectio
 culling or occlusion; it is neither measured screen overdraw nor an admission cap.
 The CLI prints it as an advisory alongside the admitted asset costs.
 
-First-party products rebuild every build. The client accepts current v0; the only
-previous-version exception in Part A will be offline-cached first-party content.
+First-party products rebuild every build. The client accepts current `"0.1"`; the only
+previous-version exception is offline-cached first-party content.
 Older content needs upgrade without touching its source or saves. A version bump
 migrates all first-party source and retains saves in one commit. Outside authors
 must update `version`, `requires.sdk`, the sim ABI and affected fields, then rebuild
 and validate; incompatible state changes require an explicit save migration.
-Version 1 freezes only after SF22c's physical-phone reading. Future rows add content
-schemas and bindings; v0 does not yet claim tiles, quests or scripts are playable.
+The format never freezes or cuts stable 1.0 in this plan (G195). Every breaking
+change increments the integer revision in the canonical string `"0.<revision>"`
+and migrates all first-party declarations and affected saves in that commit.
+`requires.sdk` names the same string; command/snapshot ABI integers change only
+when their own contracts change. No float comparison is used: 0.10 follows 0.9.
+Malformed strings, unsupported revisions and numeric versions are refused by
+normal admission. One bounded trusted reader explicitly names the previous wire
+form, legacy integer `0`: only a completely visited first-party offline cache
+can select it. It rewrites the two version fields, then repeats the current
+strict grammar, graph/cost and immutable-byte admission. Missing old fields or
+corrupt old assets remain refused. Online upgrades compare strict saved-state
+lineage before publishing a new visit, preserving identity and migration rules.
+The legacy reader is replaced explicitly at the next revision, never carried
+forward as a general old-format or external-content bypass.
 
 The author CLI is built with `node scripts/build-sdk.mjs` in this checkout and run
 as `node src/sdk/bin/wildshard.mjs`. Outside projects get `wildshard` from the SDK
@@ -486,7 +498,7 @@ transitive bundle costs and the script memory growth ceiling are checked before 
 admission again on every load. A visited product is published to Cache Storage only after all its immutable files pass;
 an offline load reads those files without fetching and refuses missing or corrupted bytes. A revision keeps each saved
 field's scope, name, id and type. Previous-format readers are trusted client code, and only an offline visited first-party
-product may select one; provisional v0 currently has no previous format reader.
+product may select one; the 0.1 client explicitly supports the bounded integer-0 cache transition.
 
 The client reserves library and commons claims in the session residency allocator;
 shared dependencies are charged once and leases end with the level. The grid sim
@@ -516,7 +528,7 @@ retain admitted script continuation, item fuel/cooldowns/queued commands, quest 
 current steps and dialogue. They restore silently before panel/collider bindings,
 without replaying rewards or replacing the Game physics world. A changed revision
 or incompatible continuation starts fresh. SF15a proves same-revision logical restore;
-SF33 owns cross-revision migrations, tested on real saves before the version 1 freeze.
+SF33 owns cross-revision migrations, tested on real saves as the 0.x format evolves; there is no version 1 freeze.
 
 A transitional first-party product may declare `runtime`. Asset admission refuses
 that declaration for external products, including cached ones. The ordinary product

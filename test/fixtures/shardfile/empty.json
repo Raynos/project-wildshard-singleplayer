@@ -1,6 +1,6 @@
 {
   "accent": "sand",
-  "version": 0,
+  "version": "0.1",
   "identity": {
     "slug": "example",
     "name": "Example",
@@ -9,7 +9,7 @@
     "seed": 1
   },
   "requires": {
-    "sdk": 0,
+    "sdk": "0.1",
     "capabilities": [],
     "commons": []
   },

@@ -1,5 +1,5 @@
 import { parseShardfile, type Shardfile } from './schema';
-import { SHARDFILE_VERSION } from './version';
+import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from './version';
 import { assertStateCompatibility, parseStateLineage } from './revision';
 import { preflightDeclaredCosts, validateShardfileAssets } from './validate';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
@@ -21,7 +21,7 @@ export interface ProductCache {
   pin?: (hashes: Iterable<string>) => () => void;
 }
 /** Version readers are trusted client migrations; content cannot register its own compatibility rule. */
-export interface ProductVersions { current: number; readers: ReadonlyMap<number, (source: unknown) => Shardfile> }
+export interface ProductVersions { current: string; previous?: string | 0; readers: ReadonlyMap<string | 0, (source: unknown) => Shardfile> }
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
@@ -33,9 +33,17 @@ export interface ProductOptions {
 }
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
 export interface AdmittedProduct { source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string }
-function version(input: unknown): number {
-  if (typeof input !== 'object' || input === null || !('version' in input) || typeof input.version !== 'number' || !Number.isSafeInteger(input.version)) throw new Error('Shardfile needs a format version');
+function version(input: unknown): string | 0 {
+  if (typeof input !== 'object' || input === null || !('version' in input)) throw new Error('Shardfile needs a format version');
+  if (input.version === 0) return 0;
+  shardfileRevision(input.version);
+  if (typeof input.version !== 'string') throw new Error('Shardfile needs a format version');
   return input.version;
+}
+function readLegacyCache(input: unknown): Shardfile {
+  preflightShardfile(input);
+  if (typeof input !== 'object' || input === null || !('version' in input) || input.version !== 0 || !('requires' in input) || typeof input.requires !== 'object' || input.requires === null || !('sdk' in input.requires) || input.requires.sdk !== 0) throw new Error('Invalid legacy shardfile cache');
+  return parseShardfile({ ...input, version: SHARDFILE_VERSION, requires: { ...input.requires, sdk: SHARDFILE_VERSION } });
 }
 /** Stream bounded wire bytes, including responses without a trustworthy Content-Length header. */
 export async function boundedResponse(response: Response, maximum: number): Promise<Uint8Array> {
@@ -70,15 +78,18 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const cached = options.offline ? visited : null;
   const raw = cached?.source ?? input;
   preflightShardfile(raw);
-  const versions = options.versions ?? { current: SHARDFILE_VERSION, readers: new Map([[SHARDFILE_VERSION, parseShardfile]]) };
+  const versions: ProductVersions = options.versions ?? { current: SHARDFILE_VERSION, previous: SHARDFILE_PREVIOUS_VERSION,
+    readers: new Map<string | 0, (source: unknown) => Shardfile>([[SHARDFILE_VERSION, parseShardfile], [SHARDFILE_PREVIOUS_VERSION, readLegacyCache]]) };
+  const currentRevision = shardfileRevision(versions.current);
+  const previousRevision = versions.previous === 0 ? 0 : versions.previous === undefined ? undefined : shardfileRevision(versions.previous);
   const revision = version(raw), reader = versions.readers.get(revision);
-  if (reader === undefined || (revision !== versions.current && !(revision === versions.current - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
+  if (reader === undefined || (revision !== versions.current && !(revision === versions.previous && previousRevision === currentRevision - 1 && options.offline && cached?.firstParty === true && options.firstParty))) throw new Error(`Shardfile version ${revision} needs a compatible client`);
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
   preflightDeclaredCosts(source);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
-  if (!options.offline && visited !== null && visited !== undefined && version(visited.source) === versions.current) assertStateCompatibility(parseStateLineage(visited.source), source);
+  if (!options.offline && visited !== null && visited !== undefined && [versions.current, versions.previous].includes(version(visited.source))) assertStateCompatibility(parseStateLineage(visited.source), source);
   options.reserve?.(source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
   const transport = new Map<string, Uint8Array>();

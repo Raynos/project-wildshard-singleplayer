@@ -47,14 +47,14 @@ it('checks durable presence before publishing a visit, even when a cache silentl
 });
 it('allows previous format only from a visited first-party cache while offline', async () => {
   const f = fixture(); f.options.firstParty = true; await admitProduct(f.shard, f.options);
-  const versions = { current: 1, readers: new Map([[0, parseShardfile], [1, parseShardfile]]) };
-  const previous = await admitProduct({ version: 1 }, { ...f.options, versions, offline: true });
-  expect(previous.source.version).toBe(0);
+  const versions = { current: '0.2', previous: '0.1', readers: new Map([['0.1', parseShardfile], ['0.2', parseShardfile]]) };
+  const previous = await admitProduct({ version: '0.2' }, { ...f.options, versions, offline: true });
+  expect(previous.source.version).toBe('0.1');
   await expect(admitProduct(f.shard, { ...f.options, versions })).rejects.toThrow('compatible client');
   await expect(admitProduct(f.shard, { ...f.options, versions, offline: true, firstParty: false })).rejects.toThrow('compatible client');
   f.cache.products.set(base, { source: f.shard, firstParty: false });
   await expect(admitProduct(f.shard, { ...f.options, versions, offline: true })).rejects.toThrow('compatible client');
-  await expect(admitProduct(f.shard, { ...f.options, versions: { current: 2, readers: versions.readers }, offline: true })).rejects.toThrow('compatible client');
+  await expect(admitProduct(f.shard, { ...f.options, versions: { ...versions, current: '0.3' }, offline: true })).rejects.toThrow('compatible client');
 });
 it('re-admits forged valid-hash cached Wasm before any instance is created', async () => {
   const module = binaryen.parseText('(module (import "env" "memory" (memory 1 64)) (func (export "on_tick") (loop $spin (br $spin))))');
