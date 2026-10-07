@@ -237,14 +237,14 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
     for (const t of [-5.2, 5.2]) { const p = frame.at(14, t); for (let k = 0; k < 4; k++) solid.box(p.x, p.z, k * 0.8, 0.2, 0.2, 0.8, frame.yaw, k % 2 === 0 ? C.white : C.orange); }
     { const p = frame.at(14.15, 0); solid.box(p.x, p.z, 2.0, 5.0, 0.08, 1.9, frame.yaw, C.navy); text.add(P(14, 0, 2.95), n, 9.6, 1.8, SIGN_RECT); }
     // the billboard on the left: steel legs, a frame, the picture facing the road
-    { const c = frame.at(36, -30), w = 22, h = 16.5, bottom = 7;
-      for (const t of [-8, 8]) { const p = frame.at(36.6, -30 + t); solid.box(p.x, p.z, 0, 0.35, 0.35, bottom, frame.yaw, C.steelLight); solid.box(p.x, p.z, 0, 1.1, 1.1, 0.5, frame.yaw, C.steel); }
-      const back = frame.at(36.5, -30); solid.box(back.x, back.z, bottom - 0.6, w / 2 + 0.6, 0.35, h + 1.2, frame.yaw, C.steel);
-      for (const t of [-7, 0, 7]) { const p = frame.at(35.4, -30 + t); solid.box(p.x, p.z, bottom + h + 0.6, 0.15, 0.6, 0.25, frame.yaw, C.steelLight); }
+    { const c = frame.at(44, -22), w = 22, h = 16.5, bottom = 7;
+      for (const t of [-8, 8]) { const p = frame.at(44.6, -22 + t); solid.box(p.x, p.z, 0, 0.35, 0.35, bottom, frame.yaw, C.steelLight); solid.box(p.x, p.z, 0, 1.1, 1.1, 0.5, frame.yaw, C.steel); }
+      const back = frame.at(44.5, -22); solid.box(back.x, back.z, bottom - 0.6, w / 2 + 0.6, 0.35, h + 1.2, frame.yaw, C.steel);
+      for (const t of [-7, 0, 7]) { const p = frame.at(43.4, -22 + t); solid.box(p.x, p.z, bottom + h + 0.6, 0.15, 0.6, 0.25, frame.yaw, C.steelLight); }
       pictures.add([c.x + n.x * 0.1, bottom + h / 2, c.z + n.z * 0.1], n, w, h, faceRect(billboard));
     }
     // the half-built demo corner on the right, its label on a post at the path
-    const { ground, pieces } = demoPieces(demo), centre = { s: 40, t: 32 };
+    const { ground, pieces } = demoPieces(demo), centre = { s: 44, t: 24 };
     const at = (u: number, w: number): { x: number; z: number } => frame.at(centre.s + w, centre.t + u);
     // half-laid ground tiles: full at the front, gaps toward the middle, none at the back (the wireframe grid shows there)
     for (let w = -14; w < 14; w += 2) for (let u = -14; u < 14; u += 2) {
@@ -265,7 +265,7 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
     for (let u = -14; u <= 14; u += 4) for (const w of [-3.5, -2]) { const p = at(u, w); solid.box(p.x, p.z, 0, 0.09, 0.09, 12, frame.yaw, C.scaffold); }
     for (const y of [4, 8, 12]) { const a = at(0, -3.5), b = at(0, -2); solid.box(a.x, a.z, y - 0.1, 14, 0.08, 0.16, frame.yaw, C.scaffold); solid.box(b.x, b.z, y - 0.1, 14, 0.08, 0.16, frame.yaw, C.scaffold); }
     { const back = at(0, 9.5); lines.box(back.x, back.z, 0, 14.5, 4.5, 0.02, frame.yaw); for (let u = -14; u <= 14; u += 4) { const a = at(u, 5), b = at(u, 14); lines.seg([a.x, 0.1, a.z], [b.x, 0.1, b.z]); } }
-    { const p = frame.at(20, 15); solid.box(p.x, p.z, 0, 0.12, 0.12, 4.6, frame.yaw, C.steelLight); const q = frame.at(19.9, 17.2); solid.box(q.x, q.z, 4.2, 2.6, 0.06, 0.8, frame.yaw, C.navy); text.add(P(19.8, 17.2, 4.6), n, 5.0, 0.94, labelRect(demo)); lines.seg([p.x, 4.6, p.z], [p.x, 9, p.z]); }
+    { const p = frame.at(26, 7.5); solid.box(p.x, p.z, 0, 0.12, 0.12, 4.6, frame.yaw, C.steelLight); const q = frame.at(25.9, 9.7); solid.box(q.x, q.z, 4.2, 2.6, 0.06, 0.8, frame.yaw, C.navy); text.add(P(25.8, 9.7, 4.6), n, 5.0, 0.94, labelRect(demo)); lines.seg([p.x, 4.6, p.z], [p.x, 9, p.z]); }
   }
   // the centrepiece: a stepped octagonal plinth, a hologram of a shard being built turning above it, cards of every idea
   solid.prism(0, 0, 0, 24, 24, 0.5, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.5, 19, 19, 0.5, 8, C.steel, C.steelLight); solid.prism(0, 0, 1.0, 14, 13.5, 0.6, 8, C.navy, C.steel);
@@ -273,7 +273,7 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
   for (const side of PLOT_SIDES) { const f = entryFrame(side), p = f.at(H - 25.5, 0), n = f.out; text.add([p.x + n.x * 0.06, 0.78, p.z + n.z * 0.06], n, 8.4, 1.05, PLAQUE_RECT); }
   for (let k = 0; k < 48; k++) { const a0 = k / 48 * Math.PI * 2, a1 = (k + 1) / 48 * Math.PI * 2; lines.seg([Math.cos(a0) * 34, 0.08, Math.sin(a0) * 34], [Math.cos(a1) * 34, 0.08, Math.sin(a1) * 34]); }
   // the hologram: a 30 m shard cube, its terrain as a wire height field, half its towers solid-edged, beams from the plinth
-  const S = 15, base = 10;
+  const S = 15, base = 10, HOLO = 2;
   holo.box(0, 0, base, S, S, 2 * S, 0); holo.box(0, 0, base, S * 0.98, S * 0.98, 0.01, 0);
   const field = (x: number, z: number): number => base + 3 + 2.6 * Math.sin(x * 0.35) * Math.cos(z * 0.28) + 1.4 * Math.sin((x + z) * 0.6);
   for (let i = -6; i <= 6; i++) for (let j = -6; j < 6; j++) {
@@ -281,18 +281,19 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
     holo.seg([a, field(a, b0), b0], [a, field(a, b1), b1]); holo.seg([b0, field(b0, a), a], [b1, field(b1, a), a]);
   }
   for (const [x, z, h] of [[-8, -6, 11], [-3, -9, 7], [6, -7, 14], [9, 4, 9], [-7, 7, 12], [2, 8, 6], [0, 0, 18]] as const) holo.box(x, z, field(x, z), 1.6, 1.6, h, 0.3);
-  for (const [x, z] of [[-S, -S], [S, -S], [S, S], [-S, S]] as const) holo.seg([x * 0.5, 1.6, z * 0.5], [x, base, z]);
+  for (const [x, z] of [[-S, -S], [S, -S], [S, S], [-S, S]] as const) holo.seg([x * 0.4, 0.8, z * 0.4], [x, base, z]);
+  holo.seg([0, 0.8, 0], [0, 120, 0]); holo.seg([0.4, 0.8, 0], [0.4, 90, 0]);
   PLOT_IDEAS.forEach((idea, k) => {
-    const a = k / PLOT_IDEAS.length * Math.PI * 2, r = 30, n = { x: Math.cos(a), z: Math.sin(a) };
-    cards.add([n.x * r, 26, n.z * r], n, 12, 9, faceRect(idea)); cards.add([n.x * (r - 0.05), 26, n.z * (r - 0.05)], { x: -n.x, z: -n.z }, 12, 9, faceRect(idea));
+    const a = k / PLOT_IDEAS.length * Math.PI * 2, r = 54, n = { x: Math.cos(a), z: Math.sin(a) };
+    cards.add([n.x * r, 44, n.z * r], n, 20, 15, faceRect(idea)); cards.add([n.x * (r - 0.05), 44, n.z * (r - 0.05)], { x: -n.x, z: -n.z }, 20, 15, faceRect(idea));
   });
   const floor = [-H, 0, -H, H, 0, -H, H, 0, H, -H, 0, H], solidPositions = new Float32Array(solid.p), solidIndices = new Uint32Array(solid.i);
   const colliderPositions = new Float32Array(floor.length + solidPositions.length); colliderPositions.set(floor); colliderPositions.set(solidPositions, floor.length);
   const colliderIndices = new Uint32Array(6 + solidIndices.length); colliderIndices.set([0, 2, 1, 0, 3, 2]); for (let k = 0; k < solidIndices.length; k++) colliderIndices[6 + k] = (solidIndices[k] ?? 0) + 4;
   return {
     solid: { positions: solidPositions, colours: new Float32Array(solid.c), indices: solidIndices },
-    lines: new Float32Array(lines.p), pictures: pictures.out(), text: text.out(), holoLines: new Float32Array(holo.p), holoCards: cards.out(),
-    scan: { half: S * 0.97, low: base + 0.5, high: base + 2 * S - 0.5 },
+    lines: new Float32Array(lines.p), pictures: pictures.out(), text: text.out(), holoLines: new Float32Array(holo.p.map((v) => v * HOLO)), holoCards: cards.out(),
+    scan: { half: S * 0.97 * HOLO, low: (base + 0.5) * HOLO, high: (base + 2 * S - 0.5) * HOLO },
     collider: { positions: colliderPositions, indices: colliderIndices }, entries,
   };
 }

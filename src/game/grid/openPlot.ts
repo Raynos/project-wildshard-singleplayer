@@ -12,7 +12,7 @@
  * pictures from `public/assets/grid/open-plot/<idea>.webp` once they decode) and freed after their last upload. Every
  * byte is one platform render claim in the allocator, admitted up front.
  */
-import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, Group, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial,
+import { AdditiveBlending, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, Group, LineBasicMaterial, LineSegments, Mesh, MeshBasicMaterial,
   type Object3D, PlaneGeometry, SRGBColorSpace, ShaderMaterial } from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { fetchImage } from '@wildshard/engine/boot/bytes';
@@ -180,7 +180,7 @@ export function installOpenPlots(input: {
     floorMaterial.name = 'grid-open-plot-floor';
     disposables.push(solidMaterial, lines, holo, scan, floorMaterial, ...[pictureMaterial, textMaterial, cards].filter((m): m is MeshBasicMaterial => m !== null));
     lineMaterial = lines; holoMaterial = holo; cardMaterial = cards; scanMaterial = scan;
-    const scanGeometry = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2); disposables.push(scanGeometry);
+    const scanGeometry = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), glassGeometry = new BoxGeometry(1, 1, 1); disposables.push(scanGeometry, glassGeometry);
     for (const { plot, geometry: g } of built) {
       const group = new Group(); group.name = `grid-open-plot:${plot.instance}`;
       group.position.set(plot.origin.x - home.origin.x, 0, plot.origin.z - home.origin.z);
@@ -200,6 +200,10 @@ export function installOpenPlots(input: {
       const holoGroup = new Group(); holoGroup.name = 'grid-open-plot-hologram'; group.add(holoGroup);
       const holoLines = new LineSegments(geometry(g.holoLines, {}), holo); holoLines.name = 'grid-open-plot-holo-lines'; add(holoLines, holoGroup);
       if (cards !== null) { const m = new Mesh(geometry(g.holoCards.positions, { uv: [g.holoCards.uvs, 2] }, g.holoCards.indices), cards); m.name = 'grid-open-plot-holo-cards'; add(m, holoGroup); }
+      // the hologram's glass: the shard cube's faces, faint and additive (one more draw)
+      const glass = new Mesh(glassGeometry, scan); glass.name = 'grid-open-plot-holo-glass';
+      glass.scale.set(g.scan.half * 2, g.scan.high - g.scan.low + 1, g.scan.half * 2); glass.position.y = (g.scan.low + g.scan.high) / 2;
+      glass.castShadow = false; holoGroup.add(glass); draws++;
       const scanMesh = new Mesh(scanGeometry, scan); scanMesh.name = 'grid-open-plot-scan'; scanMesh.scale.set(g.scan.half * 2, 1, g.scan.half * 2); scanMesh.position.y = g.scan.low;
       scanMesh.castShadow = false; holoGroup.add(scanMesh); draws++;
       group.updateMatrixWorld(true);
