@@ -1,0 +1,47 @@
+{
+  "records": [
+    {
+      "legacy": "src/kit/weapons/melee/Melee.ts",
+      "platform": "src/engine/combat/meleeProfile.ts",
+      "name": "ViewmodelFeel",
+      "sha256": "b0855dc4eb9d1ce5eb2708de643435fa960f1dcda285f2b20e8c2778056e51d8",
+      "identical": true
+    },
+    {
+      "legacy": "src/kit/weapons/melee/Melee.ts",
+      "platform": "src/engine/combat/meleeProfile.ts",
+      "name": "MeleeProfile",
+      "sha256": "1b3b98f485055072ea841dfbb412e2af13372520b5bf8438a342f6716926fa40",
+      "identical": true
+    },
+    {
+      "legacy": "src/kit/weapons/melee/Melee.ts",
+      "platform": "src/engine/combat/meleeProfile.ts",
+      "name": "isMeleeProfile",
+      "sha256": "7eebdc8c3147b79e32a9f0ba6e6987f4d394be26fbab3e101dd7a10bfaedad76",
+      "identical": true
+    },
+    {
+      "legacy": "src/kit/weapons/melee/Melee.ts",
+      "platform": "src/engine/combat/Melee.ts",
+      "name": "meleeActor",
+      "sha256": "a2f02c12d2a5b4adcc5ee77c305e76726b4282eb0428092a3172be60b6ed95bb",
+      "identical": true
+    },
+    {
+      "legacy": "src/kit/weapons/thrown/Thrown.ts",
+      "platform": "src/engine/combat/thrownProfile.ts",
+      "name": "ThrownProfile",
+      "sha256": "ecc0b25ec591bf33db51bfd9028b0960c8d25f5a3b6c76e4a388e4682ea6e057",
+      "identical": true
+    },
+    {
+      "legacy": "src/kit/weapons/thrown/Thrown.ts",
+      "platform": "src/engine/combat/Thrown.ts",
+      "name": "Thrown",
+      "sha256": "e9844a97deeccfff0e0bf090e89fe03deb07c65128066e5f703ad5c95984d730",
+      "identical": true
+    }
+  ],
+  "meleeChange": "Only the CombatPipeline dependency is injected: constructor(profile, combat), stored privately, block and contact use that supplied pipeline. Original app.combat supplied by kit delegation; hooks, envelope and damage arithmetic unchanged."
+}

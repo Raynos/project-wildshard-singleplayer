@@ -361,6 +361,10 @@
     "./script/composition": "./script/composition.ts",
     "./ai/pack": "./ai/pack.ts",
     "./ai/herd": "./ai/herd.ts",
-    "./combat/Firearm": "./combat/Firearm.ts"
+    "./combat/Firearm": "./combat/Firearm.ts",
+    "./combat/Melee": "./combat/Melee.ts",
+    "./combat/Thrown": "./combat/Thrown.ts",
+    "./combat/meleeProfile": "./combat/meleeProfile.ts",
+    "./combat/thrownProfile": "./combat/thrownProfile.ts"
   }
 }

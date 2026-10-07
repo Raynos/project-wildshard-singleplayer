@@ -36,7 +36,11 @@
     "./runtime/weapons/Firearm": "./runtime/weapons/Firearm.ts",
     "./runtime/weapons/Weapon": "./runtime/weapons/Weapon.ts",
     "./weapons/firearmProfile": "./weapons/firearmProfile.ts",
-    "./worldSource": "./worldSource.ts"
+    "./worldSource": "./worldSource.ts",
+    "./runtime/weapons/Melee": "./runtime/weapons/Melee.ts",
+    "./runtime/weapons/Thrown": "./runtime/weapons/Thrown.ts",
+    "./weapons/meleeProfile": "./weapons/meleeProfile.ts",
+    "./weapons/thrownProfile": "./weapons/thrownProfile.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -199,6 +203,22 @@
       "./worldSource": {
         "types": "./dist/types/sdk/worldSource.d.ts",
         "default": "./dist/worldSource.js"
+      },
+      "./runtime/weapons/Melee": {
+        "types": "./dist/types/sdk/runtime/weapons/Melee.d.ts",
+        "default": "./dist/runtime/weapons/Melee.js"
+      },
+      "./runtime/weapons/Thrown": {
+        "types": "./dist/types/sdk/runtime/weapons/Thrown.d.ts",
+        "default": "./dist/runtime/weapons/Thrown.js"
+      },
+      "./weapons/meleeProfile": {
+        "types": "./dist/types/sdk/weapons/meleeProfile.d.ts",
+        "default": "./dist/weapons/meleeProfile.js"
+      },
+      "./weapons/thrownProfile": {
+        "types": "./dist/types/sdk/weapons/thrownProfile.d.ts",
+        "default": "./dist/weapons/thrownProfile.js"
       }
     }
   }
