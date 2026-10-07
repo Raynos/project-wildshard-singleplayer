@@ -6,6 +6,7 @@ import { parseShardfile, type Shardfile } from './schema';
 import { assetCost } from './assets';
 import { validateTerrainAssets } from './terrain';
 import { validateMeshCollisionAssets } from './meshCollision';
+import { checkPropMaterialNames, glbMaterialNames, validatePropMaterials, type PropMaterials } from './propMaterials';
 import { validateSkinAssets } from './skins';
 import { validateEntrywayTerrain } from './entryways';
 import { validateEntrywayClearance } from './entryClearance';
@@ -83,6 +84,9 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   };
   let commons = 0;
   const commonsCosts = new Map<string, ReturnType<typeof assetCost>>(), admissions = new Map<string, ScriptAdmission>();
+  const propMaterials = s.props?.materials;
+  const propModels = new Set([...s.props?.tiles ?? [], ...s.props?.panels ?? [], ...s.props?.models ?? []].map(row => row.file));
+  if (s.props?.far !== undefined && s.props.far !== null) propModels.add(s.props.far);
   for (const hash of s.requires.commons) {
     const bytes = assets.get(`commons:${hash}`); if (bytes === undefined || bytes.length !== s.requires.commonsWire[hash] || contentHash(bytes) !== hash) throw new Error('unavailable commons asset or wire size mismatch');
     const kind = bytes[0] === 171 ? 'ktx2' : bytes[0] === 103 ? 'glb' : bytes[0] === 82 ? 'audio' : 'binary';
@@ -95,6 +99,16 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     const actual = assetCost(f.kind, bytes);
     if (f.kind === 'wasm') admissions.set(f.hash, admitScript(bytes));
     if (actual.decoded > f.decoded || actual.gpu > f.gpu || actual.triangles > f.triangles || actual.draws > f.draws) throw new Error('asset cost declaration understated');
+    if (propMaterials !== undefined && propModels.has(f.hash)) {
+      checkPropMaterialNames(propMaterials, bytes);
+      // Every GLB carries its own used slots; a dependency on another tile must not hide an uncharged texture.
+      const used: PropMaterials = {};
+      for (const name of glbMaterialNames(bytes)) {
+        const binding = propMaterials[name]; if (binding === undefined) throw new Error(`Missing admitted prop material ${name}`);
+        used[name] = binding;
+      }
+      validatePropMaterials(used, { look: s.look.materials, models: [f.hash], textures: s.props?.textures ?? [], files: s.files });
+    }
   }
   const library = closure(s.library);
   const sketches = compendiumSketches(s.rows, assets);

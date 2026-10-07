@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { isJsonData } from './json';
+import { PropMaterialsSchema, validatePropMaterials } from './propMaterials';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
@@ -19,6 +20,7 @@ const treads = v.pipe(v.strictObject({ kind: v.literal('treads'), from: point, t
 const collider = v.strictObject({ id, panel: v.nullable(id), initialActive: v.boolean(), shapes: v.pipe(v.array(v.variant('kind', [box, treads])), v.minLength(1), v.maxLength(256)) });
 /** Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. */
 export const PropsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only props'), v.strictObject({ version: v.literal(1), family: id,
+  materials: v.exactOptional(PropMaterialsSchema),
   tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref })), v.maxLength(80)),
   panels: v.pipe(v.array(v.strictObject({ id, file: ref, visible: v.optional(v.boolean(), true) })), v.maxLength(64)), models: v.pipe(v.array(named), v.maxLength(64)), far: v.nullable(ref),
   colliders: v.optional(v.pipe(v.array(collider), v.maxLength(1024)), []),
@@ -27,7 +29,7 @@ export const PropsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only pr
 /** Validated data for the props renderer; no callbacks, URLs or generator code enter this section. */
 export type ShardProps = v.InferOutput<typeof PropsSchema>;
 /** Check every render binding against ordinary admitted file, tile and library rows before allocating content. */
-export function validatePropsReferences(props: ShardProps, content: { files: readonly { hash: string; kind: string; dependencies: readonly string[] }[]; tiles: readonly { lod: number; x: number; z: number; files: readonly string[] }[]; library: readonly string[]; far: { files: readonly string[] } | null }): void {
+export function validatePropsReferences(props: ShardProps, content: { files: readonly { hash: string; kind: string; dependencies: readonly string[] }[]; tiles: readonly { lod: number; x: number; z: number; files: readonly string[] }[]; library: readonly string[]; far: { files: readonly string[] } | null; look?: { materials: Parameters<typeof validatePropMaterials>[1]['look'] } }): void {
   const files = new Map(content.files.map((f) => [f.hash, f]));
   const model = (hash: string) => { if (files.get(hash)?.kind !== 'glb') throw new Error('Prop model must reference an admitted GLB'); };
   for (const tile of props.tiles) { model(tile.file); if (!content.tiles.find((t) => t.lod === tile.lod && t.x === tile.x && t.z === tile.z)?.files.includes(tile.file)) throw new Error('Props tile disagrees with tile files'); }
@@ -35,6 +37,7 @@ export function validatePropsReferences(props: ShardProps, content: { files: rea
   if (props.far !== null) { model(props.far); if (!content.far?.files.includes(props.far)) throw new Error('Props far proxy disagrees with far files'); }
   const refs = new Set([...props.tiles.map((t) => t.file), ...props.panels.map((p) => p.file), ...props.models.map((p) => p.file), ...(props.far === null ? [] : [props.far])]);
   for (const texture of props.textures) if (!refs.has(texture.model) || files.get(texture.colour)?.kind !== 'ktx2' || !files.get(texture.model)?.dependencies.includes(texture.colour)) throw new Error('Prop texture must be a declared KTX2 dependency');
+  if (props.materials !== undefined) validatePropMaterials(props.materials, { look: content.look?.materials ?? {}, models: [...refs], textures: props.textures, files: content.files });
 }
 
 /** Remove absent optional fields before handing admitted shapes to the engine's exact collider descriptor port. */

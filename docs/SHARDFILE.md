@@ -685,6 +685,19 @@ not an independent Hausdorff measurement. If float32 precision alone exceeds
 the ceiling, it returns unchanged geometry. Admission charges the actual output;
 a triangle target is never treated as proof that the output fits a cap.
 
+### Authored-world material bindings (SF55a)
+
+`props.materials` is an optional exact map from each source glTF material name
+(case and spaces preserved) to `{id, colour?, normal?, metallicRoughness?,
+occlusion?, emissive?}`. The id selects an admitted `look.materials` entry or
+platform family default. Each non-null slot names a KTX2 file and its glTF sampler
+(`wrapS`, `wrapT`, `minFilter`, `magFilter`); normal also carries `scale` and
+occlusion `strength`. One file takes one sampler and one colour/data role. Named
+materials replace `props.textures`; every GLB carries its used slot files as
+dependencies, charged with that GLB. Format admission checks ids, supported slots
+and declared references; immutable-byte admission refuses any unmapped or unnamed
+GLB material, naming it. Omitting this map preserves the existing one-family path.
+
 ### Authored-world collision bake (SF55a)
 
 `@wildshard/sdk/bake/worldCollision` exposes `bakeWorldCollision(normalized)`.
