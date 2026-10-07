@@ -135,3 +135,6 @@ and needed CLI-only engine hooks remain.
 - Starter-effect forcing row/timer/choice decoder deleted; status definitions, gameplay bindings and icon
   lifecycle remain. The status UI fixture now applies a real gameplay effect and first proves no forced effect.
   Inventory: **9 comparisons / 18 Developer tools**.
+
+- Pine wildlife forcing row/option deleted; the native birds, hares, carcass and harvest lifecycle always run.
+  Owner memory-trim policy and gameplay diagnostic observers remain. Inventory: **9 comparisons / 17 Developer tools**.

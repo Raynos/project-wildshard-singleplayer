@@ -41,7 +41,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
  *
  * Every animal here is ONE instance of `WildlifeMesh` (one draw, one program, no shadow cast); the birds are generated
  * models (birdModels.ts: perched + flying each, one atlas; Debug ▸ Pine Hollow birds = Procedural). Not shootable: the herd
- * (AnimalManager) is the hunt; these are the forest's life. Debug ▸ Pine Hollow life turns it off; `window.__pineLife` has the pieces
+ * (AnimalManager) is the hunt; these are the forest's life. `window.__pineLife` has the pieces
  * (captures: `crumbs()`, `owlNow()`, `ravensTo(x, z)`, `beat()`).
  *
  * The voices are PineHollowSfx one-shots (`h.sfx`, ForestAmbience's set: raven_caw / raven_pair / raven_flap, owl_hoot,
@@ -61,7 +61,7 @@ import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
-import { pineMemoryTrim, pineOption } from '../debug/options';
+import { pineMemoryTrim } from '../debug/options';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface PineLifeHost {
@@ -130,7 +130,6 @@ const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
 export function installPineLife(h: PineLifeHost): PineLife | null {
   if (pineMemoryTrim()) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (Pine memory trim)
-  if (pineOption('pineLife') === 'off') return null; // Debug ▸ Creatures & NPCs ▸ Pine Hollow life (E162)
   const { game, sky, player, animals } = h;
   const retained = retainsRuntimeServices(h.ctx);
   let lifeTime = app.clock.now;

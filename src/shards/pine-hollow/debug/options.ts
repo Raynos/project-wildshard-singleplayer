@@ -3,9 +3,8 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { developerToolsEnabled, gridPage, runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 
 export const CRAG_VIEWS = ['shaded', 'ao', 'sun', 'wet', 'normal', 'albedo'] as const;
-const LIFE = ['on', 'off'] as const;
 const TRIM = ['off', 'on'] as const;
-const PICKS = { pineLife: LIFE, cragView: CRAG_VIEWS, pineMemoryTrim: TRIM };
+const PICKS = { cragView: CRAG_VIEWS, pineMemoryTrim: TRIM };
 type Key = keyof typeof PICKS;
 
 /** Retain the previous menu pick while the level's row acquires its own device slot. */
@@ -25,8 +24,6 @@ export const pineMemoryTrim = (): boolean => pineOption('pineMemoryTrim') === 'o
 export const pineSetCap = (tierCap: number): number => (tierCap <= 1024 && pineMemoryTrim() ? Math.min(512, tierCap) : tierCap);
 
 export function installPineDebug(ctx: ShardContext, cragView: (value: string) => void): void {
-  ctx.debugRow({ purpose: 'developer', id: 'pineLife', group: 'creatures', label: 'Pine Hollow life', choices: LIFE.map((value) => ({ value, text: value === 'on' ? 'On' : 'Off' })), initial: pineOption('pineLife'), reload: true,
-    change: () => undefined, ask: 'E357', reviewBy: '2026-12-30', note: 'E357: birds, hares, ravens and the skinning beat.' });
   const initial = pineOption('cragView');
   cragView(initial);
   ctx.debugRow({ purpose: 'developer', id: 'cragView', group: 'tools', label: 'Crag channel', choices: CRAG_VIEWS.map((value) => ({ value, text: value === 'shaded' ? 'Shaded' : value === 'ao' ? 'AO' : value[0]?.toUpperCase() + value.slice(1) })), initial,

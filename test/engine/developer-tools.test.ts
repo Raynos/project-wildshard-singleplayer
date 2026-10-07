@@ -39,9 +39,8 @@ it('renders Developer tools separately from comparison rows with the same regist
 
 it('fences Pine direct diagnostic reads while retaining the owners memory-trim choice', () => {
   setDev(false);
-  jsonSlot('debug.plugin.pine-hollow.pineLife', 'device').write('off');
   jsonSlot('debug.plugin.pine-hollow.cragView', 'device').write('normal');
   jsonSlot('debug.plugin.pine-hollow.pineMemoryTrim', 'device').write('on');
-  expect(pineOption('pineLife')).toBe('on'); expect(pineOption('cragView')).toBe('shaded'); expect(pineOption('pineMemoryTrim')).toBe('on');
-  setDev(true); expect(isDev()).toBe(true); expect(pineOption('pineLife')).toBe('off'); expect(pineOption('cragView')).toBe('normal');
+  expect(pineOption('cragView')).toBe('shaded'); expect(pineOption('pineMemoryTrim')).toBe('on');
+  setDev(true); expect(isDev()).toBe(true); expect(pineOption('cragView')).toBe('normal');
 });
