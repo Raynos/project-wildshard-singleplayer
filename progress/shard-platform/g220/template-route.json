@@ -1,0 +1,14 @@
+{
+ "$doc": "SHARD-PLATFORM SF52 / G220: Template 1's filled cell. Hover from each socket down its road through the entry set piece to the hub loop, a hover lap of the loop, and walks through the north gate, under the west covered drive and past the east barriers and south gantry. Run: scripts/browser-lane.sh node scripts/physics-baseline.mjs --no-build --mode=walk --shard=_template --route=progress/shard-platform/g220/template-route.json --url=<served build>",
+ "_template": [
+  { "name": "north in (hover)", "start": { "x": 0, "z": 248, "yaw": 0, "hover": true }, "waypoints": [{ "x": 0, "z": 235 }, { "x": 0, "z": 222 }, { "x": 0, "z": 160 }, { "x": 0, "z": 100 }, { "x": 0, "z": 66 }], "timeout": 45 },
+  { "name": "south in (hover)", "start": { "x": 0, "z": -248, "yaw": 3.1416, "hover": true }, "waypoints": [{ "x": 0, "z": -235 }, { "x": 0, "z": -218 }, { "x": 0, "z": -160 }, { "x": 0, "z": -100 }, { "x": 0, "z": -66 }], "timeout": 45 },
+  { "name": "east in (hover)", "start": { "x": 248, "z": 0, "yaw": 1.5708, "hover": true }, "waypoints": [{ "x": 235, "z": 0 }, { "x": 220, "z": 0 }, { "x": 160, "z": 0 }, { "x": 100, "z": 0 }, { "x": 66, "z": 0 }], "timeout": 45 },
+  { "name": "west in (hover)", "start": { "x": -248, "z": 0, "yaw": -1.5708, "hover": true }, "waypoints": [{ "x": -235, "z": 0 }, { "x": -220, "z": 0 }, { "x": -160, "z": 0 }, { "x": -100, "z": 0 }, { "x": -66, "z": 0 }], "timeout": 45 },
+  { "name": "loop lap (hover)", "start": { "x": -60, "z": -20, "yaw": 0, "hover": true }, "waypoints": [{ "x": -60, "z": -58 }, { "x": 58, "z": -60 }, { "x": 60, "z": 58 }, { "x": -58, "z": 60 }, { "x": -60, "z": 0 }], "timeout": 60 },
+  { "name": "north gate (walk)", "start": { "x": 0, "z": 246, "yaw": 0 }, "waypoints": [{ "x": 0, "z": 228 }, { "x": 0, "z": 215 }, { "x": 9, "z": 212 }, { "x": 20, "z": 206 }], "timeout": 40 },
+  { "name": "west covered drive (walk)", "start": { "x": -246, "z": 0, "yaw": -1.5708 }, "waypoints": [{ "x": -232, "z": 0 }, { "x": -215, "z": 0 }, { "x": -205, "z": 0 }], "timeout": 40 },
+  { "name": "east barriers (walk)", "start": { "x": 246, "z": 0, "yaw": 1.5708 }, "waypoints": [{ "x": 230, "z": 0 }, { "x": 222, "z": 2 }, { "x": 210, "z": 3 }], "timeout": 40 },
+  { "name": "south gantry (walk)", "start": { "x": 0, "z": -246, "yaw": 3.1416 }, "waypoints": [{ "x": 0, "z": -230 }, { "x": 0, "z": -218 }, { "x": 4, "z": -205 }], "timeout": 40 }
+ ]
+}

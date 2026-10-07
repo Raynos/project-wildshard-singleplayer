@@ -1,0 +1,354 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "legs": [
+    {
+      "leg": "drive:before",
+      "inside": null,
+      "feet": {
+        "x": 287,
+        "z": 555
+      },
+      "x": 287,
+      "y": 0,
+      "z": 555,
+      "speed": 0,
+      "residentMB": 494.83,
+      "playingMB": 929.26,
+      "cells": {
+        "template-1": "far proxy",
+        "pine-hollow": "far proxy",
+        "template-2": "far proxy",
+        "sunscar-dunes": "far proxy",
+        "driftwood-isle": "frozen",
+        "nalati-grasslands": "far proxy",
+        "template-4": "far proxy",
+        "far-reach": "far proxy",
+        "template-6": "far proxy"
+      }
+    },
+    {
+      "leg": "drive",
+      "samples": [
+        [
+          -267,
+          0,
+          5,
+          null
+        ],
+        [
+          -264,
+          0,
+          10,
+          null
+        ],
+        [
+          -259,
+          0,
+          14,
+          null
+        ],
+        [
+          -253,
+          0,
+          15,
+          null
+        ],
+        [
+          -247,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -242,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -236,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -230,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -228,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -222,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -216,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -210,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -205,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -199,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -194,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -188,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -182,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -177,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -171,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -166,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -160,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -158,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -152,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -146,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -141,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -135,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -130,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -124,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -118,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -113,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -107,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -102,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -96,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -90,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -88,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -82,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -76,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -70,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -65,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -59,
+          0,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -13,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -18,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -24,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -29,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -35,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -41,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -47,
+          14,
+          "template-2"
+        ],
+        [
+          -50,
+          -52,
+          14,
+          "template-2"
+        ]
+      ],
+      "inside": "template-2",
+      "feet": {
+        "x": 505.23,
+        "z": 485.06
+      },
+      "x": -50,
+      "y": 0.6,
+      "z": -70,
+      "speed": 9,
+      "residentMB": 498.89,
+      "playingMB": 933.77,
+      "cells": {
+        "template-1": "far proxy",
+        "pine-hollow": "far proxy",
+        "template-2": "playing",
+        "sunscar-dunes": "far proxy",
+        "driftwood-isle": "frozen",
+        "nalati-grasslands": "far proxy",
+        "template-4": "far proxy",
+        "far-reach": "far proxy",
+        "template-6": "far proxy"
+      }
+    },
+    {
+      "leg": "frame",
+      "centre": {
+        "x": 554.9990412525552,
+        "z": 555.0344066207961
+      }
+    }
+  ],
+  "seconds": 23.7,
+  "errors": []
+}
