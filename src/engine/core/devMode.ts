@@ -36,10 +36,12 @@ export function setDev(next: boolean): void {
   if (next === on) return;
   on = next;
   mirror();
-  window.dispatchEvent(new CustomEvent(EVENT, { detail: on }));
+  if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') window.dispatchEvent(new CustomEvent(EVENT, { detail: on }));
 }
 
+/** Browser mode changes are scoped; headless consumers have no DOM event source to subscribe to. */
 export function onDev(fn: (on: boolean) => void): () => void {
+  if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return () => undefined;
   const scope = resourceScope();
   const h = (): void => { fn(on); };
   scope.listen(window, EVENT, h);
