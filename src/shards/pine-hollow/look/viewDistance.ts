@@ -1,4 +1,3 @@
-import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { pineMemoryTrim } from '../debug/options';
 
 /**
@@ -9,18 +8,16 @@ import { pineMemoryTrim } from '../debug/options';
  * The numbers are 0.75 × the phone tier's own (Pine's row where it sets one, else the engine's phone row, render/tiers.ts).
  * Trim off keeps today's reach (the Debug variant).
  */
-type TierOverrides = NonNullable<ShardManifest['tiers']>;
-type TierKnobs = NonNullable<TierOverrides['phone']>;
-const VIEW_B: TierKnobs = {
+const VIEW_B = {
   treeHiDist: 45, treeLoDist: 97.5, treeTwigDist: 18, cabinDetailDist: 52.5,
   animalHideDist: 112.5, animalShadowDist: 45, animalEyeDist: 33.75, animalOneDrawDist: 75,
   shadowFar: 45, pickupOrbDist: 90,
-};
+} as const;
 
 /** Pine's tier rows with view distance B laid over the phone's while the trim is on (read when the level applies its row) */
-export function pineTiers(rows: { phone: TierKnobs; desktop: TierKnobs }): TierOverrides {
+export function pineTiers<P extends object, D extends object>(rows: { phone: P; desktop: D }): { readonly phone: P; desktop: D } {
   return {
-    get phone(): TierKnobs { return pineMemoryTrim() ? { ...rows.phone, ...VIEW_B } : rows.phone; },
+    get phone(): P { return pineMemoryTrim() ? { ...rows.phone, ...VIEW_B } : rows.phone; },
     desktop: rows.desktop,
   };
 }
