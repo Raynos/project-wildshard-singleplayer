@@ -5,7 +5,6 @@ import { App } from '../../src/engine/app/app';
 import { Scope } from '../../src/engine/app/scope';
 import { EffectService } from '../../src/engine/combat/effects/EffectService';
 import { PlayerHealth } from '../../src/engine/combat/health';
-import type { DebugRowSpec } from '../../src/engine/level/context';
 import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
 import { installStarterEffects } from '../../src/kit/effects/install';
 import { DialogueBox } from '../../src/engine/quest/view/ui';
@@ -17,26 +16,22 @@ import { newBoard } from '../../src/shards/pine-hollow/quest/contracts';
 
 afterEach(() => document.body.replaceChildren());
 describe('scoped status and quest UI', () => {
-  it('registers one Debug row, applies at five seconds, mounts only active icons and releases everything', () => {
+  it('never forces an effect, mounts active gameplay icons and releases everything', () => {
     const app = new App(), scope = new Scope('status'), player = { position: new Vector3(), effectMoveLocked: false, effectMoveScale: 1 };
     const health = new PlayerHealth(app.events, { now: () => 0, dodging: () => false, dodgeGuard: () => false, position: () => player.position });
     const effects = new EffectService(STARTER_EFFECTS, scope, app.events);
-    let row: DebugRowSpec | undefined;
     app.registerEffects(effects, scope);
     installStarterEffects({ app, scope,
-      debugRow: (value) => { row = value; }, system: (spec) => { app.addSystem(spec, scope); },
+      system: (spec) => { app.addSystem(spec, scope); },
       on: (name, fn, opts) => { app.events.on(name, fn, scope, opts); },
       hud: { widget: (_band, el) => { document.body.append(el); scope.onDispose(() => { el.remove(); }); } },
     }, { player, health, effects });
     const step = (dt: number): void => { for (const system of app.systemsByPhase().update) system.run(dt, 0); };
-    expect(row).toMatchObject({ id: 'effects.apply', group: 'combat', label: 'Apply effect', initial: 'off' });
-    expect(row?.choices.map((choice) => choice.value)).toEqual(['off', 'stun', 'burn', 'poison', 'bleed', 'slow']);
     step(5); expect(effects.active(health)).toHaveLength(0); expect(document.querySelector('.ws-status-effects')).toBeNull();
-    row?.change('stun'); step(4.9); expect(player.effectMoveLocked).toBe(false);
-    step(0.1); expect(player.effectMoveLocked).toBe(true);
+    effects.apply(health, 'effect.stun'); step(0.1); expect(player.effectMoveLocked).toBe(true);
     expect(document.querySelector('[data-effect="effect.stun"] svg path')?.getAttribute('d')).toBeTruthy();
     expect(document.body.textContent).toContain('STUN 2s');
-    row?.change('off'); step(1.3); expect(player.effectMoveLocked).toBe(false);
+    effects.update(1.3); step(1.3); expect(player.effectMoveLocked).toBe(false);
     expect(document.querySelector('.ws-status-effects')?.textContent).toBe('');
     scope.dispose(); expect(document.body.children).toHaveLength(0); expect(app.systemsByPhase().update).toHaveLength(0);
     app.engineScope.dispose();

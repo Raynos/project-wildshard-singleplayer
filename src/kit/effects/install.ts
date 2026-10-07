@@ -5,10 +5,9 @@ import type { EffectService } from '@wildshard/engine/combat/effects/EffectServi
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import { bindStarterEffects, type StatusMovement } from './bindings';
-import { starterId, STARTER_CHOICES } from './starter';
 import { StatusIcons } from './view';
 
-type StarterContext = Pick<LevelContext, 'app' | 'scope' | 'debugRow' | 'system' | 'on'> & { hud: Pick<LevelContext['hud'], 'widget'> };
+type StarterContext = Pick<LevelContext, 'app' | 'scope' | 'system' | 'on'> & { hud: Pick<LevelContext['hud'], 'widget'> };
 /** An optional entered installer retires observers and icons while statuses remain player-owned. */
 export function installStarterEffects(ctx: StarterContext, host: { player: StatusMovement & { position: Vector3 }; health: Actor | null; effects: EffectService | null },
   entered?: (install: (scope: Scope) => void) => void): void {
@@ -16,17 +15,12 @@ export function installStarterEffects(ctx: StarterContext, host: { player: Statu
   if (health === null || effects === null) throw new Error('Starter effects need player health and effects services');
   if (entered === undefined) bindStarterEffects({ effects, target: health, movement: player, combat: ctx.app.combat, position: () => player.position, scope: ctx.scope });
   let iconScope: Scope | undefined;
-  let pick = 'off', elapsed = 0, icons: StatusIcons | null = null;
-  ctx.debugRow({ purpose: 'developer', ask: 'E357', reviewBy: '2026-12-30', id: 'effects.apply', group: 'combat', label: 'Apply effect', initial: 'off',
-    choices: STARTER_CHOICES.map((value) => ({ value, text: value === 'off' ? 'Off' : value[0]?.toUpperCase() + value.slice(1) })),
-    change: (value) => { pick = value; elapsed = 0; }, note: 'E357 starter effects · applies to the player every 5 seconds' });
+  let icons: StatusIcons | null = null;
   if (entered !== undefined) entered((scope) => {
     iconScope = scope;
     scope.onDispose(() => { icons?.root.remove(); icons = null; if (iconScope === scope) iconScope = undefined; });
   });
-  ctx.system({ id: 'engine.effects.debug', phase: 'update', run: (dt) => {
-    const id = starterId(pick);
-    if (id !== null) { elapsed += dt; if (elapsed >= 5) { elapsed %= 5; effects.apply(health, id); } }
+  ctx.system({ id: 'engine.effects.status', phase: 'update', run: () => {
     const active = effects.active(health);
     const status = active.some((effect) => effect.def.tags.some((tag) => tag.startsWith('status.')));
     if (status && icons === null) {

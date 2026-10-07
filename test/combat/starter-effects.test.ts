@@ -5,7 +5,7 @@ import { EffectService } from '../../src/engine/combat/effects/EffectService';
 import { PlayerHealth } from '../../src/engine/combat/health';
 import { CombatPipeline, type Actor } from '../../src/engine/combat/pipeline';
 import { Events } from '../../src/engine/events/events';
-import { STARTER_EFFECTS, starterId } from '../../src/kit/effects/starter';
+import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
 import { bindStarterEffects } from '../../src/kit/effects/bindings';
 
 function setup() {
@@ -28,7 +28,6 @@ describe('S2.5 starter rows and live bindings', () => {
       ['effect.bleed', 4, 0.5, 2, { max: 3 }, 'cue.status.bleed', 'status-bleed'],
       ['effect.slow', 3, undefined, undefined, 'refresh', 'cue.status.slow', 'status-slow'],
     ]);
-    expect(starterId('off')).toBeNull(); expect(starterId('nope')).toBeNull(); expect(starterId('burn')).toBe('effect.burn');
   });
   it.each([['effect.burn', 24], ['effect.poison', 18], ['effect.bleed', 16]] as const)('%s deals all ticks even with fractional frame steps', (id, damage) => {
     const { target, effects } = setup(); effects.apply(target, id);

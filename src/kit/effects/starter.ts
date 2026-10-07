@@ -1,4 +1,4 @@
-import type { EffectDef, EffectId } from '@wildshard/engine/combat/effects/types';
+import type { EffectDef } from '@wildshard/engine/combat/effects/types';
 
 /** Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play. */
 export const STARTER_EFFECTS: readonly EffectDef[] = [
@@ -13,9 +13,3 @@ export const STARTER_EFFECTS: readonly EffectDef[] = [
   { id: 'effect.slow', kind: 'timed', duration: 3, tags: ['status.slow'], grants: ['status.slow'],
     modifiers: [{ attr: 'moveSpeedMul', op: 'mul', value: 0.6 }], stacking: 'refresh', cue: 'cue.status.slow', icon: 'status-slow' },
 ];
-
-export const STARTER_CHOICES = ['off', 'stun', 'burn', 'poison', 'bleed', 'slow'] as const;
-export type StarterChoice = typeof STARTER_CHOICES[number];
-export function starterId(choice: string): EffectId | null {
-  return choice !== 'off' && STARTER_CHOICES.some((value) => value === choice) ? `effect.${choice}` : null;
-}

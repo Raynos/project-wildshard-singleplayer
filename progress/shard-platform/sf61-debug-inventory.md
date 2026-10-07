@@ -131,3 +131,7 @@ and needed CLI-only engine hooks remain.
 
 - Aim-ring row, saved option, DOM/projection/text/global debug plumbing deleted. Actual touch aim assistance
   keeps its friction/snap/tracking math. Inventory: **9 comparisons / 19 Developer tools**.
+
+- Starter-effect forcing row/timer/choice decoder deleted; status definitions, gameplay bindings and icon
+  lifecycle remain. The status UI fixture now applies a real gameplay effect and first proves no forced effect.
+  Inventory: **9 comparisons / 18 Developer tools**.
