@@ -27,7 +27,6 @@ declare module '@wildshard/engine/ui/icons' {
     bearclaw: true;
     boartusk: true;
     crossbow: true;
-    sword: true;
     rifle: true;
     lever: true;
     longbow: true;
