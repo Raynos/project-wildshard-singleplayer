@@ -1,5 +1,6 @@
 import { ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { ColliderDesc, Piece } from '@wildshard/engine/world/registry';
+import type { ShardCube } from '@wildshard/game/shard/context';
 import { BoxGeometry, Color, Group, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import { STRINGS } from '../strings';
 import { ISLET, RISING_ISLETS, type EntryEdge, type RisingIslet } from './islets';
@@ -114,3 +115,6 @@ export function skyDockPiece(entries: readonly RisingIslet[] = RISING_ISLETS): P
   const group = new Group(); group.name = 'far.docks'; group.add(boxes, glass);
   return { id: 'far.docks', name: STRINGS.skyDock, category: 'buildings', file: FILE, object: group, colliders: entries.flatMap(dockColliders), surface: 'wood' };
 }
+
+/** The docks for this session: all four standalone (`cube` null), none in a grid cell (the road socket continues there). */
+export function skyDocksFor(cube: ShardCube | null): Piece[] { return cube === null ? [skyDockPiece()] : []; }

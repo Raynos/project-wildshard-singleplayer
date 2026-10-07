@@ -27,7 +27,7 @@ import { SUN_DIR } from '../look/sun';
 import { bakeSeaTexture } from '../look/cloudSea';
 import { GATE_ISLES, isletPieces, isletViews, type IsletViews } from './risingIslet';
 import { RISING_ISLETS } from './islets';
-import { skyDockPiece } from './skyDock';
+import { skyDocksFor } from './skyDock';
 
 const FILE = 'src/shards/far-reach/world/build.ts';
 /** How far the fallen bridge hangs below level (radians about its pivot). */
@@ -214,8 +214,7 @@ export function buildWorld(ctx: ShardContext, isBoard: () => boolean): BuiltWorl
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
   // road socket continues there, so no dock
-  const docks = ctx.cube === null ? [skyDockPiece()] : [];
-  for (const piece of [...bridges, ...isletPieces(), ...docks]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
+  for (const piece of [...bridges, ...isletPieces(), ...skyDocksFor(ctx.cube)]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = plankBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, null);

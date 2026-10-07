@@ -4,7 +4,7 @@ import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { LIFTS } from '../../../src/shards/nine-dragon-stack/world/liftPlan';
-import { entryDeckColliders } from '../../../src/shards/nine-dragon-stack/world/entries';
+import { entryCapsFor, entryDeckColliders } from '../../../src/shards/nine-dragon-stack/world/entries';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 // G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone, the lift deck's open end is closed by a
@@ -32,6 +32,9 @@ async function walkOut(caps: boolean, across: number): Promise<number> {
 }
 
 describe('G200: Nine Dragon lift deck balustrade (standalone)', () => {
+  it('caps only standalone: a grid cell (its 500 m cube) gets none', () => {
+    expect(entryCapsFor(null)).toBe(true); expect(entryCapsFor({ half: 250 })).toBe(false);
+  });
   it('adds the balustrade, the brazier pedestal and two pillars only with caps', () => {
     expect(entryDeckColliders(true).length - entryDeckColliders(false).length).toBe(LIFTS.length * 4);
   });

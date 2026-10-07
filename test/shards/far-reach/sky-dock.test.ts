@@ -7,7 +7,7 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import type { ColliderDesc } from '../../../src/engine/world/registry';
 import { ISLET, RISING_ISLETS, type RisingIslet } from '../../../src/shards/far-reach/world/islets';
 import { lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
-import { DOCK, dockColliders, skyDockPiece } from '../../../src/shards/far-reach/world/skyDock';
+import { DOCK, dockColliders, skyDockPiece, skyDocksFor } from '../../../src/shards/far-reach/world/skyDock';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 // G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone, each Rising Islet lip ends at a railed timber
@@ -67,6 +67,11 @@ describe('G200: Sky Reach sky docks (standalone)', () => {
         expect(walk(physics, motor, entry, 0, 8, 0, 20)).toBeLessThan(-5);
       } finally { motor.dispose(); physics.dispose(); }
     }
+  });
+
+  it('builds the docks only standalone: a grid cell (its 500 m cube) gets none', () => {
+    expect(skyDocksFor(null).map((p) => p.id)).toEqual(['far.docks']);
+    expect(skyDocksFor({ half: 250 })).toEqual([]);
   });
 
   it('without the dock (a grid cell: the road socket continues) the lip alone is open on its outer edge', async () => {

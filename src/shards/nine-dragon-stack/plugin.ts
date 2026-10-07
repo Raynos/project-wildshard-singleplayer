@@ -14,6 +14,7 @@ import { installAudio } from './runtime/audio/ambience';
 import { STRINGS } from './strings';
 import { ndEntriesEnabled } from './debug';
 import { installLifts, type Lifts } from './world/liftRide';
+import { entryCapsFor } from './world/entries';
 
 
 /** `entries`: the SF51-g landing decks at road height (pause ▸ Settings ▸ Debug ▸ Nine Dragon entries, default off) */
@@ -26,7 +27,7 @@ async function buildWorld(ctx: ShardContext, entries: boolean): ReturnType<World
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
     if (detail !== undefined) ctx.progress.detail(detail);
-  }, render.tier, { entries, caps: ctx.cube === null });
+  }, render.tier, { entries, caps: entryCapsFor(ctx.cube) });
   return { world, camera: render.camera };
 }
 

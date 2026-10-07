@@ -6,6 +6,7 @@
 // SF51-p content. Default off behind pause ▸ Settings ▸ Debug ▸ Nine Dragon entries (`nineDragonEntries`, debug.ts).
 import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ShardCube } from '@wildshard/game/shard/context';
 import { SURF } from '../look/paint';
 import type { Ctx } from './ctx';
 import { K, type Look } from './kit';
@@ -85,6 +86,8 @@ function capParts(f: Frame): { plinth: ReturnType<typeof inFrame>; rail: ReturnT
     pillars: [-1, 1].map((s) => inFrame(f, 0, CAP.pillar + 0.1, s * c - p, s * c + p, 0, CAP.pillarH)),
   };
 }
+/** whether the decks get their caps this session: standalone (`cube` null) yes; in a grid cell the road socket continues */
+export function entryCapsFor(cube: ShardCube | null): boolean { return cube === null; }
 /** the decks a balustrade closes when standalone: those a lantern lift starts from (the others are out of reach) */
 const capped = (f: Frame): boolean => liftOf(f) !== undefined;
 

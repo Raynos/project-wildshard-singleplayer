@@ -1,0 +1,18 @@
+{
+ "url": "http://127.0.0.1:4401",
+ "shard": "far-reach",
+ "mode": "standalone",
+ "date": "2026-10-07T22:38:20.662Z",
+ "probes": {
+  "dockInScene": true,
+  "farEndRail": 1.25,
+  "sideRail": 1.25,
+  "deck": 0
+ },
+ "shots": [
+  "progress/shard-platform/g200/skyreach-standalone-1-from-gate.jpg",
+  "progress/shard-platform/g200/skyreach-standalone-2-on-dock.jpg"
+ ],
+ "errors": [],
+ "build": 1
+}

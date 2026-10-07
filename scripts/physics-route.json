@@ -2998,6 +2998,52 @@
      "z": -8.46
     }
    ]
+  },
+  {
+   "name": "sky dock north",
+   "start": {
+    "x": 0,
+    "z": 244.2,
+    "yaw": 0,
+    "y": 0.3
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 238
+    },
+    {
+     "x": 0,
+     "z": 234.6
+    }
+   ],
+   "expect": {
+    "y": 0
+   },
+   "notes": "G200: standalone only, the north timber sky dock from its far end onto the islet lip"
+  },
+  {
+   "name": "sky dock west",
+   "start": {
+    "x": -244.2,
+    "z": 0,
+    "yaw": -1.57,
+    "y": 0.3
+   },
+   "waypoints": [
+    {
+     "x": -238,
+     "z": 0
+    },
+    {
+     "x": -234.6,
+     "z": 0
+    }
+   ],
+   "expect": {
+    "y": 0
+   },
+   "notes": "G200: standalone only, the west timber sky dock from its far end onto the islet lip"
   }
  ]
 }

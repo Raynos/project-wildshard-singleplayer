@@ -1,0 +1,15 @@
+{
+ "url": "http://127.0.0.1:4401",
+ "shard": "nine-dragon-stack",
+ "mode": "standalone",
+ "date": "2026-10-07T23:14:12.770Z",
+ "probes": {
+  "deck": 0
+ },
+ "shots": [
+  "progress/shard-platform/g200/ninedragon-standalone-1-deck.jpg",
+  "progress/shard-platform/g200/ninedragon-standalone-2-close.jpg"
+ ],
+ "errors": [],
+ "build": 1
+}
