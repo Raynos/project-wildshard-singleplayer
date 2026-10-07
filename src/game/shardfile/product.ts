@@ -7,6 +7,7 @@ import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
+import type { MemoryAdmission } from '../grid/memoryAdmission';
 
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
@@ -28,6 +29,8 @@ export interface ProductOptions {
   fetch: (url: string) => Promise<Response>;
   hash: (bytes: Uint8Array) => Promise<string>;
   versions?: ProductVersions;
+  /** G216: trusted page Developer policy; authored data cannot provide it or bypass exact asset checks. */
+  memory?: MemoryAdmission;
   /** Trusted residency owner reserves parsed source and immutable transport before any asset-cache read or owned copy. */
   reserve?: (source: Shardfile) => void;
 }
@@ -87,7 +90,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
-  preflightDeclaredCosts(source);
+  preflightDeclaredCosts(source, options.memory);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && [versions.current, versions.previous].includes(version(visited.source))) assertStateCompatibility(parseStateLineage(visited.source), source);
   options.reserve?.(source);
@@ -109,7 +112,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   }
   validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
-  });
+  }, options.memory);
   if (!options.offline && options.cache !== undefined) {
     const cache = options.cache, release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')));
     try {

@@ -14,9 +14,16 @@ import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
 import { compendiumSketches } from './sketch';
 import { assertCommonsCosts, type CommonsCosts } from './commonsCosts';
+import type { MemoryAdmission } from '../grid/memoryAdmission';
+
+function acceptsTotal(memory: MemoryAdmission | undefined, source: Shardfile, stage: 'declared' | 'actual', cost: ReturnType<typeof worstContentCost>): boolean {
+  if (cost.playing <= C.playing && cost.loading <= C.loading) return true;
+  return memory?.accept({ stage, owner: source.identity.slug, id: `${source.identity.slug}:worst-location`,
+    claimedBytes: cost.accounted, accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading }) ?? false;
+}
 
 /** Check declared residency before immutable reads; exact parsed headers are checked again on admission. */
-export function preflightDeclaredCosts(source: Shardfile): { commons: CommonsCosts; worst: ReturnType<typeof worstContentCost> } {
+export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmission): { commons: CommonsCosts; worst: ReturnType<typeof worstContentCost> } {
   const commons = assertCommonsCosts(source.requires.commons, source.requires.commonsCosts);
   const files = new Map(source.files.map(file => [file.hash, file]));
   const closure = (roots: readonly string[]): Set<string> => {
@@ -46,16 +53,16 @@ export function preflightDeclaredCosts(source: Shardfile): { commons: CommonsCos
   }
   const resident = Object.values(commons).reduce((total, cost) => total + cost.decoded + cost.gpu, 0);
   const worst = worstContentCost(source, resident);
-  if (worst.playing > C.playing || worst.loading > C.loading) throw new Error(`declared worst-location total exceeds envelope: ${worst.playing}`);
+  if (!acceptsTotal(memory, source, 'declared', worst)) throw new Error(`declared worst-location total exceeds envelope: ${worst.playing}`);
   return { commons, worst };
 }
 
 /** Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. */
-export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string): Shardfile {
+export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<string, Uint8Array>, contentHash: (bytes: Uint8Array) => string, memory?: MemoryAdmission): Shardfile {
   preflightShardfile(input);
   const s = parseShardfile(input), files = new Map(s.files.map((f) => [f.hash, f]));
   preflightAssetGraph(s);
-  const declared = preflightDeclaredCosts(s).commons;
+  const declared = preflightDeclaredCosts(s, memory).commons;
   const closure = (roots: readonly string[]): Set<string> => {
     const found = new Set<string>(), pending = [...roots];
     while (pending.length > 0) {
@@ -140,7 +147,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (clientModules.size > SCRIPT_LIMITS.instances || clientMemory > SCRIPT_LIMITS.memoryBytes || libraryResident > s.budgets.library.resident) throw new Error('client script memory or view budget understated or above host cap');
   if (libraryResident + sketchResident > s.budgets.library.resident) throw new Error('compendium sketch raster budget understated');
   const cost = worstContentCost(s, commons);
-  if (cost.playing > C.playing || cost.loading > C.loading) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
+  if (!acceptsTotal(memory, s, 'actual', cost)) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
   validateEntrywayTerrain(s, assets);
   validateEntrywayClearance(s, assets);
   validateSocketLandings(s, assets);
