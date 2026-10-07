@@ -1,0 +1,116 @@
+{
+  "url": "http://127.0.0.1:4402",
+  "refuse": true,
+  "started": "2026-10-07T22:48:14.773Z",
+  "errors": [],
+  "cells": [
+    [
+      "template-1",
+      "_template",
+      -555,
+      555
+    ],
+    [
+      "pine-hollow",
+      "pine-hollow",
+      0,
+      555
+    ],
+    [
+      "template-2",
+      "_template",
+      555,
+      555
+    ],
+    [
+      "sunscar-dunes",
+      "sunscar-dunes",
+      -555,
+      0
+    ],
+    [
+      "nalati-grasslands",
+      "nalati-grasslands",
+      555,
+      0
+    ],
+    [
+      "template-4",
+      "_template",
+      -555,
+      -555
+    ],
+    [
+      "far-reach",
+      "far-reach",
+      0,
+      -555
+    ],
+    [
+      "template-6",
+      "_template",
+      555,
+      -555
+    ]
+  ],
+  "refused-road": {
+    "pose": {
+      "x": -277.5,
+      "y": 2,
+      "z": 555,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.02
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "pine-hollow",
+          "status": "waiting"
+        },
+        {
+          "instance": "template-1",
+          "status": "refused"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "status": "waiting"
+        }
+      ],
+      "draws": 15
+    },
+    "softWalls": {
+      "closed": 32
+    },
+    "inside": null
+  },
+  "refused-close": {
+    "pose": {
+      "x": -286,
+      "y": 2,
+      "z": 555,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.1
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "pine-hollow",
+          "status": "waiting"
+        },
+        {
+          "instance": "template-1",
+          "status": "refused"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "status": "waiting"
+        }
+      ],
+      "draws": 15
+    },
+    "softWalls": {
+      "closed": 32
+    },
+    "inside": null
+  }
+}

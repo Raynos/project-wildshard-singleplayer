@@ -1,0 +1,142 @@
+{
+  "url": "http://127.0.0.1:4402",
+  "refuse": false,
+  "started": "2026-10-07T22:49:33.694Z",
+  "errors": [],
+  "cells": [
+    [
+      "template-1",
+      "_template",
+      -555,
+      555
+    ],
+    [
+      "pine-hollow",
+      "pine-hollow",
+      0,
+      555
+    ],
+    [
+      "template-2",
+      "_template",
+      555,
+      555
+    ],
+    [
+      "sunscar-dunes",
+      "sunscar-dunes",
+      -555,
+      0
+    ],
+    [
+      "nalati-grasslands",
+      "nalati-grasslands",
+      555,
+      0
+    ],
+    [
+      "template-4",
+      "_template",
+      -555,
+      -555
+    ],
+    [
+      "far-reach",
+      "far-reach",
+      0,
+      -555
+    ],
+    [
+      "template-6",
+      "_template",
+      555,
+      -555
+    ]
+  ],
+  "loading-road": {
+    "pose": {
+      "x": -277.5,
+      "y": 2,
+      "z": 555,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.02
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "pine-hollow",
+          "status": "waiting"
+        },
+        {
+          "instance": "template-1",
+          "status": "loading"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "status": "waiting"
+        }
+      ],
+      "draws": 15
+    },
+    "softWalls": {
+      "closed": 32
+    },
+    "inside": null
+  },
+  "loading-close": {
+    "pose": {
+      "x": -286,
+      "y": 2,
+      "z": 555,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.1
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "pine-hollow",
+          "status": "waiting"
+        },
+        {
+          "instance": "template-1",
+          "status": "loading"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "status": "waiting"
+        }
+      ],
+      "draws": 18
+    },
+    "softWalls": {
+      "closed": 32
+    },
+    "inside": null
+  },
+  "loading-landed": {
+    "pose": {
+      "x": -277.5,
+      "y": 2,
+      "z": 555,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.02
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "pine-hollow",
+          "status": "waiting"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "status": "waiting"
+        }
+      ],
+      "draws": 62
+    },
+    "softWalls": {
+      "closed": 20
+    },
+    "inside": null
+  }
+}
