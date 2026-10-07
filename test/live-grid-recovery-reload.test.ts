@@ -67,6 +67,7 @@ it('recovers GPU/background to the highway and a successful New game cannot resu
       expect(session.prepareRecovery(reason)).toBe(true);
       expect(record.consume(assembly)).toMatchObject({ kind: 'resume', record: { road, reason } });
       expect(record.consume(assembly)).toEqual({ kind: 'none' });
+      record.clearLoop(); // Each branch below represents a new explicit player attempt, not a second failing resume.
     }
     const afterReset = session.prepareNewGameRecovery();
     expect(record.consume(assembly)).toEqual({ kind: 'none' });
