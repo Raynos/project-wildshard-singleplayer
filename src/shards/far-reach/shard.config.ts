@@ -7,7 +7,7 @@ import { RISING_ISLETS } from './world/islets';
 // SF49-g (G99 / G183): every entry meets the road over the cloud sea's void (no ground below y = 0 anywhere at an edge), so
 // each is a socket with a declared landing (SHARDFILE.md `socketOverWater`, its only below-road socket kind): four stone
 // lips, top y = 0, across each socket's full 8 m shard-side edge, where the Rising Islet rests and rises to its gate isle
-// (world/islets.ts; world/risingIslet.ts installs the same boxes behind the farReachEntries row). The islet itself moves, so
+// (world/islets.ts; world/risingIslet.ts installs the same boxes). The islet itself moves, so
 // it can't prove a permanent walk surface; the lip does.
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.

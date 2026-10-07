@@ -2944,6 +2944,60 @@
     "y": 28
    },
    "notes": "on foot: the roost, the sloping ruin rope bridge (34 -> 28 m), the vane ruin (loop 5 layout)"
+  },
+  {
+   "name": "rising islet north in",
+   "start": {
+    "x": 0,
+    "z": 198,
+    "yaw": 0,
+    "y": 25.3
+   },
+   "waypoints": [
+    {
+     "x": 0,
+     "z": 191.5
+    },
+    {
+     "x": 0,
+     "z": 189.5
+    },
+    {
+     "x": 0,
+     "z": 16
+    },
+    {
+     "x": 0,
+     "z": 12
+    }
+   ]
+  },
+  {
+   "name": "rising islet east in",
+   "start": {
+    "x": 198,
+    "z": 58,
+    "yaw": 1.1,
+    "y": 25.3
+   },
+   "waypoints": [
+    {
+     "x": 192.31,
+     "z": 55.11
+    },
+    {
+     "x": 190.53,
+     "z": 54.21
+    },
+    {
+     "x": 70.55,
+     "z": -6.65
+    },
+    {
+     "x": 66.99,
+     "z": -8.46
+    }
+   ]
   }
  ]
 }

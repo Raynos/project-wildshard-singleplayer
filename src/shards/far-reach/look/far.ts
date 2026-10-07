@@ -6,7 +6,8 @@
  * hangs them (world/skyIsleHd.ts's unit frame and pose: the decorative sky isles inside the cell and the playable
  * islands' keels under their 12-gon grass decks), recoloured as the shard's rock patch does (turf kept green, the rock a
  * warm stone), plus the decks, their pines and the windmill as a few facets. One draw, toon facets, in Sky Reach's haze.
- * The Rising Islet entries (SF49-g, G183) stay out while their Debug row is off by default.
+ * The Rising Islet entries (SF49-g, G183; the only way in since G194) are not in the proxy yet: their gate isles, lips and
+ * bridges join it at the next far bake (scripts/bake/far-proxies.mjs).
  */
 import { BufferAttribute, BufferGeometry, Color, Vector3 } from 'three';
 import { skyHdUrl } from '../boot/files';

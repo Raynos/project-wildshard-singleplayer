@@ -10,7 +10,6 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from './strings';
-import { farReachEntriesOn } from './debug';
 import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem, type Home } from './layout';
 import { buildWorld, type BuiltWorld } from './world/build';
 import { skyMoverViews } from './runtime/movers';
@@ -75,8 +74,6 @@ export class SkyReachPlugin extends ShardPlugin {
   /** Sets the quest as a player has it at the crown (capture staging, `stage`). */
   private questFinished: (() => void) | null = null;
   private movers: MoverRuntime | null = null;
-  /** SF49-g: the Rising Islet entries are built (the default-off Debug row, read once as the world builds). */
-  private entries = false;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
   /** The near meadow that travels with the camera (loop 4). */
@@ -102,15 +99,15 @@ export class SkyReachPlugin extends ShardPlugin {
     setMillTextures({ stone: millStone, canvas: millCanvas, ivy: millIvy });
     setFirSheet(branches);
     setIsleTextures({ rock, meadow: meadowTex });
-    const entries = farReachEntriesOn(ctx); this.entries = entries;
-    this.built = buildWorld(ctx, () => this.board(), entries);
+    this.built = buildWorld(ctx, () => this.board());
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
     const field = meadow(SUN_DIR, ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades, ISLES, heroStoneDiscs());
     this.meadow = field; ctx.root.add(field.mesh); ctx.scope.own(field.mesh.geometry); ctx.scope.own(field.mesh.material); ctx.scope.own(field.atlas);
     ctx.scope.onDispose(() => { field.mesh.removeFromParent(); });
     const runtime = ctx.game.runtime;
-    if (entries && runtime !== undefined) runtime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
+    // SF49-g (G183 / G194): the four Rising Islet entries are the only way in, from the cell's edges: the whole cell is in bounds
+    if (runtime !== undefined) runtime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
     runtime?.interactables.push(this.built.winch, this.built.notes);
   }
   private brainPolicies: ReturnType<typeof declaredSkyRows> | null = null;
@@ -167,7 +164,7 @@ export class SkyReachPlugin extends ShardPlugin {
     this.movers = await installDeclaredMovers(ctx, rt.world, skyMoverViews(built, () => Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2, () => {
       built.winch.label = STRINGS.raised;
       if (!flags.has(FLAGS.raised)) { flags.set(FLAGS.raised); toast(STRINGS.raised); }
-    }, () => { this.movers = null; }, this.entries));
+    }, () => { this.movers = null; }));
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about UPDRAFT_LIFT / 3.5 m/s) floats you off the ramp to the high step.
@@ -187,7 +184,7 @@ export class SkyReachPlugin extends ShardPlugin {
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
       // SF49-g (G183): the Rising Islets ride their movers (behaviour/islet.as, in the fixed step); draw them and their chains
-      const movers = this.movers; if (built.islets !== null && movers !== null) built.islets.update((id) => movers.pose(id));
+      const movers = this.movers; if (movers !== null) built.islets.update((id) => movers.pose(id));
       built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
     } });
@@ -307,11 +304,11 @@ export class SkyReachPlugin extends ShardPlugin {
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   private finishRaise(_built: BuiltWorld): void { this.movers?.command('far.winch.bridge', 3); }
-  /** SF49-g: the four Rising Islet entries' data while they are built (walks and captures read their routes here). */
-  get islets(): readonly RisingIslet[] { return this.entries ? RISING_ISLETS : []; }
+  /** SF49-g: the four Rising Islet entries' data (walks and captures read their routes here). */
+  get islets(): readonly RisingIslet[] { return RISING_ISLETS; }
   /** SF49-g: an entry's islet deck centre now (captures, walks and tests read it through `__wildshard.shard.farReach`). */
   isletAt(edge: string): { x: number; y: number; z: number } | null {
-    const movers = this.movers; if (!this.entries || movers === null) return null;
+    const movers = this.movers; if (movers === null) return null;
     return movers.data.some((m) => m.id === `far.islet.${edge}`) ? movers.pose(`far.islet.${edge}`).position : null;
   }
   /** Turn the winch, ignoring the lock (captures and tests use this through `__wildshard.shard.farReach`). */
