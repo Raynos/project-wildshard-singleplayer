@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-547 members; 112 without a doc line (—).
+549 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -542,7 +542,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `UiSchema` | const | @wildshard/game/shardfile/ui | The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots. |
 | `preflightDeclaredCosts` | function | @wildshard/game/shardfile/validate | Check declared residency before immutable reads; exact parsed headers are checked again on admission. |
 | `validateShardfileAssets` | function | @wildshard/game/shardfile/validate | Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. |
-| `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | The shardfile format and script ABI revision; v0 is provisional until the phone gate. |
+| `SHARDFILE_PREVIOUS_VERSION` | const | @wildshard/game/shardfile/version | Explicit previous wire form; only visited first-party offline caches may use its bounded trusted reader. |
+| `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | Canonical format/script-ABI wire revision. The format stays 0.x; every breaking revision migrates first-party data. |
+| `shardfileRevision` | function | @wildshard/game/shardfile/version | Parse the decimal revision as a safe integer, never as a floating-point version (0.10 follows 0.9). |
 | `shardfileWater` | function | @wildshard/game/shardfile/water | Validate untrusted declarations and return fresh motor-compatible bodies for one level instance. |
 | `ShardWater` | type | @wildshard/game/shardfile/water | A serialisable water section for pools, seas and streams, defaulting to [] in the full format. |
 | `WaterSchema` | const | @wildshard/game/shardfile/water | Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. |

@@ -498,7 +498,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `EffectDef` | interface | @wildshard/engine/combat/effects/types | — |
 | `EffectId` | type | @wildshard/engine/combat/effects/types | — |
 | `EffectTarget` | interface | @wildshard/engine/combat/effects/types | — |
-| `harmfulEffect` | function | @wildshard/engine/combat/effects/types | Status/debuff tags and positive periodic damage identify harmful effects without content-specific ids. |
+| `harmfulEffect` | function | @wildshard/engine/combat/effects/types | Harm is derived from periodic damage, status/debuff tags or an attribute lowered from its unmodified base. |
 | `matchesTag` | const | @wildshard/engine/combat/effects/types | — |
 | `SourceMulDef` | interface | @wildshard/engine/combat/effects/types | — |
 | `sourceMultiplier` | function | @wildshard/engine/combat/effects/types | Sources call this inside their own rounding expression, never as a later damage rule. |

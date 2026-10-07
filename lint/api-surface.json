@@ -2951,7 +2951,7 @@
       {
         "name": "harmfulEffect",
         "kind": "function",
-        "doc": "Status/debuff tags and positive periodic damage identify harmful effects without content-specific ids.",
+        "doc": "Harm is derived from periodic damage, status/debuff tags or an attribute lowered from its unmodified base.",
         "from": "@wildshard/engine/combat/effects/types"
       },
       {
@@ -15966,9 +15966,21 @@
         "from": "@wildshard/game/shardfile/validate"
       },
       {
+        "name": "SHARDFILE_PREVIOUS_VERSION",
+        "kind": "const",
+        "doc": "Explicit previous wire form; only visited first-party offline caches may use its bounded trusted reader.",
+        "from": "@wildshard/game/shardfile/version"
+      },
+      {
         "name": "SHARDFILE_VERSION",
         "kind": "const",
-        "doc": "The shardfile format and script ABI revision; v0 is provisional until the phone gate.",
+        "doc": "Canonical format/script-ABI wire revision. The format stays 0.x; every breaking revision migrates first-party data.",
+        "from": "@wildshard/game/shardfile/version"
+      },
+      {
+        "name": "shardfileRevision",
+        "kind": "function",
+        "doc": "Parse the decimal revision as a safe integer, never as a floating-point version (0.10 follows 0.9).",
         "from": "@wildshard/game/shardfile/version"
       },
       {
@@ -17236,6 +17248,18 @@
         "from": "@wildshard/sdk/bake/texture"
       },
       {
+        "name": "bakeWorldTexture",
+        "kind": "function",
+        "doc": "Encode embedded PNG/JPEG/WebP to deterministic single-threaded UASTC KTX2 with a complete mip chain.",
+        "from": "@wildshard/sdk/bake/textureWasm"
+      },
+      {
+        "name": "WORLD_TEXTURE_TOOL",
+        "kind": "const",
+        "doc": "Exact packaged encoder artifacts; lockfile integrity pins the containing dependency as well.",
+        "from": "@wildshard/sdk/bake/textureWasm"
+      },
+      {
         "name": "NormalizedWorld",
         "kind": "interface",
         "doc": "Fully normalized, memory-only build input; no GLB node is silently omitted or converted to a heightfield.",
@@ -17276,6 +17300,24 @@
         "kind": "interface",
         "doc": "A material texture use preserves UV0 and sampler data rather than copying pixels into vertex colours.",
         "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "simplifyWorldPrimitive",
+        "kind": "function",
+        "doc": "Simplify one material primitive without moving vertices, flattening overhangs or crossing attribute/border seams.",
+        "from": "@wildshard/sdk/bake/worldLod"
+      },
+      {
+        "name": "WORLD_LOD_TOOL",
+        "kind": "const",
+        "doc": "Pinned offline WASM simplification; source topology and every attribute stay owned by the author.",
+        "from": "@wildshard/sdk/bake/worldLod"
+      },
+      {
+        "name": "WorldLod",
+        "kind": "interface",
+        "doc": "Actual triangle count and the tool's absolute appearance-error estimate, including float-position allowance.",
+        "from": "@wildshard/sdk/bake/worldLod"
       },
       {
         "name": "guardian",

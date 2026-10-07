@@ -2206,7 +2206,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-547 exports, grouped by the module to import them from.
+549 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2310,7 +2310,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
 - `@wildshard/game/shardfile/validate`: `preflightDeclaredCosts`, `validateShardfileAssets`
-- `@wildshard/game/shardfile/version`: `SHARDFILE_VERSION`
+- `@wildshard/game/shardfile/version`: `SHARDFILE_PREVIOUS_VERSION`, `SHARDFILE_VERSION`, `shardfileRevision`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
 
@@ -2357,7 +2357,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-149 exports, grouped by the module to import them from.
+154 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2369,7 +2369,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/props`: `BakedProps`, `bakeProps`, `PropsBakeSource`, `PropScatter`
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
+- `@wildshard/sdk/bake/textureWasm`: `bakeWorldTexture`, `WORLD_TEXTURE_TOOL`
 - `@wildshard/sdk/bake/world`: `NormalizedWorld`, `normalizeWorldGlb`, `WorldImage`, `WorldMaterial`, `WorldPanel`, `WorldPrimitive`, `WorldTexture`
+- `@wildshard/sdk/bake/worldLod`: `simplifyWorldPrimitive`, `WORLD_LOD_TOOL`, `WorldLod`
 - `@wildshard/sdk/brains`: `guardian`, `GuardianData`, `perchHunter`, `PerchHunterData`, `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
 - `@wildshard/sdk/commons`: `buildCommons`, `BuiltCommons`, `CommonsAsset`, `CommonsCatalogue`, `CommonsEntry`, `CommonsPack`, `commonsRequirements`
