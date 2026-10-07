@@ -175,10 +175,11 @@ export function installOpenPlots(input: {
     const textMaterial = textTexture === null ? null : new MeshBasicMaterial({ map: textTexture, toneMapped: false });
     const cards = pictureTexture === null ? null : new MeshBasicMaterial({ map: pictureTexture, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false });
     const scan = new MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.16, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, toneMapped: false });
+    const glassMaterial = new MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.045, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, toneMapped: false });
     const floorMaterial = new ShaderMaterial({ vertexShader: floorVertex, fragmentShader: floorFragment, fog: false, lights: false,
       uniforms: { uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x03070d) }, uHalf: { value: CHUNK_HALF } } });
     floorMaterial.name = 'grid-open-plot-floor';
-    disposables.push(solidMaterial, lines, holo, scan, floorMaterial, ...[pictureMaterial, textMaterial, cards].filter((m): m is MeshBasicMaterial => m !== null));
+    disposables.push(solidMaterial, lines, holo, scan, glassMaterial, floorMaterial, ...[pictureMaterial, textMaterial, cards].filter((m): m is MeshBasicMaterial => m !== null));
     lineMaterial = lines; holoMaterial = holo; cardMaterial = cards; scanMaterial = scan;
     const scanGeometry = new PlaneGeometry(1, 1).rotateX(-Math.PI / 2), glassGeometry = new BoxGeometry(1, 1, 1); disposables.push(scanGeometry, glassGeometry);
     for (const { plot, geometry: g } of built) {
@@ -201,7 +202,7 @@ export function installOpenPlots(input: {
       const holoLines = new LineSegments(geometry(g.holoLines, {}), holo); holoLines.name = 'grid-open-plot-holo-lines'; add(holoLines, holoGroup);
       if (cards !== null) { const m = new Mesh(geometry(g.holoCards.positions, { uv: [g.holoCards.uvs, 2] }, g.holoCards.indices), cards); m.name = 'grid-open-plot-holo-cards'; add(m, holoGroup); }
       // the hologram's glass: the shard cube's faces, faint and additive (one more draw)
-      const glass = new Mesh(glassGeometry, scan); glass.name = 'grid-open-plot-holo-glass';
+      const glass = new Mesh(glassGeometry, glassMaterial); glass.name = 'grid-open-plot-holo-glass';
       glass.scale.set(g.scan.half * 2, g.scan.high - g.scan.low + 1, g.scan.half * 2); glass.position.y = (g.scan.low + g.scan.high) / 2;
       glass.castShadow = false; holoGroup.add(glass); draws++;
       const scanMesh = new Mesh(scanGeometry, scan); scanMesh.name = 'grid-open-plot-scan'; scanMesh.scale.set(g.scan.half * 2, 1, g.scan.half * 2); scanMesh.position.y = g.scan.low;
