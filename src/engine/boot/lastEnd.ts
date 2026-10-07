@@ -59,6 +59,8 @@ export interface LastEnd {
   /** the navigation type of this boot (navigate / reload / back_forward) */
   nav: string;
 }
+/** Content supplies persistence at explicit reload boundaries, never at ordinary navigation. */
+export type ReloadReason = 'reload' | 'gpu' | 'background' | 'new-game';
 
 /** `<sha>-<stamp>` → the sha, else the stamp (a Vercel CLI build has no commit): the build pill's short id (src/engine/ui/Update.ts) */
 const build = (): string => { try { const [sha = '', time = ''] = __BUILD_ID__.split('-'); return sha.length >= 7 ? sha : time; } catch { return ''; } };
@@ -79,6 +81,7 @@ export class PageLife {
   private source: (() => AliveInfo) | null = null;
   private alive = true;
   private readonly thisEnd: LastEnd;
+  private beforeReload: ((reason: ReloadReason) => boolean) | undefined;
 
   constructor(scope: Scope) {
     this.thisEnd = this.classify();
@@ -112,6 +115,24 @@ export class PageLife {
     const u: Unload = { reason, ...this.stamp() };
     writeJson(store('local'), UNLOAD_KEY, u);
     console.info(`[lastEnd] unloading: ${reason}`);
+  }
+
+  /** Scoped replacement restores its prior capture port; imports alone never install one. */
+  registerBeforeReload(scope: Scope, capture: (reason: ReloadReason) => boolean): void {
+    if (scope.disposed) throw new Error('Reload capture owner is disposed');
+    const prior = this.beforeReload;
+    const installed = (reason: ReloadReason): boolean => scope.disposed || capture(reason);
+    this.beforeReload = installed;
+    scope.onDispose(() => { if (this.beforeReload === installed) this.beforeReload = prior; });
+  }
+
+  /** Capture content's last durable location before an engine reload; a refusal still allows the title route. */
+  markReload(message: string, reason: ReloadReason = 'reload'): boolean {
+    let saved: boolean;
+    try { saved = this.beforeReload?.(reason) ?? true; }
+    catch { saved = false; }
+    this.markUnload(message);
+    return saved;
   }
 
   private beat(): void {
@@ -171,6 +192,10 @@ export class PageLife {
 const page = new PageLife(pageScope);
 export function setAliveSource(fn: () => AliveInfo): void { page.setAliveSource(fn); }
 export function markUnload(reason: string): void { page.markUnload(reason); }
+/** All engine reload actions share this persistence boundary; explicit navigation remains markUnload. */
+export function markReload(message: string, reason: ReloadReason = 'reload'): boolean { return page.markReload(message, reason); }
+/** Install the content-owned durable capture port for the current play scope. */
+export function registerBeforeReload(scope: Scope, capture: (reason: ReloadReason) => boolean): void { page.registerBeforeReload(scope, capture); }
 export function lastEnd(): LastEnd { return page.lastEnd(); }
 export function lastRecordedEnd(): LastEnd | null { return page.lastRecordedEnd(); }
 export function lastEndLine(now = Date.now()): string { return page.lastEndLine(now); }

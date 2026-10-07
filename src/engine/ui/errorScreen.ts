@@ -1,3 +1,4 @@
+import { markReload } from '../boot/lastEnd';
 import { engineString } from '../strings';
 import type { LoadFailure } from '../core/errorReport';
 import { app } from '../app/runtime';
@@ -27,7 +28,7 @@ export function showLoadFailure(failure: LoadFailure): HTMLElement {
     reload.type = 'button';
     reload.textContent = engineString('s_8229c4ee6826');
     reload.style.cssText = 'align-self:flex-start;padding:14px 28px;border:1px solid #8fe3ff;color:#e8f5fa;background:#0d1b26;font:inherit;cursor:pointer';
-    scope.listen(reload, 'click', () => { location.reload(); });
+    scope.listen(reload, 'click', () => { markReload('load failure reload'); location.reload(); });
     root.append(heading, context, message, stack, reload);
     mountUi(root, scope, document.body);
     app.ui.push('error', { root, order: 1147, back: () => { /* Fatal load failure requires reload. */ } }, scope);

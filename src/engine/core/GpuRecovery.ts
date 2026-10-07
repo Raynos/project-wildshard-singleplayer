@@ -46,7 +46,7 @@ import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { resumeScreen, SHOT_KEY } from '../ui/Resume';
 import { layout, trace, traceReturn, traceWorldReady } from './lifeTrace';
 import { recordGpuRecovery } from '../boot/bootTrace';
-import { markUnload } from '../boot/lastEnd';
+import { markReload } from '../boot/lastEnd';
 
 const savedStorage = saveStorage('session');
 
@@ -173,7 +173,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const go = (): void => {
       void (async () => {
         if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(to, `graphics recovery (${why})`); // navigates on the hand-over; returns only if it never landed
-        markUnload(`graphics recovery: ${why}`);
+        markReload(`graphics recovery: ${why}`, away ? 'background' : 'gpu');
         location.replace(to);
       })();
     };

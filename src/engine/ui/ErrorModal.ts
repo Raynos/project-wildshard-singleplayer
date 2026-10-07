@@ -33,7 +33,7 @@ import { installLifeTrace } from '../core/lifeTrace';
 import { currentPose } from './ReloadPrompt';
 import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';
-import { markUnload } from '../boot/lastEnd';
+import { markReload, markUnload } from '../boot/lastEnd';
 import { captureBrowserError } from '../telemetry/browserErrors';
 import { bootDiagnostic, bootDiagnosticJson } from '../boot/bootTrace';
 // reloads from this modal (and the boot's stuck-loader recovery, src/engine/boot/stuck.ts) inside RELOAD_WINDOW_MS before
@@ -130,7 +130,7 @@ function reloadHere(atSpot: boolean): void {
     url.searchParams.set('at', [pose.x, pose.y - terrainDatum(), pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
     url.searchParams.set(RELOAD_PARAM, '1'); // index.html's RESUMING screen from the first paint; main.ts skips the title and pauses
   }
-  markUnload(`error modal: ${atSpot ? 'reload here' : 'reload at spawn'} (${firstText.slice(0, 80)})`);
+  markReload(`error modal: ${atSpot ? 'reload here' : 'reload at spawn'} (${firstText.slice(0, 80)})`);
   location.replace(url.toString());
 }
 function toTitle(): void {

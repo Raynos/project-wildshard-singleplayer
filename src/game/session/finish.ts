@@ -15,6 +15,7 @@ import { lockOn as lockState } from '@wildshard/engine/player/AimTargets';
 import { precompileLevel } from '@wildshard/engine/render/precompile';
 import { textureBytes } from '@wildshard/engine/render/textureBytes';
 import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
+import { registerBeforeReload } from '@wildshard/engine/boot/lastEnd';
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
@@ -26,6 +27,16 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     const pose = await ctx.gridLive.resumeRecovery(ctx.session.recovery);
     player.spawn(pose.x, pose.z, pose.yaw, pose.y); player.pitch = 0;
     if (pose.road) gridCells.leave();
+  }
+  if (ctx.gridLive !== null) {
+    const grid = ctx.gridLive;
+    // GPU/background own the same checkpoint port above; New game captured it before resetting and suppresses stale saves.
+    registerBeforeReload(game.levelScope, reason => {
+      if (reason === 'new-game' || reason === 'gpu' || reason === 'background') return true;
+      const saved = grid.prepareRecovery('reload');
+      if (saved) game.hold = true;
+      return saved;
+    });
   }
 
   await macrotask();

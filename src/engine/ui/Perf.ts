@@ -26,7 +26,7 @@ import { activeLevel } from '../level/selection';
 import { TIER } from '../core/tier';
 import { frameBudget } from '../render/budgetReport';
 import { tierPickInfo, tierPickLine, forgetTierPick } from '../render/tierBoot';
-import { markUnload } from '../boot/lastEnd';
+import { markReload } from '../boot/lastEnd';
 import { isDev, onDev } from '../core/devMode';
 import { runPerfProbe, probeLines, probeReport, probeSamples } from './perfProbe';
 import { PerfHud, type Counts } from './perfHud';
@@ -65,7 +65,7 @@ export class Perf {
     this.game = game;
     const limit = frameBudget(game.level.id, TIER, game.level.budgets);
     this.budget.calls = limit.draws ?? Infinity; this.budget.tris = limit.tris ?? Infinity;
-    game.app.debug.expose('render.tierPick', { read: tierPickInfo, repick: () => { forgetTierPick(); markUnload('tier pick: repick'); location.reload(); } });
+    game.app.debug.expose('render.tierPick', { read: tierPickInfo, repick: () => { forgetTierPick(); markReload('tier pick: repick'); location.reload(); } });
     const root = this.root = document.createElement('button');
     root.className = 'ws-perf';
     root.setAttribute('type', 'button');

@@ -3,7 +3,7 @@ import { engineString } from '../strings';
 import { currentOwner } from '../app/ownership';
 import type { Scope } from '../app/scope';
 import { app } from '../app/runtime';
-import { markUnload } from '../boot/lastEnd';
+import { markReload } from '../boot/lastEnd';
 import { SAVE_STRINGS as strings } from './saveStrings';
 
 function download(name: string, contents: string): void {
@@ -23,7 +23,7 @@ export function buildSavePanel(): HTMLDivElement & { refresh: () => void } {
   const row = document.createElement('div'); row.className = 'ws-gmenu-row';
   const status = document.createElement('div'); status.className = 'ws-gmenu-note'; status.setAttribute('role', 'status');
   const picker = document.createElement('input'); picker.type = 'file'; picker.accept = '.json,application/json'; picker.hidden = true;
-  const reload = button(scope, strings.reload, () => { markUnload('save import'); location.reload(); }); reload.hidden = true;
+  const reload = button(scope, strings.reload, () => { markReload('save import'); location.reload(); }); reload.hidden = true;
   const aside = document.createElement('div');
   const renderAside = (): void => {
     aside.replaceChildren(); const copies = app.saves.corrupt(); aside.hidden = copies.length === 0;

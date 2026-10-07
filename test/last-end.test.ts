@@ -27,6 +27,33 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); });
 
 describe('lastEnd', () => {
+  it('captures only explicit reloads, restores prior scoped callbacks and refuses failed capture safely', async () => {
+    const life = await boot(), first = new Scope('first.reload'), second = new Scope('second.reload');
+    const calls: string[] = [];
+    life.registerBeforeReload(first, reason => { calls.push(`first.${reason}`); return true; });
+    life.markUnload('ordinary travel'); expect(calls).toEqual([]);
+    expect(life.markReload('update')).toBe(true);
+    life.registerBeforeReload(second, reason => { calls.push(`second.${reason}`); return false; });
+    expect(life.markReload('debug row')).toBe(false);
+    second.dispose(); expect(life.markReload('GPU recovery', 'gpu')).toBe(true);
+    expect(calls).toEqual(['first.reload', 'second.reload', 'first.gpu']);
+    first.dispose(); expect(life.markReload('bare title')).toBe(true);
+    expect(calls).toHaveLength(3);
+    expect(() => life.registerBeforeReload(first, () => true)).toThrow('disposed');
+    const failing = new Scope('throwing.reload');
+    life.registerBeforeReload(failing, () => { throw new Error('Checkpoint failed'); });
+    expect(life.markReload('load failure')).toBe(false); failing.dispose();
+  });
+
+  it('never revives an earlier disposed capture after a nested owner leaves', async () => {
+    const life = await boot(), first = new Scope('old.capture'), second = new Scope('new.capture');
+    let oldCalls = 0;
+    life.registerBeforeReload(first, () => { oldCalls++; return true; });
+    life.registerBeforeReload(second, () => true);
+    first.dispose(); second.dispose();
+    expect(life.markReload('after both dispose')).toBe(true); expect(oldCalls).toBe(0);
+  });
+
   it('a reason written just before the load: intentional, with what was resident', async () => {
     const prev = await boot();
     prev.setAliveSource(() => ({ slug: 'pine-hollow', resident: 'nalati-grasslands ~87 MB · pine-hollow (playing) ~178 MB', mode: 'shard' }));

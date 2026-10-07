@@ -8,7 +8,7 @@
 import './saves.css';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { app } from '@wildshard/engine/app/runtime';
-import { markUnload } from '@wildshard/engine/boot/lastEnd';
+import { markReload } from '@wildshard/engine/boot/lastEnd';
 import { isDev } from '@wildshard/engine/core/devMode';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import { mountUi } from '@wildshard/engine/ui/ownership';
@@ -131,7 +131,7 @@ function openSheet(card: SaveCardSpec, live: boolean, opts: SavesSettingsOptions
     try { afterReset = opts.beforeReset?.(); }
     catch { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     if (!reset(card.instance)) { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
-    if (live || opts.grid) { afterReset?.(); markUnload('new game'); location.reload(); return; } // the live bindings rebind from the reset save
+    if (live || opts.grid) { afterReset?.(); markReload('new game', 'new-game'); location.reload(); return; } // the live bindings rebind from the reset save
     close(); done();
   });
   scope.raf(() => { root.classList.add('show'); });

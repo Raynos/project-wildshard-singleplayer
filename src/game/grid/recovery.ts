@@ -21,7 +21,7 @@ const guardDefinition = { key: 'grid.recovery.guard', scope: 'device' as const, 
   schema: v.nullable(v.strictObject({ at: finite })), initial: () => null };
 const schema = v.nullable(v.strictObject({ instance: identity, slug: identity,
   catalogue: v.pipe(v.string(), v.maxLength(4096)), at: finite,
-  reason: v.picklist(['gpu', 'background', 'new-game']),
+  reason: v.picklist(['gpu', 'background', 'new-game', 'reload']),
   road: roadSchema,
   saved: v.optional(savedSchema),
 }));

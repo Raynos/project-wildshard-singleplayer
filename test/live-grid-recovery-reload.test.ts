@@ -24,7 +24,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { MemoryStorage } from './setup';
 
 const flagsKey = { key: 'flags', scope: 'shard' as const, version: 1, schema: v.array(v.string()), initial: (): string[] => [] };
-it('recovers GPU/background to the highway and a successful New game cannot resurrect coins or quest state', async () => {
+it.each(['gpu', 'background', 'new-game'] as const)('recovers %s at the durable pose without a late checkpoint or stale reset resurrection', async reason => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
   const baseline = { bodies: host.physics.world.bodies.len(), colliders: host.physics.world.colliders.len() };
@@ -61,7 +61,8 @@ it('recovers GPU/background to the highway and a successful New game cannot resu
     expect(() => session.prepareNewGameRecovery()).toThrow('durable current checkpoint');
     durable = true;
     traveller.position.set(21, 3, -17);
-    expect(session.prepareRecovery('gpu')).toBe(true);
+    expect(session.checkpoint()).toBe(true);
+    expect(record.write(assembly, home, session.recoveryRoad(), 'gpu')).toBe(true);
     const cellRecovery = record.consume(assembly);
     if (cellRecovery.kind !== 'resume') throw new Error('No durable cell recovery');
     expect(cellRecovery.record.saved?.location).toEqual({ kind: 'cell', x: 21, y: 3, z: -17, yaw: traveller.yaw });
@@ -74,23 +75,24 @@ it('recovers GPU/background to the highway and a successful New game cannot resu
     await session.resumeRoad(road);
     expect(session.frame()).toBeNull(); expect(session.worldFeet()).toEqual({ x: road.x, y: 0.5, z: road.z });
     expect(equipment.stowed).toBe(true); expect(session.state().crossing.current).toBeNull();
-    for (const reason of ['gpu', 'background'] as const) {
+    if (reason !== 'new-game') {
       expect(session.prepareRecovery(reason)).toBe(true);
       expect(record.consume(assembly)).toMatchObject({ kind: 'resume', record: { road, reason } });
       expect(record.consume(assembly)).toEqual({ kind: 'none' });
-      record.clearLoop(); // Each branch below represents a new explicit player attempt, not a second failing resume.
+    } else {
+      const afterReset = session.prepareNewGameRecovery();
+      expect(record.consume(assembly)).toEqual({ kind: 'none' });
+      expect(resetNewGame(store, identity).applied).toBe(true);
+      afterReset();
+      expect(record.consume(assembly)).toMatchObject({ kind: 'resume', record: { road, reason: 'new-game' } });
     }
-    const afterReset = session.prepareNewGameRecovery();
-    expect(record.consume(assembly)).toEqual({ kind: 'none' });
-    expect(resetNewGame(store, identity).applied).toBe(true);
-    afterReset(); expect(suppress).toHaveBeenCalledOnce();
-    expect(record.consume(assembly)).toMatchObject({ kind: 'resume', record: { road, reason: 'new-game' } });
+    expect(suppress).toHaveBeenCalledOnce();
     flush.mockClear();
     expect(session.checkpoint()).toBe(false); expect(saver.checkpoint()).toBe(false);
     window.dispatchEvent(new Event('pagehide')); document.dispatchEvent(new Event('visibilitychange'));
     for (let tick = 0; tick < 600; tick++) for (const run of post) run();
     expect(flush).not.toHaveBeenCalled();
-    expect(previewNewGame(store, identity).before).toMatchObject({ flags: [], inventory: { coins: 0, quantity: 0 } });
+    expect(previewNewGame(store, identity).before).toMatchObject({ flags: reason === 'new-game' ? [] : ['quest.fixture.done'], inventory: { coins: reason === 'new-game' ? 0 : 7, quantity: 0 } });
     if (highway === undefined) throw new Error('No owned highway');
     const disposeHighway = vi.spyOn(highway, 'dispose');
     scope.dispose(); expect(allocator.entries()).toEqual([]);

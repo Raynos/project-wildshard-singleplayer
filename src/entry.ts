@@ -37,7 +37,7 @@ inspectPreviousBoot();
 async function enterPage(): Promise<unknown> {
   const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));
   const end = lastEnd();
-  const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected' && end.mode === 'grid' });
+  const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected' });
   if (recovery !== null) {
     search.set('chunk', recovery.slug); search.set('glreload', '1'); search.delete('at');
     const url = new URL(location.pathname, location.origin); url.search = search.toString();

@@ -24,7 +24,7 @@ import { jsonSlot } from '../saves/slots';
 import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
-import { lastEndLine, markUnload } from '../boot/lastEnd';
+import { lastEndLine, markReload } from '../boot/lastEnd';
 import { onSettingChange, saveSetting, setting, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 import { MOBILE_DEVICE } from '../core/tier';
 import { tierPickLine } from '../render/tierBoot';
@@ -154,7 +154,7 @@ const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59
   const freed = freedBytes(r);
   say(freed === null ? 'Cleared · reloading' : `Freed ${mbText(freed)} · reloading`,
     `${mbText(freed)} of downloads · ${r.caches} caches and ${r.workers} worker${r.workers === 1 ? '' : 's'} removed${r.httpCache ? ', HTTP cache cleared' : ''}. Reloading as a first visit.`);
-  scope.timeout(1500, () => { markUnload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); });
+  scope.timeout(1500, () => { markReload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); });
 }, { purpose: 'developer', ask: 'E172', reviewBy: '2026-12-30', note: engineString('s_510ecf1f03f4') }, {
   confirm: async () => { const used = await storageUsed(); return used === null ? 'Tap again to clear' : `Tap again to clear ~${mbText(used)}`; },
   status: () => {

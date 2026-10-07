@@ -14,7 +14,7 @@ import { engineString } from '../strings';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { settingsReloadUrl } from './Settings';
 import './styles/reload.css';
-import { markUnload } from '../boot/lastEnd';
+import { markReload } from '../boot/lastEnd';
 
 interface Pose { x: number; y: number; z: number; yaw: number; pitch: number }
 let poseOf: () => Pose | null = () => null;
@@ -30,7 +30,7 @@ const TITLE_SKIPPERS = ['skipintro', 'tour', 'showcase', 'nolock', 'x', 'z', 'ya
 export function reloadWithPicks(why = 'reload prompt: reload now'): void {
   const url = new URL(settingsReloadUrl(location.href, TITLE_SKIPPERS));
   url.searchParams.delete('v');
-  markUnload(why);
+  markReload(why);
   location.replace(url.toString());
 }
 

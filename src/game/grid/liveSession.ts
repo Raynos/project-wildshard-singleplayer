@@ -324,7 +324,11 @@ export class LiveGridSession {
   /** Recovery only, never called by crossings: failed persistence returns the graphics recovery to title. */
   prepareRecovery(reason: Exclude<GridRecoveryReason, 'new-game'>): boolean {
     if (this.ports.scope.disposed || !this.checkpoint()) return false;
-    return gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, this.recoveryRoad(), reason);
+    if (!gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, this.recoveryRoad(), reason)) return false;
+    // The intent names exactly this checkpoint; a later pagehide/timer must not replace its location or continuation.
+    this.checkpointsSuppressed = true;
+    this.homeSim?.suppressCheckpoint?.();
+    return true;
   }
 
   /** Capture before reset; run only after success, without flushing old state into the reset save. */

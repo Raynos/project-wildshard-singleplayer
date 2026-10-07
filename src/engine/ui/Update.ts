@@ -16,7 +16,7 @@ import { engineString } from '../strings';
  * above the sheet so the pill never lands on CLOSE.
  */
 import { isDev, onDev } from '../core/devMode';
-import { markUnload } from '../boot/lastEnd';
+import { markReload } from '../boot/lastEnd';
 
 
 // The update pill exists before content is selected; keep App and Three out of the entry graph.
@@ -47,7 +47,7 @@ const reload = async (): Promise<void> => {
   // itself; keep ?chunk= and friends.
   const url = new URL(location.href);
   url.searchParams.set('v', Date.now().toString(36));
-  markUnload('build pill tap (?v= reload)');
+  markReload('build pill tap (?v= reload)');
   location.replace(url.toString());
 };
 // pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the

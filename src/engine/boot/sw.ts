@@ -38,7 +38,7 @@ import { pageScope } from '../app/resources';
  * worker is only registered with `?sw=1` (a stale worker would serve yesterday's bundle over HMR).
  */
 
-import { markUnload } from './lastEnd'; // E179: the page's "why did it reload" record — imported first, so its beat is the page's
+import { markReload } from './lastEnd'; // E179: the page's "why did it reload" record — imported first, so its beat is the page's
 
 declare const __BUILD_ID__: string;
 
@@ -132,7 +132,7 @@ async function adopt(to?: string, why = 'new build adopted'): Promise<void> {
     const timer = pageScope.timeout(CAP_MS, resolve); // the hand-over never landed: leave the page alone
     pageScope.listen(sw, 'controllerchange', () => {
         pageScope.cancelTimer(timer);
-        markUnload(`${why}: the new service worker took over`);
+        markReload(`${why}: the new service worker took over`);
         if (to === undefined) location.reload();
         else location.replace(to);
       }, { once: true });

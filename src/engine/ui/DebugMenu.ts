@@ -22,7 +22,7 @@ import { saveStorage } from '../saves/slots';
 import './styles/debug.css';
 import { DEBUG_GROUPS, DEBUG_READOUTS, levelDebugRows, type DebugActionSpec, type DebugCtx, type DebugGroupId, type DebugRow } from './debugOptions';
 import { settingsReloadUrl } from './Settings';
-import { markUnload } from '../boot/lastEnd';
+import { markReload } from '../boot/lastEnd';
 
 const savedStorage = saveStorage('device');
 
@@ -62,7 +62,7 @@ function renderAction(r: DebugRow, a: DebugActionSpec, row: HTMLElement, label: 
     b.disabled = true;
     void Promise.resolve().then(() => a.run(say)).catch((e: unknown) => { console.warn(`[debug] ${r.id} failed`, e); }).finally(() => {
       b.disabled = false; onPick(r.id);
-      if (r.reload) { markUnload(`debug action ${r.id} (reloads)`); location.href = settingsReloadUrl(location.href); }
+      if (r.reload) { markReload(`debug action ${r.id} (reloads)`); location.href = settingsReloadUrl(location.href); }
     });
   };
   scope.listen(b, 'click', () => {
@@ -94,7 +94,7 @@ function renderRow(r: DebugRow, onPick: (id: string) => void, scope: Scope): Ren
       scope.listen(b, 'click', () => {
         if (r.get() === c.v) return;
         r.set(c.v); paint(); onPick(r.id);
-        if (r.reload) { markUnload(`debug row ${r.id} → ${c.v} (reloads)`); location.href = settingsReloadUrl(location.href); }
+        if (r.reload) { markReload(`debug row ${r.id} → ${c.v} (reloads)`); location.href = settingsReloadUrl(location.href); }
       });
       return b;
     }));
