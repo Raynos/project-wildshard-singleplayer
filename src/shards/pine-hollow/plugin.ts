@@ -3,6 +3,8 @@ import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 import type { prepareHybridShard as prepareTrustedHybrid } from '@wildshard/game/shardfile/hybrid';
 import RuntimePlugin from './runtime/index';
+import { pineMemoryTrim } from './debug/options';
+import { bindPineViewTrim } from './look/viewDistance';
 
 const DEBUG_ROWS = [{ id: 'pineHybrid', group: 'loading', label: 'Pine Hollow hybrid boot',
   choices: [{ value: 'off', text: 'Off' }, { value: 'on', text: 'On' }], initial: 'off', reload: true,
@@ -32,6 +34,7 @@ class PineHybrid extends ShardPlugin {
   private readonly admit: (ctx: ShardContext) => Promise<ShardPlugin>;
   constructor(Legacy: new () => ShardPlugin = RuntimePlugin, admit: (ctx: ShardContext) => Promise<ShardPlugin> = preparePineHybrid) {
     super(); this.Legacy = Legacy; this.admit = admit;
+    bindPineViewTrim(pineMemoryTrim); // G187: before the level applies its tier row
   }
   override async world(ctx: ShardContext): Promise<void> {
     if (!runtimeVariantEnabled(ctx, DEBUG_ROWS[0])) {

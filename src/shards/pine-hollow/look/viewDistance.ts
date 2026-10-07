@@ -1,5 +1,3 @@
-import { pineMemoryTrim } from '../debug/options';
-
 /**
  * G187 (Jake, 2026-10-07, `art/pine-hollow/round-36-content-cut/` board-view-distance B): on the phone, with the Pine
  * memory trim on (the grid's default), every reach the content-cut board scaled is 75 % of the phone row's: the trees' hi /
@@ -14,10 +12,15 @@ const VIEW_B = {
   shadowFar: 45, pickupOrbDist: 90,
 } as const;
 
+let trimmed: () => boolean = () => false;
+/** Bind the memory trim's pick (debug/options.ts `pineMemoryTrim`). The plugin binds it when it is constructed, before its
+ *  level boots, so the manifest's cold closure stays free of the save slots; unbound keeps today's reach */
+export function bindPineViewTrim(read: () => boolean): void { trimmed = read; }
+
 /** Pine's tier rows with view distance B laid over the phone's while the trim is on (read when the level applies its row) */
 export function pineTiers<P extends object, D extends object>(rows: { phone: P; desktop: D }): { readonly phone: P; desktop: D } {
   return {
-    get phone(): P { return pineMemoryTrim() ? { ...rows.phone, ...VIEW_B } : rows.phone; },
+    get phone(): P { return trimmed() ? { ...rows.phone, ...VIEW_B } : rows.phone; },
     desktop: rows.desktop,
   };
 }
