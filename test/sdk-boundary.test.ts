@@ -10,10 +10,11 @@ import { join, resolve } from 'node:path';
 import { execPath } from 'node:process';
 import { expect, it } from 'vitest';
 import { SHARDFILE_VERSION } from '@wildshard/sdk/version';
+import { SHARDFILE_VERSION as canonicalVersion } from '../src/game/shardfile/version';
 import { layerOf, resolveSpecifier } from '../scripts/check-graph.mjs';
 
 it('resolves the fifth workspace layer without a barrel', () => {
-  expect(SHARDFILE_VERSION).toBe(0);
+  expect(SHARDFILE_VERSION).toBe(canonicalVersion);
   expect(layerOf('src/sdk/version.ts')).toBe('sdk');
   expect(resolveSpecifier('src/shards/example/shard.config.ts', '@wildshard/sdk/version', () => true)).toBe('src/sdk/version.ts');
 });
