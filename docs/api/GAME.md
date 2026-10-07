@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-594 members; 112 without a doc line (—).
+597 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -117,9 +117,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `gridRecoveryRefused` | function | @wildshard/game/grid/recoveryBoot | Future or unconsumed metadata cannot enter a renderer on this boot. |
 | `pageGridRecovery` | function | @wildshard/game/grid/recoveryBoot | Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. |
 | `safeGridRecovery` | function | @wildshard/game/grid/recoveryBoot | A validated current catalogue's default home and road lane, used when recovery metadata is unsafe. |
+| `createRegionalRuntimeFactory` | function | @wildshard/game/grid/regionalRuntime | Compose the trusted regional stages without changing discovery, module admission or the fixed crossing driver. |
 | `PreparedRegionalRuntime` | interface | @wildshard/game/grid/regionalRuntime | The view adapter owns the real region, including critical terrain/colliders and a registry whose additions target |
 | `regionalRuntimeAccountedBytes` | function | @wildshard/game/grid/regionalRuntime | A transitional region pays for its whole opaque runtime. The first-party manifest and admitted declaration must |
 | `RegionalRuntimeFactory` | type | @wildshard/game/grid/regionalRuntime | Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only. |
+| `RegionalRuntimeFactoryPorts` | interface | @wildshard/game/grid/regionalRuntime | Composition ports owned by the page root, with explicit absence until the engine's regional binding lands. |
+| `RegionalRuntimeFoundation` | interface | @wildshard/game/grid/regionalRuntime | TODO SF47 engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine |
 | `RegionalRuntimePage` | interface | @wildshard/game/grid/regionalRuntime | Existing page services lent to a regional shell; it never constructs another renderer, player or input loop. |
 | `RegionalRuntimeRequest` | interface | @wildshard/game/grid/regionalRuntime | Fully admitted immutable content and the one page owner, supplied before any trusted gameplay hook executes. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |

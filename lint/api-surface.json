@@ -2425,7 +2425,7 @@
       {
         "name": "packFor",
         "kind": "function",
-        "doc": "This shard's pack for this tier, when the build has one and pause ▸ Settings ▸ Debug ▸ Boot pack isn't Off (E162; the",
+        "doc": "This level's shipping pack for the active tier, if its build has one.",
         "from": "@wildshard/engine/boot/pack"
       },
       {
@@ -3934,6 +3934,12 @@
         "gameOnly": true
       },
       {
+        "name": "bindChunkConstants",
+        "kind": "function",
+        "doc": "Retained frame constants; PAGE_LEVEL always remains the document's original level.",
+        "from": "@wildshard/engine/core/config"
+      },
+      {
         "name": "CELL_ABOVE",
         "kind": "const",
         "doc": "",
@@ -4526,6 +4532,12 @@
         "name": "MESH_COLLISION_LIMITS",
         "kind": "const",
         "doc": "Bounds for one indexed collision chunk; larger geometry must be partitioned before encoding.",
+        "from": "@wildshard/engine/core/meshCollision"
+      },
+      {
+        "name": "meshCollisionCost",
+        "kind": "function",
+        "doc": "Provisional collision residency: two wire copies, 64 bytes/vertex and 256 bytes/triangle; no render resources.",
         "from": "@wildshard/engine/core/meshCollision"
       },
       {
@@ -6033,6 +6045,24 @@
         "from": "@wildshard/engine/level/data"
       },
       {
+        "name": "LevelFrameBinding",
+        "kind": "class",
+        "doc": "Retains one local terrain/bake and explicitly enters its level-dependent engine services.",
+        "from": "@wildshard/engine/level/frame"
+      },
+      {
+        "name": "LevelFrameHost",
+        "kind": "interface",
+        "doc": "The level-dependent app slots; physics, renderer, scene and player are bound separately.",
+        "from": "@wildshard/engine/level/frame"
+      },
+      {
+        "name": "LevelFrameOptions",
+        "kind": "interface",
+        "doc": "Retained regional resources, owned by the resident rather than the page.",
+        "from": "@wildshard/engine/level/frame"
+      },
+      {
         "name": "createLevelInstallation",
         "kind": "function",
         "doc": "Construct the ordinary level verbs bound to a supplied scope, without changing the running level or boot loop.",
@@ -6074,6 +6104,12 @@
         "name": "activeLevel",
         "kind": "function",
         "doc": "",
+        "from": "@wildshard/engine/level/selection"
+      },
+      {
+        "name": "bindLevelSelection",
+        "kind": "function",
+        "doc": "Frame-local selection without changing the configured page or notifying page-load listeners.",
         "from": "@wildshard/engine/level/selection"
       },
       {
@@ -10702,12 +10738,6 @@
         "from": "@wildshard/engine/ui/Settings"
       },
       {
-        "name": "onSfxSet",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/engine/ui/Settings"
-      },
-      {
         "name": "OPTION_VALUES",
         "kind": "const",
         "doc": "",
@@ -10763,12 +10793,6 @@
       },
       {
         "name": "setSetting",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/engine/ui/Settings"
-      },
-      {
-        "name": "setSfxSet",
         "kind": "function",
         "doc": "",
         "from": "@wildshard/engine/ui/Settings"
@@ -11578,6 +11602,12 @@
         "from": "@wildshard/engine/world/Heightfield"
       },
       {
+        "name": "bindHeightfield",
+        "kind": "function",
+        "doc": "Activate a retained field; releases may arrive out of order without restoring a dead frame.",
+        "from": "@wildshard/engine/world/Heightfield"
+      },
+      {
         "name": "CABIN_SITES",
         "kind": "const",
         "doc": "The level's cabin pads (x, z and yaw), flattened into its terrain.",
@@ -11590,6 +11620,12 @@
         "from": "@wildshard/engine/world/Heightfield"
       },
       {
+        "name": "captureHeightfield",
+        "kind": "function",
+        "doc": "Capture the active retained field before an async build yields.",
+        "from": "@wildshard/engine/world/Heightfield"
+      },
+      {
         "name": "hasPond",
         "kind": "function",
         "doc": "whether the running level has a pond (`POND` is a zero-size placeholder when it has none)",
@@ -11599,6 +11635,12 @@
         "name": "heightAt",
         "kind": "const",
         "doc": "surface height, metres",
+        "from": "@wildshard/engine/world/Heightfield"
+      },
+      {
+        "name": "HeightfieldBinding",
+        "kind": "class",
+        "doc": "A retained analytic/baked terrain in one level's local frame; construction does not select it.",
         "from": "@wildshard/engine/world/Heightfield"
       },
       {
@@ -13506,6 +13548,12 @@
         "from": "@wildshard/game/grid/recoveryBoot"
       },
       {
+        "name": "createRegionalRuntimeFactory",
+        "kind": "function",
+        "doc": "Compose the trusted regional stages without changing discovery, module admission or the fixed crossing driver.",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
         "name": "PreparedRegionalRuntime",
         "kind": "interface",
         "doc": "The view adapter owns the real region, including critical terrain/colliders and a registry whose additions target",
@@ -13521,6 +13569,18 @@
         "name": "RegionalRuntimeFactory",
         "kind": "type",
         "doc": "Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only.",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
+        "name": "RegionalRuntimeFactoryPorts",
+        "kind": "interface",
+        "doc": "Composition ports owned by the page root, with explicit absence until the engine's regional binding lands.",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
+        "name": "RegionalRuntimeFoundation",
+        "kind": "interface",
+        "doc": "TODO SF47 engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine",
         "from": "@wildshard/game/grid/regionalRuntime"
       },
       {
@@ -17666,6 +17726,30 @@
         "kind": "interface",
         "doc": "A material texture use preserves UV0 and sampler data rather than copying pixels into vertex colours.",
         "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "BakedWorldCollision",
+        "kind": "interface",
+        "doc": "Deterministic collision bake; byte costs and critical-root admission are applied by the compiled product builder.",
+        "from": "@wildshard/sdk/bake/worldCollision"
+      },
+      {
+        "name": "bakeWorldCollision",
+        "kind": "function",
+        "doc": "Partition actual collision triangles at the L0 lattice, weld exact Float32 seams, and bake panels independently.",
+        "from": "@wildshard/sdk/bake/worldCollision"
+      },
+      {
+        "name": "WorldCollisionPanel",
+        "kind": "interface",
+        "doc": "Interactive geometry stays independent of static tiles, in its authored world rest pose.",
+        "from": "@wildshard/sdk/bake/worldCollision"
+      },
+      {
+        "name": "WorldCollisionTile",
+        "kind": "interface",
+        "doc": "One nonempty 62.5 m collision tile. The hash refers to exact cell-local WMC1 bytes.",
+        "from": "@wildshard/sdk/bake/worldCollision"
       },
       {
         "name": "simplifyWorldPrimitive",

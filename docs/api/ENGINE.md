@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2138 members; 832 without a doc line (—).
+2145 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -411,7 +411,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PageLife` | class | @wildshard/engine/boot/lastEnd | One page's life record: built at boot, it reads how the previous page ended, then beats while this one lives. The page |
 | `setAliveSource` | function | @wildshard/engine/boot/lastEnd | — |
 | `bootParts` | function | @wildshard/engine/boot/pack | The parts of `pack` a boot declaring `files` reads: every part that carries one of them. The pack is baked for the |
-| `packFor` | function | @wildshard/engine/boot/pack | This shard's pack for this tier, when the build has one and pause ▸ Settings ▸ Debug ▸ Boot pack isn't Off (E162; the |
+| `packFor` | function | @wildshard/engine/boot/pack | This level's shipping pack for the active tier, if its build has one. |
 | `streamPack` | function | @wildshard/engine/boot/pack | Start streaming `pack` and answer every GET of a packed path from it. Installed after the byte counter and the |
 | `ByteProgress` | interface | @wildshard/engine/boot/plan | — |
 | `createBootPlan` | function | @wildshard/engine/boot/plan | — |
@@ -662,6 +662,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `GameClock` | class | @wildshard/engine/core/clock | Explicit deltas keep simulation independent of wall-time reads and render speed. |
 | `GameClockState` | interface | @wildshard/engine/core/clock | Explicit simulation/wall clocks plus capture, pause and time-scale settings. |
 | `_applyChunkConstants` | function · game only | @wildshard/engine/core/config | — |
+| `bindChunkConstants` | function | @wildshard/engine/core/config | Retained frame constants; PAGE_LEVEL always remains the document's original level. |
 | `CELL_ABOVE` | const | @wildshard/engine/core/config | — |
 | `CELL_BELOW` | const | @wildshard/engine/core/config | — |
 | `CELL_HEIGHT` | const | @wildshard/engine/core/config | — |
@@ -761,6 +762,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `encodeMeshCollision` | function | @wildshard/engine/core/meshCollision | Encode bounded indexed geometry deterministically, with no simplification or heightfield conversion. |
 | `isMeshCollisionData` | function | @wildshard/engine/core/meshCollision | Identify WMC1 bytes without allocating or admitting their contents. |
 | `MESH_COLLISION_LIMITS` | const | @wildshard/engine/core/meshCollision | Bounds for one indexed collision chunk; larger geometry must be partitioned before encoding. |
+| `meshCollisionCost` | function | @wildshard/engine/core/meshCollision | Provisional collision residency: two wire copies, 64 bytes/vertex and 256 bytes/triangle; no render resources. |
 | `MeshCollisionData` | interface | @wildshard/engine/core/meshCollision | Cell-local triangle geometry. Each index names a vertex in the packed XYZ array; winding is preserved. |
 | `clamp` | const | @wildshard/engine/core/noise | — |
 | `lerp` | const | @wildshard/engine/core/noise | — |
@@ -1011,6 +1013,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TerrainSpec` | interface | @wildshard/engine/level/data | — |
 | `TreeSpec` | interface | @wildshard/engine/level/data | — |
 | `Vec2` | type | @wildshard/engine/level/data | — |
+| `LevelFrameBinding` | class | @wildshard/engine/level/frame | Retains one local terrain/bake and explicitly enters its level-dependent engine services. |
+| `LevelFrameHost` | interface | @wildshard/engine/level/frame | The level-dependent app slots; physics, renderer, scene and player are bound separately. |
+| `LevelFrameOptions` | interface | @wildshard/engine/level/frame | Retained regional resources, owned by the resident rather than the page. |
 | `createLevelInstallation` | function | @wildshard/engine/level/installation | Construct the ordinary level verbs bound to a supplied scope, without changing the running level or boot loop. |
 | `LevelInstallation` | interface | @wildshard/engine/level/installation | One scoped context and its registration window, shared by staged loading and resident level activation. |
 | `LevelDriver` | interface · game only | @wildshard/engine/level/load | — |
@@ -1018,6 +1023,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `LevelLoadError` | class · game only | @wildshard/engine/level/load | — |
 | `LevelStage` | type | @wildshard/engine/level/load | — |
 | `activeLevel` | function | @wildshard/engine/level/selection | — |
+| `bindLevelSelection` | function | @wildshard/engine/level/selection | Frame-local selection without changing the configured page or notifying page-load listeners. |
 | `configureLevel` | function · game only | @wildshard/engine/level/selection | The composition root supplies engine data before constructing the renderer or world. |
 | `onLevelChange` | function | @wildshard/engine/level/selection | — |
 | `selectedLevel` | function | @wildshard/engine/level/selection | Early error reporting and the renderer-free page can inspect selection without requiring a world. |
@@ -1788,7 +1794,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `onNumber` | function | @wildshard/engine/ui/Settings | — |
 | `onSetting` | function | @wildshard/engine/ui/Settings | — |
 | `onSettingChange` | function | @wildshard/engine/ui/Settings | fires on a live option's change, and with the new saved pick for a boot option; not called immediately |
-| `onSfxSet` | function | @wildshard/engine/ui/Settings | — |
 | `OPTION_VALUES` | const | @wildshard/engine/ui/Settings | — |
 | `OptionKey` | type | @wildshard/engine/ui/Settings | — |
 | `OptionValue` | type | @wildshard/engine/ui/Settings | — |
@@ -1799,7 +1804,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `setMusicStyle` | function | @wildshard/engine/ui/Settings | — |
 | `setNumber` | function | @wildshard/engine/ui/Settings | — |
 | `setSetting` | function | @wildshard/engine/ui/Settings | — |
-| `setSfxSet` | function | @wildshard/engine/ui/Settings | — |
 | `setting` | function | @wildshard/engine/ui/Settings | the value this page runs with: the URL's param if present, else the saved pick, else the default |
 | `settingFromUrl` | function | @wildshard/engine/ui/Settings | the URL overrides this option for this load (the menus say so) |
 | `SettingKey` | type | @wildshard/engine/ui/Settings | — |
@@ -1934,10 +1938,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TrampleField` | interface | @wildshard/engine/world/Grass | A trample field the grass bends round and the player stamps into each frame (the kit's GrassTrample) |
 | `terrainFieldFor` | function | @wildshard/engine/world/groundField | Authored terrain wins; a structures-only world samples a placement floor at y = -1000 m. |
 | `_installBakedTerrain` | function | @wildshard/engine/world/Heightfield | The baked grid (src/engine/world/BakedTerrain.ts, public/assets/baked/<slug>/terrain.bin) replaces the |
+| `bindHeightfield` | function | @wildshard/engine/world/Heightfield | Activate a retained field; releases may arrive out of order without restoring a dead frame. |
 | `CABIN_SITES` | const | @wildshard/engine/world/Heightfield | The level's cabin pads (x, z and yaw), flattened into its terrain. |
 | `cabinMask` | const | @wildshard/engine/world/Heightfield | 0 off the cabin pads → 1 on them |
+| `captureHeightfield` | function | @wildshard/engine/world/Heightfield | Capture the active retained field before an async build yields. |
 | `hasPond` | function | @wildshard/engine/world/Heightfield | whether the running level has a pond (`POND` is a zero-size placeholder when it has none) |
 | `heightAt` | const | @wildshard/engine/world/Heightfield | surface height, metres |
+| `HeightfieldBinding` | class | @wildshard/engine/world/Heightfield | A retained analytic/baked terrain in one level's local frame; construction does not select it. |
 | `inChunk` | function | @wildshard/engine/world/Heightfield | whether (x, z) lies inside the level's square, `margin` metres in from its edge |
 | `normalAt` | const | @wildshard/engine/world/Heightfield | unit surface normal by central differences |
 | `overrideTerrain` | function | @wildshard/engine/world/Heightfield | Bind terrain fields over the level's (a flat, dry world for a test or a playground: `{ heightAt: () => 0, waterLevel: |

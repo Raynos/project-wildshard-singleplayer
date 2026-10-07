@@ -1844,7 +1844,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2121 exports, grouped by the module to import them from.
+2128 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1967,7 +1967,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/assets`: `loadGLTF`, `loadHDR`, `loadImage`, `loadPBR`, `loadPBRArray`, `loadTexture`, `pbrMaterial`, `PBRSet`, `pbrUrls`, `setAnisotropy`, `texUrl`
 - `@wildshard/engine/core/bootstrap`: `bootstrap`, `World`
 - `@wildshard/engine/core/clock`: `diagnosticNow`, `GameClock`, `GameClockState`
-- `@wildshard/engine/core/config`: `_applyChunkConstants`, `CELL_ABOVE`, `CELL_BELOW`, `CELL_HEIGHT`, `CHUNK_COORDS`, `CHUNK_DEPTH`, `CHUNK_HALF`, `CHUNK_SIZE`, `CONTENT_CAPS`, `CONTENT_MB`, `ENTRY_ASPHALT`, `ENTRY_WIDTH`, `PAGE_LEVEL`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `TERRAIN_RES`, `TREE_COUNT`
+- `@wildshard/engine/core/config`: `_applyChunkConstants`, `bindChunkConstants`, `CELL_ABOVE`, `CELL_BELOW`, `CELL_HEIGHT`, `CHUNK_COORDS`, `CHUNK_DEPTH`, `CHUNK_HALF`, `CHUNK_SIZE`, `CONTENT_CAPS`, `CONTENT_MB`, `ENTRY_ASPHALT`, `ENTRY_WIDTH`, `PAGE_LEVEL`, `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`, `TERRAIN_RES`, `TREE_COUNT`
 - `@wildshard/engine/core/contentCost`: `contentCost`, `ContentCostInput`
 - `@wildshard/engine/core/devMode`: `isDev`, `onDev`, `setDev`
 - `@wildshard/engine/core/errorReport`: `ContextValue`, `ErrorPayload`, `ErrorReporter`, `keyOf`, `LoadFailure`, `QUEUE_KEY`, `QUEUE_MAX`, `REPORT_DELAY_MS`, `ReporterDeps`, `reportError`, `ReportOutcome`, `REPORTS_MAX`, `safeUrl`, `sendReport`, `SendResult`, `SESSION_KEY`, `StorageLike`
@@ -1979,7 +1979,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
 - `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphOutline`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `SUN_CASCADES`, `SUN_CASCADES_MAX`, `SUN_OPS`, `validateGraph`
-- `@wildshard/engine/core/meshCollision`: `decodeMeshCollision`, `encodeMeshCollision`, `isMeshCollisionData`, `MESH_COLLISION_LIMITS`, `MeshCollisionData`
+- `@wildshard/engine/core/meshCollision`: `decodeMeshCollision`, `encodeMeshCollision`, `isMeshCollisionData`, `MESH_COLLISION_LIMITS`, `meshCollisionCost`, `MeshCollisionData`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
 - `@wildshard/engine/core/practiceRoom`: `practiceRoom`
@@ -2012,9 +2012,10 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/input/weaponActions`: `weaponActionGate`
 - `@wildshard/engine/level/context`: `ContentRow`, `ContentRowMap`, `CreatureMaterialFactory`, `DebugRowSpec`, `EngineRows`, `HudVerbs`, `InputContextDef`, `LevelAdapters`, `LevelContext`, `LevelHooks`, `PlaygroundSpec`, `ResidentMemory`, `RowVerb`, `StringTable`, `TierKnobSchema`, `VerbSlotOpts`
 - `@wildshard/engine/level/data`: `AtmosphereSpec`, `CabinSite`, `CompareTarget`, `exploreArt`, `ExploreArt`, `ExploreSpec`, `FaunaKind`, `ForestSpec`, `GradeLook`, `GradeSpec`, `HerdPlan`, `HorizonBand`, `HorizonRing`, `HorizonSpec`, `HudSpec`, `LevelAssets`, `MapLook`, `MinimapSpec`, `PoiSpec`, `PondDef`, `RGB`, `SkySpec`, `SpawnPose`, `TerrainField`, `TerrainNoise`, `TerrainSpec`, `TreeSpec`, `Vec2`
+- `@wildshard/engine/level/frame`: `LevelFrameBinding`, `LevelFrameHost`, `LevelFrameOptions`
 - `@wildshard/engine/level/installation`: `createLevelInstallation`, `LevelInstallation`
 - `@wildshard/engine/level/load`: `LevelDriver`, `LevelLoader`, `LevelLoadError`, `LevelStage`
-- `@wildshard/engine/level/selection`: `activeLevel`, `configureLevel`, `onLevelChange`, `selectedLevel`
+- `@wildshard/engine/level/selection`: `activeLevel`, `bindLevelSelection`, `configureLevel`, `onLevelChange`, `selectedLevel`
 - `@wildshard/engine/level/spec`: `AudioSpec`, `BootSpec`, `Bounds`, `CreatureRenderSpec`, `EngineMechanism`, `FightRules`, `LevelSpec`, `LoadoutSpec`, `needsTerrainCollider`, `resolveTierKnobs`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
 - `@wildshard/engine/math/color`: `lin`
 - `@wildshard/engine/models/colliders`: `drawnHullOwn`, `drawnHullWorld`, `placeCollider`, `Pose`, `poseGeometry`, `poseOf`
@@ -2157,7 +2158,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ui/review`: `CATEGORIES`, `Category`, `ContextValue`, `flushQueue`, `INBOX_URL`, `loadState`, `lockReview`, `NotePayload`, `onReview`, `QUEUE_MAX`, `queuedCount`, `quickNote`, `readQueue`, `ReviewDesk`, `reviewUnlocked`, `sendNote`, `setQuickNote`, `StorageLike`, `unlockReview`, `writeQueue`
 - `@wildshard/engine/ui/roomMap`: `arenaMap`, `fitRoom`, `paintRoom`, `ROOM_BG`, `RoomMap`, `RoomMarker`, `RoomShape`, `RoomView`
 - `@wildshard/engine/ui/RotateGate`: `rotateGated`
-- `@wildshard/engine/ui/Settings`: `BOOT_OPTIONS`, `createSettings`, `DEVELOPER_OPTIONS`, `getMusicStyle`, `getNumber`, `getSetting`, `getSfxSet`, `MUSIC_STYLES`, `MusicStyle`, `NUM_RANGE`, `NumberKey`, `onMusicStyle`, `onNumber`, `onSetting`, `onSettingChange`, `onSfxSet`, `OPTION_VALUES`, `OptionKey`, `OptionValue`, `overrideSetting`, `pendingReload`, `savedSetting`, `saveSetting`, `setMusicStyle`, `setNumber`, `setSetting`, `setSfxSet`, `setting`, `settingFromUrl`, `SettingKey`, `settingParams`, `Settings`, `settingsReloadUrl`, `SFX_SETS`, `SfxSet`
+- `@wildshard/engine/ui/Settings`: `BOOT_OPTIONS`, `createSettings`, `DEVELOPER_OPTIONS`, `getMusicStyle`, `getNumber`, `getSetting`, `getSfxSet`, `MUSIC_STYLES`, `MusicStyle`, `NUM_RANGE`, `NumberKey`, `onMusicStyle`, `onNumber`, `onSetting`, `onSettingChange`, `OPTION_VALUES`, `OptionKey`, `OptionValue`, `overrideSetting`, `pendingReload`, `savedSetting`, `saveSetting`, `setMusicStyle`, `setNumber`, `setSetting`, `setting`, `settingFromUrl`, `SettingKey`, `settingParams`, `Settings`, `settingsReloadUrl`, `SFX_SETS`, `SfxSet`
 - `@wildshard/engine/ui/SpeedLines`: `SpeedLines`
 - `@wildshard/engine/ui/tabs`: `TabFragment`, `TabId`, `TabRegistry`, `TabSpec`
 - `@wildshard/engine/ui/WeaponStrip`: `WeaponStrip`
@@ -2182,7 +2183,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/world/geometryKit`: `beam`, `blob`, `lathe`, `log`, `mergeVerticesByPos`, `plank`, `pole`, `revolve`, `revolveUV`, `rock`, `rope`, `sagLine`, `tris`, `wobble`
 - `@wildshard/engine/world/Grass`: `Grass`, `GrassTrampleField`, `TrampleField`
 - `@wildshard/engine/world/groundField`: `terrainFieldFor`
-- `@wildshard/engine/world/Heightfield`: `_installBakedTerrain`, `CABIN_SITES`, `cabinMask`, `hasPond`, `heightAt`, `inChunk`, `normalAt`, `overrideTerrain`, `POND`, `pondMask`, `splatAt`, `streamAt`, `trailDistance`, `TRAILS`, `waterLevel`
+- `@wildshard/engine/world/Heightfield`: `_installBakedTerrain`, `bindHeightfield`, `CABIN_SITES`, `cabinMask`, `captureHeightfield`, `hasPond`, `heightAt`, `HeightfieldBinding`, `inChunk`, `normalAt`, `overrideTerrain`, `POND`, `pondMask`, `splatAt`, `streamAt`, `trailDistance`, `TRAILS`, `waterLevel`
 - `@wildshard/engine/world/Horizon`: `Horizon`, `horizonLight`
 - `@wildshard/engine/world/HorizonMatte`: `HORIZON_RADIUS`, `HorizonMatte`, `horizonStrips`, `HorizonStrips`, `levelHorizonStrips`, `PaintedHorizon`
 - `@wildshard/engine/world/interact/flags`: `FlagListener`, `Flags`, `test`
@@ -2215,7 +2216,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-594 exports, grouped by the module to import them from.
+597 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2239,7 +2240,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHome`, `LiveGridHost`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
 - `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`
 - `@wildshard/game/grid/recoveryBoot`: `clearGridRecovery`, `consumeGridRecovery`, `gridRecoveryRefused`, `pageGridRecovery`, `safeGridRecovery`
-- `@wildshard/game/grid/regionalRuntime`: `PreparedRegionalRuntime`, `regionalRuntimeAccountedBytes`, `RegionalRuntimeFactory`, `RegionalRuntimePage`, `RegionalRuntimeRequest`
+- `@wildshard/game/grid/regionalRuntime`: `createRegionalRuntimeFactory`, `PreparedRegionalRuntime`, `regionalRuntimeAccountedBytes`, `RegionalRuntimeFactory`, `RegionalRuntimeFactoryPorts`, `RegionalRuntimeFoundation`, `RegionalRuntimePage`, `RegionalRuntimeRequest`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `installGridTravellerCombat`, `reframeGridUnit`
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
@@ -2376,7 +2377,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-180 exports, grouped by the module to import them from.
+184 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2390,6 +2391,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
 - `@wildshard/sdk/bake/textureWasm`: `bakeWorldTexture`, `WORLD_TEXTURE_TOOL`
 - `@wildshard/sdk/bake/world`: `NormalizedWorld`, `normalizeWorldGlb`, `WorldImage`, `WorldMaterial`, `WorldPanel`, `WorldPrimitive`, `WorldTexture`
+- `@wildshard/sdk/bake/worldCollision`: `BakedWorldCollision`, `bakeWorldCollision`, `WorldCollisionPanel`, `WorldCollisionTile`
 - `@wildshard/sdk/bake/worldLod`: `simplifyWorldPrimitive`, `WORLD_LOD_TOOL`, `WorldLod`
 - `@wildshard/sdk/brains`: `guardian`, `GuardianData`, `perchHunter`, `PerchHunterData`, `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
