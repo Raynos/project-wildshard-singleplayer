@@ -365,6 +365,9 @@
     "./combat/Melee": "./combat/Melee.ts",
     "./combat/Thrown": "./combat/Thrown.ts",
     "./combat/meleeProfile": "./combat/meleeProfile.ts",
-    "./combat/thrownProfile": "./combat/thrownProfile.ts"
+    "./combat/thrownProfile": "./combat/thrownProfile.ts",
+    "./combat/bowDraw": "./combat/bowDraw.ts",
+    "./combat/view/Bow": "./combat/view/Bow.ts",
+    "./combat/view/bowProfile": "./combat/view/bowProfile.ts"
   }
 }

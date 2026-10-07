@@ -41,7 +41,9 @@
     "./runtime/weapons/Thrown": "./runtime/weapons/Thrown.ts",
     "./weapons/meleeProfile": "./weapons/meleeProfile.ts",
     "./weapons/thrownProfile": "./weapons/thrownProfile.ts",
-    "./bake/world": "./bake/world.ts"
+    "./bake/world": "./bake/world.ts",
+    "./runtime/weapons/Bow": "./runtime/weapons/Bow.ts",
+    "./weapons/bowProfile": "./weapons/bowProfile.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -224,6 +226,14 @@
       "./bake/world": {
         "types": "./dist/bake/world.d.ts",
         "import": "./dist/bake/world.js"
+      },
+      "./runtime/weapons/Bow": {
+        "types": "./dist/types/sdk/runtime/weapons/Bow.d.ts",
+        "default": "./dist/runtime/weapons/Bow.js"
+      },
+      "./weapons/bowProfile": {
+        "types": "./dist/types/sdk/weapons/bowProfile.d.ts",
+        "default": "./dist/weapons/bowProfile.js"
       }
     }
   }

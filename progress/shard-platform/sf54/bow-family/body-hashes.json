@@ -1,0 +1,130 @@
+{
+  "records": [
+    {
+      "name": "BowDraw",
+      "sha256": "06a81bdf18259e4fa9007dd60b798b1c7d531415a0634c132a643fc288907a62",
+      "identical": true
+    },
+    {
+      "name": "Bow.get.wind",
+      "sha256": "fb5868846068704c63460a76c2c84b4e66eb654b6a04aaad99432ea66d49a794",
+      "identical": true
+    },
+    {
+      "name": "Bow.set.wind",
+      "sha256": "ea6ce530389a58c89f61263b27612aab4feba6129d0bda42f9cca21cc69299a8",
+      "identical": true
+    },
+    {
+      "name": "Bow.get.charge",
+      "sha256": "f9555f0581cdc732cbcf58740daed821e1258ea1e37dddf89ccf9e63dd9d1efd",
+      "identical": true
+    },
+    {
+      "name": "Bow.get.drawing",
+      "sha256": "c8061f83877f329efbe784e484cb4c96e08a22ee6a0fbb741eed72bed31cada4",
+      "identical": true
+    },
+    {
+      "name": "Bow.get.fullDraw",
+      "sha256": "37d66e4463c64aebda075d9d934766d917ffaacc4ea297d94110540bb9212ba1",
+      "identical": true
+    },
+    {
+      "name": "Bow.get.aimed",
+      "sha256": "a4b5881f788d649739555125d8dfae9450accac452cbe5e19d7b972f340b96e3",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.install",
+      "sha256": "f0038e148fc4482bcc68a6edff9a6f75795c92dd9a536867994e544fe17ab16b",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.bindInput",
+      "sha256": "837d73500d42247d80ca0336af325916b3397a4060c2103ee93cd6eaf2d3352b",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.tryFire",
+      "sha256": "31d35a84af403ebf42fbcf9b3162d0e4631e04445d8b6259d1e72a173a100070",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.loose",
+      "sha256": "6de8847d017a0e847ed66e86d8b6d0d8e5ff42dcc4d23473b2dc861376a63c93",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.launchFrom",
+      "sha256": "02921b514c4627283004fa6039528924f4f4088cde13dc60a43bd0b92458e720",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.aimRay",
+      "sha256": "f94108548ee75922ee19b1067baca9da3b7b8d7a9e91b32e90df818c75d9c365",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.setMount",
+      "sha256": "a89a277133c3dbf2af884952d21dcc2dcefb3c435e67fb96c739034225d7fb88",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.carryMountState",
+      "sha256": "06b24756f6c9f185db0996f6e23f0147d10b71447e600dd42dac92d86eeb64b4",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.setStyle",
+      "sha256": "e7d8bfc295c1bc4a6e130e09d73f546fe08dadc9263b17a570d61f3d5b226830",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.addBolts",
+      "sha256": "4fd51b3c265fabced3cf2cbae1c9e603481f32703b140e88cea91296f220579f",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.reload",
+      "sha256": "db004e13c10fe7ee03e60ede192b2863588195a5f6512d654eea5d603165c52d",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.update",
+      "sha256": "49ca89f68479f3f5db0d8f5665ff258b4a9129e43bedc3d9d7bb5fcb0256cbb1",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.poseViewmodel",
+      "sha256": "f3f6fe4cfff01bd4f7c40f01f6ff6ea3ca93f49c1c2ff8b72b8f4d6ad0477f4b",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.onArrowLoose",
+      "sha256": "f677a4a45c3fad131cf264a932da5f51fcca533a90ffe896061f50fb9766e6e9",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.onArrowHit",
+      "sha256": "f677a4a45c3fad131cf264a932da5f51fcca533a90ffe896061f50fb9766e6e9",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.limbPose",
+      "sha256": "15c4c29ac4b110c9896425c524db1396c009912c95d91d91d2f25a54003bf1b7",
+      "identical": true
+    },
+    {
+      "name": "Bow.method.displayModel",
+      "sha256": "8de0ba683ffc2af43d25f66ba619ac6225b038de7da63869f97864d2caa0edfb",
+      "identical": true
+    },
+    {
+      "name": "Bow.get.stuckCount",
+      "sha256": "47bd34bf051dcaeab280c8e8b510ed37ea6c317f27084acb299a2145c9a82856",
+      "identical": true
+    }
+  ],
+  "ports": "Input context and initial style are explicit options; generic Style replaces the shard-specific style enum. Kit retains weapon.bow/recurve defaults and its original style vocabulary. Constructor and every other runtime field/body are otherwise unchanged."
+}

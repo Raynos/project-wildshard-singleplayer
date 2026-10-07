@@ -1,0 +1,324 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`trusted SDK bow graduation > matches every draw value and event across ten thousand independent legacy/platform ticks 1`] = `
+{
+  "events": [
+    [
+      0,
+      "start",
+    ],
+    [
+      44,
+      "full",
+    ],
+    [
+      524,
+      "tired",
+    ],
+    [
+      721,
+      "start",
+    ],
+    [
+      750,
+      "letdown",
+    ],
+    [
+      900,
+      "start",
+    ],
+    [
+      944,
+      "full",
+    ],
+    [
+      1424,
+      "tired",
+    ],
+    [
+      1621,
+      "start",
+    ],
+    [
+      1650,
+      "letdown",
+    ],
+    [
+      1800,
+      "start",
+    ],
+    [
+      1837,
+      "full",
+    ],
+    [
+      2521,
+      "start",
+    ],
+    [
+      2550,
+      "letdown",
+    ],
+    [
+      2700,
+      "start",
+    ],
+    [
+      2737,
+      "full",
+    ],
+    [
+      3217,
+      "tired",
+    ],
+    [
+      3421,
+      "start",
+    ],
+    [
+      3450,
+      "letdown",
+    ],
+    [
+      3600,
+      "start",
+    ],
+    [
+      3644,
+      "full",
+    ],
+    [
+      4321,
+      "start",
+    ],
+    [
+      4350,
+      "letdown",
+    ],
+    [
+      4500,
+      "start",
+    ],
+    [
+      4544,
+      "full",
+    ],
+    [
+      5024,
+      "tired",
+    ],
+    [
+      5221,
+      "start",
+    ],
+    [
+      5250,
+      "letdown",
+    ],
+    [
+      5400,
+      "start",
+    ],
+    [
+      5437,
+      "full",
+    ],
+    [
+      5917,
+      "tired",
+    ],
+    [
+      6121,
+      "start",
+    ],
+    [
+      6150,
+      "letdown",
+    ],
+    [
+      6300,
+      "start",
+    ],
+    [
+      6337,
+      "full",
+    ],
+    [
+      6817,
+      "tired",
+    ],
+    [
+      7021,
+      "start",
+    ],
+    [
+      7050,
+      "letdown",
+    ],
+    [
+      7200,
+      "start",
+    ],
+    [
+      7244,
+      "full",
+    ],
+    [
+      7724,
+      "tired",
+    ],
+    [
+      7921,
+      "start",
+    ],
+    [
+      7950,
+      "letdown",
+    ],
+    [
+      8100,
+      "start",
+    ],
+    [
+      8144,
+      "full",
+    ],
+    [
+      8821,
+      "start",
+    ],
+    [
+      8850,
+      "letdown",
+    ],
+    [
+      9000,
+      "start",
+    ],
+    [
+      9037,
+      "full",
+    ],
+    [
+      9517,
+      "tired",
+    ],
+    [
+      9721,
+      "start",
+    ],
+    [
+      9750,
+      "letdown",
+    ],
+    [
+      9900,
+      "start",
+    ],
+    [
+      9937,
+      "full",
+    ],
+  ],
+  "hash": 1419556534,
+  "ticks": 10000,
+}
+`;
+
+exports[`trusted SDK bow graduation > preserves live view transforms, input defaults, mounted draw and launch edges (portrait=false) 1`] = `
+{
+  "ammo": 21,
+  "context": "weapon.bow",
+  "edges": [
+    "draw",
+    "full",
+    "loose",
+    "draw",
+    "full",
+    "loose",
+    "draw",
+    "full",
+    "loose",
+    "draw",
+    "full",
+  ],
+  "frames": 600,
+  "hash": 4267661955,
+  "launches": [
+    [
+      -0.0758266766757564,
+      1.7322865827964142,
+      -0.5422328174905906,
+      -7.996267722170675,
+      5.513857822167336,
+      -57.18091529900773,
+    ],
+    [
+      -0.2592256062520281,
+      1.6864449572456461,
+      -0.4850366456149168,
+      -32.49025997538813,
+      0.6796500368135963,
+      -57.26805649039439,
+    ],
+    [
+      -0.41552932078211896,
+      1.6156821517597943,
+      -0.3545399807752306,
+      -48.973197144015884,
+      -6.78260945078532,
+      -43.50659001639112,
+    ],
+  ],
+  "style": "recurve",
+}
+`;
+
+exports[`trusted SDK bow graduation > preserves live view transforms, input defaults, mounted draw and launch edges (portrait=true) 1`] = `
+{
+  "ammo": 21,
+  "context": "weapon.bow",
+  "edges": [
+    "draw",
+    "full",
+    "loose",
+    "draw",
+    "full",
+    "loose",
+    "draw",
+    "full",
+    "loose",
+    "draw",
+    "full",
+  ],
+  "frames": 600,
+  "hash": 2216846467,
+  "launches": [
+    [
+      -0.0758266766757564,
+      1.7322865827964142,
+      -0.5422328174905906,
+      -7.996267722170675,
+      5.513857822167336,
+      -57.18091529900773,
+    ],
+    [
+      -0.2592256062520281,
+      1.6864449572456461,
+      -0.4850366456149168,
+      -32.49025997538813,
+      0.6796500368135963,
+      -57.26805649039439,
+    ],
+    [
+      -0.41552932078211896,
+      1.6156821517597943,
+      -0.3545399807752306,
+      -48.973197144015884,
+      -6.78260945078532,
+      -43.50659001639112,
+    ],
+  ],
+  "style": "recurve",
+}
+`;
