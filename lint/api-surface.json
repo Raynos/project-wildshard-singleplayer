@@ -13434,6 +13434,30 @@
         "from": "@wildshard/game/grid/recoveryBoot"
       },
       {
+        "name": "PreparedRegionalRuntime",
+        "kind": "interface",
+        "doc": "The view adapter owns the real region, including critical terrain/colliders and a registry whose additions target",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
+        "name": "RegionalRuntimeFactory",
+        "kind": "type",
+        "doc": "Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only.",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
+        "name": "RegionalRuntimePage",
+        "kind": "interface",
+        "doc": "Existing page services lent to a regional shell; it never constructs another renderer, player or input loop.",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
+        "name": "RegionalRuntimeRequest",
+        "kind": "interface",
+        "doc": "Fully admitted immutable content and the one page owner, supplied before any trusted gameplay hook executes.",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
         "name": "gridCanAct",
         "kind": "function",
         "doc": "Only the active writable shard interior accepts authoritative actions; visible neighbours are projections.",

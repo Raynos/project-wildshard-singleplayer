@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-589 members; 112 without a doc line (—).
+593 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -117,6 +117,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `gridRecoveryRefused` | function | @wildshard/game/grid/recoveryBoot | Future or unconsumed metadata cannot enter a renderer on this boot. |
 | `pageGridRecovery` | function | @wildshard/game/grid/recoveryBoot | Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. |
 | `safeGridRecovery` | function | @wildshard/game/grid/recoveryBoot | A validated current catalogue's default home and road lane, used when recovery metadata is unsafe. |
+| `PreparedRegionalRuntime` | interface | @wildshard/game/grid/regionalRuntime | The view adapter owns the real region, including critical terrain/colliders and a registry whose additions target |
+| `RegionalRuntimeFactory` | type | @wildshard/game/grid/regionalRuntime | Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only. |
+| `RegionalRuntimePage` | interface | @wildshard/game/grid/regionalRuntime | Existing page services lent to a regional shell; it never constructs another renderer, player or input loop. |
+| `RegionalRuntimeRequest` | interface | @wildshard/game/grid/regionalRuntime | Fully admitted immutable content and the one page owner, supplied before any trusted gameplay hook executes. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
