@@ -107,6 +107,8 @@ export class MoverRuntime {
     const m = this.data.find((row) => row.id === id), e = m === undefined ? undefined : this.host.world.entity(m.entity); if (e === undefined) throw new Error('Unknown mover');
     return { position: { x: e.position[0], y: e.position[1], z: e.position[2] }, euler: { x: e.fields[1] ?? 0, y: e.fields[2] ?? 0, z: e.fields[3] ?? 0 }, enabled: !e.frozen && e.fields[4] === 1 };
   }
+  /** After a logical checkpoint load, bring fresh native bodies to the restored published poses without a physics step. */
+  resetPublishedPoses(): void { for (const [id, body] of this.bodies) body.resetPose(this.pose(id)); }
   /** Pending interactions are continuation state; the shared host's own adapter owns fields and full Wasm memory/globals. */
   snapshot(resetIds: ReadonlySet<string> = new Set()): readonly (readonly [string, number])[] { return [...this.pending].filter(([id]) => !resetIds.has(id)); }
   /** Restore pending commands only after validating every row, without partial publication. */

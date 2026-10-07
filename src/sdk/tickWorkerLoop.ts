@@ -8,7 +8,7 @@ import { WorkerRequestSchema, TickCommitSchema, type HeadlessCommand, type Headl
 export interface TickWorkerAdapter {
   step: (commands: readonly HeadlessCommand[]) => void;
   commit: () => HeadlessTickCommit;
-  finish: () => { ticks: number; lanes: number; steps: number };
+  finish: () => { ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number };
   dispose: () => void;
 }
 export const WorkerEnvelopeSchema = v.object({ clock: v.instance(SharedArrayBuffer), tickMicros: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16_666)), commandsPerTick: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(1024)), enforceTickDeadline: v.optional(v.boolean(), true), payload: v.unknown() });

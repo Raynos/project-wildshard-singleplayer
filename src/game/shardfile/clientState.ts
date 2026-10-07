@@ -5,6 +5,8 @@ import type { Shardfile } from './schema';
 import { LogicalStateSchema, migrateLogicalState } from './migrations';
 import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
+import { socketLiftEntries } from './socketLift';
+import { LiftRiderSchema, captureLiftRider, restoreLiftRider } from './liftRider';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -27,6 +29,8 @@ const fields = { revision: natural, tick: natural,
   health: v.optional(v.pipe(v.record(name, v.pipe(v.strictObject({ hp: hitPoints, maxHp: v.pipe(hitPoints, v.minValue(Number.MIN_VALUE)), alive: v.boolean() }),
     v.check((row) => row.hp <= row.maxHp && row.alive === (row.hp > 0), 'Consistent creature health'))), v.check((rows) => Object.keys(rows).length <= 10000))),
   props: v.optional(v.record(name, v.boolean())),
+  liftRider: v.optional(LiftRiderSchema),
+  moverPending: v.optional(v.pipe(v.array(v.tuple([name, v.picklist([1, 2, 3])])), v.maxLength(32))),
 };
 const legacyCheckpoint = v.strictObject({ version: v.literal(1), ...fields });
 const logicalCheckpoint = v.strictObject({ version: v.literal(2), shard: name, state: LogicalStateSchema, ...fields });
@@ -74,7 +78,7 @@ export function installClientItemState(sim: ShardfileSimulation, items: Runtimes
 export function captureClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): ClientCheckpoint {
   const lane = sim.lane?.snapshot() ?? null;
   return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logicalStateFromLane(source.state.version, lane), source.state), revision: source.identity.revision, tick: sim.host.state.tick,
-    lane, items: itemStates(items), flags: sim.host.flags.all,
+    lane, liftRider: captureLiftRider(source, sim), moverPending: sim.movers?.snapshot(new Set(socketLiftEntries(source.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]))) ?? [], items: itemStates(items), flags: sim.host.flags.all,
     health: Object.fromEntries([...sim.host.entities].map(([id, entity]) => [id, { hp: entity.hp, maxHp: entity.maxHp, alive: entity.alive }])),
     props: Object.fromEntries([...sim.colliders].map(([id, port]) => [id, port.active()])),
     quests: sim.quest.quests.map((quest) => quest.snapshot()), dialogue: sim.quest.snapshot() });
@@ -90,6 +94,7 @@ export function clientStateFromRegion(source: Shardfile, snapshot: SimSnapshot, 
   const state = logicalStateFromLane(stateVersion, lane);
   // The exact region snapshot already owns executable memory. Its migration companion must not duplicate or depend on it.
   return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state, revision, tick: snapshot.state.tick, lane: null, items,
+    liftRider: snapshot.adapters.find(adapter => adapter.id === 'lift.rider')?.state ?? null,
     health: Object.fromEntries(snapshot.entities.map((entity) => [entity.id, { hp: entity.state.motion.hp, maxHp: entity.state.motion.maxHp, alive: entity.state.flags.alive }])), props,
     flags: snapshot.flags, quests: snapshot.quests, dialogue: snapshot.adapters.find((adapter) => adapter.id === 'quest.declared')?.state ?? {} });
 }
@@ -107,15 +112,20 @@ function restoreBuiltins(sim: ShardfileSimulation, state: ClientCheckpoint, exac
     port.setActive(active);
   }
 }
-function apply(sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
+function apply(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
   if ((sim.lane === undefined) !== (state.lane === null) || state.quests.length !== sim.quest.quests.length) throw new Error('Local continuation contract changed');
-  if (state.lane !== null) sim.lane?.restore(state.lane);
+  const pending = state.moverPending ?? [], resetIds = new Set(socketLiftEntries(source.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]));
+  if ((sim.movers === undefined && pending.length > 0) || pending.some(([id]) => resetIds.has(id))) throw new Error('Invalid persistent mover commands');
+  sim.movers?.restore(pending);
   restoreItems(items, state.items);
   sim.host.flags.restore(state.flags);
   for (const quest of sim.quest.quests) {
     const saved = state.quests.find((row) => row.id === quest.def.id); if (saved === undefined) throw new Error('Missing quest continuation'); quest.restore(saved);
   }
-  sim.quest.restore(state.dialogue); restoreBuiltins(sim, state, true); sim.host.state.tick = state.tick;
+  sim.quest.restore(state.dialogue); restoreBuiltins(sim, state, true);
+  // Restore the host last: transient lift modules require a fresh isolate, so earlier failures can roll back before admission.
+  if (state.lane !== null) sim.lane?.restore(state.lane);
+  sim.movers?.resetPublishedPoses(); sim.host.state.tick = state.tick;
 }
 function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, state: ClientCheckpoint): void {
   // All historical version-1 client checkpoints predate authored state-version migrations and used state version 1.
@@ -146,12 +156,14 @@ function applyMigrated(source: Shardfile, sim: ShardfileSimulation, items: Runti
 export function restoreClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes, input: unknown): boolean {
   const result = v.safeParse(ClientCheckpointSchema, input); if (!result.success || result.output.revision > source.identity.revision
     || !v.safeParse(v.literal(source.identity.slug), sim.host.level.id).success
-    || (result.output.version === 2 && !v.safeParse(v.literal(source.identity.slug), result.output.shard).success)) return false;
+    || (result.output.version === 2 && !v.safeParse(v.literal(source.identity.slug), result.output.shard).success)
+    || (source.entryways.some(entry => entry.kind === 'socketLift') && (sim.lane?.host.currentTick ?? -1) >= 0)) return false;
   const previous = captureClientState(source, sim, items);
   try {
-    if (result.output.revision === source.identity.revision && !(result.output.version === 2 && result.output.lane === null)) apply(sim, items, result.output);
+    if (result.output.revision === source.identity.revision && !(result.output.version === 2 && result.output.lane === null)) apply(source, sim, items, result.output);
     else applyMigrated(source, sim, items, result.output);
+    restoreLiftRider(source, sim, result.output.liftRider ?? null);
     return true;
   }
-  catch { apply(sim, items, previous); return false; }
+  catch { apply(source, sim, items, previous); return false; }
 }

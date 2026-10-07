@@ -136,6 +136,8 @@ export class ScriptHost {
   }
   /** Snapshot copies are safe to retain for deterministic replay. */
   snapshot(name: string): ScriptSnapshot { const state = this.modules.get(name); if (!state) throw new Error('Unknown module'); return clone(state.good); }
+  /** Admission can detect a refused call without copying every guest memory into a checkpoint. */
+  get failureCount(): number { let total = 0; for (const state of this.modules.values()) total += state.failures; return total; }
   /** Capture at a fixed-step boundary; module memory and globals are detached copies. */
   checkpoint(): ScriptHostState {
     if (this.active) throw new Error('Active script checkpoint');

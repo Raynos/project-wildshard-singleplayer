@@ -3,12 +3,14 @@ import { CharacterMotor } from './CharacterMotor';
 import { ENTRY_WIDTH } from '../core/config';
 
 /** Real capsule walks cover every legal 8 m entry for 50 m, at overlapping lateral intervals. */
-export function walkEdgeEntries(physics: Physics, waterAt: (x: number, z: number) => number | null = () => null): { lanes: number; steps: number } {
+export function walkEdgeEntries(physics: Physics, waterAt: (x: number, z: number) => number | null = () => null,
+  sides: readonly ('north' | 'east' | 'south' | 'west')[] = ['north', 'east', 'south', 'west']): { lanes: number; steps: number } {
+  if (new Set(sides).size !== sides.length || sides.some(side => !['north', 'east', 'south', 'west'].includes(side))) throw new Error('Invalid edge proof selection');
   const motor = new CharacterMotor(physics, { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] });
   const feet = { x: 0, y: 0, z: 0 }, want = { x: 0, y: -9.81 / 3600, z: 0 };
   let lanes = 0, steps = 0;
   try {
-    for (const side of ['north', 'east', 'south', 'west'] as const) {
+    for (const side of sides) {
       for (let lane = 0; lane <= 22; lane++) {
         const half = ENTRY_WIDTH / 2 - 0.35;
         const offset = -half + lane * (2 * half) / 22;

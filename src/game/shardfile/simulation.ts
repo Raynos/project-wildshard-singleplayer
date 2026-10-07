@@ -21,6 +21,12 @@ import { installDeclaredBrains, type DeclaredBrainPorts } from './brainRuntime';
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from './scriptComposition';
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from './groupRuntime';
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from './crowdRuntime';
+import { MoverScriptDriver } from './moverDriver';
+import { MoverRuntime } from './moverRuntime';
+import { socketLiftEntries } from './socketLift';
+import { LiftRiderSchema, captureLiftRider, restoreLiftRider, type LiftRider } from './liftRider';
+import * as v from 'valibot';
+import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 
 /** Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. */
 export function numericScriptEntityId(id: string): number { return (fnv1a32(id) & 0x7fffffff) || 1; }
@@ -42,6 +48,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   commands?: () => ReadonlyMap<string, number>;
   query?: Parameters<typeof createShardfileScriptLane>[2]['query']; navigation?: Parameters<typeof scriptPhysicsQueries>[0]['navigation'];
   restoring?: boolean;
+  /** The normal client or regional registry already owns its four platform sockets. */
+  entrySocketsProvided?: boolean;
   /** G168: a declared module crossed its failure limit and stays off (the client tells the player; Node ignores it). */
   scriptDisabled?: ShardScriptPorts['onDisabled'];
 }
@@ -51,6 +59,7 @@ export interface ShardfileSimulation {
   encounters: ReturnType<typeof installDeclaredEncounters>; water: WaterBodies; colliders: ReadonlyMap<string, PropColliderPort>; dispose: () => void;
   groups: ReadonlyMap<string, DeclaredGroupPolicy>;
   crowds: PreparedCrowds['policies'];
+  movers: MoverRuntime | undefined;
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
 export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
@@ -62,7 +71,7 @@ export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string,
   const host = createSimHost({ version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed,
     ground: { size: 500, height: 0 }, player: { at: { x: shard.spawn.x, y: shard.spawn.y, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     entities: buildPlatformSpawns(shard.creatures.spawns, speciesResolver(shard.rows), simStrikes(shard.rows)), weapon, quests: [],
-  }, { ...ports, ground: terrain === undefined, heightAt });
+  }, { ...ports, ground: terrain === undefined && socketLiftEntries(shard.entryways).length === 0, heightAt });
   return bindShardfileSim(host, shard, assets, ports);
 }
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
@@ -75,6 +84,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes);
     if (terrain !== undefined) host.setHeightQuery((x, z) => terrainTileHeight(terrain, x, z));
     if (!ports.restoring && bytes !== undefined) addBakedTerrainCollider(host.physics, bytes, host.scope);
+    const liftEntries = socketLiftEntries(shard.entryways), resetMovers = new Set(liftEntries.flatMap(entry => [entry.lift.mover, entry.lift.gate]));
+    if (liftEntries.length > 0 && !host.embedded && !ports.restoring && !ports.entrySocketsProvided) installEntrySockets(host.physics, host.scope, [{ x: 0, z: 0 }]);
     const water = ports.water ?? new WaterBodies();
     if (ports.water === undefined) for (const row of [...shard.water].sort((a, b) => Number(a.kind === 'sea') - Number(b.kind === 'sea'))) water.add(declaredWaterBody(row), host.scope);
     const rows = shard.props === null ? [] : propColliderDescriptors(shard.props);
@@ -117,6 +128,7 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     if (shard.crowds.length > 0 && ports.crowds === undefined) throw new Error('Missing declared crowd ports');
     const preparedCrowds = prepareDeclaredCrowds(shard.crowds, ports.crowds?.(host) ?? { flock: () => { throw new Error('Missing declared crowd recipe'); } });
     let lane: ScriptLanePort | undefined;
+    let movers: MoverRuntime | undefined;
     if (shard.sim.scripts.length > 0) {
       const entities = new Map<number, ScriptEntity>();
       for (const [id, handle] of actors) {
@@ -142,6 +154,10 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         if (entities.has(binding.entity) || aliases.has(binding.entity)) throw new Error('Custom brain alias collision');
         aliases.add(binding.entity);
       }
+      for (const mover of shard.movers) {
+        if (entities.has(mover.entity) || aliases.has(mover.entity)) throw new Error('Mover script alias collision');
+        aliases.add(mover.entity);
+      }
       if (entities.size + aliases.size > shard.serverBudget.entities) throw new Error('Aggregate script entity allowance');
       const options: ShardScriptPorts = {
         rules: ports.scriptRules ?? { fields: {}, archetypes: [], events: [...new Set([...hooks.scenes.map((scene) => scene.type), ...shard.items.rows.flatMap((row) => row.hook === null ? [] : [row.hook.event])])], maxEntities: shard.serverBudget.entities },
@@ -149,12 +165,23 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         ...(ports.scriptDisabled === undefined ? {} : { onDisabled: ports.scriptDisabled }),
         query: ports.query ?? ((kind, input, entity) => scriptPhysicsQueries({ physics: host.physics, navigation: ports.navigation ?? { closestWalkable: () => null, findPath: () => null }, handle: (owner) => typeof owner === 'string' ? actors.get(owner) : undefined })(kind, input, entity)),
       };
+      const installedMover: { current?: MoverRuntime } = {};
+      const moverDriver = shard.movers.length === 0 ? undefined : new MoverScriptDriver(shard.movers, options.query, [...resetMovers]);
+      const extra = moverDriver === undefined ? undefined : { roles: [moverDriver.role()], transientModules: moverDriver.transientModules,
+        schedules: [moverDriver.schedule(() => { const current = installedMover.current; if (current === undefined) throw new Error('Missing mover runtime'); return current; })] };
       if (brainBindings.length > 0) {
         if (ports.scriptBrains === undefined) throw new Error('Missing custom brain port');
         const trustedBrains = ports.scriptBrains(host);
         if (typeof trustedBrains.ports.observe !== 'function' || typeof trustedBrains.ports.mayAttack !== 'function' || typeof trustedBrains.ports.strike !== 'function') throw new Error('Missing custom brain observation or strike recipe');
-        lane = createShardfileComposedLane(shard, assets, options, { ...trustedBrains, query: trustedBrains.query ?? options.query, actors: host.entities, bindings: brainBindings });
-      } else lane = createShardfileScriptLane(shard, assets, options);
+        lane = createShardfileComposedLane(shard, assets, options, { ...trustedBrains, query: trustedBrains.query ?? options.query, actors: host.entities, bindings: brainBindings }, extra);
+      } else lane = extra === undefined ? createShardfileScriptLane(shard, assets, options) : createShardfileComposedLane(shard, assets, options, undefined, extra);
+      if (moverDriver !== undefined) {
+        const runtime = new MoverRuntime(shard.movers, { host: lane.host, physics: () => host.physics, scope: host.scope, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
+        movers = runtime; installedMover.current = runtime;
+        host.onStep('movers.declared', () => { runtime.capture(); }, { snapshot: () => runtime.snapshotState(resetMovers), restore: value => {
+          if (typeof value !== 'string') throw new Error('Invalid mover continuation'); runtime.restoreState(value);
+        }, physicsRestored: () => { runtime.reconnect(resetMovers); } });
+      }
       installScriptLane(host, 'script.declared', lane, ports.commands);
     }
     if (shard.targets.panels.length > 0) {
@@ -168,6 +195,13 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
       });
       host.onStep('targets.declared', sync); if (!ports.restoring) sync();
     }
+    if (liftEntries.length > 0) {
+      let rider: LiftRider = null;
+      host.onStep('lift.rider', () => undefined, { snapshot: () => captureLiftRider(shard, { host, movers }),
+        restore: value => { rider = v.parse(LiftRiderSchema, value); },
+        physicsRestored: () => { restoreLiftRider(shard, { host, movers, water }, rider); },
+      });
+    }
     const quest = new DeclaredQuests(host, shard.quests, { ...ports.quest,
       ...(lane === undefined ? {} : { script: createQuestScriptPorts(lane, hooks, actors) }),
     });
@@ -178,6 +212,6 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     if (!host.embedded && !ports.restoring) host.physics.step();
     // Crowd setup is last: all scripts, actor/group controllers, quests, encounters and physics have admitted.
     const crowds = preparedCrowds.install(host, ports.restoring ?? false);
-    return { host, lane, actors, quest, encounters, water, colliders, groups, crowds, dispose: () => { host.dispose(); } };
+    return { host, lane, actors, quest, encounters, water, colliders, groups, crowds, movers, dispose: () => { host.dispose(); } };
   } catch (error) { host.dispose(); throw error; }
 }

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { loadRapier } from '@wildshard/engine/physics/rapier';
-import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
+import { proveShardfileEntries } from '@wildshard/game/shardfile/socketLiftProof';
 import { snapshotSimHost, serializeSimSnapshot, decodeSimSnapshot, restoreSimHost } from '@wildshard/engine/sim/snapshot';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimulation } from '@wildshard/game/shardfile/simulation';
 import type { SimCommand } from '@wildshard/engine/sim';
@@ -44,7 +44,7 @@ await runTickWorker(async raw => {
       if (sim.lane?.host.checkpoint().modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Headless script call failed');
       return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(sim.host)), effects };
     },
-    finish: () => ({ ticks: sim.host.state.tick, ...walkEdgeEntries(sim.host.physics, (x, z) => sim.water.restAt(x, z)) }),
+    finish: () => ({ ticks: sim.host.state.tick, ...proveShardfileEntries(shard, sim, payload.assets, ports) }),
     dispose: () => { sim.dispose(); },
   };
 });

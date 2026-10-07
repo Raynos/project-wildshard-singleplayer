@@ -42,12 +42,12 @@ export class HeadlessSimulation {
   /** Admit the aggregate command count across all sources, then atomically return state and effects from one bounded tick. */
   step(sources: readonly HeadlessCommandSource[] = []): Promise<HeadlessTickCommit> { return this.runner.step(sources); }
   /** Final validation walks every entry under a separate request deadline. Further ticks refuse; resume from the last committed checkpoint in a fresh worker. */
-  finish(): Promise<{ ticks: number; lanes: number; steps: number }> { return this.runner.finish(); }
+  finish(): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number }> { return this.runner.finish(); }
   /** Terminate the owned worker and release its complete native world. */
   dispose(): Promise<void> { return this.runner.dispose(); }
 }
 /** Offline admission enforces fuel, bounded platform queries and aggregate commands deterministically; wall timing is advisory. The independent request watchdog still bounds a broken worker. */
-export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number; timing: { medianMicros: number; maxMicros: number; samples: number } }> {
+export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; timing: { medianMicros: number; maxMicros: number; samples: number } }> {
   const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
   try {
     const measured: number[] = [];

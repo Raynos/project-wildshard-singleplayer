@@ -329,6 +329,14 @@ export class CharacterMotor {
   /** let go of whatever the feet ride (a teleport) */
   release(): void { this.anchorBody = null; }
 
+  /** Load/respawn at an already admitted pose: align the existing capsule and discard old contacts without a collision or physics step. */
+  resetAt(feet: Vec3): void {
+    if (![feet.x, feet.y, feet.z].every(Number.isFinite)) throw new RangeError('Invalid motor reset feet');
+    this.collider.setTranslation({ x: feet.x, y: feet.y + this.lift + 0.005, z: feet.z });
+    this.anchorBody = null;
+    Object.assign(this.result, { grounded: false, groundNormalY: 1, downhillX: 0, downhillZ: 0, horizontalFreedom: 1, groundCollider: null });
+  }
+
   /** after a move: pin the feet to a moving body they stand on (see `carry`), or let go */
   private pin(feet: Vec3): void {
     const body = this.result.grounded ? this.result.groundCollider?.parent() ?? null : null;

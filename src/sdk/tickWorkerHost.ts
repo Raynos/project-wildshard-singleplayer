@@ -6,7 +6,8 @@ import * as v from 'valibot';
 import { Scope } from '@wildshard/engine/app/scope';
 import { tickCommands, TickCommitSchema, type HeadlessCommandSource, type HeadlessTickCommit } from './tickProtocol';
 
-const proofSchema = v.strictObject({ ticks: v.pipe(v.number(), v.integer(), v.minValue(0)), lanes: v.pipe(v.number(), v.integer(), v.minValue(0)), steps: v.pipe(v.number(), v.integer(), v.minValue(0)) });
+const proofSchema = v.strictObject({ ticks: v.pipe(v.number(), v.integer(), v.minValue(0)), lanes: v.pipe(v.number(), v.integer(), v.minValue(0)), steps: v.pipe(v.number(), v.integer(), v.minValue(0)),
+  liftRides: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))), liftCalls: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8))) });
 const replySchema = v.variant('kind', [v.strictObject({ kind: v.literal('commit'), value: TickCommitSchema }), v.strictObject({ kind: v.literal('proof'), value: proofSchema })]);
 type Reply = v.InferOutput<typeof replySchema>;
 /** A deadline failure quarantines the worker while retaining the last fully committed continuation. */

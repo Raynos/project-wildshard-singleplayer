@@ -24,6 +24,14 @@ export function parseSocketLift(input: unknown): SocketLift {
 }
 /** An edge's declared lift; shared structural shape avoids a schema dependency cycle. */
 export interface SocketLiftEntry { edge: 'north' | 'east' | 'south' | 'west'; lift: SocketLift }
+/** Select declared lifts without treating an ordinary entry or a missing link as executable admission. */
+export function socketLiftEntries(entries: readonly { edge: SocketLiftEntry['edge']; kind?: string | undefined; lift?: SocketLift }[]): SocketLiftEntry[] {
+  return entries.flatMap(entry => {
+    if (entry.kind !== 'socketLift') return [];
+    if (entry.lift === undefined) throw new Error('Missing socket lift declaration');
+    return [{ edge: entry.edge, lift: entry.lift }];
+  });
+}
 
 function boxVertices(row: MoverData[number], stop: readonly [number, number, number]): EntryVertex[][] {
   if (row.euler.x !== 0 || row.euler.y !== 0 || row.euler.z !== 0) throw new Error('Socket lift rests without rotation');

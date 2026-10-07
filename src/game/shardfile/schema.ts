@@ -27,6 +27,8 @@ import { RuntimeSchema } from './runtime';
 import { ClientScriptsSchema, clientScriptRules } from './clientScripts';
 import { EdgeProfilesSchema } from './edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from './entryways';
+import { MoversSchema, parseMovers } from './movers';
+import { socketLiftEntries, socketLiftRules } from './socketLift';
 import { StateSchema, stateRules } from './state';
 import { CommonsCostsSchema, assertCommonsCosts } from './commonsCosts';
 import { AccentSchema } from './accent';
@@ -69,6 +71,7 @@ const rawSchema = v.strictObject({
   serverBudget: v.strictObject({ tickMicros: v.pipe(positive, v.maxValue(16_666)), memory: v.pipe(positive, v.maxValue(CONTENT_CAPS.sim.resident)), entities: v.pipe(natural, v.maxValue(10_000)), commandsPerTick: v.pipe(natural, v.maxValue(1024)) }),
   edge: EdgeProfilesSchema,
   entryways: EntrywaysSchema,
+  movers: v.optional(MoversSchema, []),
   files: v.pipe(v.array(file), v.maxLength(limits.files)), tiles: v.pipe(v.array(tile), v.maxLength(tileCount)), library: references, critical: references,
   far: v.nullable(v.strictObject({ files: references, bounds, ...costs })),
   ui: v.optional(UiSchema, []),
@@ -98,6 +101,14 @@ export type Shardfile = v.InferOutput<typeof rawSchema>;
 export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
   errors.push(...entrywayRules(s));
+  errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers));
+  try { parseMovers(s.movers); } catch { errors.push('declared mover identities and primitives'); }
+  if (s.movers.some(row => row.kind === 'chain')) errors.push('compiled mover chains require native joint restore support');
+  if (s.movers.some(row => !s.sim.scripts.includes(row.module) || !s.critical.includes(row.module) || s.files.find(asset => asset.hash === row.module)?.kind !== 'wasm')) errors.push('mover modules are admitted critical sim scripts');
+  const liftIds = new Set(socketLiftEntries(s.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]));
+  const liftModules = new Set(s.movers.filter(row => liftIds.has(row.id)).map(row => row.module));
+  if (s.movers.some(row => !liftIds.has(row.id) && liftModules.has(row.module)) || s.sim.bindings.some(row => liftModules.has(row.module))
+    || s.creatures.brains.some(row => row.kind === 'script' && liftModules.has(row.module))) errors.push('lift modules are dedicated transient movers');
   errors.push(...migrationRules(s.migrations, s.state.version));
   const commons = new Set(s.requires.commons), commonsWire = Object.keys(s.requires.commonsWire);
   try { assertCommonsCosts(s.requires.commons, s.requires.commonsCosts); } catch { errors.push('commons cost declarations match the exact commons hash keyset'); }

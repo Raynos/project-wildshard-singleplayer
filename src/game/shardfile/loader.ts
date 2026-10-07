@@ -32,7 +32,7 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
   // The look (SF10b) is the one content kind bound here: day keys and a LUT, the LUT's file the only file allowed.
   const lut = source.look.grade.lut;
   const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
-  const newContent = source.crowds.length + source.clientScripts.bindings.length + source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + source.audio.routing.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
+  const newContent = source.movers.length + source.crowds.length + source.clientScripts.bindings.length + source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + source.audio.routing.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
   if (source.items.rows.length + source.items.contexts.length > 0 || source.props !== null || source.targets.panels.length + source.targets.interactions.length > 0 || Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length > 0 || newContent > 0 || source.hooks.conditions.length + source.hooks.scenes.length > 0 || source.plumbing !== null || source.terrain !== null || source.audio.ambience !== null || source.audio.score !== 'silent' || source.audio.music !== undefined || source.audio.samples !== undefined || source.audio.zones !== undefined || Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.ui.length + source.tiles.length + source.library.filter((ref) => ref !== lut).length + source.requires.capabilities.length + source.sim.scripts.length + source.sim.bindings.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
   return sourceManifest(source);
 }
@@ -80,7 +80,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   const manifest = sourceManifest(source);
   const clientBindings = { ...ownedBindings, allocator: residency.allocator };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
-    ground: { ...(source.terrain === null ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
+    ground: { ...(source.terrain === null && !source.entryways.some(entry => entry.kind === 'socketLift') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
     loot: { coins: source.rows.loot.length > 0 },
     creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },

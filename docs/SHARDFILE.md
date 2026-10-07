@@ -698,8 +698,11 @@ decks refuse before physics allocation. This declaration alone is not a legal
 entry: the executable admission must walk the real capsule, interact through
 `MoverRuntime.command`, ride the admitted WASM-controlled deck, reach playable
 ground, return and call from both stops. It must also witness the platform gate
-blocking the road while the deck is away. Until that integration is installed,
-the compiled entry schema continues to refuse `socketLift`.
+blocking the road while the deck is away. The compiled `entryways` row uses
+`kind: "socketLift"` and a `lift` with this shape. Other kinds refuse a lift link.
+The optional top-level `movers` array defaults to `[]`; every mover module is
+a critical admitted `sim.scripts` WASM module. Compiled chains remain refused
+until native joint reconnection is available.
 
 The executable helper `proveSocketLift(entry, {physics, runtime, fixedStep,
 waterAt?})` uses the admitted `MoverRuntime` and the engine's real capsule motor.
@@ -711,5 +714,20 @@ boarding, a complete ride, walking onto static playable ground, automatic idle
 return, return travel and calls from both ends, with gate collision across 23
 overlapping road capsule lanes. Deck motion above 15/60 metres per fixed step
 is refused as a teleport. Temporary capsules dispose even on refusal. This
-helper is an executable check, not a stored readiness flag; compiled loader
-integration remains required before a product may declare a lift entry.
+helper is an executable check, not a stored readiness flag. SDK headless validation
+runs it in the same authoritative factory as the client. Ordinary edges retain
+their full 50 metre walk; each lift adds 23 gate lanes and reports its two rides
+and two stop calls. A fresh independent world starts each lift at its road stop.
+
+Movers, numeric state and custom brains share one host and one `beginTick`, with
+all module memory, entities, fuel and effects charged to that host. Lift-only
+modules cannot also own numeric bindings, custom brains or persistent movers.
+Their memories/globals, published poses and queued interactions are transient:
+a fresh load resets the deck to `roadStop` and opens its gate, while persistent
+numeric progress and the global tick continue. Native restore reconnects the
+same saved body handles; it allocates no duplicate deck or gate and performs no
+physics/gameplay tick. A lift rider checkpoint stores only the stable entry edge.
+Loading puts that rider at the reset road boarding point after checking the real
+upright capsule against current deck and obstacle poses. Missing, submerged or
+blocked boarding falls back to the normal admitted safe spawn. This load policy
+never teleports a capsule during the traversal admission proof.
