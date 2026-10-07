@@ -40,7 +40,8 @@
     "./runtime/weapons/Melee": "./runtime/weapons/Melee.ts",
     "./runtime/weapons/Thrown": "./runtime/weapons/Thrown.ts",
     "./weapons/meleeProfile": "./weapons/meleeProfile.ts",
-    "./weapons/thrownProfile": "./weapons/thrownProfile.ts"
+    "./weapons/thrownProfile": "./weapons/thrownProfile.ts",
+    "./bake/world": "./bake/world.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -219,6 +220,10 @@
       "./weapons/thrownProfile": {
         "types": "./dist/types/sdk/weapons/thrownProfile.d.ts",
         "default": "./dist/weapons/thrownProfile.js"
+      },
+      "./bake/world": {
+        "types": "./dist/bake/world.d.ts",
+        "import": "./dist/bake/world.js"
       }
     }
   }

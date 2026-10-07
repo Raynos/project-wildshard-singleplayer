@@ -370,8 +370,38 @@ radius by the sample spacing's half diagonal, so gaps cannot hide a heavier disc
 `parseWorldSource`. This validates the build-only `world` declaration planned for
 `shard.config.ts`; `world` is not a compiled `Shardfile` field. This first contract
 slice does not yet make `wildshard build` ingest a world GLB: the CLI currently still
-requires compiled shardfile data. GLB normalization, texture/LOD tools, mesh collision
-and the build adapter follow in SF55a before the Blender Template (SF55).
+requires compiled shardfile data. The normalization API below is available;
+texture/LOD tools, mesh collision and the build adapter follow in SF55a before
+the Blender Template (SF55).
+
+`@wildshard/sdk/bake/world` now exposes the memory-only normalization stage:
+`await normalizeWorldGlb(bytes, world, admittedMaterialIds)`. It takes one embedded
+static GLB and checks mapped output IDs against the supplied admitted material
+catalogue. It returns indexed static and collision primitives, independent panels,
+source material parameters and content-hashed embedded image bytes. It does not yet
+write tile files, encode images, simplify geometry or install colliders.
+
+Intake is bounded before accessor decode: at most 256 MB wire, 2 MB JSON,
+10,000 rows per glTF collection, 64 hierarchy levels and 64 million accessor
+components. Expanded placed geometry has at most 4 million vertices and 12 million
+indices. Each embedded PNG/JPEG/WebP is at most 25 MB and 4,096 pixels per dimension.
+External buffers/images, compression/extensions, skins, animation, morph targets,
+cameras and unsupported vertex attributes fail explicitly in this static-world
+stage. A source has exactly one scene and no disconnected nodes. Duplicate node or
+material names, missing annotations and overlapping object/panel or collision/panel
+subtrees fail with a diagnostic.
+
+Normalization applies exact affine hierarchy matrices, including shear and negative
+scale, without reducing them to TRS. Static positions use cell coordinates; normals
+use the inverse transpose, tangents retain handedness, and mirrored triangle winding
+is corrected. Panels retain their root world matrix and root-local primitives; their
+geometry is excluded from merged static collision and tiles. Collision-prefix
+subtrees supply collision only. Mesh collision shares static triangle topology,
+preserving elevated bridges and overhangs. Terrain-prefix selection remains a flag
+for the later sampling stage. Embedded images, material factors, UV0 and each
+colour/normal/metallic-roughness/occlusion/emissive texture use and sampler survive;
+unmapped materials, unused mapping names, invalid samplers and missing UV0 fail.
+Repeated normalization leaves the caller's bytes unchanged and produces equal data.
 
 ```ts
 import { parseWorldSource } from '@wildshard/sdk/worldSource';
