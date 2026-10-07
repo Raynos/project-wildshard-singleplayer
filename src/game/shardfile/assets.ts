@@ -1,4 +1,5 @@
 import { decodeTerrainTile, isTerrainTileData, terrainTileCost } from '@wildshard/engine/world/terrainTileData';
+import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from '@wildshard/engine/core/meshCollision';
 import { visitGlbGeometry, type GlbVertex } from './glbTriangles';
 import { projectedLayerCoverage, type OverdrawEstimate } from './overdraw';
 
@@ -249,6 +250,7 @@ export function assetCost(kind: string, bytes: Uint8Array): AssetCost {
   if (kind === 'audio') return parseAudio(bytes);
   if (bytes.length > MAX_BYTES) throw new Error('asset byte cap');
   if (kind === 'binary' && isTerrainTileData(bytes)) return terrainTileCost(decodeTerrainTile(bytes));
+  if (kind === 'binary' && isMeshCollisionData(bytes)) return meshCollisionCost(decodeMeshCollision(bytes));
   if (kind === 'json') { json(bytes); return { decoded: bytes.length, gpu: 0, triangles: 0, draws: 0 }; }
   if (kind === 'wasm' && (bytes.length > 262_144 || !WebAssembly.validate(Uint8Array.from(bytes)))) throw new Error('invalid or oversized Wasm');
   return { decoded: bytes.length, gpu: 0, triangles: 0, draws: 0 };

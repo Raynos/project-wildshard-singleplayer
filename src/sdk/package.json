@@ -55,7 +55,8 @@
     "./runtime/weapons/starterBowProfile": "./runtime/weapons/starterBowProfile.ts",
     "./runtime/weapons/Sword": "./runtime/weapons/Sword.ts",
     "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts",
-    "./bake/worldCollision": "./bake/worldCollision.ts"
+    "./bake/worldCollision": "./bake/worldCollision.ts",
+    "./meshCollision": "./meshCollision.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -297,6 +298,10 @@
       "./bake/worldCollision": {
         "types": "./dist/types/sdk/bake/worldCollision.d.ts",
         "default": "./dist/bake/worldCollision.js"
+      },
+      "./meshCollision": {
+        "types": "./dist/types/sdk/meshCollision.d.ts",
+        "default": "./dist/meshCollision.js"
       }
     }
   }

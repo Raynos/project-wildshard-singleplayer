@@ -9,6 +9,7 @@ import { UiSchema, uiRules } from './ui';
 import { ScriptBindingsSchema, scriptBindingRules } from './scripts';
 import { RowsSchema } from './rows';
 import { TerrainSchema } from './terrain';
+import { MeshCollisionSchema, meshCollisionRules } from './meshCollision';
 import { WaterSchema } from './water';
 import { CreaturesSchema } from './creatures';
 import { FlockSchema } from './crowds';
@@ -77,6 +78,7 @@ const rawSchema = v.strictObject({
   ui: v.optional(UiSchema, []),
   rows: v.optional(RowsSchema, { strikes: [], weather: [], days: [], species: [], looks: [], compendiums: [], loot: [] }),
   terrain: v.optional(v.nullable(TerrainSchema), null),
+  meshCollision: v.optional(v.nullable(MeshCollisionSchema), null),
   water: v.optional(v.pipe(WaterSchema, v.maxLength(limits.waterBodies)), []),
   creatures: v.optional(CreaturesSchema, { brains: [], groups: [], spawns: [] }),
   crowds: v.optional(v.pipe(v.array(FlockSchema), v.maxLength(64)), []),
@@ -158,7 +160,8 @@ export function shardfileRules(s: Shardfile): string[] {
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');
   errors.push(...uiRules(s.ui, s.state));
   errors.push(...hookRules(s.hooks, s.state));
-  errors.push(...targetRules(s.targets, s, s.props));
+  errors.push(...meshCollisionRules(s));
+  errors.push(...targetRules(s.targets, s, { panels: s.props?.panels ?? [], colliders: [...s.props?.colliders ?? [], ...s.meshCollision?.panels ?? []] }));
   errors.push(...itemRules(s.items, s.sim.scripts));
   errors.push(...skinLookRules(s));
   errors.push(...clientScriptRules(s));

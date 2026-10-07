@@ -75,6 +75,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public/owner numeric fields, bounded pose and emitters. |
 | `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
 | `terrain`, `water` | Optional/null bounded baked terrain binding; optional/default-empty declared pools, sea and streams. |
+| `meshCollision` | Optional/null exact WMC1 critical triangle tiles and interactive panel colliders; mutually exclusive with terrain. Runtime integration is pending (SF55a). |
 | `creatures`, `encounters` | Optional/default-empty individual brains, ordered pack/herd groups, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
 | `quests`, `audio`, `ledger` | Optional/default-empty quest graphs/triggers/dialogue, admitted cue/ambience/score declarations, and witnessed fact/reward mappings. |
 | `hooks`, `plumbing`, `spawn` | Optional named numeric field conditions and next-tick scene events; optional scoped input/tier/Debug declarations; cell-local player position and yaw (default 0, 2, 0, 0). |
@@ -701,7 +702,7 @@ indices, nonfinite/out-of-cell geometry, singular panel matrices and triangles
 that collapse at Float32 precision fail with the source node/panel name. Empty
 intersections contribute no file. The caller's normalized geometry is unchanged,
 and repeated bakes produce identical immutable bytes. This helper does not yet
-write the compiled collision section, charge native residency or install it through
+write the compiled collision section or install it through
 `wildshard build`; those are the next integration steps. A native capsule fixture
 crosses 140 m with more than 98% aggregate travel and no blocked step or fall;
 Rapier casts still briefly slow at flat internal diagonals, so this is not a
@@ -712,6 +713,20 @@ triangles`, charged as decoded sim memory with no GPU resources or render draws.
 Native snapshots at several chunk sizes check serialized growth against that
 allowance; they do not measure native heap usage. SF22a must replace this model
 with measured allocation costs before a shard using it ships.
+
+The compiled section is optional/default-null:
+`{version:1, tiles:[{x,z,file}], panels:[{id,panel,file,initialActive}]}`.
+Tile addresses are unique integers 0–7 on the 62.5 m grid (at most 64); panels
+are bounded to 64 with unique collider and render-panel identities. Every file
+is an independent critical binary root with no dependencies; repeated chunk
+hashes are refused to avoid counting one file for two native allocations.
+Actual triangle positions must stay inside the declared tile. Panels resolve
+declared prop panels, and their stable collider ids participate in the existing
+published-state target bindings without authored physics callbacks.
+The section excludes `terrain`; it preserves layered geometry instead of
+inventing an implicit flat heightfield. Metadata and exact asset admission are
+implemented; full validation and runtime construction explicitly refuse these
+products until native restore, entry-footprint and client integration land.
 
 ### Socket lift declarations (SF8c)
 

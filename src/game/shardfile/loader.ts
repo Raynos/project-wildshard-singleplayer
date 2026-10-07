@@ -29,6 +29,7 @@ export function emptyShardfileSource(input: unknown): ShardManifest {
   preflightShardfile(input);
   if (typeof input === 'object' && input !== null && 'version' in input && input.version !== SHARDFILE_VERSION) throw new Error(`Shardfile version ${String(input.version)} requires a compatible client (this client supports ${SHARDFILE_VERSION})`);
   const source = parseShardfile(input);
+  if (source.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
   if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
   // The look (SF10b) is the one content kind bound here: day keys and a LUT, the LUT's file the only file allowed.
   const lut = source.look.grade.lut;

@@ -63,6 +63,7 @@ export interface ShardfileSimulation {
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
 export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
+  if (shard.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
   const bytes = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
   if (shard.terrain !== null && bytes === undefined) throw new Error('Missing admitted terrain collider');
   const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes);
@@ -76,6 +77,7 @@ export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string,
 }
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
 export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
+  if (shard.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
   const levelId = shard.identity.slug;
   if (host.level.id !== levelId || host.level.seed !== shard.identity.seed || host.entities.size !== shard.creatures.spawns.length || shard.creatures.spawns.some((row) => !host.entities.has(row.id))) throw new Error('Shardfile simulation host mismatch');
   try {

@@ -5,6 +5,7 @@ import { worstContentCost } from './budget';
 import { parseShardfile, type Shardfile } from './schema';
 import { assetCost } from './assets';
 import { validateTerrainAssets } from './terrain';
+import { validateMeshCollisionAssets } from './meshCollision';
 import { validateSkinAssets } from './skins';
 import { validateEntrywayTerrain } from './entryways';
 import { validateEntrywayClearance } from './entryClearance';
@@ -152,6 +153,8 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   validateEntrywayClearance(s, assets);
   validateSocketLandings(s, assets);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);
+  validateMeshCollisionAssets(s, assets);
+  if (s.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
   validateSkinAssets(s, assets);
   return s;
 }

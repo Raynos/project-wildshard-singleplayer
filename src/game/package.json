@@ -118,6 +118,7 @@
     "./weapons/starterMeleeProfile": "./weapons/starterMeleeProfile.ts",
     "./weapons/starterBowProfile": "./weapons/starterBowProfile.ts",
     "./weapons/Sword": "./weapons/Sword.ts",
-    "./weapons/Bow": "./weapons/Bow.ts"
+    "./weapons/Bow": "./weapons/Bow.ts",
+    "./shardfile/meshCollision": "./shardfile/meshCollision.ts"
   }
 }
