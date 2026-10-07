@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-597 members; 112 without a doc line (—).
+605 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -83,12 +83,14 @@ The game layer's public modules (src/game/package.json `exports`).
 | `EmptyNeighbour` | interface | @wildshard/game/grid/assembly | Outside the finite grid, seams ease into road-level open water and fog instead of another sim. |
 | `GridAssembly` | class | @wildshard/game/grid/assembly | Assemble the one platform catalogue without changing any shard's local simulation or standalone placement. |
 | `GridCell` | interface | @wildshard/game/grid/assembly | Stable instance identity with its independent cell placement and derived rendering translation. |
+| `GridPlot` | interface | @wildshard/game/grid/assembly | G198 / G219: an open plot. A platform cell with no shard: the platform draws its floor, its four entry showrooms and its |
 | `GridPoint` | interface | @wildshard/game/grid/assembly | A world-space or cell-local point; authoritative simulations only receive the latter. |
 | `GridSide` | type | @wildshard/game/grid/assembly | Neighbour queries use the same signed convention as the grid: north is positive z. |
 | `GridCatalogue` | type | @wildshard/game/grid/catalogue | Admitted assembly input; a cell remains a mutable placement attribute, never a save namespace. |
 | `GridCatalogueSchema` | const | @wildshard/game/grid/catalogue | Platform placement data, independent of package content and standalone shard coordinates. |
 | `GridMode` | interface | @wildshard/game/grid/catalogue | Runtime switches originate from Settings and build-time DEVSERVER; Nine Dragon defaults on only in DEVSERVER. |
 | `GridPlacement` | type | @wildshard/game/grid/catalogue | Catalogue placement before its render origin is derived. |
+| `GridPlotPlacement` | type | @wildshard/game/grid/catalogue | An open plot's placement (G198): no shard, so no slug, no save namespace and no simulation. |
 | `parseGridCatalogue` | function | @wildshard/game/grid/catalogue | Reject malformed or duplicate placement data before allocating an assembly. |
 | `GridCheckpointResult` | type | @wildshard/game/grid/crossing | Poll pending durability without capturing an old asynchronous snapshot; true must checkpoint the current fixed boundary. |
 | `GridCrossing` | class | @wildshard/game/grid/crossing | Session-local crossing coordinator. No navigation, save copying, respawn or asynchronous work occurs during commit. |
@@ -114,6 +116,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
 | `clearGridRecovery` | function | @wildshard/game/grid/recoveryBoot | A failed recovery boot returns to the title and must not supply a selection to another boot. |
 | `consumeGridRecovery` | function | @wildshard/game/grid/recoveryBoot | Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing. |
+| `gridRecoveryLoop` | function | @wildshard/game/grid/recoveryBoot | A repeated failing recovery opens the existing shard picker, never another automatic boot. |
 | `gridRecoveryRefused` | function | @wildshard/game/grid/recoveryBoot | Future or unconsumed metadata cannot enter a renderer on this boot. |
 | `pageGridRecovery` | function | @wildshard/game/grid/recoveryBoot | Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. |
 | `safeGridRecovery` | function | @wildshard/game/grid/recoveryBoot | A validated current catalogue's default home and road lane, used when recovery metadata is unsafe. |
@@ -453,6 +456,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `loadShardfile` | function | @wildshard/game/shardfile/loader | Load through an installed engine driver; the ordinary unloadLevel owns every resource. |
 | `shardfileLevelSpec` | function | @wildshard/game/shardfile/loader | Project an empty shardfile into the same engine spec consumed by legacy sources. |
 | `shardfileSource` | function | @wildshard/game/shardfile/loader | Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. |
+| `meshCollisionRules` | function | @wildshard/game/shardfile/meshCollision | Check critical roots and target identities without reading any asset or creating a collider. |
+| `MeshCollisionSchema` | const | @wildshard/game/shardfile/meshCollision | Exact cell-local triangle chunks; interactive panels keep independent stable collider identities. |
+| `parseMeshCollision` | function | @wildshard/game/shardfile/meshCollision | Parse JSON-only mesh bindings before allocating native geometry. |
+| `ShardMeshCollision` | type | @wildshard/game/shardfile/meshCollision | Admitted metadata references immutable WMC1 bytes, never an authored physics closure. |
+| `validateMeshCollisionAssets` | function | @wildshard/game/shardfile/meshCollision | Verify bounded WMC1 bytes and exact tile containment after immutable hashes and costs have been admitted. |
 | `assertMigrationCompatibility` | function | @wildshard/game/shardfile/migrations | Admission checks field lineage without guessing saved enum values; rejected values are checked atomically during restore. Dropped ids remain reserved. |
 | `DeclaredMigrations` | type | @wildshard/game/shardfile/migrations | Author migration rows accepted by both build-time admission and browser loading. |
 | `LogicalState` | type | @wildshard/game/shardfile/migrations | Detached declared state for additive or explicitly authored revision migration. |

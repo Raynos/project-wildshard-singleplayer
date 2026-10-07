@@ -101,7 +101,7 @@
     "src/shards/pine-hollow/runtime/audio/ambience.ts": 4
   },
   "wildshard/public-index": {
-    "src/entry.ts": 21,
+    "src/entry.ts": 20,
     "src/identity.ts": 7,
     "src/native.ts": 1,
     "src/pageServices.ts": 5,

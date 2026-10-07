@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2145 members; 830 without a doc line (—).
+2155 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -407,8 +407,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `LastEnd` | interface | @wildshard/engine/boot/lastEnd | — |
 | `lastEndLine` | function | @wildshard/engine/boot/lastEnd | — |
 | `lastRecordedEnd` | function | @wildshard/engine/boot/lastEnd | — |
+| `markReload` | function | @wildshard/engine/boot/lastEnd | All engine reload actions share this persistence boundary; explicit navigation remains markUnload. |
 | `markUnload` | function | @wildshard/engine/boot/lastEnd | — |
 | `PageLife` | class | @wildshard/engine/boot/lastEnd | One page's life record: built at boot, it reads how the previous page ended, then beats while this one lives. The page |
+| `registerBeforeReload` | function | @wildshard/engine/boot/lastEnd | Install the content-owned durable capture port for the current play scope. |
+| `ReloadReason` | type | @wildshard/engine/boot/lastEnd | Content supplies persistence at explicit reload boundaries, never at ordinary navigation. |
 | `setAliveSource` | function | @wildshard/engine/boot/lastEnd | — |
 | `bootParts` | function | @wildshard/engine/boot/pack | The parts of `pack` a boot declaring `files` reads: every part that carries one of them. The pack is baked for the |
 | `packFor` | function | @wildshard/engine/boot/pack | This level's shipping pack for the active tier, if its build has one. |
@@ -470,6 +473,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `setTitleArrival` | function · game only | @wildshard/engine/boot/titleArrival | — |
 | `TitleArrival` | interface · game only | @wildshard/engine/boot/titleArrival | — |
 | `TitleArrivalMode` | type | @wildshard/engine/boot/titleArrival | One-shot intent from the renderer-free title page to the selected shard's fresh document. |
+| `enterCalibration` | function | @wildshard/engine/calibrate/entry | Run the standalone browser calibration without installing a playable level or a Developer tool. |
 | `AmmoId` | type | @wildshard/engine/combat/ammo | — |
 | `AmmoRow` | interface | @wildshard/engine/combat/ammo | — |
 | `ProjectileModification` | interface | @wildshard/engine/combat/ammo | — |
@@ -1181,6 +1185,8 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HeightPatch` | class | @wildshard/engine/physics/heightPatch | a small heightfield collider re-shaped at run time (a floor that grows and drains) |
 | `HeightPatchOpts` | interface | @wildshard/engine/physics/heightPatch | — |
 | `addBakedMeshCollider` | function | @wildshard/engine/physics/meshCollision | Install admitted baked triangles as one scoped static WORLD collider, preserving stacked floors and overhangs. |
+| `BakedMeshColliderRow` | interface | @wildshard/engine/physics/meshCollision | One admitted chunk at its cell-local rest pose; scripts may activate a named panel, never rewrite its geometry. |
+| `installBakedMeshColliders` | function | @wildshard/engine/physics/meshCollision | Install exact static chunks with the existing target/snapshot ports. All bytes and restored handles are |
 | `KinematicMover` | class | @wildshard/engine/physics/mover | A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path. |
 | `MoverBox` | interface | @wildshard/engine/physics/mover | Local boxes for a script-owned platform; the physics layer alone constructs Rapier descriptors. |
 | `MoverPose` | interface | @wildshard/engine/physics/mover | Published mover pose, in the world's local frame; Euler order is always YXZ. |
@@ -1352,8 +1358,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `EmissiveLookUniforms` | interface | @wildshard/engine/render/families/emissive | The uniforms one emissive look shares with every material made under it. |
 | `injectEmissive` | function | @wildshard/engine/render/families/emissive | The emissive shading for one shape injected into a MeshBasic source (throws if three moved an include it edits). |
 | `applyGround` | function | @wildshard/engine/render/families/ground | Add a ground layer to a PBR family material (the PBR compiler calls it; the program becomes the ground program). |
+| `GROUND_POOLS` | const | @wildshard/engine/render/families/ground | how many light pools a ground layer draws |
 | `GROUND_PROGRAM_KEY` | const | @wildshard/engine/render/families/ground | the program-cache key of every PBR material with a ground layer |
+| `GroundPool` | interface | @wildshard/engine/render/families/ground | A light pool's place (x, y, z) and strength (w: 0 = out). |
 | `injectGround` | function | @wildshard/engine/render/families/ground | The ground layer injected into a MeshStandard / MeshPhysical source (throws if three moved an include it edits). |
+| `setGroundPools` | function | @wildshard/engine/render/families/ground | Move a ground layer's light pools (a runtime adapter: Signal Dunes' burning fires): up to `GROUND_POOLS` points, the |
 | `updateGround` | function | @wildshard/engine/render/families/ground | Move some of a ground layer's parameters on a live material (a runtime adapter: Signal Dunes' dusk). Validated; |
 | `applyMeasure` | function | @wildshard/engine/render/families/measure | Add a measure layer to a PBR family material (the PBR compiler calls it; the program becomes the measure program). |
 | `MEASURE_PROGRAM_KEY` | const | @wildshard/engine/render/families/measure | the program-cache key of every PBR material with a measure layer |
@@ -1875,6 +1884,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `DeclaredProps` | interface | @wildshard/engine/world/declaredProps | Admitted prop bindings; the game validates hashes and tile relationships before handing bytes to this renderer. |
 | `installDeclaredProps` | function | @wildshard/engine/world/declaredProps | Parse only admitted memory, apply a resolved family and texture catalogue, and dispose everything with the level. Every |
 | `InstalledProps` | interface | @wildshard/engine/world/declaredProps | Level-owned roots and stable panel/model ports. Visibility/pose commands act on the returned roots. |
+| `PropSurfaceBinding` | interface | @wildshard/engine/world/declaredProps | A named prop surface (SHARD-PLATFORM SF55): what one GLB material name resolves to, the base material it draws with (a |
 | `FaunaCell` | interface | @wildshard/engine/world/faunaLayout | One cell of the layout — returned by `layoutFaunaCells` for tests / the dev overlay. |
 | `FaunaGroup` | interface | @wildshard/engine/world/faunaLayout | Fauna layout — MANY SMALL GROUPS SPREAD OVER THE WHOLE SHARD, instead of a few big herds. |
 | `FaunaLayoutOpts` | interface | @wildshard/engine/world/faunaLayout | — |

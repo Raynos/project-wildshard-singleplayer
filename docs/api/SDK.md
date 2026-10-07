@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-190 members; 0 without a doc line (—).
+192 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -104,6 +104,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |
 | `LedgerRulesSchema` | const | @wildshard/sdk/ledger | Compile profile reward mappings; coins and unreviewed local items stay outside the travelling profile. |
 | `parseLedgerRules` | function | @wildshard/sdk/ledger | Validate ledger declarations in an author project before writing its shardfile. |
+| `meshCollision` | function | @wildshard/sdk/meshCollision | Check callback-free collider declarations before compiling an author product. |
+| `MeshCollisionData` | type | @wildshard/sdk/meshCollision | Compiled exact triangle tiles and independent interactive collider references. |
 | `DeclaredMigrations` | type | @wildshard/sdk/migrations | Portable author migration declarations addressed by stable field IDs. |
 | `MigrationsSchema` | const | @wildshard/sdk/migrations | Sequential declarative state-version edits; custom migration hooks remain reserved and null. |
 | `parseMigrations` | function | @wildshard/sdk/migrations | Validate bounded default, rename, drop and value-map operations without executing author code. |
