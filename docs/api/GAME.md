@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-532 members; 112 without a doc line (—).
+542 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -111,7 +111,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LiveGridRegion` | interface | @wildshard/game/grid/live | An owned region has authored colliders and logical player state, but no second traveller capsule. |
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
 | `PageResidencyBoot` | interface | @wildshard/game/grid/pageBoot | The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. |
-| `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
+| `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |
@@ -355,6 +355,16 @@ The game layer's public modules (src/game/package.json `exports`).
 | `creatureRules` | function | @wildshard/game/shardfile/creatures | Unique ids and brain references; species and strikes are resolved against the loader's declared catalogues. |
 | `CreaturesSchema` | const | @wildshard/game/shardfile/creatures | Pure-data creature archetypes and stable spawn layouts, expanded before the local sim boots. |
 | `ShardCreatures` | type | @wildshard/game/shardfile/creatures | Validated brain parameters and spawn layout, with no rig or runtime closure. |
+| `CrowdFrameInstallation` | interface | @wildshard/game/shardfile/crowdRuntime | G51 frame adapter: the native recipe retains its shipping observation/view order and rendered dt until conversion. |
+| `CrowdObservation` | interface | @wildshard/game/shardfile/crowdRuntime | Trusted perception sampled in the owning clock; threat identities remain native references. |
+| `DeclaredCrowdPorts` | interface | @wildshard/game/shardfile/crowdRuntime | Native crowd recipes resolved only after every declaration has passed admission. |
+| `DeclaredCrowdRecipe` | interface | @wildshard/game/shardfile/crowdRuntime | Terrain, perception and native presentation; construction must not draw randomness or mutate a view. |
+| `installDeclaredCrowdFrames` | function | @wildshard/game/shardfile/crowdRuntime | Own the transitional update slot; the native frame recipe calls each declared crowd exactly once in shipping order. |
+| `PreparedCrowds` | interface | @wildshard/game/shardfile/crowdRuntime | Pure preparation, explicit setup and either a simulation clock or a transitional native frame clock. |
+| `prepareDeclaredCrowds` | function | @wildshard/game/shardfile/crowdRuntime | Validate every row and recipe before setup. An aborted setup restores every private RNG and ordered member state. |
+| `FlockSchema` | const | @wildshard/game/shardfile/crowds | Ordered instanced flock declaration; terrain, native view, prey and distance scheduling remain trusted ports. |
+| `parseFlock` | function | @wildshard/game/shardfile/crowds | Refuse malformed tuning before constructing a native view or consuming setup randomness. |
+| `ShardFlock` | type | @wildshard/game/shardfile/crowds | Admitted flock tuning, stable crowd identity and ordered member count. |
 | `DirectorData` | type | @wildshard/game/shardfile/director | Validated director data, with stable ids and immutable script parameters. |
 | `DirectorEvent` | interface | @wildshard/game/shardfile/director | Typed output delivered only after a successful, atomically committed script call. |
 | `DirectorSchema` | const | @wildshard/game/shardfile/director | Shard director declarations bound numeric events and observations; grid subscriptions are reserved, with no v1 delivery. |

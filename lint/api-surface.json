@@ -176,6 +176,42 @@
         "from": "@wildshard/engine/ai/encounters"
       },
       {
+        "name": "FlockBrain",
+        "kind": "class",
+        "doc": "Renderer-free ordered flock decisions and integration with distance-based cadence.",
+        "from": "@wildshard/engine/ai/flock"
+      },
+      {
+        "name": "FlockFrame",
+        "kind": "interface",
+        "doc": "Lossless pose inputs and mutable policy state in authored member order.",
+        "from": "@wildshard/engine/ai/flock"
+      },
+      {
+        "name": "FlockPorts",
+        "kind": "interface",
+        "doc": "Trusted terrain, stealth and effect recipes; no application or renderer service is imported.",
+        "from": "@wildshard/engine/ai/flock"
+      },
+      {
+        "name": "FlockPose",
+        "kind": "interface",
+        "doc": "Reused native-view buffer; sheep rigs, materials, prey identities and ray shapes stay outside the policy.",
+        "from": "@wildshard/engine/ai/flock"
+      },
+      {
+        "name": "FlockSpec",
+        "kind": "interface",
+        "doc": "Seeded home, ordered roster and speeds for an instanced grazing crowd.",
+        "from": "@wildshard/engine/ai/flock"
+      },
+      {
+        "name": "FlockThreat",
+        "kind": "interface",
+        "doc": "Ordered threat observation; identity, damage and prey recipes remain with the host.",
+        "from": "@wildshard/engine/ai/flock"
+      },
+      {
         "name": "GroupBrain",
         "kind": "class",
         "doc": "Shared roster, blackboard and decision clock. Authored goals remain in the owning content.",
@@ -2243,9 +2279,21 @@
         "from": "@wildshard/engine/boot/filePolicy"
       },
       {
+        "name": "autoTexturePolicy",
+        "kind": "function",
+        "doc": "G188's automatic tier policy: measured over-cap phone builds use KTX2 before the first visit, never desktop.",
+        "from": "@wildshard/engine/boot/gpuFiles"
+      },
+      {
         "name": "gpuFile",
         "kind": "function",
         "doc": "the KTX2 stand-in of a file this tier fetches, when this page loads KTX2",
+        "from": "@wildshard/engine/boot/gpuFiles"
+      },
+      {
+        "name": "isRegisteredGpuFile",
+        "kind": "function",
+        "doc": "Whether this tier's registered KTX2 mappings name a URL, including shard overlays outside /assets/gpu/.",
         "from": "@wildshard/engine/boot/gpuFiles"
       },
       {
@@ -2757,6 +2805,60 @@
         "from": "@wildshard/engine/combat/blocks/melee"
       },
       {
+        "name": "BowDraw",
+        "kind": "class",
+        "doc": "Pure held-draw, full-release, let-down, fatigue and re-nock state machine.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "DRAW_TIME",
+        "kind": "const",
+        "doc": "Seconds to full draw before the supplied rate multiplier.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "DrawEvent",
+        "kind": "type",
+        "doc": "Draw edges emitted by the one pure bow state machine.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "HOLD_STEADY",
+        "kind": "const",
+        "doc": "Seconds at full draw before aim fatigue begins.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "HOLD_TIRE",
+        "kind": "const",
+        "doc": "Seconds at full draw before the arms force a let-down.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "LETDOWN_TIME",
+        "kind": "const",
+        "doc": "Seconds to ease a released or blocked draw back to brace.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "RENOCK_TIME",
+        "kind": "const",
+        "doc": "Seconds from a loose to the next arrow on the string.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "RN_EARLY",
+        "kind": "const",
+        "doc": "Share of re-nock remaining when the next draw may begin.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
+        "name": "TIRED_TIME",
+        "kind": "const",
+        "doc": "Seconds of rest after forced fatigue.",
+        "from": "@wildshard/engine/combat/bowDraw"
+      },
+      {
         "name": "audioCueMap",
         "kind": "function",
         "doc": "Adapter for the S1.5 generic Audio cue map without renaming its existing samples/taps.",
@@ -2844,6 +2946,12 @@
         "name": "EffectTarget",
         "kind": "interface",
         "doc": "",
+        "from": "@wildshard/engine/combat/effects/types"
+      },
+      {
+        "name": "harmfulEffect",
+        "kind": "function",
+        "doc": "Status/debuff tags and positive periodic damage identify harmful effects without content-specific ids.",
         "from": "@wildshard/engine/combat/effects/types"
       },
       {
@@ -3099,6 +3207,36 @@
         "from": "@wildshard/engine/combat/items"
       },
       {
+        "name": "Melee",
+        "kind": "class",
+        "doc": "Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies.",
+        "from": "@wildshard/engine/combat/Melee"
+      },
+      {
+        "name": "meleeActor",
+        "kind": "function",
+        "doc": "Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior.",
+        "from": "@wildshard/engine/combat/Melee"
+      },
+      {
+        "name": "isMeleeProfile",
+        "kind": "function",
+        "doc": "Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning.",
+        "from": "@wildshard/engine/combat/meleeProfile"
+      },
+      {
+        "name": "MeleeProfile",
+        "kind": "interface",
+        "doc": "Authored contact, sweep, combo and view parameters for the generic melee family.",
+        "from": "@wildshard/engine/combat/meleeProfile"
+      },
+      {
+        "name": "ViewmodelFeel",
+        "kind": "interface",
+        "doc": "Numeric camera lag, bob and sway parameters consumed by a weapon view strategy.",
+        "from": "@wildshard/engine/combat/meleeProfile"
+      },
+      {
         "name": "Actor",
         "kind": "interface",
         "doc": "Simulation port. The legacy creature adapter owns flinch/ragdoll presentation until the AI migration.",
@@ -3177,6 +3315,18 @@
         "from": "@wildshard/engine/combat/targets"
       },
       {
+        "name": "Thrown",
+        "kind": "class",
+        "doc": "A composing weapon keeps its slot/input/pose; this helper owns its thrown row and ammunition.",
+        "from": "@wildshard/engine/combat/Thrown"
+      },
+      {
+        "name": "ThrownProfile",
+        "kind": "interface",
+        "doc": "Numeric launch, gravity, recovery and ammunition parameters for a composing thrown helper.",
+        "from": "@wildshard/engine/combat/thrownProfile"
+      },
+      {
         "name": "EquipmentAction",
         "kind": "type",
         "doc": "",
@@ -3211,6 +3361,48 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/engine/combat/types"
+      },
+      {
+        "name": "Bow",
+        "kind": "class",
+        "doc": "Shared drawn-projectile family; supplied profile owns every model, pose and arrow recipe.",
+        "from": "@wildshard/engine/combat/view/Bow"
+      },
+      {
+        "name": "BowOptions",
+        "kind": "interface",
+        "doc": "Authored row, profile and unlock policy for the trusted bow family.",
+        "from": "@wildshard/engine/combat/view/Bow"
+      },
+      {
+        "name": "BowWorld",
+        "kind": "interface",
+        "doc": "View strategy ports supplied by the host world.",
+        "from": "@wildshard/engine/combat/view/Bow"
+      },
+      {
+        "name": "BowProfile",
+        "kind": "interface",
+        "doc": "Bow parameters and injected view strategies; no geometry is supplied by the family.",
+        "from": "@wildshard/engine/combat/view/bowProfile"
+      },
+      {
+        "name": "BowStyle",
+        "kind": "type",
+        "doc": "Named transitional bow view strategy styles.",
+        "from": "@wildshard/engine/combat/view/bowProfile"
+      },
+      {
+        "name": "BowView",
+        "kind": "interface",
+        "doc": "Trusted bow view strategy supplied by the owning content recipe.",
+        "from": "@wildshard/engine/combat/view/bowProfile"
+      },
+      {
+        "name": "GripPose",
+        "kind": "interface",
+        "doc": "Authored grip position and aim for a bow view.",
+        "from": "@wildshard/engine/combat/view/bowProfile"
       },
       {
         "name": "BrassCase",
@@ -4181,6 +4373,12 @@
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
+        "name": "GraphOutline",
+        "kind": "interface",
+        "doc": "The outline stage: the inverted-hull second draw (back faces, depth tested and written, opaque, unlit, fogged, no",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
         "name": "GraphParam",
         "kind": "interface",
         "doc": "a typed param: a uniform the graph reads",
@@ -4238,6 +4436,24 @@
         "name": "LOOP_MAX",
         "kind": "const",
         "doc": "the most iterations a `loop` node may run",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "SUN_CASCADES",
+        "kind": "const",
+        "doc": "the directional lights a `sun` sub-graph is built for by default: the sky rig's three CSM cascades",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "SUN_CASCADES_MAX",
+        "kind": "const",
+        "doc": "the most cascades a validation may count (three's CSM tops out at four here)",
+        "from": "@wildshard/engine/core/materialGraph"
+      },
+      {
+        "name": "SUN_OPS",
+        "kind": "const",
+        "doc": "the ops whose value is one directional light's (a node reading one is built per light, and counted per cascade)",
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
@@ -13142,7 +13358,7 @@
       {
         "name": "preparePageResidency",
         "kind": "function",
-        "doc": "G144's default-off boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply",
+        "doc": "G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply",
         "from": "@wildshard/game/grid/pageBoot"
       },
       {
@@ -14602,6 +14818,66 @@
         "kind": "type",
         "doc": "Validated brain parameters and spawn layout, with no rig or runtime closure.",
         "from": "@wildshard/game/shardfile/creatures"
+      },
+      {
+        "name": "CrowdFrameInstallation",
+        "kind": "interface",
+        "doc": "G51 frame adapter: the native recipe retains its shipping observation/view order and rendered dt until conversion.",
+        "from": "@wildshard/game/shardfile/crowdRuntime"
+      },
+      {
+        "name": "CrowdObservation",
+        "kind": "interface",
+        "doc": "Trusted perception sampled in the owning clock; threat identities remain native references.",
+        "from": "@wildshard/game/shardfile/crowdRuntime"
+      },
+      {
+        "name": "DeclaredCrowdPorts",
+        "kind": "interface",
+        "doc": "Native crowd recipes resolved only after every declaration has passed admission.",
+        "from": "@wildshard/game/shardfile/crowdRuntime"
+      },
+      {
+        "name": "DeclaredCrowdRecipe",
+        "kind": "interface",
+        "doc": "Terrain, perception and native presentation; construction must not draw randomness or mutate a view.",
+        "from": "@wildshard/game/shardfile/crowdRuntime"
+      },
+      {
+        "name": "installDeclaredCrowdFrames",
+        "kind": "function",
+        "doc": "Own the transitional update slot; the native frame recipe calls each declared crowd exactly once in shipping order.",
+        "from": "@wildshard/game/shardfile/crowdRuntime"
+      },
+      {
+        "name": "PreparedCrowds",
+        "kind": "interface",
+        "doc": "Pure preparation, explicit setup and either a simulation clock or a transitional native frame clock.",
+        "from": "@wildshard/game/shardfile/crowdRuntime"
+      },
+      {
+        "name": "prepareDeclaredCrowds",
+        "kind": "function",
+        "doc": "Validate every row and recipe before setup. An aborted setup restores every private RNG and ordered member state.",
+        "from": "@wildshard/game/shardfile/crowdRuntime"
+      },
+      {
+        "name": "FlockSchema",
+        "kind": "const",
+        "doc": "Ordered instanced flock declaration; terrain, native view, prey and distance scheduling remain trusted ports.",
+        "from": "@wildshard/game/shardfile/crowds"
+      },
+      {
+        "name": "parseFlock",
+        "kind": "function",
+        "doc": "Refuse malformed tuning before constructing a native view or consuming setup randomness.",
+        "from": "@wildshard/game/shardfile/crowds"
+      },
+      {
+        "name": "ShardFlock",
+        "kind": "type",
+        "doc": "Admitted flock tuning, stable crowd identity and ordered member count.",
+        "from": "@wildshard/game/shardfile/crowds"
       },
       {
         "name": "DirectorData",
@@ -16432,19 +16708,19 @@
       {
         "name": "Bow",
         "kind": "class",
-        "doc": "",
+        "doc": "Compatibility constructor only; draw clocks, arrows and view strategy execution have one platform implementation.",
         "from": "@wildshard/kit/weapons/bow/family"
       },
       {
         "name": "BowOptions",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Existing kit callers retain their row/profile options; the bridge supplies current input and style defaults.",
         "from": "@wildshard/kit/weapons/bow/family"
       },
       {
         "name": "BowWorld",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Transitional host ports for the trusted platform bow family.",
         "from": "@wildshard/kit/weapons/bow/family"
       },
       {
@@ -16485,87 +16761,33 @@
       },
       {
         "name": "BowProfile",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Transitional kit name for the defining bow profile with today's style vocabulary.",
         "from": "@wildshard/kit/weapons/bow/profile"
       },
       {
         "name": "BowStyle",
         "kind": "type",
-        "doc": "",
+        "doc": "Transitional content's named view styles; the engine accepts its caller's vocabulary.",
         "from": "@wildshard/kit/weapons/bow/profile"
       },
       {
         "name": "BowView",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Transitional kit name for the injected bow model strategy.",
         "from": "@wildshard/kit/weapons/bow/profile"
       },
       {
         "name": "GripPose",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Transitional kit name for the authored view grip.",
         "from": "@wildshard/kit/weapons/bow/profile"
       },
       {
         "name": "BOW",
         "kind": "const",
-        "doc": "",
+        "doc": "The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into",
         "from": "@wildshard/kit/weapons/bow/profiles"
-      },
-      {
-        "name": "ARROW_LEN",
-        "kind": "const",
-        "doc": "The arrow: birch shaft with a red cresting band, iron leaf head, three barred feathers. TIP at the origin, shaft",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "arrowKind",
-        "kind": "function",
-        "doc": "the arrow as a `Projectiles` kind (the world pool) — combat.md §C numbers",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "arrowMaterial",
-        "kind": "function",
-        "doc": "the arrows' one painterly material (the world pool's; E348: the Model Explorer's arrow card makes its own)",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "bowSpecimen",
-        "kind": "function",
-        "doc": "The Model Explorer's card (src/shards/nalati-grasslands/models/gear.ts): the braced bow and the left glove on it (the",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "BowStyle",
-        "kind": "type",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "buildArrowGeometry",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "buildRecurve",
-        "kind": "function",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "POSE",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/weapons/bow/recurve"
-      },
-      {
-        "name": "VM_SHADE",
-        "kind": "const",
-        "doc": "the viewmodel's shade-side fill (painterly `shade`; 1 = the world's)",
-        "from": "@wildshard/kit/weapons/bow/recurve"
       },
       {
         "name": "IRON_SWORD",
@@ -16587,32 +16809,32 @@
       },
       {
         "name": "isMeleeProfile",
-        "kind": "function",
-        "doc": "Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning.",
+        "kind": "const",
+        "doc": "The platform discriminant retains legacy row handling.",
         "from": "@wildshard/kit/weapons/melee/Melee"
       },
       {
         "name": "Melee",
         "kind": "class",
-        "doc": "Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies.",
+        "doc": "Compatibility constructor supplies the current combat pipeline; all family behavior lives in the engine.",
         "from": "@wildshard/kit/weapons/melee/Melee"
       },
       {
         "name": "meleeActor",
-        "kind": "function",
-        "doc": "Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior.",
+        "kind": "const",
+        "doc": "All kit and SDK contact callers share the platform's one native/practice adapter cache.",
         "from": "@wildshard/kit/weapons/melee/Melee"
       },
       {
         "name": "MeleeProfile",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Transitional kit name for the platform's authored contact profile.",
         "from": "@wildshard/kit/weapons/melee/Melee"
       },
       {
         "name": "ViewmodelFeel",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Transitional kit name for the platform's numeric view tuning.",
         "from": "@wildshard/kit/weapons/melee/Melee"
       },
       {
@@ -16688,12 +16910,6 @@
         "from": "@wildshard/kit/weapons/melee/profiles"
       },
       {
-        "name": "buildSword",
-        "kind": "function",
-        "doc": "Sword model space: origin at the middle of the grip (between the two fists), +Y up the blade, +X across the",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
         "name": "HEAVY_CHARGE",
         "kind": "const",
         "doc": "",
@@ -16718,12 +16934,6 @@
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
-        "name": "swordMaterial",
-        "kind": "function",
-        "doc": "the low-poly swords' material (flat facets, vertex colours; the iron blade metallic), prepared for the sky — opaque: the",
-        "from": "@wildshard/kit/weapons/melee/SweptMelee"
-      },
-      {
         "name": "SwordOptions",
         "kind": "interface",
         "doc": "",
@@ -16731,14 +16941,14 @@
       },
       {
         "name": "Thrown",
-        "kind": "class",
-        "doc": "A composing weapon keeps its slot/input/pose; this helper owns its thrown row and ammunition.",
+        "kind": "const",
+        "doc": "The kit uses the one platform constructor and ammunition implementation.",
         "from": "@wildshard/kit/weapons/thrown/Thrown"
       },
       {
         "name": "ThrownProfile",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Transitional kit name for the platform's authored ammunition and flight profile.",
         "from": "@wildshard/kit/weapons/thrown/Thrown"
       },
       {
@@ -16972,6 +17182,48 @@
         "from": "@wildshard/sdk/bake/texture"
       },
       {
+        "name": "NormalizedWorld",
+        "kind": "interface",
+        "doc": "Fully normalized, memory-only build input; no GLB node is silently omitted or converted to a heightfield.",
+        "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "normalizeWorldGlb",
+        "kind": "function",
+        "doc": "Normalize one embedded static world GLB without files, renderer allocation, baking or platform collision.",
+        "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "WorldImage",
+        "kind": "interface",
+        "doc": "Retained embedded raster input; the later pinned encoder owns its KTX2 conversion.",
+        "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "WorldMaterial",
+        "kind": "interface",
+        "doc": "Source glTF metallic/roughness surface with every supported texture slot and its explicit output material ID.",
+        "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "WorldPanel",
+        "kind": "interface",
+        "doc": "Config-selected panel root, its exact world transform and independent local collision/render triangles.",
+        "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "WorldPrimitive",
+        "kind": "interface",
+        "doc": "Indexed triangle topology, world-local for static geometry and panel-root-local for interactive geometry.",
+        "from": "@wildshard/sdk/bake/world"
+      },
+      {
+        "name": "WorldTexture",
+        "kind": "interface",
+        "doc": "A material texture use preserves UV0 and sampler data rather than copying pixels into vertex colours.",
+        "from": "@wildshard/sdk/bake/world"
+      },
+      {
         "name": "guardian",
         "kind": "function",
         "doc": "Validate an interior guardian policy independently of its native view recipe.",
@@ -17108,6 +17360,18 @@
         "kind": "const",
         "doc": "Bounded hash-addressed metadata for at most 1024 distinct required commons assets.",
         "from": "@wildshard/sdk/commonsCosts"
+      },
+      {
+        "name": "flock",
+        "kind": "function",
+        "doc": "Admit finite crowd tuning before any world construction, setup draws or callback registration.",
+        "from": "@wildshard/sdk/crowds"
+      },
+      {
+        "name": "FlockData",
+        "kind": "type",
+        "doc": "Stable ordered flock declaration with seeded placement and trusted native terrain/view/prey recipes.",
+        "from": "@wildshard/sdk/crowds"
       },
       {
         "name": "director",
@@ -17380,6 +17644,30 @@
         "from": "@wildshard/sdk/rows"
       },
       {
+        "name": "Bow",
+        "kind": "const",
+        "doc": "The one platform bow constructor; the SDK owns no second draw clock, projectile pool or presentation implementation.",
+        "from": "@wildshard/sdk/runtime/weapons/Bow"
+      },
+      {
+        "name": "BowInstance",
+        "kind": "type",
+        "doc": "The shared drawn-projectile instance; view recipes and profiles are supplied by its owner.",
+        "from": "@wildshard/sdk/runtime/weapons/Bow"
+      },
+      {
+        "name": "BowOptions",
+        "kind": "type",
+        "doc": "Row, profile and unlock policy supplied to the trusted family constructor.",
+        "from": "@wildshard/sdk/runtime/weapons/Bow"
+      },
+      {
+        "name": "BowWorld",
+        "kind": "type",
+        "doc": "Host view-strategy ports for the trusted bow family.",
+        "from": "@wildshard/sdk/runtime/weapons/Bow"
+      },
+      {
         "name": "Firearm",
         "kind": "const",
         "doc": "The platform's one firearm constructor, preserving readiness, empty-trigger and reload hooks without a second implementation.",
@@ -17390,6 +17678,36 @@
         "kind": "type",
         "doc": "Trusted firearm trigger family for transitional shard runtime subclasses; views and tuning stay with the shard.",
         "from": "@wildshard/sdk/runtime/weapons/Firearm"
+      },
+      {
+        "name": "Melee",
+        "kind": "const",
+        "doc": "The one platform contact constructor, used by transitional runtime subclasses until declared items replace them.",
+        "from": "@wildshard/sdk/runtime/weapons/Melee"
+      },
+      {
+        "name": "meleeActor",
+        "kind": "const",
+        "doc": "Native/practice targets share the platform's one cached combat actor adapter.",
+        "from": "@wildshard/sdk/runtime/weapons/Melee"
+      },
+      {
+        "name": "MeleeInstance",
+        "kind": "type",
+        "doc": "Trusted contact-family instance with authored sweep and view parameters.",
+        "from": "@wildshard/sdk/runtime/weapons/Melee"
+      },
+      {
+        "name": "Thrown",
+        "kind": "const",
+        "doc": "The one platform thrown helper constructor; the SDK adds no state or implementation.",
+        "from": "@wildshard/sdk/runtime/weapons/Thrown"
+      },
+      {
+        "name": "ThrownInstance",
+        "kind": "type",
+        "doc": "A composing weapon's ammunition and fixed-step launch helper.",
+        "from": "@wildshard/sdk/runtime/weapons/Thrown"
       },
       {
         "name": "Weapon",
@@ -17458,10 +17776,70 @@
         "from": "@wildshard/sdk/version"
       },
       {
+        "name": "BowProfile",
+        "kind": "type",
+        "doc": "Bow parameters with trusted injected view strategies; geometry stays in the owning recipe.",
+        "from": "@wildshard/sdk/weapons/bowProfile"
+      },
+      {
+        "name": "BowStyle",
+        "kind": "type",
+        "doc": "Named transitional bow view strategy styles.",
+        "from": "@wildshard/sdk/weapons/bowProfile"
+      },
+      {
+        "name": "BowView",
+        "kind": "type",
+        "doc": "Host-supplied model, hand, sleeve and string-deformation strategy.",
+        "from": "@wildshard/sdk/weapons/bowProfile"
+      },
+      {
+        "name": "GripPose",
+        "kind": "type",
+        "doc": "Authored grip position and aim for a bow view.",
+        "from": "@wildshard/sdk/weapons/bowProfile"
+      },
+      {
         "name": "FirearmProfile",
         "kind": "interface",
         "doc": "Numeric firearm tuning for authored rows consumed by the trusted trigger family.",
         "from": "@wildshard/sdk/weapons/firearmProfile"
+      },
+      {
+        "name": "MeleeProfile",
+        "kind": "type",
+        "doc": "Authored contact, combo, sweep and view parameters for trusted melee families.",
+        "from": "@wildshard/sdk/weapons/meleeProfile"
+      },
+      {
+        "name": "ViewmodelFeel",
+        "kind": "type",
+        "doc": "Numeric camera lag, bob and sway parameters, independent of a particular weapon model.",
+        "from": "@wildshard/sdk/weapons/meleeProfile"
+      },
+      {
+        "name": "ThrownProfile",
+        "kind": "type",
+        "doc": "Numeric launch, recovery and ammunition parameters consumed by the trusted thrown helper.",
+        "from": "@wildshard/sdk/weapons/thrownProfile"
+      },
+      {
+        "name": "parseWorldSource",
+        "kind": "function",
+        "doc": "Validate a build-only world declaration without opening files or executing getters or serializers.",
+        "from": "@wildshard/sdk/worldSource"
+      },
+      {
+        "name": "WorldSource",
+        "kind": "type",
+        "doc": "Normalized author-world declaration; objects and interactive default to empty collections.",
+        "from": "@wildshard/sdk/worldSource"
+      },
+      {
+        "name": "WorldSourceSchema",
+        "kind": "const",
+        "doc": "Build-only authored geometry input in metres and glTF Y-up axes; it is never a compiled shardfile section.",
+        "from": "@wildshard/sdk/worldSource"
       }
     ],
     "commons": [

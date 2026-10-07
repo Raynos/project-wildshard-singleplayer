@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-116 members; 0 without a doc line (—).
+144 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -42,6 +42,13 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `TerrainBakeSource` | interface | @wildshard/sdk/bake/terrain | Trusted generator inputs. These closures run only while baking and never enter shard.json or the client. |
 | `TerrainOverride` | interface | @wildshard/sdk/bake/terrain | An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. |
 | `bakeColourTexture` | function | @wildshard/sdk/bake/texture | Bake PNG colour pixels to mipmapped sRGB UASTC KTX2; the engine's existing loader transcodes these blocks to ASTC. |
+| `NormalizedWorld` | interface | @wildshard/sdk/bake/world | Fully normalized, memory-only build input; no GLB node is silently omitted or converted to a heightfield. |
+| `normalizeWorldGlb` | function | @wildshard/sdk/bake/world | Normalize one embedded static world GLB without files, renderer allocation, baking or platform collision. |
+| `WorldImage` | interface | @wildshard/sdk/bake/world | Retained embedded raster input; the later pinned encoder owns its KTX2 conversion. |
+| `WorldMaterial` | interface | @wildshard/sdk/bake/world | Source glTF metallic/roughness surface with every supported texture slot and its explicit output material ID. |
+| `WorldPanel` | interface | @wildshard/sdk/bake/world | Config-selected panel root, its exact world transform and independent local collision/render triangles. |
+| `WorldPrimitive` | interface | @wildshard/sdk/bake/world | Indexed triangle topology, world-local for static geometry and panel-root-local for interactive geometry. |
+| `WorldTexture` | interface | @wildshard/sdk/bake/world | A material texture use preserves UV0 and sampler data rather than copying pixels into vertex colours. |
 | `guardian` | function | @wildshard/sdk/brains | Validate an interior guardian policy independently of its native view recipe. |
 | `GuardianData` | type | @wildshard/sdk/brains | Data-selected interior guardian, with native floor and rise/sink completion ports. |
 | `perchHunter` | function | @wildshard/sdk/brains | Validate a bounded perch hunter's decision parameters. |
@@ -65,6 +72,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `CommonsCosts` | type | @wildshard/sdk/commonsCosts | Parsed exact residency and geometry costs keyed by the pinned commons content hash. |
 | `CommonsCostSchema` | const | @wildshard/sdk/commonsCosts | Pinned commons bytes declare exact decoded/GPU bytes and triangle/draw counts as nonnegative safe integers. |
 | `CommonsCostsSchema` | const | @wildshard/sdk/commonsCosts | Bounded hash-addressed metadata for at most 1024 distinct required commons assets. |
+| `flock` | function | @wildshard/sdk/crowds | Admit finite crowd tuning before any world construction, setup draws or callback registration. |
+| `FlockData` | type | @wildshard/sdk/crowds | Stable ordered flock declaration with seeded placement and trusted native terrain/view/prey recipes. |
 | `director` | function | @wildshard/sdk/director | Validate before admitting a bounded module or installing a fixed-step director. |
 | `DirectorData` | type | @wildshard/sdk/director | Typed director data with bounded observations, payloads and reserved grid subscriptions. |
 | `burstFlyer` | function | @wildshard/sdk/flyers | Validate a burst flyer without publishing a contact, random draw or player impulse. |
@@ -110,8 +119,17 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardRows` | type | @wildshard/sdk/rows | Numeric row declarations and registered view/presentation recipes. |
 | `simStrikes` | const | @wildshard/sdk/rows | Numeric strike catalogue suitable for the authoritative sim. |
 | `speciesResolver` | const | @wildshard/sdk/rows | Resolve declared variant health, collision dimensions and motion multipliers. |
+| `Bow` | const | @wildshard/sdk/runtime/weapons/Bow | The one platform bow constructor; the SDK owns no second draw clock, projectile pool or presentation implementation. |
+| `BowInstance` | type | @wildshard/sdk/runtime/weapons/Bow | The shared drawn-projectile instance; view recipes and profiles are supplied by its owner. |
+| `BowOptions` | type | @wildshard/sdk/runtime/weapons/Bow | Row, profile and unlock policy supplied to the trusted family constructor. |
+| `BowWorld` | type | @wildshard/sdk/runtime/weapons/Bow | Host view-strategy ports for the trusted bow family. |
 | `Firearm` | const | @wildshard/sdk/runtime/weapons/Firearm | The platform's one firearm constructor, preserving readiness, empty-trigger and reload hooks without a second implementation. |
 | `FirearmInstance` | type | @wildshard/sdk/runtime/weapons/Firearm | Trusted firearm trigger family for transitional shard runtime subclasses; views and tuning stay with the shard. |
+| `Melee` | const | @wildshard/sdk/runtime/weapons/Melee | The one platform contact constructor, used by transitional runtime subclasses until declared items replace them. |
+| `meleeActor` | const | @wildshard/sdk/runtime/weapons/Melee | Native/practice targets share the platform's one cached combat actor adapter. |
+| `MeleeInstance` | type | @wildshard/sdk/runtime/weapons/Melee | Trusted contact-family instance with authored sweep and view parameters. |
+| `Thrown` | const | @wildshard/sdk/runtime/weapons/Thrown | The one platform thrown helper constructor; the SDK adds no state or implementation. |
+| `ThrownInstance` | type | @wildshard/sdk/runtime/weapons/Thrown | A composing weapon's ammunition and fixed-step launch helper. |
 | `Weapon` | const | @wildshard/sdk/runtime/weapons/Weapon | The single platform weapon constructor; the trusted SDK surface adds no runtime state or implementation. |
 | `WeaponInstance` | type | @wildshard/sdk/runtime/weapons/Weapon | Trusted platform weapon instance for transitional runtime subclasses until declared items replace them. |
 | `assertStateCompatibility` | function | @wildshard/sdk/shardfile | Refuse saved-state identity changes between two validated revisions of the same shard. |
@@ -123,4 +141,14 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardTraversal` | type | @wildshard/sdk/traversal | Callback-free interior traversal tuning. |
 | `TraversalSchema` | const | @wildshard/sdk/traversal | Optional author tuning for the grid's interior board cap. |
 | `SHARDFILE_VERSION` | const | @wildshard/sdk/version | Author-facing revision of the shardfile format and script ABI. |
+| `BowProfile` | type | @wildshard/sdk/weapons/bowProfile | Bow parameters with trusted injected view strategies; geometry stays in the owning recipe. |
+| `BowStyle` | type | @wildshard/sdk/weapons/bowProfile | Named transitional bow view strategy styles. |
+| `BowView` | type | @wildshard/sdk/weapons/bowProfile | Host-supplied model, hand, sleeve and string-deformation strategy. |
+| `GripPose` | type | @wildshard/sdk/weapons/bowProfile | Authored grip position and aim for a bow view. |
 | `FirearmProfile` | interface | @wildshard/sdk/weapons/firearmProfile | Numeric firearm tuning for authored rows consumed by the trusted trigger family. |
+| `MeleeProfile` | type | @wildshard/sdk/weapons/meleeProfile | Authored contact, combo, sweep and view parameters for trusted melee families. |
+| `ViewmodelFeel` | type | @wildshard/sdk/weapons/meleeProfile | Numeric camera lag, bob and sway parameters, independent of a particular weapon model. |
+| `ThrownProfile` | type | @wildshard/sdk/weapons/thrownProfile | Numeric launch, recovery and ammunition parameters consumed by the trusted thrown helper. |
+| `parseWorldSource` | function | @wildshard/sdk/worldSource | Validate a build-only world declaration without opening files or executing getters or serializers. |
+| `WorldSource` | type | @wildshard/sdk/worldSource | Normalized author-world declaration; objects and interactive default to empty collections. |
+| `WorldSourceSchema` | const | @wildshard/sdk/worldSource | Build-only authored geometry input in metres and glTF Y-up axes; it is never a compiled shardfile section. |

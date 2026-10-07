@@ -1839,7 +1839,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2066 exports, grouped by the module to import them from.
+2102 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1848,6 +1848,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ai/CreatureBrain`: `CreatureBrain`
 - `@wildshard/engine/ai/EliteBrain`: `EliteActor`, `EliteBrain`, `EliteDefinition`, `ElitePorts`
 - `@wildshard/engine/ai/encounters`: `EncounterDefinition`, `EncounterRegistry`, `EncounterService`, `SpawnContext`, `SpawnEntry`, `Spawner`, `SpawnPoint`, `SpawnTableRow`
+- `@wildshard/engine/ai/flock`: `FlockBrain`, `FlockFrame`, `FlockPorts`, `FlockPose`, `FlockSpec`, `FlockThreat`
 - `@wildshard/engine/ai/GroupBrain`: `GroupBrain`, `GroupMember`
 - `@wildshard/engine/ai/guardian`: `GuardianBrain`, `GuardianPorts`, `GuardianSpec`
 - `@wildshard/engine/ai/herd`: `HerdBrain`, `HerdContext`, `HerdMode`, `HerdPorts`, `HerdSpec`, `StallionState`
@@ -1910,7 +1911,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/boot/contentCache`: `CONTENT_CACHE_NAME`, `ContentCache`, `ContentCachePorts`, `ContentCacheStats`
 - `@wildshard/engine/boot/extras`: `AudioBanks`, `bootFiles`, `extraFetches`, `Preload`, `startAudioPreload`, `startDeferredAudioPreload`, `startMenuPreload`
 - `@wildshard/engine/boot/filePolicy`: `filePolicy`
-- `@wildshard/engine/boot/gpuFiles`: `gpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`
+- `@wildshard/engine/boot/gpuFiles`: `autoTexturePolicy`, `gpuFile`, `isRegisteredGpuFile`, `Ktx2Table`, `MAY_KTX2`, `registerGpuFiles`, `setAutoKtx2Check`, `setTexturePolicy`, `standIn`, `texMode`, `TexMode`, `texModeWhy`
 - `@wildshard/engine/boot/lastEnd`: `AliveInfo`, `lastEnd`, `LastEnd`, `lastEndLine`, `lastRecordedEnd`, `markUnload`, `PageLife`, `setAliveSource`
 - `@wildshard/engine/boot/pack`: `bootParts`, `packFor`, `streamPack`
 - `@wildshard/engine/boot/plan`: `ByteProgress`, `createBootPlan`, `formatMB`, `LogRow`, `macrotask`, `Plan`, `PlanOptions`, `ProgressView`, `runDirect`, `Sink`, `slicer`, `StepProgress`, `StepRunner`
@@ -1924,9 +1925,10 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/combat/ammo`: `AmmoId`, `AmmoRow`, `ProjectileModification`
 - `@wildshard/engine/combat/blocks/ads`: `ads`
 - `@wildshard/engine/combat/blocks/melee`: `aimRay`, `fovForAspect`, `melee`
+- `@wildshard/engine/combat/bowDraw`: `BowDraw`, `DRAW_TIME`, `DrawEvent`, `HOLD_STEADY`, `HOLD_TIRE`, `LETDOWN_TIME`, `RENOCK_TIME`, `RN_EARLY`, `TIRED_TIME`
 - `@wildshard/engine/combat/cues`: `audioCueMap`, `CombatCueMap`, `CombatCueOpts`, `CombatCues`, `HitStopProfile`, `resolveHitStop`, `WeaponChargePhase`
 - `@wildshard/engine/combat/effects/EffectService`: `bindPlayerEffects`, `EffectService`
-- `@wildshard/engine/combat/effects/types`: `ActiveEffect`, `AttributeSet`, `CueId`, `EffectDef`, `EffectId`, `EffectTarget`, `matchesTag`, `SourceMulDef`, `sourceMultiplier`
+- `@wildshard/engine/combat/effects/types`: `ActiveEffect`, `AttributeSet`, `CueId`, `EffectDef`, `EffectId`, `EffectTarget`, `harmfulEffect`, `matchesTag`, `SourceMulDef`, `sourceMultiplier`
 - `@wildshard/engine/combat/Equipment`: `BlockSet`, `EquipContext`, `Equipment`, `EquipmentBlock`, `EquipmentCues`, `EquipmentIcon`, `EquipmentIconMap`, `EquipmentId`, `EquipmentMeta`, `EquipmentRow`, `EquipmentSlotMap`, `EquipmentTouchMap`, `RangedFeelProfile`, `ToolId`, `WeaponId`, `WeaponUi`
 - `@wildshard/engine/combat/EquipmentPickup`: `EquipmentPickup`, `EquipmentPickupHost`, `EquipmentPickupSpec`, `PickupLoadout`
 - `@wildshard/engine/combat/EquipmentService`: `EquipmentService`
@@ -1934,10 +1936,16 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/combat/health`: `HealthLifecycle`, `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
 - `@wildshard/engine/combat/itemFamilies`: `ItemFamily`, `ItemFamilyPorts`, `ItemViewRecipe`
 - `@wildshard/engine/combat/items`: `ItemAction`, `ItemAttack`, `ItemContact`, `ItemHook`, `ItemPorts`, `ItemRuntime`, `ItemSpec`, `ItemState`, `ItemTarget`, `scriptItemHook`
+- `@wildshard/engine/combat/Melee`: `Melee`, `meleeActor`
+- `@wildshard/engine/combat/meleeProfile`: `isMeleeProfile`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/engine/combat/pipeline`: `Actor`, `CombatPipeline`, `CombatTag`, `CombatTarget`, `DamageDealt`, `DamageRequest`, `DamageRuleDef`, `DeathCause`, `FallCause`, `HealthAttributes`, `StringKey`
 - `@wildshard/engine/combat/targets`: `authoredTargets`, `RayTargets`
+- `@wildshard/engine/combat/Thrown`: `Thrown`
+- `@wildshard/engine/combat/thrownProfile`: `ThrownProfile`
 - `@wildshard/engine/combat/Tool`: `EquipmentAction`, `Tool`
 - `@wildshard/engine/combat/types`: `TargetAnimal`, `TargetFrame`, `TargetHit`, `Targets`
+- `@wildshard/engine/combat/view/Bow`: `Bow`, `BowOptions`, `BowWorld`
+- `@wildshard/engine/combat/view/bowProfile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
 - `@wildshard/engine/combat/view/brass`: `BrassCase`, `brassFloor`, `stepBrass`
 - `@wildshard/engine/combat/view/DropArc`: `DropArc`
 - `@wildshard/engine/combat/view/EquipmentHost`: `EquipmentHost`
@@ -1963,7 +1971,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
-- `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `validateGraph`
+- `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphOutline`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `SUN_CASCADES`, `SUN_CASCADES_MAX`, `SUN_OPS`, `validateGraph`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
 - `@wildshard/engine/core/practiceRoom`: `practiceRoom`
@@ -2197,7 +2205,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-532 exports, grouped by the module to import them from.
+542 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2264,6 +2272,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/clientScripts`: `ClientScriptContent`, `clientScriptRules`, `ClientScriptsSchema`, `ClientScriptTarget`, `clientScriptViewCost`, `createShardfileClientScripts`, `parseClientScripts`, `ShardClientScripts`, `ShardfileClientScriptPorts`
 - `@wildshard/game/shardfile/commonsCosts`: `assertCommonsCosts`, `CommonsCosts`, `CommonsCostSchema`, `CommonsCostsSchema`
 - `@wildshard/game/shardfile/creatures`: `creatureRules`, `CreaturesSchema`, `ShardCreatures`
+- `@wildshard/game/shardfile/crowdRuntime`: `CrowdFrameInstallation`, `CrowdObservation`, `DeclaredCrowdPorts`, `DeclaredCrowdRecipe`, `installDeclaredCrowdFrames`, `PreparedCrowds`, `prepareDeclaredCrowds`
+- `@wildshard/game/shardfile/crowds`: `FlockSchema`, `parseFlock`, `ShardFlock`
 - `@wildshard/game/shardfile/director`: `DirectorData`, `DirectorEvent`, `DirectorSchema`, `parseDirector`
 - `@wildshard/game/shardfile/directorClient`: `DirectorInstallation`, `directorVariant`, `installDeclaredDirector`
 - `@wildshard/game/shardfile/directorRuntime`: `createDirectorLane`, `DirectorLane`
@@ -2304,7 +2314,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-174 exports, grouped by the module to import them from.
+164 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
 - `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
@@ -2334,19 +2344,18 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/kit/weapons/bow/index`: `AIM_IN`, `AIM_SPREAD`, `AIM_SWAY`, `AIM_VM_ZOOM`, `AIM_ZOOM`, `QUIVER_MAX`
 - `@wildshard/kit/weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
 - `@wildshard/kit/weapons/bow/profiles`: `BOW`
-- `@wildshard/kit/weapons/bow/recurve`: `ARROW_LEN`, `arrowKind`, `arrowMaterial`, `bowSpecimen`, `BowStyle`, `buildArrowGeometry`, `buildRecurve`, `POSE`, `VM_SHADE`
 - `@wildshard/kit/weapons/equipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
 - `@wildshard/kit/weapons/melee/Melee`: `isMeleeProfile`, `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/kit/weapons/melee/moves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
 - `@wildshard/kit/weapons/melee/profiles`: `SWORD_IRON`, `SWORD_WOOD`
-- `@wildshard/kit/weapons/melee/SweptMelee`: `buildSword`, `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `swordMaterial`, `SwordOptions`
+- `@wildshard/kit/weapons/melee/SweptMelee`: `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `SwordOptions`
 - `@wildshard/kit/weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
 - `@wildshard/kit/weapons/ui`: `SWAP_GLYPHS`
 - `@wildshard/kit/weather/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-116 exports, grouped by the module to import them from.
+144 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2358,10 +2367,12 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/props`: `BakedProps`, `bakeProps`, `PropsBakeSource`, `PropScatter`
 - `@wildshard/sdk/bake/terrain`: `BakedTerrain`, `bakeTerrain`, `TerrainBakeSource`, `TerrainOverride`
 - `@wildshard/sdk/bake/texture`: `bakeColourTexture`
+- `@wildshard/sdk/bake/world`: `NormalizedWorld`, `normalizeWorldGlb`, `WorldImage`, `WorldMaterial`, `WorldPanel`, `WorldPrimitive`, `WorldTexture`
 - `@wildshard/sdk/brains`: `guardian`, `GuardianData`, `perchHunter`, `PerchHunterData`, `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`
 - `@wildshard/sdk/commons`: `buildCommons`, `BuiltCommons`, `CommonsAsset`, `CommonsCatalogue`, `CommonsEntry`, `CommonsPack`, `commonsRequirements`
 - `@wildshard/sdk/commonsCosts`: `assertCommonsCosts`, `CommonsCosts`, `CommonsCostSchema`, `CommonsCostsSchema`
+- `@wildshard/sdk/crowds`: `flock`, `FlockData`
 - `@wildshard/sdk/director`: `director`, `DirectorData`
 - `@wildshard/sdk/flyers`: `burstFlyer`, `BurstFlyerData`, `orbitDiver`, `OrbitDiverData`, `patrolDiver`, `PatrolDiverData`
 - `@wildshard/sdk/grazers`: `challengeGrazer`, `ChallengeGrazerData`, `ramGrazer`, `RamGrazerData`
@@ -2374,12 +2385,19 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
+- `@wildshard/sdk/runtime/weapons/Bow`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`
+- `@wildshard/sdk/runtime/weapons/Melee`: `Melee`, `meleeActor`, `MeleeInstance`
+- `@wildshard/sdk/runtime/weapons/Thrown`: `Thrown`, `ThrownInstance`
 - `@wildshard/sdk/runtime/weapons/Weapon`: `Weapon`, `WeaponInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
 - `@wildshard/sdk/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/sdk/version`: `SHARDFILE_VERSION`
+- `@wildshard/sdk/weapons/bowProfile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
 - `@wildshard/sdk/weapons/firearmProfile`: `FirearmProfile`
+- `@wildshard/sdk/weapons/meleeProfile`: `MeleeProfile`, `ViewmodelFeel`
+- `@wildshard/sdk/weapons/thrownProfile`: `ThrownProfile`
+- `@wildshard/sdk/worldSource`: `parseWorldSource`, `WorldSource`, `WorldSourceSchema`
 
 ### `@wildshard/commons` (`src/commons/package.json`)
 

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2083 members; 830 without a doc line (—).
+2119 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -37,6 +37,12 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `Spawner` | interface | @wildshard/engine/ai/encounters | — |
 | `SpawnPoint` | interface | @wildshard/engine/ai/encounters | — |
 | `SpawnTableRow` | interface | @wildshard/engine/ai/encounters | — |
+| `FlockBrain` | class | @wildshard/engine/ai/flock | Renderer-free ordered flock decisions and integration with distance-based cadence. |
+| `FlockFrame` | interface | @wildshard/engine/ai/flock | Lossless pose inputs and mutable policy state in authored member order. |
+| `FlockPorts` | interface | @wildshard/engine/ai/flock | Trusted terrain, stealth and effect recipes; no application or renderer service is imported. |
+| `FlockPose` | interface | @wildshard/engine/ai/flock | Reused native-view buffer; sheep rigs, materials, prey identities and ray shapes stay outside the policy. |
+| `FlockSpec` | interface | @wildshard/engine/ai/flock | Seeded home, ordered roster and speeds for an instanced grazing crowd. |
+| `FlockThreat` | interface | @wildshard/engine/ai/flock | Ordered threat observation; identity, damage and prey recipes remain with the host. |
 | `GroupBrain` | class | @wildshard/engine/ai/GroupBrain | Shared roster, blackboard and decision clock. Authored goals remain in the owning content. |
 | `GroupMember` | interface | @wildshard/engine/ai/GroupBrain | — |
 | `GuardianBrain` | class | @wildshard/engine/ai/guardian | Renderer-free guardian decisions; vertical recipes, line of sight and attack authority remain host ports. |
@@ -381,7 +387,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `startDeferredAudioPreload` | function | @wildshard/engine/boot/extras | Nine Dragon's phone boot: count/cache every file, then decode the selected banks after the world starts. |
 | `startMenuPreload` | function | @wildshard/engine/boot/extras | — |
 | `filePolicy` | function | @wildshard/engine/boot/filePolicy | Pure asset-name resolution for node-safe manifest file lists. |
+| `autoTexturePolicy` | function | @wildshard/engine/boot/gpuFiles | G188's automatic tier policy: measured over-cap phone builds use KTX2 before the first visit, never desktop. |
 | `gpuFile` | function | @wildshard/engine/boot/gpuFiles | the KTX2 stand-in of a file this tier fetches, when this page loads KTX2 |
+| `isRegisteredGpuFile` | function | @wildshard/engine/boot/gpuFiles | Whether this tier's registered KTX2 mappings name a URL, including shard overlays outside /assets/gpu/. |
 | `Ktx2Table` | interface | @wildshard/engine/boot/gpuFiles | — |
 | `MAY_KTX2` | const | @wildshard/engine/boot/gpuFiles | a page that may load KTX2 in some build (Debug ▸ GPU textures is not Images): its model / texture caches are per shard |
 | `registerGpuFiles` | function | @wildshard/engine/boot/gpuFiles | — |
@@ -466,6 +474,15 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `aimRay` | function | @wildshard/engine/combat/blocks/melee | Aim block shared by custom and family weapons; no camera or scene dependency. |
 | `fovForAspect` | function | @wildshard/engine/combat/blocks/melee | — |
 | `melee` | function | @wildshard/engine/combat/blocks/melee | Public contact block: callers choose the move and target; combat owns cover and damage rules. |
+| `BowDraw` | class | @wildshard/engine/combat/bowDraw | Pure held-draw, full-release, let-down, fatigue and re-nock state machine. |
+| `DRAW_TIME` | const | @wildshard/engine/combat/bowDraw | Seconds to full draw before the supplied rate multiplier. |
+| `DrawEvent` | type | @wildshard/engine/combat/bowDraw | Draw edges emitted by the one pure bow state machine. |
+| `HOLD_STEADY` | const | @wildshard/engine/combat/bowDraw | Seconds at full draw before aim fatigue begins. |
+| `HOLD_TIRE` | const | @wildshard/engine/combat/bowDraw | Seconds at full draw before the arms force a let-down. |
+| `LETDOWN_TIME` | const | @wildshard/engine/combat/bowDraw | Seconds to ease a released or blocked draw back to brace. |
+| `RENOCK_TIME` | const | @wildshard/engine/combat/bowDraw | Seconds from a loose to the next arrow on the string. |
+| `RN_EARLY` | const | @wildshard/engine/combat/bowDraw | Share of re-nock remaining when the next draw may begin. |
+| `TIRED_TIME` | const | @wildshard/engine/combat/bowDraw | Seconds of rest after forced fatigue. |
 | `audioCueMap` | function | @wildshard/engine/combat/cues | Adapter for the S1.5 generic Audio cue map without renaming its existing samples/taps. |
 | `CombatCueMap` | type | @wildshard/engine/combat/cues | — |
 | `CombatCueOpts` | interface | @wildshard/engine/combat/cues | — |
@@ -481,6 +498,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `EffectDef` | interface | @wildshard/engine/combat/effects/types | — |
 | `EffectId` | type | @wildshard/engine/combat/effects/types | — |
 | `EffectTarget` | interface | @wildshard/engine/combat/effects/types | — |
+| `harmfulEffect` | function | @wildshard/engine/combat/effects/types | Status/debuff tags and positive periodic damage identify harmful effects without content-specific ids. |
 | `matchesTag` | const | @wildshard/engine/combat/effects/types | — |
 | `SourceMulDef` | interface | @wildshard/engine/combat/effects/types | — |
 | `sourceMultiplier` | function | @wildshard/engine/combat/effects/types | Sources call this inside their own rounding expression, never as a later damage rule. |
@@ -523,6 +541,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ItemState` | interface | @wildshard/engine/combat/items | Complete numeric continuation. Script memory belongs to the shared script host snapshot. |
 | `ItemTarget` | interface | @wildshard/engine/combat/items | Host-supplied body contact position, shared by headless targets and posed client rigs. |
 | `scriptItemHook` | function | @wildshard/engine/combat/items | Compile a hook over the already installed, shared ScriptHost. An author cannot target another item or invent an action. |
+| `Melee` | class | @wildshard/engine/combat/Melee | Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies. |
+| `meleeActor` | function | @wildshard/engine/combat/Melee | Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior. |
+| `isMeleeProfile` | function | @wildshard/engine/combat/meleeProfile | Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning. |
+| `MeleeProfile` | interface | @wildshard/engine/combat/meleeProfile | Authored contact, sweep, combo and view parameters for the generic melee family. |
+| `ViewmodelFeel` | interface | @wildshard/engine/combat/meleeProfile | Numeric camera lag, bob and sway parameters consumed by a weapon view strategy. |
 | `Actor` | interface | @wildshard/engine/combat/pipeline | Simulation port. The legacy creature adapter owns flinch/ragdoll presentation until the AI migration. |
 | `CombatPipeline` | class | @wildshard/engine/combat/pipeline | One ordered damage pipeline; every source keeps its own base formula and rounding. |
 | `CombatTag` | type | @wildshard/engine/combat/pipeline | — |
@@ -536,12 +559,21 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `StringKey` | type | @wildshard/engine/combat/pipeline | — |
 | `authoredTargets` | function | @wildshard/engine/combat/targets | An authored target source may refine the nearer creature hit. Practice uses its own isolated targets. |
 | `RayTargets` | interface | @wildshard/engine/combat/targets | — |
+| `Thrown` | class | @wildshard/engine/combat/Thrown | A composing weapon keeps its slot/input/pose; this helper owns its thrown row and ammunition. |
+| `ThrownProfile` | interface | @wildshard/engine/combat/thrownProfile | Numeric launch, gravity, recovery and ammunition parameters for a composing thrown helper. |
 | `EquipmentAction` | type | @wildshard/engine/combat/Tool | — |
 | `Tool` | class | @wildshard/engine/combat/Tool | — |
 | `TargetAnimal` | interface | @wildshard/engine/combat/types | — |
 | `TargetFrame` | interface | @wildshard/engine/combat/types | Optional attachment transform; rendering adapters own the scene object behind it. |
 | `TargetHit` | interface | @wildshard/engine/combat/types | — |
 | `Targets` | interface | @wildshard/engine/combat/types | — |
+| `Bow` | class | @wildshard/engine/combat/view/Bow | Shared drawn-projectile family; supplied profile owns every model, pose and arrow recipe. |
+| `BowOptions` | interface | @wildshard/engine/combat/view/Bow | Authored row, profile and unlock policy for the trusted bow family. |
+| `BowWorld` | interface | @wildshard/engine/combat/view/Bow | View strategy ports supplied by the host world. |
+| `BowProfile` | interface | @wildshard/engine/combat/view/bowProfile | Bow parameters and injected view strategies; no geometry is supplied by the family. |
+| `BowStyle` | type | @wildshard/engine/combat/view/bowProfile | Named transitional bow view strategy styles. |
+| `BowView` | interface | @wildshard/engine/combat/view/bowProfile | Trusted bow view strategy supplied by the owning content recipe. |
+| `GripPose` | interface | @wildshard/engine/combat/view/bowProfile | Authored grip position and aim for a bow view. |
 | `BrassCase` | interface | @wildshard/engine/combat/view/brass | — |
 | `brassFloor` | function | @wildshard/engine/combat/view/brass | — |
 | `stepBrass` | function | @wildshard/engine/combat/view/brass | — |
@@ -703,6 +735,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `GraphLoopBody` | interface | @wildshard/engine/core/materialGraph | a loop's body: its own nodes (they may read the outer graph's nodes too) and the node that is the next `acc` |
 | `GraphNode` | interface | @wildshard/engine/core/materialGraph | one node of a graph |
 | `GraphOpSpec` | interface | @wildshard/engine/core/materialGraph | one op of the vocabulary |
+| `GraphOutline` | interface | @wildshard/engine/core/materialGraph | The outline stage: the inverted-hull second draw (back faces, depth tested and written, opaque, unlit, fogged, no |
 | `GraphParam` | interface | @wildshard/engine/core/materialGraph | a typed param: a uniform the graph reads |
 | `GraphParamType` | type | @wildshard/engine/core/materialGraph | a param's type; a colour is written in sRGB and arrives linear, a texture names an admitted file |
 | `GraphRef` | type | @wildshard/engine/core/materialGraph | an input: another node's id, or a literal |
@@ -713,6 +746,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `GraphValueType` | type | @wildshard/engine/core/materialGraph | a value's type inside a graph |
 | `GraphVertexOffset` | interface | @wildshard/engine/core/materialGraph | the vertex stage: an object-space offset; `shadow` (a matching depth variant) is refused until the back-end emits one (§2.5) |
 | `LOOP_MAX` | const | @wildshard/engine/core/materialGraph | the most iterations a `loop` node may run |
+| `SUN_CASCADES` | const | @wildshard/engine/core/materialGraph | the directional lights a `sun` sub-graph is built for by default: the sky rig's three CSM cascades |
+| `SUN_CASCADES_MAX` | const | @wildshard/engine/core/materialGraph | the most cascades a validation may count (three's CSM tops out at four here) |
+| `SUN_OPS` | const | @wildshard/engine/core/materialGraph | the ops whose value is one directional light's (a node reading one is built per light, and counted per cascade) |
 | `validateGraph` | function | @wildshard/engine/core/materialGraph | Validate a graph read from content (`unknown`): its shape, every op against the vocabulary, every input's type, no |
 | `clamp` | const | @wildshard/engine/core/noise | — |
 | `lerp` | const | @wildshard/engine/core/noise | — |

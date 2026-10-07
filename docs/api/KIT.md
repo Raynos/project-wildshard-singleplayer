@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-175 members; 81 without a doc line (—).
+164 members; 66 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -127,37 +127,28 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `VM_FOV` | const | @wildshard/kit/viewmodel/rigArms | the viewmodel's vertical field (degrees): the clips' canonical camera |
 | `VmFrame` | interface | @wildshard/kit/viewmodel/rigArms | A RigArms as the engine Sword's animated rig: the moves → the clips, the viewmodel's projection (vmScale), a framing |
 | `vmScale` | function | @wildshard/kit/viewmodel/rigArms | the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees) |
-| `Bow` | class | @wildshard/kit/weapons/bow/family | — |
-| `BowOptions` | interface | @wildshard/kit/weapons/bow/family | — |
-| `BowWorld` | interface | @wildshard/kit/weapons/bow/family | — |
+| `Bow` | class | @wildshard/kit/weapons/bow/family | Compatibility constructor only; draw clocks, arrows and view strategy execution have one platform implementation. |
+| `BowOptions` | type | @wildshard/kit/weapons/bow/family | Existing kit callers retain their row/profile options; the bridge supplies current input and style defaults. |
+| `BowWorld` | type | @wildshard/kit/weapons/bow/family | Transitional host ports for the trusted platform bow family. |
 | `AIM_IN` | const | @wildshard/kit/weapons/bow/index | — |
 | `AIM_SPREAD` | const | @wildshard/kit/weapons/bow/index | — |
 | `AIM_SWAY` | const | @wildshard/kit/weapons/bow/index | — |
 | `AIM_VM_ZOOM` | const | @wildshard/kit/weapons/bow/index | — |
 | `AIM_ZOOM` | const | @wildshard/kit/weapons/bow/index | — |
 | `QUIVER_MAX` | const | @wildshard/kit/weapons/bow/index | — |
-| `BowProfile` | interface | @wildshard/kit/weapons/bow/profile | — |
-| `BowStyle` | type | @wildshard/kit/weapons/bow/profile | — |
-| `BowView` | interface | @wildshard/kit/weapons/bow/profile | — |
-| `GripPose` | interface | @wildshard/kit/weapons/bow/profile | — |
-| `BOW` | const | @wildshard/kit/weapons/bow/profiles | — |
-| `ARROW_LEN` | const | @wildshard/kit/weapons/bow/recurve | The arrow: birch shaft with a red cresting band, iron leaf head, three barred feathers. TIP at the origin, shaft |
-| `arrowKind` | function | @wildshard/kit/weapons/bow/recurve | the arrow as a `Projectiles` kind (the world pool) — combat.md §C numbers |
-| `arrowMaterial` | function | @wildshard/kit/weapons/bow/recurve | the arrows' one painterly material (the world pool's; E348: the Model Explorer's arrow card makes its own) |
-| `bowSpecimen` | function | @wildshard/kit/weapons/bow/recurve | The Model Explorer's card (src/shards/nalati-grasslands/models/gear.ts): the braced bow and the left glove on it (the |
-| `BowStyle` | type | @wildshard/kit/weapons/bow/recurve | — |
-| `buildArrowGeometry` | function | @wildshard/kit/weapons/bow/recurve | — |
-| `buildRecurve` | function | @wildshard/kit/weapons/bow/recurve | — |
-| `POSE` | const | @wildshard/kit/weapons/bow/recurve | — |
-| `VM_SHADE` | const | @wildshard/kit/weapons/bow/recurve | the viewmodel's shade-side fill (painterly `shade`; 1 = the world's) |
+| `BowProfile` | type | @wildshard/kit/weapons/bow/profile | Transitional kit name for the defining bow profile with today's style vocabulary. |
+| `BowStyle` | type | @wildshard/kit/weapons/bow/profile | Transitional content's named view styles; the engine accepts its caller's vocabulary. |
+| `BowView` | type | @wildshard/kit/weapons/bow/profile | Transitional kit name for the injected bow model strategy. |
+| `GripPose` | type | @wildshard/kit/weapons/bow/profile | Transitional kit name for the authored view grip. |
+| `BOW` | const | @wildshard/kit/weapons/bow/profiles | The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into |
 | `IRON_SWORD` | const | @wildshard/kit/weapons/equipment | — |
 | `SWORD` | const | @wildshard/kit/weapons/equipment | — |
 | `WOODEN_SWORD` | const | @wildshard/kit/weapons/equipment | — |
-| `isMeleeProfile` | function | @wildshard/kit/weapons/melee/Melee | Internal rows use a discriminated family field; legacy UI-only rows retain default sword tuning. |
-| `Melee` | class | @wildshard/kit/weapons/melee/Melee | Shared contact family. Swept blades and the spear retain distinct clocks and viewmodel strategies. |
-| `meleeActor` | function | @wildshard/kit/weapons/melee/Melee | Native creatures expose their pipeline actor; custom practice targets keep their own damage behavior. |
-| `MeleeProfile` | interface | @wildshard/kit/weapons/melee/Melee | — |
-| `ViewmodelFeel` | interface | @wildshard/kit/weapons/melee/Melee | — |
+| `isMeleeProfile` | const | @wildshard/kit/weapons/melee/Melee | The platform discriminant retains legacy row handling. |
+| `Melee` | class | @wildshard/kit/weapons/melee/Melee | Compatibility constructor supplies the current combat pipeline; all family behavior lives in the engine. |
+| `meleeActor` | const | @wildshard/kit/weapons/melee/Melee | All kit and SDK contact callers share the platform's one native/practice adapter cache. |
+| `MeleeProfile` | type | @wildshard/kit/weapons/melee/Melee | Transitional kit name for the platform's authored contact profile. |
+| `ViewmodelFeel` | type | @wildshard/kit/weapons/melee/Melee | Transitional kit name for the platform's numeric view tuning. |
 | `BACKHAND` | const | @wildshard/kit/weapons/melee/moves | — |
 | `CHARGE` | const | @wildshard/kit/weapons/melee/moves | RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge |
 | `COMBO` | const | @wildshard/kit/weapons/melee/moves | — |
@@ -170,15 +161,13 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `SPRINT` | const | @wildshard/kit/weapons/melee/moves | — |
 | `SWORD_IRON` | const | @wildshard/kit/weapons/melee/profiles | — |
 | `SWORD_WOOD` | const | @wildshard/kit/weapons/melee/profiles | — |
-| `buildSword` | function | @wildshard/kit/weapons/melee/SweptMelee | Sword model space: origin at the middle of the grip (between the two fists), +Y up the blade, +X across the |
 | `HEAVY_CHARGE` | const | @wildshard/kit/weapons/melee/SweptMelee | — |
 | `REACH` | const | @wildshard/kit/weapons/melee/SweptMelee | — |
 | `Sword` | class | @wildshard/kit/weapons/melee/SweptMelee | — |
 | `swordEvents` | const | @wildshard/kit/weapons/melee/SweptMelee | The combat events of whichever sword is in hand — both rigs (wooden, iron) publish here, so main.ts wires the island's |
-| `swordMaterial` | function | @wildshard/kit/weapons/melee/SweptMelee | the low-poly swords' material (flat facets, vertex colours; the iron blade metallic), prepared for the sky — opaque: the |
 | `SwordOptions` | interface | @wildshard/kit/weapons/melee/SweptMelee | — |
-| `Thrown` | class | @wildshard/kit/weapons/thrown/Thrown | A composing weapon keeps its slot/input/pose; this helper owns its thrown row and ammunition. |
-| `ThrownProfile` | interface | @wildshard/kit/weapons/thrown/Thrown | — |
+| `Thrown` | const | @wildshard/kit/weapons/thrown/Thrown | The kit uses the one platform constructor and ammunition implementation. |
+| `ThrownProfile` | type | @wildshard/kit/weapons/thrown/Thrown | Transitional kit name for the platform's authored ammunition and flight profile. |
 | `SWAP_GLYPHS` | const | @wildshard/kit/weapons/ui | The existing swap glyphs, shared by weapon rows (no equipment-id lookup in the HUD). |
 | `rainCurtain` | function | @wildshard/kit/weather/rainCurtain | Camera-local, world-anchored streak quads. Both authored programs retain their exact source. |
 | `RainCurtainSpec` | interface | @wildshard/kit/weather/rainCurtain | — |
