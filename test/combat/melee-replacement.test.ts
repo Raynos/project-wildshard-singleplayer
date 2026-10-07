@@ -4,7 +4,7 @@ import { app } from '../../src/engine/app/runtime';
 import { Scope } from '../../src/engine/app/scope';
 import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import type { TargetHit } from '../../src/engine/combat/types';
-import { Melee } from '../../src/kit/weapons/melee/Melee';
+import { Melee } from '../../src/engine/combat/Melee';
 import { SWORD_WOOD } from '../../src/kit/weapons/melee/profiles';
 import { Thrown } from '../../src/kit/weapons/thrown/Thrown';
 import { Sabre, PASS_RIGHT, SABRE_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Sabre';

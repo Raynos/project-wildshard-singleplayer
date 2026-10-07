@@ -101,12 +101,14 @@ function trace(platform: boolean, portrait: boolean, blade: 'wood' | 'iron', kin
 }
 
 describe('trusted SDK swept contact family', () => {
-  it('publishes the exact platform constructor', () => { expect(TrustedSwept).toBe(SweptMelee); });
+  it('publishes the exact platform constructor and delegates the kit wrapper', () => {
+    expect(TrustedSwept).toBe(SweptMelee); expect(Sword.prototype).toBeInstanceOf(SweptMelee);
+  });
   it.each([false, true])('preserves supplied rigs, every dynamic view buffer, combo/heavy timing and debris (portrait=%s)', (portrait) => {
     for (const blade of ['wood', 'iron'] as const) for (const kind of ['crab', 'sailor', 'boar']) {
       const original = trace(false, portrait, blade, kind);
       expect(trace(true, portrait, blade, kind)).toEqual(original);
-      // Capture from the independent kit body before delegation; never refresh after the bridge replaces it.
+      // Independent kit oracle captured in 8aa9502ce before delegation; never refresh from the wrapper.
       expect(original).toMatchSnapshot(`${blade}:${kind}`);
     }
   });

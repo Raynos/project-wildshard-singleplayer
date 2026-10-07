@@ -17,5 +17,10 @@ Validation: `pnpm exec vitest run test/combat/sdk-swept-family.test.ts` (5 tests
 root strict TypeScript and scoped typed oxlint. The `sword-nohit` parity fault moves to the executing engine family
 when the kit delegates, preserving its coverage.
 
+After delegation, the broader combat suite and existing sword combo, bow draw, longbow charge and row-data checks
+pass 400/400 tests across 35 files. The fixed original snapshots are unchanged. The replacement fixture now checks
+the defining engine Melee ancestry. `git apply --check test/parity/plants/sword-nohit.patch` passes against the new
+executing-family path.
+
 This is a family extraction receipt, not completion of the entire SF54 kit dissolution row. Browser parity and the
 frame floor remain assigned to the coordinator's later window.
