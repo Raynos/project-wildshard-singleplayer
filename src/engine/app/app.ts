@@ -50,7 +50,14 @@ class AppWorld {
   get dayCycle(): DayCycleClock | null { return this.readClock(); }
   get trample(): TrampleField | null { return this.readTrample(); }
   /** the level's water bodies (the sea on an open-water level; src/engine/world/water/body.ts) */
-  readonly water = new WaterBodies();
+  private readonly homeWater = new WaterBodies();
+  private readonly waterFrames: { water: WaterBodies }[] = [];
+  get water(): WaterBodies { return this.waterFrames.at(-1)?.water ?? this.homeWater; }
+  /** Bind retained regional water without removing any home water registrations. */
+  bindWater(water: WaterBodies): () => void {
+    const entry = { water }; this.waterFrames.push(entry);
+    return () => { const index = this.waterFrames.indexOf(entry); if (index !== -1) this.waterFrames.splice(index, 1); };
+  }
 }
 
 export class App {

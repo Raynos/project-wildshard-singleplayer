@@ -44,10 +44,28 @@ export let SEED = 0x5ea1;
  *  query for crash-safe recovery); '' until the registry runs. Travel never changes it. */
 export let PAGE_LEVEL = '';
 
+interface ChunkConstants { slug: string; label: string; seed: number; treeCount: number }
+let homeConstants: ChunkConstants | null = null;
+const frames: { constants: ChunkConstants }[] = [];
+function publishConstants(c: ChunkConstants): void {
+  CHUNK_COORDS = c.label; SEED = c.seed; TREE_COUNT = c.treeCount;
+}
+
+/** Retained frame constants; PAGE_LEVEL always remains the document's original level. */
+export function bindChunkConstants(c: ChunkConstants): () => void {
+  if (frames.length === 0) homeConstants = { slug: PAGE_LEVEL, label: CHUNK_COORDS, seed: SEED, treeCount: TREE_COUNT };
+  const entry = { constants: c }; frames.push(entry); publishConstants(c);
+  return () => {
+    const index = frames.indexOf(entry); if (index === -1) return;
+    frames.splice(index, 1);
+    const next = frames.at(-1)?.constants ?? homeConstants;
+    if (next !== null) publishConstants(next);
+  };
+}
+
 /** @internal — called by the chunk registry; do not call from features. */
 export function _applyChunkConstants(c: { slug: string; label: string; seed: number; treeCount: number }): void {
   if (PAGE_LEVEL === '') PAGE_LEVEL = c.slug;
-  CHUNK_COORDS = c.label;
-  SEED = c.seed;
-  TREE_COUNT = c.treeCount;
+  homeConstants = c;
+  if (frames.length === 0) publishConstants(c);
 }

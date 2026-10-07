@@ -22,6 +22,8 @@ function terrainOf(level: LevelSpec): TerrainField {
 /** Test/playground overrides keep their existing page-level behaviour. */
 type TerrainOverride = Partial<Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt' | 'trailDistance' | 'cabinMask' | 'pondMask' | 'waterLevel' | 'streamAt'>>;
 let override: TerrainOverride | null = null;
+let home: HeightfieldBinding | null = null;
+const frames: { binding: HeightfieldBinding }[] = [];
 
 /** A retained analytic/baked terrain in one level's local frame; construction does not select it. */
 export class HeightfieldBinding {
@@ -39,16 +41,14 @@ export class HeightfieldBinding {
   install(baked: Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'>): void {
     const datum = this.base.datum ?? 0;
     this.terrain = { ...this.terrain, ...baked, heightAt: datum === 0 ? baked.heightAt : (x, z) => baked.heightAt(x, z) + datum };
-    if (captureHeightfield() === this) publish(this.terrain);
+    if ((frames.at(-1)?.binding ?? home) === this) publish(this.terrain);
   }
   /** @internal Preserve overrideTerrain's reset-to-analytic semantics. */
   reset(over: TerrainOverride | null): void {
     this.terrain = over === null ? this.base : { ...this.base, ...over };
-    if (captureHeightfield() === this) publish(this.terrain);
+    if ((frames.at(-1)?.binding ?? home) === this) publish(this.terrain);
   }
 }
-let home: HeightfieldBinding | null = null;
-const frames: { binding: HeightfieldBinding }[] = [];
 
 /** Capture the active retained field before an async build yields. */
 export function captureHeightfield(): HeightfieldBinding {

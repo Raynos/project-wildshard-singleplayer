@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config';
-import { heightAt, normalAt, splatAt, trailDistance, TRAILS } from './Heightfield';
+import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { activeLevel } from '../level/selection';
@@ -9,7 +9,7 @@ import { macrotask } from '../boot/plan';
 import { groundSet } from './lookFlags';
 import type { PainterField, TerrainPainter } from '../render/look';
 import type { Scope } from '../app/scope';
-import type { LevelAssets } from '../level/data';
+import type { LevelAssets, TerrainField } from '../level/data';
 import type { LevelSpec } from '../level/spec';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 
@@ -129,13 +129,15 @@ const BOREAL_MAP = /* glsl */`
           vec3 splatArm = arm;`;
 
 /** what a level look's terrain painter samples: the live heightfield (its bindings swap when the bake lands) */
-const PAINTER_FIELD: PainterField = {
-  ready: loadBakedTerrain,
-  heightAt: (x, z) => heightAt(x, z),
-  normalAt: (x, z, eps) => normalAt(x, z, eps),
-  trails: () => TRAILS,
-  trailDistance: (x, z) => trailDistance(x, z),
-};
+function painterField(binding: HeightfieldBinding): PainterField {
+  return {
+    ready: () => loadBakedTerrain(binding),
+    heightAt: (x, z) => binding.field.heightAt(x, z),
+    normalAt: (x, z, eps) => binding.field.normalAt(x, z, eps),
+    trails: () => binding.field.trails,
+    trailDistance: (x, z) => binding.field.trailDistance(x, z),
+  };
+}
 
 export class Terrain {
   group = new THREE.Group();
@@ -181,23 +183,24 @@ export class Terrain {
     return dropped;
   }
 
-  /** `painter`: the level look's own ground (LookStrategy.terrainPainter), built in place of the default */
-  async build(ground: LevelSpec['ground'], painter?: TerrainPainter, scope?: Scope): Promise<this> {
+  /** `painter`: the level look's own ground; an explicit binding supplies regional assets/terrain across awaits. */
+  async build(ground: LevelSpec['ground'], painter?: TerrainPainter, scope?: Scope, binding?: HeightfieldBinding): Promise<this> {
+    const captured = binding ?? captureHeightfield();
     if (ground.structures === true && ground.terrain === undefined) return this;
     if (ground.structures === true) return this.buildNone();
     if (painter !== undefined) {
       if (scope === undefined || scope.disposed) throw new Error('TerrainPainter.build requires a live owning level scope');
-      await painter.build(this, PAINTER_FIELD, scope);
+      await painter.build(this, painterField(captured), scope);
       return this;
     }
-    const { assets } = activeLevel();
-    const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
+    const { assets } = binding === undefined ? activeLevel() : binding.level;
+    const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain(captured)]); // baked heights/splat → captured frame
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
-    this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers, assets));
+    this.mesh = new THREE.Mesh(this.buildGeometry(captured.field), this.buildMaterial(layers, assets));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
-    this.group.add(await this.buildSlab(assets));
+    this.group.add(await this.buildSlab(assets, captured.field));
     return this;
   }
 
@@ -215,7 +218,7 @@ export class Terrain {
     return this;
   }
 
-  private buildGeometry() {
+  private buildGeometry(field: TerrainField) {
     const res = TERRAIN_RES;
     const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, res - 1, res - 1);
     geo.rotateX(-Math.PI / 2);
@@ -223,8 +226,8 @@ export class Terrain {
     const splat = new Float32Array(pos.count * 4);
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i);
-      pos.setY(i, heightAt(x, z));
-      const s = splatAt(x, z);
+      pos.setY(i, field.heightAt(x, z));
+      const s = field.splatAt(x, z);
       splat.set(s, i * 4);
     }
     geo.setAttribute('splat', new THREE.BufferAttribute(splat, 4));
@@ -324,7 +327,7 @@ export class Terrain {
   }
 
   /** The chunk is a floating shard: rock walls from the surface down to -CHUNK_DEPTH. */
-  private async buildSlab(assets: LevelAssets | undefined) {
+  private async buildSlab(assets: LevelAssets | undefined, field: TerrainField) {
     if (!assets) throw new Error('Terrain: a slab needs ShardManifest.assets.slabRock');
     const rock = await loadPBR(assets.slabRock);
     const mat = pbrMaterial(rock, { color: new THREE.Color(0.55, 0.52, 0.5), side: THREE.FrontSide });
@@ -358,7 +361,7 @@ export class Terrain {
       for (let i = 0; i <= segs; i++) {
         const t = i / segs;
         const x = s.a[0] + (s.b[0] - s.a[0]) * t, z = s.a[1] + (s.b[1] - s.a[1]) * t;
-        const top = heightAt(x, z) + 0.05;
+        const top = field.heightAt(x, z) + 0.05;
         verts.push(x, top, z, x + s.n[0] * 6, D * 0.55, z + s.n[1] * 6, x + s.n[0] * 2, D, z + s.n[1] * 2);
         norms.push(s.n[0], 0, s.n[1], s.n[0], 0, s.n[1], s.n[0], 0, s.n[1]);
         const along = (s.n[0] !== 0 ? z : x) * 0.08;
