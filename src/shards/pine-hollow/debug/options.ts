@@ -12,7 +12,7 @@ export function pineOption<K extends Key>(key: K): (typeof PICKS)[K][number] {
   const saved = jsonSlot(`debug.plugin.pine-hollow.${key}`, 'device').read();
   const legacy = jsonSlot('settings', 'global').read();
   const value = saved ?? (legacy !== null && typeof legacy === 'object' && !Array.isArray(legacy) ? legacy[key] : undefined);
-  return choices.find((choice) => choice === value) ?? (key === 'pineMemoryTrim' && gridPage() ? 'on' : choices[0]);
+  return choices.find((choice) => choice === value) ?? (gridPage() ? 'on' : choices[0]);
 }
 
 /** G180 (Jake, E450): Pine's memory trim, on by default in the grid (standalone keeps off); an explicit pick wins */
