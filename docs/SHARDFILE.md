@@ -700,3 +700,16 @@ entry: the executable admission must walk the real capsule, interact through
 ground, return and call from both stops. It must also witness the platform gate
 blocking the road while the deck is away. Until that integration is installed,
 the compiled entry schema continues to refuse `socketLift`.
+
+The executable helper `proveSocketLift(entry, {physics, runtime, fixedStep,
+waterAt?})` uses the admitted `MoverRuntime` and the engine's real capsule motor.
+The platform-owned `fixedStep` advances its single script host, mover and physics
+world; author data cannot supply it. `commandSocketLift` is the normal queued
+interaction used by both admission and play. A probe initializes feet once on
+the road; subsequent travel is collision movement and platform carry. It checks
+boarding, a complete ride, walking onto static playable ground, automatic idle
+return, return travel and calls from both ends, with gate collision across 23
+overlapping road capsule lanes. Deck motion above 15/60 metres per fixed step
+is refused as a teleport. Temporary capsules dispose even on refusal. This
+helper is an executable check, not a stored readiness flag; compiled loader
+integration remains required before a product may declare a lift entry.

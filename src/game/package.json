@@ -109,6 +109,7 @@
     "./shardfile/assetGraph": "./shardfile/assetGraph.ts",
     "./shardfile/commonsCosts": "./shardfile/commonsCosts.ts",
     "./shardfile/crowdRuntime": "./shardfile/crowdRuntime.ts",
-    "./shardfile/socketLift": "./shardfile/socketLift.ts"
+    "./shardfile/socketLift": "./shardfile/socketLift.ts",
+    "./shardfile/socketLiftProof": "./shardfile/socketLiftProof.ts"
   }
 }
