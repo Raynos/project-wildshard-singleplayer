@@ -7,7 +7,8 @@
 # - this main session already has SUBAGENT_CAP (3) live ones  → exit 2: wait for one to finish, or do the work yourself
 # A subagent is live while its transcript (<session>/subagents/agent-*.jsonl) has not ended on an end_turn and was
 # written in the last 3 h. Spawns allowed in the last 2 min whose transcript isn't there yet count too (parallel calls).
-# Escape (rare): SKIP_SUBAGENT_CAP=1 in the environment. Exits 0 silently otherwise.
+# Escape (rare): SKIP_SUBAGENT_CAP=1 in the environment. A session Jake grants more slots gets ~/.claude/state/subagent-cap/<session>/cap.
+# Exits 0 silently otherwise.
 
 set -uo pipefail
 [ "${SKIP_SUBAGENT_CAP:-}" = "1" ] && exit 0
@@ -66,6 +67,13 @@ def ended(path):
 
 state = os.path.join(os.environ.get("SUBAGENT_CAP_STATE") or os.path.expanduser("~/.claude/state/subagent-cap"), sid)
 os.makedirs(state, exist_ok=True)
+# A per-session cap Jake granted one session (2026-10-07, E435: "I green light 5 opus subagent slots" for the
+# SHARD-PLATFORM builder) lives in <state>/<session>/cap, outside the repo; every other session keeps the default.
+try:
+    with open(os.path.join(state, "cap")) as f:
+        cap = max(cap, int(f.read().strip()))
+except (OSError, ValueError):
+    pass
 with open(os.path.join(state, ".lock"), "w") as lk:
     fcntl.flock(lk, fcntl.LOCK_EX)
     live, seen_ids, young = [], set(), 0

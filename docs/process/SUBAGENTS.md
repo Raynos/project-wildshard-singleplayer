@@ -9,7 +9,9 @@ after a longer wait the whole context is re-cached at full price.
   for a read-heavy search that returns a conclusion, or a job that is truly independent, owns disjoint files and fits
   the caps below. "Several rows are open" is not a reason to parallelise.
 - **At most 3 live subagents per main session, no forks, no subagent spawning subagents.**
-  `.claude/hooks/guard-subagents.sh` enforces it; resumed agents count. Rare escape: `SKIP_SUBAGENT_CAP=1`.
+  `.claude/hooks/guard-subagents.sh` enforces it; resumed agents count. Rare escape: `SKIP_SUBAGENT_CAP=1`. A session Jake
+  grants more gets a per-session cap file, `~/.claude/state/subagent-cap/<session>/cap` (2026-10-07: 5 Opus slots for the
+  SHARD-PLATFORM builder, relayed by his plan agent: *"Tell the builder I green light 5 opus subagent slots"*).
 - **One job per subagent**, then it reports and ends. **Caps: 400k context, 90 min wall clock, ~200 turns**,
   whichever comes first. Put all three in the brief: "stop at 400k context, 90 min or ~200 turns. Commit what is done,
   update your Handoff, report what is left." The parent starts a **fresh** subagent for what is left.
