@@ -87,7 +87,13 @@ export async function start(): Promise<void> {
   try { await startSelected(); }
   catch (error) {
     const { pageGridRecovery, clearGridRecovery } = await import('@wildshard/game/grid/recoveryBoot');
-    if (pageGridRecovery() === null) throw error;
+    if (pageGridRecovery() === null) {
+      // Admission can refuse before startSession installs its fatal-load boundary. main starts asynchronously;
+      // paint the same fatal card here instead of leaving a rejected boot behind the first-paint loader.
+      const { showError } = await import('@wildshard/engine/ui/ErrorModal');
+      showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');
+      return;
+    }
     clearGridRecovery();
     history.replaceState(history.state, '', new URL('/', location.origin));
     document.documentElement.classList.add('title-first');
