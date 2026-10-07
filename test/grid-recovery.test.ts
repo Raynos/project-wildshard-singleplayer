@@ -18,7 +18,7 @@ it.each<GridRecoveryReason>(['gpu', 'background', 'new-game'])('consumes a %s ro
   expect(next.consume(assembly)).toEqual({ kind: 'none' });
 });
 
-it('consumes expired, changed-catalogue and invalid/future records without retrying them', () => {
+it('consumes unsafe current records and preserves refused future bytes without booting them', () => {
   for (const failure of ['expired', 'catalogue', 'wire', 'future']) {
     const local = new MemoryStorage(), session = new MemoryStorage();
     const store = new SaveStore({ local, session });
@@ -32,8 +32,10 @@ it('consumes expired, changed-catalogue and invalid/future records without retry
     }
     const next = gridRecovery(new SaveStore({ local, session }), () => failure === 'expired' ? 60_101 : 110);
     const target = failure === 'catalogue' ? new GridAssembly({ developer: true, devserver: false }) : assembly;
-    expect(next.consume(target)).toEqual({ kind: failure === 'future' ? 'none' : 'fallback' });
-    expect(next.consume(target)).toEqual({ kind: 'none' });
+    const before = [local, session].map(storage => { const key = storage.key(0); return key === null ? null : storage.getItem(key); });
+    expect(next.consume(target)).toEqual({ kind: failure === 'future' ? 'refused' : 'fallback' });
+    expect(next.consume(target)).toEqual({ kind: failure === 'future' ? 'refused' : 'none' });
+    if (failure === 'future') expect([local, session].map(storage => { const key = storage.key(0); return key === null ? null : storage.getItem(key); })).toEqual(before);
   }
 });
 
@@ -58,7 +60,7 @@ it('never grants a recovery boot when a present backup cannot be durably consume
   const local = new QuotaStorage(), session = new MemoryStorage();
   gridRecovery(new SaveStore({ local, session }), () => 100).write(assembly, home, road, 'gpu');
   local.quota = true;
-  expect(gridRecovery(new SaveStore({ local, session }), () => 110).consume(assembly)).toEqual({ kind: 'none' });
+  expect(gridRecovery(new SaveStore({ local, session }), () => 110).consume(assembly)).toEqual({ kind: 'refused' });
   local.quota = false;
   const next = gridRecovery(new SaveStore({ local, session }), () => 120);
   expect(next.consume(assembly).kind).toBe('resume');

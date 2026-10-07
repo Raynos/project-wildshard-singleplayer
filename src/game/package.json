@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./grid/recoveryBoot": "./grid/recoveryBoot.ts",
     "./shardfile/crowds": "./shardfile/crowds.ts",
     "./shardfile/flyers": "./shardfile/flyers.ts",
     "./shardfile/grazers": "./shardfile/grazers.ts",

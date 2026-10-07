@@ -1,12 +1,16 @@
 import type { ShardManifest } from '../shard/manifest';
 import { bootPageMode, pageGridInstance, type PageMode } from './boot';
 import { PageResidency } from './pageResidency';
+import { pageGridRecovery } from './recoveryBoot';
+import type { GridRecoveryRecord } from './recovery';
 import { runtimeAccountedBytes } from './runtimeCost';
 /** The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. */
 export interface PageResidencyBoot {
   readonly mode: PageMode;
   readonly instance: string | null;
   readonly residency?: PageResidency;
+  /** Validated recovery uses the ordinary owner, then returns to the road. */
+  readonly recovery?: NonNullable<GridRecoveryRecord>;
 }
 
 /**
@@ -26,6 +30,7 @@ export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'sha
       if (manifest.runtimeCost === undefined) throw new Error('Grid runtime home requires reviewed memory measurements before bootstrap');
       residency.admitHome(instance, runtimeAccountedBytes(manifest.runtimeCost));
     }
-    return { mode, instance, residency };
+    const recovery = pageGridRecovery();
+    return { mode, instance, residency, ...(recovery === null ? {} : { recovery }) };
   } catch (error) { residency.dispose(); throw error; }
 }

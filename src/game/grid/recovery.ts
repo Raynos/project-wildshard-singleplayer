@@ -23,7 +23,7 @@ export function recoveryCatalogue(assembly: GridAssembly): string {
   return JSON.stringify({ pitch: assembly.pitch, cells: assembly.cells.map(cell => [cell.instance, cell.slug, ...cell.cell]).sort((a, b) => String(a[0]).localeCompare(String(b[0]))) });
 }
 /** Renderer-free consumption result; malformed, expired or unsafe recovery chooses a fresh safe road start. */
-export type GridRecoveryRead = { readonly kind: 'none' | 'fallback' } | { readonly kind: 'resume'; readonly record: NonNullable<GridRecoveryRecord> };
+export type GridRecoveryRead = { readonly kind: 'none' | 'fallback' | 'refused' } | { readonly kind: 'resume'; readonly record: NonNullable<GridRecoveryRecord> };
 
 /** Recovery-only metadata is mirrored for a replaced WebContent process and consumed before any boot allocation. */
 export function gridRecovery(store: SaveStore, now: () => number = Date.now): {
@@ -47,11 +47,11 @@ export function gridRecovery(store: SaveStore, now: () => number = Date.now): {
       const statuses = [session.status?.(), device.status?.()];
       const records = [session.peek(), device.peek()];
       // Unknown future records remain untouched and cannot initiate a boot in an older client.
-      if (statuses.includes('future')) return { kind: 'none' };
+      if (statuses.includes('future')) return { kind: 'refused' };
       if (records.every(value => value === null) && !statuses.includes('invalid')) return { kind: 'none' };
       // Consume every present copy durably before allocation: refusal leaves the ordinary title route.
       const inSession = session.write(null), onDevice = device.write(null);
-      if ((statuses[0] !== 'absent' && !inSession) || (statuses[1] !== 'absent' && !onDevice)) return { kind: 'none' };
+      if ((statuses[0] !== 'absent' && !inSession) || (statuses[1] !== 'absent' && !onDevice)) return { kind: 'refused' };
       const record = records.find(value => valid(value, assembly));
       if (record !== undefined) return { kind: 'resume', record };
       return { kind: records.some(value => value !== null) || statuses.some(status => status === 'invalid') ? 'fallback' : 'none' };

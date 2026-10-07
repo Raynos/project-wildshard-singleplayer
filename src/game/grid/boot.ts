@@ -5,16 +5,16 @@ import { devserverCellOn } from './debug';
 import { findShard } from '../shard/registry';
 import { travel } from '../travel/travel';
 import type { HomeResidencyClaim } from './pageResidency';
+import { pageGridRecovery } from './recoveryBoot';
 import { currentPageMode, setPageMode } from './pageMode';
 /**
- * Infinite Wildshard's way in (SF21a). There is no assembled grid client yet (SF18a's residency, SF20a's in-page
- * crossing and SF18b's rings are not wired into a page), so the entry boots the furthest real thing: the grid catalogue's
- * home cell (0, 0) through the normal shard flow, as page mode `'grid'`. When the grid client lands, the grid page boots
- * it instead of the home cell's shard; the menu, the intent and the page mode stay.
+ * Infinite Wildshard's way in (SF21a). The catalogue's home cell boots through the normal shard flow as page mode
+ * `'grid'`; its live grid session borrows that world and transfers the traveller between admitted frames. A title tap
+ * or a validated recovery record selects the home before normal memory admission and descriptor hydration.
  *
  *   title tap  → enterGrid()               the one-shot intent, then a fresh document for the home cell
- *   boot       → bootPageMode(slug)         consumes the intent; in grid mode the URL drops to the bare title URL, so any
- *                                           reload (or an iOS kill's restart) lands on the title
+ *   boot       → bootPageMode(slug)         consumes the tap or uses validated recovery; the URL drops to the bare title
+ *                                           URL, so an unrecorded reload (or an iOS kill's restart) lands on the title
  *   alive beat → pageMode()                 AliveInfo.mode, so the title can say the grid ended unexpectedly
  */
 export type PageMode = 'grid' | 'shard';
@@ -103,11 +103,13 @@ export const gridHomeSim = new GridHomeHandoff();
 /** this page's mode, decided once at boot (held in the leaf grid/pageMode.ts) */
 export function pageMode(): PageMode { return currentPageMode(); }
 
-/** The boot's one read of the intent (every boot consumes it, used or not). In grid mode the address becomes the bare
- *  title URL (`history.replaceState`), so nothing but a new tap can bring the grid back. */
+/** The boot's one read of the tap intent (used or not), overridden by validated recovery before ordinary admission.
+ * In grid mode the address becomes the bare title URL, preventing an unrecorded automatic restart. */
 export function bootPageMode(slug: string): PageMode {
   let intent = null;
   try { intent = pageGridIntents().consume(slug); } catch { /* blocked storage: no intent, the normal shard flow */ }
+  const recovery = pageGridRecovery();
+  if (recovery !== null && [slug].includes(recovery.slug)) intent = { instance: recovery.instance, slug: recovery.slug, at: recovery.at };
   const mode: PageMode = intent === null ? 'shard' : 'grid';
   setPageMode(mode);
   if (intent !== null) gridCells.enter({ instance: intent.instance, slug: intent.slug }); // the home cell: the page starts inside it
