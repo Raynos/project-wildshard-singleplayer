@@ -1,9 +1,8 @@
-// SF58 (12), G167: a shard that can't load. The admission error maps to one reason (or to "only waiting"), the reason and
-// the far view map to the board's B (frozen grey far view under a static dome) or A (the void and the SHARD UNAVAILABLE
-// sign), and SHARD SELECT reads this session's refused shards.
+// SF58 (12), G167: a shard that can't load. The admission error maps to one reason (or to "only waiting"), the reason reads
+// as the board words it (G217's cell screen shows it), and SHARD SELECT reads this session's refused shards.
 import { describe, expect, it } from 'vitest';
 import { SaveStore } from '../src/engine/saves/store';
-import { GridCellWaitingError, classifyRefusal, refusalReason, refusedLook, shardRefusals } from '../src/game/grid/refusal';
+import { GridCellWaitingError, classifyRefusal, refusalReason, shardRefusals } from '../src/game/grid/refusal';
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -45,16 +44,6 @@ describe('G167: the admission error → the refusal reason', () => {
     expect(refusalReason('too-big')).toBe('TOO BIG FOR THIS DEVICE');
     expect(refusalReason('safety')).toBe('FAILED SAFETY CHECK');
     expect(refusalReason('load')).toBe("COULDN'T LOAD");
-  });
-});
-
-describe('G167: (reason, far view) → B or the A fallback', () => {
-  it('B with a drawn far view, A without one; nothing when not refused', () => {
-    expect(refusedLook('too-big', 'resident')).toBe('frozen');
-    expect(refusedLook('safety', 'none')).toBe('void');
-    expect(refusedLook('upgrade', 'loading')).toBe('void');
-    expect(refusedLook(null, 'resident')).toBeNull();
-    expect(refusedLook(null, 'none')).toBeNull();
   });
 });
 

@@ -60,9 +60,9 @@ void main() {
 
 /**
  * The void's floor material: black, unlit, cyan grid lines on the world grid, brightening toward the rectangle `rail`
- * (minX, maxX, minZ, maxZ in the home frame). G167's refused cell reuses it with its own cell square as the rectangle.
+ * (minX, maxX, minZ, maxZ in the home frame).
  */
-export function voidFloorMaterial(home: GridCell, rail: readonly [number, number, number, number]): ShaderMaterial {
+function voidFloorMaterial(home: GridCell, rail: readonly [number, number, number, number]): ShaderMaterial {
   const material = new ShaderMaterial({
     vertexShader: vertex, fragmentShader: fragment, fog: false, lights: false,
     uniforms: { uOrigin: { value: [home.origin.x, home.origin.z] }, uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x02050a) }, uRail: { value: [...rail] } },

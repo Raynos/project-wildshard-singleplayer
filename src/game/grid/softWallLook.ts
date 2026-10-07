@@ -1,15 +1,13 @@
 /**
  * The soft wall's look (SHARD-PLATFORM SF17b look, G85 "B: shimmer barrier"): while a neighbour isn't ready its edge holds
- * as a closed wall (SF18d `ReadinessWalls`); this draws that wall as a translucent cyan hex shimmer near the traveller, with
- * a "LOADING <shard>" panel and bar where they would cross. The same language as G89's void rail.
+ * as a closed wall (SF18d `ReadinessWalls`); this draws that wall as a translucent cyan hex shimmer near the traveller. The
+ * same language as G89's void rail. What the cell shows on its wall (why it can't be entered, every loading detail) is
+ * G217's cell screen (`cellScreen.ts`), which replaced this look's LOADING panel and bar.
  *
  * One draw for every wall (a curtain quad per edge, additive, faded out past ~70 m so a 500 m wall never dominates the
- * view) plus the panel (two quads). Which walls are closed comes from the session each fixed step; a wall opens the
- * moment its neighbour is ready.
+ * view). Which walls are closed comes from the session each fixed step; a wall opens the moment its neighbour is ready.
  */
-import {
-  AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, Group, Mesh, MeshBasicMaterial, type Object3D, PlaneGeometry, SRGBColorSpace, ShaderMaterial,
-} from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, DoubleSide, Group, Mesh, type Object3D, ShaderMaterial } from 'three';
 import type { LookScope } from './roadLayout';
 
 /** A wall in the home frame: the edge's centre, the axis its thin side faces, its half length; whose wall it is. */
@@ -17,19 +15,11 @@ export interface SoftWallEdge { readonly instance: string; readonly x: number; r
 /** What the look reads each fixed step. */
 export interface SoftWallPorts {
   readonly closed: (instance: string) => boolean;
-  /** the traveller's feet in the home frame */
-  readonly feet: () => { readonly x: number; readonly z: number };
-  /** the shard name a wall's panel shows */
-  readonly name: (instance: string) => string;
-  /** G167: a refused shard's reason line (null: it is loading). Its panel then names the reason and keeps the save, no bar */
-  readonly reason?: (instance: string) => string | null;
-  /** A known unconverted cell waits for a product, not a network request. Keep its wall closed without a fake progress bar. */
-  readonly waiting?: (instance: string) => { readonly line: string; readonly detail: string } | null;
 }
-/** The readout. */
-export interface SoftWallState { readonly closed: number; readonly panel: string | null; readonly status: 'loading' | 'waiting' | 'refused' | null }
+/** The readout: how many neighbour edges are closed. */
+export interface SoftWallState { readonly closed: number }
 
-const HEIGHT = 7, PANEL_RANGE = 45, CYAN = new Color(0x38e6ff);
+const HEIGHT = 7, CYAN = new Color(0x38e6ff);
 
 const vertex = /* glsl */ `
 attribute float aClosed;
@@ -90,29 +80,8 @@ function curtain(edges: readonly SoftWallEdge[]): BufferGeometry {
   return g;
 }
 
-/** The loading panel's label, redrawn only when the wall it stands on (or its refusal) changes. A refused wall's label
- *  carries a second line (G167: "PINE HOLLOW · NEEDS UPGRADE" over "YOUR SAVE IS KEPT"), with no loading bar. */
-function label(text: string, sub: string | null = null): CanvasTexture {
-  const el = document.createElement('canvas'); el.width = 512; el.height = 128;
-  const g = el.getContext('2d');
-  if (g !== null) {
-    g.fillStyle = 'rgba(6,22,36,0.82)'; g.fillRect(0, 0, 512, 128);
-    g.strokeStyle = '#38e6ff'; g.lineWidth = 3; g.strokeRect(2, 2, 508, 124);
-    g.fillStyle = '#e8fbff'; g.font = '600 38px "Helvetica Neue", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    const t = text.toUpperCase(), w = g.measureText(t).width;
-    g.save(); g.translate(256, sub === null ? 48 : 46); g.scale(Math.min(1, 470 / Math.max(1, w)), 1); g.fillText(t, 0, 0); g.restore();
-    if (sub === null) { g.strokeStyle = 'rgba(56,230,255,0.6)'; g.lineWidth = 2; g.strokeRect(40, 86, 432, 18); }
-    else {
-      g.fillStyle = 'rgba(200,236,248,0.85)'; g.font = '500 26px "Helvetica Neue", Arial, sans-serif';
-      const sw = g.measureText(sub).width; g.save(); g.translate(256, 92); g.scale(Math.min(1, 470 / Math.max(1, sw)), 1); g.fillText(sub, 0, 0); g.restore();
-    }
-  }
-  const texture = new CanvasTexture(el); texture.colorSpace = SRGBColorSpace;
-  return texture;
-}
-
-/** Draw the soft walls; `step` runs each fixed step (closed walls, the panel), `time` feeds the shimmer. */
-export function installSoftWallLook(input: { readonly edges: readonly SoftWallEdge[]; readonly ports: SoftWallPorts; readonly scene: Object3D; readonly scope: LookScope; readonly time: () => number; readonly saveKept?: string }): { step: () => void; state: () => SoftWallState } {
+/** Draw the soft walls; `step` runs each fixed step (which walls are closed), `time` feeds the shimmer. */
+export function installSoftWallLook(input: { readonly edges: readonly SoftWallEdge[]; readonly ports: SoftWallPorts; readonly scene: Object3D; readonly scope: LookScope; readonly time: () => number }): { step: () => void; state: () => SoftWallState } {
   const { edges, ports, scene, scope } = input, group = new Group();
   group.name = 'grid-soft-walls';
   const uTime = { value: 0 };
@@ -121,22 +90,11 @@ export function installSoftWallLook(input: { readonly edges: readonly SoftWallEd
   const wall = new Mesh(curtain(edges), material);
   wall.name = 'grid-soft-wall'; wall.frustumCulled = false; wall.renderOrder = 2;
   const closedAttr = wall.geometry.getAttribute('aClosed');
-  // the panel: the label and, under it, a bar that fills while the neighbour loads
-  const panel = new Group(), labelMaterial = new MeshBasicMaterial({ transparent: true, depthWrite: false, toneMapped: false });
-  const card = new Mesh(new PlaneGeometry(3.2, 0.8), labelMaterial);
-  const barMaterial = new MeshBasicMaterial({ color: CYAN, toneMapped: false });
-  const bar = new Mesh(new PlaneGeometry(1, 0.09), barMaterial);
-  bar.name = 'grid-soft-wall-progress';
-  bar.position.set(0, -0.19, 0.01); card.renderOrder = 3; bar.renderOrder = 4;
-  panel.add(card, bar); panel.visible = false;
-  group.add(wall, panel); scene.add(group);
+  group.add(wall); scene.add(group);
   const flags = edges.map(() => -1);
-  let panelFor: string | null = null, panelReason: string | null = null, progress = 0, closedCount = 0;
-  let status: SoftWallState['status'] = null;
+  let closedCount = 0;
   const step = (): void => {
     uTime.value = input.time();
-    const feet = ports.feet();
-    let nearest: { edge: SoftWallEdge; d: number; s: number } | null = null;
     closedCount = 0;
     for (let k = 0; k < edges.length; k++) {
       const edge = edges[k];
@@ -144,32 +102,8 @@ export function installSoftWallLook(input: { readonly edges: readonly SoftWallEd
       const closed = ports.closed(edge.instance) ? 1 : 0;
       if (closed === 1) closedCount++;
       if (flags[k] !== closed) { flags[k] = closed; for (let c = 0; c < 4; c++) closedAttr.setX(k * 4 + c, closed); closedAttr.needsUpdate = true; }
-      if (closed === 0) continue;
-      const across = edge.axis === 'x' ? feet.x - edge.x : feet.z - edge.z, alongRaw = edge.axis === 'x' ? feet.z - edge.z : feet.x - edge.x;
-      const s = Math.max(-edge.halfLength + 2, Math.min(edge.halfLength - 2, alongRaw)), d = Math.hypot(across, alongRaw - s);
-      if (d < PANEL_RANGE && (nearest === null || d < nearest.d)) nearest = { edge, d, s };
     }
-    if (nearest === null) { panel.visible = false; panelFor = null; status = null; return; }
-    const { edge, s } = nearest, reason = ports.reason?.(edge.instance) ?? null;
-    const waiting = reason === null ? ports.waiting?.(edge.instance) ?? null : null;
-    const message = reason ?? (waiting === null ? null : `${waiting.line}\n${waiting.detail}`);
-    status = reason !== null ? 'refused' : waiting === null ? 'loading' : 'waiting';
-    if (panelFor !== edge.instance || panelReason !== message) {
-      panelFor = edge.instance; panelReason = message; progress = 0;
-      labelMaterial.map?.dispose(); labelMaterial.needsUpdate = true;
-      labelMaterial.map = reason !== null ? label(reason, input.saveKept ?? null) : waiting === null ? label(`Loading ${ports.name(edge.instance)}`) : label(waiting.line, waiting.detail);
-    }
-    bar.visible = reason === null && waiting === null;
-    progress += (0.92 - progress) * 0.01; // eases toward full while the neighbour loads; the wall opening ends it
-    bar.scale.x = Math.max(0.02, progress * 2.7); bar.position.x = -1.35 + bar.scale.x / 2;
-    const facing = edge.axis === 'x' ? Math.sign(feet.x - edge.x) || 1 : Math.sign(feet.z - edge.z) || 1;
-    if (edge.axis === 'x') { panel.position.set(edge.x + facing * 0.05, 2.2, edge.z + s); panel.rotation.set(0, facing * Math.PI / 2, 0); }
-    else { panel.position.set(edge.x + s, 2.2, edge.z + facing * 0.05); panel.rotation.set(0, facing > 0 ? 0 : Math.PI, 0); }
-    panel.visible = true;
   };
-  scope.onDispose(() => {
-    group.removeFromParent(); wall.geometry.dispose(); material.dispose(); card.geometry.dispose(); bar.geometry.dispose();
-    labelMaterial.map?.dispose(); labelMaterial.dispose(); barMaterial.dispose();
-  });
-  return { step, state: () => ({ closed: closedCount, panel: panelFor, status }) };
+  scope.onDispose(() => { group.removeFromParent(); wall.geometry.dispose(); material.dispose(); });
+  return { step, state: () => ({ closed: closedCount }) };
 }

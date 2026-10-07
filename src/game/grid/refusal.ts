@@ -1,12 +1,12 @@
 /**
- * What a shard that can't load shows (SHARD-PLATFORM SF58 (12), G167, `art/grid/round-18-refused-cell/board.jpg`): a cell
- * whose shard is refused (by memory admission, a validation / safety failure, a format it can't read or a load error) shows
- * **its frozen grey far view under a static dome** behind the soft wall (B); with no far view it falls back to **the empty
- * void and a "SHARD UNAVAILABLE" holo sign** with one reason line (A). SHARD SELECT shows that shard's **UNAVAILABLE card**.
+ * Why a shard can't load (SHARD-PLATFORM SF58 (12), G167): a cell whose shard is refused (by memory admission, a
+ * validation / safety failure, a format it can't read or a load error) keeps its soft wall closed and shows G217's cell
+ * screen (`cellScreen.ts`: the full Developer loading screen, the reason in amber, YOUR SAVE IS KEPT); SHARD SELECT shows
+ * that shard's **UNAVAILABLE card**.
  *
  * This module is the pure part: `classifyRefusal` maps the thrown admission error to a reason (or null: a cell that is only
- * waiting for M3, or a page tearing down, is not refused), `refusedLook` maps (reason, far view) to B or A, and
- * `ShardRefusals` remembers this session's refused slugs for SHARD SELECT. The soft wall still blocks entry either way.
+ * waiting for M3, or a page tearing down, is not refused), `refusalReason` words it, and `ShardRefusals` remembers this
+ * session's refused slugs for SHARD SELECT.
  */
 import * as v from 'valibot';
 import { app } from '@wildshard/engine/app/runtime';
@@ -47,13 +47,6 @@ export function refusalReason(refusal: ShardRefusal): string {
 
 /** The cell's far view: drawn (resident in the rings), still on its way, or none (it failed, or the shard has none). */
 export type FarViewStatus = 'resident' | 'loading' | 'none';
-/** B: the far view frozen grey under a static dome; A: the void and the SHARD UNAVAILABLE sign. */
-export type RefusedLook = 'frozen' | 'void';
-/** G167: B when the far view is drawn, else A (a far view that arrives later turns A into B). Null: not refused. */
-export function refusedLook(refusal: ShardRefusal | null, far: FarViewStatus): RefusedLook | null {
-  if (refusal === null) return null;
-  return far === 'resident' ? 'frozen' : 'void';
-}
 
 const schema: v.GenericSchema<unknown, Readonly<Record<string, ShardRefusal>>> = v.record(v.string(), v.picklist(REFUSALS));
 /** the app's save store (src/engine/saves/store.ts) */

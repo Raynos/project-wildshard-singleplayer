@@ -23,7 +23,7 @@
 import { BufferGeometry, Group, Mesh, type Material, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -43,7 +43,7 @@ import { devserverCellOn } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
-import { PlatformRenderResidency } from './renderResidency';
+import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import type { FarLookRuntime } from './farProxy';
@@ -71,8 +71,12 @@ import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 import { farMapImage } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
-import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type FarViewStatus, type ShardRefusal } from './refusal';
-import { installRefusedLook, type RefusedLookState } from './refusedLook';
+import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
+import { installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
+import type { MemoryAdmissionWarning } from './memoryAdmission';
+import { TIER } from '@wildshard/engine/core/tier';
+
+declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
 
 /**
  * In grid mode the level's own chunk-edge walls and veil yield to the platform, and so does its own horizon (G99: every
@@ -111,12 +115,12 @@ export interface GridSessionState {
   readonly road: RoadLookState;
   /** the seams' materials: triangles and draws per material (phase 2, G90 / G91 / G101) */
   readonly seams: SeamLookState;
-  /** G85's soft walls: how many edges are closed and which shard's loading panel shows (null: none in range) */
+  /** G85's soft walls: how many edges are closed */
   readonly softWalls: SoftWallState;
   /** G78's border shimmer and G119's save panel (status null: no panel up) */
   readonly shimmer: BorderShimmerState;
-  /** G167: the neighbours that can't load and what each shows (B frozen far view under a dome, A the void and the sign) */
-  readonly refused: RefusedLookState;
+  /** G217: the cells you can't enter that wear the full loading screen now, and its redraw count */
+  readonly screens: CellScreensState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
@@ -201,11 +205,16 @@ export class GridSession {
   private readonly life: NeighbourLife;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
   private readonly shimmer: { readonly step: () => void; readonly state: () => BorderShimmerState };
-  /** G167: why a neighbour's shard can't load (its product refused), its far view's status and the look over both */
+  /** G167: why a neighbour's shard can't load (its product refused, with the admission's message) and its far view's status */
   private readonly refusals = new Map<string, ShardRefusal>();
-  private readonly farViews = new Map<string, FarProxyView>();
+  private readonly issues = new Map<string, string>();
+  private readonly farViews = new Set<string>();
   private readonly farMissing = new Set<string>();
-  private readonly refused: { readonly step: () => void; readonly state: () => RefusedLookState };
+  /** each slug's shown name and whether it ships a shardfile (read once: the registry lookup builds a map) */
+  private readonly names = new Map<string, string>();
+  private readonly shardfiles = new Map<string, boolean>();
+  /** G217: the full loading screen on every cell you can't enter */
+  private readonly screens: { readonly step: () => void; readonly state: () => CellScreensState };
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost): Promise<GridSession> {
@@ -239,6 +248,7 @@ export class GridSession {
     this.home = this.assembly.cell(instance);
     const home = this.home, empty = this.assembly.emptyNeighbour.edge;
     this.neighbours = this.assembly.cells.filter((cell) => cell.instance !== home.instance);
+    for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); this.shardfiles.set(cell.slug, manifest?.shardfile !== undefined); }
     // the deck: one generator run, one draw, the same vertices as the platform colliders
     // the shards' real edge rows and observations (loaded once by `create`, before this one generation); a platform the
     // generator refuses (an edge past the cliff envelope, an entry off road height) falls back to road-level edges
@@ -264,15 +274,22 @@ export class GridSession {
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
     const roadRoots = platformRoad.roots;
     this.roadBudget = { view: () => { const camera = host.frame?.camera; return camera === undefined ? null : roadViewCost(roadRoots, camera, this.roadPlans); }, resident: () => roadResident(roadRoots, this.roadPlans) };
-    // G85: a closed neighbour edge shows as a cyan hex shimmer with a loading panel where the traveller would cross
+    // G85: a closed neighbour edge shows as a cyan hex shimmer
     this.softWalls = installSoftWallLook({ scene: host.scene, scope: host.scope, time: () => app.clock.now,
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
-      ports: { closed: (id) => this.live === null || !this.live.live.ready(id), feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
-        name: (id) => this.shardName(id),
-        waiting: (id) => findShard(this.assembly.cell(id).slug)?.shardfile === undefined || this.live?.refusal(id) instanceof GridCellWaitingError
-          ? { line: GAME_STRINGS.grid.waiting(this.shardName(id)), detail: GAME_STRINGS.grid.waitingSelect } : null,
-        reason: (id) => { const refusal = this.refusal(id); return refusal === null ? null : GAME_STRINGS.unavailable.line(this.shardName(id), refusalReason(refusal)); } },
-      saveKept: GAME_STRINGS.upgrade.saveKept });
+      ports: { closed: (id) => this.live === null || !this.live.live.ready(id) } });
+    // G217: every cell you can't enter (loading, waiting or refused) wears the full Developer loading screen at its soft wall
+    // (a page whose envelope can't fit the screens' one claim keeps its closed walls without them, rather than no grid)
+    try {
+      this.screens = installCellScreens({ scene: host.scene, admission, time: () => app.clock.real, wall: CHUNK_HALF + 6,
+        build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '', tier: TIER,
+        cells: this.neighbours.map((cell) => ({ instance: cell.instance, x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, art: findShard(cell.slug)?.card.thumb ?? null })),
+        ports: { read: () => this.screenInputs(), feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
+    } catch (error) {
+      if (!(error instanceof PlatformRenderAdmissionError)) throw error;
+      console.warn('[grid] the cell screens did not fit the envelope:', error);
+      this.screens = { step: () => undefined, state: () => ({ shown: [], draws: 0 }) };
+    }
     // G78: a shimmer line at every shard border on its real ground; G119: SAVING… / SAVE FAILED, RETRY while a crossing waits
     const rows = new Map((edges ?? []).map((cell) => [cell.instance, cell.edges]));
     let status: CrossingSaveStatus = null, polled = 0;
@@ -315,17 +332,13 @@ export class GridSession {
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };
-    // G167: the drawn far views, so a refused neighbour's can freeze grey (B) and a missing one falls back to the void (A)
+    // the drawn far views, for the cell screen's far-view row
     const farPorts = { ...framedPorts, upload: (tile: { instance: string }, data: FarPrepared) => {
-      const view = framedPorts.upload(tile, data), dispose = view.dispose;
-      this.farViews.set(tile.instance, view);
-      view.dispose = () => { if (this.farViews.get(tile.instance) === view) this.farViews.delete(tile.instance); dispose(); };
+      const view: FarProxyView = framedPorts.upload(tile, data), dispose = view.dispose;
+      this.farViews.add(tile.instance);
+      view.dispose = () => { this.farViews.delete(tile.instance); dispose(); };
       return view;
     } };
-    this.refused = installRefusedLook({ home, half: CHUNK_HALF, scope: host.scope,
-      cells: this.neighbours.flatMap((cell) => { const root = roots.get(cell.instance); return root === undefined ? [] : [{ cell, name: this.shardName(cell.instance), root }]; }),
-      ports: { refusal: (id) => this.refusal(id), far: (id) => this.farStatus(id), grey: (id, on) => { this.farViews.get(id)?.grey(on); },
-        feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
     // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
@@ -376,7 +389,7 @@ export class GridSession {
         if (scope.disposed) return;
         if (source.tiles.length > 0) instances.set(cell.instance, { source, assets, root, views });
         try { await this.life.admit(cell, root, source, bytes, compile, skins); } catch (error) { console.warn(`[grid] ${cell.instance} stays still (client scripts):`, error); }
-      } catch (error) { this.refuse(cell, error); } // G167: a refused shard keeps its far view frozen grey under a dome, else the void
+      } catch (error) { this.refuse(cell, error); } // G167 / G217: a refused shard's cell screen names the reason
     }
   }
 
@@ -385,14 +398,43 @@ export class GridSession {
     const refusal = classifyRefusal(error);
     if (refusal === null || this.host.scope.disposed) return;
     console.warn(`[grid] ${cell.instance} can't load (${refusal}):`, error);
-    this.refusals.set(cell.instance, refusal); pageShardRefusals().note(cell.slug, refusal);
+    this.refusals.set(cell.instance, refusal); this.issues.set(cell.instance, error instanceof Error ? error.message : String(error)); pageShardRefusals().note(cell.slug, refusal);
+  }
+  /**
+   * G217's read-only port: every neighbour you can't enter now, with its readiness stages, its refusal or wait, its claims in
+   * the one allocator (its own and its shared product) and its far view. Read a few times a second by the cell screens.
+   */
+  private screenInputs(): ReadonlyMap<string, CellScreenInput> {
+    const out = new Map<string, CellScreenInput>(), live = this.live, cost = this.allocator.cost(), claimed = new Map<string, { bytes: number; count: number }>();
+    for (const entry of this.allocator.entries()) {
+      const key = entry.owner === 'grid' && entry.id.startsWith('product:grid:') ? entry.id : entry.owner, was = claimed.get(key);
+      claimed.set(key, { bytes: (was?.bytes ?? 0) + entry.bytes, count: (was?.count ?? 0) + 1 });
+    }
+    // G216: a claim Developer admitted past the envelope reports its full numbers (the newest report per cell wins)
+    const over = new Map<string, MemoryAdmissionWarning>();
+    for (const report of this.allocator.memory.reports()) over.set(report.owner === 'grid' && report.id.startsWith('product:grid:') ? report.id : report.owner, report);
+    for (const cell of this.neighbours) {
+      const id = cell.instance;
+      if (live?.live.ready(id) === true) continue;
+      const raw = live?.refusal(id), refusal = this.refusal(id), shardfile = this.shardfiles.get(cell.slug) === true;
+      const waiting = refusal === null && (!shardfile || raw instanceof GridCellWaitingError || (raw !== undefined && classifyRefusal(raw) === null));
+      const message = raw instanceof Error ? raw.message : raw === undefined ? this.issues.get(id) ?? null : typeof raw === 'string' ? raw : null;
+      const stages = live?.live.readiness.status(id), own = claimed.get(id), product = claimed.get(`product:grid:${cell.slug}`);
+      const warning = over.get(id) ?? over.get(`product:grid:${cell.slug}`);
+      out.set(id, { instance: id, slug: cell.slug, name: this.shardName(id), status: refusal !== null ? 'refused' : waiting ? 'waiting' : 'loading', refusal,
+        wait: waiting ? (message !== null && /hybrid/u.test(message) ? 'hybrid' : 'format') : null, issue: message, far: this.farStatus(id),
+        requested: stages?.requested ?? false, product: product !== undefined, runtime: stages?.runtime ?? false, colliders: stages?.colliders ?? false, sim: stages?.sim ?? false,
+        claimedBytes: (own?.bytes ?? 0) + (product?.bytes ?? 0), claims: (own?.count ?? 0) + (product?.count ?? 0), declaredBytes: product?.bytes ?? 0,
+        pageBytes: warning?.playingBytes ?? cost.playing, capBytes: warning?.playingCap ?? CONTENT_CAPS.playing, overBytes: warning?.playingOverBytes ?? 0 });
+    }
+    return out;
   }
   private refusal(instance: string): ShardRefusal | null {
     const live = this.live?.refusal(instance);
     return this.refusals.get(instance) ?? (live === undefined ? null : classifyRefusal(live));
   }
   private farStatus(instance: string): FarViewStatus { return this.farViews.has(instance) ? 'resident' : this.farMissing.has(instance) ? 'none' : 'loading'; }
-  private shardName(instance: string): string { const slug = this.assembly.cell(instance).slug; return findShard(slug)?.name ?? slug; }
+  private shardName(instance: string): string { const slug = this.assembly.cell(instance).slug; return this.names.get(slug) ?? slug; }
 
   /** Step 2: the live crossing, once the page's player health and equipment exist (play.ts). */
   attach(page: LiveGridPage): LiveGridSession {
@@ -424,7 +466,7 @@ export class GridSession {
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
     this.softWalls.step();
-    this.refused.step();
+    this.screens.step();
     this.shimmer.step();
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
     if (inside === undefined || inside.instance !== active) gridCells.leave();
@@ -452,7 +494,7 @@ export class GridSession {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), refused: this.refused.state(), ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), screens: this.screens.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },
