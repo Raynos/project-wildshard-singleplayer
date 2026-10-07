@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-144 members; 0 without a doc line (—).
+149 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -128,6 +128,11 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `Melee` | const | @wildshard/sdk/runtime/weapons/Melee | The one platform contact constructor, used by transitional runtime subclasses until declared items replace them. |
 | `meleeActor` | const | @wildshard/sdk/runtime/weapons/Melee | Native/practice targets share the platform's one cached combat actor adapter. |
 | `MeleeInstance` | type | @wildshard/sdk/runtime/weapons/Melee | Trusted contact-family instance with authored sweep and view parameters. |
+| `MeleeEvents` | type | @wildshard/sdk/runtime/weapons/SweptMelee | Optional contact, swing and cover reactions from the owning runtime recipe. |
+| `SweptMelee` | const | @wildshard/sdk/runtime/weapons/SweptMelee | The one platform swept contact constructor; the SDK supplies no starter moves or geometry. |
+| `SweptMeleeDefaults` | type | @wildshard/sdk/runtime/weapons/SweptMelee | Caller-supplied starter move identities and reaction hooks. |
+| `SweptMeleeInstance` | type | @wildshard/sdk/runtime/weapons/SweptMelee | The shared swept contact instance, with rig and move strategies supplied by content. |
+| `SweptMeleeOptions` | type | @wildshard/sdk/runtime/weapons/SweptMelee | Explicit row, profile, input context and view options for a swept contact family. |
 | `Thrown` | const | @wildshard/sdk/runtime/weapons/Thrown | The one platform thrown helper constructor; the SDK adds no state or implementation. |
 | `ThrownInstance` | type | @wildshard/sdk/runtime/weapons/Thrown | A composing weapon's ammunition and fixed-step launch helper. |
 | `Weapon` | const | @wildshard/sdk/runtime/weapons/Weapon | The single platform weapon constructor; the trusted SDK surface adds no runtime state or implementation. |

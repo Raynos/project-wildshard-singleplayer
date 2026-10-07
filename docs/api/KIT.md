@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-164 members; 66 without a doc line (—).
+164 members; 62 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -161,11 +161,11 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `SPRINT` | const | @wildshard/kit/weapons/melee/moves | — |
 | `SWORD_IRON` | const | @wildshard/kit/weapons/melee/profiles | — |
 | `SWORD_WOOD` | const | @wildshard/kit/weapons/melee/profiles | — |
-| `HEAVY_CHARGE` | const | @wildshard/kit/weapons/melee/SweptMelee | — |
-| `REACH` | const | @wildshard/kit/weapons/melee/SweptMelee | — |
-| `Sword` | class | @wildshard/kit/weapons/melee/SweptMelee | — |
-| `swordEvents` | const | @wildshard/kit/weapons/melee/SweptMelee | The combat events of whichever sword is in hand — both rigs (wooden, iron) publish here, so main.ts wires the island's |
-| `SwordOptions` | interface | @wildshard/kit/weapons/melee/SweptMelee | — |
+| `HEAVY_CHARGE` | const | @wildshard/kit/weapons/melee/SweptMelee | Starter heavy charge duration remains content data. |
+| `REACH` | const | @wildshard/kit/weapons/melee/SweptMelee | Starter reach remains content data. |
+| `Sword` | class | @wildshard/kit/weapons/melee/SweptMelee | Transitional starter constructor: view, contact and input execution live in the platform family. |
+| `swordEvents` | const | @wildshard/kit/weapons/melee/SweptMelee | The starter recipes share their original sound/reaction hooks, supplied to the platform family. |
+| `SwordOptions` | type | @wildshard/kit/weapons/melee/SweptMelee | Compatibility options keep the starter profile and input-context defaults out of the engine. |
 | `Thrown` | const | @wildshard/kit/weapons/thrown/Thrown | The kit uses the one platform constructor and ammunition implementation. |
 | `ThrownProfile` | type | @wildshard/kit/weapons/thrown/Thrown | Transitional kit name for the platform's authored ammunition and flight profile. |
 | `SWAP_GLYPHS` | const | @wildshard/kit/weapons/ui | The existing swap glyphs, shared by weapon rows (no equipment-id lookup in the HUD). |

@@ -3741,6 +3741,30 @@
         "from": "@wildshard/engine/combat/view/slashTrail"
       },
       {
+        "name": "MeleeEvents",
+        "kind": "interface",
+        "doc": "Optional swing, contact and cover reactions supplied by the owning recipe.",
+        "from": "@wildshard/engine/combat/view/SweptMelee"
+      },
+      {
+        "name": "SweptMelee",
+        "kind": "class",
+        "doc": "Swept contact family executes the supplied rig, moves and reactions without a model recipe of its own.",
+        "from": "@wildshard/engine/combat/view/SweptMelee"
+      },
+      {
+        "name": "SweptMeleeDefaults",
+        "kind": "interface",
+        "doc": "Starter move identities and reactions are explicit ports; the engine supplies no content defaults.",
+        "from": "@wildshard/engine/combat/view/SweptMelee"
+      },
+      {
+        "name": "SwordOptions",
+        "kind": "interface",
+        "doc": "Row, moves, supplied rig and framing for a generic swept contact view.",
+        "from": "@wildshard/engine/combat/view/SweptMelee"
+      },
+      {
         "name": "AimInfo",
         "kind": "interface",
         "doc": "",
@@ -13362,6 +13386,36 @@
         "from": "@wildshard/game/grid/pageBoot"
       },
       {
+        "name": "clearGridRecovery",
+        "kind": "function",
+        "doc": "A failed recovery boot returns to the title and must not supply a selection to another boot.",
+        "from": "@wildshard/game/grid/recoveryBoot"
+      },
+      {
+        "name": "consumeGridRecovery",
+        "kind": "function",
+        "doc": "Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing.",
+        "from": "@wildshard/game/grid/recoveryBoot"
+      },
+      {
+        "name": "gridRecoveryRefused",
+        "kind": "function",
+        "doc": "Future or unconsumed metadata cannot enter a renderer on this boot.",
+        "from": "@wildshard/game/grid/recoveryBoot"
+      },
+      {
+        "name": "pageGridRecovery",
+        "kind": "function",
+        "doc": "Same-document handoff to ordinary admission and the live road placement; progress is read from real saves.",
+        "from": "@wildshard/game/grid/recoveryBoot"
+      },
+      {
+        "name": "safeGridRecovery",
+        "kind": "function",
+        "doc": "A validated current catalogue's default home and road lane, used when recovery metadata is unsafe.",
+        "from": "@wildshard/game/grid/recoveryBoot"
+      },
+      {
         "name": "gridCanAct",
         "kind": "function",
         "doc": "Only the active writable shard interior accepts authoritative actions; visible neighbours are projections.",
@@ -16912,31 +16966,31 @@
       {
         "name": "HEAVY_CHARGE",
         "kind": "const",
-        "doc": "",
+        "doc": "Starter heavy charge duration remains content data.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "REACH",
         "kind": "const",
-        "doc": "",
+        "doc": "Starter reach remains content data.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "Sword",
         "kind": "class",
-        "doc": "",
+        "doc": "Transitional starter constructor: view, contact and input execution live in the platform family.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "swordEvents",
         "kind": "const",
-        "doc": "The combat events of whichever sword is in hand — both rigs (wooden, iron) publish here, so main.ts wires the island's",
+        "doc": "The starter recipes share their original sound/reaction hooks, supplied to the platform family.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "SwordOptions",
-        "kind": "interface",
-        "doc": "",
+        "kind": "type",
+        "doc": "Compatibility options keep the starter profile and input-context defaults out of the engine.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
@@ -17696,6 +17750,36 @@
         "kind": "type",
         "doc": "Trusted contact-family instance with authored sweep and view parameters.",
         "from": "@wildshard/sdk/runtime/weapons/Melee"
+      },
+      {
+        "name": "MeleeEvents",
+        "kind": "type",
+        "doc": "Optional contact, swing and cover reactions from the owning runtime recipe.",
+        "from": "@wildshard/sdk/runtime/weapons/SweptMelee"
+      },
+      {
+        "name": "SweptMelee",
+        "kind": "const",
+        "doc": "The one platform swept contact constructor; the SDK supplies no starter moves or geometry.",
+        "from": "@wildshard/sdk/runtime/weapons/SweptMelee"
+      },
+      {
+        "name": "SweptMeleeDefaults",
+        "kind": "type",
+        "doc": "Caller-supplied starter move identities and reaction hooks.",
+        "from": "@wildshard/sdk/runtime/weapons/SweptMelee"
+      },
+      {
+        "name": "SweptMeleeInstance",
+        "kind": "type",
+        "doc": "The shared swept contact instance, with rig and move strategies supplied by content.",
+        "from": "@wildshard/sdk/runtime/weapons/SweptMelee"
+      },
+      {
+        "name": "SweptMeleeOptions",
+        "kind": "type",
+        "doc": "Explicit row, profile, input context and view options for a swept contact family.",
+        "from": "@wildshard/sdk/runtime/weapons/SweptMelee"
       },
       {
         "name": "Thrown",

@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-542 members; 112 without a doc line (—).
+547 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -112,6 +112,11 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
 | `PageResidencyBoot` | interface | @wildshard/game/grid/pageBoot | The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. |
 | `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
+| `clearGridRecovery` | function | @wildshard/game/grid/recoveryBoot | A failed recovery boot returns to the title and must not supply a selection to another boot. |
+| `consumeGridRecovery` | function | @wildshard/game/grid/recoveryBoot | Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing. |
+| `gridRecoveryRefused` | function | @wildshard/game/grid/recoveryBoot | Future or unconsumed metadata cannot enter a renderer on this boot. |
+| `pageGridRecovery` | function | @wildshard/game/grid/recoveryBoot | Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. |
+| `safeGridRecovery` | function | @wildshard/game/grid/recoveryBoot | A validated current catalogue's default home and road lane, used when recovery metadata is unsafe. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |
 | `GridCombatRules` | class | @wildshard/game/grid/rules | Scope-owned combat gate keyed by actor objects, so identical entity ids in two instances never collide. |
 | `GridHoverPort` | interface | @wildshard/game/grid/rules | Minimal board port supplied by the residency driver; no Player or browser dependency enters the grid policy. |

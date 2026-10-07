@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2119 members; 830 without a doc line (—).
+2123 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -630,6 +630,10 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `installRangedFeel` | function | @wildshard/engine/combat/view/rangedFeel | — |
 | `SlashTrail` | class | @wildshard/engine/combat/view/slashTrail | Shared blade-sample ring and Catmull-Rom ribbon; callers supply their material and age/alpha profile. |
 | `SlashTrailProfile` | interface | @wildshard/engine/combat/view/slashTrail | — |
+| `MeleeEvents` | interface | @wildshard/engine/combat/view/SweptMelee | Optional swing, contact and cover reactions supplied by the owning recipe. |
+| `SweptMelee` | class | @wildshard/engine/combat/view/SweptMelee | Swept contact family executes the supplied rig, moves and reactions without a model recipe of its own. |
+| `SweptMeleeDefaults` | interface | @wildshard/engine/combat/view/SweptMelee | Starter move identities and reactions are explicit ports; the engine supplies no content defaults. |
+| `SwordOptions` | interface | @wildshard/engine/combat/view/SweptMelee | Row, moves, supplied rig and framing for a generic swept contact view. |
 | `AimInfo` | interface | @wildshard/engine/combat/Weapon | — |
 | `EquipmentView` | interface | @wildshard/engine/combat/Weapon | Minimal view port; simulation does not import the renderer's scene types. |
 | `ImpactSurface` | type | @wildshard/engine/combat/Weapon | — |

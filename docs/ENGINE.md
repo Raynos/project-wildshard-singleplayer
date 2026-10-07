@@ -1839,7 +1839,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2102 exports, grouped by the module to import them from.
+2106 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1956,6 +1956,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/combat/view/ranged`: `box`, `CrossbowOptions`, `CrossbowWorld`, `cyl`, `dataTexture`, `edgeWear`, `fixIBL`, `FOV_ADS`, `FOV_HIP`, `fovForAspect`, `impactSurfaceOf`, `isMesh`, `makeBoltAtlas`, `makeCord`, `Puffs`, `RangedOptions`, `RangedWorld`, `remapUV`, `startViewmodelTextures`, `stripExtra`, `TexSet`, `TRACER_ORDER`, `TRACER_RED`, `VIEWMODEL_GROUP`, `viewmodelMaterial`, `viewmodelTexSet`, `viewmodelTexturesReady`, `whiteColors`, `worldHit`
 - `@wildshard/engine/combat/view/rangedFeel`: `installRangedFeel`
 - `@wildshard/engine/combat/view/slashTrail`: `SlashTrail`, `SlashTrailProfile`
+- `@wildshard/engine/combat/view/SweptMelee`: `MeleeEvents`, `SweptMelee`, `SweptMeleeDefaults`, `SwordOptions`
 - `@wildshard/engine/combat/Weapon`: `AimInfo`, `EquipmentView`, `ImpactSurface`, `quiverState`, `ViewFrame`, `Weapon`, `WeaponHooks`, `WeaponState`
 - `@wildshard/engine/core/assets`: `loadGLTF`, `loadHDR`, `loadImage`, `loadPBR`, `loadPBRArray`, `loadTexture`, `pbrMaterial`, `PBRSet`, `pbrUrls`, `setAnisotropy`, `texUrl`
 - `@wildshard/engine/core/bootstrap`: `bootstrap`, `World`
@@ -2205,7 +2206,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-542 exports, grouped by the module to import them from.
+547 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2228,6 +2229,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHome`, `LiveGridHost`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
 - `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`
+- `@wildshard/game/grid/recoveryBoot`: `clearGridRecovery`, `consumeGridRecovery`, `gridRecoveryRefused`, `pageGridRecovery`, `safeGridRecovery`
 - `@wildshard/game/grid/rules`: `gridCanAct`, `GridCombatRules`, `GridHoverPort`, `gridHoverSpeed`, `GridPresence`, `GridTravelMember`, `GridTravelUnit`, `gridZone`, `installGridHoverSpeed`, `installGridTravellerCombat`, `reframeGridUnit`
 - `@wildshard/game/grid/simulation`: `GridResident`, `GridSimLease`, `GridSimulation`, `GridSimulationPorts`, `PreparedGridFrame`, `PreparedGridUnload`
 - `@wildshard/game/grid/state`: `regionalState`
@@ -2355,7 +2357,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-144 exports, grouped by the module to import them from.
+149 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2388,6 +2390,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/runtime/weapons/Bow`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`
 - `@wildshard/sdk/runtime/weapons/Melee`: `Melee`, `meleeActor`, `MeleeInstance`
+- `@wildshard/sdk/runtime/weapons/SweptMelee`: `MeleeEvents`, `SweptMelee`, `SweptMeleeDefaults`, `SweptMeleeInstance`, `SweptMeleeOptions`
 - `@wildshard/sdk/runtime/weapons/Thrown`: `Thrown`, `ThrownInstance`
 - `@wildshard/sdk/runtime/weapons/Weapon`: `Weapon`, `WeaponInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`
