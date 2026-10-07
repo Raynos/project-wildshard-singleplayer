@@ -369,6 +369,8 @@
     "./combat/bowDraw": "./combat/bowDraw.ts",
     "./combat/view/Bow": "./combat/view/Bow.ts",
     "./combat/view/bowProfile": "./combat/view/bowProfile.ts",
-    "./combat/view/SweptMelee": "./combat/view/SweptMelee.ts"
+    "./combat/view/SweptMelee": "./combat/view/SweptMelee.ts",
+    "./core/meshCollision": "./core/meshCollision.ts",
+    "./physics/meshCollision": "./physics/meshCollision.ts"
   }
 }

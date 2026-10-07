@@ -1030,6 +1030,8 @@ ctx.piece({ id: 'template.ramp', name: STRINGS.ramp, category: 'buildings', file
 A door is a piece whose `active()` is false while it is open, plus an `Interactable` pushed to
 `ctx.game.runtime.interactables` (§17).
 
+`@wildshard/engine/core/meshCollision` admits the bounded WMC1 indexed-triangle format (at most 40,000 triangles and 120,000 referenced vertices per chunk). It preserves triangle winding and rejects nonfinite positions, degenerate triangles, unused vertices and trailing bytes. `@wildshard/engine/physics/meshCollision` installs those bytes as one scoped static WORLD collider with internal-edge fixing; queries keep bridges and ground below them as separate surfaces. Native installation is explicit and unload removes the collider. This codec is the authored-world collision seam; it does not install itself or convert geometry to a heightfield.
+
 ## 15. Audio
 
 | Export | What it is |
