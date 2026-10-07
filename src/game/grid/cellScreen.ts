@@ -123,9 +123,9 @@ export function cellScreenContent(input: CellScreenInput, frame: CellScreenFrame
   };
 }
 
-/** The canvas's size (px) and the panel's (m): 1024 × 640 over 9.6 × 6 m, ~107 px a metre. */
+/** The canvas's size (px) and the panel's (m): 1024 × 640 over 10.4 × 6.5 m, ~98 px a metre. */
 export const SCREEN_PX = { w: 1024, h: 640 } as const;
-export const SCREEN_M = { w: 9.6, h: 6, bottom: 0.5 } as const;
+export const SCREEN_M = { w: 10.4, h: 6.5, bottom: 0.4 } as const;
 const CYAN = '#8fe3ff', CYAN_DIM = 'rgba(143, 227, 255, 0.62)', LINE = 'rgba(143, 227, 255, 0.35)', TEXT = '#e6f2f8', DIM = 'rgba(196, 220, 232, 0.66)', AMBER = '#ffb547';
 const DISPLAY = "'Rajdhani', 'Bahnschrift', 'DIN Alternate', 'Helvetica Neue', Arial, sans-serif", MONO = "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace";
 
@@ -230,7 +230,7 @@ export interface CellScreensState { readonly shown: readonly { readonly instance
 
 interface Slot {
   readonly mesh: Mesh; readonly material: MeshBasicMaterial; readonly canvas: HTMLCanvasElement; readonly context: CanvasRenderingContext2D | null; readonly texture: CanvasTexture;
-  instance: string | null; key: string; along: number; status: CellScreenStatus | null; since: number;
+  instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
 }
 const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
 
@@ -257,7 +257,7 @@ export function installCellScreens(input: {
       const material = new MeshBasicMaterial({ map: texture, toneMapped: false, fog: false });
       const mesh = new Mesh(geometry, material); mesh.name = 'grid-cell-screen'; mesh.visible = false; mesh.matrixAutoUpdate = false;
       group.add(mesh);
-      return { mesh, material, canvas, context: canvas.getContext('2d'), texture, instance: null, key: '', along: 0, status: null, since: 0 };
+      return { mesh, material, canvas, context: canvas.getContext('2d'), texture, instance: null, key: '', along: 0, sliding: false, status: null, since: 0 };
     };
     input.scene.add(group);
     let ticks = 0, draws = 0, snapshot: ReadonlyMap<string, CellScreenInput> = new Map();
@@ -274,10 +274,13 @@ export function installCellScreens(input: {
       const dx = feet.x - cell.x, dz = feet.z - cell.z, onX = Math.abs(dx) >= Math.abs(dz);
       const side = Math.sign(onX ? dx : dz) || 1, limit = wall - SCREEN_M.w / 2 - 2;
       const target = Math.max(-limit, Math.min(limit, onX ? dz : dx));
-      if (Math.abs(target - s.along) > DEAD_ZONE) s.along += (target - s.along) * 0.08; // slides along its wall toward the traveller
+      // slides along its wall toward the traveller once they are DEAD_ZONE m off it, until it is in front of them again
+      const off = Math.abs(target - s.along);
+      if (off > DEAD_ZONE) s.sliding = true; else if (off < 0.3) s.sliding = false;
+      if (s.sliding) s.along += (target - s.along) * 0.08;
       const m = s.mesh, y = SCREEN_M.bottom + SCREEN_M.h / 2;
-      if (onX) { m.position.set(cell.x + side * (wall - 0.08), y, cell.z + s.along); m.rotation.set(0, side * Math.PI / 2, 0); }
-      else { m.position.set(cell.x + s.along, y, cell.z + side * (wall - 0.08)); m.rotation.set(0, side > 0 ? 0 : Math.PI, 0); }
+      if (onX) { m.position.set(cell.x + side * (wall + 0.08), y, cell.z + s.along); m.rotation.set(0, side * Math.PI / 2, 0); }
+      else { m.position.set(cell.x + s.along, y, cell.z + side * (wall + 0.08)); m.rotation.set(0, side > 0 ? 0 : Math.PI, 0); }
       m.updateMatrix();
     };
     const step = (): void => {
@@ -294,7 +297,7 @@ export function installCellScreens(input: {
           s = slots.find((candidate) => candidate.instance === null) ?? (slots.length < count ? slot() : undefined);
           if (s === undefined) continue;
           if (!slots.includes(s)) slots.push(s);
-          s.instance = cell.instance; s.key = ''; s.status = null;
+          s.instance = cell.instance; s.key = ''; s.status = null; s.sliding = false;
           const dx = feet.x - cell.x, dz = feet.z - cell.z; s.along = Math.abs(dx) >= Math.abs(dz) ? dz : dx;
         }
         const state = snapshot.get(cell.instance); if (state === undefined) continue;

@@ -86,9 +86,9 @@ describe('G217: the panels in the world', () => {
       for (let k = 0; k < 30; k++) screens.step();
       expect(screens.state().draws).toBe(2); // nothing changed: no redraw
       const panels: { position: Mesh['position']; rotation: Mesh['rotation'] }[] = []; scene.traverse((node) => { if (node.name === 'grid-cell-screen' && node.visible) panels.push(node); });
-      const east = panels.find((p) => Math.abs(p.position.x - (560 - 256 + 0.08)) < 1e-6);
+      const east = panels.find((p) => Math.abs(p.position.x - (560 - 256 - 0.08)) < 1e-6);
       if (east === undefined) throw new Error('No panel on the east cell\'s west wall');
-      expect(east.position.y).toBeCloseTo(SCREEN_M.bottom + SCREEN_M.h / 2); expect(east.rotation.y).toBeCloseTo(-Math.PI / 2); // faces −x, toward the road
+      expect(east.position.y).toBeCloseTo(SCREEN_M.bottom + SCREEN_M.h / 2); expect(east.rotation.y).toBeCloseTo(-Math.PI / 2); // in front of the wall, facing −x, toward the road
       // the clock ticks in whole seconds: one redraw per loading panel per second
       now = 1.2; for (let k = 0; k < 6; k++) screens.step();
       expect(screens.state().draws).toBe(4);
