@@ -659,3 +659,15 @@ Input dimensions are at most 4096², wire size at most 25 MB, with one still fra
 The existing generator helper `bakeColourTexture` keeps its historical system-tool
 output; this additive helper is the portable authored-world path. The subsequent
 world bake will call it and charge its output through ordinary KTX2 admission.
+
+Authored-world LODs use `@wildshard/sdk/bake/worldLod` and pinned meshoptimizer
+1.2.0 WASM. `simplifyWorldPrimitive(primitive, ratio, maxErrorMetres)` runs per
+material, locks topological borders, weights normals/UV/colours/tangents and
+retains original float64 positions and attributes for every surviving vertex.
+It never merges material surfaces, moves bridge decks or converts them to a
+heightfield. The returned triangle count is the actual result: seams/topology
+or the error limit can prevent the requested ratio. `errorMetres` is meshopt's
+absolute appearance-error estimate with a two-sided float32 position allowance,
+not an independent Hausdorff measurement. If float32 precision alone exceeds
+the ceiling, it returns unchanged geometry. Admission charges the actual output;
+a triangle target is never treated as proof that the output fits a cap.
