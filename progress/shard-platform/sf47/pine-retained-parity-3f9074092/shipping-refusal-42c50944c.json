@@ -1,0 +1,29 @@
+{
+  "sha": "42c50944cdf876a6809cafef3def445931a8ffd7",
+  "qualifying": false,
+  "proof": "Shipping Pine refuses honestly before bootstrap; no admission bypass",
+  "console": [],
+  "version": {
+    "build": "42c5094-muyl6szv",
+    "time": "2026-10-07T20:55:23.712Z"
+  },
+  "observation": {
+    "text": "PROJECT WILDSHARD\nA world that does not exist yet, arriving one chunk at a time.\nLOADING CHUNK \u00b7\n00:00.0\nTIER\nDOWNLOAD\n\u2014\n0\nSETUP\n\u2014\n0\nMemory: checking \u00b7 CPU: checking\n42C5094 \u00b7 RELOAD",
+    "world": false,
+    "canvas": 1,
+    "contexts": [],
+    "errors": null
+  },
+  "pass": true,
+  "measurement": {
+    "webContentMB": 569.49544,
+    "labelledGlMB": 622.7,
+    "combinedMB": 1192.19544,
+    "sourceRevision": "6c0aaea4f"
+  },
+  "expectedRefusal": [
+    "Home residency admission deferred by the shared budget"
+  ],
+  "unexpectedErrors": [],
+  "limitations": "This proves honest admission refusal, not qualifying retained re-entry or the SF57 memory soak. Re-entry reruns after measured content fits the cap."
+}
