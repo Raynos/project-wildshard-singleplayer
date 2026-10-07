@@ -16,17 +16,19 @@ function walk(node, visit) {
 }
 /** Literal rows in admitted plumbing data are inventoried instead of the generic adapter's callback argument. */
 export function declaredDebugRows(program) {
-  const names = new Set(['parsePlumbing']), directors = new Set(['directorVariant']), variants = new Set(['runtimeVariantEnabled']), rows = [];
+  const names = new Set(['parsePlumbing']), directors = new Set(['directorVariant']), variants = new Set(['runtimeVariantEnabled']), actions = new Set(['registerGlobalDebugAction']), rows = [];
   walk(program, (node) => {
     if (node.type === 'ImportSpecifier' && node.imported?.name === 'parsePlumbing') names.add(node.local.name);
     if (node.type === 'ImportSpecifier' && node.imported?.name === 'directorVariant') directors.add(node.local.name);
     if (node.type === 'ImportSpecifier' && node.imported?.name === 'runtimeVariantEnabled') variants.add(node.local.name);
+    if (node.type === 'ImportSpecifier' && node.imported?.name === 'registerGlobalDebugAction') actions.add(node.local.name);
   });
   walk(program, (node) => {
     if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') return;
     if (directors.has(node.callee.name)) { if (node.arguments[1] !== undefined) rows.push(node.arguments[1]); return; }
     // DEBUG_ROWS is already counted at its defining declaration; inline runtime variants need their own inventory.
     if (variants.has(node.callee.name)) { if (unwrap(node.arguments[1])?.type === 'ObjectExpression') rows.push(node.arguments[1]); return; }
+    if (actions.has(node.callee.name)) { if (unwrap(node.arguments[0])?.type === 'ObjectExpression') rows.push(node.arguments[0]); return; }
     if (!names.has(node.callee.name)) return;
     const declared = unwrap(field(node.arguments[0], 'debug'));
     if (declared === undefined) return;

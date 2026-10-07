@@ -2,7 +2,8 @@
 
 Inventory taken from committed `b64c2a908` on 2026-10-07, after the E451 rules in `dfddbc370` / `f8d404cee`.
 `lint/debug-flags.mjs` finds 32 definitions; the inline `runtimeVariantEnabled` call for `pineMemoryTrim` adds
-one omitted definition: **33 actual rows**. The committed ceiling is 32. Repeated installations of the shared
+one omitted definition. Further review found the global navigation action `game.template`, also omitted:
+**34 actual rows** (33 listed initially, plus the navigation action). The committed ceiling is 32. Repeated installations of the shared
 `shardDirectors` row in separate shards count as one definition. No generated inventory or foreign staged file
 was used as the authority. Sources below are paths from the repo root.
 
@@ -36,6 +37,7 @@ and unfinished runtime work; merely hiding its menu is insufficient.
 | `calibrate` | E357 | same | One-shot empty calibration run | Developer action, not comparison. Move to Developer tools. |
 | `budgetReadout` | E357 | same | Prints tier/budget/current renderer cost | Developer action, not comparison. Move to Developer tools. |
 | `gridDevserverCell` | E435 | `src/game/grid/debug.ts` | DEVSERVER placement vs Template 1 | DEVSERVER-only development configuration, not an open taste pick. Keep owner-safe until Developer configuration route replaces it. |
+| `game.template` | E357 | `src/game/shard/templateDebug.ts` | Global Enter Template action | Developer navigation tool, no comparison. Global action scanner previously omitted it. |
 | `shardDirectors` | E435 | `src/game/shardfile/directorClient.ts` | Data/script policies vs shipping oracles; remaining Nalati flock and families | G112 technical parity retirement, not taste. **Do not retire yet:** Nalati flock ON floor pending; remaining policies in flight. Gate candidate through Developer, retain independent proof control. |
 | `effects.apply` | E357 | `src/kit/effects/install.ts` | Forces starter effects every five seconds | Developer combat test aid, not comparison. Move to Developer tools. |
 | `farReachEntries` | E435 | `src/shards/far-reach/debug.ts` | Rising Islet entries vs closed old entries | **G183 option 4 / G200 B picked**; G194 holds OFF until way-up works. Live Opus lane owns it; keep until proof/owner release. No new board needed. |
@@ -57,7 +59,7 @@ The E162 bird/people/knife and bow-arc rows were already deleted after their rec
 
 ## Real pending board batch
 
-**None found in the 33 live definitions.** E162's formerly open bird/people/knife comparisons all have
+**None found in the 34 live definitions.** E162's formerly open bird/people/knife comparisons all have
 recorded Models winners later in the same ask. Entry ideas, Template look, memory cuts and card style also have
 recorded G-row winners. SF59, hybrid loaders, director policies and SF22d are technical work/proof gates,
 not an invented request for Jake to compare A/B/C. Report newly discovered real taste comparisons to the coordinator.
