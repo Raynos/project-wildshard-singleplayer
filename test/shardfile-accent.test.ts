@@ -10,14 +10,16 @@ import template from '../src/shards/_template/shard.config';
 
 const empty = () => emptyShardfile({ slug: 'accent-fixture', name: 'Accent fixture', author: 'Test', revision: 1, seed: 1 });
 
-it('admits all 20 palette IDs through the author API and asset validator', () => {
+it('admits all 20 palette IDs from one asset-validated author base', () => {
+  // Accent changes have no asset or residency effect; admit the expensive worst-location envelope once.
+  const base = validateProject(empty(), new Map());
   expect(ACCENT_IDS).toHaveLength(20);
   for (const accent of ACCENT_IDS) {
     expect(parseAccent(accent)).toBe(accent);
-    expect(validateProject({ ...empty(), accent }, new Map()).accent).toBe(accent);
+    expect(parseShardfile({ ...base, accent }).accent).toBe(accent);
     expect(ACCENTS[accent]).toMatch(/^#[a-f0-9]{6}$/u);
   }
-  expect(empty().accent).toBe('sand'); expect(template.accent).toBe('sand');
+  expect(base.accent).toBe('sand'); expect(template.accent).toBe('sand');
 });
 
 it('requires an explicit palette ID and refuses the reserved cyan by name and hex', () => {
