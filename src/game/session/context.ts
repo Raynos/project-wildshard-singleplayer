@@ -15,6 +15,7 @@ import type { Scene, PerspectiveCamera } from 'three';
 import type { LoadStage } from '../shard/load';
 import type { GridRecoveryRecord } from '../grid/recovery';
 import type { PageResidency } from '../grid/pageResidency';
+import type { MemoryAdmission } from '../grid/memoryAdmission';
 
 export interface KitPorts {
   items: readonly ItemRow[];
@@ -24,6 +25,8 @@ export interface KitPorts {
   bagIcons: BagIcons;
 }
 export interface SessionState {
+  /** G216's trusted policy, including validation warnings before the ordinary HUD has been constructed. */
+  readonly memory?: MemoryAdmission;
   /** Created before manifest hydration; the level disposes it after its allocated consumers. */
   readonly residency?: PageResidency;
   /** Consume-once recovery metadata, admitted before hydration. */

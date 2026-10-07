@@ -38,11 +38,12 @@ import { bootPageMode, type PageMode } from '../grid/boot';
 import { installGridDebug } from '../grid/debug';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
+import type { MemoryAdmission } from '../grid/memoryAdmission';
 
 declare const __BUILD_ID__: string;
 
 /** Early root selection avoids consuming the grid intent a second time after descriptor hydration. */
-export interface SessionOptions { readonly mode?: PageMode; readonly residency?: PageResidency; readonly recovery?: SessionState['recovery'] }
+export interface SessionOptions { readonly mode?: PageMode; readonly residency?: PageResidency; readonly memory?: MemoryAdmission; readonly recovery?: SessionState['recovery'] }
 
 /** Game presentation and plugin discovery belong to the game adapter, after the root selects content. */
 export async function startSession(manifest: ShardManifest, kit: KitPorts, options: SessionOptions = {}): Promise<void> {
@@ -50,7 +51,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
   setBootCatalog({ levels: shards(), playable: shards().filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   installErrorModal();
-  const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.recovery === undefined ? {} : { recovery: options.recovery }), ...(options.residency === undefined ? {} : { residency: options.residency }) };
+  const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.memory === undefined ? {} : { memory: options.memory }), ...(options.recovery === undefined ? {} : { recovery: options.recovery }), ...(options.residency === undefined ? {} : { residency: options.residency }) };
   try {
     app.rng.seed(pageSeed(manifest.seed, window.__wildshardHarness?.seed));
     const selected = manifest.slug;
@@ -70,6 +71,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     const scope = new Scope('level');
     // Register first: the scope's later consumer cleanup runs before the final early boot reference is released.
     if (options.residency !== undefined) scope.onDispose(() => { options.residency?.dispose(); });
+    if (options.memory !== undefined) scope.onDispose(() => { options.memory?.dispose(); });
     enterOwner(scope);
     const world = await runShardLoad(manifest, (stage) => withShardHooks(manifest, stage,
       () => buildSession(manifest, stage, kit, session)), {

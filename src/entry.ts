@@ -121,8 +121,8 @@ async function startSelected(): Promise<void> {
       recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
     };
     const manifest = source === null
-      ? await installManifestShardfile(game.shard, browserShardfileOptions(document.baseURI, true), bindings)
-      : await installShardfileProduct(source, browserShardfileOptions(document.baseURI), bindings);
+      ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory }, bindings)
+      : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory }, bindings);
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
     installKitSpecies();
     installKitIcons();
@@ -134,9 +134,10 @@ async function startSelected(): Promise<void> {
       tools: [HOVERBOARD_TOOL],
       combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
       bagIcons: BAG_ICONS,
-    }, { mode: page.mode, ...(page.recovery === undefined ? {} : { recovery: page.recovery }), ...(page.residency === undefined ? {} : { residency: page.residency }) });
+    }, { mode: page.mode, memory: page.memory, ...(page.recovery === undefined ? {} : { recovery: page.recovery }), ...(page.residency === undefined ? {} : { residency: page.residency }) });
   } catch (error) {
     page?.residency?.dispose();
+    page?.memory.dispose();
     throw error;
   }
 }

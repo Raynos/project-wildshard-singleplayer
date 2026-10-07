@@ -22,6 +22,7 @@ import { clientResidency } from './clientResidency';
 import { firstPartyInstance } from '../grid/instances';
 import { SHARDFILE_ADMISSION_LIMITS as limits } from './admissionLimits';
 import { preflightShardfile } from './preflight';
+import { ResidencyAllocator } from '../grid/allocator';
 
 /** Validate before allocating a level. Content bindings belong to the full loader. */
 export function emptyShardfileSource(input: unknown): ShardManifest {
@@ -65,7 +66,14 @@ function sourceManifest(source: Shardfile): ShardManifest {
 
 /** Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. */
 export async function shardfileSource(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
-  return clientSource(await admitProduct(input, options), options, bindings);
+  const ownedOptions = withPageMemory(options, bindings);
+  return clientSource(await admitProduct(input, ownedOptions), ownedOptions, bindings);
+}
+
+function withPageMemory(options: ProductOptions, bindings: ShardfileClientBindings): ProductOptions {
+  const memory = bindings.residency?.memory ?? options.memory;
+  if (bindings.residency !== undefined && options.memory !== undefined && memory !== options.memory) throw new Error('Shardfile admission must share the page memory policy');
+  return memory === undefined ? options : { ...options, memory };
 }
 
 function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindings: ShardfileClientBindings): ShardManifest {
@@ -74,7 +82,9 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   if (bindings.audioOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime audio ownership requires a trusted first-party runtime declaration');
   if (bindings.worldOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime world ownership requires a trusted first-party runtime declaration');
   if (!options.firstParty && admitted.instance === undefined) throw new Error('Outside shardfile is missing its admitted save identity');
-  const ownedBindings = { ...bindings, ...(options.firstParty ? {} : { instance: admitted.instance ?? '' }) };
+  const ownedBindings = { ...bindings,
+    ...(bindings.allocator === undefined && bindings.residency === undefined && options.memory !== undefined ? { allocator: new ResidencyAllocator({ memory: options.memory }) } : {}),
+    ...(options.firstParty ? {} : { instance: admitted.instance ?? '' }) };
   const residency = clientResidency(source, ownedBindings);
   const assets = new ClientAssets(source, admitted.assets, options);
   const manifest = sourceManifest(source);
@@ -90,7 +100,8 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
 }
 
 /** Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. */
-export async function installShardfileProduct(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+export async function installShardfileProduct(input: unknown, providedOptions: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  const options = withPageMemory(providedOptions, bindings);
   const admitted = await admitProduct(input, options);
   if (admitted.source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
   const source = clientSource(admitted, options, bindings);
@@ -104,7 +115,8 @@ function selectSource(source: ShardManifest, firstParty: boolean): ShardManifest
 }
 
 /** Admit a built first-party descriptor before the normal session, preserving picker identity and its canonical save instance. */
-export async function installManifestShardfile(manifest: ShardManifest, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+export async function installManifestShardfile(manifest: ShardManifest, providedOptions: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  const options = withPageMemory(providedOptions, bindings);
   if (manifest.shardfile === undefined) return manifest;
   if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
   const url = new URL(manifest.shardfile, options.base);

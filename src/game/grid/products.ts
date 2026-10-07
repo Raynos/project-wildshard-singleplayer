@@ -28,7 +28,7 @@ export function gridShardfileProduct(slug: string, owner: GridProductOwner): Pro
     owner.scope.onDispose(() => { owned.dispose(); products.delete(owner.allocator); });
   }
   return cache.acquire(slug, async reserve => {
-    const url = new URL(descriptor, location.href), options = browserShardfileOptions(new URL('.', url).href, true);
+    const url = new URL(descriptor, location.href), options = { ...browserShardfileOptions(new URL('.', url).href, true), memory: owner.allocator.memory };
     const input: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await fetch(url.href), limits.sourceBytes)));
     return { admitted: await admitProduct(input, { ...options, reserve }), options };
   }).then(lease => ({ ...lease.value, release: lease.release }));
