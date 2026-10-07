@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { CONTENT_CAPS } from '../src/engine/core/config';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
-import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
+import { imagesFirstPlayingBytes, runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 
 const measured = DRIFTWOOD_RUNTIME_COST;
@@ -23,5 +23,17 @@ it('applies calibration once to the measured whole runtime home, including its r
 it('refuses missing provenance, nonfinite or negative readings and an impossible engine subtraction', () => {
   for (const input of [undefined, { ...measured, device: '' }, { ...measured, evidence: '' }, { ...measured, rev: 'unknown' }, { ...measured, webContentMB: Number.NaN }, { ...measured, glMB: -1 }, { ...measured, engineBaseMB: 889 }, { ...measured, gpuProcessMB: 255 }]) {
     expect(() => runtimeAccountedBytes(input)).toThrow();
+  }
+});
+
+it('retains a strict images-first reading independently of the lower compressed runtime measurement', () => {
+  const imagesFirst = { ...measured, webContentMB: 650, glMB: 400 };
+  const compressed = { ...measured, imagesFirst };
+  expect(runtimeAccountedBytes(compressed)).toBe(runtimeAccountedBytes(measured));
+  expect(imagesFirstPlayingBytes(compressed)).toBe(1_131_000_001);
+  expect(imagesFirstPlayingBytes(measured)).toBe(759_378_001);
+  expect(imagesFirstPlayingBytes(undefined)).toBeUndefined();
+  for (const images of [{ ...imagesFirst, rev: '' }, { ...imagesFirst, glMB: Number.NaN }, { ...imagesFirst, unknown: 1 }, { ...imagesFirst, imagesFirst }]) {
+    expect(() => runtimeAccountedBytes({ ...measured, imagesFirst: images })).toThrow();
   }
 });
