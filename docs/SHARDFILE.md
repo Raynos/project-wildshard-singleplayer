@@ -694,7 +694,19 @@ and 3,600 fixed ticks per ride are admitted. The deck loads at its road stop,
 flush with y=0, covers the full eight metre boarding line with at most a five
 centimetre seam, and stays at least ten metres inside the cell at both stops.
 Unknown movers, missing gates, mid-travel authored starting poses and undersized
-decks refuse before physics allocation. This declaration alone is not a legal
+decks refuse before physics allocation.
+An optional `lift.approach: {colliders, route}` instead proves a permanent static
+approach from the socket to a narrower boarding deck. It names 1–32 unique
+`props.colliders` rows, active at load, with no panel or activation binding. Its
+2–16 road-height waypoints start at the socket's inner midpoint (north +235 z,
+south −235 z, east +235 x, west −235 x), stay ten metres inside the cell and
+total at most 32 m including the final walk onto the deck. Real top triangles
+must cover the full eight metre static mouth and the capsule-width corridor;
+only the final static-to-moving seam permits a gap of at most five centimetres.
+The deck must support the real capsule at its road stop. A static road gate
+remains mandatory. Visual meshes, implicit ground and platform socket floors
+cannot prove this approach. Without `approach`, the direct eight metre moving
+deck rule is unchanged. This declaration alone is not a legal
 entry: the executable admission must walk the real capsule, interact through
 `MoverRuntime.command`, ride the admitted WASM-controlled deck, reach playable
 ground, return and call from both stops. It must also witness the platform gate

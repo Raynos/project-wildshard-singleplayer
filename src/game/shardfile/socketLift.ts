@@ -4,14 +4,21 @@ import { isJsonData } from './json';
 import { parseMovers, type MoverData } from './movers';
 import { glbPoint, glbTransform } from './glbTriangles';
 import { clipEntryPolygon, type EntryVertex } from './entryGeometry';
+import { validateLiftApproach, type LiftApproachSource } from './socketLiftApproach';
 
 const name = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const coordinate = v.pipe(v.number(), v.finite(), v.minValue(-250), v.maxValue(250));
 const point = v.tuple([coordinate, coordinate, coordinate]);
+const approach = v.pipe(v.strictObject({
+  colliders: v.pipe(v.array(name), v.minLength(1), v.maxLength(32)),
+  route: v.pipe(v.array(point), v.minLength(2), v.maxLength(16)),
+}), v.check(row => new Set(row.colliders).size === row.colliders.length
+  && row.route.every(position => position[1] === 0 && Math.abs(position[0]) <= 240 && Math.abs(position[2]) <= 240),
+'unique static approach colliders and road-height route inside the ten metre inset'));
 /** A bounded entry ride names admitted mover/gate rows and feet-level stops; the route is walked, never teleported. */
 export const SocketLiftSchema = v.pipe(v.strictObject({ mover: name, gate: name,
   roadStop: point, topStop: point, route: v.pipe(v.array(point), v.minLength(2), v.maxLength(32)),
-  rideTicks: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3600)),
+  rideTicks: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3600)), approach: v.exactOptional(approach),
 }), v.check(row => row.mover !== row.gate && row.roadStop[1] === 0 && row.topStop[1] > 0
   && row.route[0]?.every((value, axis) => value === row.topStop[axis]) === true,
 'socket lift requires distinct mover/gate, road height zero and an onward route starting at its top stop'));
@@ -65,7 +72,7 @@ function coversLine(triangles: readonly EntryVertex[][], edge: SocketLiftEntry['
   return covered >= half;
 }
 /** Before physics allocation, prove stable references and the real deck's complete road-height boarding line. */
-export function socketLiftRules(entries: readonly SocketLiftEntry[], input: MoverData): string[] {
+export function socketLiftRules(entries: readonly SocketLiftEntry[], input: MoverData, source?: LiftApproachSource): string[] {
   const errors: string[] = [];
   let movers: MoverData;
   try { movers = parseMovers(input); } catch { return ['invalid socket lift mover declarations']; }
@@ -83,7 +90,13 @@ export function socketLiftRules(entries: readonly SocketLiftEntry[], input: Move
       const along = entry.edge === 'north' || entry.edge === 'east' ? 235 : -235;
       // A maximum five-centimetre seam is admitted; the executable capsule proof still has to walk it.
       const boardLine = along + (along > 0 ? -0.05 : 0.05);
-      if (!coversLine(topTriangles(boxes), entry.edge, boardLine, 0)) throw new Error('Socket lift road stop must cover the eight metre socket boarding line at height zero');
+      if (lift.approach === undefined) {
+        if (!coversLine(topTriangles(boxes), entry.edge, boardLine, 0)) throw new Error('Socket lift road stop must cover the eight metre socket boarding line at height zero');
+      } else {
+        if (gate.kind !== 'static') throw new Error('Static approach requires a stationary road gate');
+        if (source === undefined) throw new Error('Missing static approach collider declarations');
+        validateLiftApproach({ edge: entry.edge, lift }, topTriangles(boxes), source);
+      }
       if (lift.route.every(position => position.every((value, axis) => value === lift.topStop[axis]))) throw new Error('Socket lift needs an onward route to playable ground');
     } catch (error) { errors.push(error instanceof Error ? error.message : 'Invalid socket lift'); }
   }

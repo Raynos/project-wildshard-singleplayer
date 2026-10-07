@@ -101,7 +101,7 @@ export type Shardfile = v.InferOutput<typeof rawSchema>;
 export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
   errors.push(...entrywayRules(s));
-  errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers));
+  errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers, s));
   try { parseMovers(s.movers); } catch { errors.push('declared mover identities and primitives'); }
   if (s.movers.some(row => row.kind === 'chain')) errors.push('compiled mover chains require native joint restore support');
   if (s.movers.some(row => !s.sim.scripts.includes(row.module) || !s.critical.includes(row.module) || s.files.find(asset => asset.hash === row.module)?.kind !== 'wasm')) errors.push('mover modules are admitted critical sim scripts');
