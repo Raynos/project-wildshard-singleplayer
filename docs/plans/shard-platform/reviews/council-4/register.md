@@ -38,3 +38,25 @@ B = Codex (evidence: every claim, path, SHA and number checked), C = Claude (red
 | C4-R1-C12 | 1 | C | should-fix | SF51 | Whether to turn on dead-end decks | fixed (round-1 commit) | default-off until the lift lands |
 | C4-R1-C13 | 1 | C | should-add | SF49 | Sky Reach terrain.bin 404 unowned | fixed (round-1 commit) | SF49 restores it |
 | C4-R1-C14 | 1 | C | nit | §3.3; SF22; §6 | 16 m blend, non-reload wording, effort | fixed (round-1 commit) | crossing table 16 m; effort +10 |
+| C4-R2-A1 | 2 | A | must-fix | SF57 | The post-cut pass rule still fails the calibration gate | fixed (round-2 commit) | two grading policies; (c) gated on the first settled loop under picked-cut |
+| C4-R2-A2 | 2 | A | should-add | SF21a | New game vs road recovery and the last continuation | fixed (round-2 commit) | New game keeps the road pose, never imports an old continuation |
+| C4-R2-A3 | 2 | A | should-fix | SF8c; SF49; SF51 | Lift routes lack a proof contract | fixed (round-2 commit) | `socketLift` with a headless ride proof |
+| C4-R2-B1 | 2 | B | must-fix | SF57 | The hour-long harness cannot finish an hour | fixed (round-2 commit) | limits derive from the selected duration; static fixture |
+| C4-R2-B2 | 2 | B | must-fix | SF57 | The 60-min rule applied to every witness | fixed (round-2 commit) | policy recorded per witness; aligned with sp-x1 `848d207ae` (picked-cut receipt) |
+| C4-R2-B3 | 2 | B | should-fix | SF59 | Lighting API names differ from the landed IR | fixed (round-2 commit) | landed vocabulary recorded |
+| C4-R2-B4 | 2 | B | should-fix | State; Handoff | Effort correction not propagated | fixed (round-2 commit) | State 43 % / 400 / M2 52 % |
+| C4-R2-B5 | 2 | B | should-fix | SF47 | needs pick wording after G187 picked | fixed (round-2 commit) | in flight until the cuts land; G208 next |
+| C4-R2-B6 | 2 | B | should-fix | SF46; Handoff | Resume record dispatches a deleted toggle | fixed (round-2 commit) | shipping landed; remaining gates listed |
+| C4-R2-B7 | 2 | B | must-fix | SF57 | Every run is a rehearsal; no qualifying mode | fixed (round-2 commit) | qualifying mode with a prepared-layout witness |
+| C4-R2-B8 | 2 | B | must-fix | §3.4 | G195 has no wire form or reader plan | fixed (round-2 commit) | canonical `0.<revision>` string and reader rules |
+| C4-R2-C1 | 2 | C | must-fix | SF57 | G186 built wider than the plan | fixed (round-2 commit) | as B2 |
+| C4-R2-C2 | 2 | C | must-fix | §3.3; SF8c | Lift entries fit no legal entry kind | fixed (round-2 commit) | as A3 |
+| C4-R2-C3 | 2 | C | must-fix | SF30; SF51 | The lantern lift filed as a visual client script | fixed (round-2 commit) | SF30 physical movers |
+| C4-R2-C4 | 2 | C | must-fix · Jake (step 2) | SF47; §6 | G187's cuts may not close Pine's gap | decided by Jake | G208: charge by rings first, then a board |
+| C4-R2-C5 | 2 | C | must-fix | SF20a | "Harmful" undefined | fixed (round-2 commit) | platform-derived harmful + fixtures |
+| C4-R2-C6 | 2 | C | should-fix · Jake (b) | SF21a | Recovery vs ordinary reload; loop guard | decided by Jake (b); fixed | G209 + one-shot recovery intent and loop guard |
+| C4-R2-C7 | 2 | C | should-fix | SF18b; SF47 | G190 landed; two looks for a misfit shard | fixed (round-2 commit) | SF18b landed; Pine shows G167's refused look |
+| C4-R2-C8 | 2 | C | should-fix | §3.2 | G188 only in Pine's row, no ruler | fixed (round-2 commit) | §3.2 bullet with the ruler and validate rule |
+| C4-R2-C9 | 2 | C | should-fix | Handoff | Resume record lacks the new G's | fixed (round-2 commit) | NEXT items 1 and 6 |
+| C4-R2-C10 | 2 | C | should-fix | SF47 | Memory saver scope | fixed (round-2 commit) | only the lazy dummies become the only path |
+| C4-R2-C11 | 2 | C | nit | SF49; G99; G102 | Stale text beside G183 | fixed (round-2 commit) | superseded markers; four movers |
