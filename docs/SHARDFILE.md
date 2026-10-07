@@ -717,7 +717,7 @@ a critical admitted `sim.scripts` WASM module. Compiled chains remain refused
 until native joint reconnection is available.
 
 The executable helper `proveSocketLift(entry, {physics, runtime, fixedStep,
-waterAt?})` uses the admitted `MoverRuntime` and the engine's real capsule motor.
+waterAt?, approachSource?})` uses the admitted `MoverRuntime` and the engine's real capsule motor.
 The platform-owned `fixedStep` advances its single script host, mover and physics
 world; author data cannot supply it. `commandSocketLift` is the normal queued
 interaction used by both admission and play. A probe initializes feet once on
@@ -726,7 +726,14 @@ boarding, a complete ride, walking onto static playable ground, automatic idle
 return, return travel and calls from both ends, with gate collision across 23
 overlapping road capsule lanes. Deck motion above 15/60 metres per fixed step
 is refused as a teleport. Temporary capsules dispose even on refusal. This
-helper is an executable check, not a stored readiness flag. SDK headless validation
+helper is an executable check, not a stored readiness flag. When `approach` is
+declared, `approachSource` supplies the admitted `props` and collider activation
+bindings; the ordinary factory supplies it automatically. The proof walks the
+static waypoints out and back, verifies actual named floor support, and refuses
+unowned hidden floors, low headroom, submerged paths or a gate that changes pose.
+At touching floors and the admitted seam it queries named collision support
+without changing the rider's position. The gate may toggle collision, but must
+remain stationary throughout the ride and both calls. SDK headless validation
 runs it in the same authoritative factory as the client. Ordinary edges retain
 their full 50 metre walk; each lift adds 23 gate lanes and reports its two rides
 and two stop calls. A fresh independent world starts each lift at its road stop.
