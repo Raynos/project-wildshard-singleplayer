@@ -16,7 +16,9 @@ export function descendants(root: ts.Node, match: (node: ts.Node) => boolean): t
 }
 export function executeLegacy(code: string, globals: Record<string, unknown> = {}): unknown {
   const js = ts.transpileModule(code, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
-  const result: unknown = runInNewContext(js, { ...globals }, { timeout: 1000 });
+  // Trusted repository closures may build procedural models; parallel Linux CI can spend over 1 s here.
+  // This 30 s runaway guard is not a performance assertion or an untrusted-shard execution budget.
+  const result: unknown = runInNewContext(js, { ...globals }, { timeout: 30_000 });
   return result;
 }
 export function legacyConstants(file: string, names: readonly string[], globals: Record<string, unknown> = {}): Record<string, unknown> {
