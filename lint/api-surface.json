@@ -7002,6 +7002,12 @@
         "from": "@wildshard/engine/physics/Physics"
       },
       {
+        "name": "canStandAt",
+        "kind": "function",
+        "doc": "Load-time upright capsule admission against current collider poses, including a just-restored deck, without stepping the world.",
+        "from": "@wildshard/engine/physics/query"
+      },
+      {
         "name": "castRay",
         "kind": "function",
         "doc": "The first thing along the ray from `origin` in direction `dir` (unit length) within `maxDist`, among the kinds in",

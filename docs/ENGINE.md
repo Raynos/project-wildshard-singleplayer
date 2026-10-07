@@ -1842,7 +1842,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2108 exports, grouped by the module to import them from.
+2109 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2041,7 +2041,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/mover`: `KinematicMover`, `MoverBox`, `MoverPose`
 - `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
 - `@wildshard/engine/physics/Physics`: `Physics`
-- `@wildshard/engine/physics/query`: `castRay`, `castSegment`, `floorBelow`, `Hit`, `lineOfSight`, `sticksIn`, `sweepBall`
+- `@wildshard/engine/physics/query`: `canStandAt`, `castRay`, `castSegment`, `floorBelow`, `Hit`, `lineOfSight`, `sticksIn`, `sweepBall`
 - `@wildshard/engine/physics/rapier`: `loadRapier`, `Rapier`
 - `@wildshard/engine/physics/readinessWalls`: `ReadinessEdge`, `ReadinessWalls`
 - `@wildshard/engine/physics/regionalState`: `regionalPhysicsState`

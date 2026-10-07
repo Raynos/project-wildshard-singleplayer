@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2125 members; 829 without a doc line (—).
+2126 members; 829 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1172,6 +1172,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `pathRampDescs` | function | @wildshard/engine/physics/paths | — |
 | `PathRampOptions` | interface | @wildshard/engine/physics/paths | — |
 | `Physics` | class | @wildshard/engine/physics/Physics | Owns one fixed-step collision world and its complete same-version continuation. |
+| `canStandAt` | function | @wildshard/engine/physics/query | Load-time upright capsule admission against current collider poses, including a just-restored deck, without stepping the world. |
 | `castRay` | function | @wildshard/engine/physics/query | The first thing along the ray from `origin` in direction `dir` (unit length) within `maxDist`, among the kinds in |
 | `castSegment` | function | @wildshard/engine/physics/query | The first world hit on the segment a → b (null: the segment is clear). |
 | `floorBelow` | function | @wildshard/engine/physics/query | The top of the first world surface (terrain, deck, floor, rock) straight below (x, fromY, z), within `maxDrop`; |
