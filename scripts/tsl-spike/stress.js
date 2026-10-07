@@ -58,7 +58,8 @@ export function pastelGraph(nonce = 0) {
  * C, the ink / cel valley: hard cel bands and drawn lines. The sun is quantised to three bands on N·L × the shadow
  * ratio (floor of a scaled value, so the steps are exact); the shade band takes a flat ink-wash tint; ink lines come from
  * the silhouette (N·V under a threshold) and from each face's border in UV, drawn a constant width on screen with
- * `fwidth`; the grade posterises lightly and crushes the lines to ink.
+ * `fwidth`; the grade posterises lightly and crushes the lines to ink. SF59 step 7: true outlines from the outline stage
+ * (an inverted hull, back faces pushed out along the normal at a near-constant screen width, drawn in the ink colour).
  */
 export function inkGraph(nonce = 0) {
   return {
@@ -66,6 +67,7 @@ export function inkGraph(nonce = 0) {
     params: {
       paper: { type: 'colour', value: [0.93, 0.89, 0.78] }, wash: { type: 'colour', value: [0.42, 0.5, 0.62] },
       ink: { type: 'colour', value: [0.06, 0.05, 0.08] }, lineWidth: { type: 'float', value: 1.4, min: 0, max: 8 },
+      outlineWidth: { type: 'float', value: 0.004, min: 0, max: 0.05 },
       silhouette: { type: 'float', value: 0.28, min: 0, max: 1 }, bands: { type: 'float', value: 3, min: 1, max: 8 },
     },
     nodes: {
@@ -89,10 +91,15 @@ export function inkGraph(nonce = 0) {
       // the grade: a light posterise (8 levels a channel), the near-black crushed to the ink colour
       lc: N('litColour'), p0: N('mul', 'lc', 8), p1: N('floor', 'p0'), p2: N('div', 'p1', 8), post: N('mix', 'lc', 'p2', 0.5),
       pl: N('dot', 'post', [0.2126, 0.7152, 0.0722]), dark: N('smoothstep', 0.03, 0.01, 'pl'), graded: N('mix', 'post', 'inkP', 'dark'),
+      // the outline (SF59 step 7): the inverted hull pushed out along the normal by a width that grows with the distance
+      // to the camera, so the line keeps about the same width on screen (≈ 5 px at 2× here)
+      oN: N('normalLocal'), oNn: N('normalize', 'oN'), oP: N('positionWorld'), oC: N('cameraPosition'), oV: N('sub', 'oP', 'oC'),
+      oD: N('length', 'oV'), owP: { op: 'param', param: 'outlineWidth' }, oW: N('mul', 'oD', 'owP'), oOff: N('mul', 'oNn', 'oW'),
     },
     stages: {
       surface: { colour: 'base', roughness: 1, metalness: 0, emissive: 'glow' },
       lighting: { sun: 'sun', ambient: 'ambient', grade: 'graded' },
+      outline: { offset: 'oOff', colour: 'inkP' },
     },
   };
 }

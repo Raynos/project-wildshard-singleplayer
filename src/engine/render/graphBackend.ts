@@ -5,7 +5,7 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
-import type { compileGraph } from './graph/compile';
+import type { attachOutline, compileGraph } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';
 
@@ -27,6 +27,8 @@ export function loadGraphBackend(renderer: Renderer): Promise<EngineNodesHandler
 /** the graph compiler's entry points, once its chunk has loaded */
 export interface GraphCompiler {
   readonly compileGraph: typeof compileGraph;
+  /** add a compiled graph's outline stage to a mesh as its second draw (SF59 step 7) */
+  readonly attachOutline: typeof attachOutline;
 }
 
 /**
@@ -35,6 +37,6 @@ export interface GraphCompiler {
  */
 export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompiler> {
   await loadGraphBackend(renderer);
-  const { compileGraph: compile } = await import('./graph/compile');
-  return { compileGraph: compile };
+  const { attachOutline: attach, compileGraph: compile } = await import('./graph/compile');
+  return { compileGraph: compile, attachOutline: attach };
 }

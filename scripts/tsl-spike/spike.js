@@ -36,7 +36,11 @@
 //   family-paint / graph-paint  the boxes as the painterly family (cel bands, painted shade, warm terminator, rim, floor,
 //              the per-pixel grade) vs the painterly preset through the lighting stage
 //   graph-pastel / graph-ink  G169's stress cases (stress.js): the pastel alien plain and the ink / cel valley as graphs
-//              (no family to compare: they must admit, compile and render clean at the floor; their ops are recorded)
+//              (no family to compare: they must admit, compile and render clean at the floor; their ops are recorded);
+//              the ink valley draws real outlines through the outline stage (an inverted hull, SF59 step 7)
+//   family-toonwater / graph-toonwater  as the toon pair under a water level at 3 m (strength 3, so the metric sees them): the caustics (SF59 step 7)
+//   family-paintsway / graph-paintsway  as the painterly pair with the wind sway on (sway 0.3): the vertex offset from the
+//              instance origin and the geometry's height, frozen at the look's clock 0 (SF59 step 7)
 // SF59 step 2: the TSL variants run the ENGINE's back-end (src/engine/render/nodes/, loaded lazily through
 // render/graphBackend.ts): its output transform, its target-texture flip fix, its fog epilogue and its tent shadow filter.
 // Every variant installs the engine's tent (shadowFilter.ts, 7×7 at radius 1.5), as the game's sky rig does.
@@ -109,7 +113,8 @@ const ROLES = VARIANT.endsWith('-roles');
 const LABELS = VARIANT.endsWith('-labels');
 const EMIT = VARIANT.endsWith('-emit') || VARIANT.endsWith('-tube');
 const SHARDFILE = VARIANT.endsWith('-sf');
-const TOON = VARIANT.endsWith('-toon'), PAINT = VARIANT.endsWith('-paint'), STRESS = VARIANT === 'graph-pastel' || VARIANT === 'graph-ink';
+const WATER = VARIANT.endsWith('-toonwater'), SWAY = VARIANT.endsWith('-paintsway');
+const TOON = VARIANT.endsWith('-toon') || WATER, PAINT = VARIANT.endsWith('-paint') || SWAY, STRESS = VARIANT === 'graph-pastel' || VARIANT === 'graph-ink';
 const compiler = GRAPH && !SHARDFILE ? await loadGraphCompiler(renderer) : null; // the graph compiler, the same lazy door
 
 // ── the scene ──
@@ -198,11 +203,13 @@ const emitTextures = () => FIELD;
 
 // the toon and painterly families (step 6): plain colour, no vertex colours (the boxes carry none), the looks' defaults
 const toonParams = parseFamilyMaterial({ family: 'toon', colour: [0.85, 0.62, 0.42], vertexColours: false });
-const paintParams = parseFamilyMaterial({ family: 'painterly', colour: [0.55, 0.72, 0.36], vertexColours: false });
+const paintParams = parseFamilyMaterial({ family: 'painterly', colour: [0.55, 0.72, 0.36], vertexColours: false, ...(SWAY ? { sway: 0.3 } : {}) });
 if (toonParams.family !== 'toon' || paintParams.family !== 'painterly') throw new Error('spike: toon / painterly surfaces');
-const toonLook = new ToonLook({});
+const toonLook = new ToonLook(WATER ? { caustics: { level: 3, strength: 3 } } : {});
 const paintLook = new PainterlyLook({});
 let graphReadout = null; // graph variants: the compiled graph's cost and ops
+/** @type {import('three/webgpu').NodeMaterial | null} */
+let graphOutline = null; // a graph with an outline stage: its second draw's material (attached to the boxes below)
 
 const lin = (rgb) => new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace);
 /** the measure layer's grid (measure.ts famMGrid), as TSL */
@@ -278,7 +285,8 @@ function graphMat() {
     const ir = VARIANT === 'graph-pastel' ? pastelGraph(Number(NONCE)) : VARIANT === 'graph-ink' ? inkGraph(Number(NONCE)) : TOON ? toonGraph(toonParams, toonLook.params) : painterlyGraph(paintParams, paintLook.params);
     const withNonce = STRESS ? ir : { ...ir, nodes: { ...ir.nodes, nonceE: { op: 'const', value: Number(NONCE) } }, stages: { ...ir.stages, surface: { ...ir.stages.surface, emissive: 'nonceE' } } };
     const g = compiler.compileGraph(withNonce, { budget: PRESET_GRAPH_BUDGET });
-    graphReadout = { cost: g.cost, selects: g.selects, ops: opsOf(ir) };
+    graphReadout = { cost: g.cost, selects: g.selects, ops: opsOf(ir), outline: g.outline !== null };
+    graphOutline = g.outline;
     return g.material;
   }
   if (EMIT) {
@@ -349,6 +357,7 @@ for (let i = 0; i < GRID * GRID; i++) {
 boxes.castShadow = true;
 boxes.receiveShadow = true;
 scene.add(boxes);
+if (graphOutline instanceof MeshBasicNodeMaterial) compiler.attachOutline(boxes, graphOutline); // the outline stage's second draw
 
 // ── the screen pass: the engine's half-float target, then a grade + filmic + vignette to the screen ──
 const W = Math.floor(window.innerWidth * 2), H = Math.floor(window.innerHeight * 2);

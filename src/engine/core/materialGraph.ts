@@ -7,10 +7,18 @@
  *
  * The shape (version 1, the starter vocabulary; §4 lists the ≈ 60 the format grows to):
  * - `nodes`: id → `{ op, in?, … }`; an input is another node's id or a literal number / 2–4 number array;
- * - `stages`: `vertex.offset` (object-space displacement), `surface` (colour, alpha, cutoff, emissive, roughness,
- *   metalness, occlusion), `lighting` (the lighting model: see below), `post` (a screen pass over `sceneColour`); the
- *   engine epilogue (fog, the CSM cascade gate, the tent PCF, the shadow fade) is appended by the back-end and is not a
- *   stage a graph can skip;
+ * - `stages`: `vertex.offset` (a displacement in the mesh's model space, added after an instance's own transform: an
+ *   instanced mesh's `positionLocal` already carries it; `positionGeometry` is the vertex before it), `surface` (colour,
+ *   alpha, cutoff, emissive, roughness, metalness, occlusion), `lighting` (the lighting model: see below), `outline` (the
+ *   inverted-hull second draw: see below), `post` (a screen pass over `sceneColour`); the engine epilogue (fog, the CSM
+ *   cascade gate, the tent PCF, the shadow fade) is appended by the back-end and is not a stage a graph can skip;
+ * - `outline` (SF59 step 7, the ink outline as a render state the format owns, not a free one): a second draw of the
+ *   same geometry with a fixed render state: back faces only, depth tested and written, opaque, unlit, fogged by the
+ *   epilogue, casting no shadow. `offset` (vec3, the vertex place, model space like `vertex.offset`) pushes the hull out
+ *   (typically along `normalLocal`, scaled by the distance to the camera for a constant screen width) and `colour`
+ *   (vec3, a fragment place without the light inputs) is its ink. It doubles the mesh's draws and vertex work and adds
+ *   no per-pixel lighting, the cheapest true outline on the phone tier (a `sceneDepth` edge filter would cost a depth
+ *   target plus ≈ 9 taps a pixel at 2× over the whole frame);
  * - `lighting` (SF59 step 6, the approved lighting-model stage; a `standard` material only): `sun` is the radiance the
  *   sun adds, built per directional light (the sky rig's cascades are one sun) from the engine's light inputs
  *   (`sunDirection`, `sunColour` unshadowed, `sunShadow` the cast-shadow ratio, with `normalView`, `viewDirection`,
@@ -18,7 +26,9 @@
  *   specular for the sun (absent: the model is diffuse only, no specular at all); `grade` maps the lit colour
  *   (`litColour`, emissive included) to the colour the output transform receives (a graded material is not tone mapped).
  *   Every other light keeps the physical model's diffuse. Same vocabulary, no code nodes, constant loops only, the same
- *   budget (the `sun` sub-graph is counted once though it runs per cascade: the light-free part of it is shared);
+ *   budget. The `sun` sub-graph runs once per directional light: its light-dependent nodes (those reading `sunDirection`,
+ *   `sunColour` or `sunShadow`, directly or through their inputs) count `cascades` times in the instruction estimate
+ *   (`SUN_CASCADES`, the sky rig's three, by default); its light-free part is built once and shared, so it counts once;
  * - `params`: typed uniforms with ranges, each optionally bound to a day key or a declared public shard-state field.
  *   A binding moves a value, never the program (§2.6);
  * - loops have a constant count (`loop`, at most `LOOP_MAX` iterations), so the cost is known before compile;
@@ -31,6 +41,10 @@
 export const GRAPH_IR_VERSION = 1;
 /** the most iterations a `loop` node may run */
 export const LOOP_MAX = 16;
+/** the directional lights a `sun` sub-graph is built for by default: the sky rig's three CSM cascades */
+export const SUN_CASCADES = 3;
+/** the most cascades a validation may count (three's CSM tops out at four here) */
+export const SUN_CASCADES_MAX = 4;
 
 /** a value's type inside a graph */
 export type GraphValueType = 'float' | 'vec2' | 'vec3' | 'vec4' | 'bool';
@@ -102,11 +116,22 @@ export interface GraphLighting {
   /** vec3: the lit colour (`litColour`) → the colour the output transform receives; a graded material is not tone mapped */
   readonly grade?: GraphRef;
 }
+/**
+ * The outline stage: the inverted-hull second draw (back faces, depth tested and written, opaque, unlit, fogged, no
+ * shadow; the module comment says why this one render state and not a free one).
+ */
+export interface GraphOutline {
+  /** vec3: the hull's displacement in model space (the vertex place, as `vertex.offset`) */
+  readonly offset: GraphRef;
+  /** vec3: the ink colour (linear; a fragment place without the light inputs) */
+  readonly colour: GraphRef;
+}
 /** the stages */
 export interface GraphStages {
   readonly 'vertex.offset'?: GraphVertexOffset;
   readonly surface?: GraphSurface;
   readonly lighting?: GraphLighting;
+  readonly outline?: GraphOutline;
   readonly post?: { readonly colour: GraphRef };
 }
 /** a graph */
@@ -181,15 +206,16 @@ export interface GraphCost {
 }
 
 /**
- * where a node may run: `vertex` (the offset stage), `fragment` (surface), `post` (a screen pass), and the lighting
- * stage's three: `sun` (per directional light), `ambient` (the indirect term) and `grade` (after lighting)
+ * where a node may run: `vertex` (the offset stage), `fragment` (surface), `post` (a screen pass), the lighting
+ * stage's three: `sun` (per directional light), `ambient` (the indirect term) and `grade` (after lighting), and the
+ * outline's two: `outlineVertex` (its hull offset) and `outline` (its ink; its own program, so counted apart)
  */
-type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade';
+type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' | 'outlineVertex' | 'outline';
 
 /** how an op types its inputs */
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
-  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index';
+  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'dir3';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
   /** the number of inputs (min, max) */
@@ -205,8 +231,10 @@ export interface GraphOpSpec {
 
 /** the lighting stage's places (fragment work, like the surface) */
 const LIT: readonly GraphPlace[] = ['sun', 'ambient', 'grade'];
-const FRAG: readonly GraphPlace[] = ['fragment', 'post', ...LIT];
-const MESH: readonly GraphPlace[] = ['vertex', 'fragment', ...LIT];
+const FRAG: readonly GraphPlace[] = ['fragment', 'outline', 'post', ...LIT];
+const MESH: readonly GraphPlace[] = ['vertex', 'outlineVertex', 'fragment', 'outline', ...LIT];
+/** the vertex places (an object's own transform is read there) */
+const VERT: readonly GraphPlace[] = ['vertex', 'outlineVertex'];
 /**
  * The version 1 vocabulary (the starter set of §4): inputs, constants and params, arithmetic and safe maths, comparisons
  * and a branch-light `select`, swizzles and vector construction, MaterialX noise, an admitted texture's sample and a
@@ -216,6 +244,10 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // inputs
   uv: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: MESH },
   positionLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
+  // SF59 step 7: the geometry's own vertex position, before an instance's transform (the painterly sway's height)
+  positionGeometry: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: VERT },
+  // SF59 step 7: the world position of the object's origin, the instance's own for an instanced mesh (a per-object phase)
+  objectOrigin: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec3', places: VERT },
   positionWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
   normalLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
   normalWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
@@ -257,6 +289,11 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   saturate: { arity: [1, 1], rule: 'unary', cost: 1 },
   fwidth: { arity: [1, 1], rule: 'unary', cost: 3, places: FRAG },
   normalize: { arity: [1, 1], rule: 'vecUnary', cost: 3 },
+  // SF59 step 7: space changes for a vec3 direction. `viewToWorld` turns a view-space direction (`normalView`, faceted
+  // under flatShading) into a unit world one; `worldToLocal` turns a world direction into the model space
+  // `vertex.offset` is added in (the transpose of the model's 3 × 3 world matrix, unnormalised, as the families do it)
+  viewToWorld: { arity: [1, 1], rule: 'dir3', cost: 6, places: MESH },
+  worldToLocal: { arity: [1, 1], rule: 'dir3', cost: 3, places: VERT },
   length: { arity: [1, 1], rule: 'length', cost: 3 },
   dot: { arity: [2, 2], rule: 'dot', cost: 2 },
   mix: { arity: [3, 3], rule: 'mix', cost: 2 },
@@ -284,6 +321,9 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   index: { arity: [0, 0], rule: 'index', cost: 0 },
 };
 
+/** the ops whose value is one directional light's (a node reading one is built per light, and counted per cascade) */
+export const SUN_OPS: ReadonlySet<string> = new Set(['sunDirection', 'sunColour', 'sunShadow']);
+
 /** the outcome of validation: the graph (typed) and its cost, or every reason it is refused */
 export type GraphValidation =
   | { readonly ok: true; readonly graph: GraphIr; readonly cost: GraphCost; readonly types: ReadonlyMap<string, GraphValueType> }
@@ -296,6 +336,8 @@ export interface GraphValidationOptions {
   /** the shard's declared public numeric state fields a param may bind to (any name when absent) */
   readonly stateFields?: readonly string[];
   readonly budget?: GraphBudget;
+  /** the directional lights a `sun` sub-graph is built for (1 … SUN_CASCADES_MAX; SUN_CASCADES when absent) */
+  readonly cascades?: number;
 }
 
 const VEC_LEN: Readonly<Record<GraphValueType, number>> = { float: 1, vec2: 2, vec3: 3, vec4: 4, bool: 1 };
@@ -314,7 +356,7 @@ interface Raw {
   readonly op?: unknown; readonly in?: unknown; readonly param?: unknown; readonly mask?: unknown; readonly count?: unknown;
   readonly body?: unknown; readonly out?: unknown;
   readonly offset?: unknown; readonly shadow?: unknown; readonly surface?: unknown; readonly post?: unknown;
-  readonly lighting?: unknown; readonly colour?: unknown;
+  readonly lighting?: unknown; readonly colour?: unknown; readonly outline?: unknown;
   readonly sun?: unknown; readonly sunSpecular?: unknown; readonly ambient?: unknown; readonly grade?: unknown;
 }
 const isRecord = (v: unknown): v is Raw => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -340,7 +382,7 @@ function broadcast(types: readonly GraphValueType[]): GraphValueType | null {
 interface Scope {
   readonly nodes: Readonly<Record<string, unknown>>;
   readonly parent: Scope | null;
-  readonly loop: { readonly acc: GraphValueType } | null;
+  readonly loop: { readonly acc: GraphValueType; readonly accDep: boolean } | null;
   readonly path: string;
 }
 
@@ -355,6 +397,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const errors: string[] = [];
   const fail = (msg: string): null => { errors.push(msg); return null; };
   const budget = opts.budget ?? DEFAULT_GRAPH_BUDGET;
+  const cascades = opts.cascades ?? SUN_CASCADES;
+  if (!Number.isInteger(cascades) || cascades < 1 || cascades > SUN_CASCADES_MAX) return { ok: false, errors: [`graph: cascades ${cascades} (1–${SUN_CASCADES_MAX})`] };
   if (!isRecord(input)) return { ok: false, errors: ['graph: not an object'] };
   if (input.version !== GRAPH_IR_VERSION) fail(`graph: version ${String(input.version)} (this engine reads ${GRAPH_IR_VERSION})`);
   const kind = input.kind;
@@ -403,6 +447,9 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const textures = new Set<string>();
   const sampled = { scene: false }; // set while typing (a post graph reads sceneColour)
   const counted = new Set<string>();
+  /** `<scope path>/<id>` → whether the node reads a sun input (directly, through its inputs or a loop body) */
+  const lightDep = new Map<string, boolean>();
+  let loopDep = false; // set by the loop rule for the loop node being typed
   let nodeCount = 0, instructions = 0;
 
   const find = (scope: Scope, id: string): { scope: Scope; node: unknown } | null => {
@@ -411,6 +458,13 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   };
 
   /** type a reference from `scope`, at `place`, adding its cost once (times `mult` inside loops) */
+  /** whether a typed reference reads a sun input */
+  const refDep = (ref: unknown, scope: Scope): boolean => {
+    if (typeof ref !== 'string') return false;
+    const hit = find(scope, ref);
+    return hit !== null && lightDep.get(`${hit.scope.path}/${ref}`) === true;
+  };
+
   function typeRef(ref: unknown, scope: Scope, place: GraphPlace, at: string, mult: number): GraphValueType | null {
     if (typeof ref !== 'string') return literalType(ref) ?? fail(`${at}: not a node id or a 1–4 number literal`);
     const hit = find(scope, ref);
@@ -438,12 +492,17 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     visiting.delete(key);
     if (t !== null) {
       types.set(key, t);
+      const dep = spec.rule === 'input' ? SUN_OPS.has(op)
+        : spec.rule === 'acc' ? scope.loop?.accDep === true
+          : spec.rule === 'loop' ? loopDep
+            : ins.some((r) => refDep(r, scope));
+      lightDep.set(key, dep);
       if (!counted.has(`${key}@${place}`)) {
         counted.add(`${key}@${place}`);
         nodeCount += mult;
-        // a component-wise op costs once per component
+        // a component-wise op costs once per component; a light-dependent node of the sun sub-graph once per cascade
         const lanes = spec.rule === 'same' || spec.rule === 'unary' ? VEC_LEN[t] : 1;
-        instructions += spec.cost * mult * lanes;
+        instructions += spec.cost * mult * lanes * (place === 'sun' && dep ? cascades : 1);
       }
     }
     return t;
@@ -494,6 +553,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         return n >= 2 && n <= 4 ? vecOf(n) : fail(`${at}: combine makes ${n} components (2–4)`);
       }
       case 'noise': return ins[0] === 'vec2' || ins[0] === 'vec3' ? 'float' : fail(`${at}: noise takes a vec2 or vec3`);
+      case 'dir3': return ins[0] === 'vec3' ? 'vec3' : fail(`${at}: ${op} takes a vec3 direction`);
       case 'texture': {
         const name = raw.param;
         if (typeof name !== 'string' || paramTypes.get(name) !== 'texture') return fail(`${at}: texture names a texture param`);
@@ -511,9 +571,11 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         if (init === 'bool') return fail(`${at}: a loop accumulates a number`);
         const body = raw.body;
         if (!isRecord(body) || !isRecord(body.nodes)) return fail(`${at}: loop body is { nodes, out }`);
-        const bodyScope: Scope = { nodes: body.nodes, parent: scope, loop: { acc: init }, path: `${at}.body` };
+        const initDep = refDep(rawIns[0], scope);
+        const bodyScope: Scope = { nodes: body.nodes, parent: scope, loop: { acc: init, accDep: initDep }, path: `${at}.body` };
         const out = typeRef(body.out, bodyScope, place, `${at}.body.out`, mult * count);
         if (out === null) return null;
+        loopDep = initDep || refDep(body.out, bodyScope);
         return out === init ? init : fail(`${at}: the body makes a ${out}, the accumulator is a ${init}`);
       }
       default: return fail(`${at}: op ${op} has no type rule`);
@@ -523,7 +585,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   // stages
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
-  for (const k of Object.keys(stages)) if (!['vertex.offset', 'surface', 'lighting', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
+  for (const k of Object.keys(stages)) if (!['vertex.offset', 'surface', 'lighting', 'outline', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
@@ -560,8 +622,20 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         if (lit.grade !== undefined) want(lit.grade, 'grade', 'vec3', 'stages.lighting.grade');
       }
     }
+    const ol = stages.outline;
+    if (ol !== undefined) {
+      if (!isRecord(ol)) fail('stages.outline: not an object');
+      else {
+        for (const k of Object.keys(ol)) if (k !== 'offset' && k !== 'colour') fail(`stages.outline: unknown field ${k} (the render state is fixed: back faces, depth on, opaque, unlit)`);
+        if (ol.offset === undefined || ol.colour === undefined) fail('stages.outline: an outline is { offset, colour }');
+        else {
+          want(ol.offset, 'outlineVertex', 'vec3', 'stages.outline.offset');
+          want(ol.colour, 'outline', 'vec3', 'stages.outline.colour');
+        }
+      }
+    }
   } else if (kind === 'post') {
-    for (const k of ['vertex.offset', 'surface', 'lighting'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
+    for (const k of ['vertex.offset', 'surface', 'lighting', 'outline'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
@@ -610,13 +684,14 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
   return out;
 }
 function toStages(raw: Raw): GraphStages {
-  const vo = raw['vertex.offset'], s = raw.surface, p = raw.post, l = raw.lighting;
+  const vo = raw['vertex.offset'], s = raw.surface, p = raw.post, l = raw.lighting, o = raw.outline;
   const surface: Record<string, GraphRef | number> = {};
   if (isRecord(s)) for (const [k, v] of Object.entries(s)) surface[k] = k === 'alphaCutoff' && isFiniteNumber(v) ? v : toRef(v);
   return {
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(vo.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
     ...(isRecord(p) ? { post: { colour: toRef(p.colour) } } : {}),
+    ...(isRecord(o) ? { outline: { offset: toRef(o.offset), colour: toRef(o.colour) } } : {}),
     ...(isRecord(l) ? { lighting: {
       sun: toRef(l.sun),
       ...(l.sunSpecular !== undefined ? { sunSpecular: toRef(l.sunSpecular) } : {}),

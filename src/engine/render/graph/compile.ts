@@ -20,6 +20,12 @@
  *   indirect diffuse; `sunSpecular` keeps the physical specular, scaled; `grade` runs on the lit colour before the
  *   output transform and the epilogue (fog), with tone mapping off. Every other light keeps the physical diffuse. The
  *   light-free part of the `sun` sub-graph is built once and shared between cascades.
+ * - **The outline** (SF59 step 7): a graph with `stages.outline` also compiles `outline`, an unlit back-face node
+ *   material whose vertex stage pushes the hull out by the graph's offset; `attachOutline(mesh, material)` adds the
+ *   second draw as a child mesh sharing the geometry's buffers (and an instanced mesh's matrices).
+ * - **Object inputs** (SF59 step 7): `objectOrigin` reads an instanced mesh's own translation column through one
+ *   instanced vec4 attribute over the instance matrices' array (a buffer shared by every graph that reads it);
+ *   `worldToLocal` and `viewToWorld` are the model and view matrices' 3 × 3 parts.
  *
  * This module imports `three/webgpu` + `three/tsl`, so it is reached only through `loadGraphCompiler()`
  * (`render/graphBackend.ts`), a lazy chunk; nothing on the default render path imports it.
@@ -30,13 +36,14 @@ import {
   PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial,
 } from 'three/webgpu';
 import {
-  Fn, Loop, Var, and, cameraPosition, clamp, diffuseContribution, dot, float, hash, instanceIndex, max, mx_noise_float,
-  normalLocal, normalView, normalWorldGeometry, not, or, positionLocal, positionViewDirection, positionWorld, texture, time,
-  uniform, uv, vec2, vec3, vec4, vertexColor,
+  Fn, Loop, OnBeforeFrameUpdate, Var, and, cameraPosition, cameraViewMatrix, clamp, diffuseContribution, dot, float, hash,
+  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, modelPosition, modelWorldMatrix,
+  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, positionGeometry, positionLocal,
+  positionViewDirection, positionWorld, texture, time, uniform, uv, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { targetTexture } from '../nodes/engineNodesHandler';
 import {
-  GRAPH_OPS, validateGraph, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
+  GRAPH_OPS, SUN_OPS, validateGraph, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
 } from '../../core/materialGraph';
 
@@ -63,6 +70,62 @@ export interface CompiledGraph {
   readonly setParam: (name: string, value: GraphLiteral) => void;
   /** how the selects compiled: branch-free (`light`) or a real if / else (`branch`) */
   readonly selects: { readonly light: number; readonly branch: number };
+  /** the outline stage's second draw (null without one): attach it with `attachOutline` */
+  readonly outline: NodeMaterial | null;
+}
+
+/** the instance matrices' arrays as instanced buffers, shared by every graph that reads `objectOrigin` */
+const instanceOrigins = new WeakMap<THREE.InstancedBufferAttribute, THREE.InstancedInterleavedBuffer>();
+/**
+ * `objectOrigin`: the world position of the drawn object's origin, an instanced mesh's own instance's (its matrix's
+ * translation column, read as one instanced vec4 over the matrices' array, kept in step with their version).
+ */
+function objectOriginNode(): Node<'vec3'> {
+  return Fn((builder: NodeBuilder): Node<'vec3'> => {
+    const object = builder.object;
+    if (!(object instanceof THREE.InstancedMesh)) return modelPosition;
+    const matrices = object.instanceMatrix;
+    let buffer = instanceOrigins.get(matrices);
+    if (buffer === undefined) {
+      buffer = new THREE.InstancedInterleavedBuffer(matrices.array, 16, 1);
+      buffer.setUsage(matrices.usage);
+      instanceOrigins.set(matrices, buffer);
+    }
+    const shared = buffer;
+    OnBeforeFrameUpdate(() => { if (shared.version !== matrices.version) shared.version = matrices.version; });
+    const read = matrices.usage === THREE.DynamicDrawUsage ? instancedDynamicBufferAttribute : instancedBufferAttribute;
+    const column = read(shared, 'vec4', 16, 12);
+    return new ConvertNode<'vec3'>(new SplitNode(new OperatorNode('*', modelWorldMatrix, new JoinNode([new SplitNode(column, 'xyz'), float(1)])), 'xyz'), 'vec3');
+  }, 'vec3')();
+}
+
+/**
+ * Add a compiled graph's outline (`CompiledGraph.outline`) to `mesh` as its second draw: a child mesh over a shallow copy
+ * of its geometry (the same attribute objects, so the same GPU buffers; the node back-end writes instancing attributes
+ * into a geometry, so each node mesh needs its own), sharing an instanced mesh's matrices and following its count. The
+ * hull casts and receives no shadow. Returns the child (remove it, or the parent, to drop the outline).
+ */
+export function attachOutline(mesh: THREE.Mesh, outline: NodeMaterial): THREE.Mesh {
+  const source = mesh.geometry;
+  const geometry = new THREE.BufferGeometry();
+  for (const [k, a] of Object.entries(source.attributes)) geometry.setAttribute(k, a);
+  geometry.setIndex(source.index);
+  for (const g of source.groups) geometry.addGroup(g.start, g.count, g.materialIndex);
+  geometry.setDrawRange(source.drawRange.start, source.drawRange.count);
+  let hull: THREE.Mesh;
+  if (mesh instanceof THREE.InstancedMesh) {
+    const instanced = new THREE.InstancedMesh(geometry, outline, 0);
+    instanced.instanceMatrix = mesh.instanceMatrix;
+    instanced.instanceColor = mesh.instanceColor;
+    instanced.count = mesh.count;
+    instanced.onBeforeRender = () => { instanced.count = mesh.count; };
+    hull = instanced;
+  } else hull = new THREE.Mesh(geometry, outline);
+  hull.name = `${mesh.name}:outline`;
+  hull.castShadow = false;
+  hull.receiveShadow = false;
+  mesh.add(hull);
+  return hull;
 }
 
 /** one compiled value with its IR type */
@@ -147,8 +210,6 @@ class GraphLitMaterial extends MeshStandardNodeMaterial {
   }
 }
 
-/** the ops whose value is one directional light's (a node reading one is built per light, the rest once) */
-const SUN_OPS: ReadonlySet<string> = new Set(['sunDirection', 'sunColour', 'sunShadow']);
 /** the root nodes that read a sun input, directly or through their inputs and loop bodies */
 function lightDependents(ir: GraphIr): ReadonlySet<string> {
   type Nodes = Readonly<Record<string, GraphNode>>;
@@ -293,6 +354,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     switch (n.op) {
       case 'uv': return { t: 'vec2', n: uv() };
       case 'positionLocal': return { t: 'vec3', n: positionLocal };
+      case 'positionGeometry': return { t: 'vec3', n: positionGeometry };
+      case 'objectOrigin': return { t: 'vec3', n: objectOriginNode() };
       case 'positionWorld': return { t: 'vec3', n: positionWorld };
       case 'normalLocal': return { t: 'vec3', n: normalLocal };
       case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
@@ -337,6 +400,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'oneMinus': { const v = one(); return { t: v.t, n: new OperatorNode('-', widen({ t: 'float', n: float(1) }, v.t), v.n) }; }
       case 'saturate': { const v = one(); return { t: v.t, n: new MathNode('clamp', v.n, float(0), float(1)) }; }
       case 'length': return { t: 'float', n: new MathNode('length', one().n) };
+      case 'viewToWorld': return { t: 'vec3', n: new MathNode('normalize', new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), cameraViewMatrix), 'xyz')) };
+      case 'worldToLocal': return { t: 'vec3', n: new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), modelWorldMatrix), 'xyz') };
       case 'dot': { const [x, y] = two(); return { t: 'float', n: new MathNode('dot', x.n, y.n) }; }
       case 'mix': {
         const [x, y, f] = three(), t = widest([x, y]);
@@ -468,11 +533,24 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     m.fog = true; // the engine epilogue (fog) is not optional
     return m;
   };
+  /** the outline stage: the inverted hull's own unlit material (back faces, depth on, opaque, fogged) */
+  const outlineMaterial = (): NodeMaterial | null => {
+    const o = st.outline;
+    if (o === undefined) return null;
+    const m = new MeshBasicNodeMaterial();
+    m.colorNode = new ConvertNode<'vec3'>(widen(ref(o.colour, root), 'vec3'), 'vec3');
+    m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(ref(o.offset, root), 'vec3'), 'vec3'));
+    m.side = THREE.BackSide;
+    m.fog = true;
+    m.name = 'graph:outline';
+    return m;
+  };
   const material = ir.kind === 'post' ? postMaterial() : surfaceMaterial();
   material.name = `graph:${ir.kind}`;
+  const outline = ir.kind === 'post' ? null : outlineMaterial();
 
   return {
-    material, cost: checked.cost, bindings, selects,
+    material, cost: checked.cost, bindings, selects, outline,
     setParam(name, value) {
       const set = setters.get(name);
       if (set === undefined) throw new Error(`material graph: no param ${name}`);

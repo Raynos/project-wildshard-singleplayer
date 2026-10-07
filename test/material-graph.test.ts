@@ -306,9 +306,91 @@ describe('SF59 step 6: the toon and painterly presets', () => {
     expect(painterlyGraph(paint, parsePainterlyLook({})).stages.lighting?.sunSpecular).toBeUndefined();
   });
 
-  it('refuses what is not ported yet, naming it', () => {
-    expect(() => toonGraph(toon, parseToonLook({ caustics: { level: 0, strength: 0.5 } }))).toThrow(/caustics/);
-    expect(() => painterlyGraph({ ...paint, sway: 0.1 }, parsePainterlyLook({}))).toThrow(/wind sway/);
+  it('ports the toon caustics, the faceted rim and the painterly sway (SF59 step 7) within the preset budget', () => {
+    const plainToon = toonGraph(toon, parseToonLook({}));
+    expect(plainToon.params?.['water']).toBeUndefined();
+    expect(plainToon.nodes['nW']).toEqual({ op: 'viewToWorld', in: ['nV'] });
+    const wet = toonGraph(toon, parseToonLook({ caustics: { level: 1.5, strength: 0.5 } }));
+    expect(wet.params?.['water']).toEqual({ type: 'vec2', value: [1.5, 0.5] });
+    const sway = painterlyGraph({ ...paint, sway: 0.1 }, parsePainterlyLook({}));
+    expect(sway.stages['vertex.offset']).toEqual({ offset: 'swayOffset' });
+    expect(painterlyGraph(paint, parsePainterlyLook({})).stages['vertex.offset']).toBeUndefined();
+    for (const g of [wet, sway]) {
+      const r = validateGraph(g, { budget: PRESET_GRAPH_BUDGET });
+      if (!r.ok) throw new Error(r.errors.join('\n'));
+      const c = compileGraph(g, { budget: PRESET_GRAPH_BUDGET });
+      expect(c.material).toBeInstanceOf(MeshStandardNodeMaterial);
+    }
+    // the caustics sit behind a select whose costly side (two noises) compiles to a real branch when the sun sub-graph
+    // builds (at the first render: the bench's programs show it), so only pixels under the water pay
+    expect(wet.nodes['caustics']).toEqual({ op: 'select', in: ['under', 'kV', 0] });
+    expect(compileGraph(sway, { budget: PRESET_GRAPH_BUDGET }).material.positionNode).not.toBeNull();
+  });
+});
+
+describe('SF59 step 7: object inputs, the outline stage and the cascade cost', () => {
+  it('keeps the object inputs and space changes to their places and types', () => {
+    const v = (nodes: GraphIr['nodes'], offset: string): GraphIr => ({ ...base(), nodes: { ...base().nodes, ...nodes }, stages: { surface: { colour: 't' }, 'vertex.offset': { offset } } });
+    const ok = v({ o: { op: 'objectOrigin' }, g: { op: 'positionGeometry' }, w: { op: 'worldToLocal', in: ['o'] }, s: { op: 'add', in: ['w', 'g'] } }, 's');
+    expect(validateGraph(ok).ok).toBe(true);
+    expect(() => compileGraph(ok)).not.toThrow();
+    expect(refused(withNodes({ o: { op: 'objectOrigin' } }, { colour: 'o' }))).toMatch(/objectOrigin cannot run in the fragment stage/);
+    expect(refused(withNodes({ n: { op: 'normalWorld' }, w: { op: 'worldToLocal', in: ['n'] } }, { colour: 'w' }))).toMatch(/worldToLocal cannot run in the fragment stage/);
+    expect(refused(withNodes({ w: { op: 'viewToWorld', in: [[0, 1]] } }, { colour: 'w' }))).toMatch(/viewToWorld takes a vec3/);
+    const rim = withNodes({ n: { op: 'normalWorld' }, w: { op: 'viewToWorld', in: ['n'] } }, { colour: 'w' });
+    expect(validateGraph(rim).ok).toBe(true);
+  });
+
+  const inked = (): GraphIr => ({
+    ...base(),
+    params: { ...base().params, ink: { type: 'colour', value: [0.05, 0.05, 0.08] }, width: { type: 'float', value: 0.002, min: 0, max: 0.05 } },
+    nodes: {
+      ...base().nodes, ink: { op: 'param', param: 'ink' }, width: { op: 'param', param: 'width' },
+      nl: { op: 'normalLocal' }, p: { op: 'positionWorld' }, cam: { op: 'cameraPosition' }, d0: { op: 'sub', in: ['p', 'cam'] },
+      d: { op: 'length', in: ['d0'] }, w: { op: 'mul', in: ['d', 'width'] }, off: { op: 'mul', in: ['nl', 'w'] },
+    },
+    stages: { surface: { colour: 't', roughness: 'r' }, outline: { offset: 'off', colour: 'ink' } },
+  });
+
+  it('admits an outline stage, counts it apart, refuses a free render state and compiles a back-face second draw', () => {
+    const r = validateGraph(inked());
+    if (!r.ok) throw new Error(r.errors.join('\n'));
+    const without = validateGraph(base());
+    if (!without.ok) throw new Error('base');
+    expect(r.cost.nodes).toBeGreaterThan(without.cost.nodes);
+    expect(r.graph.stages.outline).toEqual({ offset: 'off', colour: 'ink' });
+    const g = inked();
+    expect(refused({ ...g, stages: { ...g.stages, outline: { offset: 'off', colour: 'ink', side: 'front' } } })).toMatch(/unknown field side/);
+    expect(refused({ ...g, stages: { ...g.stages, outline: { offset: 'off' } } })).toMatch(/an outline is \{ offset, colour \}/);
+    expect(refused({ ...g, nodes: { ...g.nodes, a: { op: 'albedo' } }, stages: { ...g.stages, outline: { offset: 'off', colour: 'a' } } })).toMatch(/albedo cannot run in the outline stage/);
+    expect(refused({ ...g, nodes: { ...g.nodes, f: { op: 'fwidth', in: ['w'] }, o2: { op: 'mul', in: ['nl', 'f'] } }, stages: { ...g.stages, outline: { offset: 'o2', colour: 'ink' } } })).toMatch(/fwidth cannot run in the outlineVertex stage/);
+    expect(refused({ version: 1, kind: 'post', nodes: { s: { op: 'sceneColour' }, rgb: { op: 'swizzle', in: ['s'], mask: 'xyz' } }, stages: { post: { colour: 'rgb' }, outline: { offset: [0, 0, 0], colour: 'rgb' } } })).toMatch(/only a post stage/);
+    const c = compileGraph(g);
+    expect(c.outline).toBeInstanceOf(MeshBasicNodeMaterial);
+    expect(c.outline?.side).toBe(THREE.BackSide);
+    expect(c.outline?.fog).toBe(true);
+    expect(c.outline?.positionNode).not.toBeNull();
+    expect(compileGraph(base()).outline).toBeNull();
+  });
+
+  it('counts the light-dependent sun nodes once per cascade and the light-free ones once', () => {
+    const g: GraphIr = {
+      ...base(), model: 'standard',
+      nodes: {
+        ...base().nodes, l: { op: 'sunDirection' }, n: { op: 'normalView' }, ndl: { op: 'dot', in: ['n', 'l'] },
+        p: { op: 'positionWorld' }, nz: { op: 'noise', in: ['p'] }, k: { op: 'mul', in: ['ndl', 'nz'] }, sun: { op: 'combine', in: ['k', 'k', 'k'] },
+      },
+      stages: { surface: { colour: 't' }, lighting: { sun: 'sun' } },
+    };
+    const cost = (cascades: number): number => { const r = validateGraph(g, { cascades }); if (!r.ok) throw new Error(r.errors.join('\n')); return r.cost.instructions; };
+    // dependent: dot 2 + mul 1 + combine 0 (the input itself costs 0); the noise (40) and positionWorld (1) are light-free
+    expect(cost(3) - cost(1)).toBe(2 * 3);
+    expect(cost(4) - cost(1)).toBe(3 * 3);
+    expect(validateGraph(g).ok && validateGraph(g, { cascades: 3 }).ok).toBe(true);
+    const def = validateGraph(g), three = validateGraph(g, { cascades: 3 });
+    expect(def.ok && three.ok && def.cost.instructions === three.cost.instructions).toBe(true);
+    expect(refused(g, { cascades: 0 })).toMatch(/cascades 0/);
+    expect(refused(g, { cascades: 5 })).toMatch(/cascades 5/);
   });
 });
 

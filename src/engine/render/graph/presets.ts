@@ -11,8 +11,10 @@
  * - `toonGraph` / `painterlyGraph` (SF59 step 6): the toon and painterly families' light models through the `lighting`
  *   stage: the sun sub-graph (cel bands on N·L and the shadow ratio, shade tints, the terminator, the rim, the toon's
  *   cloud shade as two octaves of the family's own value noise, the painterly wetness), the ambient term (the toon lift,
- *   the painted floor) and the painterly grade after lighting. Each refuses, with the reason, what it does not port yet:
- *   the toon caustics under a water level and the painterly wind sway (it needs the instance origin as an input).
+ *   the painted floor) and the painterly grade after lighting. SF59 step 7 ported the rest: the toon caustics under a
+ *   water level (two drifting value noises behind a real branch, so only pixels under the water pay), the toon rim on
+ *   the faceted normal (`viewToWorld`) and the painterly wind sway (a vertex offset from `objectOrigin`,
+ *   `positionGeometry` and `worldToLocal`).
  * - **Not expressible in IR version 1** (so no preset yet): the emissive sky (no `atan` / `asin` or screen-position
  *   input, and its back-face, depth-off, unfogged render state), an additive emitter (no blend mode) and a fog share
  *   other than 1 (the engine fog epilogue is not a stage). `emissiveGraph` refuses those with the reason.
@@ -573,10 +575,11 @@ function toonNoiseNodes(p: string, x: GraphRef): Record<string, GraphNode> {
 /**
  * The toon family as a graph preset (`families/toon.ts`): the look's numbers as params (`cloudTime` is the look's clock,
  * which the runtime moves as the look ticks), the surface's colour × vertex colours, and its light model in the
- * lighting stage. Throws for the caustics under a water level (expressible, not ported yet).
+ * lighting stage. The caustics under a water level are in the program only when the look has a water level (the
+ * family's `famToonCaustics`; the level and strength are the `water` param, so moving them moves no program).
  */
 export function toonGraph(params: ToonMaterialParams, look: ToonLookParams): GraphIr {
-  if (look.caustics.level !== null) throw new Error('toon preset: the caustics under a water level are not ported yet (expressible: world y, two drifting noises, pow)');
+  const level = look.caustics.level;
   return {
     version: GRAPH_IR_VERSION,
     kind: 'material',
@@ -596,6 +599,7 @@ export function toonGraph(params: ToonMaterialParams, look: ToonLookParams): Gra
       gloss: { type: 'float', value: look.glossBelow, min: 0, max: 1 },
       cloud: { type: 'vec4', value: [look.cloudShade.strength, look.cloudShade.scale, look.cloudShade.wind[0], look.cloudShade.wind[1]] },
       cloudTime: { type: 'float', value: 0, min: 0 },
+      ...(level === null ? {} : { water: { type: 'vec2', value: [level, look.caustics.strength] } }),
     },
     nodes: {
       // the surface
@@ -621,7 +625,20 @@ export function toonGraph(params: ToonMaterialParams, look: ToonLookParams): Gra
       // irradiance: the lit band graded by N·L under the cloud, the shade band's own share of the grade
       lit0: N('mul', 'band', 'litGrade'), lit1: N('mul', 'lit0', 'cloudShade'),
       band1: N('oneMinus', 'band'), shd0: N('mul', 'band1', 'gy'), shd1: N('mul', 'shd0', 'ndlS'), shd2: N('mul', 'shd1', 0.5),
-      irrK: N('add', 'lit1', 'shd2'), irr: N('mul', 'sunC', 'irrK'),
+      irrK: N('add', 'lit1', 'shd2'), ...(level === null ? { irr: N('mul', 'sunC', 'irrK') } : {
+        irr0: N('mul', 'sunC', 'irrK'),
+        // the caustics (famToonCaustics): filaments where two drifting noise fields cross, below the water level only
+        waterP: { op: 'param', param: 'water' }, wLevel: SW('waterP', 'x'), wStr: SW('waterP', 'y'),
+        wY: SW('wPos', 'y'), wD: N('sub', 'wLevel', 'wY'), under: N('gt', 'wD', 0),
+        kP: N('mul', 'wXZ', 0.42), kT: N('mul', 'cTime', 0.55),
+        kOffA: N('mul', [0.31, 0.17], 'kT'), kA: N('add', 'kP', 'kOffA'), ...toonNoiseNodes('ka', 'kA'),
+        kP2: N('mul', 'kP', 1.63), kOffB: N('mul', [0.21, -0.29], 'kT'), kB0: N('sub', 'kP2', 'kOffB'), kB: N('add', 'kB0', 3.7), ...toonNoiseNodes('kb', 'kB'),
+        kAB: N('sub', 'kaout', 'kbout'), kABa: N('abs', 'kAB'), kAB1: N('oneMinus', 'kABa'), kC: N('pow', 'kAB1', 9),
+        kDs: N('smoothstep', 0.7, 1.8, 'wD'), kDe0: N('mul', 'wD', -0.18), kDe: N('exp', 'kDe0'),
+        kV0: N('mul', 'kC', 'wStr'), kV1: N('mul', 'kV0', 'kDs'), kV: N('mul', 'kV1', 'kDe'), caustics: N('select', 'under', 'kV', 0),
+        kL0: N('mul', 'band', 'cloudShade'), kL1: N('mul', 'kL0', 'caustics'), kL2: N('mul', 'sunC', [0.7, 1, 1.05]), kLight: N('mul', 'kL2', 'kL1'),
+        irr: N('add', 'irr0', 'kLight'),
+      }),
       // the terminator: a saturated albedo where a facet turns from the sun
       fl1: N('oneMinus', 'faceLit'), tm0: N('mul', 'faceLit', 'fl1'), tm1: N('mul', 'tm0', 'inSun'), term: N('mul', 'tm1', 4),
       ar: SW('alb', 'x'), ag: SW('alb', 'y'), ab: SW('alb', 'z'), agb: N('max', 'ag', 'ab'), amax: N('max', 'ar', 'agb'), amaxS: N('max', 'amax', 1e-3),
@@ -631,7 +648,8 @@ export function toonGraph(params: ToonMaterialParams, look: ToonLookParams): Gra
       d1: N('add', 'd0', 't2'), diffuse: N('mul', 'd1', INV_PI),
       // the banded rim on the lit side of vertical-ish faces
       ndv: N('dot', 'nV', 'vV'), ndvS: N('saturate', 'ndv'), ndv1: N('oneMinus', 'ndvS'), fres: N('smoothstep', 0.55, 0.8, 'ndv1'),
-      rimSide: N('smoothstep', -0.3, 0.2, 'ndl'), nW: N('normalWorld'), nWy: SW('nW', 'y'), nWya: N('abs', 'nWy'), rimVert: N('smoothstep', 0.85, 0.4, 'nWya'),
+      // the rim's world normal is the shading normal's (the facet's under flatShading), as the family's inverseTransformDirection
+      rimSide: N('smoothstep', -0.3, 0.2, 'ndl'), nW: N('viewToWorld', 'nV'), nWy: SW('nW', 'y'), nWya: N('abs', 'nWy'), rimVert: N('smoothstep', 0.85, 0.4, 'nWya'),
       r0: N('mul', 'fres', 'rimSide'), r1: N('mul', 'r0', 'shadow'), r2: N('mul', 'r1', 'cloudShade'), rimK: N('mul', 'r2', 'rimVert'),
       rimP: { op: 'param', param: 'rim' }, alb35: N('add', 'alb', 0.35),
       rc0: N('mul', 'rimP', 'rimK'), rc1: N('mul', 'rc0', 'sunC'), rc2: N('mul', 'rc1', INV_PI), rimC: N('mul', 'rc2', 'alb35'),
@@ -651,12 +669,16 @@ export function toonGraph(params: ToonMaterialParams, look: ToonLookParams): Gra
 /**
  * The painterly family as a graph preset (`families/painterly.ts`): soft cel bands, the painted shade, the warm
  * terminator, the rim on the sun's side, the painted floor, wetness and (when the look grades) the per-pixel grade after
- * lighting. Diffuse only: no specular, as the family's Lambert base. Throws for the wind sway (it needs the instance
- * origin and a world → object direction as inputs).
+ * lighting. Diffuse only: no specular, as the family's Lambert base. A swaying surface (`sway > 0`) gets the family's
+ * wind sway as its vertex offset: the phase from the object's (instance's) origin and the look's clock (`swayTime`, a
+ * param the runtime moves as the look ticks), the amount from the geometry's own height, the direction the look's wind
+ * brought into model space and divided by its squared length, as the family does. No shadow variant: the family's
+ * shadow does not sway either.
  */
 export function painterlyGraph(params: PainterlyMaterialParams, look: PainterlyLookParams): GraphIr {
-  if (params.sway > 0) throw new Error('painterly preset: the wind sway is not expressible yet (it needs the instance origin and a world → object direction as inputs)');
   const g = look.grade;
+  const [wx, wz] = look.wind.direction, wl = Math.hypot(wx, wz) || 1;
+  const sway = params.sway > 0;
   return {
     version: GRAPH_IR_VERSION,
     kind: 'material',
@@ -676,6 +698,11 @@ export function painterlyGraph(params: PainterlyMaterialParams, look: PainterlyL
       warm: { type: 'float', value: look.warm, min: 0, max: 4 },
       floor: { type: 'float', value: look.floor, min: 0, max: 16 },
       wet: { type: 'float', value: look.wet, min: 0, max: 1 },
+      ...(!sway ? {} : {
+        sway: { type: 'float', value: params.sway, min: 0, max: 1 },
+        wind: { type: 'vec3', value: [wx / wl, wz / wl, look.wind.strength] },
+        swayTime: { type: 'float', value: 0, min: 0 },
+      }),
       ...(g === null ? {} : {
         gradeA: { type: 'vec4', value: [g.gain * g.exposure, 1 / g.shoulder, g.saturation, g.contrast] },
         shadowTint: { type: 'vec3', value: [...g.shadowTint], min: 0 },
@@ -721,6 +748,20 @@ export function painterlyGraph(params: PainterlyMaterialParams, look: PainterlyL
       floorP: { op: 'param', param: 'floor' }, floorAmtP: { op: 'param', param: 'floorAmt' },
       fl0: N('sub', [0.22, 0.22, 0.22], 'alb'), fl1: N('max', 'fl0', 0), fl2: N('mul', 'fl1', INV_PI), fl3: N('mul', 'shadeP', 'floorP'), fl4: N('mul', 'fl3', 'floorAmtP'), a2: N('mul', 'fl4', 'fl2'),
       am0: N('add', 'a0', 'a1'), ambient: N('add', 'am0', 'a2'),
+      ...(!sway ? {} : {
+        // the wind sway (VERT_SWAY): two sines on a per-object phase, × the squared height above the origin
+        swayP: { op: 'param', param: 'sway' }, windP: { op: 'param', param: 'wind' }, swT: { op: 'param', param: 'swayTime' },
+        oW: N('objectOrigin'), oX: SW('oW', 'x'), oZ: SW('oW', 'z'),
+        ph0: N('mul', 'swT', 1.6), ph1: N('mul', 'oX', 0.13), ph2: N('mul', 'oZ', 0.11), ph3: N('add', 'ph0', 'ph1'), ph: N('add', 'ph3', 'ph2'),
+        pG: N('positionGeometry'), pGy: SW('pG', 'y'), pH: N('max', 'pGy', 0), pH2: N('mul', 'pH', 'pH'),
+        wdX: SW('windP', 'x'), wdZ: SW('windP', 'y'), wStr: SW('windP', 'z'),
+        sk0: N('mul', 'swayP', 'wStr'), sk: N('mul', 'sk0', 'pH2'),
+        s1: N('sin', 'ph'), s1k: N('mul', 's1', 0.35), s1a: N('add', 's1k', 0.65), amt1: N('mul', 'sk', 's1a'),
+        ph23: N('mul', 'ph', 2.3), ph2b: N('add', 'ph23', 1.7), s2: N('sin', 'ph2b'), sk25: N('mul', 'sk', 0.25), amt2: N('mul', 'sk25', 's2'),
+        amt: N('add', 'amt1', 'amt2'),
+        wDir: N('combine', 'wdX', 0, 'wdZ'), pD0: N('worldToLocal', 'wDir'), pDd: N('dot', 'pD0', 'pD0'), pDm: N('max', 'pDd', 1e-6), pD: N('div', 'pD0', 'pDm'),
+        swayOffset: N('mul', 'pD', 'amt'),
+      }),
       ...(g === null ? {} : {
         // the grade (famPaintGrade): exposure, the filmic shoulder, saturation, the split tint, the S-curve, the hour's saturation
         litC: N('litColour'), gA: { op: 'param', param: 'gradeA' }, gB: { op: 'param', param: 'gradeB' },
@@ -741,6 +782,7 @@ export function painterlyGraph(params: PainterlyMaterialParams, look: PainterlyL
         ...(params.map !== null && params.alphaCutoff > 0 ? { alpha: 'mapA', alphaCutoff: params.alphaCutoff } : {}),
       },
       lighting: { sun: 'sun', ambient: 'ambient', ...(g === null ? {} : { grade: 'graded' }) },
+      ...(!sway ? {} : { 'vertex.offset': { offset: 'swayOffset' } }),
     },
   };
 }
