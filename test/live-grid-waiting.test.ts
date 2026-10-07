@@ -6,5 +6,5 @@ import { expect, it } from 'vitest';
 
 it('warms enterable templates inside the cold bound without unconverted neighbours occupying prefetch slots', () => {
   const output = execFileSync(execPath, ['--import', './scripts/sim-node-loader.mjs', 'test/fixtures/grid/live-waiting.mjs'], { encoding: 'utf8', timeout: 20_000 });
-  expect(JSON.parse(output)).toEqual({ warmed: ['template-4', 'template-6'], waitingWallsClosed: true, repeatedFetches: 0 });
+  expect(JSON.parse(output)).toEqual({ warmed: ['template-3', 'template-5'], waitingWallsClosed: true, repeatedFetches: 0 });
 });

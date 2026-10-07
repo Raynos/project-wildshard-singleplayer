@@ -28,7 +28,7 @@ function seal(region: Region): void {
 it('recovers a sealed pre-socket checkpoint into fresh socket physics and refuses damaged or unsealed deltas', async () => {
   const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
   const assets = new Map(source.files.map((file) => [file.hash, readFileSync(`src/shards/_template/assets/${file.hash}`)]));
-  const placement = { id: 'template-1', shard: source.identity.slug }, local = new MemoryStorage();
+  const placement = { id: 'template-2', shard: source.identity.slug }, local = new MemoryStorage();
   const owner = new GridRegionDurability(new SaveStore({ local, session: null }), placement, source, []);
   const assembly = new GridAssembly({ developer: false, devserver: false });
   const duplicates = generatePlatform(assembly.cells.map((cell) => ({ ...cell, edges: source.edge })), assembly.emptyNeighbour.edge)
@@ -104,7 +104,7 @@ it('recovers a sealed pre-socket checkpoint into fresh socket physics and refuse
     local.setItem(key, original);
     invalid = new GridRegionDurability(new SaveStore({ local, session: null }), placement, source, []);
     expect(() => invalid.read(true)).toThrow('basis mismatch');
-    const sibling = new GridRegionDurability(new SaveStore({ local, session: null }), { id: 'template-2', shard: source.identity.slug }, source, []);
+    const sibling = new GridRegionDurability(new SaveStore({ local, session: null }), { id: 'template-3', shard: source.identity.slug }, source, []);
     expect(sibling.read(true)).toBeUndefined(); expect(sibling.wallet.coins()).toBe(0);
   } finally { after?.dispose(); before.dispose(); }
 }, 60_000); // One shared eight-strip template build, two native bases and 120 logical ticks; preserve all corruption checks under shared CI contention.

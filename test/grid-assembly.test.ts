@@ -9,22 +9,24 @@ import { installBounds } from '../src/engine/world/bounds';
 it('assembles shipped, Developer and DEVSERVER grids exclusively from the platform catalogue', () => {
   for (const developer of [false, true]) for (const devserver of [false, true]) for (const nineDragon of [false, true]) {
     const grid = new GridAssembly({ developer, devserver, nineDragon });
-    expect(grid.cells).toHaveLength(9); expect(new Set(grid.cells.map((cell) => cell.instance)).size).toBe(9);
+    const nine = devserver && nineDragon ? 1 : 0; // G198: the cells without a shard alternate Template copies and open plots
+    expect(grid.cells).toHaveLength(6 + nine); expect(grid.plots).toHaveLength(3 - nine); expect(new Set([...grid.cells, ...grid.plots].map((cell) => cell.instance)).size).toBe(9);
     expect(grid.cell('driftwood-isle').cell).toEqual([0, 0]); expect(grid.cell('pine-hollow').cell).toEqual([0, 1]); expect(grid.cell('nalati-grasslands').cell).toEqual([1, 0]);
     expect(grid.at(-555, 0)?.slug).toBe(developer ? 'sunscar-dunes' : '_template');
     expect(grid.at(0, -555)?.slug).toBe(developer ? 'far-reach' : '_template');
-    expect(grid.at(555, -555)?.slug).toBe(devserver && nineDragon ? 'nine-dragon-stack' : '_template');
-    expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(6 - (developer ? 2 : 0) - (devserver && nineDragon ? 1 : 0));
+    expect(grid.at(555, -555)?.slug).toBe(devserver && nineDragon ? 'nine-dragon-stack' : undefined);
+    expect(grid.plots.map((plot) => plot.instance)).toEqual(['open-plot-nw', 'open-plot-sw', ...(nine === 1 ? [] : ['open-plot-se'])]);
+    expect(grid.cells.filter((cell) => cell.slug === '_template')).toHaveLength(3 - (developer ? 2 : 0));
   }
   expect(new GridAssembly({ developer: false, devserver: true }).at(555, -555)?.slug).toBe('nine-dragon-stack');
   expect(catalogue.placements).toHaveLength(7);
 });
 
 it('keeps stable instance ids independent of signed coordinates and derives reversible per-cell render origins', () => {
-  const moved = structuredClone(catalogue.grid), first = moved.cells[0], second = moved.cells[2];
+  const moved = structuredClone(catalogue.grid), first = moved.cells[1], second = moved.cells[2];
   if (first === undefined || second === undefined) throw new Error('Missing template cells');
   [first.cell, second.cell] = [second.cell, first.cell];
-  const grid = new GridAssembly({ developer: false, devserver: false }, moved), cell = grid.cell('template-1');
+  const grid = new GridAssembly({ developer: false, devserver: false }, moved), cell = grid.cell('template-3');
   expect(cell.cell).toEqual([1, 1]); expect(grid.renderOrigin(cell)).toEqual({ x: 555, y: 0, z: 555 });
   const point = { x: -249.75, y: -2.5, z: 240.125 };
   expect(grid.local(grid.world(point, cell), cell)).toEqual(point); expect(point).toEqual({ x: -249.75, y: -2.5, z: 240.125 });
@@ -34,9 +36,9 @@ it('keeps stable instance ids independent of signed coordinates and derives reve
 });
 
 it('supplies an explicit open-sea fog profile for every missing outer neighbour', () => {
-  const grid = new GridAssembly({ developer: false, devserver: false }), corner = grid.cell('template-1');
-  expect(grid.neighbour(corner, 'east')).toBe(grid.cell('pine-hollow'));
-  expect(grid.neighbour(corner, 'north')).toBe(grid.emptyNeighbour); expect(grid.neighbour(corner, 'west')).toBe(grid.emptyNeighbour);
+  const grid = new GridAssembly({ developer: false, devserver: false }), corner = grid.cell('template-2');
+  expect(grid.neighbour(corner, 'west')).toBe(grid.cell('pine-hollow'));
+  expect(grid.neighbour(corner, 'north')).toBe(grid.emptyNeighbour); expect(grid.neighbour(corner, 'east')).toBe(grid.emptyNeighbour);
   expect(grid.emptyNeighbour.level).toBe(0); expect(grid.emptyNeighbour.edge.heights).toHaveLength(257);
   expect(grid.emptyNeighbour.edge.heights.every((value) => value === 0)).toBe(true); expect(grid.emptyNeighbour.fog.far).toBeGreaterThan(grid.emptyNeighbour.fog.near);
 });

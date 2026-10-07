@@ -98,14 +98,6 @@
     "pitch": 555,
     "cells": [
       {
-        "instance": "template-1",
-        "slug": "_template",
-        "cell": [
-          -1,
-          1
-        ]
-      },
-      {
         "instance": "pine-hollow",
         "slug": "pine-hollow",
         "cell": [
@@ -146,24 +138,31 @@
         ]
       },
       {
-        "instance": "template-4",
-        "slug": "_template",
-        "cell": [
-          -1,
-          -1
-        ]
-      },
-      {
         "instance": "template-5",
         "slug": "_template",
         "cell": [
           0,
           -1
         ]
+      }
+    ],
+    "plots": [
+      {
+        "instance": "open-plot-nw",
+        "cell": [
+          -1,
+          1
+        ]
       },
       {
-        "instance": "template-6",
-        "slug": "_template",
+        "instance": "open-plot-sw",
+        "cell": [
+          -1,
+          -1
+        ]
+      },
+      {
+        "instance": "open-plot-se",
         "cell": [
           1,
           -1

@@ -36,8 +36,8 @@ describe('SF57 honest drive and native memory gate', () => {
   });
   it('uses the production Developer catalogue and refuses DEVSERVER replacements', () => {
     const cells = soakCatalogue(catalogue.grid, 'dev');
-    expect(cells).toHaveLength(9);
-    expect(cells.filter((cell) => cell.slug === '_template')).toHaveLength(4);
+    expect(cells).toHaveLength(6); // G198: three of the nine are open plots
+    expect(cells.filter((cell) => cell.slug === '_template')).toHaveLength(1);
     expect(cells.filter((cell) => cell.slug !== '_template')).toHaveLength(5);
     expect(validateSoakCatalogue(cells, cells)).toBe(true);
     for (const slug of ['nine-dragon-stack', '_blender-template']) {

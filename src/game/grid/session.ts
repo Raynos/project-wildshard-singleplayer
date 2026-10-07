@@ -23,7 +23,7 @@
 import { BufferGeometry, Group, Mesh, type Material, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
-import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { CHUNK_HALF, CONTENT_CAPS, ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -73,6 +73,7 @@ import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
 import { installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
+import { installOpenPlots, openPlotColliders, type OpenPlotState } from './openPlot';
 import type { MemoryAdmissionWarning } from './memoryAdmission';
 import { TIER } from '@wildshard/engine/core/tier';
 
@@ -121,6 +122,8 @@ export interface GridSessionState {
   readonly shimmer: BorderShimmerState;
   /** G217: the cells you can't enter that wear the full loading screen now, and its redraw count */
   readonly screens: CellScreensState;
+  /** G198 / G219: the open plots (their showrooms' ideas, which are drawn, their draws and triangles) */
+  readonly plots: OpenPlotState;
   /** the allocator's grid content (MB) and the §3.2 playing total with the engine base (MB, the 1.0 GB envelope, G65) */
   readonly residentMB: number; readonly playingMB: number;
   /** Exact category sum before engine base, overlap allowance or calibration factor; used by the soak harness. */
@@ -215,6 +218,8 @@ export class GridSession {
   private readonly shardfiles = new Map<string, boolean>();
   /** G217: the full loading screen on every cell you can't enter */
   private readonly screens: { readonly step: () => void; readonly state: () => CellScreensState };
+  /** G198 / G219: the open plots, platform ground with four entry showrooms and a centrepiece each */
+  private readonly plots: { readonly step: (dt: number) => void; readonly state: () => OpenPlotState };
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost): Promise<GridSession> {
@@ -254,8 +259,12 @@ export class GridSession {
     // generator refuses (an edge past the cliff envelope, an entry off road height) falls back to road-level edges
     const flat = this.assembly.cells.map((cell): PlatformCell => ({ instance: cell.instance, cell: cell.cell, origin: { x: cell.origin.x, z: cell.origin.z },
       edges: { north: empty, east: empty, south: empty, west: empty } }));
+    // G198: an open plot is road-level platform ground with an open entry on all four sides (its showroom faces each one)
+    const entry = { entryWidth: ENTRY_WIDTH, geometry: 'ground' } as const;
+    const plots = this.assembly.plots.map((plot): PlatformCell => ({ instance: plot.instance, cell: plot.cell, origin: { x: plot.origin.x, z: plot.origin.z },
+      edges: { north: empty, east: empty, south: empty, west: empty }, observations: { north: entry, east: entry, south: entry, west: entry } }));
     let strips: readonly GeneratedStrip[];
-    try { strips = generatePlatform(edges ?? flat, empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform(flat, empty); }
+    try { strips = generatePlatform([...(edges ?? flat), ...plots], empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform([...flat, ...plots], empty); }
     this.strips = strips;
     // SF19a / G158 (on for everyone since Jake's G175 pick, E450): the shard the player stands in owns the whole frame, the
     // road look owns the road, blended over 16 m at the cell edge; a host with no camera / composer builds none
@@ -299,6 +308,16 @@ export class GridSession {
         status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
     for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
+    // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
+    for (const mesh of openPlotColliders(this.assembly.plots)) installStripCollider(host.physics, this.rebased(mesh), host.scope);
+    try {
+      this.plots = installOpenPlots({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
+        feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } });
+    } catch (error) {
+      if (!(error instanceof PlatformRenderAdmissionError)) throw error;
+      console.warn('[grid] the open plots did not fit the envelope:', error);
+      this.plots = { step: () => undefined, state: () => ({ plots: [], pictures: 0, draws: 0, triangles: 0 }) };
+    }
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
     installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z })));
     this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
@@ -441,6 +460,7 @@ export class GridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
     if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
+      platform: openPlotColliders(this.assembly.plots),
       residency: this.host.residency.home(),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
@@ -468,6 +488,7 @@ export class GridSession {
     this.softWalls.step();
     this.screens.step();
     this.shimmer.step();
+    this.plots.step(dt);
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
     if (inside === undefined || inside.instance !== active) gridCells.leave();
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
@@ -494,7 +515,7 @@ export class GridSession {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, slug: cell.slug, cell: cell.cell,
         shows: cell.instance === (this.live === null ? this.home.instance : this.live.live.current()) ? 'playing' : cell.instance === this.home.instance ? 'frozen' : resident.has(cell.instance) ? 'far proxy' : 'loading' })),
-      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), screens: this.screens.state(), ringsReady: this.rings.ready(),
+      strips: this.strips.length, road: this.road, seams: this.seams, softWalls: this.softWalls.state(), shimmer: this.shimmer.state(), screens: this.screens.state(), plots: this.plots.state(), ringsReady: this.rings.ready(),
       residentMB: Math.round(cost.accounted / 1e4) / 100, playingMB: Math.round(cost.playing / 1e4) / 100,
       accountedBytes: cost.accounted,
       rings: { far: stats.resident.far, l1: stats.resident.l1, l0: stats.resident.l0, refused: stats.refused, inFlight: stats.inFlight, queued: stats.queued },

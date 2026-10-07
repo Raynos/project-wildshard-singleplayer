@@ -15,7 +15,7 @@ it('lists every save instance once: canonical copies in card order, then the gri
   expect(shipped.filter((c) => c.listed).map((c) => c.name)).toEqual(['Driftwood Isle', 'Pine Hollow']);
   expect(dev.filter((c) => c.listed).map((c) => c.instance.id)).toEqual(['driftwood-isle', 'pine-hollow', 'template-solo']);
   expect(dev.filter((c) => c.instance.id.startsWith('template-') && c.instance.id !== 'template-solo').map((c) => c.name))
-    .toEqual(['Template shard · COPY 1', 'Template shard · COPY 2', 'Template shard · COPY 3', 'Template shard · COPY 4', 'Template shard · COPY 5', 'Template shard · COPY 6']);
+    .toEqual(['Template shard · COPY 2', 'Template shard · COPY 3', 'Template shard · COPY 5']); // G198: copies 1, 4 and 6 became open plots
   expect(new Set(dev.map((c) => c.instance.id)).size).toBe(dev.length);
 });
 it('words the card and the sheet from the preview: before → after, kept, quoted strings', () => {

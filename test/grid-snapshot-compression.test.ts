@@ -21,7 +21,7 @@ it('fits the production eight-duplicate regional continuation without dropping g
     const cells = assembly.cells.map((cell) => ({ ...cell, edges: source.edge }));
     const strips = generatePlatform(cells, assembly.emptyNeighbour.edge);
     let count = 0;
-    for (const strip of strips) for (const duplicate of strip.duplicates) if (duplicate.instance === 'template-1') { installStripCollider(sim.host.physics, duplicate.mesh, sim.host.scope); count++; }
+    for (const strip of strips) for (const duplicate of strip.duplicates) if (duplicate.instance === 'template-2') { installStripCollider(sim.host.physics, duplicate.mesh, sim.host.scope); count++; }
     expect(count).toBe(8);
     const basis = sim.host.physics.snapshot();
     expect(basis.length).toBeGreaterThan(standaloneBytes);

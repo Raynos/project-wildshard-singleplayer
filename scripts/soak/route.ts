@@ -44,7 +44,8 @@ export function soakRoute(cells: readonly Cell[], pitch = 555, leg: 'cells' | 'r
       if (previous !== undefined && row < 3 && leg === 'cells') {
         const cx = (x + previous) / 2, cz = (row - 1) * pitch;
         const cell = cells.find((candidate) => candidate.cell[0] === cx / pitch && candidate.cell[1] === cz / pitch);
-        if (cell === undefined) throw new Error('Incomplete nine-cell soak catalogue');
+        // G198: an open plot is platform ground, never a cell to enter (`soakCatalogue` proves the nine are complete)
+        if (cell === undefined) { move({ x, z }, 'crossroads', { id: `${x},${z}` }); continue; }
         move({ x: cx, z });
         // Walk 25 m past the south midpoint edge. A visible proxy never satisfies actual admission.
         move({ x: cx, z: cz - 225 }, 'enter', { instance: cell.instance, slug: cell.slug });
@@ -58,11 +59,13 @@ export function soakRoute(cells: readonly Cell[], pitch = 555, leg: 'cells' | 'r
 }
 
 /** Production catalogues exclude DEVSERVER additions in both gate layouts. */
-export function soakCatalogue(grid: { readonly cells: readonly Cell[]; readonly developer: readonly Cell[] }, layout: 'shipped' | 'dev'): readonly Cell[] {
+export function soakCatalogue(grid: { readonly cells: readonly Cell[]; readonly developer: readonly Cell[]; readonly plots?: readonly Omit<Cell, 'slug'>[] }, layout: 'shipped' | 'dev'): readonly Cell[] {
   const selected = new Map(grid.cells.map((cell) => [cell.cell.join(','), cell]));
   if (layout === 'dev') for (const cell of grid.developer) selected.set(cell.cell.join(','), cell);
-  const cells = [...selected.values()];
-  if (cells.length !== 9 || new Set(cells.map((cell) => cell.instance)).size !== 9) throw new Error('Soak requires nine unique catalogue instances');
+  const cells = [...selected.values()], plots = (grid.plots ?? []).filter((plot) => !selected.has(plot.cell.join(',')));
+  // G198: the cells and the open plots left after the overrides fill all nine places once
+  const nine = [...cells, ...plots];
+  if (nine.length !== 9 || new Set(nine.map((cell) => cell.instance)).size !== 9 || new Set(nine.map((cell) => cell.cell.join(','))).size !== 9) throw new Error('Soak requires nine unique catalogue instances');
   return cells;
 }
 /** Exact identity is required: a DEVSERVER proxy never substitutes for a gate cell. */

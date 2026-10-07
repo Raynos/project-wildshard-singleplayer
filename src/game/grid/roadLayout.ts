@@ -9,9 +9,10 @@
  *
  * Every road segment between two junctions has one turn-in at its midpoint (G93: a shard's four entryways sit at its edge
  * midpoints), so the kerb opens there on each side that has a cell. Sign text is a cell's shard name from the catalogue's
- * slug, never a name written here.
+ * slug, never a name written here; an open plot's side (G198) has its turn-in too, signed with the strings table's plot name.
  */
-import type { GridAssembly, GridCell } from './assembly';
+import type { GridAssembly, GridCell, GridPlot } from './assembly';
+import { GAME_STRINGS } from '../strings';
 // oxlint-disable-next-line unicorn/prefer-export-from -- E434 forbids internal re-exports; retain this existing defining-module compatibility value.
 import { ENTRY_WIDTH, ENTRY_ASPHALT as entryAsphalt } from '@wildshard/engine/core/config';
 
@@ -33,13 +34,15 @@ export const RING_ISLAND = 6;
 
 /** The lifetime a look is disposed with (the session's level scope). */
 export interface LookScope { readonly onDispose: (fn: () => void) => void }
+/** What stands beside a road: a shard's cell, or an open plot (G198: platform ground with an entry on every side). */
+export type RoadSide = GridCell | GridPlot;
 /** One road segment: it runs along `axis`, centred at `centre`; `low` is the cell on its negative side, `high` its positive side. */
 export interface RoadSegment {
   readonly id: string;
   readonly axis: 'x' | 'z';
   readonly centre: { readonly x: number; readonly z: number };
-  readonly low: GridCell | undefined;
-  readonly high: GridCell | undefined;
+  readonly low: RoadSide | undefined;
+  readonly high: RoadSide | undefined;
 }
 /** A junction and the arms that leave it (east = +x, north = +z). */
 export interface RoadJunction {
@@ -89,8 +92,9 @@ export function rightSide(segment: RoadSegment, dir: 1 | -1): 1 | -1 { return se
 export function roadLayout(assembly: GridAssembly, name: (slug: string) => string): RoadLayout {
   const pitch = assembly.pitch, xs = assembly.cells.map((c) => c.cell[0]), zs = assembly.cells.map((c) => c.cell[1]);
   const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
-  const byCell = new Map(assembly.cells.map((c) => [c.cell.join(','), c]));
-  const at = (x: number, z: number): GridCell | undefined => byCell.get(`${String(x)},${String(z)}`);
+  const byCell = new Map<string, RoadSide>([...assembly.cells, ...assembly.plots].map((c) => [c.cell.join(','), c]));
+  const at = (x: number, z: number): RoadSide | undefined => byCell.get(`${String(x)},${String(z)}`);
+  const sideName = (c: RoadSide): string => ('slug' in c ? name(c.slug) : GAME_STRINGS.grid.plot.turnIn);
   const segments: RoadSegment[] = [], segmentAt = new Map<string, RoadSegment>();
   // gap.x: between columns X and X+1 (runs along z); gap.z: between rows Z and Z+1 (runs along x), as the generator ids them
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
@@ -111,12 +115,12 @@ export function roadLayout(assembly: GridAssembly, name: (slug: string) => strin
     for (const [side, segment] of [['east', east], ['west', west], ['north', north], ['south', south]] as const) if (segment !== undefined) armSegment.set(`${id}:${side}`, segment);
     junctions.push({ id, centre: { x: x * pitch + pitch / 2, z: z * pitch + pitch / 2 }, arms, roundabout: SIDES.every((side) => arms[side]) });
   }
-  const names = (segment: RoadSegment): string[] => [segment.low, segment.high].filter((c): c is GridCell => c !== undefined).map((c) => name(c.slug));
+  const names = (segment: RoadSegment): string[] => [segment.low, segment.high].filter((c): c is RoadSide => c !== undefined).map(sideName);
   const signs: RoadSign[] = [];
   // corridor signs (G80): 30 m into a segment, on the right, naming the shards whose turn-in is ahead
   for (const segment of segments) for (const dir of [1, -1] as const) {
     const right = rightSide(segment, dir), s = -dir * CORRIDOR_SIGN, unit = alongUnit(segment), lines: SignLine[] = [];
-    for (const [cell, t] of [[segment.low, -1], [segment.high, 1]] as const) if (cell !== undefined) lines.push({ arrow: t === right ? 'right' : 'left', names: [name(cell.slug)], metres: round10(CORRIDOR_SIGN) });
+    for (const [cell, t] of [[segment.low, -1], [segment.high, 1]] as const) if (cell !== undefined) lines.push({ arrow: t === right ? 'right' : 'left', names: [sideName(cell)], metres: round10(CORRIDOR_SIGN) });
     if (lines.length > 0) signs.push({ at: segmentPoint(segment, s, right * SIGN_SIDE), facing: { x: -unit.x * dir, z: -unit.z * dir }, lines });
   }
   // approach signs (G81): one per approach to a junction with three or more arms, a line per way out
@@ -148,7 +152,7 @@ export function roadLayout(assembly: GridAssembly, name: (slug: string) => strin
   for (const segment of segments) for (const [cell, t] of [[segment.low, -1], [segment.high, 1]] as const) {
     if (cell === undefined) continue;
     const dir: 1 | -1 = rightSide(segment, 1) === t ? 1 : -1, unit = alongUnit(segment);
-    signs.push({ at: segmentPoint(segment, dir * (TURN_IN_HALF + 3), t * SIGN_SIDE), facing: { x: -unit.x * dir, z: -unit.z * dir }, lines: [{ arrow: 'right', names: [name(cell.slug)], metres: null }] });
+    signs.push({ at: segmentPoint(segment, dir * (TURN_IN_HALF + 3), t * SIGN_SIDE), facing: { x: -unit.x * dir, z: -unit.z * dir }, lines: [{ arrow: 'right', names: [sideName(cell)], metres: null }] });
   }
   // streetlights (G80): every 50 m both sides, never on a void side (the rail is there) nor in a turn-in
   const lights: RoadLight[] = [];

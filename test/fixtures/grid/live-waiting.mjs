@@ -9,7 +9,7 @@ import { LiveGridHost } from '../../../src/game/grid/live.ts';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator.ts';
 
 const rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-const assembly = new GridAssembly({ developer: true, devserver: false }), home = assembly.cell('driftwood-isle');
+const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
 const level = { version: 1, id: 'platform', seed: 1, ground: { size: 500, height: 0 },
   player: { at: { x: 0, y: 0, z: -194 }, yaw: 0, speed: 30 }, entities: [], quests: [],
   weapon: { id: 'none', shape: { kind: 'point', radius: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
@@ -37,17 +37,17 @@ const registry = new LiveGridHost(assembly, {
   },
 });
 try {
-  // The real three closest developer cells at spawn are unsupported. They must not consume candidate slots.
+  // The shipped layout (G198: open plots at NW, SW and SE are platform ground, never candidates): the unconverted shard
+  // beside the spawn must not consume a candidate slot.
   registry.beforeFixed();
-  assert.deepEqual(registry.state().pending, ['template-4', 'template-6']);
+  assert.deepEqual(registry.state().pending, ['template-3', 'template-5']);
   await registry.prefetch(registry.state().pending);
-  assert.equal(registry.ready('template-4'), true); assert.equal(registry.ready('template-6'), true);
-  assert.equal(registry.ready('nalati-grasslands'), false);
-  assert.equal(registry.ready('sunscar-dunes'), false); assert.equal(registry.ready('far-reach'), false);
-  assert.equal(attempts.get('template-1'), undefined); // outside the cold readiness radius: no new eager world
-  for (const id of ['far-reach', 'nalati-grasslands', 'sunscar-dunes']) assert.equal(attempts.get(id), undefined);
+  assert.equal(registry.ready('template-3'), true); assert.equal(registry.ready('template-5'), true);
+  assert.equal(registry.ready('nalati-grasslands'), false); assert.equal(registry.ready('pine-hollow'), false);
+  assert.equal(attempts.get('template-2'), undefined); // outside the cold readiness radius: no new eager world
+  for (const id of ['nalati-grasslands', 'pine-hollow']) assert.equal(attempts.get(id), undefined);
   for (let tick = 0; tick < 20; tick++) registry.beforeFixed();
-  assert.equal(attempts.get('template-4'), 1); assert.equal(attempts.get('template-6'), 1);
+  assert.equal(attempts.get('template-3'), 1); assert.equal(attempts.get('template-5'), 1);
   assert.equal(registry.state().residents.length <= 3, true);
   console.info(JSON.stringify({ warmed: registry.state().residents, waitingWallsClosed: true, repeatedFetches: 0 }));
 } finally { registry.dispose(); player.motor.dispose(); page.dispose(); }

@@ -40,14 +40,15 @@ describe('§3.3 table: the assembly per mode and both switches together', () => 
     const rows = cells(mode, cell);
     return { shards: rows.filter((row) => row.slug !== '_template').length, templates: rows.filter((row) => row.slug === '_template').length };
   };
-  it('shipped: 3 shards + 6 templates; Developer: 5 + 4; DEVSERVER adds its cell at (+1, −1), and its row swaps it back', () => {
-    expect(count(MODES.shipped)).toEqual({ shards: 3, templates: 6 });
-    expect(count(MODES.developer)).toEqual({ shards: 5, templates: 4 });
-    expect(count(MODES.devserver)).toEqual({ shards: 4, templates: 5 });
-    expect(count(MODES.both)).toEqual({ shards: 6, templates: 3 });
-    expect(count(MODES.both, false)).toEqual({ shards: 5, templates: 4 });
+  it('shipped: 3 shards + 3 templates (+ 3 open plots, G198); Developer: 5 + 1; DEVSERVER adds its cell at (+1, −1), and its row swaps it back', () => {
+    expect(count(MODES.shipped)).toEqual({ shards: 3, templates: 3 });
+    expect(count(MODES.developer)).toEqual({ shards: 5, templates: 1 });
+    expect(count(MODES.devserver)).toEqual({ shards: 4, templates: 3 });
+    expect(count(MODES.both)).toEqual({ shards: 6, templates: 1 });
+    expect(count(MODES.both, false)).toEqual({ shards: 5, templates: 1 });
     expect(cells(MODES.both).find((row) => row.cell[0] === 1 && row.cell[1] === -1)?.slug).toBe('nine-dragon-stack');
-    expect(cells(MODES.both, false).find((row) => row.cell[0] === 1 && row.cell[1] === -1)?.slug).toBe('_template');
+    expect(cells(MODES.both, false).find((row) => row.cell[0] === 1 && row.cell[1] === -1)?.slug).toBeUndefined();
+    expect(new GridAssembly(gridMode(false, MODES.both)).plots.map((plot) => plot.instance)).toEqual(['open-plot-nw', 'open-plot-sw', 'open-plot-se']);
   });
   it('the grid always boots into the catalogue home cell (0, 0)', () => {
     for (const mode of Object.values(MODES)) expect(gridHome(mode).instance).toBe('driftwood-isle');
@@ -211,7 +212,7 @@ describe('a DEVSERVER build (§3.3)', () => {
     const at = (on: boolean) => new GridAssembly(gridMode(on, MODES.both)).cells.find((cell) => cell.cell[0] === 1 && cell.cell[1] === -1)?.slug;
     expect(at(devserverCellOn(true))).toBe('nine-dragon-stack');
     row?.set('off');
-    expect(at(devserverCellOn(true))).toBe('_template');
+    expect(at(devserverCellOn(true))).toBeUndefined(); // the open plot it replaces (G198)
     expect(devserverCellOn(false)).toBe(false);
     row?.set('on');
     remove();

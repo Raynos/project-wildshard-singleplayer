@@ -6,6 +6,12 @@ import { parseGridCatalogue, type GridMode } from './catalogue';
 export interface GridPoint { x: number; y: number; z: number }
 /** Stable instance identity with its independent cell placement and derived rendering translation. */
 export interface GridCell { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly origin: Readonly<GridPoint> }
+/**
+ * G198 / G219: an open plot. A platform cell with no shard: the platform draws its floor, its four entry showrooms and its
+ * centrepiece (`openPlot.ts`) and owns its colliders, so it is road-like ground (never in `cells`, never a sim, a save
+ * namespace, a crossing or a ring tile).
+ */
+export interface GridPlot { readonly instance: string; readonly cell: readonly [number, number]; readonly origin: Readonly<GridPoint> }
 /** Neighbour queries use the same signed convention as the grid: north is positive z. */
 export type GridSide = 'north' | 'east' | 'south' | 'west';
 /** Outside the finite grid, seams ease into road-level open water and fog instead of another sim. */
@@ -20,6 +26,8 @@ const finite = (point: GridPoint): void => { if (![point.x, point.y, point.z].ev
 /** Assemble the one platform catalogue without changing any shard's local simulation or standalone placement. */
 export class GridAssembly {
   readonly cells: readonly GridCell[];
+  /** the open plots left after the mode's overrides (an override on a plot's cell replaces the plot) */
+  readonly plots: readonly GridPlot[];
   readonly pitch: number;
   readonly emptyNeighbour: EmptyNeighbour;
   private readonly byInstance: ReadonlyMap<string, GridCell>;
@@ -31,6 +39,8 @@ export class GridAssembly {
     if (new Set([...selected.values()].map((row) => row.instance)).size !== selected.size) throw new Error('Duplicate assembled grid identity');
     this.pitch = data.pitch;
     this.cells = Object.freeze([...selected.values()].map((row): GridCell => Object.freeze({ instance: row.instance, slug: row.slug,
+      cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }) })));
+    this.plots = Object.freeze(data.plots.filter((row) => !selected.has(row.cell.join(','))).map((row): GridPlot => Object.freeze({ instance: row.instance,
       cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }) })));
     this.byInstance = new Map(this.cells.map((row) => [row.instance, row])); this.byCell = new Map(this.cells.map((row) => [row.cell.join(','), row]));
     const colour = Object.freeze([...data.emptyNeighbour.edgeColour] as const);

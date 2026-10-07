@@ -37,7 +37,7 @@ import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/ph
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import { TransferWalls, TRANSFER_WALL_BYTES } from '@wildshard/engine/physics/transferWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
-import type { GeneratedStrip } from '@wildshard/engine/sim/strips';
+import type { GeneratedStrip, StripMesh } from '@wildshard/engine/sim/strips';
 import type { GridAssembly, GridCell } from './assembly';
 import type { ResidencyAllocator } from './allocator';
 import type { HomeResidencyClaim } from './pageResidency';
@@ -101,6 +101,8 @@ export interface LiveGridSessionPorts {
   readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly GeneratedStrip[]; readonly allocator: ResidencyAllocator;
+  /** G219: platform ground past the strips (the open plots' floors and showrooms), grid metres; the highway collides with it too */
+  readonly platform?: readonly StripMesh[];
   readonly neighbourEdges: (cell: GridCell, origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
   readonly rimEdges: (origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
 }
@@ -193,6 +195,7 @@ export class LiveGridSession {
     }
     const player = { get position() { return traveller.position; }, get yaw() { return traveller.yaw; }, health: page.health, owner: traveller, motor: traveller.motor };
     const highwayBytes = ports.strips.reduce((sum, strip) => sum + strip.mesh.positions.byteLength + strip.mesh.indices.byteLength, 0)
+      + (ports.platform ?? []).reduce((sum, mesh) => sum + mesh.positions.byteLength + mesh.indices.byteLength, 0)
       + assembly.cells.length * TRANSFER_WALL_BYTES;
     try { this.live = new LiveGridHost(assembly, {
       continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
@@ -202,6 +205,7 @@ export class LiveGridSession {
         const host = createSimHost(PLATFORM_LEVEL, { rapier, playerBody: false, ground: false });
         try {
           for (const strip of ports.strips) installStripCollider(host.physics, strip.mesh, host.scope);
+          for (const mesh of ports.platform ?? []) installStripCollider(host.physics, mesh, host.scope);
           const origin = { x: 0, z: 0 };
           const walls = new ReadinessWalls(host.physics, [...assembly.cells.flatMap((cell) => ports.neighbourEdges(cell, origin)), ...ports.rimEdges(origin)], host.scope);
           this.transferWalls.set(null, new TransferWalls(() => host.physics, assembly.cells.map(cell => cell.origin), traveller.motor.opts.radius, 'entry', host.scope));

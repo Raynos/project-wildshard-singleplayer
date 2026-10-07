@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { RAIL_OFFSET, ROAD_HALF, rightSide, roadLayout, segmentPoint } from '../src/game/grid/roadLayout';
+import { GAME_STRINGS } from '../src/game/strings';
 
 const grid = new GridAssembly({ developer: false, devserver: false });
 const layout = roadLayout(grid, (slug) => slug.toUpperCase());
@@ -43,8 +44,8 @@ it('names the shards ahead on green signs from the catalogue, on the traveller\'
   const approach = layout.signs.filter((s) => s.lines.some((l) => l.arrow === 'ahead'));
   expect(approach.length).toBe(4 * 4 + 8 * 2); // a T has no ahead from its stem
   for (const sign of approach) expect(sign.lines.map((l) => l.arrow)).toEqual(sign.lines.map((l) => l.arrow).sort((a, b) => ['left', 'ahead', 'right'].indexOf(a) - ['left', 'ahead', 'right'].indexOf(b)));
-  // nothing is hard-coded: every name on a sign is a catalogue slug through the given namer
-  const slugs = new Set(grid.cells.map((c) => c.slug.toUpperCase()));
+  // nothing is hard-coded: every name on a sign is a catalogue slug through the given namer, or the open plots' name (G198)
+  const slugs = new Set([...grid.cells.map((c) => c.slug.toUpperCase()), GAME_STRINGS.grid.plot.turnIn]);
   for (const sign of layout.signs) for (const line of sign.lines) for (const name of line.names) expect(slugs.has(name)).toBe(true);
 });
 
