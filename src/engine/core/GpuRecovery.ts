@@ -58,6 +58,8 @@ export interface RecoveryHost {
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number } | null;
   /** this page IS a recovery reload: the resume screen is up from index.html — drop it once the world draws */
   resumed: boolean;
+  /** Prepare durable recovery metadata before navigation; false or an exception returns to the title. */
+  beforeReload?: (reason: 'gpu' | 'background') => boolean;
   /** a context loss immediately after boot must return to the static selector, not eagerly build the same world again */
   fragileBoot?: () => boolean;
   /**
@@ -155,7 +157,11 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const now = Date.now();
     let recent: number[] = [];
     try { recent = (JSON.parse(savedStorage.getItem(RELOAD_KEY) ?? '[]') as number[]).filter((t) => now - t < RELOAD_WINDOW_MS); } catch { /* no session storage: allow the reload */ }
-    const fragileBoot = host.fragileBoot?.() === true;
+    let fragileBoot = host.fragileBoot?.() === true;
+    if (!fragileBoot && host.beforeReload !== undefined) {
+      try { fragileBoot = !host.beforeReload(away ? 'background' : 'gpu'); }
+      catch { fragileBoot = true; }
+    }
     const url = fragileBoot ? new URL('/', location.origin) : new URL(location.href);
     url.searchParams.delete('v');
     const pose = fragileBoot ? null : host.pose();
