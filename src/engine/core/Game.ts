@@ -97,7 +97,32 @@ interface BuiltChain { clean: boolean; order: Effect[]; fx: Omit<EngineEffects, 
 export class Game {
   readonly app = app;
   renderer: Renderer;
-  scene = new THREE.Scene();
+  /** The page's one rendered scene: the render pass, AO, shadows, the sky and the leak census read this root. */
+  readonly rootScene = new THREE.Scene();
+  private readonly sceneFrames: { scene: THREE.Scene }[] = [];
+  /**
+   * Where frame-local content goes: the root scene, or the scene subtree of the regional frame the traveller is in
+   * (`bindScene`). Content code adds to `game.scene`; it never needs to know which frame it was built in.
+   */
+  get scene(): THREE.Scene { return this.sceneFrames.at(-1)?.scene ?? this.rootScene; }
+  /**
+   * While `entered` lives (or until the returned leave), `scene` resolves to `frame`, a subtree of the root scene placed
+   * at the region's render offset, so a region's content draws in place under the one renderer, camera and sky (the
+   * same stack model as `App.bindWater` and `LevelFrameBinding`). The root keeps rendering; nothing else changes.
+   */
+  bindScene(frame: THREE.Scene, entered: Scope): () => void {
+    if (entered.disposed) throw new Error('Cannot bind a scene frame to a disposed scope');
+    if (frame === this.rootScene) throw new Error('The root scene is not a frame');
+    const entry = { scene: frame }; this.sceneFrames.push(entry);
+    let forget: () => void = () => undefined;
+    const leave = (): void => {
+      forget();
+      const index = this.sceneFrames.indexOf(entry);
+      if (index !== -1) this.sceneFrames.splice(index, 1);
+    };
+    forget = entered.capture('disposers', leave);
+    return leave;
+  }
   camera: THREE.PerspectiveCamera;
   readonly viewmodel: ViewmodelRoot;
   private _composer: EffectComposer | null = null;
@@ -122,8 +147,8 @@ export class Game {
   }
   /** Snapshot the engine rig before any level geometry is built. */
   retainEngineScene(): void {
-    this.ownership = new SceneOwnership(this.scene, this.levelScope, this.app.assets);
-    this.ownership.retain(this.scene);
+    this.ownership = new SceneOwnership(this.rootScene, this.levelScope, this.app.assets);
+    this.ownership.retain(this.rootScene);
   }
   captureLevelResources(): void { this.ownership?.retainContainer(this._composer); this.ownership?.capture(); }
   retainKitResources(): void {
@@ -281,7 +306,7 @@ export class Game {
   constructor(canvas: HTMLCanvasElement, context: WebGL2RenderingContext, level: LevelSpec) {
     this.canvas = canvas;
     this.level = level;
-    this.app.scene = this.scene;
+    this.app.scene = this.rootScene;
     this.app.render = this;
     enterOwner(this.engineScope);
     installAtmosphere(level.atmosphere); // the engine fog (slot 100); a level look's own fog (LookStrategy.fog, slot 300) installs in buildSky, before anything compiles
@@ -329,7 +354,7 @@ export class Game {
     };
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
     this.viewmodel = new ViewmodelRoot();
-    this.camera.add(this.viewmodel); this.scene.add(this.camera);
+    this.camera.add(this.viewmodel); this.rootScene.add(this.camera);
     this.engineScope.listen(window, 'resize', () => this.resize());
   }
 
@@ -348,7 +373,7 @@ export class Game {
     this.lookStrategy = await render;
     const fog = this.lookStrategy?.fog; // after installAtmosphere (the constructor), before the sky or anything compiles (01 §13.2: its slot)
     if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install, this.level.id);
-    this._sky = await new Sky(this.scene, this.camera, this.renderer).build(this.lookStrategy, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null }); // its lighting, shadows, backdrop and sky dressing
+    this._sky = await new Sky(this.rootScene, this.camera, this.renderer).build(this.lookStrategy, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null }); // its lighting, shadows, backdrop and sky dressing
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
     return this._sky;
   }
@@ -365,7 +390,7 @@ export class Game {
     const asked: { built: BuiltChain | null } = { built: null };
     const pick = (kind: EngineChainKind): BuiltChain => (asked.built = engineChain(kind));
     this.composition = R.compose({
-      app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER,
+      app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.rootScene, camera: this.camera, composer, tier: TIER,
       get fx(): EngineEffects { const b = asked.built ?? pick('cinematic'); return { ...b.fx, order: b.order }; },
       engineChain: (kind) => pick(kind).order,
     });
@@ -397,7 +422,7 @@ export class Game {
     const msaa = TIER_CONFIG.smaa === 'off' ? 0 : this.renderKnobs().msaa ?? 0;
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: Math.min(msaa, this.renderer.capabilities.maxSamples) });
     const scope = this.levelScope.child('look');
-    const { chain } = R.compose({ app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.scene, camera: this.camera, composer, tier: TIER });
+    const { chain } = R.compose({ app: this.app, scope, debug: { expose: (name, value) => { scope.onDispose(this.app.debug.scopedExpose(name, value)); } }, renderer: this.renderer, scene: this.rootScene, camera: this.camera, composer, tier: TIER });
     for (const p of chain) composer.addPass(p);
     return composer;
   }
@@ -413,13 +438,13 @@ export class Game {
     // depth needs no mid-pass copy (worldDepth.ts)
     const knobs = this.renderKnobs();
     const slices = knobs.slices ?? false; // E142 / E189: a level's tier knob (its phone tier's `slices`)
-    this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
+    this.renderPass = new WorldRenderPass(this.rootScene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
     let aoPass: N8AOPostPass | null = null;
     // A level's tier data can keep its compositor below the transient boot peak.
     if (knobs.ao ?? TIER_CONFIG.ao) {
-      const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, viewportHeight());
+      const ao = new N8AOPostPass(this.rootScene, this.camera, window.innerWidth, viewportHeight());
       aoPass = ao;
       ao.configuration.aoRadius = 2.5;
       ao.configuration.distanceFalloff = 1.0;
@@ -444,7 +469,7 @@ export class Game {
       const lean: THREE.Object3D[] = [];
       const renderTransparency = ao.renderTransparency.bind(ao);
       ao.renderTransparency = (renderer) => {
-        this.scene.traverseVisible((o) => {
+        this.rootScene.traverseVisible((o) => {
           const m = (o as Partial<THREE.Mesh>).material;
           if (m === undefined) return;
           if (Array.isArray(m)) { if (o instanceof THREE.Mesh && m.every((x) => !x.transparent)) opaqueMulti.push(o); return; }
@@ -469,7 +494,7 @@ export class Game {
 
     const vol = new VolumetricsEffect(this.camera, makeNoiseTexture(), TIER_CONFIG.volumetricSteps, TIER_CONFIG.volumetricScale);
     vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
-    if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
+    if (this.rootScene.fog) vol.setFogColor((this.rootScene.fog as THREE.Fog).color);
     if (A.volumetric) vol.setMedium(A.volumetric);
     this.volumetrics = vol;
     // the colour chain, built by a factory: an Effect belongs to one EffectPass, so each chain gets its own instances
@@ -644,7 +669,7 @@ export class Game {
     const prev = this.renderer.getRenderTarget();
     this.renderer.setRenderTarget(target);
     checkpoint('world:before');
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.rootScene, this.camera);
     checkpoint('world:submitted');
     this.renderer.setRenderTarget(prev);
     await frame();
@@ -684,7 +709,7 @@ export class Game {
       cam.updateMatrixWorld(true);
       sky?.warmShadows();
       r.setRenderTarget(target);
-      r.render(this.scene, cam);
+      r.render(this.rootScene, cam);
     } finally {
       r.setRenderTarget(prev);
       cam.quaternion.copy(q); cam.fov = fov; cam.aspect = aspect; cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
@@ -796,12 +821,12 @@ export class Game {
     this.dead = true;
     this.levelScope.dispose();
     this.engineScope.dispose();
-    this.scene.traverse((o) => { (o as Partial<THREE.Mesh>).geometry?.dispose(); });
+    this.rootScene.traverse((o) => { (o as Partial<THREE.Mesh>).geometry?.dispose(); });
     try { this._composer?.dispose(); } catch (e) { console.warn('[level] the composer did not dispose', e); }
     try { this.lookStrategy?.dispose?.(); } catch (e) { console.warn('[level] the render strategy did not dispose', e); }
     this.renderer.renderLists.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
-    this.scene.clear();
+    this.rootScene.clear();
   }
 }

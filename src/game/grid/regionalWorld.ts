@@ -1,0 +1,164 @@
+/**
+ * The concrete regional world of a trusted hybrid cell (SHARD-PLATFORM SF47 / M3, E452): the foundation that
+ * `createRegionalRuntimeFactory` composes, so an admitted first-party runtime can run as a neighbour cell instead of the
+ * page's home.
+ *
+ * The page keeps its one renderer, camera, sky, player, input and combat. The region owns, under its resident scope,
+ *
+ * - a bodyless destination `SimHost` (its own Physics, no second traveller capsule) with the real terrain collider of the
+ *   region's level, plus whatever cell installs the live session adds (borders, entry sockets, transfer walls);
+ * - a `LevelFrameBinding` (level, heightfield, chunk constants, water, navmesh) that is entered with the runtime scope;
+ * - a scene subtree: a `Scene` parented under the regional view's root (already at the cell's render offset), which
+ *   `Game.bindScene` makes `game.scene` while the runtime is entered, so content the runtime adds to `game.scene` draws
+ *   in place; the root scene, its one sky dome and its one sun keep rendering (SF19a's one grid frame);
+ * - terrain built with `Terrain.build(..., frame.terrain)`, a forest built inside `frame.run`, and the regional
+ *   AnimalManager built with `buildAsync(pause, frame)`, all children of that subtree.
+ *
+ * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
+ * (the resident scope): the host's Physics frees every body and collider, the subtree leaves the page scene and frees the
+ * GPU resources the asset cache does not share. Memory: everything here is inside the whole-runtime claim the caller
+ * reserved (`regionalRuntimeAccountedBytes`); this module reserves nothing beside it. Generic game code (E405).
+ */
+import { Group, Material, Mesh, Scene, type Object3D } from 'three';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { sceneResources } from '@wildshard/engine/app/sceneOwnership';
+import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
+import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
+import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/level/frame';
+import type { LevelSpec } from '@wildshard/engine/level/spec';
+import type { Rapier } from '@wildshard/engine/physics/rapier';
+import { addTerrain } from '@wildshard/engine/physics/terrain';
+import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
+import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import { Terrain } from '@wildshard/engine/world/Terrain';
+import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
+import { Forest } from '@wildshard/engine/world/forest/Forest';
+import { WaterBodies } from '@wildshard/engine/world/water/body';
+import { CHUNK_SIZE } from '@wildshard/engine/core/config';
+import type { ShardManifest } from '../shard/manifest';
+import { toLevelSpec } from '../shard/spec';
+import type { ShardWorld } from '../shard/world';
+import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
+
+/** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
+export interface RegionalWorldPorts {
+  readonly rapier: Rapier;
+  /** The trusted level of the admitted manifest (default: the manifest's ordinary `toLevelSpec`). */
+  readonly level?: (manifest: ShardManifest) => LevelSpec;
+  /** The level's baked navmesh (the browser passes `loadNavmesh`); absent: none. */
+  readonly navmesh?: (level: LevelSpec) => Promise<LevelFrameOptions['navmesh']>;
+  /** The level's water bodies; absent: an empty set the runtime's own registrations fill while entered. */
+  readonly water?: (level: LevelSpec) => WaterBodies;
+  /** Cell installs on the owned destination (grid borders, entry sockets, transfer walls), before any gameplay. */
+  readonly install?: (host: SimHost, request: RegionalRuntimeRequest) => void;
+  /** The region's native continuation; false keeps the traveller in the source frame. */
+  readonly checkpoint: (host: SimHost, request: RegionalRuntimeRequest) => boolean;
+  /** Yield between herd slices and heavy builds (a macrotask in the browser). */
+  readonly pause: () => Promise<void>;
+  /** The drawn ground (default: `Terrain.build` on the frame's captured heightfield, splat and assets). */
+  readonly terrain?: (level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain']) => Promise<Terrain>;
+}
+const buildTerrain = (level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain']): Promise<Terrain> => new Terrain().build(level.ground, undefined, scope, binding);
+
+/** What a leak check reads from a prepared region, beside the view's own census. */
+export interface RegionalWorldCensus { readonly bodies: number; readonly colliders: number; readonly sceneBound: boolean; readonly parented: boolean; readonly disposed: boolean }
+const census = new WeakMap<RegionalRuntimeFoundation, () => RegionalWorldCensus>();
+/** The live native and scene state of a foundation this module prepared (null for any other foundation). */
+export function regionalWorldCensus(foundation: RegionalRuntimeFoundation): RegionalWorldCensus | null { return census.get(foundation)?.() ?? null; }
+
+const isMaterial = (value: unknown): value is Material => value instanceof Material;
+
+function simLevel(level: LevelSpec): SimLevel {
+  const { spawn } = level;
+  return { version: 1, id: level.id, seed: level.seed ?? 0, ground: { size: CHUNK_SIZE, height: 0 },
+    player: { at: { x: spawn.x, y: spawn.y ?? 0, z: spawn.z }, yaw: spawn.yaw, speed: 0 }, entities: [], quests: [],
+    // A bodyless destination has no authored player strike; its creatures are the regional AnimalManager's.
+    weapon: { id: 'region.none', shape: { kind: 'ring', inner: 0, outer: 0 }, windup: 0, active: 0, recover: 0, cooldown: 0, range: 0, damage: 0, tags: [] } };
+}
+
+/** The `prepareFoundation` port of `createRegionalRuntimeFactory` for any trusted hybrid manifest. */
+export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (request: RegionalRuntimeRequest) => Promise<RegionalRuntimeFoundation> {
+  return async request => {
+    if (request.scope.disposed) throw new Error('Regional world requires a live runtime scope');
+    const { cell, page } = request, app = page.context.app, home = page.world, game = home.game, sky = home.sky;
+    const level = (ports.level ?? toLevelSpec)(request.manifest);
+    const { slug: identity } = request.manifest;
+    if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
+    const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;
+    const scene = new Scene(); scene.name = `region-scene:${cell.instance}`;
+    let freed = false, bound = 0;
+    const free = (): void => {
+      if (freed) return; freed = true;
+      scene.removeFromParent();
+      for (const resource of sceneResources(scene)) if (!app.assets.isAcquired(resource)) resource.dispose();
+      scene.clear();
+    };
+    resident.onDispose(free);
+    try {
+      const navmesh = ports.navmesh === undefined ? null : await ports.navmesh(level);
+      if (left()) throw new Error('Regional world left while loading its navmesh');
+      const water = ports.water?.(level) ?? new WaterBodies();
+      const frame = new LevelFrameBinding({ level, scope: resident, navmesh, water });
+      const field = (): typeof frame.terrain.field => frame.terrain.field;
+      const host = withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
+        heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
+      // The real ground of the region's level, sampled from its own bound heightfield (never the home's).
+      frame.run(app, () => { addTerrain(host.physics); });
+      ports.install?.(host, request);
+      const terrain = await (ports.terrain ?? buildTerrain)(level, resident, frame.terrain);
+      if (left()) throw new Error('Regional world left while building its terrain');
+      terrain.group.traverse((node: Object3D) => { const material: unknown = node instanceof Mesh ? node.material : null; if (isMaterial(material)) sky.setupMaterial(material); });
+      scene.add(terrain.group);
+      const trees = level.trees?.factory;
+      const factory = typeof trees === 'function' ? await (await trees())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty();
+      if (left()) throw new Error('Regional world left while building its trees');
+      const forest = frame.run(app, () => new Forest(factory, sky).build({ drawnBy: level.trees?.drawnBy ?? 'self' }));
+      if (forest.trees.length === 0) forest.group.visible = false; else scene.add(forest.group);
+      terrain.applyCanopy(forest.canopyMap);
+      const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
+      let world: ShardWorld | null = null;
+      const foundation: RegionalRuntimeFoundation = {
+        region: { host, dispose: () => { resident.dispose(); } },
+        ground,
+        world: view => {
+          if (world !== null) throw new Error('Regional world is already composed');
+          if (resident.disposed) throw new Error('Regional world left before composition');
+          // The region's own fog state: a runtime's weather writes it without changing the one grid frame's fog.
+          scene.fog = game.rootScene.fog?.clone() ?? null;
+          view.root.add(scene); scene.updateMatrixWorld(true);
+          if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(view.scope, () => view.registry.add({ id: `forest:${cell.instance}`, name: 'Forest', category: 'nature',
+            file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));
+          world = { ...home, terrain, forest, physics: host.physics, registry: view.registry, chunk: request.manifest };
+          return world;
+        },
+        enter: entry => {
+          if (resident.disposed || entry.disposed) throw new Error('Regional world requires a live resident and entry');
+          frame.enter(app, entry);
+          const leaveScene = game.bindScene(scene, entry); bound++;
+          entry.onDispose(() => { leaveScene(); bound--; });
+          app.addSystem({ id: `grid.runtime.${cell.instance}.forest`, phase: 'update', run: (dt) => { forest.update(dt, home.player.position); } }, entry);
+        },
+        afterKit: async () => {
+          if (resident.disposed) throw new Error('Regional world left before its creatures');
+          const animals = frame.run(app, () => new AnimalManager(scene, sky, forest));
+          await animals.buildAsync(ports.pause, frame);
+          if (left()) throw new Error('Regional world left while building creatures');
+          return { animals, wearSkin: (equipment: EquipmentService, skin: SkinDef): void => {
+            const model = equipment.get(skin.weapon).model;
+            if (model instanceof Group) applySkin(model, skin, sky);
+          } };
+        },
+        checkpoint: () => !resident.disposed && ports.checkpoint(host, request),
+      };
+      census.set(foundation, () => {
+        const native = resident.disposed ? { bodies: 0, colliders: 0 } : { bodies: host.physics.world.bodies.len(), colliders: host.physics.world.colliders.len() };
+        return { ...native, sceneBound: bound > 0, parented: scene.parent !== null, disposed: resident.disposed };
+      });
+      return foundation;
+    } catch (error) {
+      resident.dispose();
+      throw error;
+    }
+  };
+}
