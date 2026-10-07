@@ -39,10 +39,9 @@ describe('Debug flag ownership and review dates', () => {
     expect(validateFlags([row, { ...tool, ask: 'E999999' }], options).errors).toHaveLength(1);
     expect(validateFlags([{ ...tool, reviewBy: '2026-02-30' }], options).errors).toHaveLength(1);
     const scanned = debugFlags(resolve('.'));
-    expect(scanned.find(value => value.id === 'game.template')?.purpose).toBe('developer');
-    expect(scanned.find(value => value.id === 'shardDirectors')?.purpose).toBe('developer');
-    expect(scanned.find(value => value.id === 'time')?.purpose).toBe('developer');
-    expect(scanned.find(value => value.id === 'calibrate')?.purpose).toBe('developer');
+    expect(scanned.filter(value => value.purpose === 'developer').map(value => value.id).sort()).toEqual([
+      'ai.brains', 'budgetReadout', 'clearDownloads', 'fps', 'game.template', 'shardDirectors', 'storage', 'time', 'weather',
+    ]);
   });
   it('rejects unknown owners and malformed dates; an overdue row passes and is listed', () => {
     const options = { today: '2026-10-01', max: 1, raisedBy: [], askExists: (id: string) => id === 'E357' };
