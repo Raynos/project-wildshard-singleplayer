@@ -6,7 +6,7 @@
  */
 import type { Ball, Collider, Ray } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
-import { queryGroups, type GroupName } from './groups';
+import { GROUP, queryGroups, type GroupName } from './groups';
 import { tagOf, type Material } from './surface';
 
 interface Vec3 { x: number; y: number; z: number }
@@ -99,4 +99,25 @@ export function sweepBall(physics: Physics, a: Vec3, b: Vec3, radius: number, se
 /** Materials a bolt / arrow sticks in; anything else it glances off (stone, rock, metal, shell). */
 export function sticksIn(m: Material): boolean {
   return m === 'wood' || m === 'planks' || m === 'flesh' || m === 'grass' || m === 'sand' || m === 'wetSand' || m === 'ground' || m === 'felt' || m === 'earth';
+}
+
+/** Load-time upright capsule admission against current collider poses, including a just-restored deck, without stepping the world. */
+export function canStandAt(physics: Physics, feet: Vec3, dimensions: { radius: number; height: number; blockedBy?: readonly GroupName[] }, floorOwner: unknown, exclude?: Collider): boolean {
+  if (![feet.x, feet.y, feet.z, dimensions.radius, dimensions.height].every(Number.isFinite)
+    || dimensions.radius <= 0 || dimensions.height < dimensions.radius * 2) return false;
+  const mask = [...new Set(dimensions.blockedBy ?? WORLD)].reduce((bits, group) => bits + GROUP[group], 0) << 16;
+  const { R } = physics, shape = new R.Capsule(Math.max(0.01, dimensions.height / 2 - dimensions.radius), dimensions.radius);
+  const centre = { x: feet.x, y: feet.y + dimensions.height / 2 + 0.03, z: feet.z }, rotation = { x: 0, y: 0, z: 0, w: 1 };
+  const ray = new R.Ray({ x: feet.x, y: feet.y + 0.1, z: feet.z }, { x: 0, y: -1, z: 0 });
+  const admitted = { clear: true, floor: false };
+  // Direct collider queries use the restored transforms even before Rapier updates its next-step broad phase.
+  physics.world.forEachCollider(collider => {
+    if (!collider.isEnabled() || collider.isSensor() || collider.handle === exclude?.handle || (collider.collisionGroups() & mask) === 0) return;
+    if (collider.intersectsShape(shape, centre, rotation)) admitted.clear = false;
+    if (tagOf(collider)?.owner === floorOwner) {
+      const hit = collider.castRayAndGetNormal(ray, 0.15, true);
+      if (hit !== null && hit.normal.y >= 0.99 && Math.abs(hit.timeOfImpact - 0.1) < 0.01) admitted.floor = true;
+    }
+  });
+  return admitted.clear && admitted.floor;
 }
