@@ -73,8 +73,8 @@ uses the actual complete scanner count after Developer tools are separated and r
 
 ## Landed purge and Developer split (2026-10-07)
 
-The complete scanner now finds **10 comparison rows + 19 Developer tools**, after five retired registry rows.
-`debugRows.max` is **10**. Developer tools retain ask/review checks and use the same registration port,
+The metadata split initially counted **10 comparison rows + 19 Developer tools**, after five retired registry rows.
+Its policy commit lowered `debugRows.max` to **10**. The SFX follow-up below is the current count. Developer tools retain ask/review checks and use the same registration port,
 with `purpose: 'developer'`; both Settings menus give them a separate card. Saved developer picks are ignored
 outside Developer, actions are inert, and the saved picks remain available to the developer session.
 
@@ -108,3 +108,16 @@ ordinary music preference, and owner/date checks on Developer tools. Full gate/p
 coordinator; these local receipts do not claim shipped status until that green push includes them.
 
 Nalati flock G112 retirement remains separately open until its ON frame floor is green.
+
+## SFX audition follow-up: current count 9 / 20
+
+Coordinator accepted the remaining SFX selector as a Developer audition tool, with the current `best` take
+as the shipping fallback and **no new pick for Jake**. `ecf829af6` gates reads/writes and live subscriptions;
+`d48f11360` lowers comparison capacity **10 → 9** through an alone private-index policy commit.
+
+Current scanner: **9 comparisons + 20 Developer tools**. Add `sfxSet` to the Developer list above and remove it
+from the remaining-comparisons list. Four focused files pass **33/33**, root TypeScript and scoped typed lint pass;
+real-DOM registry separation and saved audition retention/public fallback are covered.
+
+SF61 remains open for protected owners' rows. Nalati legacy flock retirement still waits for the coordinator's
+ON floor after the serialized push. No browser, full gate, or push was started by this lane.
