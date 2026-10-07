@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./ai/flock": "./ai/flock.ts",
     "./ai/orbitDiver": "./ai/orbitDiver.ts",
     "./ai/patrolDiver": "./ai/patrolDiver.ts",
     "./ai/burstFlyer": "./ai/burstFlyer.ts",

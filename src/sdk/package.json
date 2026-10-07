@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "exports": {
+    "./crowds": "./crowds.ts",
     "./flyers": "./flyers.ts",
     "./grazers": "./grazers.ts",
     "./version": "./version.ts",
@@ -62,6 +63,10 @@
   },
   "publishConfig": {
     "exports": {
+      "./crowds": {
+        "types": "./dist/types/sdk/crowds.d.ts",
+        "default": "./dist/crowds.js"
+      },
       "./flyers": {
         "types": "./dist/types/sdk/flyers.d.ts",
         "default": "./dist/flyers.js"

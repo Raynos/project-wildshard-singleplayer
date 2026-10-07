@@ -6,7 +6,7 @@ import { FlockBrain, type FlockSpec, type FlockPorts, type FlockPose } from '../
 import { Rng } from '../../src/engine/core/rng';
 import { ShippingFlock, type OraclePorts } from '../fixtures/flock-oracle/flock';
 
-const SPEC: FlockSpec = { x: 0, z: 0, count: 24, seed: 357, range: 45, runSpeed: 4.6, walkSpeed: 0.9, grazeStep: 0.35 };
+const SPEC: FlockSpec = { x: 0, z: 0, count: 24, seed: 357, range: 45, runSpeed: 4.6, walkSpeed: 0.9, grazeStep: 0.35, bleatCue: 'sheep_bleat' };
 type Scenario = 'grazing' | 'sprint' | 'stealth' | 'wolf' | 'dog' | 'death' | 'water-rim' | 'distance';
 function fixture(platform: boolean, scenario: Scenario, initialize = true): {
   policy: FlockBrain | ShippingFlock; player: Vector3; dog: { alive: boolean; position: Vector3 };

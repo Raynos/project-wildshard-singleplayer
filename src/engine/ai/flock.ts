@@ -6,7 +6,7 @@ import { TickScheduler, type TickPoint } from '../app/scheduler';
 /** Ordered threat observation; identity, damage and prey recipes remain with the host. */
 export interface FlockThreat { readonly alive: boolean; readonly position: TickPoint }
 /** Seeded home, ordered roster and speeds for an instanced grazing crowd. */
-export interface FlockSpec { x: number; z: number; count: number; seed: number; range: number; runSpeed: number; walkSpeed: number; grazeStep: number }
+export interface FlockSpec { x: number; z: number; count: number; seed: number; range: number; runSpeed: number; walkSpeed: number; grazeStep: number; bleatCue: string }
 /** Trusted terrain, stealth and effect recipes; no application or renderer service is imported. */
 export interface FlockPorts {
   heightAt: (x: number, z: number) => number;
@@ -32,7 +32,9 @@ export interface FlockPose {
   graze: number; dead: boolean; deathTime: number; scale: number; wool: number;
 }
 function validateSpec(spec: FlockSpec): void {
-  if (!Object.values(spec).every(value => Number.isFinite(value)) || !Number.isInteger(spec.count) || spec.count < 1 || spec.count > 256
+  if (![spec.x, spec.z, spec.count, spec.seed, spec.range, spec.runSpeed, spec.walkSpeed, spec.grazeStep].every(value => Number.isFinite(value))
+    || typeof spec.bleatCue !== 'string' || !/^[a-z][a-z0-9_.:-]{0,127}$/u.test(spec.bleatCue)
+    || !Number.isInteger(spec.count) || spec.count < 1 || spec.count > 256
     || !Number.isInteger(spec.seed) || spec.seed < 0 || spec.seed > 0xffffffff || Math.abs(spec.x) > 100000 || Math.abs(spec.z) > 100000
     || spec.range < 8 || spec.range > 500 || spec.runSpeed < 0 || spec.runSpeed > 15 || spec.walkSpeed < 0 || spec.walkSpeed > 15
     || spec.grazeStep < 0 || spec.grazeStep > 15) throw new Error('Invalid flock parameters');
@@ -123,7 +125,7 @@ export class FlockBrain {
     if (this.dead[i] === 1) return;
     this.dead[i] = 1; this.deadT[i] = 0; this.alive--;
     this.scare(this.px[i] ?? 0, this.pz[i] ?? 0, 6);
-    this.onSound?.('sheep_bleat', this.px[i] ?? 0, this.pz[i] ?? 0);
+    this.onSound?.(this.spec.bleatCue, this.px[i] ?? 0, this.pz[i] ?? 0);
   }
 
   /** panic the flock away from (x, z) for `secs` */
@@ -189,7 +191,7 @@ export class FlockBrain {
       if (!w.alive) continue;
       if (Math.hypot(w.position.x - this.cx, w.position.z - this.cz) < 30) { this.scare(w.position.x, w.position.z, 5); break; }
     }
-    // B9 stealth (src/shards/nalati-grasslands/stealth.ts): a crouched player creeping through long grass (≥ 0.7 m) gets to 3 m before a sheep bolts
+    // A crouched player creeping through long grass gets closer before the crowd bolts.
     const creeping = this.ports.playerCrouched() && playerSpeed <= 2.6 && this.ports.grassHeightAt(player.x, player.z) >= 0.7;
     if ((playerSpeed > 5.2 && dP < 16) || (playerSpeed > 0.5 && dP < (creeping ? 3 : 6))) this.scare(player.x, player.z, 3);
     this.panic = Math.max(0, this.panic - dt);
@@ -250,7 +252,7 @@ export class FlockBrain {
     if (this.bleatT <= 0 && dP < 70) {
       this.bleatT = panicking ? rng.range(0.3, 0.9) : rng.range(2.5, 7);
       const i = rng.int(0, this.n - 1);
-      if (this.dead[i] === 0) this.onSound?.('sheep_bleat', this.px[i] ?? 0, this.pz[i] ?? 0);
+      if (this.dead[i] === 0) this.onSound?.(this.spec.bleatCue, this.px[i] ?? 0, this.pz[i] ?? 0);
     }
   }
 

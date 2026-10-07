@@ -11,6 +11,7 @@ export const FlockSchema = v.strictObject({
   count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(256)),
   seed: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffffff)),
   range: v.pipe(finite, v.minValue(8), v.maxValue(500)), runSpeed: speed, walkSpeed: speed, grazeStep: speed,
+  bleatCue: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9_.:-]*$/u), v.maxLength(128)),
 });
 /** Admitted flock tuning, stable crowd identity and ordered member count. */
 export type ShardFlock = v.InferOutput<typeof FlockSchema>;
