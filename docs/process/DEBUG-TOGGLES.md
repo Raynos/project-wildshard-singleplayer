@@ -34,6 +34,14 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
     Combat & weapons · Creatures & NPCs · Performance · Loading & memory · Developer tools; lighting, shadows, post and
     water are Look. A new group is for a new domain with several rows, not for one toggle.
   - When Jake picks a winner, delete the row, the option and the losing code in one commit (E136 / E162 style).
+- **Developer vs Debug rows** (E451, Jake 2026-10-07: *"the whole point of the developer toggle is that we want to have this public build, staging build, developer build. We have one website, one deployment … Anything that is, you know, almost ready to share with friends and family can be public built, staging … Anything that is just something that I'm developing actively with you and it's clearly slop, unfinished, needs an ungodly amount of steering, that goes behind the developer toggle … for me to see all the unfinished slop and to fix it."*):
+  - **Settings ▸ Developer** splits the one deployment into two builds. Off: the public / staging build, only work
+    that is nearly ready to share with friends and family. On: Jake's developer build, every unfinished thing he is
+    actively steering.
+  - **New, unfinished work ships behind Developer**: a new shard, mode, menu card or system that still needs steering.
+    It leaves Developer (becomes public) only when Jake says it's ready to share.
+  - **A Debug row** is for a variant, look or tuning value inside work that's already visible (A/B before a pick); it is
+    deleted when Jake picks. A Debug row never stands in for the Developer gate.
 - **The params the game may read are a fixed allowlist**, `lint/url-params.json`. `harness` is what the test, capture
   and bench scripts pass to drive the game headless (tier, touch, chunk, spawn, skipintro, mute, …). Adding to it needs
   Jake's explicit OK. `legacy` (the old switches, E162) is empty: never add to it.

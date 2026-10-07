@@ -98,6 +98,9 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 - **Every variant, look, tuning value or toggle goes in pause ▸ Settings ▸ Debug**: a shard's own `ctx.debugRow`, or
   an engine-wide registry row. Never a `?foo=` param; `wildshard/no-url-switch` and `lint/url-params.json` enforce it.
 - When Jake picks a winner, delete the row, the option and the losing code in one commit.
+- **Developer is the unfinished-work switch** (E451). One site, one deployment: Developer **off** is the public / staging
+  build (only what's nearly ready to share with friends and family); Developer **on** is Jake's view of everything
+  unfinished he's still steering. New, unfinished work goes behind Developer, never straight to the public build.
 
 ## Local models and assets → [docs/process/LOCAL-MODELS.md](docs/process/LOCAL-MODELS.md)
 
