@@ -1032,6 +1032,8 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 
 `@wildshard/engine/core/meshCollision` admits the bounded WMC1 indexed-triangle format (at most 40,000 triangles and 120,000 referenced vertices per chunk). It preserves triangle winding and rejects nonfinite positions, degenerate triangles, unused vertices and trailing bytes. `@wildshard/engine/physics/meshCollision` installs those bytes as one scoped static WORLD collider with internal-edge fixing; queries keep bridges and ground below them as separate surfaces. Native installation is explicit and unload removes the collider. This codec is the authored-world collision seam; it does not install itself or convert geometry to a heightfield.
 
+`installBakedMeshColliders(rows, physicsOrGetter, scope, restoring?)` supplies the existing activation and snapshot ports for stable mesh ids. All chunk bytes and supplied restore handles are preflighted before allocation. A restoring adapter reconnects existing static native triangles without resetting activation; it checks triangle coordinates/winding and rest pose, allowing Rapier's vertex remapping. An empty handle list is only an unbound adapter awaiting continuation restore. The lazy physics getter and scoped handle cleanup follow world replacement, so disposal never retains or removes a retired world's wrapper.
+
 ## 15. Audio
 
 | Export | What it is |
