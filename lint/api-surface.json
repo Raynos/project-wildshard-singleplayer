@@ -13440,6 +13440,12 @@
         "from": "@wildshard/game/grid/regionalRuntime"
       },
       {
+        "name": "regionalRuntimeAccountedBytes",
+        "kind": "function",
+        "doc": "A transitional region pays for its whole opaque runtime. The first-party manifest and admitted declaration must",
+        "from": "@wildshard/game/grid/regionalRuntime"
+      },
+      {
         "name": "RegionalRuntimeFactory",
         "kind": "type",
         "doc": "Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only.",
