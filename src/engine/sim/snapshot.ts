@@ -224,6 +224,7 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       if (!host.physics.world.colliders.contains(tag.handle)) throw new RangeError('Snapshot collider tag does not exist');
       tagCollider(host.physics.world.getCollider(tag.handle), tag.material, decode(tag.owner, host));
     }
+    for (const adapter of host.adapters.values()) adapter.physicsRestored?.();
     return host;
   } catch (error) { replacement?.dispose(); host.dispose(); throw error; }
 }

@@ -44,7 +44,11 @@ export interface SimLevel {
 /** Resolved world-space movement and an optional targeted attack for one fixed tick. */
 export interface SimCommand { moveX: number; moveZ: number; yaw: number; attack?: { targetId: string } }
 /** Each future brain/script instance registers its own continuation state, never a process singleton. */
-export interface SimStateAdapter { snapshot: () => SimValue; restore: (value: SimValue) => void }
+export interface SimStateAdapter {
+  snapshot: () => SimValue; restore: (value: SimValue) => void;
+  /** Reconnect saved native handles after world replacement and owner tagging, without allocating or stepping gameplay. */
+  physicsRestored?: () => void;
+}
 
 /** The existing page owns this traveller, its health update and its one physics/movement step. */
 export interface SimExternalPlayer { position: Vector3; readonly yaw: number; health: PlayerHealth; owner: object }

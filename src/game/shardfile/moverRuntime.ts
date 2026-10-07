@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import { SCRIPT_PARAMETER_QUERY, ScriptHost, type ScriptQuery } from '@wildshard/engine/script/host';
 import { ScriptWorld } from '@wildshard/engine/script/effects';
 import { scriptPhysicsQueries } from '@wildshard/engine/script/queries';
@@ -44,16 +45,25 @@ export interface MoverInstallation {
   onDispose?: () => void;
 }
 /** The shared script host already owns modules, entity handles and one beginTick per fixed step. */
-export interface MoverPorts { physics: Physics; host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined }
+export interface MoverPorts { physics: Physics | (() => Physics); host: ScriptHost; scope: Scope; adopt?: (id: string) => MoverView | undefined; restoring?: boolean }
+/** Native handle identity is restored before reconnecting to the replacement world. */
+export interface MoverBodyState { id: string; handle: number }
+const continuation = v.strictObject({ pending: v.pipe(v.array(v.tuple([v.string(), v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(3))])), v.maxLength(32)),
+  bodies: v.pipe(v.array(v.strictObject({ id: v.string(), handle: v.pipe(v.number(), v.finite(), v.minValue(0)) })), v.maxLength(32)) });
 /** Data/script bridge to engine physics; imported code installs nothing, and presentation only reads published state. */
 export class MoverRuntime {
   readonly data: MoverData;
   readonly chains = new Map<string, RopeChain>();
   private readonly sinks = new Map<string, (pose: MoverPose) => void>();
   private readonly host: ScriptHost;
+  private readonly physics: () => Physics;
+  private readonly bodies = new Map<string, KinematicMover>();
+  private bodyHandles = new Map<string, number>();
   private pending = new Map<string, number>();
   constructor(data: MoverData, ports: MoverPorts) {
     this.data = parseMovers(data); this.host = ports.host;
+    const physics = ports.physics; this.physics = typeof physics === 'function' ? physics : () => physics;
+    if (ports.restoring && (ports.adopt !== undefined || this.data.some(row => row.kind === 'chain'))) throw new Error('Native mover restore requires declared platform/static bodies');
     for (const m of this.data) if (ports.host.world.entity(m.entity) === undefined) throw new Error('Missing mover script entity');
     for (const m of this.data) {
       const adopted = ports.adopt?.(m.id);
@@ -62,8 +72,12 @@ export class MoverRuntime {
         this.sinks.set(m.id, (pose) => { if (chain !== undefined && enabled !== pose.enabled) { enabled = pose.enabled; chain.setEnabled(enabled); } adopted.pose(pose, this.host.world.entity(m.entity)?.fields ?? {}); });
         if (chain !== undefined) this.chains.set(m.id, chain); continue;
       }
-      if (m.kind === 'chain') { if (m.chain === undefined) throw new Error('Missing chain'); const chain = new RopeChain(ports.physics, m.chain); this.chains.set(m.id, chain); let enabled = m.enabled; chain.setEnabled(enabled); this.sinks.set(m.id, (pose) => { if (enabled !== pose.enabled) { enabled = pose.enabled; chain.setEnabled(enabled); } }); ports.scope.onDispose(() => { chain.dispose(); }); }
-      else { const body = new KinematicMover(ports.physics, m.boxes, this.pose(m.id), m.id, m.kind === 'static'); this.sinks.set(m.id, (pose) => { body.setPose(pose); }); ports.scope.onDispose(() => { body.dispose(); }); }
+      if (m.kind === 'chain') { if (m.chain === undefined) throw new Error('Missing chain'); const chain = new RopeChain(this.physics(), m.chain); this.chains.set(m.id, chain); let enabled = m.enabled; chain.setEnabled(enabled); this.sinks.set(m.id, (pose) => { if (enabled !== pose.enabled) { enabled = pose.enabled; chain.setEnabled(enabled); } }); ports.scope.onDispose(() => { chain.dispose(); }); }
+      else {
+        if (!ports.restoring) { const body = new KinematicMover(this.physics(), m.boxes, this.pose(m.id), m.id, m.kind === 'static'); this.bodies.set(m.id, body); this.bodyHandles.set(m.id, body.body.handle); }
+        this.sinks.set(m.id, pose => { const body = this.bodies.get(m.id); if (body === undefined) throw new Error('Mover native body is not reconnected'); body.setPose(pose); });
+        ports.scope.onDispose(() => { this.bodies.get(m.id)?.dispose(); });
+      }
     }
   }
   /** Queue a host-validated interact command; scene dispatch resolves the stable mover id, never an arbitrary function export. */
@@ -94,9 +108,35 @@ export class MoverRuntime {
     return { position: { x: e.position[0], y: e.position[1], z: e.position[2] }, euler: { x: e.fields[1] ?? 0, y: e.fields[2] ?? 0, z: e.fields[3] ?? 0 }, enabled: !e.frozen && e.fields[4] === 1 };
   }
   /** Pending interactions are continuation state; the shared host's own adapter owns fields and full Wasm memory/globals. */
-  snapshot(): readonly (readonly [string, number])[] { return [...this.pending]; }
+  snapshot(resetIds: ReadonlySet<string> = new Set()): readonly (readonly [string, number])[] { return [...this.pending].filter(([id]) => !resetIds.has(id)); }
   /** Restore pending commands only after validating every row, without partial publication. */
   restore(pending: readonly (readonly [string, number])[]): void { if (new Set(pending.map(([id]) => id)).size !== pending.length || pending.some(([id, action]) => !this.data.some((m) => m.id === id) || ![1, 2, 3].includes(action))) throw new Error('Invalid mover commands'); this.pending = new Map(pending); }
+  /** Handle-only continuation; native poses and velocities already belong to the host's physics snapshot. */
+  snapshotBodies(): MoverBodyState[] { return [...this.bodyHandles].map(([id, handle]) => ({ id, handle })); }
+  /** Validate the whole handle table before publishing any new native identity. */
+  restoreBodies(rows: readonly MoverBodyState[]): void {
+    const ids = this.data.filter(row => row.kind !== 'chain').map(row => row.id);
+    if (rows.length !== ids.length || new Set(rows.map(row => row.id)).size !== rows.length || new Set(rows.map(row => row.handle)).size !== rows.length
+      || rows.some(row => !ids.includes(row.id) || !Number.isFinite(row.handle) || row.handle < 0)) throw new Error('Invalid mover native continuation');
+    this.bodyHandles = new Map(rows.map(row => [row.id, row.handle]));
+  }
+  /** Commands and native handles share one bounded adapter; transient lift interactions are not replayed after loading. */
+  snapshotState(resetIds: ReadonlySet<string> = new Set()): string { return JSON.stringify({ pending: this.snapshot(resetIds), bodies: this.snapshotBodies() }); }
+  /** Parse all continuation fields atomically, without a command, native mutation or gameplay step. */
+  restoreState(text: string): void {
+    const saved = v.parse(continuation, JSON.parse(text)), pending = this.pending, handles = this.bodyHandles;
+    try { this.restore(saved.pending); this.restoreBodies(saved.bodies); } catch (error) { this.pending = pending; this.bodyHandles = handles; throw error; }
+  }
+  /** After native world/tag restore, reconnect existing bodies and reset only durable lift road poses. */
+  reconnect(resetIds: ReadonlySet<string> = new Set()): void {
+    if (this.data.some(row => row.kind === 'chain') || [...resetIds].some(id => !this.data.some(row => row.id === id))) throw new Error('Unsupported mover native reconnect');
+    const bodies = new Map<string, KinematicMover>();
+    for (const row of this.data) {
+      const handle = this.bodyHandles.get(row.id); if (handle === undefined) throw new Error('Missing mover native continuation');
+      bodies.set(row.id, new KinematicMover(this.physics(), row.boxes, this.pose(row.id), row.id, row.kind === 'static', handle));
+    }
+    this.bodies.clear(); for (const [id, body] of bodies) { this.bodies.set(id, body); if (resetIds.has(id)) body.resetPose(this.pose(id)); }
+  }
 }
 
 /** A single platform installer reads declared rows and owns their lifecycle; the shard only supplies presentation recipes. */
