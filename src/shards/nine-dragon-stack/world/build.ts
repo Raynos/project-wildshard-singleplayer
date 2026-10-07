@@ -161,10 +161,12 @@ export interface NineDragonWorld {
    * to pose them each frame (world/liftRide.ts), run by `update`
    */
   readonly lifts?: { readonly cages: ReadonlyMap<string, Object3D>; view: (() => void) | null };
+  /** G200: whether the lift decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
+  readonly entryCaps?: boolean;
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
-export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { entries?: boolean } = {}): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { entries?: boolean; caps?: boolean } = {}): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -207,7 +209,9 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   buildWell(ctx);
   // SF51-g: the four landing decks at road height (world/entries.ts), only with Debug ▸ Nine Dragon entries on
-  if (opts.entries === true) buildEntryDecks(ctx);
+  // G200: played alone (no road beyond the decks) the lift deck's open end gets its balustrade and brazier
+  const entryCaps = opts.entries === true && opts.caps === true;
+  if (opts.entries === true) buildEntryDecks(ctx, entryCaps);
   progress(0.3, 'signs');
   await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
@@ -518,5 +522,5 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   };
   // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
   // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  return { root, shared, ctx: { hooks: ctx.hooks }, update, cull, culler, lifts };
+  return { root, shared, ctx: { hooks: ctx.hooks }, update, cull, culler, lifts, entryCaps };
 }

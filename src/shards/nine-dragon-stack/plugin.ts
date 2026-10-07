@@ -22,10 +22,11 @@ type WorldBuilder = (ctx: ShardContext, entries: boolean) => Promise<{ world: Ni
 async function buildWorld(ctx: ShardContext, entries: boolean): ReturnType<WorldBuilder> {
   const render = ctx.app.render;
   if (render === null) throw new Error('Nine Dragon needs the render service in its world stage');
+  // G200: `caps` standalone (no grid cube): the lift deck's open end is closed by its balustrade; in a grid cell the road continues
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
     if (detail !== undefined) ctx.progress.detail(detail);
-  }, render.tier, { entries });
+  }, render.tier, { entries, caps: ctx.cube === null });
   return { world, camera: render.camera };
 }
 

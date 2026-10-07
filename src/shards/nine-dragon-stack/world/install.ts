@@ -23,7 +23,7 @@ export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system
     // (world/entries.ts; drawn in the world's `entries` kit) are floors of this piece
     ctx.piece({
       id: 'nds-floors', name: 'Lantern Square', category: 'buildings', file: 'src/shards/nine-dragon-stack/world/build.ts',
-      object: world.root, surface: 'stone', colliders: entries ? [...c.floors, ...entryDeckColliders()] : c.floors,
+      object: world.root, surface: 'stone', colliders: entries ? [...c.floors, ...entryDeckColliders(world.entryCaps === true)] : c.floors,
       floor: entries ? withDecks : fragmentFloor, solidFloor: true,
     });
     ctx.piece({ id: 'nds-fronts', name: 'The towers', category: 'buildings', file: FILE, surface: 'stone', colliders: c.fronts });
