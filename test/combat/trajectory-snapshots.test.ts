@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { projectileFlightStep, type ProjectileKind } from '../../src/engine/combat/view/projectile';
 import { boltFlightStep } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { javelinFlightStep } from '../../src/shards/nalati-grasslands/weapons/Spear';
-import { arrowKind as bowArrow } from '../../src/kit/weapons/bow/recurve';
+import { arrowKind as bowArrow } from '../../src/shards/nalati-grasslands/weapons/recurve';
 import { arrowKind as longbowArrow } from '../../src/shards/pine-hollow/weapons/longbowView';
 import { boltFlight, BOLT_KINDS } from '../../src/shards/pine-hollow/loadout/ammo';
 import { FakeGame } from '../fake/FakeGame';

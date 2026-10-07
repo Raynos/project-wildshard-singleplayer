@@ -28,10 +28,9 @@ import * as THREE from 'three';
 import { BowDraw, DRAW_TIME, RENOCK_TIME } from './draw';
 
 import type { BowProfile, BowStyle, BowView } from './profile';
-import { BOW } from './profiles';
 
 export interface BowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-export interface BowOptions { row: EquipmentRow; profile?: BowProfile; allowUnlocked?: boolean }
+export interface BowOptions { row: EquipmentRow; profile: BowProfile; allowUnlocked?: boolean }
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 const _v1 = V(0,0,0), _v2 = V(0,0,0), _v3 = V(0,0,0), _fwd = V(0,0,0), _dir = V(0,0,0), _rDir = V(0,0,0);
 const _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion();
@@ -109,7 +108,7 @@ export class Bow extends Weapon {
   constructor(world: BowWorld, targets: Targets | undefined, opts: BowOptions) {
     super(opts.row);
     this.row = { ...this.row, ui: { ...this.row.ui, inputContext: 'weapon.bow' } };
-    this.profile = opts.profile ?? BOW;
+    this.profile = opts.profile;
     this.magazine = this.profile.quiver;
     this.state = quiverState({ bolts: this.profile.quiver, loaded: true, reloading: false, reloadProgress: 1, ads: false }, this.profile.quiver);
     this.game = world.game; this.sky = world.sky; this.player = world.player;

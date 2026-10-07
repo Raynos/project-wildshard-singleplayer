@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { onFault } from '../../src/engine/core/faults';
 import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms, Move } from '../../src/engine/combat/view/melee';
 import { COMBO, HEAVY, REST, CHARGE, SPRINT } from '../../src/kit/weapons/melee/moves';
 import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/weapons/Sabre';
@@ -41,7 +42,7 @@ describe('complete move tables and keyframes (09 §1.8)', () => {
       const moves = name === 'sabre' ? SABRE_MOVES : { combo: COMBO, heavy: HEAVY, rest: REST, charge: CHARGE, sprint: SPRINT };
       const sword = new Sword({ game, sky: world.sky, player: world.player, forest: world.forest },
         { raycast: () => ({ animal, point: animal.position, distance: 1.5, headshot: false }) },
-        { row: SWORD, arms, damage, moves, blade: name === 'iron' ? 'iron' : 'wood', portraitFov: name === 'jian' ? 78 : 72 });
+        { row: SWORD, arms, rig: swordRig(world.sky, name === 'iron' ? 'iron' : 'wood'), damage, moves, blade: name === 'iron' ? 'iron' : 'wood', portraitFov: name === 'jian' ? 78 : 72 });
       const faults: unknown[] = []; const off = onFault((fault) => { faults.push(fault.error); });
       sword.swingScale = scale; world.game.onUpdate((dt, t) => sword.update(dt, t));
       for (const move of [...moves.combo, moves.heavy]) {

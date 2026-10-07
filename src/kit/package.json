@@ -30,7 +30,6 @@
     "./weapons/bow/index": "./weapons/bow/index.ts",
     "./weapons/bow/profile": "./weapons/bow/profile.ts",
     "./weapons/bow/profiles": "./weapons/bow/profiles.ts",
-    "./weapons/bow/recurve": "./weapons/bow/recurve.ts",
     "./weapons/equipment": "./weapons/equipment.ts",
     "./weapons/melee/Melee": "./weapons/melee/Melee.ts",
     "./weapons/melee/SweptMelee": "./weapons/melee/SweptMelee.ts",

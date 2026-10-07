@@ -8,6 +8,7 @@ import type { ShardSword } from '@wildshard/game/shard/manifest';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { driftwoodWorld } from '../world/build';
 import { IronSwordPickup, ironSwordSite } from '../weapons/IronSword';
+import { swordRig } from '../weapons/swordView';
 
 const drops = new WeakMap<ShardRuntime, IronSwordPickup>();
 
@@ -38,10 +39,10 @@ export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows:
   shell.buildEquipment = async (targets, nolock, viewmodel?: ShardSword | null) => {
     const { ironArms, swim: _swim, ...woodArms } = viewmodel ?? {};
     const [wood, iron] = rows;
-    const primary = new Sword(world, targets, { row: wood, profile: wood, allowUnlocked: nolock, ...woodArms,
+    const primary = new Sword(world, targets, { row: wood, profile: wood, allowUnlocked: nolock, rig: swordRig(world.sky, 'wood'), ...woodArms,
       ...(world.game.level.camera ? { portraitFov: world.game.level.camera.portraitFov } : {}) });
     await macrotask();
-    const extra = new Sword(world, targets, { row: iron, profile: iron, allowUnlocked: nolock, blade: 'iron', ...(ironArms ? { arms: ironArms } : {}) });
+    const extra = new Sword(world, targets, { row: iron, profile: iron, allowUnlocked: nolock, blade: 'iron', rig: swordRig(world.sky, 'iron'), ...(ironArms ? { arms: ironArms } : {}) });
     return { primary, rifle: null, secondary: null, extras: [extra] };
   };
 }

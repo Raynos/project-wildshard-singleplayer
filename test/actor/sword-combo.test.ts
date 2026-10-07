@@ -4,6 +4,7 @@ import { SWORD } from '../../src/kit/weapons/equipment';
 import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms, Move } from '../../src/engine/combat/view/melee';
 import { COMBO } from '../../src/kit/weapons/melee/moves';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
@@ -43,7 +44,7 @@ function swordFixture(contact: boolean): {
   const legacyGame = world.game.asGame();
   // Record contact stops separately so window measurements use an unscaled clock; loop.test proves the slowdown.
   legacyGame.hitStop = (seconds): void => { stops.push(seconds); };
-  const sword = new Sword({ game: legacyGame, player: world.player, sky: world.sky, forest: world.forest }, targets, { row: SWORD, arms, allowUnlocked: true });
+  const sword = new Sword({ game: legacyGame, player: world.player, sky: world.sky, forest: world.forest }, targets, { row: SWORD, arms, rig: swordRig(world.sky, 'wood'), allowUnlocked: true });
   sword.onMoveHitEvent = (move: Move): void => { hits.push({ move: move.name, at: world.game.clock.elapsedTime, damage: pendingDamage }); };
   world.game.onUpdate((dt, t) => { sword.update(dt, t); });
   // The fake rig's clip is the observation surface, rather than Sword's private combo state.

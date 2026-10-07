@@ -4,7 +4,7 @@ import { Tool } from '@wildshard/engine/combat/Tool';
 import type { EquipmentRow, EquipContext } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily, ItemFamilyPorts } from '@wildshard/engine/combat/itemFamilies';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
-import { buildSword } from '../weapons/melee/SweptMelee';
+import { buildSword } from './declaredSword'; // SF54: the private iron sword copy, deleted when these families graduate
 
 function itemMesh(ports: ItemFamilyPorts): Group {
   const recipe = ports.view.recipe;

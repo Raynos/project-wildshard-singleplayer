@@ -1,6 +1,7 @@
 import { GoldenBow, type GoldenBowPower } from './GoldenBow';
 import { Bow } from '@wildshard/kit/weapons/bow/family';
 import { BOW as BOW_PROFILE } from '@wildshard/kit/weapons/bow/profiles';
+import { POSE, buildRecurve, arrowKind, ARROW_LEN } from './recurve';
 import { Naizagai, type NaizagaiPower } from './Naizagai';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -19,8 +20,9 @@ import { Sabre, type MountState } from './Sabre';
 import { Spear } from './Spear';
 import { BOW } from './equipment';
 
-/** Nalati's riding numbers are content; other bows opt into mounting through their own profile. */
-export const NALATI_BOW = { ...BOW_PROFILE, mounted: {
+/** Nalati's recurve: the kit bow's numbers with the recurve's view (SF54: moved out of the kit's BOW row unchanged), and
+ * its riding numbers, which are content; other bows opt into mounting through their own profile. */
+export const NALATI_BOW = { ...BOW_PROFILE, poses: POSE, arrowX: 0.02, arrowY: 0.058, arrowLength: ARROW_LEN, build: buildRecurve, arrow: arrowKind, mounted: {
   drawTime: 0.9, rearAngle: 110, rearDraw: 0.2, rearSpread: 0.5, arc: false,
   gaits: [{ below: 0.3, spread: 0.3 }, { below: 3.2, spread: 0.8 }, { below: 6.5, spread: 3 },
     { below: 10.5, spread: 1.5 }, { below: Infinity, spread: 1.8 }],

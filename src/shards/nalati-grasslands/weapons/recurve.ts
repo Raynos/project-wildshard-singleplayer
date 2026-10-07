@@ -5,7 +5,7 @@ import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
-import type { BowView, GripPose } from './profile';
+import type { BowView, GripPose } from '@wildshard/kit/weapons/bow/profile';
 
 
 

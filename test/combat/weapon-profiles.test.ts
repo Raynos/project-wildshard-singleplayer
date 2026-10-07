@@ -8,7 +8,8 @@ import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
 import { JIAN_ROW } from '../../src/shards/nine-dragon-stack/vm/jianRow';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { arrowKind as bowArrow } from '../../src/kit/weapons/bow/recurve';
+import { arrowKind as bowArrow } from '../../src/shards/nalati-grasslands/weapons/recurve';
+import { NALATI_BOW } from '../../src/shards/nalati-grasslands/weapons/loadout';
 import { arrowKind as longbowArrow } from '../../src/shards/pine-hollow/weapons/longbowView';
 import * as draw from '../../src/kit/weapons/bow/draw';
 import { boltFlight, boltDamage } from '../../src/shards/pine-hollow/loadout/ammo';
@@ -54,7 +55,7 @@ describe('weapon tuning parity (09 §1.4)', () => {
     expect(SWORD_IRON.parent).toBe(SWORD_WOOD.id); expect(JIAN_ROW.parent).toBe(SWORD_WOOD.id);
   });
   it('public ranged profiles preserve every distinct tuning value', () => {
-    expect(BOW).toMatchObject({ family: 'bow', quiver: 24, swayMax: rad(1.5), speedBase: 30, speedDraw: 28, damageScale: 1.2,
+    expect(NALATI_BOW).toMatchObject({ ...BOW, family: 'bow', quiver: 24, swayMax: rad(1.5), speedBase: 30, speedDraw: 28, damageScale: 1.2,
       aimZoom: 2, aimVmZoom: 0.85, aimSway: 0.5, aimSpread: 0.5, aimIn: 10, arcFrom: 0.25, arcColour: 0x8fe3ff, vmScale: 0.72, arrowLength: 0.8 });
     expect(LONGBOW).toMatchObject({ ...BOW, parent: 'weapon.bow', quiver: 20, swayMax: rad(1.4), speedBase: 32, speedDraw: 30, damageScale: 1.35,
       aimZoom: 1.6, arcColour: 0xffc070, arcMode: 'aim', zoomLook: false, inspectZ: -1.4,

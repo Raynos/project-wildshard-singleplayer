@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SWORD } from '../../src/kit/weapons/equipment';
 import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
+import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms } from '../../src/engine/combat/view/melee';
 import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/weapons/Sabre';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
@@ -16,7 +17,7 @@ function melee(sabre = false) {
   const arms: SwordArms = { root: new THREE.Group(), engineTrail: false, play: () => undefined, update: () => undefined,
     blade: (base, tip) => { base.set(0, 0, -0.5); tip.set(0, 0.5, -1); } };
   const sword = new Sword({ game: f.game.asGame(), sky: f.sky, player: f.player, forest: f.forest }, { raycast: () => null },
-    { row: SWORD, arms, ...(sabre ? { damage: 24, moves: SABRE_MOVES } : {}) });
+    { row: SWORD, arms, rig: swordRig(f.sky, 'wood'), ...(sabre ? { damage: 24, moves: SABRE_MOVES } : {}) });
   sword.swingScale = sabre ? 0.9 : 1;
   sword.onFire = () => { starts.push({ name: sword.swingName, t: f.game.clock.elapsedTime }); };
   f.game.onFixed('step', (dt) => { sword.update(dt, f.game.clock.elapsedTime); }, 'melee input', true);
