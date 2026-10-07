@@ -2209,7 +2209,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-587 exports, grouped by the module to import them from.
+589 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2309,8 +2309,8 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/scripts`: `createShardfileScriptLane`, `numericScriptState`, `prepareShardfileScriptOptions`, `scriptBindingRules`, `ScriptBindingsSchema`, `ShardScriptBindings`, `ShardScriptContent`, `ShardScriptField`, `ShardScriptPorts`
 - `@wildshard/game/shardfile/simulation`: `bindShardfileSim`, `createShardfileSim`, `numericScriptEntityId`, `ShardfileSimPorts`, `ShardfileSimulation`
 - `@wildshard/game/shardfile/skinLayers`: `skinLayerDecoded`, `SkinPoseLayer`, `SkinPoseLayerSchema`, `validateSkinLayers`
-- `@wildshard/game/shardfile/socketLift`: `parseSocketLift`, `SocketLift`, `SocketLiftEntry`, `socketLiftRules`, `SocketLiftSchema`
-- `@wildshard/game/shardfile/socketLiftProof`: `commandSocketLift`, `proveSocketLift`, `SocketLiftProof`, `SocketLiftProofPorts`
+- `@wildshard/game/shardfile/socketLift`: `parseSocketLift`, `SocketLift`, `socketLiftEntries`, `SocketLiftEntry`, `socketLiftRules`, `SocketLiftSchema`
+- `@wildshard/game/shardfile/socketLiftProof`: `commandSocketLift`, `proveShardfileEntries`, `proveSocketLift`, `SocketLiftProof`, `SocketLiftProofPorts`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`

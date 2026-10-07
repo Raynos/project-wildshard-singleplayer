@@ -15930,6 +15930,12 @@
         "from": "@wildshard/game/shardfile/socketLift"
       },
       {
+        "name": "socketLiftEntries",
+        "kind": "function",
+        "doc": "Select declared lifts without treating an ordinary entry or a missing link as executable admission.",
+        "from": "@wildshard/game/shardfile/socketLift"
+      },
+      {
         "name": "SocketLiftEntry",
         "kind": "interface",
         "doc": "An edge's declared lift; shared structural shape avoids a schema dependency cycle.",
@@ -15951,6 +15957,12 @@
         "name": "commandSocketLift",
         "kind": "function",
         "doc": "The normal interaction queues these commands on both the deck and its road gate. No author callback is invoked.",
+        "from": "@wildshard/game/shardfile/socketLiftProof"
+      },
+      {
+        "name": "proveShardfileEntries",
+        "kind": "function",
+        "doc": "Ordinary entries retain the full capsule walk; each lift instead proves its complete ride and 23 road-gate lanes.",
         "from": "@wildshard/game/shardfile/socketLiftProof"
       },
       {

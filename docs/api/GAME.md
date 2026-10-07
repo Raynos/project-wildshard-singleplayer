@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-587 members; 112 without a doc line (—).
+589 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -533,10 +533,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `validateSkinLayers` | function | @wildshard/game/shardfile/skinLayers | Validate table sizes, periodic endpoints and joint references before compiling float buffers. |
 | `parseSocketLift` | function | @wildshard/game/shardfile/socketLift | Parse without invoking an accessor or serializer from an author object. |
 | `SocketLift` | type | @wildshard/game/shardfile/socketLift | Data-only lift link; gameplay commands and physics remain platform-owned. |
+| `socketLiftEntries` | function | @wildshard/game/shardfile/socketLift | Select declared lifts without treating an ordinary entry or a missing link as executable admission. |
 | `SocketLiftEntry` | interface | @wildshard/game/shardfile/socketLift | An edge's declared lift; shared structural shape avoids a schema dependency cycle. |
 | `socketLiftRules` | function | @wildshard/game/shardfile/socketLift | Before physics allocation, prove stable references and the real deck's complete road-height boarding line. |
 | `SocketLiftSchema` | const | @wildshard/game/shardfile/socketLift | A bounded entry ride names admitted mover/gate rows and feet-level stops; the route is walked, never teleported. |
 | `commandSocketLift` | function | @wildshard/game/shardfile/socketLiftProof | The normal interaction queues these commands on both the deck and its road gate. No author callback is invoked. |
+| `proveShardfileEntries` | function | @wildshard/game/shardfile/socketLiftProof | Ordinary entries retain the full capsule walk; each lift instead proves its complete ride and 23 road-gate lanes. |
 | `proveSocketLift` | function | @wildshard/game/shardfile/socketLiftProof | Walk, command, ride and return through actual collision. Feet are initialized once; every later move comes from the motor. |
 | `SocketLiftProof` | interface | @wildshard/game/shardfile/socketLiftProof | Counts come from actual fixed steps and motor moves, including both stop calls and the automatic idle return. |
 | `SocketLiftProofPorts` | interface | @wildshard/game/shardfile/socketLiftProof | Trusted admission world: advance the existing one host/runtime/world fixed step before moving the real capsule. |
