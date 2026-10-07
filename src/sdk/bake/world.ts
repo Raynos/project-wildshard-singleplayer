@@ -1,9 +1,10 @@
-import { ImageUtils, NodeIO, type Accessor, type Material, type Primitive, type Texture, type TextureInfo } from '@gltf-transform/core';
+import { NodeIO, type Accessor, type Material, type Primitive, type Texture, type TextureInfo } from '@gltf-transform/core';
 import { Matrix3, Matrix4, Vector3 } from 'three';
 import { CELL_ABOVE, CELL_BELOW, CHUNK_HALF } from '@wildshard/engine/core/config';
 import { parseWorldSource } from '../worldSource';
 import { hashImmutableBytes } from '../immutable';
 import { preflightWorldGlb } from './worldGlb';
+import { worldImageInfo } from './worldImage';
 
 /** Retained embedded raster input; the later pinned encoder owns its KTX2 conversion. */
 export interface WorldImage { hash: string; mime: string; width: number; height: number; bytes: Uint8Array }
@@ -87,9 +88,10 @@ export async function normalizeWorldGlb(bytes: Uint8Array, input: unknown, mater
   const images: WorldImage[] = [], imageHashes = new Map<Texture, string>();
   for (const texture of root.listTextures()) {
     const image = texture.getImage(), mime = texture.getMimeType();
-    if (image?.length === undefined || image.length > 25_000_000 || ImageUtils.getMimeType(image) !== mime) throw new Error(`World GLB image ${texture.getName()} has unsupported or mismatched bytes`);
-    const size = ImageUtils.getSize(image, mime);
-    if (size === null || !size.every((value) => Number.isInteger(value) && value > 0 && value <= 4096)) throw new Error(`World GLB image ${texture.getName()} dimension cap`);
+    if (image === null) throw new Error(`World GLB image ${texture.getName()} has missing bytes`);
+    const info = await worldImageInfo(image);
+    if (info.mime !== mime) throw new Error(`World GLB image ${texture.getName()} has mismatched bytes`);
+    const size: [number, number] = [info.width, info.height];
     const hash = hashImmutableBytes(image); imageHashes.set(texture, hash);
     if (!images.some((entry) => entry.hash === hash)) images.push({ hash, mime, width: size[0], height: size[1], bytes: Uint8Array.from(image) });
   }

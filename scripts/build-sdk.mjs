@@ -16,7 +16,7 @@ const modules = Object.entries(sdk.exports).map(([specifier, target]) => {
 });
 await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'warn', build: { outDir: resolve(root, 'src/sdk', 'dist') /* build output, git-ignored: check-paths only checks committed paths */, emptyOutDir: true, minify: false, lib: {
   entry: Object.fromEntries([...modules.map(({ name, source }) => [name, source]), ['cli', resolve(root, 'src/sdk/cli.ts')], ['headlessWorker', resolve(root, 'src/sdk/headlessWorker.ts')]]), formats: ['es'], fileName: (_format, name) => `${name}.js`,
-}, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite'] } } });
+}, rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite', 'sharp'] } } });
 
 // Ship declarations without requiring the repository's internal workspace packages.
 execFileSync('pnpm', ['exec', 'tsc', '-b', '--force', 'tsconfig.layers.json'], { cwd: root, stdio: 'inherit' });

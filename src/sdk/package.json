@@ -44,7 +44,8 @@
     "./bake/world": "./bake/world.ts",
     "./runtime/weapons/Bow": "./runtime/weapons/Bow.ts",
     "./weapons/bowProfile": "./weapons/bowProfile.ts",
-    "./runtime/weapons/SweptMelee": "./runtime/weapons/SweptMelee.ts"
+    "./runtime/weapons/SweptMelee": "./runtime/weapons/SweptMelee.ts",
+    "./bake/textureWasm": "./bake/textureWasm.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -68,7 +69,10 @@
     "@gltf-transform/core": "^4.5.0",
     "fflate": "0.8.3",
     "navcat": "0.4.1",
-    "postprocessing": "^6.39.5"
+    "postprocessing": "^6.39.5",
+    "@loaders.gl/textures": "4.5.3",
+    "sharp": "0.34.5",
+    "meshoptimizer": "1.2.0"
   },
   "publishConfig": {
     "exports": {
@@ -239,6 +243,10 @@
       "./runtime/weapons/SweptMelee": {
         "types": "./dist/types/sdk/runtime/weapons/SweptMelee.d.ts",
         "default": "./dist/runtime/weapons/SweptMelee.js"
+      },
+      "./bake/textureWasm": {
+        "types": "./dist/types/sdk/bake/textureWasm.d.ts",
+        "default": "./dist/bake/textureWasm.js"
       }
     }
   }

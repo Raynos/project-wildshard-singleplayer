@@ -645,3 +645,17 @@ ports, preflight every recipe, then initialize only after the remaining simulati
 admission succeeds. Each crowd owns one fixed callback and snapshot adapter;
 restore skips setup draws and resumes its ordered member state/private RNG. The
 minimal empty client refuses crowd content. No live shard changes selection here.
+
+The authored-world texture encoder is `@wildshard/sdk/bake/textureWasm`:
+`bakeWorldTexture(bytes, 'srgb' | 'linear')` reads a bounded still PNG/JPEG/WebP,
+then emits UASTC KTX2 with a complete mip chain. The SDK pins
+`@loaders.gl/textures` 4.5.3 (its packaged Basis Universal encoder JS and WASM),
+`sharp` 0.34.5 for raster decode, and `meshoptimizer` 1.2.0 for the following LOD
+slice. Encoder artifacts are SHA-256 checked before ordinary Node module loading;
+there is no system `basisu` requirement or CDN download. Settings are single-thread
+UASTC, quality 128, mip generation, and KTX2 UASTC Zstandard supercompression;
+colour/emissive chooses sRGB transfer and normal/ORM chooses linear transfer.
+Input dimensions are at most 4096², wire size at most 25 MB, with one still frame.
+The existing generator helper `bakeColourTexture` keeps its historical system-tool
+output; this additive helper is the portable authored-world path. The subsequent
+world bake will call it and charge its output through ordinary KTX2 admission.
