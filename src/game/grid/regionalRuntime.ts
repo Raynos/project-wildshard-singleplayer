@@ -10,6 +10,29 @@ import type { GridCell } from './assembly';
 import type { ResidencyAllocator } from './allocator';
 import type { LiveGridRegion } from './live';
 import type { GridLoadout } from './wallet';
+import { runtimeAccountedBytes, type RuntimeCost } from './runtimeCost';
+
+function sameMeasurement(a: RuntimeCost, b: RuntimeCost): boolean {
+  return (['webContentMB', 'glMB', 'engineBaseMB', 'rev', 'device', 'evidence'] as const).every(key => a[key] === b[key]);
+}
+
+/**
+ * A transitional region pays for its whole opaque runtime. The first-party manifest and admitted declaration must
+ * share the reviewed measurement and its images-first provenance; an empty declarative sim is never its estimate.
+ * The caller reserves these bytes through the page's ordinary allocator before constructing the regional shell.
+ */
+export function regionalRuntimeAccountedBytes(admitted: Pick<AdmittedProduct, 'source'>, manifest: Pick<ShardManifest, 'slug' | 'runtimeCost'>): number {
+  const { source } = admitted;
+  const { slug: declaredIdentity } = source.identity, { slug: registeredIdentity } = manifest;
+  if (declaredIdentity !== registeredIdentity) throw new Error('Regional runtime identity differs from its trusted manifest');
+  const declared = source.runtime?.cost, measured = manifest.runtimeCost;
+  if (declared === undefined || measured === undefined) throw new Error('Regional runtime requires reviewed whole-runtime measurements');
+  const bytes = runtimeAccountedBytes(declared);
+  runtimeAccountedBytes(measured);
+  if (!sameMeasurement(declared, measured) || (declared.imagesFirst === undefined) !== (measured.imagesFirst === undefined)
+    || !sameMeasurement(declared.imagesFirst ?? declared, measured.imagesFirst ?? measured)) throw new Error('Regional runtime measurement differs from its trusted manifest');
+  return bytes;
+}
 
 /** Existing page services lent to a regional shell; it never constructs another renderer, player or input loop. */
 export interface RegionalRuntimePage {
