@@ -26,6 +26,15 @@ function coatReads(tier: Tier, tex: TexMode): string[] {
   if (tex !== 'ktx2') return [];
   return Object.keys(table[tier]).filter((url) => url.endsWith('.coat.png') && url.includes('.phone.') === (tier === 'phone')).sort().flatMap((url) => table[tier][url] ?? []);
 }
+/**
+ * G187 cut 3: the weapon viewmodel sets baked to KTX2 (scripts/bake-viewmodel-sets.mjs; engine viewmodelBakeUrl names them
+ * `/assets/baked/pine-hollow/viewmodel/<set>.<plane>.png`): read only on the KTX2 path (the engine's startViewmodelTextures
+ * adopts them at boot instead of drawing the sets), so only a KTX2 list carries their stand-ins.
+ */
+function viewmodelReads(tier: Tier, tex: TexMode): string[] {
+  if (tex !== 'ktx2') return [];
+  return Object.keys(table[tier]).filter((url) => url.startsWith(`${bakedDir}viewmodel/`)).sort().flatMap((url) => table[tier][url] ?? []);
+}
 /** World files formerly fetched outside the loading contract. */
 export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
   const { gpu } = filePolicy(tier, tex, table);
@@ -52,7 +61,7 @@ export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
     sky: [...(color in publicBytes() && gain in publicBytes() ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in publicBytes() ? [skyJson] : []), ...pineSkyKeyUrls().filter((url) => url in publicBytes())].map(gpu),
     baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
     terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in publicBytes() ? [`${bakedDir}navmesh.bin`] : [])], cabins,
-    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in publicBytes()), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in publicBytes())].map(gpu).concat(coatReads(tier, tex)),
+    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in publicBytes()), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in publicBytes())].map(gpu).concat(coatReads(tier, tex), viewmodelReads(tier, tex)),
     art: [], music: [], sfx: [],
   };
 }

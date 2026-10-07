@@ -1,0 +1,207 @@
+{
+ "$doc": "G187 cut 3 (E435): labelled GL census (progress/shard-platform/sf47/glbytes.mjs: scripts/parity/glbytes.mjs after every capture pose), Pine Hollow phone tier, iPhone 16 Pro context, render scale 2, GPU textures KTX2, Developer mode, Memory saver off. parent = aaf165c2f (HEAD before cut 3), candidate = 0b4342809 (scratch commit: aaf165c2f + cut 3: the brushed-steel / leather / bolt / gunmetal viewmodel sets baked by scripts/bake-viewmodel-sets.mjs and adopted on the KTX2 path; the shipped commit differs only by a lint fix in the bake script). The census label generated/Group/Mesh[0-3]/{map,aoMap,normalMap} is the weapon viewmodels' procedural sets (engine/player/viewmodelTextures.ts makePixels), not ground / pond sets. Decimal MB.",
+ "parent": "aaf165c2f",
+ "candidate": "0b4342809",
+ "trim-off": {
+  "parentMB": 287.81,
+  "candidateMB": 277.59,
+  "deltaMB": -10.22,
+  "byCut": {
+   "drawnSets": -13.63,
+   "setKtx2": 3.41,
+   "other": 0.0
+  },
+  "unlabelled": [
+   0,
+   0
+  ],
+  "reconciled": [
+   true,
+   true
+  ],
+  "errors": [],
+  "top": [
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[1]/aoMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[1]/map/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[1]/normalMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[2]/aoMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[2]/map/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[2]/normalMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[3]/aoMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[3]/map/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[3]/normalMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/bolt.arm-b9c0f754.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/bolt.col-81cbdd17.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/bolt.nrm-8191fd87.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/brushed-steel.arm-f50ea074.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/brushed-steel.col-89a89fd0.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/brushed-steel.nrm-db2bfc8d.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/gunmetal.arm-5a50a255.ktx2/Texture",
+    "deltaMB": 0.35
+   }
+  ]
+ },
+ "trim-on": {
+  "parentMB": 199.2,
+  "candidateMB": 188.98,
+  "deltaMB": -10.22,
+  "byCut": {
+   "drawnSets": -13.63,
+   "setKtx2": 3.41,
+   "other": 0.0
+  },
+  "unlabelled": [
+   0,
+   0
+  ],
+  "reconciled": [
+   true,
+   true
+  ],
+  "errors": [],
+  "top": [
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[1]/aoMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[1]/map/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[1]/normalMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[2]/aoMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[2]/map/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[2]/normalMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[3]/aoMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[3]/map/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[3]/normalMap/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/bolt.arm-b9c0f754.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/bolt.col-81cbdd17.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/bolt.nrm-8191fd87.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/brushed-steel.arm-f50ea074.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/brushed-steel.col-89a89fd0.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/brushed-steel.nrm-db2bfc8d.ktx2/Texture",
+    "deltaMB": 0.35
+   },
+   {
+    "owner": "engine/ktx2Texture",
+    "asset": "/assets/gpu/baked/pine-hollow/viewmodel/gunmetal.arm-5a50a255.ktx2/Texture",
+    "deltaMB": 0.35
+   }
+  ]
+ }
+}

@@ -14,6 +14,14 @@ export type SetName = 'walnut' | 'brushed-steel' | 'leather' | 'cord' | 'bolt' |
  *  gunmetal (a weapon names the sets it wears: viewmodelTexSet) */
 export const CLASSIC_SETS: readonly SetName[] = ['walnut', 'brushed-steel', 'leather', 'cord', 'bolt'];
 export const MODERN_SETS: readonly SetName[] = ['anodised', 'polymer', 'gunmetal'];
+/**
+ * G187 cut 3 (E435): the name a set plane's baked KTX2 is keyed by in a level's KTX2 table (scripts/bake-viewmodel-sets.mjs
+ * writes it; combat/view/ranged.ts startViewmodelTextures adopts it on the KTX2 path): a name, not a file — only its `/assets/gpu/`
+ * stand-in exists. `col` / `nrm` / `arm` are the Pixels planes.
+ */
+export function viewmodelBakeUrl(slug: string, name: SetName, plane: 'col' | 'nrm' | 'arm'): string {
+  return `/assets/baked/${slug}/viewmodel/${name}.${plane}.png`;
+}
 /** RGBA8 colour (sRGB), normal and ARM (ao · roughness · metalness; absent for the cord) planes, `w × h` */
 export interface Pixels { w: number; h: number; col: Uint8Array; nrm: Uint8Array; arm: Uint8Array | null }
 

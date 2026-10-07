@@ -9,7 +9,9 @@ import type { ImpactSurface } from '../Weapon';
 import { castSegment, sweepBall, type Hit } from '../../physics/query';
 import { attachFogUniforms } from '../../world/Atmosphere';
 import type { Material } from '../../physics/surface';
-import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, type Pixels, type SetName, type Ctx2D } from '../../player/viewmodelTextures';
+import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, viewmodelBakeUrl, type Pixels, type SetName, type Ctx2D } from '../../player/viewmodelTextures';
+import { ktx2Texture } from '../../core/ktx2';
+import { activeLevel } from '../../level/selection';
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
 
@@ -63,18 +65,49 @@ export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolea
 
 export interface TexSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
 
+/** a baked set plane sampled as dataTexture samples the drawn one (map sRGB, the rest linear; repeat-wrapped, trilinear, anisotropy 8) */
+function viewmodelSampling(t: THREE.CompressedTexture, srgb: boolean): THREE.CompressedTexture {
+  t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.magFilter = THREE.LinearFilter;
+  t.anisotropy = 8;
+  t.needsUpdate = true;
+  return t;
+}
+
 
 const pixelCache = new Map<SetName, Pixels>();
+/** G187 cut 3 (E435): the sets whose baked KTX2 stand-ins the active level's KTX2 table holds, as compressed textures */
+const bakedSets = new Map<SetName, TexSet>();
 let texturesReady: Promise<void> = Promise.resolve();
 const WORKER_TIMEOUT_MS = 20000;
 
+/**
+ * G187 cut 3 (E435): on the KTX2 path a level may carry a set's three planes baked offline (scripts/bake-viewmodel-sets.mjs
+ * draws them with makePixels itself and encodes them as KTX2) under viewmodelBakeUrl's names; such a set is loaded
+ * compressed instead of drawn (a quarter of the RGBA8 DataTextures' GPU bytes, and no worker time). Returns the sets left
+ * to draw: every one on the images path, or with no stand-in.
+ */
+async function adoptBakedSets(sets: readonly SetName[]): Promise<SetName[]> {
+  const slug = activeLevel().id;
+  const planes = ['col', 'nrm', 'arm'] as const;
+  await Promise.all(sets.map(async (name) => {
+    const [map, normalMap, armMap] = await Promise.all(planes.map((plane) => ktx2Texture(viewmodelBakeUrl(slug, name, plane)).catch(() => null)));
+    if (!map || !normalMap || !armMap) return;
+    bakedSets.set(name, { map: viewmodelSampling(map, true), normalMap: viewmodelSampling(normalMap, false), armMap: viewmodelSampling(armMap, false) });
+  }));
+  return sets.filter((name) => !bakedSets.has(name));
+}
 
 export function startViewmodelTextures(requested: boolean | readonly SetName[]): void {
   
   const names = typeof requested === 'boolean' ? (requested ? [...CLASSIC_SETS, ...MODERN_SETS] : [...MODERN_SETS]) : requested;
-  const sets = names.filter((n) => !pixelCache.has(n));
-  if (sets.length === 0) { texturesReady = Promise.resolve(); return; }
+  const wanted = names.filter((n) => !pixelCache.has(n) && !bakedSets.has(n));
+  if (wanted.length === 0) { texturesReady = Promise.resolve(); return; }
   texturesReady = (async () => {
+  const sets = await adoptBakedSets(wanted);
+  if (sets.length === 0) return;
   let worker: Worker;
   try {
     const { default: TexturesWorker } = await import('../../player/viewmodelTextures.worker?worker&inline');
@@ -112,6 +145,8 @@ function takePixels(name: SetName): Pixels {
 }
 /** A viewmodel texture set as DataTextures (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8). */
 export function viewmodelTexSet(name: Exclude<SetName, 'cord'>): TexSet {
+  const baked = bakedSets.get(name);
+  if (baked) { bakedSets.delete(name); return baked; } // taken once, as the pixels are (a second ask draws on the main thread)
   const p = takePixels(name);
   if (p.arm === null) throw new Error(`viewmodel textures: ${name} has no ARM plane`);
   return { map: dataTexture(p.col, p.w, p.h, true), normalMap: dataTexture(p.nrm, p.w, p.h, false), armMap: dataTexture(p.arm, p.w, p.h, false) };

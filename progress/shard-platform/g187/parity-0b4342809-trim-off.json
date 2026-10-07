@@ -1,0 +1,62 @@
+{
+  "row": "G187 parent vs candidate, Pine memory trim off on both",
+  "parent": "aaf165c2f",
+  "current": "0b4342809",
+  "trim": "off",
+  "when": "2026-10-07T21:37:34.896Z",
+  "elapsedSeconds": 497.494,
+  "method": "Fresh parent and current captures using scripts/parity.mjs capture(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. Phone tier is emulated Chromium (iPhone 16 Pro), not Safari.",
+  "reports": [
+    {
+      "tier": "phone",
+      "verdict": "red",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 0.9997351735222233,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 0.9997511904934578,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9994538809950183,
+          "note": null
+        }
+      ],
+      "differences": [
+        {
+          "verdict": "red"
+        },
+        {
+          "verdict": "red"
+        }
+      ]
+    },
+    {
+      "tier": "desktop",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9999767558018263,
+          "note": null
+        }
+      ],
+      "differences": []
+    }
+  ]
+}
