@@ -7,7 +7,7 @@ import { Scope } from '../src/engine/app/scope';
 import { cellScreenBytes, cellScreenContent, drawCellScreen, installCellScreens, SCREEN_M, type CellScreenInput, type ScreenContext } from '../src/game/grid/cellScreen';
 import type { PlatformRenderAdmission, PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
 
-const MB = 1048576;
+const MB = 1e6;
 const base: CellScreenInput = { instance: 'template-1', slug: 'template', name: 'Template', status: 'loading', refusal: null, wait: null, issue: null, far: 'resident',
   requested: true, product: true, runtime: false, colliders: false, sim: false, claimedBytes: 12 * MB, claims: 3, declaredBytes: 10 * MB, pageBytes: 400 * MB, capBytes: 1000 * MB, overBytes: 0 };
 const frame = { build: 'abc1234def567', tier: 'phone', elapsedS: 7 };

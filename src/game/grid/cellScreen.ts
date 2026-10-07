@@ -13,7 +13,6 @@
  * allocator, admitted up front.
  */
 import { CanvasTexture, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, type Object3D } from 'three';
-import { formatMB } from '@wildshard/engine/boot/plan';
 import type { PlatformRenderAdmission } from './renderResidency';
 import { refusalReason, type FarViewStatus, type ShardRefusal } from './refusal';
 import { GAME_STRINGS } from '../strings';
@@ -62,6 +61,8 @@ export interface CellScreen {
 }
 
 const S = GAME_STRINGS.grid.screen;
+/** decimal MB (10^6), the allocator's and the PTS overlay's unit */
+const formatMB = (bytes: number): string => `${(bytes / 1e6).toFixed(1)} MB`;
 const pct = (fraction: number): number => Math.floor(Math.max(0, Math.min(1, fraction)) * 100); // 100 only when done
 const short = (build: string): string => (build === '' ? 'dev' : build.slice(0, 9));
 /** split a long admission message into at most `lines` lines of `width` characters */
