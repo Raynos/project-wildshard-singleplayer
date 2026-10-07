@@ -1,0 +1,462 @@
+{
+  "headPin": "ccc61236e",
+  "patchedPin": "40cc62809",
+  "productionBuild": "316e175c-muumf0z9",
+  "productionTime": "2026-10-05T02:18:49.455Z",
+  "layout": "Developer",
+  "cornerRoundTrips": [
+    {
+      "home": "driftwood-isle",
+      "peer": "template-4",
+      "speed": 15,
+      "start": {
+        "x": -230,
+        "z": -230
+      },
+      "waypoints": [
+        {
+          "x": -325,
+          "z": -325
+        },
+        {
+          "x": -230,
+          "z": -230
+        }
+      ],
+      "timeout": 60,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "crossingDelta": 4,
+      "transitions": [
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "template-4"
+        },
+        {
+          "from": "template-4",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "issues": {},
+      "backgroundIssues": {
+        "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+        "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+        "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)"
+      }
+    },
+    {
+      "home": "driftwood-isle",
+      "peer": "template-1",
+      "speed": 15,
+      "start": {
+        "x": -230,
+        "z": 230
+      },
+      "waypoints": [
+        {
+          "x": -325,
+          "z": 325
+        },
+        {
+          "x": -230,
+          "z": 230
+        }
+      ],
+      "timeout": 60,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "crossingDelta": 4,
+      "transitions": [
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "template-1"
+        },
+        {
+          "from": "template-1",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "issues": {},
+      "backgroundIssues": {
+        "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+        "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+        "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)",
+        "pine-hollow": "pine-hollow is not a shardfile shard (it stays a far proxy until M3)"
+      }
+    },
+    {
+      "home": "driftwood-isle",
+      "peer": "template-2",
+      "speed": 15,
+      "start": {
+        "x": 230,
+        "z": 230
+      },
+      "waypoints": [
+        {
+          "x": 325,
+          "z": 325
+        },
+        {
+          "x": 230,
+          "z": 230
+        }
+      ],
+      "timeout": 60,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "crossingDelta": 4,
+      "transitions": [
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "template-2"
+        },
+        {
+          "from": "template-2",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "issues": {},
+      "backgroundIssues": {
+        "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+        "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+        "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)",
+        "pine-hollow": "pine-hollow is not a shardfile shard (it stays a far proxy until M3)"
+      }
+    },
+    {
+      "home": "driftwood-isle",
+      "peer": "template-6",
+      "speed": 15,
+      "start": {
+        "x": 230,
+        "z": -230
+      },
+      "waypoints": [
+        {
+          "x": 325,
+          "z": -325
+        },
+        {
+          "x": 230,
+          "z": -230
+        }
+      ],
+      "timeout": 60,
+      "stuck": [],
+      "complete": true,
+      "timedOut": false,
+      "crossingDelta": 4,
+      "transitions": [
+        {
+          "from": "driftwood-isle",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "template-6"
+        },
+        {
+          "from": "template-6",
+          "to": null
+        },
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "issues": {},
+      "backgroundIssues": {
+        "sunscar-dunes": "sunscar-dunes is not a shardfile shard (it stays a far proxy until M3)",
+        "nalati-grasslands": "nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)",
+        "far-reach": "far-reach is not a shardfile shard (it stays a far proxy until M3)",
+        "pine-hollow": "pine-hollow is not a shardfile shard (it stays a far proxy until M3)"
+      }
+    }
+  ],
+  "patchedWall": {
+    "home": "driftwood-isle",
+    "inside": null,
+    "feet": {
+      "x": 298.35,
+      "z": -0.04
+    },
+    "cells": [
+      {
+        "instance": "template-1",
+        "slug": "_template",
+        "cell": [
+          -1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "pine-hollow",
+        "slug": "pine-hollow",
+        "cell": [
+          0,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-2",
+        "slug": "_template",
+        "cell": [
+          1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "sunscar-dunes",
+        "slug": "sunscar-dunes",
+        "cell": [
+          -1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "driftwood-isle",
+        "slug": "driftwood-isle",
+        "cell": [
+          0,
+          0
+        ],
+        "shows": "frozen"
+      },
+      {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-4",
+        "slug": "_template",
+        "cell": [
+          -1,
+          -1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "far-reach",
+        "slug": "far-reach",
+        "cell": [
+          0,
+          -1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-6",
+        "slug": "_template",
+        "cell": [
+          1,
+          -1
+        ],
+        "shows": "far proxy"
+      }
+    ],
+    "strips": 40,
+    "road": {
+      "segments": 24,
+      "junctions": 16,
+      "roundabouts": 4,
+      "signs": 124,
+      "lights": 364,
+      "draws": 3
+    },
+    "seams": {
+      "triangles": 102140,
+      "draws": 5,
+      "buckets": {
+        "ground": 86844,
+        "stone": 8244,
+        "rock": 6428,
+        "rail": 312,
+        "curtain": 312
+      }
+    },
+    "softWalls": {
+      "closed": 20,
+      "panel": "nalati-grasslands",
+      "status": "waiting"
+    },
+    "shimmer": {
+      "borders": 36,
+      "status": null
+    },
+    "refused": {
+      "cells": []
+    },
+    "ringsReady": true,
+    "residentMB": 473.99,
+    "playingMB": 906.13,
+    "accountedBytes": 473992596,
+    "rings": {
+      "far": 8,
+      "l1": 7,
+      "l0": 0,
+      "refused": 0,
+      "inFlight": 0,
+      "queued": 0
+    },
+    "frame": {
+      "installed": true,
+      "faded": 4,
+      "owner": null,
+      "highway": 0.98,
+      "weights": {
+        "nalati-grasslands": 0.02
+      },
+      "air": [
+        0.525,
+        0.695,
+        0.846
+      ],
+      "grade": [
+        0,
+        0.804,
+        1,
+        0.951,
+        0.99,
+        1.069
+      ],
+      "roadSky": 0.98
+    },
+    "live": {
+      "live": {
+        "current": null,
+        "worldFeet": {
+          "x": 298.35040909351665,
+          "y": 0.4499994011202188,
+          "z": -0.04231925481830095
+        },
+        "crossings": 1,
+        "transitions": [
+          {
+            "from": "driftwood-isle",
+            "to": null
+          }
+        ],
+        "residents": [
+          "template-2",
+          "template-4",
+          "template-6"
+        ],
+        "pending": [],
+        "issues": {},
+        "gameplayReady": true,
+        "continuations": {
+          "entries": 0,
+          "storedChars": 0,
+          "capacityChars": 0,
+          "claimedBytes": 0
+        }
+      },
+      "crossing": {
+        "current": null,
+        "target": null,
+        "phase": "settled",
+        "issue": null
+      },
+      "stowed": true,
+      "renderOrigin": {
+        "x": 0,
+        "z": 0
+      },
+      "hoverCap": 18.13,
+      "homeActive": null
+    },
+    "life": [
+      {
+        "instance": "template-1",
+        "creatures": 3,
+        "frozen": true,
+        "views": {
+          "targets": 3,
+          "posed": 3,
+          "particles": 2,
+          "capacity": 6,
+          "tick": 2486
+        },
+        "failed": null
+      },
+      {
+        "instance": "template-2",
+        "creatures": 3,
+        "frozen": true,
+        "views": {
+          "targets": 3,
+          "posed": 3,
+          "particles": 2,
+          "capacity": 6,
+          "tick": 2486
+        },
+        "failed": null
+      },
+      {
+        "instance": "template-4",
+        "creatures": 3,
+        "frozen": true,
+        "views": {
+          "targets": 3,
+          "posed": 3,
+          "particles": 2,
+          "capacity": 6,
+          "tick": 2486
+        },
+        "failed": null
+      },
+      {
+        "instance": "template-6",
+        "creatures": 3,
+        "frozen": true,
+        "views": {
+          "targets": 3,
+          "posed": 3,
+          "particles": 2,
+          "capacity": 6,
+          "tick": 2486
+        },
+        "failed": null
+      }
+    ]
+  },
+  "pageErrors": [],
+  "nativeFixtureTests": 15
+}
