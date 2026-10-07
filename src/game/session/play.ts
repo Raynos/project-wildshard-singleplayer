@@ -650,12 +650,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
 
   app.ui.bind(game.levelScope, () => hud.promptText);
   boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues, firstHints, minimap, bodyShadow };
-  if (session.recovery !== undefined) {
-    if (gridLive === null) throw new Error('Recovery requires the admitted live grid');
-    await gridLive.resumeRoad(session.recovery.road);
-    player.spawn(session.recovery.road.x, session.recovery.road.z, session.recovery.road.yaw, 0.5); player.pitch = 0;
-    gridCells.leave();
-  }
   const getPlayground = (): Playground | null => playground;
   return { ...ctx, gridLive, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
 }

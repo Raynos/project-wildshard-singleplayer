@@ -1,4 +1,5 @@
 import type { BuiltWorld } from './context';
+import { gridCells } from '../grid/boot';
 import type { playStage } from './play';
 import { asShell } from '@wildshard/engine/app/ownership';
 import { app } from '@wildshard/engine/app/runtime';
@@ -17,6 +18,16 @@ import { setPoseProvider } from '@wildshard/engine/ui/ReloadPrompt';
 
 export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): Promise<BuiltWorld> {
   const { manifest, boot, slug, loading, audioProfile, files, bootSteps, plan, step, audioLoad, deferredAudio, world, game, sky, player, chunk, fragileBoot, failGpuBoot, onBootContextLost, edgeDressing, boundary, water, interactables, props, disableBootGpuGuard, level, animals, arena, crossbow, weapons, lockSys, hud, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground, leakPhysics } = ctx;
+
+  // The staged loader invokes the trusted play hook after buildPlay. Only a fully installed runtime can leave:
+  // leaving during buildPlay disposes its kit scope before that hook runs and makes recovery fall back to title.
+  if (ctx.session.recovery !== undefined) {
+    if (ctx.gridLive === null) throw new Error('Recovery requires the admitted live grid');
+    const road = ctx.session.recovery.road;
+    await ctx.gridLive.resumeRoad(road);
+    player.spawn(road.x, road.z, road.yaw, 0.5); player.pitch = 0;
+    gridCells.leave();
+  }
 
   await macrotask();
   game.buildComposer();
