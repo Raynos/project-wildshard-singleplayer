@@ -1,4 +1,4 @@
-import type { TierKnobs, TierOverrides } from '@wildshard/engine/level/spec';
+import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { pineMemoryTrim } from '../debug/options';
 
 /**
@@ -9,6 +9,8 @@ import { pineMemoryTrim } from '../debug/options';
  * The numbers are 0.75 × the phone tier's own (Pine's row where it sets one, else the engine's phone row, render/tiers.ts).
  * Trim off keeps today's reach (the Debug variant).
  */
+type TierOverrides = NonNullable<ShardManifest['tiers']>;
+type TierKnobs = NonNullable<TierOverrides['phone']>;
 const VIEW_B: TierKnobs = {
   treeHiDist: 45, treeLoDist: 97.5, treeTwigDist: 18, cabinDetailDist: 52.5,
   animalHideDist: 112.5, animalShadowDist: 45, animalEyeDist: 33.75, animalOneDrawDist: 75,
