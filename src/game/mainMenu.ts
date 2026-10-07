@@ -15,6 +15,7 @@ import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
 import { gridEntryShown, menuMode } from './grid/menu';
 import { dropGridIntent, enterGrid } from './grid/boot';
+import { gridRecoveryLoop } from './grid/recoveryBoot';
 import { installGridDebug } from './grid/debug';
 import { GAME_STRINGS } from './strings';
 import { WHATS_NEW, type WhatsNew } from './whatsNew';
@@ -155,10 +156,12 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
  *   - the DEVSERVER cell's Debug row is installed (a DEVSERVER build only);
  *   - when the previous page was the grid and it ended unexpectedly (iOS's memory kill), the title only adds one line.
  */
-export interface GridTitle { readonly onGrid: () => void; readonly note: string }
+export interface GridTitle { readonly onGrid: () => void; readonly note: string; readonly screen?: MainMenuScreen }
 export function installGridTitle(): GridTitle {
   dropGridIntent();
   installGridDebug();
   const end = lastEnd();
-  return { onGrid: enterGrid, note: end.kind === 'unexpected' && end.mode === 'grid' ? GAME_STRINGS.grid.ended : '' };
+  const loop = gridRecoveryLoop();
+  return { onGrid: enterGrid, note: loop || (end.kind === 'unexpected' && end.mode === 'grid') ? GAME_STRINGS.grid.ended : '',
+    ...(loop ? { screen: 'select' } : {}) };
 }

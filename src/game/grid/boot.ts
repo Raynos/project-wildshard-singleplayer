@@ -5,7 +5,9 @@ import { devserverCellOn } from './debug';
 import { findShard } from '../shard/registry';
 import { travel } from '../travel/travel';
 import type { HomeResidencyClaim } from './pageResidency';
-import { pageGridRecovery } from './recoveryBoot';
+import { clearGridRecovery, pageGridRecovery } from './recoveryBoot';
+import { gridRecovery } from './recovery';
+import { app } from '@wildshard/engine/app/runtime';
 import { currentPageMode, setPageMode } from './pageMode';
 /**
  * Infinite Wildshard's way in (SF21a). The catalogue's home cell boots through the normal shard flow as page mode
@@ -29,6 +31,9 @@ export function gridHome(mode?: MenuMode): GridCell {
 
 /** The title's Infinite Wildshard tap: write the one-shot intent, then open the home cell in a fresh document. */
 export function enterGrid(): void {
+  // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
+  if (!gridRecovery(app.saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');
+  clearGridRecovery();
   const home = gridHome();
   const target = findShard(home.slug);
   if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);

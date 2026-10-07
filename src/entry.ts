@@ -22,6 +22,7 @@ import { inspectPreviousBoot, previousBootLine, previousBootLevel } from './engi
 import { Scope } from './engine/app/scope';
 import { retried } from './engine/boot/retry';
 import { bootRoute } from './bootRoute';
+import { lastEnd } from './engine/boot/lastEnd';
 
 const entryScope = new Scope('entry');
 const task = (): Promise<void> => new Promise((resolve) => { entryScope.timeout(0, resolve); });
@@ -35,7 +36,8 @@ inspectPreviousBoot();
 // renderer-free title until the player chooses a shard again.
 async function enterPage(): Promise<unknown> {
   const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));
-  const recovery = consumeGridRecovery();
+  const end = lastEnd();
+  const recovery = consumeGridRecovery({ unexpected: end.kind === 'unexpected' && end.mode === 'grid' });
   if (recovery !== null) {
     search.set('chunk', recovery.slug); search.set('glreload', '1'); search.delete('at');
     const url = new URL(location.pathname, location.origin); url.search = search.toString();
@@ -73,6 +75,7 @@ async function showPageTitle(): Promise<void> {
       onEnter: (card) => { travel({ to: card.slug, mode: 'enter' }); },
       onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
       onGrid: grid.onGrid,
+      ...(grid.screen === undefined ? {} : { screen: grid.screen }),
       onSettings: settings, ...(lines === '' ? {} : { notice: lines }),
     });
   });
