@@ -13,6 +13,7 @@ import type { TravelHandoff } from '../travel/travel';
 import type { BagIcons } from '../bag/tabs';
 import type { Scene, PerspectiveCamera } from 'three';
 import type { LoadStage } from '../shard/load';
+import type { GridRecoveryRecord } from '../grid/recovery';
 import type { PageResidency } from '../grid/pageResidency';
 
 export interface KitPorts {
@@ -25,6 +26,8 @@ export interface KitPorts {
 export interface SessionState {
   /** Created before manifest hydration; the level disposes it after its allocated consumers. */
   readonly residency?: PageResidency;
+  /** Consume-once recovery metadata, admitted before hydration. */
+  readonly recovery?: NonNullable<GridRecoveryRecord>;
   music: Music | null;
   arrival: TitleArrival | null;
   fatalShown: boolean;

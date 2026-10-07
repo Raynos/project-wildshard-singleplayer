@@ -34,8 +34,15 @@ const search = new URLSearchParams(location.search);
 inspectPreviousBoot();
 // Safari may reload the same document after WebContent dies. Keep that automatic retry on the
 // renderer-free title until the player chooses a shard again.
-function enterPage(): Promise<unknown> {
-  const route = bootRoute(search, { line: previousBootLine(), level: previousBootLevel() });
+async function enterPage(): Promise<unknown> {
+  const { consumeGridRecovery, gridRecoveryRefused } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));
+  const recovery = consumeGridRecovery();
+  if (recovery !== null) {
+    search.set('chunk', recovery.slug); search.set('glreload', '1'); search.delete('at');
+    const url = new URL(location.pathname, location.origin); url.search = search.toString();
+    history.replaceState(history.state, '', url);
+  }
+  const route = recovery !== null ? { rescue: false, titleOnly: false } : gridRecoveryRefused() ? { rescue: true, titleOnly: true } : bootRoute(search, { line: previousBootLine(), level: previousBootLevel() });
   const rescueBoot = route.rescue;
   const titleOnly = route.titleOnly;
   if (rescueBoot) {
@@ -46,23 +53,7 @@ function enterPage(): Promise<unknown> {
   }
 
   /** resolves once the title or the selected shard's entry has been evaluated */
-  return setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : titleOnly && document.getElementById('ws-shardfile') === null ? (async () => {
-    await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
-    const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/mainMenu'), import('./game/travel/travel')]));
-    // SF21a: Infinite Wildshard boots only from a one-shot tap; an iOS kill of the grid only adds a line to the title
-    const grid = installGridTitle();
-    // the composition root wires the game's main menu (over its shard deck) into the engine's title (E405)
-    showStartTitle(({ settings, notice }) => {
-      const lines = [notice ?? '', grid.note].filter((line) => line !== '').join('\n');
-      return buildTitleMenu({
-        active: null,
-        onEnter: (card) => { travel({ to: card.slug, mode: 'enter' }); },
-        onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
-        onGrid: grid.onGrid,
-        onSettings: settings, ...(lines === '' ? {} : { notice: lines }),
-      });
-    });
-  })() : (async () => {
+  return setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
     const { initializeTier } = await retried(() => import('./engine/core/tier'));
     await initializeTier();
     await retried(() => import('three')); 
@@ -70,11 +61,42 @@ function enterPage(): Promise<unknown> {
     return retried(() => import('./main'));
   })();
 }
+async function showPageTitle(): Promise<void> {
+  await retried(() => import('./shardList')); // the shard list before the deck reads it (AG4)
+  const [{ showStartTitle }, { buildTitleMenu, installGridTitle }, { travel }] = await retried(() => Promise.all([import('./engine/ui/StartTitle'), import('./game/mainMenu'), import('./game/travel/travel')]));
+  // SF21a: a tap or validated recovery selects a grid; unrecorded process loss returns to title
+  const grid = installGridTitle();
+  // the composition root wires the game's main menu (over its shard deck) into the engine's title (E405)
+  showStartTitle(({ settings, notice }) => {
+    const lines = [notice ?? '', grid.note].filter((line) => line !== '').join('\n');
+    return buildTitleMenu({
+      active: null,
+      onEnter: (card) => { travel({ to: card.slug, mode: 'enter' }); },
+      onExplore: (card) => { travel({ to: card.slug, mode: 'explore' }); },
+      onGrid: grid.onGrid,
+      onSettings: settings, ...(lines === '' ? {} : { notice: lines }),
+    });
+  });
+}
+
 export const entered: Promise<unknown> = enterPage();
 guardBoot(entered);
 
 /** Composition root: select authored content and inject reusable kit recipes. */
 export async function start(): Promise<void> {
+  try { await startSelected(); }
+  catch (error) {
+    const { pageGridRecovery, clearGridRecovery } = await import('@wildshard/game/grid/recoveryBoot');
+    if (pageGridRecovery() === null) throw error;
+    clearGridRecovery();
+    history.replaceState(history.state, '', new URL('/', location.origin));
+    document.documentElement.classList.add('title-first');
+    document.querySelector<HTMLElement>('.ws-resume')?.classList.remove('show');
+    await showPageTitle();
+  }
+}
+
+async function startSelected(): Promise<void> {
   await retried(() => import('./shardList')); // the shard list before @wildshard/game reads it (AG4)
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
   const [{ game }, { installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { KIT_ITEMS }, { HOVERBOARD_TOOL },
@@ -85,10 +107,12 @@ export async function start(): Promise<void> {
     retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
   ]);
   const { configuredShardfile, installShardfileProduct, installManifestShardfile, browserShardfileOptions } = await retried(() => import('@wildshard/game/shardfile/loader'));
-  const source = configuredShardfile(document);
+  const { pageGridRecovery } = await retried(() => import('@wildshard/game/grid/recoveryBoot'));
+  const source = pageGridRecovery() === null ? configuredShardfile(document) : null;
   const { preparePageResidency } = await retried(() => import('@wildshard/game/grid/pageBoot'));
-  const page = preparePageResidency(game.shard, source?.identity.slug);
+  let page: ReturnType<typeof preparePageResidency> | undefined;
   try {
+    page = preparePageResidency(game.shard, source?.identity.slug);
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
     const bindings: Parameters<typeof installShardfileProduct>[2] = {
       instance: page.instance ?? (source === null ? 'template-solo' : `standalone-${source.identity.slug}`), catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
@@ -110,9 +134,9 @@ export async function start(): Promise<void> {
       tools: [HOVERBOARD_TOOL],
       combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
       bagIcons: BAG_ICONS,
-    }, { mode: page.mode, ...(page.residency === undefined ? {} : { residency: page.residency }) });
+    }, { mode: page.mode, ...(page.recovery === undefined ? {} : { recovery: page.recovery }), ...(page.residency === undefined ? {} : { residency: page.residency }) });
   } catch (error) {
-    page.residency?.dispose();
+    page?.residency?.dispose();
     throw error;
   }
 }

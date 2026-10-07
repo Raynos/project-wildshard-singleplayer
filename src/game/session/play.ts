@@ -179,6 +179,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // pause ▸ Settings ▸ SAVES (SF33b, G83): a card per shard save, NEW GAME's before → after sheet; HERE is the grid cell you stand in, else this shard's copy
   const homeInstance = ((): string => { try { return firstPartyInstance(manifest.slug); } catch { return manifest.slug; } })();
   installSavesSettings(menu, { scope: game.levelScope, grid: grid !== null,
+    ...(gridLive === null ? {} : { beforeReset: () => {
+      const commit = gridLive.prepareNewGameRecovery();
+      return () => { commit(); game.hold = true; };
+    } }),
     here: () => { const cell = gridCells.cell; return grid === null ? { id: homeInstance, shard: manifest.slug } : cell === null ? null : { id: cell.instance, shard: cell.slug }; } });
   describeKeyBindings(game.levelScope); // pause ▸ Settings ▸ Key bindings: the plain-named table (E357 J10)
   game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }, 'main.6'); // E132: this shard's time played (the complete card shows it), in the world only
@@ -388,7 +392,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // loading screen. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
   const tour = world.tour;
   // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
-  const resuming = params.has('glreload');
+  const resuming = session.recovery !== undefined || params.has('glreload');
   const arrival = session.arrival;
   const menuFirst = arrival === null && !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;
@@ -468,8 +472,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the grid's player-facing moments: G98's sky-down reveal to the pier (it waits for the rings and the home handoff), then
   // G78's SAFE ZONE + dimmed ATTACK on the road, G82 / G105's title card on entering a shard, G97's speed look (gridHud.ts)
   if (grid !== null) {
-    const revealing = installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
-      home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered });
+    const revealing = session.recovery === undefined ? installGridReveal({ scope: game.levelScope, camera: game.camera, hudRoot: hud.root, onLate: (fn) => { game.onLate(fn, 'game.grid.reveal'); },
+      home: chunk.name, ringsReady: () => grid.ringsReady(), homeSimReady: () => !gridHomeSim.pending, weapons, viewmodel: game.viewmodel, entered: () => hud.entered }) : () => false;
     const gridHud = installGridHud({ scope: game.levelScope, hudRoot: hud.root, camera: game.camera, cells: gridCells,
       title: (cell) => { const shard = findShard(cell.slug); return { name: shard?.name ?? cell.slug, subtitle: shard?.biome ?? '' }; },
       accent: (cell) => { const id = findShard(cell.slug)?.accent; return id === undefined ? null : ACCENTS[id]; },
@@ -636,7 +640,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
 
   // `?at=x,y,z,yaw,pitch` — a review note's repro URL (src/engine/ui/Feedback.ts reproUrl) starts you on the spot it was filed from
   const at = (params.get('at') ?? '').split(',').map(Number);
-  if (at.length >= 3 && at.every((v) => Number.isFinite(v))) {
+  if (session.recovery === undefined && at.length >= 3 && at.every((v) => Number.isFinite(v))) {
     const [x = 0, y = 0, z = 0, yaw = player.yaw, pitch = 0] = at;
     // y is in the level's authored frame (every `?at=` writer takes the runtime datum off, G164): stand on the same ground in either state
     player.position.set(x, y + terrainDatum(), z); player.yaw = yaw; player.pitch = pitch;
@@ -646,8 +650,14 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
 
   app.ui.bind(game.levelScope, () => hud.promptText);
   boot.runtime.play = { animals, weapons, primary: crossbow, rifle, secondary: longbow, inventory, owned, progress, hud, menu, fullMap, audio, music, skins, wearSkin, touchUi, nolock, disposeRifleDrop: () => { boot.runtime.hooks.disposeRifleDrop?.(); }, cues: combatCues, firstHints, minimap, bodyShadow };
+  if (session.recovery !== undefined) {
+    if (gridLive === null) throw new Error('Recovery requires the admitted live grid');
+    await gridLive.resumeRoad(session.recovery.road);
+    player.spawn(session.recovery.road.x, session.recovery.road.z, session.recovery.road.yaw, 0.5); player.pitch = 0;
+    gridCells.leave();
+  }
   const getPlayground = (): Playground | null => playground;
-  return { ...ctx, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
+  return { ...ctx, gridLive, leakPhysics, perf, audio, music, playerHealth, exploring, hands, windupWarn, resuming, arrival, menuFirst, enter, getPlayground };
 }
 
 export const playStage: typeof buildPlay = buildPlay;

@@ -42,7 +42,7 @@ import type { PageResidency } from '../grid/pageResidency';
 declare const __BUILD_ID__: string;
 
 /** Early root selection avoids consuming the grid intent a second time after descriptor hydration. */
-export interface SessionOptions { readonly mode?: PageMode; readonly residency?: PageResidency }
+export interface SessionOptions { readonly mode?: PageMode; readonly residency?: PageResidency; readonly recovery?: SessionState['recovery'] }
 
 /** Game presentation and plugin discovery belong to the game adapter, after the root selects content. */
 export async function startSession(manifest: ShardManifest, kit: KitPorts, options: SessionOptions = {}): Promise<void> {
@@ -50,7 +50,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
   setBootCatalog({ levels: shards(), playable: shards().filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   installErrorModal();
-  const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.residency === undefined ? {} : { residency: options.residency }) };
+  const session: SessionState = { music: null, arrival: null, fatalShown: false, ...(options.recovery === undefined ? {} : { recovery: options.recovery }), ...(options.residency === undefined ? {} : { residency: options.residency }) };
   try {
     app.rng.seed(pageSeed(manifest.seed, window.__wildshardHarness?.seed));
     const selected = manifest.slug;
@@ -77,7 +77,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
         if (app.render !== null) app.render.hold = true;
         scope.dispose();
       }, report: reportError,
-      show: (failure) => { session.fatalShown = true; showLoadFailure(failure); },
+      show: (failure) => { if (options.recovery !== undefined) return; session.fatalShown = true; showLoadFailure(failure); },
     });
     let memoryAt = -Infinity, memoryMB = 0;
     const memory = (maxAgeMs = 5000) => {
@@ -89,6 +89,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: `${selected} (playing) ~${Math.round(memory(60_000).levels[0]?.textureMB ?? 0)} MB`, mode }));
   } catch (error) {
     options.residency?.dispose(); // Pre-bootstrap failures have no consumers; runShardLoad disposes allocated ones first.
+    if (options.recovery !== undefined) throw error; // the root returns a consumed recovery to the renderer-free title
     markBootHandledError();
     if (!session.fatalShown) showError(error instanceof Error ? `${error.name}: ${error.message}` : String(error), error instanceof Error ? error.stack ?? '' : '');
   }

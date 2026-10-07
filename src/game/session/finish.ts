@@ -53,6 +53,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
   const recoveryInstalledAt = performance.now();
   installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming,
+    ...(ctx.gridLive === null ? {} : { beforeReload: (reason: 'gpu' | 'background') => ctx.gridLive?.prepareRecovery(reason) === true }),
     fragileBoot: () => TIER === 'phone' && performance.now() - recoveryInstalledAt < 20_000,
   });
   disableBootGpuGuard();

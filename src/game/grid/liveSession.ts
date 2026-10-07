@@ -50,7 +50,8 @@ import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
 import { gridHomeSim, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
 import { gridShardfileProduct } from './products';
-import { RoadRecovery, type RoadRecoveryCell } from './roadRecovery';
+import { gridRecovery, type GridRecoveryReason } from './recovery';
+import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './roadRecovery';
 import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
@@ -160,6 +161,7 @@ export class LiveGridSession {
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
   private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation }>();
   private homeSim: GridHomeSimulation | null = null;
+  private checkpointsSuppressed = false;
   /** G101: the last road point, where a fall that began from the road recovers */
   private readonly road: RoadRecovery;
   private readonly respawnCells = new Map<string, RoadRecoveryCell>();
@@ -229,6 +231,7 @@ export class LiveGridSession {
     scope.onDispose(gridHomeSim.take((sim) => {
       if (sim.residency !== ports.residency) throw new Error('Home simulation handoff must retain its admitted page claim');
       this.homeSim = sim; sim.setActive(this.live.current() === home.instance);
+      if (this.checkpointsSuppressed) sim.suppressCheckpoint?.();
     }));
     scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
     page.onFixedPre(() => {
@@ -282,6 +285,7 @@ export class LiveGridSession {
   }
 
   private checkpointHome(): boolean {
+    if (this.checkpointsSuppressed) return false;
     const sim = this.homeSim;
     return sim !== null && !sim.disposed() ? sim.checkpoint() : this.page.checkpoint();
   }
@@ -294,8 +298,46 @@ export class LiveGridSession {
 
   /** Save the active region and retry its pending profile/local rewards before a reload or page exit. */
   checkpoint(): boolean {
+    if (this.checkpointsSuppressed) return false;
     const current = this.live.current();
     return current === null ? this.checkpointHome() : this.live.checkpoint(current);
+  }
+
+  /** Last grounded road lane; before the first road visit use the admitted home's adjacent lane. */
+  recoveryRoad(): RoadPoint {
+    return this.road.lastRoad() ?? { x: this.ports.home.origin.x + this.ports.assembly.pitch / 2 + 3.6,
+      z: this.ports.home.origin.z, yaw: this.page.traveller.yaw };
+  }
+
+  /** Recovery only, never called by crossings: failed persistence returns the graphics recovery to title. */
+  prepareRecovery(reason: Exclude<GridRecoveryReason, 'new-game'>): boolean {
+    if (this.ports.scope.disposed || !this.checkpoint()) return false;
+    return gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, this.recoveryRoad(), reason);
+  }
+
+  /** Capture before reset; run only after success, without flushing old state into the reset save. */
+  prepareNewGameRecovery(): () => void {
+    const road = this.recoveryRoad();
+    return () => {
+      this.checkpointsSuppressed = true;
+      this.homeSim?.suppressCheckpoint?.();
+      gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, road, 'new-game');
+    };
+  }
+
+  /** Ordinary admitted boot then a prepared highway transfer, with progress read from real instance saves. */
+  async resumeRoad(road: RoadPoint): Promise<void> {
+    if (!onRoad(this.ports.assembly, road.x, road.z) || ![road.x, road.z, road.yaw].every(Number.isFinite)) throw new Error('Invalid recovery road');
+    if (this.live.current() !== this.ports.home.instance) throw new Error('Recovery requires the newly admitted home');
+    this.loadout.stow();
+    const prepared = await this.live.prepare(this.ports.home.instance, null);
+    try {
+      if (this.ports.scope.disposed) throw new Error('Recovery boot disposed');
+      prepared.commit();
+    } catch (error) { prepared.cancel(); throw error; }
+    this.crossing.crossing.dispose(); this.crossing = this.installCrossing();
+    this.page.traveller.position.set(road.x, 0.5, road.z);
+    this.road.observe({ x: road.x, y: 0, z: road.z }, road.yaw, true);
   }
 
   /** The traveller's world feet (grid metres), whatever frame it is in. */
