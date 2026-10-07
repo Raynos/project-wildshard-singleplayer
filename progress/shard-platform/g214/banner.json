@@ -1,0 +1,106 @@
+{
+  "folded": {
+    "banner": {
+      "top": 89,
+      "bottom": 131,
+      "left": 16,
+      "right": 386
+    },
+    "logo": {
+      "top": 18,
+      "bottom": 67,
+      "left": 24,
+      "right": 378
+    },
+    "cards": {
+      "top": 620,
+      "bottom": 774,
+      "left": 16,
+      "right": 386
+    },
+    "settings": {
+      "top": 796,
+      "bottom": 834,
+      "left": 126,
+      "right": 276
+    },
+    "overlaps": [],
+    "title": "WHAT'S NEW · 4 CHANGES",
+    "line": "PLAYTEST BUILD D684A7F · 7 OCT 2026",
+    "entries": [
+      "Sky Reach: ride the Rising Islet up from the road (Developer)",
+      "Nine Dragon: north lantern lift (Developer)",
+      "Lifts and decks: no more stalling on a moving platform",
+      "Pine Hollow: lighter on memory, same look"
+    ],
+    "expanded": "false"
+  },
+  "expanded": {
+    "banner": {
+      "top": 89,
+      "bottom": 328,
+      "left": 16,
+      "right": 386
+    },
+    "logo": {
+      "top": 18,
+      "bottom": 67,
+      "left": 24,
+      "right": 378
+    },
+    "cards": {
+      "top": 620,
+      "bottom": 774,
+      "left": 16,
+      "right": 386
+    },
+    "settings": {
+      "top": 796,
+      "bottom": 834,
+      "left": 126,
+      "right": 276
+    },
+    "overlaps": [],
+    "title": "WHAT'S NEW · 4 CHANGES",
+    "line": "PLAYTEST BUILD D684A7F · 7 OCT 2026",
+    "entries": [
+      "Sky Reach: ride the Rising Islet up from the road (Developer)",
+      "Nine Dragon: north lantern lift (Developer)",
+      "Lifts and decks: no more stalling on a moving platform",
+      "Pine Hollow: lighter on memory, same look"
+    ],
+    "expanded": "true"
+  },
+  "hidden": {
+    "banner": null,
+    "logo": {
+      "top": 18,
+      "bottom": 67,
+      "left": 24,
+      "right": 378
+    },
+    "cards": {
+      "top": 620,
+      "bottom": 774,
+      "left": 16,
+      "right": 386
+    },
+    "settings": {
+      "top": 796,
+      "bottom": 834,
+      "left": 126,
+      "right": 276
+    },
+    "overlaps": [],
+    "title": null,
+    "line": null,
+    "entries": [],
+    "expanded": null
+  },
+  "reloadSameBuild": {
+    "banner": false
+  },
+  "developerOff": {
+    "banner": false
+  }
+}
