@@ -22,8 +22,9 @@ export const ISLET = {
   islet: { r: 5.6, keel: 7 },
   /** the gate isle: how far in and how high its deck sits, its rim radius and keel */
   gate: { u: 52, y: 25, r: 9.5, keel: 15 },
-  /** the walk gap between the lip and the resting islet, and between the docked islet and the gate isle */
-  gap: 0.08,
+  /** the walk gap between the lip and the resting islet, and between the docked islet and the gate isle (SF8c's socketLift
+   *  allows at most 5 cm at a road stop) */
+  gap: 0.04,
   /** the ride: seconds at rest at each end, average speed along the chains (m/s; the eased peak is 1.5×) */
   dwell: 6, speed: 2.2,
   /** the rope bridge's walking width */
@@ -92,8 +93,10 @@ function islet(edge: EntryEdge, isle: Isle, gateT: number): RisingIslet {
 /**
  * The four entries, each to the nearest island no quest gates: north to Sunrest (the spawn isle), east to the roost, west
  * to the grove; south to the ruin isle (G183: never into the storm-crown arena), its gate isle 40 m east of the midpoint so
- * the islet's climb and the gate isle clear the crown's keel overhead.
+ * the islet's climb and the gate isle clear the crown's keel overhead. The east gate isle stands 58 m north of the
+ * midpoint, so its bridge lands on the roost's rim between two of its sandstone spires (world/roost.ts, at 0.05 and 0.9
+ * rad); straight in from the midpoint the bridge ran into the 0.05 spire and the walk stalled there (g183 ride, 2026-10-07).
  */
 export const RISING_ISLETS: readonly RisingIslet[] = [
-  islet('north', SUNREST, 0), islet('east', ROOST, 0), islet('south', RUIN, 40), islet('west', GROVE, 0),
+  islet('north', SUNREST, 0), islet('east', ROOST, 58), islet('south', RUIN, 40), islet('west', GROVE, 0),
 ];

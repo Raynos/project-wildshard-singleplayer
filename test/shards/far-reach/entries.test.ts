@@ -9,6 +9,7 @@ import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets
 import { ISLET_ISLE, isletBoxes, lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
 import { CROWN, ISLES, KEEPER, STEP, apothem, rimAlong, type Isle } from '../../../src/shards/far-reach/layout';
 import { MOVERS } from '../../../src/shards/far-reach/data/movers';
+import { NEST, SPIRES, spireAt } from '../../../src/shards/far-reach/world/roost';
 import source from '../../../src/shards/far-reach/shard.config';
 
 // SHARD-PLATFORM SF49-g (Jake's G99 / G183, the Rising Islet): at each edge midpoint a stone lip at road height, a grass
@@ -87,6 +88,12 @@ describe('Sky Reach Rising Islet entries', () => {
       // the walk ends on the island's top
       const last = entry.climb[entry.climb.length - 1]; if (last === undefined) throw new Error('climb');
       expect(inside(entry.isle, last.x, last.z)).toBe(true); expect(last.y).toBe(entry.isle.y);
+      // the bridge's last 3 m and the walk on to the island's top clear the roost's spires and nest by the bridge's half
+      // width (2026-10-07: straight in from the east midpoint the bridge landed on the 0.05 rad spire and the walk stalled)
+      const ux = (b.x1 - b.x0) / run, uz = (b.z1 - b.z0) / run, ax = b.x1 - ux * 3, az = b.z1 - uz * 3, lx = last.x - ax, lz = last.z - az, ll = Math.hypot(lx, lz);
+      const clear = (x: number, z: number): number => { const t = Math.max(0, Math.min(1, ((x - ax) * lx + (z - az) * lz) / (ll * ll))); return Math.hypot(x - ax - lx * t, z - az - lz * t); };
+      for (const spire of SPIRES) { const at = spireAt(spire); expect(clear(at.x, at.z)).toBeGreaterThan(spire.r * 0.75 * Math.SQRT2 + b.width / 2); }
+      expect(clear(NEST.x, NEST.z)).toBeGreaterThan(NEST.r + 0.4 + b.width / 2);
     }
   });
 });
