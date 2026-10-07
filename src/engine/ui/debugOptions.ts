@@ -180,7 +180,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Audio: the score's source and the sound effects (Settings musicStyle / sfxSet) ──
   {
-    id: 'sfxSet', group: 'audio', label: engineString('s_a7180005e20c'), reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_fd46c9f22595'),
+    purpose: 'developer', id: 'sfxSet', group: 'audio', label: engineString('s_a7180005e20c'), reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_fd46c9f22595'),
     choices: () => SFX_SETS.map((v) => ({ v, text: SFX_TEXT[v] })), get: getSfxSet,
     set: (s) => { const v = SFX_SETS.find((x) => x === s); if (v) setSfxSet(v); }, on: (fn) => { onSfxSet(() => { fn(); }); },
   },

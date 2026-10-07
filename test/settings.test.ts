@@ -138,6 +138,20 @@ describe('Settings', () => {
     expect((await fresh()).getMusicStyle()).toBe('piano');
   });
 
+  it('keeps Best as the public SFX fallback and retains the Developer audition pick', () => {
+    fixtures.setItem(STORE, JSON.stringify({ sfxSet: 'synth', musicStyle: 'folk' }));
+    let enabled = false;
+    const changed = new Set<() => void>();
+    const s = createSettings(saveStorage('global'), () => '', { enabled: () => enabled,
+      on: fn => { changed.add(fn); return () => { changed.delete(fn); }; } });
+    expect(s.getSfxSet()).toBe('best'); expect(s.getMusicStyle()).toBe('folk');
+    s.setSfxSet('best'); expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth' });
+    const heard: string[] = [], off = s.onSfxSet(value => { heard.push(value); });
+    enabled = true; for (const fn of changed) fn(); expect(s.getSfxSet()).toBe('synth');
+    enabled = false; for (const fn of changed) fn(); expect(s.getSfxSet()).toBe('best');
+    expect(heard).toEqual(['synth', 'best']); off(); expect(changed.size).toBe(0);
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth', musicStyle: 'folk' });
+  });
   it('sfxSet: best by default, a retired saved set reads as best, persisted beside musicStyle, no URL override (E162)', async () => {
     fixtures.setItem(STORE, JSON.stringify({ sfxSet: 'moss' })); // a set from SFX round 2, retired by the merged one
     expect((await fresh()).getSfxSet()).toBe('best');

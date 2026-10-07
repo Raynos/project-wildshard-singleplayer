@@ -279,9 +279,15 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     getMusicStyle: (): MusicStyle => musicStyle.value,
     setMusicStyle: (v: MusicStyle): void => { musicStyle.set(v); },
     onMusicStyle: (fn: (v: MusicStyle) => void): (() => void) => musicStyle.on(fn),
-    getSfxSet: (): SfxSet => sfxSet.value,
-    setSfxSet: (v: SfxSet): void => { sfxSet.set(v); },
-    onSfxSet: (fn: (v: SfxSet) => void): (() => void) => sfxSet.on(fn),
+    getSfxSet: (): SfxSet => developer.enabled() ? sfxSet.value : 'best',
+    setSfxSet: (v: SfxSet): void => { if (developer.enabled()) sfxSet.set(v); },
+    onSfxSet: (fn: (v: SfxSet) => void): (() => void) => {
+      const read = (): SfxSet => developer.enabled() ? sfxSet.value : 'best';
+      const off = sfxSet.on(() => { fn(read()); });
+      const modeOff = developer.on?.(() => { fn(read()); });
+      const unsubscribe = (): void => { off(); modeOff?.(); };
+      onOwnerDispose(unsubscribe); return unsubscribe;
+    },
   };
 }
 

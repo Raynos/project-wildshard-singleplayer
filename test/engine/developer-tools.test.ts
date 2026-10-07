@@ -33,6 +33,7 @@ it('renders Developer tools separately from comparison rows with the same regist
   const tools = buildDebugMenu(document.createElement('div'), { scope, purpose: 'developer' });
   expect(comparison.row(spec.id)).toBeUndefined(); expect(tools.row(spec.id)).toBeDefined();
   expect(comparison.row('fixture.comparison')).toBeDefined(); expect(tools.row('fixture.comparison')).toBeUndefined();
+  expect(tools.row('sfxSet')).toBeDefined(); expect(comparison.row('sfxSet')).toBeUndefined();
   expect(tools.row('aimRing')).toBeDefined(); expect(comparison.row('aimRing')).toBeUndefined();
 });
 
