@@ -5,7 +5,6 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { setting } from '@wildshard/engine/ui/Settings';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { balbalPiercing } from '../weapons/effects';
@@ -29,7 +28,7 @@ import { type FxRenderer, NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW }
  *   bw.attach(animals)       // once main's AnimalManager exists (nalati.attachAnimals) — wakes them at once if it is dusk / night
  *   bw.bindKit(kit)          // the melee weapon in hand feeds the damage model (sabre breaks, spear + crack)
  *   bw.update(dt, t, camera, renderer, player)
- *   bw.wake() / bw.dawn()    // dev: Debug ▸ Balbal warriors = Wake now, and window.__balbals
+ *   bw.wake() / bw.dawn()    // native encounter / diagnostic port
  *   bw.awake                 // the live warriors
  *
  * Who wakes: each dusk four stones of the ring (a different four each night) and one crown balbal. The species
@@ -103,8 +102,7 @@ export class BalbalWarriors {
     this.spawner = nightSpawner('spawn.nalati.balbals', this.ctx.scope, animals);
     animals.factory.model(BALBAL, 'warrior'); animals.factory.model(BALBAL, 'capped'); // build now, not at dusk
     const ph = this.ctx.clock.dayPhase;
-    const q = setting('balbals'); // Debug ▸ Creatures & NPCs ▸ Balbal warriors (E162): wake now / never / at dusk
-    if (q === 'wake' || ((ph === 'dusk' || ph === 'night') && q !== 'off')) this.wake();
+    if (ph === 'dusk' || ph === 'night') this.wake();
   }
 
   bindKit(kit: KitLike | null): void { this.kit = kit; }

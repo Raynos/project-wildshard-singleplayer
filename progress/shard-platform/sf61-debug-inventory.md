@@ -144,3 +144,6 @@ and needed CLI-only engine hooks remain.
 
 - SFX audition selector, saved pick and set-change decoders deleted (G221 supersedes G218). Best ships;
   sample-failure synth fallbacks and native audio loading remain. Inventory: **9 comparisons / 15 Developer tools**.
+
+- Balbal forcing deleted; natural dusk/night activation and native encounter wake/dawn recipes remain.
+  Inventory: **9 comparisons / 14 Developer tools**.

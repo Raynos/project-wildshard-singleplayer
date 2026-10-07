@@ -180,7 +180,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Combat & weapons ──
 
   // ── Creatures & NPCs ──
-  opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { purpose: 'developer', reload: true, when: supports('balbals'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
   opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { purpose: 'developer', reload: true, when: supports('ghosts'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
 
   // ── Performance ──
