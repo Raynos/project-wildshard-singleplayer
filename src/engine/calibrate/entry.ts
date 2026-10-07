@@ -1,14 +1,12 @@
 import { engineString } from '../strings';
 import { app } from '../app/runtime';
 import { frameProbe } from '../core/tier';
-import { saveSetting } from '../ui/Settings';
 import { sendNote } from '../ui/review';
 import { mountUi } from '../ui/ownership';
 import { runCalibration, type CalibrationRun, type CalibrationMeasurements } from './run';
 
 declare const __BUILD_ID__: string;
 export async function enterCalibration(): Promise<void> {
-  saveSetting('calibrate', 'off');
   app.setState('capture'); frameProbe.uncapped = true;
   // No level is loaded, hence no gameplay/render systems can run beside the synthetic scene.
   if (Object.values(app.systemsByPhase()).some((systems) => systems.length > 0)) throw new Error('Calibration capture must have no level systems');

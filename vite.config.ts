@@ -89,6 +89,8 @@ export default defineConfig(({ mode }) => {
       // one stylesheet: src/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
       : {
         target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false, manifest: true,
+        // G221: standalone CLI calibration, never a game-entry or Developer switch.
+        rolldownOptions: { input: { main: join(process.cwd(), 'index.html'), calibration: join(process.cwd(), 'calibration/index.html') } },
         // Manual groups remain disabled: Rolldown 1.2.9 emits circular chunks with invalid runtime bindings.
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],

@@ -191,7 +191,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   clearDownloadsRow,
 
   // ── Developer tools ──
-  { ...action('calibrate', 'tools', engineString('s_252526ecd431'), engineString('s_e6539473d9a0'), () => { saveSetting('calibrate', 'run'); location.reload(); }, { purpose: 'developer', ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_7d857a36f6c1') }), choices: () => [{ v: 'off', text: engineString('s_ab0171ca0494') }, { v: 'run', text: engineString('s_00d60e31a4e6') }] },
   action('budgetReadout', 'perf', engineString('s_2461f265574b'), engineString('s_eff6d457bfb5'), (say) => {
     const probe = currentProbe();
     if (probe === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }

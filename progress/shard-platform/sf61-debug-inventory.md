@@ -161,3 +161,7 @@ and needed CLI-only engine hooks remain.
 - Boot-pack row/option deleted; the shipping pack and failed-part fallback remain. `gpu-texmem --record`
   uses a CLI-only fetch adapter to exercise per-file fallback, without Developer settings or network errors.
   Inventory: **9 comparisons / 10 Developer tools**.
+
+- Calibration row/option and game-entry branch deleted. `scripts/calibrate.mjs` uses the standalone
+  `/calibration/` harness, without Developer state; its measurement engine remains.
+  Inventory: **9 comparisons / 9 Developer tools**: G221 eight plus held `shardDirectors`.

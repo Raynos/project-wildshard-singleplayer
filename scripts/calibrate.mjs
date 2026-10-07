@@ -4,7 +4,6 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { debugSettings } from './debug-settings.mjs';
 import { exportTree, serve } from './parity/serve.mjs';
 
 /** @typedef {import('../src/engine/calibrate/run').CalibrationRun} CalibrationRun */
@@ -24,12 +23,11 @@ try {
   if (!args.url) { exported = exportTree(root, sha); server = await serve(exported.tree, sha); }
   browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist', '--mute-audio'] });
   const context = await browser.newContext({ viewport: { width: 402, height: 874 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
-  await debugSettings(context, { calibrate: 'run', prefetch: 'off' });
   const page = await context.newPage();
   page.on('pageerror', (e) => console.error(e.message));
   const targetUrl = args.url ?? server?.url;
   if (!targetUrl) throw new Error('No calibration preview origin');
-  await page.goto(targetUrl, { waitUntil: 'domcontentloaded' });
+  await page.goto(new URL('/calibration/', targetUrl).href, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => ['done', 'error'].includes(window.__calibration?.status ?? ''), undefined, { timeout: 210000 });
   const handle = await page.evaluate(() => window.__calibration);
   const out = resolve(args.out ?? root); mkdirSync(join(out, 'budgets/calibration'), { recursive: true });

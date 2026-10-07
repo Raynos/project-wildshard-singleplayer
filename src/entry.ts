@@ -19,7 +19,6 @@ import { persistHomeScreen } from './engine/saves/runtime';
  */
 import { guardBoot } from './engine/boot/stuck';
 import { inspectPreviousBoot, previousBootLine, previousBootLevel } from './engine/boot/bootTrace';
-import { setting } from './engine/ui/Settings';
 import { Scope } from './engine/app/scope';
 import { retried } from './engine/boot/retry';
 import { bootRoute } from './bootRoute';
@@ -53,7 +52,7 @@ async function enterPage(): Promise<unknown> {
   }
 
   /** resolves once the title or the selected shard's entry has been evaluated */
-  return setting('calibrate') === 'run' ? import('./engine/calibrate/entry').then((m) => m.enterCalibration()) : (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
+  return (gridRecoveryRefused() || (titleOnly && document.getElementById('ws-shardfile') === null)) ? showPageTitle() : (async () => {
     const { initializeTier } = await retried(() => import('./engine/core/tier'));
     await initializeTier();
     await retried(() => import('three')); 
