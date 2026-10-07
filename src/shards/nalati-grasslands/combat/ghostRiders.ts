@@ -11,7 +11,6 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { Player } from '@wildshard/engine/player/Player';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { setting } from '@wildshard/engine/ui/Settings';
 import type { DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -219,8 +218,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     this.animals = animals;
     this.spawner = nightSpawner('spawn.nalati.ghost-riders', this.ctx.game.levelScope, animals);
     animals.factory.model(GHOST_RIDER, 'rider');
-    const q = setting('ghosts'); // Debug ▸ Creatures & NPCs ▸ Ghost riders (E162): a line now / never / at night
-    if (q === 'line' || (this.ctx.clock.dayPhase === 'night' && q !== 'off')) this.respawnT = 0.5;
+    if (this.ctx.clock.dayPhase === 'night') this.respawnT = 0.5;
   }
 
   living(): number { let n = 0; for (const r of this.riders) if (!r.dead) n++; return n; }
@@ -333,7 +331,7 @@ export class GhostRiders extends GroupBrain<Animal> {
     // a new line: at nightfall, and a minute after the last one fell
     if (this.respawnT >= 0 && !this.hold) {
       this.respawnT -= dt;
-      if (this.respawnT < 0 && (this.ctx.clock.dayPhase === 'night' || setting('ghosts') === 'line')) this.spawnLine();
+      if (this.respawnT < 0 && this.ctx.clock.dayPhase === 'night') this.spawnLine();
     }
     for (const line of this.lines) this.steerLine(line, dt);
     if (this.freeze) for (const r of this.riders) { r.a.mem['tx'] = r.a.position.x; r.a.mem['tz'] = r.a.position.z; r.fireT = 99; }

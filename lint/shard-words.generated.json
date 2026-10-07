@@ -118,8 +118,7 @@
         "weapon.spear"
       ],
       "settings": [
-        "clockSpeed",
-        "ghosts"
+        "clockSpeed"
       ],
       "assets": [
         "public/assets/nalati/**",

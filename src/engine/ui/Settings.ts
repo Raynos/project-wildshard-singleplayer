@@ -114,7 +114,6 @@ export const OPTION_VALUES = {
   calibrate: ['off', 'run'],                          // E357 S1.6 one-shot empty capture state; consumed at entry
   loadProfile: ['off', 'on'],                          // load-path shader instrumentation (src/engine/boot/perflog.ts) — a reload
   bootPack: ['on', 'off'],                             // the shard's boot files as one pack (src/engine/boot/pack.ts); off = one by one (the KTX2 record run) — a reload
-  ghosts: ['auto', 'line', 'off'],                     // Nalati's ghost riders: at night / a line at any hour / never — a reload
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
   clockSpeed: ['1', '10', '60'],                       // Nalati's day clock speed — live
@@ -135,11 +134,11 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   tex: { def: 'auto', params: [], url: () => null },
   calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY,
-  ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
+  clockSpeed: DEBUG_ONLY, memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
-export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps', 'calibrate', 'loadProfile', 'bootPack', 'ghosts', 'clockSpeed'];
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps', 'calibrate', 'loadProfile', 'bootPack', 'clockSpeed'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -199,7 +198,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     tex: option('tex'),
     calibrate: option('calibrate'),
     loadProfile: option('loadProfile'), bootPack: option('bootPack'),
-    ghosts: option('ghosts'), clockSpeed: option('clockSpeed'),
+    clockSpeed: option('clockSpeed'),
     memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'),
   };
   const persist = (): void => {
