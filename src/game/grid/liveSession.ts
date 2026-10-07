@@ -329,12 +329,15 @@ export class LiveGridSession {
 
   /** Capture before reset; run only after success, without flushing old state into the reset save. */
   prepareNewGameRecovery(): () => void {
+    if (!this.checkpoint()) throw new Error('New game requires a durable current checkpoint');
     const road = this.recoveryRoad();
+    const current = this.live.current();
+    const home = current === null ? this.ports.home : this.ports.assembly.cell(current);
     return () => {
       this.checkpointsSuppressed = true;
       this.homeSim?.suppressCheckpoint?.();
       const recovery = gridRecovery(this.page.saves);
-      if (recovery.save(this.ports.assembly, this.ports.home, road, { kind: 'road' })) recovery.write(this.ports.assembly, this.ports.home, road, 'new-game');
+      if (recovery.save(this.ports.assembly, home, road, { kind: 'road' })) recovery.write(this.ports.assembly, home, road, 'new-game');
     };
   }
 

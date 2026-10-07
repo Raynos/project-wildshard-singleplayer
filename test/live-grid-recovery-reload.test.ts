@@ -58,6 +58,7 @@ it('recovers GPU/background to the highway and a successful New game cannot resu
     setActive: () => undefined, disposed: () => scope.disposed });
   try {
     durable = false; expect(session.prepareRecovery('gpu')).toBe(false); expect(record.consume(assembly)).toEqual({ kind: 'none' });
+    expect(() => session.prepareNewGameRecovery()).toThrow('durable current checkpoint');
     durable = true;
     traveller.position.set(21, 3, -17);
     expect(session.prepareRecovery('gpu')).toBe(true);

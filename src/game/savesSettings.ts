@@ -127,7 +127,9 @@ function openSheet(card: SaveCardSpec, live: boolean, opts: SavesSettingsOptions
   scope.listen(confirm, 'click', () => {
     confirm.disabled = true;
     // a refusal leaves the disk and every live binding as they were: keep playing
-    const afterReset = opts.beforeReset?.();
+    let afterReset: (() => void) | undefined;
+    try { afterReset = opts.beforeReset?.(); }
+    catch { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     if (!reset(card.instance)) { status.textContent = SAVES_STRINGS.refused; status.hidden = false; confirm.disabled = false; return; }
     if (live || opts.grid) { afterReset?.(); markUnload('new game'); location.reload(); return; } // the live bindings rebind from the reset save
     close(); done();
