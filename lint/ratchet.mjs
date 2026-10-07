@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 // E357 F4: the linter measures file counts; budget measurements belong to the parity harness.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { declaredDebugRows } from './debug-flags.mjs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { debugFlags } from './debug-flags.mjs';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseSync } from 'vite';
 import { TIME_ALLOW } from './wildshard-plugin.js';
 import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
 
@@ -55,39 +54,7 @@ function counts(root, baselineFile) {
   return current;
 }
 
-function walk(node, visit) {
-  if (!object(node)) return;
-  if (typeof node.type === 'string') visit(node);
-  for (const [key, value] of Object.entries(node)) {
-    if (key === 'parent') continue;
-    if (Array.isArray(value)) { for (const item of value) walk(item, visit); }
-    else if (object(value)) walk(value, visit);
-  }
-}
-function debugCount(root) {
-  let count = 0;
-  const scan = (dir) => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const file = resolve(dir, entry.name);
-      if (entry.isDirectory()) { scan(file); continue; }
-      if (!/\.[cm]?[jt]sx?$/u.test(file)) continue;
-      const parsed = parseSync(file, readFileSync(file, 'utf8'));
-      if (parsed.errors.length > 0) throw new Error(`Cannot count Debug rows in ${file}`);
-      count += declaredDebugRows(parsed.program).length;
-      walk(parsed.program, (node) => {
-        if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') {
-          let array = node.init;
-          while (array?.expression) array = array.expression;
-          if (array?.type !== 'ArrayExpression' || array.elements.some((element) => !element || element.type === 'SpreadElement')) throw new Error(`DEBUG_ROWS must be a literal row array: ${file}`);
-          count += array.elements.length;
-        }
-        if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && !node.callee.computed && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') count += 1;
-      });
-    }
-  };
-  scan(resolve(root, 'src'));
-  return count;
-}
+function debugCount(root) { return debugFlags(root).filter((row) => row.purpose !== 'developer').length; }
 
 function main() {
   let root = REPO, baselineFile = resolve(REPO, 'lint/ratchet.json'), mode = 'check', addRule = null;

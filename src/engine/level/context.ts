@@ -43,6 +43,8 @@ export interface HudVerbs {
   pin: (at: Vector3 | (() => Vector3 | null), el: HTMLElement) => void;
 }
 export interface DebugRowSpec {
+  /** Developer tools are not temporary comparisons; they are inactive outside Developer mode. */
+  purpose?: 'developer';
   id: string; group: 'look' | 'cover' | 'sky' | 'audio' | 'combat' | 'creatures' | 'perf' | 'loading' | 'tools';
   label: string; choices: readonly { value: string; text: string }[]; initial: string;
   change: (value: string) => void; reload?: boolean; note: string;

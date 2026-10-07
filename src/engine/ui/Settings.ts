@@ -30,6 +30,7 @@ import { saveStorage } from '../saves/slots';
 //
 // A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/engine/app/ownership.ts).
 import { onOwnerDispose } from '../app/ownership';
+import { isDev, onDev } from '../core/devMode';
 
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
@@ -142,6 +143,8 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   aimRing: DEBUG_ONLY, balbals: DEBUG_ONLY, ghosts: DEBUG_ONLY, clockSpeed: DEBUG_ONLY, memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
+/** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps', 'calibrate', 'loadProfile', 'bootPack', 'aimRing', 'balbals', 'ghosts', 'clockSpeed'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -176,16 +179,20 @@ export interface Settings {
   onSfxSet: (fn: (v: SfxSet) => void) => () => void;
 }
 
+const ISOLATED_DEVELOPER = { enabled: (): boolean => true };
+
 /**
  * One set of settings over a storage: what the page reads (the page's, below, over the global save storage and the URL);
  * a test builds its own over a fixture storage instead of reloading the module (E422).
+ * The page injects its Developer gate; isolated fixtures may supply their own mode and change subscription.
  */
-export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'>, search: () => string = () => (typeof location === 'undefined' ? '' : location.search)): Settings {
+export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'>, search: () => string = () => (typeof location === 'undefined' ? '' : location.search),
+  developer: { enabled: () => boolean; on?: (changed: () => void) => () => void } = ISOLATED_DEVELOPER): Settings {
   const { bools: state, nums, parsed: saved } = load(savedStorage);
   // the choices persist through this, bound once they exist (they and the save record need each other)
   const writer = { persist: (): void => undefined };
   const ctx = { saved, persist: (): void => { writer.persist(); }, search };
-  // no URL override (E162): the Debug ▸ Audio rows pick them; a script saves musicStyle / sfxSet in settings
+  // Music style is a player preference; SFX comparison stays in the registry. Neither has a URL override (E162).
   const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null, false, ctx);
   const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', () => null, false, ctx);
   const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
@@ -209,6 +216,12 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored, ...picks })); } catch { /* not persisted this session */ }
   };
   writer.persist = persist;
+  const readOption = <K extends OptionKey>(key: K): OptionValue<K> => {
+    if (developer.enabled() || !DEVELOPER_OPTIONS.includes(key) || options[key].fromUrl) return options[key].value;
+    const initial = OPTION_SPECS[key].def ?? OPTION_VALUES[key][0];
+    if (initial === undefined) throw new Error(`Settings: option ${key} has no default`);
+    return initial;
+  };
   const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();
   const numListeners = new Map<NumberKey, Set<(v: number) => void>>();
   const subscribe = <K, V>(map: Map<K, Set<(v: V) => void>>, k: K, fn: (v: V) => void): (() => void) => {
@@ -222,11 +235,13 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   };
   return {
     /** the value this page runs with: the URL's param if present, else the saved pick, else the default */
-    setting: <K extends OptionKey>(k: K): OptionValue<K> => options[k].value,
+    setting: readOption,
     /** the player's saved pick (what the next load builds when the URL does not override it) */
     savedSetting: <K extends OptionKey>(k: K): OptionValue<K> => options[k].stored,
     /** save a pick: a live option applies at once (subscribers fire), a boot option only on the next load */
-    saveSetting: <K extends OptionKey>(k: K, v: OptionValue<K>): void => { options[k].set(v); },
+    saveSetting: <K extends OptionKey>(k: K, v: OptionValue<K>): void => {
+      if (!DEVELOPER_OPTIONS.includes(k) || developer.enabled()) options[k].set(v);
+    },
     /** a live option's value for this page only, never saved; `null` returns it to the saved pick */
     overrideSetting: <K extends OptionKey>(k: K, v: OptionValue<K> | null): void => {
       const o = options[k];
@@ -236,7 +251,12 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
       o.value = next;
       o.listeners.forEach((fn) => fn(next));
     },
-    onSettingChange: <K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): (() => void) => options[k].on(fn),
+    onSettingChange: <K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): (() => void) => {
+      const off = options[k].on((value) => { fn(!developer.enabled() && DEVELOPER_OPTIONS.includes(k) && !options[k].fromUrl ? readOption(k) : value); });
+      const modeOff = DEVELOPER_OPTIONS.includes(k) ? developer.on?.(() => { fn(readOption(k)); }) : undefined;
+      const unsubscribe = (): void => { off(); modeOff?.(); };
+      onOwnerDispose(unsubscribe); return unsubscribe;
+    },
     settingFromUrl: (k: OptionKey): boolean => options[k].fromUrl,
     pendingReload: (): OptionKey[] => BOOT_OPTIONS.filter((k) => options[k].stored !== options[k].value),
     getSetting: (k: SettingKey): boolean => state[k],
@@ -266,7 +286,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
 }
 
 /** the page's settings: the global save storage, the page's URL */
-const page = createSettings(saveStorage('global'));
+const page = createSettings(saveStorage('global'), undefined, { enabled: isDev, on: onDev });
 /** the value this page runs with: the URL's param if present, else the saved pick, else the default */
 export function setting<K extends OptionKey>(k: K): OptionValue<K> { return page.setting(k); }
 /** the player's saved pick (what the next load builds when the URL does not override it) */

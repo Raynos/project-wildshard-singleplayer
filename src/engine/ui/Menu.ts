@@ -250,11 +250,12 @@ export class GameMenu {
 
   /** pause ▸ Settings ▸ Debug, the grouped registry (E162; the title's Settings mounts the same one, E172) */
   private debug: DebugMenu | null = null;
+  private developerTools: DebugMenu | null = null;
 
   /** the Debug rows' readouts (Shards in memory, E155; debugOptions.ts DEBUG_READOUTS) — only while this menu is open on
    *  Settings; DebugMenu reads only the ones that can be seen (not while the card is folded, E177) */
   private paintMemory(): void {
-    if (this._open && this._tab === 'settings') this.debug?.paint();
+    if (this._open && this._tab === 'settings') { this.debug?.paint(); this.developerTools?.paint(); }
   }
   get tab(): MenuTab { return this._tab; }
 
@@ -378,9 +379,10 @@ export class GameMenu {
     // E178: no full-width RESUME / EXIT TO MAIN MENU on top of the panel any more — they are the header bar's two buttons
     const p = el('ws-gmenu-card', engineString('s_e68f72548349')); this.settingsCard = p;
     const dbg = foldCard('debug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396')); // E177: folded until it is asked for
+    const tools = foldCard('developerTools', engineString('s_96f0c06bbcb7'), 'Diagnostics and unfinished work');
     // developer mode only (E140, the user's 7a): the Settings ▸ Developer switch shows / hides it live
-    dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; cats.sync(); });
-    cats.pane.append(p, dbg); cats.tag('debug', dbg);
+    dbg.hidden = !isDev(); tools.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; tools.hidden = !on; cats.sync(); });
+    cats.pane.append(p, tools, dbg); cats.tag('review', tools); cats.tag('debug', dbg);
     // VIDEO (desktop rail only): the boot-time picks are the main menu's (E55), so the pause menu reads them out
     const tierRow = el('ws-gmenu-row', engineString('s_b756f4e0f8ff', [esc(engineString('s_1b2c08a8733d'))])), tierVal = tierRow.querySelector<HTMLElement>('.ws-gmenu-val');
     if (tierVal) tierVal.textContent = TIER === 'phone' ? engineString('s_63dceb8800b2') : engineString('s_9bd88f2485ac');
@@ -470,6 +472,7 @@ export class GameMenu {
     // rendered by src/engine/ui/DebugMenu.ts (collapsible groups, only the rows that apply to this shard, a filter). Shards in
     // memory carries the on-device readout (E155 / E159): refreshed only while this menu is open on Settings
     this.debug = buildDebugMenu(dbg);
+    this.developerTools = buildDebugMenu(tools, { purpose: 'developer' });
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     const review = [this.buildReview(), ...devSwitchRows()];
     p.append(...review); cats.tag('review', ...review);
@@ -513,6 +516,7 @@ export class GameMenu {
     for (const g of this.gated) g.el.hidden = !g.when(c);
     this.cats?.sync();
     this.debug?.applies(c);
+    this.developerTools?.applies(c);
   }
   /** Settings → REVIEW: a password unlocks the review inbox (src/engine/ui/review.ts); unlocked, the Quick note switch + LOCK */
   private buildReview(): HTMLElement {

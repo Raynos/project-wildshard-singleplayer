@@ -31,6 +31,19 @@ describe('Debug flag ownership and review dates', () => {
       for (const row of debugFlags(root)) expect(ids).toContain(row.ask);
     }
   }, 120_000); // walks every Debug row's source and ask file: over 30 s on the CI coverage runner (assertions unchanged)
+  it('counts only comparisons while preserving Developer tool ownership and review checks', () => {
+    const options = { today: '2026-10-01', max: 1, askExists: (id: string) => id === 'E435' };
+    const row = { id: 'comparison', ask: 'E435', reviewBy: '2026-12-01' };
+    const tool = { ...row, id: 'tool', purpose: 'developer' } as const;
+    expect(validateFlags([row, tool], options).errors).toEqual([]);
+    expect(validateFlags([row, { ...tool, ask: 'E999999' }], options).errors).toHaveLength(1);
+    expect(validateFlags([{ ...tool, reviewBy: '2026-02-30' }], options).errors).toHaveLength(1);
+    const scanned = debugFlags(resolve('.'));
+    expect(scanned.find(value => value.id === 'game.template')?.purpose).toBe('developer');
+    expect(scanned.find(value => value.id === 'shardDirectors')?.purpose).toBe('developer');
+    expect(scanned.find(value => value.id === 'time')?.purpose).toBe('developer');
+    expect(scanned.find(value => value.id === 'calibrate')?.purpose).toBe('developer');
+  });
   it('rejects unknown owners and malformed dates; an overdue row passes and is listed', () => {
     const options = { today: '2026-10-01', max: 1, raisedBy: [], askExists: (id: string) => id === 'E357' };
     const row = { id: 'test', ask: 'E357', reviewBy: '2026-09-30' };

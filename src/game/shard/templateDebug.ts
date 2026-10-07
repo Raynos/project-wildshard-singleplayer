@@ -11,7 +11,7 @@ export function installTemplateDebug(app: App, scope: Scope): void {
   if (manifest === undefined) return;
   installed.add(app);
   scope.onDispose(() => { installed.delete(app); });
-  scope.onDispose(registerGlobalDebugAction({ id: 'game.template', group: 'tools', label: 'Template shard', text: 'Enter',
+  scope.onDispose(registerGlobalDebugAction({ purpose: 'developer', id: 'game.template', group: 'tools', label: 'Template shard', text: 'Enter',
     run: () => { travel({ to: manifest.slug, mode: 'enter' }); },
     note: 'E357 Z1: hidden grey-box teaching level.', ask: 'E357', reviewBy: '2026-12-01' }));
 }

@@ -1,10 +1,11 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Native lifecycle tests read the immutable authored module.
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import type { SystemSpec } from '../src/engine/app/systems';
 import type { DebugRowSpec } from '../src/engine/level/context';
 import { parseDirector, type DirectorEvent } from '../src/game/shardfile/director';
+import * as runtimeVariant from '../src/game/shard/runtimeVariant';
 import { directorVariant, installDeclaredDirector } from '../src/game/shardfile/directorClient';
 import declaration from '../src/shards/driftwood-isle/data/director.json';
 
@@ -17,7 +18,15 @@ describe('SF24 director installation lifecycle', () => {
     expect(directorVariant({ debugRow: (value) => { value.change('on'); } }, row)).toBe(true);
     expect(() => directorVariant({ debugRow: () => { /* Validation runs before registration. */ } }, { ...row, initial: 'on' })).toThrow('default off');
   });
+  it('keeps a saved declared selection inactive outside Developer', () => {
+    const enabled = vi.spyOn(runtimeVariant, 'developerToolsEnabled').mockReturnValue(false);
+    const context = { debugRow: (spec: DebugRowSpec) => { expect(spec.purpose).toBe('developer'); spec.change('on'); } };
+    expect(directorVariant(context)).toBe(false);
+    enabled.mockReturnValue(true); expect(directorVariant(context)).toBe(true);
+    enabled.mockReturnValue(false); expect(directorVariant(context)).toBe(false);
+  });
   it('shares one saved selection across creature and director consumers in the same context', () => {
+    vi.spyOn(runtimeVariant, 'developerToolsEnabled').mockReturnValue(true);
     const registered: DebugRowSpec[] = [], context = { debugRow: (spec: DebugRowSpec) => { registered.push(spec); spec.change('on'); } };
     expect(directorVariant(context)).toBe(true); expect(directorVariant(context)).toBe(true); expect(registered).toHaveLength(1);
     registered[0]?.change('off'); expect(directorVariant(context)).toBe(false);

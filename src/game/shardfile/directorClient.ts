@@ -1,8 +1,9 @@
 import type { LevelContext, DebugRowSpec } from '@wildshard/engine/level/context';
+import { developerToolsEnabled } from '../shard/runtimeVariant';
 import { parseDirector, type DirectorData, type DirectorEvent } from './director';
 import { createDirectorLane, type DirectorLane } from './directorRuntime';
 
-const DEBUG_ROWS = [{ id: 'shardDirectors', group: 'tools', label: 'Shard directors (data)',
+const DEBUG_ROWS = [{ purpose: 'developer', id: 'shardDirectors', group: 'tools', label: 'Shard directors (data)',
   choices: [{ value: 'off', text: 'Legacy' }, { value: 'on', text: 'Script' }], initial: 'off', reload: true,
   ask: 'E435', reviewBy: '2026-10-18', note: 'SF24: default off; retired with the SF46–SF48 conversions.' }] as const;
 const selections = new WeakMap<Pick<LevelContext, 'debugRow'>, Map<string, { contract: string; on: boolean }>>();
@@ -14,12 +15,12 @@ export function directorVariant(context: Pick<LevelContext, 'debugRow'>, row: Om
   const previous = choices.get(row.id);
   if (previous !== undefined) {
     if (previous.contract !== contract) throw new Error('Conflicting director variant');
-    return previous.on;
+    return previous.on && (row.purpose !== 'developer' || developerToolsEnabled());
   }
   const choice = { contract, on: false }, adapters = context; // DEBUG_ROWS counts this row; the ratchet skips the adapter call
   adapters.debugRow({ ...row, change: (value) => { choice.on = value === 'on'; } });
   choices.set(row.id, choice); selections.set(context, choices);
-  return choice.on;
+  return choice.on && (row.purpose !== 'developer' || developerToolsEnabled());
 }
 /** Trusted observations and presentation recipes only; scripts decide event timing and payloads. */
 export interface DirectorInstallation {

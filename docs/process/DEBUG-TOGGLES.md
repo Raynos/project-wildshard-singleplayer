@@ -28,7 +28,7 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
     3. The game reads it with `setting(key)` (at load for a reload row) and `onSettingChange(key, fn)` (live).
     4. A test / capture script sets it before the load: `debugSettings(page, { key: 'value' })` (`scripts/debug-settings.mjs`).
   - Both routes: `pnpm gen` updates `lint/ask-ids.json`; commit that inventory when a new ask owns a flag (Vercel
-    excludes docs). Every row raises the Debug-row count capped in `lint/ratchet.json` (`debugRows.max`, the ask in
+    excludes docs). Every comparison row raises the Debug-row count capped in `lint/ratchet.json` (`debugRows.max`, the ask in
     `raisedBy`); a reopened shard's lane can't edit `lint/`, so it asks the lead.
   - **Never add a new group without need.** The groups are Look · Ground cover & foliage · Sky & weather · Audio ·
     Combat & weapons · Creatures & NPCs · Performance · Loading & memory · Developer tools; lighting, shadows, post and
@@ -42,6 +42,11 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
     It leaves Developer (becomes public) only when Jake says it's ready to share.
   - **A Debug row** is for a variant, look or tuning value inside work that's already visible (A/B before a pick); it is
     deleted when Jake picks. A Debug row never stands in for the Developer gate.
+  - **Developer tools use the same registry port**, with `purpose: 'developer'` on `DebugRowSpec` / `DebugRow`.
+    Both Settings menus render them in a separate Developer-tools card under Developer. They keep ask ownership
+    and review dates, but do not count against the comparison-row cap. Outside Developer, saved picks are ignored,
+    tool actions are inert, and the shipped initial value runs; the saved pick is retained for the next developer session.
+    A reload-only tool still builds on entry; its direct saved-slot reader must apply the same Developer fence.
   - **As few Debug rows as humanly possible** (Jake, 2026-10-07: *"I really want to have as few debug rows as humanly
     possible … if something is … where I need to quickly see in-game version A and version B, then that's what the debug
     row is for. But those are very, very short-lived toggles and feature flags … all the debug row stuff needs to go away

@@ -109,7 +109,7 @@ function renderRow(r: DebugRow, onPick: (id: string) => void, scope: Scope): Ren
   return { el: row, extra: out ? [out] : [], rebuild: build, paint: paintOut };
 }
 
-export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) => void; scope?: Scope } = {}): DebugMenu {
+export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) => void; scope?: Scope; purpose?: 'developer' } = {}): DebugMenu {
   const scope = opts.scope?.child('debug') ?? uiScope('debug');
   const layer = app.ui.push('menu', { root: card, embedded: true, order: 0, back: () => undefined }, scope);
   const onPick = opts.onPick ?? ((): void => undefined);
@@ -131,7 +131,7 @@ export function buildDebugMenu(card: HTMLElement, opts: { onPick?: (id: string) 
   };
   const sections: Section[] = [];
   for (const g of DEBUG_GROUPS) {
-    const defs = levelDebugRows().filter((r) => r.group === g.id);
+    const defs = levelDebugRows().filter((r) => r.group === g.id && r.purpose === opts.purpose);
     if (defs.length === 0) continue;
     const box = make('ws-dbg-group');
     const head = make('ws-dbg-head', '', 'button') as HTMLButtonElement; head.type = 'button';

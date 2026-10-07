@@ -69,7 +69,7 @@ export function installAiDebug(ctx: Pick<LevelContext, 'app' | 'scope' | 'debugR
     scope.onDispose(() => { stop(); if (parent === scope) parent = undefined; });
   });
   ctx.scope.onDispose(() => { stop(); });
-  ctx.debugRow({ ask: 'E357', reviewBy: '2026-12-30', id: 'ai.brains', group: 'tools', label: engineString('s_4a74d7223bec'), initial: 'off',
+  ctx.debugRow({ purpose: 'developer', ask: 'E357', reviewBy: '2026-12-30', id: 'ai.brains', group: 'tools', label: engineString('s_4a74d7223bec'), initial: 'off',
     choices: [{ value: 'off', text: engineString('s_ca7981b46ecf') }, { value: 'on', text: engineString('s_130011756125') }], change,
     note: engineString('s_2cdb96d9e16c') });
 }

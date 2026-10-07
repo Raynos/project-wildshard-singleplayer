@@ -29,6 +29,7 @@ import { getSfxSet, onSettingChange, onSfxSet, saveSetting, setSfxSet, setting, 
 import { MOBILE_DEVICE } from '../core/tier';
 import { tierPickLine } from '../render/tierBoot';
 import type { DebugRowSpec } from '../level/context';
+import { isDev, onDev } from '../core/devMode';
 
 const scope = uiScope('debugOptions', app.engineScope);
 
@@ -53,6 +54,8 @@ export const DEBUG_GROUPS: readonly DebugGroup[] = [
 
 export interface DebugChoice { v: string; text: string }
 export interface DebugRow {
+  /** Diagnostic controls belong in Settings Developer, separately from comparison flags. */
+  purpose?: 'developer';
   /** unique; the option key for an option row */
   id: string;
   group: DebugGroupId;
@@ -79,30 +82,41 @@ export interface DebugRow {
 export function registerLevelDebugRow(spec: DebugRowSpec, levelId: string): () => void {
   const saved = jsonSlot(`debug.plugin.${levelId}.${spec.id}`, 'device');
   const value = saved.read();
-  let current = typeof value === 'string' && spec.choices.some((choice) => choice.value === value) ? value : spec.initial;
+  const read = (): string => {
+    if (spec.purpose === 'developer' && !isDev()) return spec.initial;
+    const next = saved.read();
+    return typeof next === 'string' && spec.choices.some((choice) => choice.value === next) ? next : spec.initial;
+  };
+  let current = spec.purpose === 'developer' && !isDev() ? spec.initial
+    : typeof value === 'string' && spec.choices.some((choice) => choice.value === value) ? value : spec.initial;
   let live = true;
   const listeners = new Set<() => void>();
-  const row: DebugRow = { id: spec.id, group: spec.group, label: spec.label, note: spec.note, ask: spec.ask, reviewBy: spec.reviewBy, reload: spec.reload ?? false,
+  const row: DebugRow = { ...(spec.purpose === undefined ? {} : { purpose: spec.purpose }), id: spec.id, group: spec.group, label: spec.label, note: spec.note, ask: spec.ask, reviewBy: spec.reviewBy, reload: spec.reload ?? false,
     choices: () => spec.choices.map((choice) => ({ v: choice.value, text: choice.text })), get: () => current,
     set: (next) => {
-      if (!live || !spec.choices.some((choice) => choice.value === next)) return;
+      if (!live || (spec.purpose === 'developer' && !isDev()) || !spec.choices.some((choice) => choice.value === next)) return;
       current = next; saved.write(next); spec.change(next); for (const listener of listeners) listener();
     }, on: (listener) => { if (live) listeners.add(listener); }, when: (ctx) => ctx.chunk.id === levelId };
   authoredRows.add(row);
   if (current !== spec.initial) spec.change(current);
-  return () => { live = false; authoredRows.delete(row); listeners.clear(); };
+  const off = spec.purpose === 'developer' && typeof window !== 'undefined' ? onDev(() => {
+    if (!live) return;
+    const next = read(); if (next === current) return;
+    current = next; spec.change(next); for (const listener of listeners) listener();
+  }) : () => undefined;
+  return () => { live = false; off(); authoredRows.delete(row); listeners.clear(); };
 }
 
 // Authored levels opt into each core option independently.
 const supports = (id: string): When => (c) => c.chunk.debugOptions?.includes(id) === true;
 const always: When = () => true;
 
-interface RowOpts { reload?: boolean; when?: When; note: string; ask: `E${number}`; reviewBy: string }
+interface RowOpts { purpose?: 'developer'; reload?: boolean; when?: When; note: string; ask: `E${number}`; reviewBy: string }
 /** a row over a saved option (Settings.ts OPTION_VALUES): `choices` pairs each value with its button text */
 export function opt<K extends OptionKey>(key: K, group: DebugGroupId, label: string, choices: readonly (readonly [OptionValue<K>, string])[], o: RowOpts): DebugRow {
   const list = choices.map(([v, text]) => ({ v, text }));
   return {
-    id: key, group, label, choices: () => list, reload: o.reload ?? false, when: o.when ?? always, note: o.note, ask: o.ask, reviewBy: o.reviewBy,
+    ...(o.purpose === undefined ? {} : { purpose: o.purpose }), id: key, group, label, choices: () => list, reload: o.reload ?? false, when: o.when ?? always, note: o.note, ask: o.ask, reviewBy: o.reviewBy,
     get: () => setting(key),
     set: (s) => { const hit = choices.find(([v]) => v === s); if (hit) saveSetting(key, hit[0]); },
     on: (fn) => { onSettingChange(key, () => { fn(); }); },
@@ -123,8 +137,8 @@ export interface DebugActionSpec {
  *  the two-tap confirm and the status line (E172) */
 export function action(id: string, group: DebugGroupId, label: string, text: string, run: DebugActionSpec['run'], o: RowOpts, more: Pick<DebugActionSpec, 'confirm' | 'status'> = {}): DebugRow {
   return {
-    id, group, label, choices: () => [], reload: o.reload ?? false, when: o.when ?? always, note: o.note, ask: o.ask, reviewBy: o.reviewBy,
-    get: () => '', set: () => undefined, on: () => undefined, action: { text, run, ...more },
+    ...(o.purpose === undefined ? {} : { purpose: o.purpose }), id, group, label, choices: () => [], reload: o.reload ?? false, when: o.when ?? always, note: o.note, ask: o.ask, reviewBy: o.reviewBy,
+    get: () => '', set: () => undefined, on: () => undefined, action: { text, run: (say) => o.purpose === 'developer' && !isDev() ? undefined : run(say), ...more },
   };
 }
 const ON_OFF = [['on', 'On'], ['off', 'Off']] as const;
@@ -143,7 +157,7 @@ const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59
   say(freed === null ? 'Cleared · reloading' : `Freed ${mbText(freed)} · reloading`,
     `${mbText(freed)} of downloads · ${r.caches} caches and ${r.workers} worker${r.workers === 1 ? '' : 's'} removed${r.httpCache ? ', HTTP cache cleared' : ''}. Reloading as a first visit.`);
   scope.timeout(1500, () => { markUnload('debug: clear downloads'); location.replace(settingsReloadUrl(location.href, TITLE_SKIPPERS)); });
-}, { ask: 'E172', reviewBy: '2026-12-30', note: engineString('s_510ecf1f03f4') }, {
+}, { purpose: 'developer', ask: 'E172', reviewBy: '2026-12-30', note: engineString('s_510ecf1f03f4') }, {
   confirm: async () => { const used = await storageUsed(); return used === null ? 'Tap again to clear' : `Tap again to clear ~${mbText(used)}`; },
   status: () => {
     const last = lastClear(); // this page is the reload the last clear made: say what it freed
@@ -160,9 +174,9 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Sky & weather ──
   // Authored clocks and weather opt in through level mechanisms.
-  opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { when: (c) => c.chunk.mechanisms.includes('dayCycle'), ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
-  opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { when: (c) => c.chunk.mechanisms.includes('weather'), ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
-  opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { when: supports('clockSpeed'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
+  opt('time', 'sky', engineString('s_318fb174f5eb'), TIMES, { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('dayCycle'), ask: 'E55', reviewBy: '2026-12-30', note: engineString('s_f42607c7d703') }),
+  opt('weather', 'sky', engineString('s_a0bba6381246'), [['live', engineString('s_b64ac05f17e6')], ['clear', engineString('s_83b12c2216ef')], ['fog', engineString('s_14394e978d84')], ['rain', engineString('s_a6d20aa6a4c7')]], { purpose: 'developer', when: (c) => c.chunk.mechanisms.includes('weather'), ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_a931181d0abf') }),
+  opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { purpose: 'developer', when: supports('clockSpeed'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
 
   // ── Audio: the score's source and the sound effects (Settings musicStyle / sfxSet) ──
   {
@@ -173,15 +187,15 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
 
   // ── Combat & weapons ──
-  opt('aimRing', 'combat', engineString('s_4039d9694edd'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_7bfebc644d49') }),
+  opt('aimRing', 'combat', engineString('s_4039d9694edd'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_7bfebc644d49') }),
 
   // ── Creatures & NPCs ──
-  opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: supports('balbals'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
-  opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { reload: true, when: supports('ghosts'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
+  opt('balbals', 'creatures', engineString('s_fea220584920'), [['auto', engineString('s_a89a84dba21d')], ['wake', engineString('s_b14d667b45ef')], ['off', engineString('s_6300ef800bb8')]], { purpose: 'developer', reload: true, when: supports('balbals'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_79bd647c23ff') }),
+  opt('ghosts', 'creatures', engineString('s_029fe29cf9f9'), [['auto', engineString('s_6c953cf83a66')], ['line', engineString('s_4a06cd2f854d')], ['off', engineString('s_6300ef800bb8')]], { purpose: 'developer', reload: true, when: supports('ghosts'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_138d752b7a25') }),
 
   // ── Performance ──
-  opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),
-  opt('loadProfile', 'perf', engineString('s_50fe86d601b8'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_e7db47a239eb') }),
+  opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { purpose: 'developer', when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),
+  opt('loadProfile', 'perf', engineString('s_50fe86d601b8'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_e7db47a239eb') }),
 
   // ── Loading & memory ──
   {
@@ -189,19 +203,19 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
     choices: () => [{ v: 'auto', text: engineString('s_7dc1f00169b6', [texMode() === 'ktx2' ? engineString('s_66270d61a105') : engineString('s_be7e2f201293')]) }, { v: 'ktx2', text: engineString('s_66270d61a105') }, { v: 'img', text: engineString('s_be7e2f201293') }],
   },
   opt('memorySaver', 'loading', engineString('s_memory_saver'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_memory_saver_note') }),
-  opt('bootPack', 'loading', engineString('s_4cd17de104b7'), ON_OFF, { reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_f72e67795ca9') }),
-  { id: 'storage', group: 'loading', label: engineString('s_a69c4dece144'), choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_281936523768') },
+  opt('bootPack', 'loading', engineString('s_4cd17de104b7'), ON_OFF, { purpose: 'developer', reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_f72e67795ca9') }),
+  { purpose: 'developer', id: 'storage', group: 'loading', label: engineString('s_a69c4dece144'), choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_281936523768') },
   clearDownloadsRow,
 
   // ── Developer tools ──
-  { ...action('calibrate', 'tools', engineString('s_252526ecd431'), engineString('s_e6539473d9a0'), () => { saveSetting('calibrate', 'run'); location.reload(); }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_7d857a36f6c1') }), choices: () => [{ v: 'off', text: engineString('s_ab0171ca0494') }, { v: 'run', text: engineString('s_00d60e31a4e6') }] },
+  { ...action('calibrate', 'tools', engineString('s_252526ecd431'), engineString('s_e6539473d9a0'), () => { saveSetting('calibrate', 'run'); location.reload(); }, { purpose: 'developer', ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_7d857a36f6c1') }), choices: () => [{ v: 'off', text: engineString('s_ab0171ca0494') }, { v: 'run', text: engineString('s_00d60e31a4e6') }] },
   action('budgetReadout', 'perf', engineString('s_2461f265574b'), engineString('s_eff6d457bfb5'), (say) => {
     const probe = currentProbe();
     if (probe === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
     const rows = probe.budgets(['current']);
     const measured = probe.world.game.lastFrame;
     say('READ BUDGETS', `${tierPickLine()}\nMeasured ${measured.calls} draws / ${measured.triangles} tris\n${Object.entries(rows).map(([pose, row]) => `${pose}: derived ${JSON.stringify(row.derived)} / ceiling ${JSON.stringify(row.ceiling)} · ${row.formula.assumption}`).join('\n')}`);
-  }, { ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_2ed7f7dcebc2') }),
+  }, { purpose: 'developer', ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_2ed7f7dcebc2') }),
 ];
 
 /** Shards in memory's readout (E155 / E159): the resident shards, their texture estimate, the JS heap, the device's

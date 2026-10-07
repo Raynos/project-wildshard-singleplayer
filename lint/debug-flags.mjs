@@ -44,28 +44,36 @@ export function debugFlags(root) {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const file = resolve(dir, entry.name);
       if (entry.isDirectory()) { scan(file); continue; }
-      if (!file.endsWith('.ts')) continue;
-      const program = parseSync(file, readFileSync(file, 'utf8')).program, definitions = new Map();
+      if (!/\.[cm]?[jt]sx?$/u.test(file)) continue;
+      const parsed = parseSync(file, readFileSync(file, 'utf8'));
+      if (parsed.errors.length > 0) throw new Error(`Cannot inventory Debug rows in ${file}`);
+      const program = parsed.program, definitions = new Map();
       walk(program, (node) => { if (node.type === 'VariableDeclarator') definitions.set(node.id?.name, node.init); });
       const row = (value) => {
         const node = unwrap(value);
         if (node?.type === 'Identifier') return row(definitions.get(node.name));
         if (node?.type === 'CallExpression') {
           const options = node.arguments.find((argument) => field(argument, 'ask'));
-          return { id: literal(node.arguments[0]), ask: literal(field(options, 'ask')), reviewBy: literal(field(options, 'reviewBy')) };
+          return { id: literal(node.arguments[0]), ask: literal(field(options, 'ask')), reviewBy: literal(field(options, 'reviewBy')),
+            ...(field(options, 'purpose') ? { purpose: literal(field(options, 'purpose')) } : {}) };
         }
         if (node?.type === 'ObjectExpression') {
           const spread = node.properties.find((property) => property.type === 'SpreadElement');
           return { ...(spread ? row(spread.argument) : {}),
             ...(field(node, 'id') ? { id: literal(field(node, 'id')) } : {}),
             ...(field(node, 'ask') ? { ask: literal(field(node, 'ask')) } : {}),
-            ...(field(node, 'reviewBy') ? { reviewBy: literal(field(node, 'reviewBy')) } : {}) };
+            ...(field(node, 'reviewBy') ? { reviewBy: literal(field(node, 'reviewBy')) } : {}),
+            ...(field(node, 'purpose') ? { purpose: literal(field(node, 'purpose')) } : {}) };
         }
         throw new Error(`Unresolvable Debug row in ${file}`);
       };
       for (const value of declaredDebugRows(program)) rows.push({ ...row(value), file });
       walk(program, (node) => {
-        if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') for (const value of unwrap(node.init).elements) rows.push({ ...row(value), file });
+        if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') {
+          const array = unwrap(node.init);
+          if (array?.type !== 'ArrayExpression' || array.elements.some((element) => !element || element.type === 'SpreadElement')) throw new Error(`DEBUG_ROWS must be a literal row array: ${file}`);
+          for (const value of array.elements) rows.push({ ...row(value), file });
+        }
         if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') rows.push({ ...row(node.arguments[0]), file });
       });
     }
@@ -75,12 +83,14 @@ export function debugFlags(root) {
 export function validateFlags(rows, { today, max, raisedBy = [], askExists: hasAsk }) {
   const errors = [], overdue = [], now = Date.parse(`${today}T00:00:00Z`);
   for (const row of rows) {
+    if (row.purpose !== undefined && row.purpose !== 'developer') errors.push(`Invalid purpose on ${row.id}: ${row.purpose}`);
     if (typeof row.id !== 'string' || typeof row.ask !== 'string' || !/^E\d+$/u.test(row.ask) || !hasAsk(row.ask)) errors.push(`Unknown ask on ${row.id}: ${row.ask}`);
     const date = Date.parse(`${row.reviewBy}T00:00:00Z`);
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(row.reviewBy ?? '') || !Number.isFinite(date) || new Date(date).toISOString().slice(0, 10) !== row.reviewBy) errors.push(`Invalid reviewBy on ${row.id}: ${row.reviewBy}`);
     else if (date < now) overdue.push(`${row.id} | ${row.ask} | ${row.reviewBy}`);
   }
-  if (rows.length > max) errors.push(`debugRows: was ${max}, now ${rows.length}; raise max and record the new ask in raisedBy`);
+  const comparisons = rows.filter((row) => row.purpose !== 'developer').length;
+  if (comparisons > max) errors.push(`debugRows: was ${max}, now ${comparisons}; raise max and record the new ask in raisedBy`);
   for (const ask of raisedBy) if (!hasAsk(ask)) errors.push(`Unknown raisedBy ask: ${ask}`);
   return { errors, overdue };
 }

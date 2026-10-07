@@ -45,6 +45,7 @@ const BOOT_GFX = { ...gfxPrefs };
 let root: HTMLElement | undefined;
 /** the Debug registry (E162), the same one the pause menu renders (E172) */
 let debug: DebugMenu | null = null;
+let developerTools: DebugMenu | null = null;
 const scope = uiScope('bootSettings', app.engineScope);
 let openScope: Scope | null = null;
 let layer: UiHandle | null = null;
@@ -55,7 +56,8 @@ export function openBootSettings(): void {
   // re-read which Debug rows apply to the selected level, and their choices
   // (GPU textures' "Auto · now …"), for the one behind it now. No weapons in hand on the title
   debug?.applies({ chunk: activeLevel(), weapons: new Set() });
-  if (layer?.active !== true) { openScope = scope.child('open'); layer = app.ui.push('menu', { root: r, order: 0, back: close }, openScope); openScope.interval(2000, () => { debug?.paint(); }); }
+  developerTools?.applies({ chunk: activeLevel(), weapons: new Set() });
+  if (layer?.active !== true) { openScope = scope.child('open'); layer = app.ui.push('menu', { root: r, order: 0, back: close }, openScope); openScope.interval(2000, () => { debug?.paint(); developerTools?.paint(); }); }
   r.classList.add('show');
   r.inert = false;
 }
@@ -117,10 +119,12 @@ function build(): HTMLElement {
   // pause menu's (E177) and, like it, only in developer mode. The Developer switch itself sits in the open above it
   // (Jake, 2026-09-26: "back in the open") — it is how the card appears at all.
   const dbg = foldCard('bootdebug', engineString('s_1a03bd2fd107'), engineString('s_8c4422087396'));
+  const tools = foldCard('bootDeveloperTools', engineString('s_96f0c06bbcb7'), 'Diagnostics and unfinished work');
+  developerTools = buildDebugMenu(tools, { purpose: 'developer' });
   const registry = el('ws-gmenu-debugslot');
   debug = buildDebugMenu(registry);
   dbg.append(registry);
-  dbg.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; if (on) debug?.paint(); });
+  dbg.hidden = !isDev(); tools.hidden = !isDev(); onDev((on) => { dbg.hidden = !on; tools.hidden = !on; if (on) { debug?.paint(); developerTools?.paint(); } });
   p.append(running,
     el('ws-gmenu-label', engineString('s_a874fca87cdd')), row('tier', LABELS.tier),
     seg(engineString('s_2dee7435d0fe'), false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, engineString('s_2dee7435d0fe')); } }),
@@ -128,7 +132,7 @@ function build(): HTMLElement {
     el('ws-gmenu-label', engineString('s_799c26913574')), row('touch', LABELS.touch),
     buildMusicStyleRow(scope),
     ...devSwitchRows(), // developer mode (E140): live, no reload
-    dbg);
+    tools, dbg);
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));
   if (overridden.length > 0) p.append(words('ws-gmenu-note', engineString('s_7537bbaf9c47', [overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')])));
