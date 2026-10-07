@@ -42,6 +42,13 @@ Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo
     It leaves Developer (becomes public) only when Jake says it's ready to share.
   - **A Debug row** is for a variant, look or tuning value inside work that's already visible (A/B before a pick); it is
     deleted when Jake picks. A Debug row never stands in for the Developer gate.
+  - **As few Debug rows as humanly possible** (Jake, 2026-10-07: *"I really want to have as few debug rows as humanly
+    possible … if something is … where I need to quickly see in-game version A and version B, then that's what the debug
+    row is for. But those are very, very short-lived toggles and feature flags … all the debug row stuff needs to go away
+    as fast as possible … debug rows shouldn't be binary toggles … And once I choose my best version, you just delete all
+    the dead code and get rid of the debug row slash feature flag."*). A row is a feature flag or an A / B / C choice
+    for an in-game comparison, short-lived by design; it can have as many choices as the comparison needs. The pick
+    commit deletes the row, every losing choice and its dead code. A row with no pending pick is debt: retire it.
 - **The params the game may read are a fixed allowlist**, `lint/url-params.json`. `harness` is what the test, capture
   and bench scripts pass to drive the game headless (tier, touch, chunk, spawn, skipintro, mute, …). Adding to it needs
   Jake's explicit OK. `legacy` (the old switches, E162) is empty: never add to it.

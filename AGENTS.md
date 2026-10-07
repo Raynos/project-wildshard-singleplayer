@@ -97,6 +97,8 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
 
 - **Every variant, look, tuning value or toggle goes in pause ▸ Settings ▸ Debug**: a shard's own `ctx.debugRow`, or
   an engine-wide registry row. Never a `?foo=` param; `wildshard/no-url-switch` and `lint/url-params.json` enforce it.
+- **As few Debug rows as humanly possible** (E451): a row is a short-lived feature flag or an A / B / C (not only
+  on / off) for Jake to compare in-game; it goes, with all its dead code, the moment he picks.
 - When Jake picks a winner, delete the row, the option and the losing code in one commit.
 - **Developer is the unfinished-work switch** (E451). One site, one deployment: Developer **off** is the public / staging
   build (only what's nearly ready to share with friends and family); Developer **on** is Jake's view of everything
