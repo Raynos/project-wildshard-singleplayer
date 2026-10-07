@@ -25,7 +25,7 @@ import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { lastEndLine, markUnload } from '../boot/lastEnd';
-import { getMusicStyle, getSfxSet, onMusicStyle, onSettingChange, onSfxSet, saveSetting, setMusicStyle, setSfxSet, setting, settingsReloadUrl, MUSIC_STYLES, SFX_SETS, type MusicStyle, type OptionKey, type OptionValue, type SfxSet } from './Settings';
+import { getSfxSet, onSettingChange, onSfxSet, saveSetting, setSfxSet, setting, settingsReloadUrl, SFX_SETS, type OptionKey, type OptionValue, type SfxSet } from './Settings';
 import { MOBILE_DEVICE } from '../core/tier';
 import { tierPickLine } from '../render/tierBoot';
 import type { DebugRowSpec } from '../level/context';
@@ -152,7 +152,6 @@ const clearDownloadsRow = action('clearDownloads', 'loading', engineString('s_59
 });
 const TIMES = [['live', 'Live'], ['midday', 'Midday'], ['golden', 'Golden'], ['sunset', 'Sunset'], ['night', 'Night']] as const;
 
-const MUSIC_TEXT: Record<MusicStyle, string> = { piano: engineString('s_fa2bd181d8ba'), orchestral: engineString('s_573a2359591b'), folk: engineString('s_d3cafa5850d7'), synth: engineString('s_3cedb71562fd') };
 const SFX_TEXT: Record<SfxSet, string> = { best: engineString('s_827ec8d9f99d'), synth: engineString('s_3cedb71562fd') };
 
 export const DEBUG_ROWS: readonly DebugRow[] = [
@@ -166,11 +165,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('clockSpeed', 'sky', engineString('s_a6c4704340fd'), [['1', engineString('s_aa9d1dbac9cb')], ['10', engineString('s_acf5862fae3e')], ['60', engineString('s_77a443b50e95')]], { when: supports('clockSpeed'), ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_3f242f34c200') }),
 
   // ── Audio: the score's source and the sound effects (Settings musicStyle / sfxSet) ──
-  {
-    id: 'musicStyle', group: 'audio', label: engineString('s_f89d28d8c13f'), reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_e34042b9174c'),
-    choices: () => MUSIC_STYLES.map((v) => ({ v, text: MUSIC_TEXT[v] })), get: getMusicStyle,
-    set: (s) => { const v = MUSIC_STYLES.find((x) => x === s); if (v) setMusicStyle(v); }, on: (fn) => { onMusicStyle(() => { fn(); }); },
-  },
   {
     id: 'sfxSet', group: 'audio', label: engineString('s_a7180005e20c'), reload: false, when: always, ask: 'E5', reviewBy: '2026-12-30', note: engineString('s_fd46c9f22595'),
     choices: () => SFX_SETS.map((v) => ({ v, text: SFX_TEXT[v] })), get: getSfxSet,

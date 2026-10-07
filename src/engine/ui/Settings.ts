@@ -12,7 +12,7 @@ import { saveStorage } from '../saves/slots';
 //   getSfxSet() / setSfxSet('synth') / onSfxSet(fn)   → the sound effects: 'best' (the generated set, public/assets/sfx/best/
 //   sfx.json — per sound the better take of MOSS-SoundEffect v2 and Stable Audio 3 Medium, AGENTS.md "Audio engines") | 'synth'
 //   (every sound synthesised); default 'best'. A saved set that no longer exists (moss, sa3-medium, ezaudio) reads as 'best'.
-//   Neither has a URL override (E162): pause ▸ Settings ▸ Debug ▸ Audio picks them.
+//   Neither has a URL override (E162): Audio settings pick music styles; sound-set diagnostics remain developer-only.
 //
 //
 // The OPTIONS (E55) — every player-facing toggle that used to be a query param, one lookup for all of them:

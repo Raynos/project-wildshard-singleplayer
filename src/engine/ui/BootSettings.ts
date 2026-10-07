@@ -27,6 +27,7 @@ import { TITLE_SKIPPERS } from './debugOptions';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 import { markUnload } from '../boot/lastEnd';
+import { buildMusicStyleRow } from './musicStyleRow';
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const words = (cls: string, text: string, tag = 'div'): HTMLElement => { const node = el(cls, '', tag); node.textContent = text; return node; };
@@ -125,6 +126,7 @@ function build(): HTMLElement {
     seg(engineString('s_2dee7435d0fe'), false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, engineString('s_2dee7435d0fe')); } }),
     seg(engineString('s_c77c3af22c64'), false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
     el('ws-gmenu-label', engineString('s_799c26913574')), row('touch', LABELS.touch),
+    buildMusicStyleRow(scope),
     ...devSwitchRows(), // developer mode (E140): live, no reload
     dbg);
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so

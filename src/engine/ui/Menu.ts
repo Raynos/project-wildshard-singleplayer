@@ -30,6 +30,7 @@ import { buildDebugMenu, type DebugMenu } from './DebugMenu';
 import { settingsCategories, settingsHint, type SettingsCat, type SettingsCats } from './settingsCats';
 import { SAVE_STRINGS } from './saveStrings';
 import { TIER } from '../core/tier';
+import { buildMusicStyleRow } from './musicStyleRow';
 
 type BuiltInTab = 'map' | 'settings' | 'feedback';
 export type MenuTab = string;
@@ -451,12 +452,12 @@ export class GameMenu {
       paint(); on(paint); row.append(box); return row;
     };
     // a pick decodes from the offline cache (project/archive/2026-09-23-preload-offline.md): a spinner by the label only past 300 ms
-    onAudioBusy((kind, on) => { this.debug?.row(kind === 'music' ? 'musicStyle' : 'sfxSet')?.classList.toggle('busy', on); });
+    onAudioBusy((kind, on) => { if (kind === 'sfx') this.debug?.row('sfxSet')?.classList.toggle('busy', on); });
     // the licences ask for the models' names in the UI: MiniMax-Music3, and the sfx set's credit ("Powered by Stability AI")
     const sfxNote = el('ws-gmenu-note');
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
     paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
-    const audio = [cats.head(el('ws-gmenu-label', engineString('s_bc1b88907d3b'))), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote];
+    const audio = [cats.head(el('ws-gmenu-label', engineString('s_bc1b88907d3b'))), vol, mus, buildMusicStyleRow(this.scope), el('ws-gmenu-note', MUSIC_CREDIT), sfxNote];
     p.append(...audio); cats.tag('audio', ...audio);
     // lock-on (E50, src/engine/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the
     // lock — the reticle, orbit strafing, the lunge, switching — but never turns the view: the motion-sickness escape)
