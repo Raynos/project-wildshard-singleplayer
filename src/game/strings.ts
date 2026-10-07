@@ -20,6 +20,13 @@ export const GAME_STRINGS = {
     infinite: 'INFINITE WILDSHARD',
     settings: 'SETTINGS',
     back: 'BACK',
+    /** SF60 / G214 (art/menu/round-12-whats-new/B-banner*.jpg): the day's WHAT'S NEW banner under the logo */
+    whatsNew: {
+      label: "What's new",
+      title: (count: number): string => `WHAT'S NEW · ${count} ${count === 1 ? 'CHANGE' : 'CHANGES'}`,
+      buildLine: (build: string, date: string): string => date === '' ? `PLAYTEST BUILD ${build}` : `PLAYTEST BUILD ${build} · ${date}`,
+      hide: 'HIDE UNTIL NEXT BUILD',
+    },
   },
   /** a shard card whose shardfile needs a newer client (G86, temporary): dimmed, a badge and the save promise */
   upgrade: {

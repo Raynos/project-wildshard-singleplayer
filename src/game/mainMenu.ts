@@ -9,6 +9,7 @@
  *
  * Both ways in (src/entry.ts's cold title and the HUD's showIntro, wired in src/game/session/loadout.ts) build it, so the
  * main menu is the first screen either way. A rebuild (Settings ▸ Developer flips it) keeps the screen it was on.
+ * With Developer on, the day's WHAT'S NEW banner sits under the logo (SF60 / G214, src/game/whatsNewBanner.ts).
  */
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
@@ -16,6 +17,8 @@ import { gridEntryShown, menuMode } from './grid/menu';
 import { dropGridIntent, enterGrid } from './grid/boot';
 import { installGridDebug } from './grid/debug';
 import { GAME_STRINGS } from './strings';
+import { WHATS_NEW, type WhatsNew } from './whatsNew';
+import { buildWhatsNewBanner, type HiddenStore } from './whatsNewBanner';
 import './mainMenu.css';
 
 /** the hero: Jake's picked crossroads (G88), painted from the grid's real boulevard capture (SF17b), no UI baked in */
@@ -37,6 +40,9 @@ export interface TitleMenuOptions extends Omit<TitleDeckOptions, 'cards'> {
   readonly onGrid: () => void;
   /** which screen to open on (default: the one this page was last on, the main menu at first) */
   readonly screen?: MainMenuScreen;
+  /** SF60 / G214: the WHAT'S NEW banner's lines (default: today's, src/game/whatsNew.ts) and its hide store (tests) */
+  readonly whatsNew?: WhatsNew;
+  readonly whatsNewStore?: HiddenStore;
 }
 
 /** the title deck's view with the main menu over it (the HUD's TitleDeckView: keys, refresh, enter) */
@@ -61,7 +67,7 @@ function required<T extends HTMLElement>(root: ParentNode, selector: string, typ
 
 export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
   const mode = opts.mode ?? menuMode;
-  const { notice, onGrid, screen: first, cards = titleCards(), ...deckOpts } = opts;
+  const { notice, onGrid, screen: first, cards = titleCards(), whatsNew = WHATS_NEW, whatsNewStore, ...deckOpts } = opts;
   // leaving the title for a world resets it: pause ▸ EXIT TO MAIN opens on the main menu again
   const deck = buildTitleDeck({ ...deckOpts, cards,
     onEnter: (card) => { screen = 'main'; deckOpts.onEnter(card); },
@@ -91,6 +97,10 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
     line.textContent = notice;
     required(main, '.ws-main-head', HTMLElement).append(line);
   }
+  // SF60 / G214 (Jake: B, a slim banner under the logo): Developer on and the day's lines; folded it is one line
+  const banner = buildWhatsNewBanner({ news: whatsNew, developer: mode().developer, onTap: deck.onTap,
+    ...(whatsNewStore === undefined ? {} : { store: whatsNewStore }) });
+  if (banner !== null) required(main, '.ws-main-logo', HTMLElement).after(banner.root);
   // G106 (Jake: "A Carousel restyled"): SHARD SELECT is today's deck, same path and behaviour (G64), restyled to the menu:
   // BACK and the SHARD SELECT title on top, the crossroads hero dimmed behind, one big card, a thumbnail strip for the dots
   // (DEVELOPER tags, a COMING SOON lock) and a wide ENTER WORLD (src/game/mainMenu.css `.ws-menu-carousel`)
