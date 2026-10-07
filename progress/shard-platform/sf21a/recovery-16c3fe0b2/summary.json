@@ -1,0 +1,244 @@
+{
+  "sha": "16c3fe0b2",
+  "surface": "Chromium Metal, iPhone 16 Pro portrait",
+  "pass": true,
+  "seconds": 187.159,
+  "earned": {
+    "coins": 5,
+    "complete": true,
+    "facts": 1
+  },
+  "afterReset": {
+    "coins": 0,
+    "complete": false,
+    "facts": 1
+  },
+  "errors": [],
+  "failedResponses": [],
+  "documents": [
+    {
+      "at": 1791412904156,
+      "url": "http://127.0.0.1:4400/?mute=1&sw=0&nolock=1"
+    },
+    {
+      "at": 1791412911069,
+      "url": "http://127.0.0.1:4400/?mute=1&sw=0&nolock=1&chunk=driftwood-isle"
+    },
+    {
+      "at": 1791413013787,
+      "url": "http://127.0.0.1:4400/?at=-273.26%2C0.82%2C555.11%2C-1.6%2C0&glreload=1"
+    },
+    {
+      "at": 1791413043108,
+      "url": "http://127.0.0.1:4400/?at=-273.9%2C0.82%2C555.11%2C-1.6%2C0&glreload=1"
+    },
+    {
+      "at": 1791413072842,
+      "url": "http://127.0.0.1:4400/"
+    }
+  ],
+  "phases": [
+    {
+      "reason": "gpu",
+      "before": {
+        "feet": {
+          "x": -273.2577905433375,
+          "y": 0.020034261902170003,
+          "z": 555.1146844684015
+        },
+        "yaw": -1.5977704442399179
+      },
+      "after": {
+        "feet": {
+          "x": -273.9,
+          "y": 0.5,
+          "z": 555.1146844684015
+        },
+        "yaw": -1.5977704442399179,
+        "current": null,
+        "inside": null,
+        "stowed": true,
+        "home": "driftwood-isle"
+      },
+      "funds": {
+        "coins": 5,
+        "complete": true,
+        "facts": 1
+      }
+    },
+    {
+      "reason": "background",
+      "before": {
+        "feet": {
+          "x": -273.89997850339944,
+          "y": 0.019721733333426528,
+          "z": 555.1146968674493
+        },
+        "yaw": -1.5977704442399179
+      },
+      "after": {
+        "feet": {
+          "x": -273.9,
+          "y": 0.5,
+          "z": 555.1146968674493
+        },
+        "yaw": -1.5977704442399179,
+        "current": null,
+        "inside": null,
+        "stowed": true,
+        "home": "driftwood-isle"
+      },
+      "funds": {
+        "coins": 5,
+        "complete": true,
+        "facts": 1
+      }
+    },
+    {
+      "reason": "new-game",
+      "before": {
+        "feet": {
+          "x": -273.89997848453305,
+          "y": 0.019421733341005165,
+          "z": 555.1147092854605
+        },
+        "yaw": -1.5977704442399179
+      },
+      "after": {
+        "feet": {
+          "x": -273.9,
+          "y": 0.5,
+          "z": 555.1147092854605
+        },
+        "yaw": -1.5977704442399179,
+        "current": null,
+        "inside": null,
+        "stowed": true,
+        "home": "driftwood-isle"
+      },
+      "funds": {
+        "coins": 0,
+        "complete": false,
+        "facts": 1
+      }
+    }
+  ],
+  "leak": {
+    "before": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": []
+  },
+  "raw": {
+    "file": "assertions.json.gz",
+    "sha256": "2bb70c514f563607f86b6fbbb558d80c05098bbcd75b639a2da705cd28b5692f",
+    "uncompressedBytes": 114667
+  },
+  "caughtDiagnostic": {
+    "failurePin": "8e82ae91f",
+    "failure": "Hybrid runtime kit is not installed",
+    "cause": "buildPlay left the home before the staged loader called its trusted play hook",
+    "secondary": "404 /api/errors while reporting the failed boot",
+    "backgroundIssue": "Caught Invalid terrain bake header in grid/edgeSources.ts bakeHeights, Developer edge read Promise.all index7; no unhandled pageerror."
+  }
+}
