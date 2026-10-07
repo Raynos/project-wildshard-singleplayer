@@ -30,13 +30,14 @@ export interface MemoryAdmissionWarning extends MemoryAdmissionRequest {
 export class MemoryAdmission {
   private readonly warnings = new Map<string, MemoryAdmissionWarning>();
   private readonly listeners = new Set<() => void>();
-  constructor(private readonly developer: () => boolean = () => false) {}
+  private readonly developer: () => boolean;
+  constructor(developer: () => boolean = () => false) { this.developer = developer; }
 
   /** True for an in-envelope request or a Developer override. False means the caller retains its original refusal path. */
   accept(request: MemoryAdmissionRequest): boolean {
     const playingCap = request.playingCap ?? CONTENT_CAPS.playing, loadingCap = request.loadingCap ?? CONTENT_CAPS.loading;
     if (request.owner.length === 0 || request.id.length === 0 || ![request.claimedBytes, request.accountedBytes, request.playingBytes, request.loadingBytes].every(value => Number.isSafeInteger(value) && value >= 0)
-      || ![playingCap, loadingCap].every(value => Number.isSafeInteger(value) && value > 0)) throw new RangeError('Invalid memory admission report');
+      || ![playingCap, loadingCap].every(value => Number.isFinite(value) && value > 0)) throw new RangeError('Invalid memory admission report');
     const key = `${request.stage}:${request.owner}`;
     const playingOverBytes = Math.max(0, request.playingBytes - playingCap), loadingOverBytes = Math.max(0, request.loadingBytes - loadingCap);
     if (playingOverBytes === 0 && loadingOverBytes === 0) { if (this.warnings.delete(key)) this.notify(); return true; }

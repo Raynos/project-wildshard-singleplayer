@@ -25,3 +25,8 @@ it('never treats malformed or understated memory numbers as a Developer permissi
   const policy = new MemoryAdmission(() => true);
   for (const value of [-1, Number.NaN, Infinity, 0.5]) expect(() => policy.accept({ ...request, claimedBytes: value })).toThrow('Invalid memory admission report');
 });
+it('preserves strict refusal with the existing finite fractional allocator ceiling', () => {
+  const policy = new MemoryAdmission();
+  expect(policy.accept({ ...request, playingCap: 413_300_000.5 })).toBe(false);
+  expect(policy.reports()).toEqual([]);
+});
