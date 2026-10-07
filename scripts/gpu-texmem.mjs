@@ -11,7 +11,7 @@ import { debugSettings } from './debug-settings.mjs';
 // its WebGLTexture (renderer.properties) and labelled with the mesh that draws it, so the table says whose bytes they are.
 //
 //   node scripts/gpu-texmem.mjs --url=http://localhost:4391 --chunk=pine-hollow --tier=phone [--tex=ktx2|img] [--tag=x]
-//   … --record                      boot without the pack (Debug ▸ Boot pack Off, saved setting `bootPack`) and merge the
+//   … --record                      record individual files through the unavailable-pack fallback and merge the
 //                                    files this boot loaded into scripts/bake-ktx2.list.json (bake-ktx2's list)
 //
 // Phone: 390×844 @3, iPhone UA, `touch=1&tier=phone`. Desktop: 1600×900 @1, `tier=desktop`. One headless Chromium on
@@ -46,7 +46,17 @@ try {
     ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
     : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
   await ctx.addInitScript(ledger);
-  await debugSettings(ctx, { prefetch: 'off', ...(TEX === '' ? {} : { tex: TEX }), ...(RECORD ? { bootPack: 'off' } : {}) });
+  await debugSettings(ctx, { prefetch: 'off', ...(TEX === '' ? {} : { tex: TEX }) });
+  // G221: CLI-only fetch adapter; no in-game option, saved state or network error.
+  // The engine's normal unavailable-part fallback fetches each original URL for the ledger.
+  if (RECORD) await ctx.addInitScript(() => {
+    const fetchNow = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+      return new URL(url, location.href).pathname.startsWith('/assets/packs/')
+        ? Promise.resolve(new Response(null, { status: 503 })) : fetchNow(input, init);
+    };
+  });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));

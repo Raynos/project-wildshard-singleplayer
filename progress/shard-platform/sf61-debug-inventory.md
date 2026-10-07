@@ -157,3 +157,7 @@ and needed CLI-only engine hooks remain.
 - Load profiling row, saved option, shader log collection, loading-bar trace and extra diagnostic render deleted.
   Shader precompile batching, link resolution and texture uploads remain. No CLI uses this selector or its log hooks.
   Inventory: **9 comparisons / 11 Developer tools**.
+
+- Boot-pack row/option deleted; the shipping pack and failed-part fallback remain. `gpu-texmem --record`
+  uses a CLI-only fetch adapter to exercise per-file fallback, without Developer settings or network errors.
+  Inventory: **9 comparisons / 10 Developer tools**.

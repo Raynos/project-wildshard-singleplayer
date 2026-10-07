@@ -19,7 +19,8 @@
  * so the next launch — and an offline one — reads it from the cache instead of downloading it again (E158: the bench's
  * Pine Hollow 4g/warm run re-downloaded the whole 18 MB pack).
  *
- * Debug ▸ Loading & memory ▸ Boot pack Off boots file by file (the per-file prefetch) — the A/B for this module.
+ * Headless per-file record runs exercise the same unavailable-part fallback with a fetch adapter.
+
  */
 import { bootPacks, type PackDef, type PackPart } from './tables';
 import { DefaultLoadingManager } from 'three';
@@ -27,15 +28,12 @@ import type { Plan } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { tierUrl, versionedUrl, type ChunkFiles } from './bytes';
 import { TIER } from '../core/tier';
-import { setting } from '../ui/Settings';
 import { Scope } from '../app/scope';
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
-/** This shard's pack for this tier, when the build has one and pause ▸ Settings ▸ Debug ▸ Boot pack isn't Off (E162; the
- *  KTX2 record run, scripts/gpu-texmem.mjs --record, turns it off through the saved settings to see each file's URL). */
+/** This level's shipping pack for the active tier, if its build has one. */
 export function packFor(def: { slug: string }): PackDef | null {
-  if (setting('bootPack') === 'off') return null;
   return bootPacks()[def.slug]?.[TIER] ?? null;
 }
 
