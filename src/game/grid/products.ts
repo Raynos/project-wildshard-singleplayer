@@ -16,9 +16,9 @@ export interface GridProduct { readonly admitted: AdmittedProduct; readonly opti
 export interface GridProductOwner { allocator: ResidencyAllocator; scope: { readonly disposed: boolean; onDispose: (dispose: () => void) => void } }
 
 const products = new WeakMap<ResidencyAllocator, ProductLeases<Omit<GridProduct, 'release'>>>();
-/** The slug's admitted shardfile, or null when the shard is not a shardfile shard (it stays a far proxy until M3). */
+/** The slug's admitted data or trusted hybrid declaration; runtime entry still requires a separate regional factory. */
 export function gridShardfileProduct(slug: string, owner: GridProductOwner): Promise<GridProduct> | null {
-  const descriptor = findShard(slug)?.shardfile;
+  const manifest = findShard(slug), descriptor = manifest?.shardfile ?? manifest?.gridShardfile;
   if (descriptor === undefined) return null;
   if (owner.scope.disposed) return Promise.reject(new Error('Grid product page disposed'));
   let cache = products.get(owner.allocator);

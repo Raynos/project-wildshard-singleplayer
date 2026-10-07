@@ -442,6 +442,8 @@ export interface ShardManifest {
   next?: string;
   /** Built first-party data source, admitted before the existing session boot; picker identity stays on this manifest. */
   shardfile?: string;
+  /** First-party grid declaration for a trusted hybrid; discovery alone does not replace the standalone boot path. */
+  gridShardfile?: string;
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin }>;
