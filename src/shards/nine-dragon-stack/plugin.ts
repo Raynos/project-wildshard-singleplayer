@@ -1,5 +1,6 @@
 import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';
 import { JIAN_ROW } from './vm/jianRow';
+import { swordSupport } from './vm/swordSupport';
 import { FEI_ZHUA_ROW } from './grapple/row';
 import { FeiZhua } from './grapple/FeiZhua';
 import { GRAPPLE_PLAYGROUND } from './playground/registration';
@@ -40,7 +41,7 @@ export class NdPlugin extends ShardPlugin {
       const world = shell.world;
       if (world === null) throw new Error('Nine Dragon equipment requires its world');
       const { ironArms: _ironArms, swim: _swim, ...ownSword } = viewmodel ?? {};
-      return Promise.resolve({ primary: new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword,
+      return Promise.resolve({ primary: new Sword(world, targets, { row: JIAN_ROW, profile: JIAN_ROW, allowUnlocked: nolock, ...ownSword, rig: ownSword.rig ?? swordSupport(world.sky, 'wood'),
         ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) }), rifle: null, secondary: null });
     };
   }
