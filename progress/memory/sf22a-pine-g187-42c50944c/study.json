@@ -1,0 +1,25 @@
+{
+  "row": "SHARD-PLATFORM SF22a / SF47, E435 / G187 interim",
+  "sourceRevision": "42c50944cdf876a6809cafef3def445931a8ffd7",
+  "build": "42c5094-muykvqpl",
+  "samplerRevision": "102219f73",
+  "samplerNote": "The texturePolicy observer/comment addition landed after this native process loaded; location/play/Explorer operations identical. Resolved policy is verified in each GL cold run.",
+  "device": "iOS 26.5 iPhone 17 Pro Simulator (one through sim-lane)",
+  "glBrowser": "Chromium/Metal iPhone 16 Pro portrait, phone tier, shipped render scale2",
+  "nativeRuns": 3,
+  "glRuns": 3,
+  "seconds": {
+    "play": 30,
+    "explorer": 30
+  },
+  "locationFrames": 120,
+  "settledSamples": 3,
+  "texturePick": "auto",
+  "devicePicks": {
+    "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+  },
+  "scope": "Standalone Pine, g187 cut1+demand dummies+viewB and G188; cut2/cut3 not in this pin.",
+  "productHTML": "Only standard seed1/non-capture harness pins injected in owned served HTML. All game bundles/assets from clean source pin; exact original/modified HTML hashes in bootstrap records.",
+  "problems": "Retained failed pre-harness Simulator attempt (r1 and interrupted r2), and completed GL setup attempt blocked SW registration. Corrected probes restarted entire3x sets; no successful run omitted.",
+  "capMeaning": "Simulator native and separate labelled desktop GL composition proxy; not physical iPhone cap proof or simultaneous grid residency proof."
+}

@@ -1,0 +1,9 @@
+GL round 1: 280.318594 MB, errors 1
+file:///Users/raynos/projects/games/wildshard-singleplayer/progress/memory/sf22a-pine-g187-42c50944c/location-gl.mjs:120
+      if (errors.length > 0) throw new Error(JSON.stringify(errors));
+                                   ^
+
+Error: ["Cannot read properties of undefined (reading 'waiting')"]
+    at file:///Users/raynos/projects/games/wildshard-singleplayer/progress/memory/sf22a-pine-g187-42c50944c/location-gl.mjs:120:36
+
+Node.js v24.18.1

@@ -1,0 +1,14 @@
+[pine-hollow-r1   3.0s] phase loading
+[pine-hollow-r1  14.3s] loaded in 11.4 s
+[pine-hollow-r1  14.4s] verified runtime 42c5094-muykvqpl/pine-hollow
+[pine-hollow-r1  17.4s] loading median 0.577 GB; spread 0.571–0.578 GB (1.2%)
+[pine-hollow-r1  17.4s] phase play
+[pine-hollow-r1  50.5s] play median 0.573 GB; spread 0.572–0.573 GB (0.0%)
+[pine-hollow-r1  50.5s] phase location:gate
+[pine-hollow-r1  50.5s] ERROR Error: location failed: Error: Probe control requires the harness pins
+[pine-hollow-r1  50.5s] phase done
+[pine-hollow-r2   3.0s] phase loading
+[pine-hollow-r2  12.5s] loaded in 9.5 s
+[pine-hollow-r2  12.5s] verified runtime 42c5094-muykvqpl/pine-hollow
+[pine-hollow-r2  15.5s] loading median 0.607 GB; spread 0.599–0.611 GB (1.9%)
+[pine-hollow-r2  15.5s] phase play
