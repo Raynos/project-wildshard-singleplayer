@@ -61,6 +61,8 @@ export const GAME_STRINGS = {
     ended: 'Infinite Wildshard ended unexpectedly last time.',
     devserverCell: (x: number, z: number): string => `Infinite Wildshard (${x < 0 ? '−' : '+'}${Math.abs(x)}, ${z < 0 ? '−' : '+'}${Math.abs(z)})`,
     template: 'Template',
+    waiting: (name: string): string => `${name} · NOT READY FOR GRID`,
+    waitingSelect: 'ENTER THROUGH SHARD SELECT',
     devserverCellNote: 'SF21a (G46): the DEVSERVER cell of Infinite Wildshard, or the template it replaces. Applies at the next grid start.',
     reveal: (home: string): string => `Arriving at ${home}`,
     revealSkip: 'Tap to skip',

@@ -23,9 +23,11 @@ export interface SoftWallPorts {
   readonly name: (instance: string) => string;
   /** G167: a refused shard's reason line (null: it is loading). Its panel then names the reason and keeps the save, no bar */
   readonly reason?: (instance: string) => string | null;
+  /** A known unconverted cell waits for a product, not a network request. Keep its wall closed without a fake progress bar. */
+  readonly waiting?: (instance: string) => { readonly line: string; readonly detail: string } | null;
 }
 /** The readout. */
-export interface SoftWallState { readonly closed: number; readonly panel: string | null }
+export interface SoftWallState { readonly closed: number; readonly panel: string | null; readonly status: 'loading' | 'waiting' | 'refused' | null }
 
 const HEIGHT = 7, PANEL_RANGE = 45, CYAN = new Color(0x38e6ff);
 
@@ -124,11 +126,13 @@ export function installSoftWallLook(input: { readonly edges: readonly SoftWallEd
   const card = new Mesh(new PlaneGeometry(3.2, 0.8), labelMaterial);
   const barMaterial = new MeshBasicMaterial({ color: CYAN, toneMapped: false });
   const bar = new Mesh(new PlaneGeometry(1, 0.09), barMaterial);
+  bar.name = 'grid-soft-wall-progress';
   bar.position.set(0, -0.19, 0.01); card.renderOrder = 3; bar.renderOrder = 4;
   panel.add(card, bar); panel.visible = false;
   group.add(wall, panel); scene.add(group);
   const flags = edges.map(() => -1);
   let panelFor: string | null = null, panelReason: string | null = null, progress = 0, closedCount = 0;
+  let status: SoftWallState['status'] = null;
   const step = (): void => {
     uTime.value = input.time();
     const feet = ports.feet();
@@ -145,14 +149,17 @@ export function installSoftWallLook(input: { readonly edges: readonly SoftWallEd
       const s = Math.max(-edge.halfLength + 2, Math.min(edge.halfLength - 2, alongRaw)), d = Math.hypot(across, alongRaw - s);
       if (d < PANEL_RANGE && (nearest === null || d < nearest.d)) nearest = { edge, d, s };
     }
-    if (nearest === null) { panel.visible = false; panelFor = null; return; }
+    if (nearest === null) { panel.visible = false; panelFor = null; status = null; return; }
     const { edge, s } = nearest, reason = ports.reason?.(edge.instance) ?? null;
-    if (panelFor !== edge.instance || panelReason !== reason) {
-      panelFor = edge.instance; panelReason = reason; progress = 0;
+    const waiting = reason === null ? ports.waiting?.(edge.instance) ?? null : null;
+    const message = reason ?? (waiting === null ? null : `${waiting.line}\n${waiting.detail}`);
+    status = reason !== null ? 'refused' : waiting === null ? 'loading' : 'waiting';
+    if (panelFor !== edge.instance || panelReason !== message) {
+      panelFor = edge.instance; panelReason = message; progress = 0;
       labelMaterial.map?.dispose(); labelMaterial.needsUpdate = true;
-      labelMaterial.map = reason === null ? label(`Loading ${ports.name(edge.instance)}`) : label(reason, input.saveKept ?? null);
+      labelMaterial.map = reason !== null ? label(reason, input.saveKept ?? null) : waiting === null ? label(`Loading ${ports.name(edge.instance)}`) : label(waiting.line, waiting.detail);
     }
-    bar.visible = reason === null;
+    bar.visible = reason === null && waiting === null;
     progress += (0.92 - progress) * 0.01; // eases toward full while the neighbour loads; the wall opening ends it
     bar.scale.x = Math.max(0.02, progress * 2.7); bar.position.x = -1.35 + bar.scale.x / 2;
     const facing = edge.axis === 'x' ? Math.sign(feet.x - edge.x) || 1 : Math.sign(feet.z - edge.z) || 1;
@@ -164,5 +171,5 @@ export function installSoftWallLook(input: { readonly edges: readonly SoftWallEd
     group.removeFromParent(); wall.geometry.dispose(); material.dispose(); card.geometry.dispose(); bar.geometry.dispose();
     labelMaterial.map?.dispose(); labelMaterial.dispose(); barMaterial.dispose();
   });
-  return { step, state: () => ({ closed: closedCount, panel: panelFor }) };
+  return { step, state: () => ({ closed: closedCount, panel: panelFor, status }) };
 }
