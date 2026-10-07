@@ -100,8 +100,10 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
     frame: { scene: game.scene, camera: game.camera, composer: () => game.composer, post: () => game.post, onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
-    // + the practice room's dummies in Developer mode: full on its first frame (E291); the Memory saver loads them when the room opens (SF22d)
-    const practice = isDev() && setting('memorySaver') === 'off' ? arena.preload() : null;
+    // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
+    // other boot loads them when the room comes near: Explore's hub preloads them on open (below), so they are not resident
+    // while the player is out in the world (G187: −33.6 MB of GL on Pine). The Memory saver loads them when the room opens (SF22d).
+    const practice = isDev() && setting('memorySaver') === 'off' && session.arrival?.mode === 'arena' ? arena.preload() : null;
     await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
     await practice; // the grid's streaming is covered by its entry reveal (G98, below), not the loading screen
   });

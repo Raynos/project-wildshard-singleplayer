@@ -10,6 +10,7 @@ import compareHamletTarget from './explore/pine-hamlet-target.jpg';
 import { PINE_STEPS, PINE_BYTES } from './boot/steps';
 import { PINE_TREE_ASSETS } from './world/treeAssets';
 import { PINE_TREE_SPECIES } from './world/treeSet';
+import { pineTiers } from './look/viewDistance';
 import { bootFiles, bootSources, BAKED_UNREAD } from './boot/files';
 import exploreWorld from './explore/world-pine-hollow.webp';
 import exploreModels from './explore/models-pine-hollow.webp';
@@ -163,7 +164,8 @@ export const PINE_HOLLOW: ShardManifest = {
   },
   // G188 derives cold phone KTX2 from runtimeCost.imagesFirst before resolving boot files; no shard texture flag.
   // Pine's ASTC sets stay under 1.0 GB; its images-first measurement retains the RGBA8 cost. Explicit Debug picks win.
-  tiers: { phone: { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40, slices: true, skipRaysOffscreen: true, envSteps: true, pointLightSkip: true }, desktop: { pointLightSkip: true } },
+  // G187: with the memory trim on, the phone's reach is view distance B (75 %, look/viewDistance.ts)
+  tiers: pineTiers({ phone: { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40, slices: true, skipRaysOffscreen: true, envSteps: true, pointLightSkip: true }, desktop: { pointLightSkip: true } }),
   atmosphere: {
     edgeHaze: true, wetSurfaces: true,
     fogHeight: -14.0,

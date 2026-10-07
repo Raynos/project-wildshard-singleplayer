@@ -1,0 +1,190 @@
+{
+ "$doc": "G187 (E435): labelled GL census (progress/shard-platform/sf47/glbytes.mjs: scripts/parity/glbytes.mjs after every capture pose), Pine Hollow phone tier, iPhone 16 Pro context, render scale 2, GPU textures KTX2, Developer mode, Memory saver off. parent = a0fbdadea (HEAD before G187), candidate = b24dc3af7 (the same tree as the G187 commit: dummies on demand + view distance B). Trim off isolates the dummies cut (view distance B applies only with the trim on). Decimal MB.",
+ "parent": "a0fbdadea9806490b786b276e91a43b5d3e1c220",
+ "candidate": "b24dc3af7250086ebb0855ee5254056280a2d647",
+ "trim-off": {
+  "parentMB": 357.02,
+  "candidateMB": 314.02,
+  "deltaMB": -42.99,
+  "byCut": {
+   "practiceDummies": -33.55,
+   "practiceStudioPMREM": -9.44,
+   "cabinDetail": 0.0,
+   "coatCanvases": 0.0,
+   "other": 0.0
+  },
+  "errors": [],
+  "top": [
+   {
+    "owner": "engine/render-target",
+    "asset": "PMREM.cubeUv/color/Texture",
+    "deltaMB": -6.291
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/map/Image_0/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/map/Image_0/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/map/Image_0/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/render-target",
+    "asset": "PMREM.cubeUv/Depthbuffer",
+    "deltaMB": -3.146
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/SkinnedMesh[5]/skinWeight",
+    "deltaMB": -0.137
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/SkinnedMesh[5]/position",
+    "deltaMB": -0.103
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/SkinnedMesh[5]/normal",
+    "deltaMB": -0.103
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/Mesh[1]/map/Texture",
+    "deltaMB": -0.087
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/SkinnedMesh[5]/uv",
+    "deltaMB": -0.068
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/SkinnedMesh[5]/skinIndex",
+    "deltaMB": -0.068
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/SkinnedMesh[5]/index",
+    "deltaMB": -0.064
+   }
+  ]
+ },
+ "trim-on": {
+  "parentMB": 270.99,
+  "candidateMB": 222.27,
+  "deltaMB": -48.72,
+  "byCut": {
+   "practiceDummies": -33.55,
+   "practiceStudioPMREM": -9.44,
+   "cabinDetail": -1.53,
+   "coatCanvases": -4.19,
+   "other": -0.01
+  },
+  "errors": [],
+  "top": [
+   {
+    "owner": "engine/render-target",
+    "asset": "PMREM.cubeUv/color/Texture",
+    "deltaMB": -6.291
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/map/Image_0/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-steel.glb/TrainingDummyRig/TrainingDummy/map/Image_0/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/wood-wood.glb/TrainingDummyRig/TrainingDummy/roughnessMap/Image_1/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/loadRigFile",
+    "asset": "/assets/practice/dummies/straw-cloth.glb/TrainingDummyRig/TrainingDummy/map/Image_0/Texture",
+    "deltaMB": -5.592
+   },
+   {
+    "owner": "engine/render-target",
+    "asset": "PMREM.cubeUv/Depthbuffer",
+    "deltaMB": -3.146
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Scene/animals/SkinnedMesh[166]/map/boar-albedo:boar:boar:ironhide/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Scene/animals/SkinnedMesh[169]/map/elk-bull-albedo:elk-bull:elk:imperial/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Scene/animals/SkinnedMesh[167]/map/deer-stag-albedo:deer-stag:deer:ghost/Texture",
+    "deltaMB": -1.398
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Scene/Group[19]/cabin-cluster/Mesh[14]/position",
+    "deltaMB": -0.841
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Scene/Group[19]/cabin-cluster/Mesh[14]/mesh-shadow-pieces/mesh-shadow-pieces-5/index",
+    "deltaMB": -0.28
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Scene/Group[19]/Group[2]/Mesh[14]/position",
+    "deltaMB": -0.232
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Scene/Group[19]/Group[2]/Mesh[13]/position",
+    "deltaMB": -0.176
+   },
+   {
+    "owner": "engine/scene",
+    "asset": "generated/Group/SkinnedMesh[5]/skinWeight",
+    "deltaMB": -0.137
+   }
+  ]
+ }
+}
