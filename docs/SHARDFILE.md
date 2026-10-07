@@ -683,3 +683,20 @@ absolute appearance-error estimate with a two-sided float32 position allowance,
 not an independent Hausdorff measurement. If float32 precision alone exceeds
 the ceiling, it returns unchanged geometry. Admission charges the actual output;
 a triangle target is never treated as proof that the output fits a cap.
+
+### Socket lift declarations (SF8c)
+
+`@wildshard/sdk/socketLift` defines the bounded data link
+`{mover, roadStop, topStop, route, gate, rideTicks}`. Both ids resolve to admitted
+SF30 mover rows; stops and route points are shard-local feet coordinates. The
+route begins at the top stop and continues to playable ground; at most 32 points
+and 3,600 fixed ticks per ride are admitted. The deck loads at its road stop,
+flush with y=0, covers the full eight metre boarding line with at most a five
+centimetre seam, and stays at least ten metres inside the cell at both stops.
+Unknown movers, missing gates, mid-travel authored starting poses and undersized
+decks refuse before physics allocation. This declaration alone is not a legal
+entry: the executable admission must walk the real capsule, interact through
+`MoverRuntime.command`, ride the admitted WASM-controlled deck, reach playable
+ground, return and call from both stops. It must also witness the platform gate
+blocking the road while the deck is away. Until that integration is installed,
+the compiled entry schema continues to refuse `socketLift`.

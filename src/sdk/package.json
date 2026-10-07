@@ -46,7 +46,8 @@
     "./weapons/bowProfile": "./weapons/bowProfile.ts",
     "./runtime/weapons/SweptMelee": "./runtime/weapons/SweptMelee.ts",
     "./bake/textureWasm": "./bake/textureWasm.ts",
-    "./bake/worldLod": "./bake/worldLod.ts"
+    "./bake/worldLod": "./bake/worldLod.ts",
+    "./socketLift": "./socketLift.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -252,6 +253,10 @@
       "./bake/worldLod": {
         "types": "./dist/types/sdk/bake/worldLod.d.ts",
         "default": "./dist/bake/worldLod.js"
+      },
+      "./socketLift": {
+        "types": "./dist/types/sdk/socketLift.d.ts",
+        "default": "./dist/socketLift.js"
       }
     }
   }
