@@ -37,10 +37,9 @@ it('renders Developer tools separately from comparison rows with the same regist
   expect(tools.row('time')).toBeDefined(); expect(comparison.row('time')).toBeUndefined();
 });
 
-it('fences Pine direct diagnostic reads while retaining the owners memory-trim choice', () => {
+it('retains the owners Pine memory-trim choice independently of Developer tools', () => {
   setDev(false);
-  jsonSlot('debug.plugin.pine-hollow.cragView', 'device').write('normal');
   jsonSlot('debug.plugin.pine-hollow.pineMemoryTrim', 'device').write('on');
-  expect(pineOption('cragView')).toBe('shaded'); expect(pineOption('pineMemoryTrim')).toBe('on');
-  setDev(true); expect(isDev()).toBe(true); expect(pineOption('cragView')).toBe('normal');
+  expect(pineOption('pineMemoryTrim')).toBe('on');
+  setDev(true); expect(isDev()).toBe(true); expect(pineOption('pineMemoryTrim')).toBe('on');
 });

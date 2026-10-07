@@ -138,3 +138,6 @@ and needed CLI-only engine hooks remain.
 
 - Pine wildlife forcing row/option deleted; the native birds, hares, carcass and harvest lifecycle always run.
   Owner memory-trim policy and gameplay diagnostic observers remain. Inventory: **9 comparisons / 17 Developer tools**.
+
+- Crag channel row, saved reader and shader forcing deleted; the picked shaded crags and owner memory-trim
+  policy remain. Inventory: **9 comparisons / 16 Developer tools**.

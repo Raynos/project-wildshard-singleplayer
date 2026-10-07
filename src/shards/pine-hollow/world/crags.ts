@@ -33,7 +33,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import {
   BEAR_CAVE, DEN, LOOKOUT, ZIPLINE, WATERFALL, RIDGE_STREAM, POND, RIDGE, CABIN_SITES, ridgeFootZ, nearestOnPolyline, type XZ,
 } from '../layout';
-import { CRAG_VIEWS, pineOption, pineSetCap } from '../debug/options';
+import { pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';
@@ -413,9 +413,6 @@ const ROCK_TILE = 4.6, GRIT_TILE = 3.4;
 /** the cave's fill (see the material): PineCrags.update drives it from the clock */
 const CAVE_FILL = { value: 1.0 };
 
-/** pause ▸ Settings ▸ Debug `cragView`: the crags drawn as one channel instead of the shade (0 = shaded), live */
-const CRAG_VIEW = { value: Math.max(0, CRAG_VIEWS.indexOf(pineOption('cragView'))) };
-export function setCragView(value: string): void { const views: readonly string[] = CRAG_VIEWS; CRAG_VIEW.value = Math.max(0, views.indexOf(value)); }
 
 /**
  * Triplanar granite in world space for the BatchedMesh (and the cave inside it): albedo / normal / ARM from `mossy_rock`
@@ -430,8 +427,6 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
     tGritD: { value: grit.map }, tGritN: { value: grit.normalMap },
     /** the cave's fill: the light the mouth and the crack let in, scattered off every wall (no direction) — day-driven */
     uCaveFill: CAVE_FILL,
-    /** Debug ▸ `cragView`: that channel instead of the shade (1 ao, 2 sun, 3 wet, 4 normal, 5 albedo; 0 = shaded) */
-    uCragDebug: CRAG_VIEW,
   };
   for (const t of [rock.map, rock.normalMap, rock.armMap, grit.map, grit.normalMap]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true; }
   setProgramKey(mat, 'pine-crag');
@@ -467,7 +462,6 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         uniform sampler2D tRockD, tRockN, tRockA, tGritD, tGritN;
-        uniform int uCragDebug;
         uniform float uCaveFill;
         varying vec3 vCW;
         varying vec3 vCN;
@@ -565,12 +559,6 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
       .replace('#include <fog_fragment>', `vec3 cPreFog = gl_FragColor.rgb;
         #include <fog_fragment>
         gl_FragColor.rgb = mix( cPreFog, gl_FragColor.rgb, mix( 0.06, 1.0, vCD.g ) );`)
-      .replace('#include <dithering_fragment>', `#include <dithering_fragment>
-        if ( uCragDebug == 1 ) gl_FragColor = vec4( vec3( vCD.r ), 1.0 );
-        else if ( uCragDebug == 2 ) gl_FragColor = vec4( vec3( vCD.g ), 1.0 );
-        else if ( uCragDebug == 3 ) gl_FragColor = vec4( vec3( vCD.b ), 1.0 );
-        else if ( uCragDebug == 4 ) gl_FragColor = vec4( normalize( vCN ) * 0.5 + 0.5, 1.0 );
-        else if ( uCragDebug == 5 ) gl_FragColor = vec4( diffuseColor.rgb, 1.0 );`)
       .replace('#include <aomap_fragment>', `
         {
           // inside, the fill (the emissive term) is the cave's light
