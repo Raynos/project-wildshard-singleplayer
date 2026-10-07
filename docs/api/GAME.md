@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-559 members; 112 without a doc line (—).
+587 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -456,6 +456,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `parseMigrations` | function | @wildshard/game/shardfile/migrations | Parse author data; rename and map may compose, while repeated or conflicting edits and duplicate value sources are refused. |
 | `createMoverHost` | function | @wildshard/game/shardfile/moverRuntime | Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead. |
 | `installDeclaredMovers` | function | @wildshard/game/shardfile/moverRuntime | A single platform installer reads declared rows and owns their lifecycle; the shard only supplies presentation recipes. |
+| `MoverBodyState` | interface | @wildshard/game/shardfile/moverRuntime | Native handle identity is restored before reconnecting to the replacement world. |
 | `MoverInstallation` | interface | @wildshard/game/shardfile/moverRuntime | Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems. |
 | `MoverPorts` | interface | @wildshard/game/shardfile/moverRuntime | The shared script host already owns modules, entity handles and one beginTick per fixed step. |
 | `moverQueries` | function | @wildshard/game/shardfile/moverRuntime | Declared constants are read only and selected by the trusted calling entity; physics queries keep their adapter. |
@@ -567,3 +568,30 @@ The game layer's public modules (src/game/package.json `exports`).
 | `travelService` | function | @wildshard/game/travel/travel | Per-tab handoff. The injectable ports exercise a real write/read/delete round trip in node tests. |
 | `travelSlot` | function | @wildshard/game/travel/travel | — |
 | `TravelSource` | interface | @wildshard/game/travel/travel | — |
+| `Bow` | class | @wildshard/game/weapons/Bow | Starter constructor only; draw clocks, arrows and view strategy execution have one platform implementation. |
+| `BowOptions` | type | @wildshard/game/weapons/Bow | Starter callers retain their row/profile options; the bridge supplies current input and style defaults. |
+| `BowWorld` | type | @wildshard/game/weapons/Bow | Starter host ports for the trusted platform bow family. |
+| `BOW` | const | @wildshard/game/weapons/starterBowProfile | The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into |
+| `BowProfile` | type | @wildshard/game/weapons/starterBowProfile | The starter bow profile accepts those same trusted view strategies. |
+| `BowStyle` | type | @wildshard/game/weapons/starterBowProfile | The starter view recipes keep their existing repaint vocabulary. |
+| `IRON_SWORD` | const | @wildshard/game/weapons/starterEquipment | The upgraded iron sword equipment row and existing UI metadata. |
+| `SWORD` | const | @wildshard/game/weapons/starterEquipment | The base sword equipment row, retaining its legacy slot and cue IDs. |
+| `WOODEN_SWORD` | const | @wildshard/game/weapons/starterEquipment | The starter wooden sword equipment row and existing UI metadata. |
+| `SWAP_GLYPHS` | const | @wildshard/game/weapons/starterGlyphs | The existing swap glyphs, shared by weapon rows (no equipment-id lookup in the HUD). |
+| `SWORD_IRON` | const | @wildshard/game/weapons/starterMeleeProfile | The original iron contact profile, retaining the wooden parent and 28 damage. |
+| `SWORD_WOOD` | const | @wildshard/game/weapons/starterMeleeProfile | The original wooden contact profile, moves and portrait framing. |
+| `BACKHAND` | const | @wildshard/game/weapons/starterMoves | The original second light-combo move and trail parameters. |
+| `CHARGE` | const | @wildshard/game/weapons/starterMoves | RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge |
+| `COMBO` | const | @wildshard/game/weapons/starterMoves | The original light-combo order, preserving move object identities. |
+| `FINISHER` | const | @wildshard/game/weapons/starterMoves | The original final light-combo move and trail parameters. |
+| `HEAVY` | const | @wildshard/game/weapons/starterMoves | The original charged-heavy move and trail parameters. |
+| `key` | const | @wildshard/game/weapons/starterMoves | Build an authored sword key from its time, hand position, blade direction and roll. |
+| `poseQuat` | function | @wildshard/game/weapons/starterMoves | quaternion that takes +Y to `dir` then rolls about it |
+| `REST` | const | @wildshard/game/weapons/starterMoves | rest = the spawn mockup, held lower (E129: it covered Wendell and the middle-right of the view): hands at the lower-right |
+| `SLASH` | const | @wildshard/game/weapons/starterMoves | The original first light-combo move and trail parameters. |
+| `SPRINT` | const | @wildshard/game/weapons/starterMoves | The original lowered hand pose while sprinting. |
+| `HEAVY_CHARGE` | const | @wildshard/game/weapons/Sword | The original charged-heavy move and trail parameters. |
+| `REACH` | const | @wildshard/game/weapons/Sword | Starter reach remains content data. |
+| `Sword` | class | @wildshard/game/weapons/Sword | The starter constructor: view, contact and input execution live in the platform family. |
+| `swordEvents` | const | @wildshard/game/weapons/Sword | The starter recipes share their original sound/reaction hooks, supplied to the platform family. |
+| `SwordOptions` | type | @wildshard/game/weapons/Sword | Compatibility options keep the starter profile and input-context defaults out of the engine. |

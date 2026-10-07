@@ -2209,7 +2209,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-559 exports, grouped by the module to import them from.
+587 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2293,7 +2293,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/game/shardfile/loader`: `browserShardfileOptions`, `configuredShardfile`, `emptyShardfileSource`, `installManifestShardfile`, `installShardfileProduct`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`, `shardfileSource`
 - `@wildshard/game/shardfile/migrations`: `assertMigrationCompatibility`, `DeclaredMigrations`, `LogicalState`, `LogicalStateSchema`, `migrateLogicalState`, `MigrationFieldDeclaration`, `migrationRules`, `MigrationsSchema`, `parseMigrations`
-- `@wildshard/game/shardfile/moverRuntime`: `createMoverHost`, `installDeclaredMovers`, `MoverInstallation`, `MoverPorts`, `moverQueries`, `MoverRuntime`, `MoverView`
+- `@wildshard/game/shardfile/moverRuntime`: `createMoverHost`, `installDeclaredMovers`, `MoverBodyState`, `MoverInstallation`, `MoverPorts`, `moverQueries`, `MoverRuntime`, `MoverView`
 - `@wildshard/game/shardfile/movers`: `MOVER_FIELD_RANGES`, `MOVER_FIELDS`, `MoverData`, `moverScriptEntities`, `MoversSchema`, `parseMovers`
 - `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
 - `@wildshard/game/shardfile/preflight`: `preflightShardfile`
@@ -2318,10 +2318,17 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/version`: `SHARDFILE_PREVIOUS_VERSION`, `SHARDFILE_VERSION`, `shardfileRevision`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
+- `@wildshard/game/weapons/Bow`: `Bow`, `BowOptions`, `BowWorld`
+- `@wildshard/game/weapons/starterBowProfile`: `BOW`, `BowProfile`, `BowStyle`
+- `@wildshard/game/weapons/starterEquipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
+- `@wildshard/game/weapons/starterGlyphs`: `SWAP_GLYPHS`
+- `@wildshard/game/weapons/starterMeleeProfile`: `SWORD_IRON`, `SWORD_WOOD`
+- `@wildshard/game/weapons/starterMoves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
+- `@wildshard/game/weapons/Sword`: `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `SwordOptions`
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-164 exports, grouped by the module to import them from.
+166 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
 - `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
@@ -2347,22 +2354,22 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/kit/viewmodel/armClips`: `ARM_CLIPS`, `armClipNames`, `SWIM_CLIPS`
 - `@wildshard/kit/viewmodel/armRig`: `armConst`, `ArmConst`, `ArmWorld`, `BONES`, `buildBones`, `frameYZ`, `GRIP`, `HandSpec`, `JointAngles`, `LEFT_HAND`, `LEFT_SCALE`, `LIMITS`, `measure`, `Pose`, `RIGHT_HAND`, `settleLeft`, `Side`, `signedAngle`, `softLimit`, `solveArm`, `TWISTS`, `twoBone`
 - `@wildshard/kit/viewmodel/rigArms`: `RigArms`, `RigMeta`, `RigState`, `swordArmsOf`, `VM_FOV`, `VmFrame`, `vmScale`
-- `@wildshard/kit/weapons/bow/family`: `Bow`, `BowOptions`, `BowWorld`
+- `@wildshard/kit/weapons/bow/family`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/kit/weapons/bow/index`: `AIM_IN`, `AIM_SPREAD`, `AIM_SWAY`, `AIM_VM_ZOOM`, `AIM_ZOOM`, `QUIVER_MAX`
 - `@wildshard/kit/weapons/bow/profile`: `BowProfile`, `BowStyle`, `BowView`, `GripPose`
-- `@wildshard/kit/weapons/bow/profiles`: `BOW`
+- `@wildshard/kit/weapons/bow/profiles`: `BOW`, `BowProfile`, `BowStyle`
 - `@wildshard/kit/weapons/equipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
 - `@wildshard/kit/weapons/melee/Melee`: `isMeleeProfile`, `Melee`, `meleeActor`, `MeleeProfile`, `ViewmodelFeel`
 - `@wildshard/kit/weapons/melee/moves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
 - `@wildshard/kit/weapons/melee/profiles`: `SWORD_IRON`, `SWORD_WOOD`
-- `@wildshard/kit/weapons/melee/SweptMelee`: `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `SwordOptions`
+- `@wildshard/kit/weapons/melee/SweptMelee`: `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `SwordInstance`, `SwordOptions`
 - `@wildshard/kit/weapons/thrown/Thrown`: `Thrown`, `ThrownProfile`
 - `@wildshard/kit/weapons/ui`: `SWAP_GLYPHS`
 - `@wildshard/kit/weather/rainCurtain`: `rainCurtain`, `RainCurtainSpec`, `RainProgram`
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-157 exports, grouped by the module to import them from.
+180 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2397,7 +2404,14 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/runtime/weapons/Bow`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`
 - `@wildshard/sdk/runtime/weapons/Melee`: `Melee`, `meleeActor`, `MeleeInstance`
+- `@wildshard/sdk/runtime/weapons/starterBow`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
+- `@wildshard/sdk/runtime/weapons/starterBowProfile`: `BOW`, `BowProfile`, `BowStyle`
+- `@wildshard/sdk/runtime/weapons/starterEquipment`: `IRON_SWORD`, `SWORD`, `WOODEN_SWORD`
+- `@wildshard/sdk/runtime/weapons/starterGlyphs`: `SWAP_GLYPHS`
+- `@wildshard/sdk/runtime/weapons/starterMeleeProfile`: `SWORD_IRON`, `SWORD_WOOD`
+- `@wildshard/sdk/runtime/weapons/starterMoves`: `BACKHAND`, `CHARGE`, `COMBO`, `FINISHER`, `HEAVY`, `key`, `poseQuat`, `REST`, `SLASH`, `SPRINT`
 - `@wildshard/sdk/runtime/weapons/SweptMelee`: `MeleeEvents`, `SweptMelee`, `SweptMeleeDefaults`, `SweptMeleeInstance`, `SweptMeleeOptions`
+- `@wildshard/sdk/runtime/weapons/Sword`: `HEAVY_CHARGE`, `REACH`, `Sword`, `swordEvents`, `SwordInstance`, `SwordOptions`
 - `@wildshard/sdk/runtime/weapons/Thrown`: `Thrown`, `ThrownInstance`
 - `@wildshard/sdk/runtime/weapons/Weapon`: `Weapon`, `WeaponInstance`
 - `@wildshard/sdk/shardfile`: `assertStateCompatibility`, `parseShardfile`, `Shardfile`, `shardfileRules`, `ShardfileSchema`

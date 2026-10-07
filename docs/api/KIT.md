@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-164 members; 62 without a doc line (—).
+168 members; 50 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -127,9 +127,10 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `VM_FOV` | const | @wildshard/kit/viewmodel/rigArms | the viewmodel's vertical field (degrees): the clips' canonical camera |
 | `VmFrame` | interface | @wildshard/kit/viewmodel/rigArms | A RigArms as the engine Sword's animated rig: the moves → the clips, the viewmodel's projection (vmScale), a framing |
 | `vmScale` | function | @wildshard/kit/viewmodel/rigArms | the root's x / y scale that draws a rig framed for `vmFov` through a camera of vertical field `worldFov` (degrees) |
-| `Bow` | class | @wildshard/kit/weapons/bow/family | Compatibility constructor only; draw clocks, arrows and view strategy execution have one platform implementation. |
-| `BowOptions` | type | @wildshard/kit/weapons/bow/family | Existing kit callers retain their row/profile options; the bridge supplies current input and style defaults. |
-| `BowWorld` | type | @wildshard/kit/weapons/bow/family | Transitional host ports for the trusted platform bow family. |
+| `Bow` | type | @wildshard/kit/weapons/bow/family | Compatibility name for the original starter Bow binding; all trusted callers share its identity. |
+| `BowInstance` | type | @wildshard/kit/weapons/bow/family | The one shared starter bow instance. |
+| `BowOptions` | type | @wildshard/kit/weapons/bow/family | Options for the trusted starter bow constructor. |
+| `BowWorld` | type | @wildshard/kit/weapons/bow/family | The starter bow host ports. |
 | `AIM_IN` | const | @wildshard/kit/weapons/bow/index | — |
 | `AIM_SPREAD` | const | @wildshard/kit/weapons/bow/index | — |
 | `AIM_SWAY` | const | @wildshard/kit/weapons/bow/index | — |
@@ -140,35 +141,38 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `BowStyle` | type | @wildshard/kit/weapons/bow/profile | Transitional content's named view styles; the engine accepts its caller's vocabulary. |
 | `BowView` | type | @wildshard/kit/weapons/bow/profile | Transitional kit name for the injected bow model strategy. |
 | `GripPose` | type | @wildshard/kit/weapons/bow/profile | Transitional kit name for the authored view grip. |
-| `BOW` | const | @wildshard/kit/weapons/bow/profiles | The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into |
-| `IRON_SWORD` | const | @wildshard/kit/weapons/equipment | — |
-| `SWORD` | const | @wildshard/kit/weapons/equipment | — |
-| `WOODEN_SWORD` | const | @wildshard/kit/weapons/equipment | — |
+| `BOW` | const | @wildshard/kit/weapons/bow/profiles | Compatibility name for the original starter BOW binding; all trusted callers share its identity. |
+| `BowProfile` | type | @wildshard/kit/weapons/bow/profiles | Compatibility name for the original starter numeric bow profile with trusted injected view strategies. |
+| `BowStyle` | type | @wildshard/kit/weapons/bow/profiles | The starter view recipes retain their closed repaint vocabulary. |
+| `IRON_SWORD` | const | @wildshard/kit/weapons/equipment | Compatibility name for the original starter IRON_SWORD binding; all trusted callers share its identity. |
+| `SWORD` | const | @wildshard/kit/weapons/equipment | Compatibility name for the original starter SWORD binding; all trusted callers share its identity. |
+| `WOODEN_SWORD` | const | @wildshard/kit/weapons/equipment | Compatibility name for the original starter WOODEN_SWORD binding; all trusted callers share its identity. |
 | `isMeleeProfile` | const | @wildshard/kit/weapons/melee/Melee | The platform discriminant retains legacy row handling. |
 | `Melee` | class | @wildshard/kit/weapons/melee/Melee | Compatibility constructor supplies the current combat pipeline; all family behavior lives in the engine. |
 | `meleeActor` | const | @wildshard/kit/weapons/melee/Melee | All kit and SDK contact callers share the platform's one native/practice adapter cache. |
 | `MeleeProfile` | type | @wildshard/kit/weapons/melee/Melee | Transitional kit name for the platform's authored contact profile. |
 | `ViewmodelFeel` | type | @wildshard/kit/weapons/melee/Melee | Transitional kit name for the platform's numeric view tuning. |
-| `BACKHAND` | const | @wildshard/kit/weapons/melee/moves | — |
-| `CHARGE` | const | @wildshard/kit/weapons/melee/moves | RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge |
-| `COMBO` | const | @wildshard/kit/weapons/melee/moves | — |
-| `FINISHER` | const | @wildshard/kit/weapons/melee/moves | — |
-| `HEAVY` | const | @wildshard/kit/weapons/melee/moves | — |
-| `key` | const | @wildshard/kit/weapons/melee/moves | — |
-| `poseQuat` | function | @wildshard/kit/weapons/melee/moves | quaternion that takes +Y to `dir` then rolls about it |
-| `REST` | const | @wildshard/kit/weapons/melee/moves | rest = the spawn mockup, held lower (E129: it covered Wendell and the middle-right of the view): hands at the lower-right |
-| `SLASH` | const | @wildshard/kit/weapons/melee/moves | — |
-| `SPRINT` | const | @wildshard/kit/weapons/melee/moves | — |
-| `SWORD_IRON` | const | @wildshard/kit/weapons/melee/profiles | — |
-| `SWORD_WOOD` | const | @wildshard/kit/weapons/melee/profiles | — |
-| `HEAVY_CHARGE` | const | @wildshard/kit/weapons/melee/SweptMelee | Starter heavy charge duration remains content data. |
-| `REACH` | const | @wildshard/kit/weapons/melee/SweptMelee | Starter reach remains content data. |
-| `Sword` | class | @wildshard/kit/weapons/melee/SweptMelee | Transitional starter constructor: view, contact and input execution live in the platform family. |
-| `swordEvents` | const | @wildshard/kit/weapons/melee/SweptMelee | The starter recipes share their original sound/reaction hooks, supplied to the platform family. |
-| `SwordOptions` | type | @wildshard/kit/weapons/melee/SweptMelee | Compatibility options keep the starter profile and input-context defaults out of the engine. |
+| `BACKHAND` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter BACKHAND binding; all trusted callers share its identity. |
+| `CHARGE` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter CHARGE binding; all trusted callers share its identity. |
+| `COMBO` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter COMBO binding; all trusted callers share its identity. |
+| `FINISHER` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter FINISHER binding; all trusted callers share its identity. |
+| `HEAVY` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter HEAVY binding; all trusted callers share its identity. |
+| `key` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter key binding; all trusted callers share its identity. |
+| `poseQuat` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter poseQuat binding; all trusted callers share its identity. |
+| `REST` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter REST binding; all trusted callers share its identity. |
+| `SLASH` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter SLASH binding; all trusted callers share its identity. |
+| `SPRINT` | const | @wildshard/kit/weapons/melee/moves | Compatibility name for the original starter SPRINT binding; all trusted callers share its identity. |
+| `SWORD_IRON` | const | @wildshard/kit/weapons/melee/profiles | Compatibility name for the original starter SWORD_IRON binding; all trusted callers share its identity. |
+| `SWORD_WOOD` | const | @wildshard/kit/weapons/melee/profiles | Compatibility name for the original starter SWORD_WOOD binding; all trusted callers share its identity. |
+| `HEAVY_CHARGE` | const | @wildshard/kit/weapons/melee/SweptMelee | Compatibility name for the original starter HEAVY_CHARGE binding; all trusted callers share its identity. |
+| `REACH` | const | @wildshard/kit/weapons/melee/SweptMelee | Compatibility name for the original starter REACH binding; all trusted callers share its identity. |
+| `Sword` | type | @wildshard/kit/weapons/melee/SweptMelee | Compatibility name for the original starter Sword binding; all trusted callers share its identity. |
+| `swordEvents` | const | @wildshard/kit/weapons/melee/SweptMelee | Compatibility name for the original starter swordEvents binding; all trusted callers share its identity. |
+| `SwordInstance` | type | @wildshard/kit/weapons/melee/SweptMelee | The one shared starter sword instance. |
+| `SwordOptions` | type | @wildshard/kit/weapons/melee/SweptMelee | Options for the trusted starter sword constructor. |
 | `Thrown` | const | @wildshard/kit/weapons/thrown/Thrown | The kit uses the one platform constructor and ammunition implementation. |
 | `ThrownProfile` | type | @wildshard/kit/weapons/thrown/Thrown | Transitional kit name for the platform's authored ammunition and flight profile. |
-| `SWAP_GLYPHS` | const | @wildshard/kit/weapons/ui | The existing swap glyphs, shared by weapon rows (no equipment-id lookup in the HUD). |
+| `SWAP_GLYPHS` | const | @wildshard/kit/weapons/ui | Compatibility name for the original starter SWAP_GLYPHS binding; all trusted callers share its identity. |
 | `rainCurtain` | function | @wildshard/kit/weather/rainCurtain | Camera-local, world-anchored streak quads. Both authored programs retain their exact source. |
 | `RainCurtainSpec` | interface | @wildshard/kit/weather/rainCurtain | — |
 | `RainProgram` | interface | @wildshard/kit/weather/rainCurtain | — |

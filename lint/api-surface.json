@@ -15462,6 +15462,12 @@
         "from": "@wildshard/game/shardfile/moverRuntime"
       },
       {
+        "name": "MoverBodyState",
+        "kind": "interface",
+        "doc": "Native handle identity is restored before reconnecting to the replacement world.",
+        "from": "@wildshard/game/shardfile/moverRuntime"
+      },
+      {
         "name": "MoverInstallation",
         "kind": "interface",
         "doc": "Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems.",
@@ -16126,6 +16132,168 @@
         "kind": "interface",
         "doc": "",
         "from": "@wildshard/game/travel/travel"
+      },
+      {
+        "name": "Bow",
+        "kind": "class",
+        "doc": "Starter constructor only; draw clocks, arrows and view strategy execution have one platform implementation.",
+        "from": "@wildshard/game/weapons/Bow"
+      },
+      {
+        "name": "BowOptions",
+        "kind": "type",
+        "doc": "Starter callers retain their row/profile options; the bridge supplies current input and style defaults.",
+        "from": "@wildshard/game/weapons/Bow"
+      },
+      {
+        "name": "BowWorld",
+        "kind": "type",
+        "doc": "Starter host ports for the trusted platform bow family.",
+        "from": "@wildshard/game/weapons/Bow"
+      },
+      {
+        "name": "BOW",
+        "kind": "const",
+        "doc": "The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into",
+        "from": "@wildshard/game/weapons/starterBowProfile"
+      },
+      {
+        "name": "BowProfile",
+        "kind": "type",
+        "doc": "The starter bow profile accepts those same trusted view strategies.",
+        "from": "@wildshard/game/weapons/starterBowProfile"
+      },
+      {
+        "name": "BowStyle",
+        "kind": "type",
+        "doc": "The starter view recipes keep their existing repaint vocabulary.",
+        "from": "@wildshard/game/weapons/starterBowProfile"
+      },
+      {
+        "name": "IRON_SWORD",
+        "kind": "const",
+        "doc": "The upgraded iron sword equipment row and existing UI metadata.",
+        "from": "@wildshard/game/weapons/starterEquipment"
+      },
+      {
+        "name": "SWORD",
+        "kind": "const",
+        "doc": "The base sword equipment row, retaining its legacy slot and cue IDs.",
+        "from": "@wildshard/game/weapons/starterEquipment"
+      },
+      {
+        "name": "WOODEN_SWORD",
+        "kind": "const",
+        "doc": "The starter wooden sword equipment row and existing UI metadata.",
+        "from": "@wildshard/game/weapons/starterEquipment"
+      },
+      {
+        "name": "SWAP_GLYPHS",
+        "kind": "const",
+        "doc": "The existing swap glyphs, shared by weapon rows (no equipment-id lookup in the HUD).",
+        "from": "@wildshard/game/weapons/starterGlyphs"
+      },
+      {
+        "name": "SWORD_IRON",
+        "kind": "const",
+        "doc": "The original iron contact profile, retaining the wooden parent and 28 damage.",
+        "from": "@wildshard/game/weapons/starterMeleeProfile"
+      },
+      {
+        "name": "SWORD_WOOD",
+        "kind": "const",
+        "doc": "The original wooden contact profile, moves and portrait framing.",
+        "from": "@wildshard/game/weapons/starterMeleeProfile"
+      },
+      {
+        "name": "BACKHAND",
+        "kind": "const",
+        "doc": "The original second light-combo move and trail parameters.",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "CHARGE",
+        "kind": "const",
+        "doc": "RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "COMBO",
+        "kind": "const",
+        "doc": "The original light-combo order, preserving move object identities.",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "FINISHER",
+        "kind": "const",
+        "doc": "The original final light-combo move and trail parameters.",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "HEAVY",
+        "kind": "const",
+        "doc": "The original charged-heavy move and trail parameters.",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "key",
+        "kind": "const",
+        "doc": "Build an authored sword key from its time, hand position, blade direction and roll.",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "poseQuat",
+        "kind": "function",
+        "doc": "quaternion that takes +Y to `dir` then rolls about it",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "REST",
+        "kind": "const",
+        "doc": "rest = the spawn mockup, held lower (E129: it covered Wendell and the middle-right of the view): hands at the lower-right",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "SLASH",
+        "kind": "const",
+        "doc": "The original first light-combo move and trail parameters.",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "SPRINT",
+        "kind": "const",
+        "doc": "The original lowered hand pose while sprinting.",
+        "from": "@wildshard/game/weapons/starterMoves"
+      },
+      {
+        "name": "HEAVY_CHARGE",
+        "kind": "const",
+        "doc": "The original charged-heavy move and trail parameters.",
+        "from": "@wildshard/game/weapons/Sword"
+      },
+      {
+        "name": "REACH",
+        "kind": "const",
+        "doc": "Starter reach remains content data.",
+        "from": "@wildshard/game/weapons/Sword"
+      },
+      {
+        "name": "Sword",
+        "kind": "class",
+        "doc": "The starter constructor: view, contact and input execution live in the platform family.",
+        "from": "@wildshard/game/weapons/Sword"
+      },
+      {
+        "name": "swordEvents",
+        "kind": "const",
+        "doc": "The starter recipes share their original sound/reaction hooks, supplied to the platform family.",
+        "from": "@wildshard/game/weapons/Sword"
+      },
+      {
+        "name": "SwordOptions",
+        "kind": "type",
+        "doc": "Compatibility options keep the starter profile and input-context defaults out of the engine.",
+        "from": "@wildshard/game/weapons/Sword"
       }
     ],
     "kit": [
@@ -16845,20 +17013,26 @@
       },
       {
         "name": "Bow",
-        "kind": "class",
-        "doc": "Compatibility constructor only; draw clocks, arrows and view strategy execution have one platform implementation.",
+        "kind": "type",
+        "doc": "Compatibility name for the original starter Bow binding; all trusted callers share its identity.",
+        "from": "@wildshard/kit/weapons/bow/family"
+      },
+      {
+        "name": "BowInstance",
+        "kind": "type",
+        "doc": "The one shared starter bow instance.",
         "from": "@wildshard/kit/weapons/bow/family"
       },
       {
         "name": "BowOptions",
         "kind": "type",
-        "doc": "Existing kit callers retain their row/profile options; the bridge supplies current input and style defaults.",
+        "doc": "Options for the trusted starter bow constructor.",
         "from": "@wildshard/kit/weapons/bow/family"
       },
       {
         "name": "BowWorld",
         "kind": "type",
-        "doc": "Transitional host ports for the trusted platform bow family.",
+        "doc": "The starter bow host ports.",
         "from": "@wildshard/kit/weapons/bow/family"
       },
       {
@@ -16924,25 +17098,37 @@
       {
         "name": "BOW",
         "kind": "const",
-        "doc": "The default bow's numbers. SF54: its view (the recurve's poses, arrow line, build and arrow) moved with the recurve into",
+        "doc": "Compatibility name for the original starter BOW binding; all trusted callers share its identity.",
+        "from": "@wildshard/kit/weapons/bow/profiles"
+      },
+      {
+        "name": "BowProfile",
+        "kind": "type",
+        "doc": "Compatibility name for the original starter numeric bow profile with trusted injected view strategies.",
+        "from": "@wildshard/kit/weapons/bow/profiles"
+      },
+      {
+        "name": "BowStyle",
+        "kind": "type",
+        "doc": "The starter view recipes retain their closed repaint vocabulary.",
         "from": "@wildshard/kit/weapons/bow/profiles"
       },
       {
         "name": "IRON_SWORD",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter IRON_SWORD binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/equipment"
       },
       {
         "name": "SWORD",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter SWORD binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/equipment"
       },
       {
         "name": "WOODEN_SWORD",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter WOODEN_SWORD binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/equipment"
       },
       {
@@ -16978,103 +17164,109 @@
       {
         "name": "BACKHAND",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter BACKHAND binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "CHARGE",
         "kind": "const",
-        "doc": "RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge",
+        "doc": "Compatibility name for the original starter CHARGE binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "COMBO",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter COMBO binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "FINISHER",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter FINISHER binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "HEAVY",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter HEAVY binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "key",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter key binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "poseQuat",
-        "kind": "function",
-        "doc": "quaternion that takes +Y to `dir` then rolls about it",
+        "kind": "const",
+        "doc": "Compatibility name for the original starter poseQuat binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "REST",
         "kind": "const",
-        "doc": "rest = the spawn mockup, held lower (E129: it covered Wendell and the middle-right of the view): hands at the lower-right",
+        "doc": "Compatibility name for the original starter REST binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "SLASH",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter SLASH binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "SPRINT",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter SPRINT binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/moves"
       },
       {
         "name": "SWORD_IRON",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter SWORD_IRON binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/profiles"
       },
       {
         "name": "SWORD_WOOD",
         "kind": "const",
-        "doc": "",
+        "doc": "Compatibility name for the original starter SWORD_WOOD binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/profiles"
       },
       {
         "name": "HEAVY_CHARGE",
         "kind": "const",
-        "doc": "Starter heavy charge duration remains content data.",
+        "doc": "Compatibility name for the original starter HEAVY_CHARGE binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "REACH",
         "kind": "const",
-        "doc": "Starter reach remains content data.",
+        "doc": "Compatibility name for the original starter REACH binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "Sword",
-        "kind": "class",
-        "doc": "Transitional starter constructor: view, contact and input execution live in the platform family.",
+        "kind": "type",
+        "doc": "Compatibility name for the original starter Sword binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "swordEvents",
         "kind": "const",
-        "doc": "The starter recipes share their original sound/reaction hooks, supplied to the platform family.",
+        "doc": "Compatibility name for the original starter swordEvents binding; all trusted callers share its identity.",
+        "from": "@wildshard/kit/weapons/melee/SweptMelee"
+      },
+      {
+        "name": "SwordInstance",
+        "kind": "type",
+        "doc": "The one shared starter sword instance.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
         "name": "SwordOptions",
         "kind": "type",
-        "doc": "Compatibility options keep the starter profile and input-context defaults out of the engine.",
+        "doc": "Options for the trusted starter sword constructor.",
         "from": "@wildshard/kit/weapons/melee/SweptMelee"
       },
       {
@@ -17092,7 +17284,7 @@
       {
         "name": "SWAP_GLYPHS",
         "kind": "const",
-        "doc": "The existing swap glyphs, shared by weapon rows (no equipment-id lookup in the HUD).",
+        "doc": "Compatibility name for the original starter SWAP_GLYPHS binding; all trusted callers share its identity.",
         "from": "@wildshard/kit/weapons/ui"
       },
       {
@@ -17866,6 +18058,144 @@
         "from": "@wildshard/sdk/runtime/weapons/Melee"
       },
       {
+        "name": "Bow",
+        "kind": "const",
+        "doc": "The original starter Bow binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterBow"
+      },
+      {
+        "name": "BowInstance",
+        "kind": "type",
+        "doc": "The one shared starter bow instance.",
+        "from": "@wildshard/sdk/runtime/weapons/starterBow"
+      },
+      {
+        "name": "BowOptions",
+        "kind": "type",
+        "doc": "Options for the trusted starter bow constructor.",
+        "from": "@wildshard/sdk/runtime/weapons/starterBow"
+      },
+      {
+        "name": "BowWorld",
+        "kind": "type",
+        "doc": "The starter bow host ports.",
+        "from": "@wildshard/sdk/runtime/weapons/starterBow"
+      },
+      {
+        "name": "BOW",
+        "kind": "const",
+        "doc": "The original starter BOW binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterBowProfile"
+      },
+      {
+        "name": "BowProfile",
+        "kind": "type",
+        "doc": "The original starter numeric bow profile with trusted injected view strategies.",
+        "from": "@wildshard/sdk/runtime/weapons/starterBowProfile"
+      },
+      {
+        "name": "BowStyle",
+        "kind": "type",
+        "doc": "The starter view recipes retain their closed repaint vocabulary.",
+        "from": "@wildshard/sdk/runtime/weapons/starterBowProfile"
+      },
+      {
+        "name": "IRON_SWORD",
+        "kind": "const",
+        "doc": "The original starter IRON_SWORD binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterEquipment"
+      },
+      {
+        "name": "SWORD",
+        "kind": "const",
+        "doc": "The original starter SWORD binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterEquipment"
+      },
+      {
+        "name": "WOODEN_SWORD",
+        "kind": "const",
+        "doc": "The original starter WOODEN_SWORD binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterEquipment"
+      },
+      {
+        "name": "SWAP_GLYPHS",
+        "kind": "const",
+        "doc": "The original starter SWAP_GLYPHS binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterGlyphs"
+      },
+      {
+        "name": "SWORD_IRON",
+        "kind": "const",
+        "doc": "The original starter SWORD_IRON binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMeleeProfile"
+      },
+      {
+        "name": "SWORD_WOOD",
+        "kind": "const",
+        "doc": "The original starter SWORD_WOOD binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMeleeProfile"
+      },
+      {
+        "name": "BACKHAND",
+        "kind": "const",
+        "doc": "The original starter BACKHAND binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "CHARGE",
+        "kind": "const",
+        "doc": "The original starter CHARGE binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "COMBO",
+        "kind": "const",
+        "doc": "The original starter COMBO binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "FINISHER",
+        "kind": "const",
+        "doc": "The original starter FINISHER binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "HEAVY",
+        "kind": "const",
+        "doc": "The original starter HEAVY binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "key",
+        "kind": "const",
+        "doc": "The original starter key binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "poseQuat",
+        "kind": "const",
+        "doc": "The original starter poseQuat binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "REST",
+        "kind": "const",
+        "doc": "The original starter REST binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "SLASH",
+        "kind": "const",
+        "doc": "The original starter SLASH binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
+        "name": "SPRINT",
+        "kind": "const",
+        "doc": "The original starter SPRINT binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/starterMoves"
+      },
+      {
         "name": "MeleeEvents",
         "kind": "type",
         "doc": "Optional contact, swing and cover reactions from the owning runtime recipe.",
@@ -17894,6 +18224,42 @@
         "kind": "type",
         "doc": "Explicit row, profile, input context and view options for a swept contact family.",
         "from": "@wildshard/sdk/runtime/weapons/SweptMelee"
+      },
+      {
+        "name": "HEAVY_CHARGE",
+        "kind": "const",
+        "doc": "The original starter HEAVY_CHARGE binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/Sword"
+      },
+      {
+        "name": "REACH",
+        "kind": "const",
+        "doc": "The original starter REACH binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/Sword"
+      },
+      {
+        "name": "Sword",
+        "kind": "const",
+        "doc": "The original starter Sword binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/Sword"
+      },
+      {
+        "name": "swordEvents",
+        "kind": "const",
+        "doc": "The original starter swordEvents binding; all trusted callers share its identity.",
+        "from": "@wildshard/sdk/runtime/weapons/Sword"
+      },
+      {
+        "name": "SwordInstance",
+        "kind": "type",
+        "doc": "The one shared starter sword instance.",
+        "from": "@wildshard/sdk/runtime/weapons/Sword"
+      },
+      {
+        "name": "SwordOptions",
+        "kind": "type",
+        "doc": "Options for the trusted starter sword constructor.",
+        "from": "@wildshard/sdk/runtime/weapons/Sword"
       },
       {
         "name": "Thrown",

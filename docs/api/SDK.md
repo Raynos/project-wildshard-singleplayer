@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-157 members; 0 without a doc line (—).
+186 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -133,11 +133,40 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `Melee` | const | @wildshard/sdk/runtime/weapons/Melee | The one platform contact constructor, used by transitional runtime subclasses until declared items replace them. |
 | `meleeActor` | const | @wildshard/sdk/runtime/weapons/Melee | Native/practice targets share the platform's one cached combat actor adapter. |
 | `MeleeInstance` | type | @wildshard/sdk/runtime/weapons/Melee | Trusted contact-family instance with authored sweep and view parameters. |
+| `Bow` | const | @wildshard/sdk/runtime/weapons/starterBow | The original starter Bow binding; all trusted callers share its identity. |
+| `BowInstance` | type | @wildshard/sdk/runtime/weapons/starterBow | The one shared starter bow instance. |
+| `BowOptions` | type | @wildshard/sdk/runtime/weapons/starterBow | Options for the trusted starter bow constructor. |
+| `BowWorld` | type | @wildshard/sdk/runtime/weapons/starterBow | The starter bow host ports. |
+| `BOW` | const | @wildshard/sdk/runtime/weapons/starterBowProfile | The original starter BOW binding; all trusted callers share its identity. |
+| `BowProfile` | type | @wildshard/sdk/runtime/weapons/starterBowProfile | The original starter numeric bow profile with trusted injected view strategies. |
+| `BowStyle` | type | @wildshard/sdk/runtime/weapons/starterBowProfile | The starter view recipes retain their closed repaint vocabulary. |
+| `IRON_SWORD` | const | @wildshard/sdk/runtime/weapons/starterEquipment | The original starter IRON_SWORD binding; all trusted callers share its identity. |
+| `SWORD` | const | @wildshard/sdk/runtime/weapons/starterEquipment | The original starter SWORD binding; all trusted callers share its identity. |
+| `WOODEN_SWORD` | const | @wildshard/sdk/runtime/weapons/starterEquipment | The original starter WOODEN_SWORD binding; all trusted callers share its identity. |
+| `SWAP_GLYPHS` | const | @wildshard/sdk/runtime/weapons/starterGlyphs | The original starter SWAP_GLYPHS binding; all trusted callers share its identity. |
+| `SWORD_IRON` | const | @wildshard/sdk/runtime/weapons/starterMeleeProfile | The original starter SWORD_IRON binding; all trusted callers share its identity. |
+| `SWORD_WOOD` | const | @wildshard/sdk/runtime/weapons/starterMeleeProfile | The original starter SWORD_WOOD binding; all trusted callers share its identity. |
+| `BACKHAND` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter BACKHAND binding; all trusted callers share its identity. |
+| `CHARGE` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter CHARGE binding; all trusted callers share its identity. |
+| `COMBO` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter COMBO binding; all trusted callers share its identity. |
+| `FINISHER` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter FINISHER binding; all trusted callers share its identity. |
+| `HEAVY` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter HEAVY binding; all trusted callers share its identity. |
+| `key` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter key binding; all trusted callers share its identity. |
+| `poseQuat` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter poseQuat binding; all trusted callers share its identity. |
+| `REST` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter REST binding; all trusted callers share its identity. |
+| `SLASH` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter SLASH binding; all trusted callers share its identity. |
+| `SPRINT` | const | @wildshard/sdk/runtime/weapons/starterMoves | The original starter SPRINT binding; all trusted callers share its identity. |
 | `MeleeEvents` | type | @wildshard/sdk/runtime/weapons/SweptMelee | Optional contact, swing and cover reactions from the owning runtime recipe. |
 | `SweptMelee` | const | @wildshard/sdk/runtime/weapons/SweptMelee | The one platform swept contact constructor; the SDK supplies no starter moves or geometry. |
 | `SweptMeleeDefaults` | type | @wildshard/sdk/runtime/weapons/SweptMelee | Caller-supplied starter move identities and reaction hooks. |
 | `SweptMeleeInstance` | type | @wildshard/sdk/runtime/weapons/SweptMelee | The shared swept contact instance, with rig and move strategies supplied by content. |
 | `SweptMeleeOptions` | type | @wildshard/sdk/runtime/weapons/SweptMelee | Explicit row, profile, input context and view options for a swept contact family. |
+| `HEAVY_CHARGE` | const | @wildshard/sdk/runtime/weapons/Sword | The original starter HEAVY_CHARGE binding; all trusted callers share its identity. |
+| `REACH` | const | @wildshard/sdk/runtime/weapons/Sword | The original starter REACH binding; all trusted callers share its identity. |
+| `Sword` | const | @wildshard/sdk/runtime/weapons/Sword | The original starter Sword binding; all trusted callers share its identity. |
+| `swordEvents` | const | @wildshard/sdk/runtime/weapons/Sword | The original starter swordEvents binding; all trusted callers share its identity. |
+| `SwordInstance` | type | @wildshard/sdk/runtime/weapons/Sword | The one shared starter sword instance. |
+| `SwordOptions` | type | @wildshard/sdk/runtime/weapons/Sword | Options for the trusted starter sword constructor. |
 | `Thrown` | const | @wildshard/sdk/runtime/weapons/Thrown | The one platform thrown helper constructor; the SDK adds no state or implementation. |
 | `ThrownInstance` | type | @wildshard/sdk/runtime/weapons/Thrown | A composing weapon's ammunition and fixed-step launch helper. |
 | `Weapon` | const | @wildshard/sdk/runtime/weapons/Weapon | The single platform weapon constructor; the trusted SDK surface adds no runtime state or implementation. |
