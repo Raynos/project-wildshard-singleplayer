@@ -25,6 +25,7 @@ import { attachShadowCaster } from './animalShadow';
 import { FarHerd, type FarMember } from './farHerd';
 import { activeLevel } from '../level/selection';
 import type { CreatureRenderSpec } from '../level/spec';
+import type { LevelFrameBinding } from '../level/frame';
 import { TIER, TIER_CONFIG } from '../core/tier';
 import { worldTime } from '../core/time';
 import { frameCost } from '../core/frameCost';
@@ -507,13 +508,26 @@ export class AnimalManager {
    * `build()` with the event loop let in between herds (`pause`, e.g. a macrotask): the same herds, the
    * same rolls — each herd's first animal of a species builds its model (lofted body + fur), and all of
    * them in one call was a 250–650 ms main-thread task of the boot's `animals` step at 4x CPU.
+   * Regional shells pass their retained frame: construction and every resumed herd slice use its
+   * services/owner; the frame is restored while awaiting models or yielding between herds.
    */
-  async buildAsync(pause: () => Promise<void>): Promise<this> {
-    this.blood = new BloodFX(this.sky);
-    this.group.add(this.blood.group);
+  async buildAsync(pause: () => Promise<void>, frame?: LevelFrameBinding): Promise<this> {
+    const start = (): void => {
+      this.blood = new BloodFX(this.sky);
+      this.group.add(this.blood.group);
+    };
+    if (frame === undefined) start();
+    else frame.run(app, () => { start(); this.scheduler.configure(frame.terrain.level.tiers?.[TIER]?.ticks); });
     await this.factory.ready;   // Pine Hollow's generated hulls (pineCreatures.ts) before the first herd: a model is made once
-    for (const _herd of this.spawnHerds()) await pause();
-    return this.finish();
+    if (frame === undefined) {
+      for (const _herd of this.spawnHerds()) await pause();
+      return this.finish();
+    }
+    // Each resumed herd reads its retained level/terrain/services, never the intervening page frame.
+    // Keep the ambient binding synchronous: another region may enter while pause() is pending.
+    const herds = this.spawnHerds();
+    while (!frame.run(app, () => herds.next()).done) await pause();
+    return frame.run(app, () => this.finish());
   }
 
   private finish(): this {
