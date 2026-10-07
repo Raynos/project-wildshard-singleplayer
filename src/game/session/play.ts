@@ -68,6 +68,7 @@ import { gridCells, gridHomeSim, pageMode } from '../grid/boot';
 import { installGridReveal } from '../grid/reveal';
 import { installGridHud } from '../grid/gridHud';
 import { installBudgetOverlay } from '../grid/budgetOverlay';
+import { installMemoryWarning } from '../grid/memoryWarning';
 import { ACCENTS } from '../shardfile/accent';
 import { installMinimapBlend } from '../grid/minimapBlend';
 import { findShard } from '../shard/registry';
@@ -82,6 +83,7 @@ import { terrainDatum } from '@wildshard/engine/world/terrainHeight';
 async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   const { manifest, boot, session, kit, files, step, menuLoad, world, game, sky, player, params, chunk, registry, nolock, viewer, boundary, horizon, prepareAudio, animals, arena, swimArms, crossbow, rifle, longbow, weapons, lockSys, touchControls, hud } = ctx;
   const leakPhysics = world.physics; // The borrowed page world outlives temporary active frames.
+  if (session.memory !== undefined) installMemoryWarning(session.memory, game.levelScope, hud.root);
 
   let playground: Playground | null = null;
   const away = (): boolean => arena.entered || playground?.entered === true;
