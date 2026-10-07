@@ -3,6 +3,8 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/game/shardfile/schema';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphIr, type GraphNode } from '@wildshard/engine/core/materialGraph';
 import { materialGraphRules } from '../src/game/shardfile/materials';
+import { parseFamilyMaterial, parsePainterlyLook, parseToonLook } from '../src/engine/render/families/params';
+import { painterlyGraph, PRESET_GRAPH_BUDGET, toonGraph } from '../src/engine/render/graph/presets';
 
 const lighting = (): GraphIr => ({
   version: 1, kind: 'material', model: 'standard', flatShading: true,
@@ -67,4 +69,21 @@ it('charges lighting instructions to the same author budget without a trusted-pr
   expect(() => parseShardfile(product(expensive))).toThrow();
   const source = parseShardfile(product(program)); source.look.materials['lit'] = { family: 'graph', graph: expensive };
   expect(materialGraphRules(source).join('; ')).toContain('instructions (at most 480)');
+});
+it('keeps large trusted lighting presets distinct from the bounded authored graph budget', () => {
+  const toon = parseFamilyMaterial({ family: 'toon', colour: [0.85, 0.6, 0.4] });
+  const paint = parseFamilyMaterial({ family: 'painterly', colour: [0.5, 0.7, 0.3], sway: 0.1 });
+  if (toon.family !== 'toon' || paint.family !== 'painterly') throw new Error('preset families');
+  const wet = toonGraph(toon, parseToonLook({ caustics: { level: 1.5, strength: 0.5 } }));
+  const sway = painterlyGraph(paint, parsePainterlyLook({}));
+  for (const [graph, instructions] of [[wet, 661], [sway, 546]] as const) {
+    const result = validateGraph(graph, { budget: PRESET_GRAPH_BUDGET });
+    if (!result.ok) throw new Error(result.errors.join('; '));
+    expect(result).toMatchObject({ ok: true, cost: { instructions } });
+    expect(result.cost.nodes).toBeGreaterThan(DEFAULT_GRAPH_BUDGET.nodes);
+    const author = validateGraph(graph);
+    if (author.ok) throw new Error('Expected raw-node refusal');
+    expect(author.errors.join('; ')).toMatch(/nodes \(at most 160\)/);
+    expect(() => parseShardfile(product(graph))).toThrow();
+  }
 });
