@@ -47,6 +47,12 @@ export function checkpointClientState(ports: { ledger: { flush: () => boolean };
   return profile && coins && encounters && continuation;
 }
 
+/** One owner for periodic, hidden and disposed checkpoints; successful reset suppresses every later stale write. */
+export function clientCheckpoint(ports: Parameters<typeof checkpointClientState>[0]): { checkpoint: () => boolean; suppress: () => void } {
+  let suppressed = false;
+  return { checkpoint: () => !suppressed && checkpointClientState(ports), suppress: () => { suppressed = true; } };
+}
+
 function itemStates(items: Runtimes): v.InferOutput<typeof itemsSchema> {
   return v.parse(itemsSchema, Object.fromEntries([...items].map(([id, runtime]) => [id, runtime.snapshot()])));
 }

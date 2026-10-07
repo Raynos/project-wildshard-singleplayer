@@ -35,7 +35,7 @@ import { installClientWater } from './clientWater';
 import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
-import { captureClientState, restoreClientState, installClientItemState, clientStateSave, checkpointClientState } from './clientState';
+import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from './clientState';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
@@ -75,7 +75,7 @@ export interface ShardfileClientBindings {
   /** Announced during construction only when this data client will create a simulation; empty trusted transitions never announce a handoff. */
   onSimulationExpected?: () => void;
   /** Production handoff after restoration; checkpoint confirms ledger, coins, encounters and continuation writes. The existing Game driver remains the home tick owner. */
-  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
+  onSimulation?: (binding: { source: Shardfile; simulation: ShardfileSimulation; items: ReadonlyMap<string, ItemRuntime>; scope: ShardContext['scope']; checkpoint: () => boolean; suppressCheckpoint: () => void; setActive: (active: boolean) => void; residency?: HomeResidencyClaim }) => void;
 }
 const encounterSchema = v.record(v.string(), v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(v.number(), v.integer(), v.minValue(0)) }));
 const encounterSave = { key: 'platform.encounters', scope: 'shard' as const, version: 1, schema: encounterSchema, initial: (): v.InferOutput<typeof encounterSchema> => ({}) };
@@ -302,9 +302,10 @@ export class ShardfileClient {
     const prior = continuation.read();
     if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) throw new Error('Saved progress requires an admitted checkpoint migration');
     syncTargetColliders(source.targets, sim.colliders, read);
-    const checkpoint = (): boolean => checkpointClientState({ ledger, purse: loot?.purse ?? null,
+    const saver = clientCheckpoint({ ledger, purse: loot?.purse ?? null,
       encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
+    const checkpoint = saver.checkpoint;
     sim.host.onStep('client.save', () => { if (sim.host.state.tick % 300 === 0) checkpoint(); });
     ctx.scope.onDispose(() => { checkpoint(); });
     ctx.scope.listen(window, 'pagehide', () => { checkpoint(); });
@@ -325,7 +326,7 @@ export class ShardfileClient {
     ctx.debug.expose('shardfile', { source, host: sim.host, lane: sim.lane, items: items.runtimes, colliders: sim.colliders, fine: tiles.fine, weather });
     this.bindings.onSimulation?.({ source, simulation: sim, items: items.runtimes, scope: ctx.scope,
       ...(this.bindings.residency === undefined ? {} : { residency: this.bindings.residency.home() }),
-      checkpoint: () => !ctx.scope.disposed && checkpoint(), setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
+      checkpoint: () => !ctx.scope.disposed && checkpoint(), suppressCheckpoint: saver.suppress, setActive: (active) => { simulationActive = active && !ctx.scope.disposed; },
     });
   }
 }

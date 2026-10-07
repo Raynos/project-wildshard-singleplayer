@@ -75,7 +75,7 @@ export class GridCellEvents {
 export const gridCells = new GridCellEvents();
 
 /** The home cell's restored simulation as its client hands it over (sp-x5's `onSimulation`, SF15a): the existing driver's gate and its durable save. */
-export interface GridHomeSimulation { readonly setActive: (active: boolean) => void; readonly checkpoint: () => boolean; readonly disposed: () => boolean; readonly residency?: HomeResidencyClaim }
+export interface GridHomeSimulation { readonly setActive: (active: boolean) => void; readonly checkpoint: () => boolean; readonly disposed: () => boolean; readonly residency?: HomeResidencyClaim; readonly suppressCheckpoint?: () => void }
 /**
  * The seam between the home cell's client (its shardfile simulation, when one runs: Driftwood's hybrid boot) and the live
  * grid owner. The client offers its handoff once; the grid's live session takes it and gates the existing home driver
