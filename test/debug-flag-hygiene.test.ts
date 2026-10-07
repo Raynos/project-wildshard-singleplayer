@@ -14,6 +14,8 @@ it('inventories literal declared rows through an aliased parser and rejects opaq
   expect(() => declaredDebugRows(parse('parsePlumbing({debug:[...opaque]});'))).toThrow('literal array');
   expect(declaredDebugRows(parse("import { directorVariant as choose } from '@wildshard/game/shardfile/directorClient'; choose(ctx,{id:'owned',ask:'E435',reviewBy:'2026-12-01'});"))).toHaveLength(1);
   expect(declaredDebugRows(parse('directorVariant(ctx);'))).toEqual([]); // The shared literal lives in directorClient.DEBUG_ROWS.
+  expect(declaredDebugRows(parse("import { runtimeVariantEnabled as variant } from '@wildshard/game/shard/runtimeVariant'; variant(ctx,{id:'trim',ask:'E435',reviewBy:'2026-12-01'});"))).toHaveLength(1);
+  expect(declaredDebugRows(parse('runtimeVariantEnabled(ctx, DEBUG_ROWS[0]);'))).toEqual([]);
 });
 describe('Debug flag ownership and review dates', () => {
   it('inventories all static/plugin rows, checks the ceiling, and lists overdue flags without failing', () => {
