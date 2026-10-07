@@ -707,6 +707,12 @@ crosses 140 m with more than 98% aggregate travel and no blocked step or fall;
 Rapier casts still briefly slow at flat internal diagonals, so this is not a
 per-step 98% freedom proof or a completed SF55a playability verdict.
 
+Collision residency is provisionally `2 * wireBytes + 64 * vertices + 256 *
+triangles`, charged as decoded sim memory with no GPU resources or render draws.
+Native snapshots at several chunk sizes check serialized growth against that
+allowance; they do not measure native heap usage. SF22a must replace this model
+with measured allocation costs before a shard using it ships.
+
 ### Socket lift declarations (SF8c)
 
 `@wildshard/sdk/socketLift` defines the bounded data link

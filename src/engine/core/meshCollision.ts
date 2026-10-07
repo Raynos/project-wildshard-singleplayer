@@ -64,3 +64,13 @@ export function decodeMeshCollision(bytes: Uint8Array): MeshCollisionData {
   for (let i = 0; i < indices.length; i++) { indices[i] = view.getUint32(at, true); at += 4; }
   const data = { vertices, indices }; validate(data); return data;
 }
+
+/** Provisional collision residency: two wire copies, 64 bytes/vertex and 256 bytes/triangle; no render resources.
+ * Native snapshot probes are a lower-bound check, not a native-heap measurement. SF22a must replace this model
+ * with measured allocation costs before a shard using mesh collision ships.
+ */
+export function meshCollisionCost(data: MeshCollisionData): { decoded: number; gpu: number; triangles: number; draws: number } {
+  validate(data);
+  const vertices = data.vertices.length / 3, triangles = data.indices.length / 3;
+  return { decoded: counts(vertices, data.indices.length) * 2 + vertices * 64 + triangles * 256, gpu: 0, triangles: 0, draws: 0 };
+}

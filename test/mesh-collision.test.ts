@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeMeshCollision, encodeMeshCollision, isMeshCollisionData, MESH_COLLISION_LIMITS } from '../src/engine/core/meshCollision';
+import { decodeMeshCollision, encodeMeshCollision, isMeshCollisionData, meshCollisionCost, MESH_COLLISION_LIMITS } from '../src/engine/core/meshCollision';
 import { addBakedMeshCollider } from '../src/engine/physics/meshCollision';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
@@ -14,6 +14,28 @@ const bridge = () => ({
   indices: Uint32Array.of(0, 2, 1, 1, 2, 3, 4, 6, 5, 5, 6, 7, 8, 10, 9, 9, 10, 11),
 });
 describe('bounded mesh collision', () => {
+  it('probes real native snapshots against the provisional model at three mesh sizes, with zero GPU or render draws', async () => {
+    const rapier = await loadRapier(await (await fetch(wasmInline)).arrayBuffer());
+    for (const resolution of [2, 9, 33]) {
+      const vertices = new Float32Array(resolution ** 2 * 3), indices: number[] = [];
+      for (let z = 0; z < resolution; z++) for (let x = 0; x < resolution; x++) {
+        vertices.set([x, 0, z], (z * resolution + x) * 3);
+        if (x + 1 < resolution && z + 1 < resolution) {
+          const a = z * resolution + x; indices.push(a, a + resolution, a + 1, a + 1, a + resolution, a + resolution + 1);
+        }
+      }
+      const data = { vertices, indices: Uint32Array.from(indices) }, wire = encodeMeshCollision(data), cost = meshCollisionCost(data);
+      expect(cost).toEqual({ decoded: 2 * wire.length + 64 * resolution ** 2 + 256 * indices.length / 3, gpu: 0, triangles: 0, draws: 0 });
+      const physics = new Physics(rapier), scope = new Scope('mesh-cost-probe');
+      try {
+        const before = physics.snapshot().length;
+        addBakedMeshCollider(physics, wire, scope); physics.step();
+        const addedSnapshot = physics.snapshot().length - before;
+        expect(addedSnapshot).toBeGreaterThan(0); expect(addedSnapshot).toBeLessThanOrEqual(cost.decoded);
+        scope.dispose(); expect(physics.world.colliders.len()).toBe(0);
+      } finally { scope.dispose(); physics.dispose(); }
+    }
+  });
   it('preserves exact winding and stacked geometry with deterministic, owned, unaligned round trips', () => {
     const data = bridge(), wire = encodeMeshCollision(data), buffer = new Uint8Array(wire.length + 7); buffer.set(wire, 3);
     expect(encodeMeshCollision(data)).toEqual(wire); expect(isMeshCollisionData(wire)).toBe(true);
