@@ -1,0 +1,40 @@
+{
+  "row": "SF27",
+  "parent": "8a708d11ce1d94a64dd2200cf5240b8da81b29ba",
+  "current": "42c50944cdf876a6809cafef3def445931a8ffd7",
+  "tiers": [
+    "phone",
+    "desktop"
+  ],
+  "groupModes": {
+    "parent": "declared-default",
+    "current": "declared-default"
+  },
+  "policyModes": {
+    "parent": "legacy",
+    "current": "variant"
+  },
+  "crowdModes": {
+    "parent": "legacy",
+    "current": "variant"
+  },
+  "hybridDebugFixtures": [
+    "off",
+    "on"
+  ],
+  "when": "2026-10-07T20:53:42.945Z",
+  "elapsedSeconds": 609.819,
+  "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+  "ambientInfo": [
+    "forest.thrall"
+  ],
+  "reports": {
+    "sha256": "65e96264d73622d887da2c6286b1c9ce8e8ed8e50d6f483ffe46a57900ec3e63",
+    "count": 4,
+    "compacted": "large ordered capture array"
+  },
+  "slice": "Nalati flock declared-native selection",
+  "command": "scripts/browser-lane.sh --max 25 node progress/shard-platform/SF27-parity.mjs --parent=8a708d11c --current=42c50944c --parent-groups=declared-default --current-groups=declared-default --parent-crowds=legacy --current-crowds=variant --shards=nalati-grasslands --hybrid=off,on --tiers=phone,desktop --out=/private/tmp/claude-501/sp-builders/sp-x4/flock-parity-42c50944c",
+  "fullReportDigest": "c8f804c06b0ba25dec0347817b9194d3ee5bf8ee34ed8fefec590eb1ee1cba6b",
+  "compaction": "Large capture strings and ordered arrays carry SHA-256/count receipts. All verdicts, bands, fields, hard checks, controller/system witnesses, combat, walk endpoints and disposal counters retained. Browser and both previews closed; temporary export/captures removed after receipt commit."
+}
