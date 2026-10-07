@@ -70,3 +70,41 @@ Coordinator relays live-lane coordination: x1 recovery/soak/hybrid; x2 admission
 Far/Nine entries; SF59 graph materials. Do not delete those owners' WIP or consume stale staged generated files.
 Inventory is the initial receipt, not a claim that SF61 is closed. Per-row commits follow; the final ratchet
 uses the actual complete scanner count after Developer tools are separated and reviewed winners retired.
+
+## Landed purge and Developer split (2026-10-07)
+
+The complete scanner now finds **10 comparison rows + 19 Developer tools**, after five retired registry rows.
+`debugRows.max` is **10**. Developer tools retain ask/review checks and use the same registration port,
+with `purpose: 'developer'`; both Settings menus give them a separate card. Saved developer picks are ignored
+outside Developer, actions are inert, and the saved picks remain available to the developer session.
+
+| Change | Source commit |
+| --- | --- |
+| Remove Crossroads rig action (G115) | `33308d99b` |
+| Include inline runtime variants in the scanner | `52f0fd6e1` |
+| Remove learned LUT opt-out (E85) | `1e2db1113` |
+| Remove procedural creature opt-out (E136) | `90db7bfcf` |
+| Remove background prefetch opt-out (E158) | `3d9ad15d8` |
+| Move music style to ordinary Audio settings (E5) | `d384272c7` |
+| Include global actions and remove retired labels | `2bf4b89b1` |
+| Developer metadata, runtime fences and Settings split | `edcfbcab3` |
+| Alone reviewed policy: comparison capacity 32 → 10 | `9bfdcd5e9` |
+
+Developer tools: `ai.brains`, `time`, `weather`, `clockSpeed`, `aimRing`, `balbals`, `ghosts`, `fps`,
+`loadProfile`, `bootPack`, `storage`, `clearDownloads`, `calibrate`, `budgetReadout`, `game.template`,
+`shardDirectors`, `effects.apply`, `pineLife`, `cragView`. The boot-pack diagnostic restores the shipping **ON**
+default outside Developer; other tools restore their own shipping initial values.
+
+Remaining comparison definitions: `graphMaterials`, `sfxSet`, `tex`, `memorySaver`, `gridDevserverCell`,
+`farReachEntries`, `nalatiHybrid`, `nineDragonEntries`, `pineMemoryTrim`, `pineHybrid`.
+They are preserved for their active owners; their classification/retirement is still open in SF61.
+The SFX take selector has no recorded winning take; it was relayed as an audition-tool recommendation,
+not an invented taste-board request. **No real pending A/B/C found** in this inventory.
+
+Validation: root `tsc --noEmit --incremental false` and scoped `oxlint --type-aware` pass.
+Nine focused Vitest files pass **45/45**, covering retained saved picks, public read/action fences,
+Developer mode changes, owner disposal, separated real-DOM cards, Pine direct readers, shared director selection,
+ordinary music preference, and owner/date checks on Developer tools. Full gate/push is serialized by the
+coordinator; these local receipts do not claim shipped status until that green push includes them.
+
+Nalati flock G112 retirement remains separately open until its ON frame floor is green.

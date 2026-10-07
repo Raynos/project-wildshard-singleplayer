@@ -1665,7 +1665,7 @@ A playground's pieces are registry pieces with `active: () => this.entered`, so 
 | `ctx.strings(table)` (`StringTable`) | registers your table; every player-facing line comes from it |
 
 **A Debug row** (`DebugRowSpec`): `{ id, group, label, choices: [{ value, text }], initial, change(value), reload?,
-note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD' }`. Groups: `look · cover · sky · audio · combat · creatures · perf ·
+note, ask: 'E<n>', reviewBy: 'YYYY-MM-DD', purpose?: 'developer' }`. Groups: `look · cover · sky · audio · combat · creatures · perf ·
 loading · tools` (Look · Ground cover & foliage · Sky & weather · Audio · Combat & weapons · Creatures & NPCs ·
 Performance · Loading & memory · Developer tools). The value is a `device` save (`debug.plugin.<level>.<id>`); `change`
 runs on a pick and once at load when the saved value differs from `initial`.
@@ -1676,8 +1676,11 @@ ctx.debugRow({ id: 'template.oil', group: 'tools', label: STRINGS.debug,
   change: (value) => { if (value === 'refill') lantern.oil = 1; }, note: STRINGS.debugNote, ask: 'E357', reviewBy: '2026-12-01' });
 ```
 
-Every new `ctx.debugRow` call raises the Debug-row count that `lint/ratchet.json` caps (`debugRows.max`, with the ask
-in `raisedBy`). `manifest.debugOptions` opts a level into engine rows that already exist (`['clockSpeed', 'ghosts']`).
+Comparison rows consume the Debug-row cap (`debugRows.max`, with the ask in `raisedBy`). A diagnostic or unfinished
+system declares `purpose: 'developer'` on the same port: both Settings menus place it in Developer tools. Outside
+Developer, its saved choice is ignored, its initial value runs, and its actions are inert; the saved pick is retained.
+Developer tools still need ask/review metadata, but do not consume comparison capacity. A direct saved-slot reader
+must apply the same Developer fence before selecting a reload-only system. `manifest.debugOptions` opts a level into engine rows that already exist (`['clockSpeed', 'ghosts']`).
 
 **Capture.** `app.clock.setCapture(fps)` plus seeded streams make a frame-exact capture. The only URL params are the
 `harness` allowlist in `lint/url-params.json`; never add one (AGENTS.md "No URL switches").
