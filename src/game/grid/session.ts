@@ -71,7 +71,7 @@ import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
 import { farMapImage } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
-import { classifyRefusal, pageShardRefusals, refusalReason, type FarViewStatus, type ShardRefusal } from './refusal';
+import { GridCellWaitingError, classifyRefusal, pageShardRefusals, refusalReason, type FarViewStatus, type ShardRefusal } from './refusal';
 import { installRefusedLook, type RefusedLookState } from './refusedLook';
 
 /**
@@ -269,7 +269,7 @@ export class GridSession {
       edges: this.neighbours.flatMap((cell) => neighbourEdges(cell, home).map((edge) => ({ instance: cell.instance, x: edge.x, z: edge.z, axis: edge.axis, halfLength: edge.halfLength }))),
       ports: { closed: (id) => this.live === null || !this.live.live.ready(id), feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
         name: (id) => this.shardName(id),
-        waiting: (id) => findShard(this.assembly.cell(id).slug)?.shardfile === undefined
+        waiting: (id) => findShard(this.assembly.cell(id).slug)?.shardfile === undefined || this.live?.refusal(id) instanceof GridCellWaitingError
           ? { line: GAME_STRINGS.grid.waiting(this.shardName(id)), detail: GAME_STRINGS.grid.waitingSelect } : null,
         reason: (id) => { const refusal = this.refusal(id); return refusal === null ? null : GAME_STRINGS.unavailable.line(this.shardName(id), refusalReason(refusal)); } },
       saveKept: GAME_STRINGS.upgrade.saveKept });
