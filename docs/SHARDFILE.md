@@ -684,6 +684,29 @@ not an independent Hausdorff measurement. If float32 precision alone exceeds
 the ceiling, it returns unchanged geometry. Admission charges the actual output;
 a triangle target is never treated as proof that the output fits a cap.
 
+### Authored-world collision bake (SF55a)
+
+`@wildshard/sdk/bake/worldCollision` exposes `bakeWorldCollision(normalized)`.
+It clips actual collision triangles to the 62.5 m L0 lattice and emits nonempty,
+ordered tile rows plus independent interactive collider rows and content-addressed
+WMC1 bytes. It applies panel root matrices (including mirrored winding) into the
+rest world pose; panels stay out of the static collision tiles. Collision receives
+no LOD or heightfield conversion, so overhangs and ground below a bridge remain.
+Shared edges interpolate in a canonical direction and exact Float32 positions are
+welded within a chunk. A vertical surface exactly on a lattice line belongs to the
+positive-side tile (or the last tile at +250), preventing duplicate boundary walls.
+
+Each chunk is bounded to 40,000 triangles and 120,000 referenced vertices. Invalid
+indices, nonfinite/out-of-cell geometry, singular panel matrices and triangles
+that collapse at Float32 precision fail with the source node/panel name. Empty
+intersections contribute no file. The caller's normalized geometry is unchanged,
+and repeated bakes produce identical immutable bytes. This helper does not yet
+write the compiled collision section, charge native residency or install it through
+`wildshard build`; those are the next integration steps. A native capsule fixture
+crosses 140 m with more than 98% aggregate travel and no blocked step or fall;
+Rapier casts still briefly slow at flat internal diagonals, so this is not a
+per-step 98% freedom proof or a completed SF55a playability verdict.
+
 ### Socket lift declarations (SF8c)
 
 `@wildshard/sdk/socketLift` defines the bounded data link

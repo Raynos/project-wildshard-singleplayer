@@ -54,7 +54,8 @@
     "./runtime/weapons/starterMeleeProfile": "./runtime/weapons/starterMeleeProfile.ts",
     "./runtime/weapons/starterBowProfile": "./runtime/weapons/starterBowProfile.ts",
     "./runtime/weapons/Sword": "./runtime/weapons/Sword.ts",
-    "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts"
+    "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts",
+    "./bake/worldCollision": "./bake/worldCollision.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -292,6 +293,10 @@
       "./runtime/weapons/starterBow": {
         "types": "./dist/types/sdk/runtime/weapons/starterBow.d.ts",
         "default": "./dist/runtime/weapons/starterBow.js"
+      },
+      "./bake/worldCollision": {
+        "types": "./dist/types/sdk/bake/worldCollision.d.ts",
+        "default": "./dist/bake/worldCollision.js"
       }
     }
   }
