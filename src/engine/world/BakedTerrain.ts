@@ -12,8 +12,7 @@
  * or malformed file leaves the analytic functions in place (a warning, never a failure).
  */
 import { publicBytes } from '../boot/tables';
-import { _installBakedTerrain } from './Heightfield';
-import { activeLevel } from '../level/selection';
+import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { SEED } from '../core/config';
 import type { TerrainField } from '../level/data';
 
@@ -98,18 +97,17 @@ export function bakedSamplers(g: BakedGrid): Pick<TerrainField, 'heightAt' | 'no
   return { heightAt, normalAt, splatAt };
 }
 
-let installedFor: string | null = null;
-let installedPlacement: { levelId: string; placement: BakedPlacement } | null = null;
+const installed = new WeakMap<HeightfieldBinding, { placement: BakedPlacement | null }>();
 
 /** The active chunk's undergrowth decision log from its installed bake, if it has one (src/shards/pine-hollow/world/undergrowth.ts). */
-export function bakedUndergrowth(): BakedPlacement | null {
-  return installedPlacement !== null && installedPlacement.levelId === activeLevel().id ? installedPlacement.placement : null;
+export function bakedUndergrowth(binding: HeightfieldBinding = captureHeightfield()): BakedPlacement | null {
+  return installed.get(binding)?.placement ?? null;
 }
 
 /** Fetch the active chunk's bake and install it; resolves either way. Idempotent per chunk. */
-export async function loadBakedTerrain(): Promise<boolean> {
-  const levelId = activeLevel().id, seed = SEED; // the level's master seed (core/config, set with the level)
-  if (installedFor === levelId) return true;
+export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeightfield()): Promise<boolean> {
+  const levelId = binding.level.id, seed = binding.level.seed ?? SEED;
+  if (installed.has(binding)) return true;
   const url = bakedTerrainUrl(levelId);
   if (!url || new URLSearchParams(location.search).has('nobake')) return false; // ?nobake=1: A/B against the analytic field
   try {
@@ -117,13 +115,11 @@ export async function loadBakedTerrain(): Promise<boolean> {
     if (!res.ok) throw new Error(`${res.status}`);
     const grid = parseBakedTerrain(await res.arrayBuffer());
     if (!grid || grid.seed !== (seed >>> 0)) throw new Error('bad header / seed');
-    if (activeLevel().id !== levelId) return false;
-    _installBakedTerrain(bakedSamplers(grid));
-    installedFor = levelId;
-    installedPlacement = grid.undergrowth ? { levelId, placement: grid.undergrowth } : null;
+    binding.install(bakedSamplers(grid));
+    installed.set(binding, { placement: grid.undergrowth });
     return true;
   } catch (e) {
-    console.warn(`[baked] terrain for ${levelId} not used (${(e as Error).message}); computing at launch`);
+    console.warn(`[baked] terrain for ${levelId} not used (${e instanceof Error ? e.message : String(e)}); computing at launch`);
     return false;
   }
 }
