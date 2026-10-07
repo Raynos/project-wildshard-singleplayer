@@ -85,6 +85,8 @@ export interface LiveGridPage {
   readonly homeFallFloor?: number;
   /** Profile rewards are restricted to the platform's admitted catalogue. */
   readonly catalogue: readonly LedgerCatalogueItem[];
+  /** Clear harmful player effects when fixed-step feet cross the cell edge into the safe zone. */
+  readonly onSafeZone?: () => void;
   /** switch the page's stepped world (world.physics and app.physics) */
   readonly setPhysics: (physics: Physics) => void;
   readonly onFixedPre: (fn: () => void) => void;
@@ -236,12 +238,15 @@ export class LiveGridSession {
       if (walls === undefined) throw new Error('Active transfer fence is missing');
       walls.sync();
     });
-    let saveTicks = 0;
+    let saveTicks = 0, wasInside = assembly.at(this.live.worldFeet().x, this.live.worldFeet().z) !== undefined;
     page.onFixedPost(() => {
       if (scope.disposed) return;
-      this.live.afterPlayerStep();
       const feet = this.live.worldFeet();
       const cell = assembly.at(feet.x, feet.z);
+      // G189 is geometric, even while the physical motor still belongs to the source across the strip.
+      if (wasInside && cell === undefined) page.onSafeZone?.();
+      wasInside = cell !== undefined;
+      this.live.afterPlayerStep();
       const recoveryCell = cell === undefined ? undefined : this.respawnCells.get(cell.instance);
       const p = traveller.position;
       const hit = traveller.onGround === true ? castRay(this.framePhysics, { x: p.x, y: p.y + 0.6, z: p.z }, { x: 0, y: -1, z: 0 }, 1.35, ['WORLD'], traveller.motor.collider) : null;
