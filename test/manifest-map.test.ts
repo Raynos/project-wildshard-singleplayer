@@ -3467,6 +3467,8 @@ function originalShape(m: (typeof SHARDS)[number], fixture: (typeof ORIGINAL)[nu
     thumbnail: originalArt(card.thumb), heroPortrait: originalArt(card.portrait), heroLandscape: originalArt(card.landscape),
     // G164: a runtime vertical shift (`datum`, Driftwood's hybrid row) is not part of the original shape
     terrain: ground.terrain === undefined ? undefined : withoutDatum(ground.terrain), fauna: spawns,
+    // G172: the sea shipped lowered with the world, so the original level is the shipped one less the field's datum
+    ...(m.ocean === undefined ? {} : { ocean: { ...m.ocean, level: m.ocean.level - (ground.terrain?.datum ?? 0) } }),
     ...(minimap === undefined ? {} : { map: minimap }),
     ...(ground.structures === undefined ? {} : { structures: ground.structures === true ? { files: m.boot?.files('phone'), build: () => undefined } : ground.structures }),
     ...(m.render === undefined || !('render' in fixture) ? {} : { render: m.render }),
@@ -3531,7 +3533,7 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
     expect(m.debugOptions).toEqual(m.slug === 'nalati-grasslands' ? ['clockSpeed', 'balbals', 'ghosts'] : []);
     expect(m.fight?.telegraphed).toBe(!pine);
     if (island) {
-      expect(m.minimap?.openWater).toEqual({ level: 0.8, deepDepth: 6 });
+      expect(m.minimap?.openWater).toEqual({ level: 0, deepDepth: 6 }); // G172: the sea ships lowered 0.8 m (LOWERED_SEA)
       expect(m.minimap?.outside).toBe('rgb(22,74,128)');
     }
     expect(m.label).toBe(fixture.data.gridCoords);
@@ -3546,9 +3548,10 @@ describe('ChunkDef → ShardManifest preserves all 48 field mappings', () => {
     for (const [kind, url] of Object.entries(exploreArt(m.explore) ?? {})) expect(url).toContain(`/${kind}-${m.slug}.webp`);
     const t = terrainFor(m);
     const points: readonly (readonly [number, number])[] = [[-250, 0], [0, 0], [75, -40], [0, 250]];
+    const datum = t.datum ?? 0; // G172: compare in the authored frame (heights and waterline less the runtime drop)
     expect(points.map(([x, z]) => ({
-      height: t.heightAt(x, z), normal: t.normalAt(x, z), splat: t.splatAt(x, z), trail: t.trailDistance(x, z),
-      cabin: t.cabinMask(x, z), pond: t.pondMask(x, z), water: t.waterLevel(), stream: t.streamAt?.(x, z) ?? null,
+      height: t.heightAt(x, z) - datum, normal: t.normalAt(x, z), splat: t.splatAt(x, z), trail: t.trailDistance(x, z),
+      cabin: t.cabinMask(x, z), pond: t.pondMask(x, z), water: t.waterLevel() - datum, stream: t.streamAt?.(x, z) ?? null,
     }))).toEqual(fixture.terrain);
   });
 });

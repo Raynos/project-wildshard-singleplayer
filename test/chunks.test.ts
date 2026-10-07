@@ -79,7 +79,11 @@ describe('chunk registry data', () => {
 
 describe('chunk terrain', () => {
   it('the four entry roads meet no-man\'s-land at y = 0 on the edge midpoints', () => {
-    for (const c of TERRAIN_SHARDS) for (const [x, z] of EDGE_MIDPOINTS) expect(terrainFor(c).heightAt(x, z), `${c.slug} @ ${x},${z}`).toBeCloseTo(0, 6);
+    // in the authored frame: a field shifted at runtime (`datum`, Driftwood's G164 drop) meets the road through its decks
+    for (const c of TERRAIN_SHARDS) for (const [x, z] of EDGE_MIDPOINTS) {
+      const field = terrainFor(c);
+      expect(field.heightAt(x, z) - (field.datum ?? 0), `${c.slug} @ ${x},${z}`).toBeCloseTo(0, 6);
+    }
   });
 
   it('grid shards retain four midpoint entry trails; other shards have a trail from spawn', () => {
