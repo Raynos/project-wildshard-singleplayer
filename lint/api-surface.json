@@ -903,6 +903,24 @@
         "from": "@wildshard/engine/app/runtime"
       },
       {
+        "name": "containerResources",
+        "kind": "function",
+        "doc": "Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset.",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
+        "name": "SceneOwnership",
+        "kind": "class",
+        "doc": "",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
+        "name": "sceneResources",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
         "name": "InterruptReason",
         "kind": "type",
         "doc": "",
@@ -4487,6 +4505,36 @@
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
+        "name": "decodeMeshCollision",
+        "kind": "function",
+        "doc": "Admit exact WMC1 wire bytes before native allocation and return owned arrays, including for unaligned input.",
+        "from": "@wildshard/engine/core/meshCollision"
+      },
+      {
+        "name": "encodeMeshCollision",
+        "kind": "function",
+        "doc": "Encode bounded indexed geometry deterministically, with no simplification or heightfield conversion.",
+        "from": "@wildshard/engine/core/meshCollision"
+      },
+      {
+        "name": "isMeshCollisionData",
+        "kind": "function",
+        "doc": "Identify WMC1 bytes without allocating or admitting their contents.",
+        "from": "@wildshard/engine/core/meshCollision"
+      },
+      {
+        "name": "MESH_COLLISION_LIMITS",
+        "kind": "const",
+        "doc": "Bounds for one indexed collision chunk; larger geometry must be partitioned before encoding.",
+        "from": "@wildshard/engine/core/meshCollision"
+      },
+      {
+        "name": "MeshCollisionData",
+        "kind": "interface",
+        "doc": "Cell-local triangle geometry. Each index names a vertex in the packed XYZ array; winding is preserved.",
+        "from": "@wildshard/engine/core/meshCollision"
+      },
+      {
         "name": "clamp",
         "kind": "const",
         "doc": "",
@@ -6966,6 +7014,12 @@
         "from": "@wildshard/engine/physics/heightPatch"
       },
       {
+        "name": "addBakedMeshCollider",
+        "kind": "function",
+        "doc": "Install admitted baked triangles as one scoped static WORLD collider, preserving stacked floors and overhangs.",
+        "from": "@wildshard/engine/physics/meshCollision"
+      },
+      {
         "name": "KinematicMover",
         "kind": "class",
         "doc": "A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path.",
@@ -7000,6 +7054,24 @@
         "kind": "class",
         "doc": "Owns one fixed-step collision world and its complete same-version continuation.",
         "from": "@wildshard/engine/physics/Physics"
+      },
+      {
+        "name": "AddedPiece",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/physics/pieces"
+      },
+      {
+        "name": "addPiece",
+        "kind": "function",
+        "doc": "Build the piece's colliders into the world: static ones in world space, or — for a piece that `follows` a moving",
+        "from": "@wildshard/engine/physics/pieces"
+      },
+      {
+        "name": "treadBoxes",
+        "kind": "function",
+        "doc": "One tread of a stair: a solid block from the stair's foot up to this tread's top.",
+        "from": "@wildshard/engine/physics/pieces"
       },
       {
         "name": "canStandAt",
@@ -16388,27 +16460,9 @@
         "from": "@wildshard/kit/effects/install"
       },
       {
-        "name": "STARTER_CHOICES",
-        "kind": "const",
-        "doc": "",
-        "from": "@wildshard/kit/effects/starter"
-      },
-      {
         "name": "STARTER_EFFECTS",
         "kind": "const",
         "doc": "Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play.",
-        "from": "@wildshard/kit/effects/starter"
-      },
-      {
-        "name": "StarterChoice",
-        "kind": "type",
-        "doc": "",
-        "from": "@wildshard/kit/effects/starter"
-      },
-      {
-        "name": "starterId",
-        "kind": "function",
-        "doc": "",
         "from": "@wildshard/kit/effects/starter"
       },
       {

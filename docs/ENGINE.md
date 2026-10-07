@@ -1844,7 +1844,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2109 exports, grouped by the module to import them from.
+2121 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1881,6 +1881,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enterOwner`, `onOwnerDispose`, `withOwner`
 - `@wildshard/engine/app/resources`: `pageScope`, `resourceScope`
 - `@wildshard/engine/app/runtime`: `app`, `gameplayRandom`
+- `@wildshard/engine/app/sceneOwnership`: `containerResources`, `SceneOwnership`, `sceneResources`
 - `@wildshard/engine/app/scheduler`: `InterruptReason`, `TickActor`, `TickBand`, `TickPoint`, `TickRate`, `TickScheduler`
 - `@wildshard/engine/app/scope`: `Disposable3`, `disposalErrorMessages`, `NativeCensus`, `nodeOwner`, `PhysicsHandle`, `registrationTimerIds`, `Scope`, `ScopeCensus`, `scopeRegistrations`, `SoundHandle`
 - `@wildshard/engine/app/systems`: `AppState`, `inState`, `Phase`, `PHASES`, `RunCondition`, `sortSystems`, `SystemSpec`, `TickRateId`
@@ -1978,6 +1979,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `readTexturePixels`, `releaseAfterUpload`
 - `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphOutline`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `SUN_CASCADES`, `SUN_CASCADES_MAX`, `SUN_OPS`, `validateGraph`
+- `@wildshard/engine/core/meshCollision`: `decodeMeshCollision`, `encodeMeshCollision`, `isMeshCollisionData`, `MESH_COLLISION_LIMITS`, `MeshCollisionData`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`
 - `@wildshard/engine/core/practiceRoom`: `practiceRoom`
@@ -2040,9 +2042,11 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/gridBorders`: `gridCreatureConstraint`, `GridMountBody`, `installGridBorders`, `installGridMountPassage`
 - `@wildshard/engine/physics/groups`: `GROUP`, `GroupName`, `groups`, `queryGroups`
 - `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
+- `@wildshard/engine/physics/meshCollision`: `addBakedMeshCollider`
 - `@wildshard/engine/physics/mover`: `KinematicMover`, `MoverBox`, `MoverPose`
 - `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
 - `@wildshard/engine/physics/Physics`: `Physics`
+- `@wildshard/engine/physics/pieces`: `AddedPiece`, `addPiece`, `treadBoxes`
 - `@wildshard/engine/physics/query`: `canStandAt`, `castRay`, `castSegment`, `floorBelow`, `Hit`, `lineOfSight`, `sticksIn`, `sweepBall`
 - `@wildshard/engine/physics/rapier`: `loadRapier`, `Rapier`
 - `@wildshard/engine/physics/readinessWalls`: `ReadinessEdge`, `ReadinessWalls`
@@ -2331,12 +2335,12 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/kit` (`src/kit/package.json`)
 
-166 exports, grouped by the module to import them from.
+163 exports, grouped by the module to import them from.
 
 - `@wildshard/kit/audio/forest`: `createForestAudio`, `installForestAmbience`, `installSilentScore`
 - `@wildshard/kit/audio/weaponVoices`: `declaredWeaponVoices`, `sharedWeaponVoices`, `WeaponSynth`
 - `@wildshard/kit/effects/install`: `installStarterEffects`
-- `@wildshard/kit/effects/starter`: `STARTER_CHOICES`, `STARTER_EFFECTS`, `StarterChoice`, `starterId`
+- `@wildshard/kit/effects/starter`: `STARTER_EFFECTS`
 - `@wildshard/kit/icons`: `BAG_ICONS`, `installKitIcons`
 - `@wildshard/kit/items/declared`: `declaredKitItemFamilies`
 - `@wildshard/kit/lookApi`: `loadGrassField`, `loadParticles`

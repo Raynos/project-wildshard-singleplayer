@@ -4,7 +4,7 @@
 
 The kit's public modules (src/kit/package.json `exports`): reusable content.
 
-168 members; 50 without a doc line (—).
+165 members; 47 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -15,10 +15,7 @@ The kit's public modules (src/kit/package.json `exports`): reusable content.
 | `sharedWeaponVoices` | function | @wildshard/kit/audio/weaponVoices | The kit's default equipment voices; samples and synth blocks come from the level's mixer. |
 | `WeaponSynth` | interface | @wildshard/kit/audio/weaponVoices | Only the oscillator blocks and sample/cue ports that an equipment recipe reads. |
 | `installStarterEffects` | function | @wildshard/kit/effects/install | An optional entered installer retires observers and icons while statuses remain player-owned. |
-| `STARTER_CHOICES` | const | @wildshard/kit/effects/starter | — |
 | `STARTER_EFFECTS` | const | @wildshard/kit/effects/starter | Proposed S2.5 values from 09 §2.4; only Blackpaw's existing stun applies in normal play. |
-| `StarterChoice` | type | @wildshard/kit/effects/starter | — |
-| `starterId` | function | @wildshard/kit/effects/starter | — |
 | `BAG_ICONS` | const | @wildshard/kit/icons | the bag's glyphs (the composition root hands them to the game's BagMenu, E362 AG4) |
 | `installKitIcons` | function | @wildshard/kit/icons | — |
 | `declaredKitItemFamilies` | function | @wildshard/kit/items/declared | Explicit built-in item family registry, injected into the full loader; importing does not install content. |

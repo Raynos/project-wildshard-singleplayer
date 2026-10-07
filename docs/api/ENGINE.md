@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2126 members; 829 without a doc line (—).
+2138 members; 832 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -158,6 +158,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `resourceScope` | function | @wildshard/engine/app/resources | Explicit fallback for reusable services constructed before the app installs a level. |
 | `app` | const | @wildshard/engine/app/runtime | The page app; legacy active-service entry points delegate here during the migration. |
 | `gameplayRandom` | function | @wildshard/engine/app/runtime | One gameplay draw from the seeded `gameplay` stream (01 §2): aim spread and other rolls that change a hit. |
+| `containerResources` | function | @wildshard/engine/app/sceneOwnership | Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. |
+| `SceneOwnership` | class | @wildshard/engine/app/sceneOwnership | — |
+| `sceneResources` | function | @wildshard/engine/app/sceneOwnership | — |
 | `InterruptReason` | type | @wildshard/engine/app/scheduler | — |
 | `TickActor` | interface | @wildshard/engine/app/scheduler | — |
 | `TickBand` | interface | @wildshard/engine/app/scheduler | — |
@@ -754,6 +757,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SUN_CASCADES_MAX` | const | @wildshard/engine/core/materialGraph | the most cascades a validation may count (three's CSM tops out at four here) |
 | `SUN_OPS` | const | @wildshard/engine/core/materialGraph | the ops whose value is one directional light's (a node reading one is built per light, and counted per cascade) |
 | `validateGraph` | function | @wildshard/engine/core/materialGraph | Validate a graph read from content (`unknown`): its shape, every op against the vocabulary, every input's type, no |
+| `decodeMeshCollision` | function | @wildshard/engine/core/meshCollision | Admit exact WMC1 wire bytes before native allocation and return owned arrays, including for unaligned input. |
+| `encodeMeshCollision` | function | @wildshard/engine/core/meshCollision | Encode bounded indexed geometry deterministically, with no simplification or heightfield conversion. |
+| `isMeshCollisionData` | function | @wildshard/engine/core/meshCollision | Identify WMC1 bytes without allocating or admitting their contents. |
+| `MESH_COLLISION_LIMITS` | const | @wildshard/engine/core/meshCollision | Bounds for one indexed collision chunk; larger geometry must be partitioned before encoding. |
+| `MeshCollisionData` | interface | @wildshard/engine/core/meshCollision | Cell-local triangle geometry. Each index names a vertex in the packed XYZ array; winding is preserved. |
 | `clamp` | const | @wildshard/engine/core/noise | — |
 | `lerp` | const | @wildshard/engine/core/noise | — |
 | `Noise2D` | class | @wildshard/engine/core/noise | — |
@@ -1166,12 +1174,16 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `queryGroups` | function | @wildshard/engine/physics/groups | A query filter's packed groups: the querier is `as`, and it sees only the kinds in `sees`. |
 | `HeightPatch` | class | @wildshard/engine/physics/heightPatch | a small heightfield collider re-shaped at run time (a floor that grows and drains) |
 | `HeightPatchOpts` | interface | @wildshard/engine/physics/heightPatch | — |
+| `addBakedMeshCollider` | function | @wildshard/engine/physics/meshCollision | Install admitted baked triangles as one scoped static WORLD collider, preserving stacked floors and overhangs. |
 | `KinematicMover` | class | @wildshard/engine/physics/mover | A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path. |
 | `MoverBox` | interface | @wildshard/engine/physics/mover | Local boxes for a script-owned platform; the physics layer alone constructs Rapier descriptors. |
 | `MoverPose` | interface | @wildshard/engine/physics/mover | Published mover pose, in the world's local frame; Euler order is always YXZ. |
 | `pathRampDescs` | function | @wildshard/engine/physics/paths | — |
 | `PathRampOptions` | interface | @wildshard/engine/physics/paths | — |
 | `Physics` | class | @wildshard/engine/physics/Physics | Owns one fixed-step collision world and its complete same-version continuation. |
+| `AddedPiece` | interface | @wildshard/engine/physics/pieces | — |
+| `addPiece` | function | @wildshard/engine/physics/pieces | Build the piece's colliders into the world: static ones in world space, or — for a piece that `follows` a moving |
+| `treadBoxes` | function | @wildshard/engine/physics/pieces | One tread of a stair: a solid block from the stair's foot up to this tread's top. |
 | `canStandAt` | function | @wildshard/engine/physics/query | Load-time upright capsule admission against current collider poses, including a just-restored deck, without stepping the world. |
 | `castRay` | function | @wildshard/engine/physics/query | The first thing along the ray from `origin` in direction `dir` (unit length) within `maxDist`, among the kinds in |
 | `castSegment` | function | @wildshard/engine/physics/query | The first world hit on the segment a → b (null: the segment is clear). |
