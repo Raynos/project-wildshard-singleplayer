@@ -1,0 +1,77 @@
+{
+ "home": "driftwood-isle",
+ "admission": "on",
+ "results": {
+  "spawn": {
+   "parts": {
+    "accounted": true,
+    "playing": true,
+    "head": true,
+    "shards": true,
+    "chips": true
+   },
+   "equal": true,
+   "playingMB": 843.863697,
+   "accountedMB": 417.895222,
+   "home": {
+    "instance": "driftwood-isle",
+    "bytes": 341781982
+   },
+   "points": 84,
+   "shards": [
+    "Driftwood Isle 318 342.0MB",
+    "Template shard -1,1 2 1.7MB",
+    "Nalati Grasslands 2 1.7MB",
+    "Pine Hollow 2 1.7MB",
+    "Signal Dunes 2 1.7MB",
+    "Template shard -1,-1 2 1.7MB",
+    "Template shard 1,-1 2 1.7MB",
+    "Sky Reach 1 1.6MB",
+    "Template shard 1,1 1 1.6MB",
+    "ROAD - 53.7MB",
+    "platform.highway - 5.4MB",
+    "grid - 3.4MB"
+   ],
+   "tiles": 12,
+   "bar": "PTSXROADS 84 \u00b7 843.9/1000.0 MBDRIFTWOOD ISLE 318TEMPLATE SHARD -1,1 2NALATI GRASSLANDS 2PINE HOLLOW 2SIGNAL DUNES 2TEMPLATE SHARD -1,-1 2TEMPLATE SHARD 1,-1 2SKY REACH 1TEMPLATE SHARD 1,1 1ROAD 53.7PLATFORM.HIGHWAY 5.4GRID 3.48 OKPLATFORM 62.5",
+   "inside": "driftwood-isle"
+  },
+  "crossroads": {
+   "parts": {
+    "accounted": true,
+    "playing": true,
+    "head": true,
+    "shards": true,
+    "chips": true
+   },
+   "equal": true,
+   "playingMB": 865.80013,
+   "accountedMB": 437.657774,
+   "home": {
+    "instance": "driftwood-isle",
+    "bytes": 341781982
+   },
+   "points": 87,
+   "shards": [
+    "Driftwood Isle 318 342.0MB",
+    "Template shard 1,1 20 21.5MB",
+    "Template shard -1,1 2 1.7MB",
+    "Nalati Grasslands 2 1.7MB",
+    "Pine Hollow 2 1.7MB",
+    "Signal Dunes 2 1.7MB",
+    "Sky Reach 1 1.6MB",
+    "Template shard -1,-1 1 1.6MB",
+    "Template shard 1,-1 1 1.6MB",
+    "ROAD - 53.7MB",
+    "platform.highway - 5.4MB",
+    "grid - 3.4MB"
+   ],
+   "tiles": 19,
+   "bar": "PTSXROADS 87 \u00b7 865.8/1000.0 MBDRIFTWOOD ISLE 318TEMPLATE SHARD 1,1 20TEMPLATE SHARD -1,1 2NALATI GRASSLANDS 2PINE HOLLOW 2SIGNAL DUNES 2SKY REACH 1TEMPLATE SHARD -1,-1 1TEMPLATE SHARD 1,-1 1ROAD 53.7PLATFORM.HIGHWAY 5.4GRID 3.48 OKPLATFORM 62.5",
+   "inside": "driftwood-isle"
+  }
+ },
+ "errors": [],
+ "build": "a4e6d9a2f (SF38 candidate, strip at --ws-top+142px; committed 52a13cfc6 sits 8 px lower)",
+ "device": "iPhone 16 Pro portrait 402x874@3, muted, Playwright Chromium Metal"
+}
