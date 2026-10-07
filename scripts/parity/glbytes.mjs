@@ -1,7 +1,7 @@
 // SF22b: WebGL allocation census installed before page scripts. Engine creation/upload labels are optional hooks.
 export const GL_INIT = String.raw`(() => { const W = window;
   if (W.__sc_gl) return;
-  const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap();
+  const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap(), uploads = new WeakMap();
   let scope = null, sequence = 0;
   const object = (v) => v !== null && (typeof v === 'object' || typeof v === 'function');
   const label = (resource, owner, asset) => { if (object(resource) && owner && asset) labels.set(resource, { owner, asset }); };
@@ -9,8 +9,13 @@ export const GL_INIT = String.raw`(() => { const W = window;
   W.__sc_label_source = (source, owner, asset) => { if (object(source) && owner && asset) sources.set(source, { owner, asset }); };
   W.__sc_gl_scope = (owner, asset, fn) => { const previous = scope; scope = { owner, asset }; try { return fn(); } finally { scope = previous; } };
   const identity = (resource, kind) => { if (!ids.has(resource)) ids.set(resource, kind + ':' + (++sequence)); return ids.get(resource); };
-  const fromSource = (resource, source) => { const tag = object(source) && sources.get(source); if (tag) label(resource, tag.owner, tag.asset); };
-  const entry = (resource, kind, bytes) => ({ id: identity(resource, kind), kind, bytes, ...(labels.get(resource) ?? { owner: 'unlabelled', asset: 'unlabelled' }), labelled: labels.has(resource) });
+  const fromSource = (resource, source) => { if (object(source)) uploads.set(resource, new WeakRef(source)); const tag = object(source) && sources.get(source); if (tag) label(resource, tag.owner, tag.asset); };
+  // Three may upload an internal geometry before its first draw supplies its source label.
+  // Keep only a weak reference: census instrumentation must not retain released CPU arrays.
+  const entry = (resource, kind, bytes) => {
+    if (!labels.has(resource)) fromSource(resource, uploads.get(resource)?.deref());
+    return { id: identity(resource, kind), kind, bytes, ...(labels.get(resource) ?? { owner: 'unlabelled', asset: 'unlabelled' }), labelled: labels.has(resource) };
+  };
   // GPU bytes at the WebGL API, per context: textures (per face + level), renderbuffers, buffers
   const SIZED = { 0x8229: 1, 0x822b: 2, 0x8051: 4, 0x8058: 4, 0x8c43: 4, 0x8c41: 4, 0x822d: 2, 0x822f: 4, 0x881b: 8, 0x881a: 8, 0x822e: 4, 0x8230: 8, 0x8815: 16, 0x8814: 16,
     0x8c3a: 4, 0x8c3d: 4, 0x8059: 4, 0x8d62: 2, 0x8056: 2, 0x8057: 2, 0x8232: 1, 0x8231: 1, 0x8234: 2, 0x8233: 2, 0x8236: 4, 0x8235: 4, 0x823a: 4, 0x823c: 8, 0x8d7c: 4, 0x8d76: 8,

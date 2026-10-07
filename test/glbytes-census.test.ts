@@ -80,3 +80,19 @@ it('restores creation scopes after a nested throw', () => {
     ['inner', 'inner-asset'], ['outer', 'outer-asset'], ['unlabelled', 'unlabelled'],
   ]);
 });
+
+it('recovers a late source label without changing uploaded bytes or resource identity', () => {
+  const rows = census(`
+    const b = gl.createBuffer(), vertices = new Float32Array(72);
+    gl.bindBuffer(0x8892,b); gl.bufferData(0x8892,vertices,0x88e4);
+    const before = window.__sc_gl()[0].resources[0];
+    if(before.labelled || before.bytes !== 288) throw new Error('unexpected initial label or bytes');
+    window.__sc_label_source(vertices,'engine/draw','generated/background/position');
+    const after = window.__sc_gl()[0].resources[0];
+    if(after.id !== before.id || after.bytes !== before.bytes) throw new Error('allocation changed');
+  `);
+  expect(rows[0]?.unlabelled).toBe(0);
+  expect(rows[0]?.totalBytes).toBe(288);
+  expect(rows[0]?.reconciled).toBe(true);
+  expect(rows[0]?.resources[0]?.asset).toBe('generated/background/position');
+});
