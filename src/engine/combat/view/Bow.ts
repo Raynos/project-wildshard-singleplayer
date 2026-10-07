@@ -223,7 +223,7 @@ export class Bow<Style extends string = string> extends Weapon {
     this.carrierVelocity.set(-Math.sin(m.yaw) * v, 0, -Math.cos(m.yaw) * v);
     this.mountArc = mounted.arc; this.mounted = true;
   }
-  carryMountState(previous: Bow): void {
+  carryMountState(previous: Bow<Style>): void {
     this.mountDraw = previous.mountDraw; this.mountSpread = previous.mountSpread;
     this.mountArc = previous.mountArc; this.parthian = previous.parthian; this.mounted = previous.mounted;
     this.carrierVelocity.copy(previous.carrierVelocity); this.extraSpreadDeg = previous.extraSpreadDeg;

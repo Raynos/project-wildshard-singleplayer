@@ -15,7 +15,7 @@ import { fakeWorld } from '../fake/world';
 beforeEach(() => { vi.stubGlobal('document', new EventTarget()); vi.stubGlobal('window', new EventTarget()); });
 afterEach(() => { Reflect.deleteProperty(globalThis, 'document'); Reflect.deleteProperty(globalThis, 'window'); });
 
-function drawTrace(Base: typeof BowDraw | typeof LegacyDraw) {
+function drawTrace(Base: typeof BowDraw) {
   const draw = new Base(), events: [number, string][] = [];
   let hash = 0;
   for (let tick = 0; tick < 10_000; tick++) {
@@ -57,10 +57,12 @@ function bowTrace(platform: boolean, portrait: boolean) {
 }
 
 describe('trusted SDK bow graduation', () => {
-  it('publishes the one engine constructor', () => { expect(TrustedBow).toBe(Bow); });
+  it('publishes the one engine constructor', () => {
+    expect(TrustedBow).toBe(Bow); expect(LegacyBow.prototype).toBeInstanceOf(Bow); expect(LegacyDraw.prototype).toBeInstanceOf(BowDraw);
+  });
   it('matches every draw value and event across ten thousand independent legacy/platform ticks', () => {
-    expect(drawTrace(BowDraw)).toEqual(drawTrace(LegacyDraw));
-    expect(drawTrace(LegacyDraw)).toMatchSnapshot();
+    // Independent kit trace captured in 008420564 before delegation; never regenerate this oracle from the aliases.
+    expect(drawTrace(BowDraw)).toMatchSnapshot();
   });
   it.each([false, true])('preserves live view transforms, input defaults, mounted draw and launch edges (portrait=%s)', (portrait) => {
     const original = bowTrace(false, portrait);
