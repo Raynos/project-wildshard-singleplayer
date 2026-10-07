@@ -23,7 +23,7 @@ import type { Wildlife } from '../creatures/wildlife';
 
 
 
-import type { Sabre } from '../weapons/Sabre';
+import type { Sabre } from '../runtime/weapons/Sabre';
 import type { NalatiWeather } from '../world/installWeather';
 import type { GhostRiders } from './ghostRiders';
 import type { Ride } from '../ride/ride';
@@ -37,7 +37,7 @@ import { fxMaterial, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { wildEnv } from '../creatures/env';
 
 import { CAIRN } from '../layout';
-import { LightningStrip, NaizagaiPower, naizagaiModel } from '../weapons/Naizagai';
+import { LightningStrip, NaizagaiPower, naizagaiModel } from '../runtime/weapons/Naizagai';
 import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
@@ -76,7 +76,7 @@ import { smoothstep } from '@wildshard/engine/core/noise';
  *       drains near one; burnt ground is black and safe. CHAIN LIGHTNING: rings trail your path, each landing 0.6 s after it
  *       paints. The Sky Spear continues between chains.
  *   VICTORY — he comes apart into rain, the fire goes out, the storm wall drops, the storm clears; NAIZAGAI in the gold orb
- *       at the cairn (the sabre upgrade, src/shards/nalati-grasslands/weapons/Naizagai.ts), the SKY-MARKED SADDLE skin owned, the achievement
+ *       at the cairn (the sabre upgrade, src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts), the SKY-MARKED SADDLE skin owned, the achievement
  *       *Weather Report* (Progress kind 'storm-titan').
  *
  *   const titan = wireStormTitan({ game, weather, player, tieSpot: pois.cairnTieSpot })  // src/shards/nalati-grasslands/index.ts, at boot

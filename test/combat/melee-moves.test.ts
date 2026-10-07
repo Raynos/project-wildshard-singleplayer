@@ -6,7 +6,7 @@ import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import type { SwordArms, Move } from '../../src/engine/combat/view/melee';
 import { COMBO, HEAVY, REST, CHARGE, SPRINT } from '../../src/kit/weapons/melee/moves';
-import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/weapons/Sabre';
+import { SABRE_MOVES, PASS_LEFT, PASS_RIGHT } from '../../src/shards/nalati-grasslands/runtime/weapons/Sabre';
 import { setAimTargets } from '../../src/engine/player/AimTargets';
 import { setActivePhysics } from '../../src/engine/physics/active';
 import { fakeWorld } from '../fake/world';

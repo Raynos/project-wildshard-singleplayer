@@ -7,7 +7,7 @@ import { Scope } from '../../src/engine/app/scope';
 import { EquipmentService } from '../../src/engine/combat/EquipmentService';
 import { INPUT_CONTEXTS } from '../../src/game/inputContexts';
 import { TouchControls } from '../../src/engine/player/TouchControls';
-import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
+import { Spear } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
 import { fakeWorld } from '../fake/world';
 
 it('renders the spear touch row with working JUMP and THROW, and no BRACE', () => {

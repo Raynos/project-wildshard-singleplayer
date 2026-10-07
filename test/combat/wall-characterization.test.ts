@@ -13,8 +13,8 @@ import { headingTo, inArc } from '../../src/shards/pine-hollow/combat/combatMath
 import { pineContact, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
 import { blackpawGoal } from '../../src/shards/pine-hollow/combat/EliteGoals';
 import { legacyMethods } from '../fake/legacySource';
-import { Spear, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Spear';
-import { NaizagaiPower } from '../../src/shards/nalati-grasslands/weapons/Naizagai';
+import { Spear, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
+import { NaizagaiPower } from '../../src/shards/nalati-grasslands/runtime/weapons/Naizagai';
 import { Projectiles } from '../../src/engine/combat/view/projectile';
 import { Crossbow } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { setAimTargets } from '../../src/engine/player/AimTargets';

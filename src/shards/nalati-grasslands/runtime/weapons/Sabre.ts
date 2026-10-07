@@ -1,4 +1,4 @@
-import { SABRE } from './equipment';
+import { SABRE } from '../../weapons/equipment';
 import * as THREE from 'three';
 import type { SwordWorld, SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
@@ -9,7 +9,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { lin } from '@wildshard/engine/math/color';
 import { forearm } from '@wildshard/engine/player/nalatiArms';
-import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
+import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from '../../weapons/meleeGeo';
 
 
 /**

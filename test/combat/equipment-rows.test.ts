@@ -9,8 +9,8 @@ import { Sword } from '../../src/kit/weapons/melee/SweptMelee';
 import { Bow } from '../../src/kit/weapons/bow/family';
 import { Crossbow } from '../../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';
-import { Sabre } from '../../src/shards/nalati-grasslands/weapons/Sabre';
-import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
+import { Sabre } from '../../src/shards/nalati-grasslands/runtime/weapons/Sabre';
+import { Spear } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
 import { LeverRifle } from '../../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 
 const rows = [WOODEN_SWORD, IRON_SWORD, JIAN, SABRE, SPEAR, BOW, AR15, CROSSBOW, LONGBOW, LEVER];

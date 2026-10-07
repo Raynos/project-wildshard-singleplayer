@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Spear } from '../../src/shards/nalati-grasslands/weapons/Spear';
+import { Spear } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
 import { activePhysics, setActivePhysics } from '../../src/engine/physics/active';
 import { app } from '../../src/engine/app/runtime';
 import { Scope } from '../../src/engine/app/scope';

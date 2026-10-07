@@ -3,10 +3,10 @@ import type { Targets } from '@wildshard/engine/combat/types';
 import { isMesh } from '@wildshard/engine/combat/view/ranged';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from './effects';
+import { NALATI_SOURCE_MULTIPLIERS, goldenSourceTags } from '../../weapons/effects';
 import * as THREE from 'three';
 import { Bow, type BowWorld, type BowOptions } from '@wildshard/kit/weapons/bow/family';
-import { BOW } from './equipment';
+import { BOW } from '../../weapons/equipment';
 
 
 

@@ -7,11 +7,11 @@ import type { TargetHit } from '../../src/engine/combat/types';
 import { Melee } from '../../src/engine/combat/Melee';
 import { SWORD_WOOD } from '../../src/kit/weapons/melee/profiles';
 import { Thrown } from '../../src/kit/weapons/thrown/Thrown';
-import { Sabre, PASS_RIGHT, SABRE_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Sabre';
-import { Spear, JAVELIN, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Spear';
-import { Naizagai, NaizagaiPower, NAIZAGAI_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Naizagai';
+import { Sabre, PASS_RIGHT, SABRE_PROFILE } from '../../src/shards/nalati-grasslands/runtime/weapons/Sabre';
+import { Spear, JAVELIN, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
+import { Naizagai, NaizagaiPower, NAIZAGAI_PROFILE } from '../../src/shards/nalati-grasslands/runtime/weapons/Naizagai';
 import { buildNalatiLoadout } from '../../src/shards/nalati-grasslands/weapons/loadout';
-import { GoldenBow, GoldenBowPower } from '../../src/shards/nalati-grasslands/weapons/GoldenBow';
+import { GoldenBow, GoldenBowPower } from '../../src/shards/nalati-grasslands/runtime/weapons/GoldenBow';
 import { fakeWorld } from '../fake/world';
 import { manager } from '../fake/manager';
 

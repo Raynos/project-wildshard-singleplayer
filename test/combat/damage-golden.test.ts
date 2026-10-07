@@ -13,8 +13,8 @@ import type { TargetHit } from '../../src/engine/combat/types';
 import { Bow } from '../../src/kit/weapons/bow/family';
 import { Rifle } from '../../src/shards/nalati-grasslands/runtime/weapons/Rifle';
 
-import { Spear, JAVELIN, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/weapons/Spear';
-import { GoldenBowPower } from '../../src/shards/nalati-grasslands/weapons/GoldenBow';
+import { Spear, JAVELIN, SPEAR_PROFILE } from '../../src/shards/nalati-grasslands/runtime/weapons/Spear';
+import { GoldenBowPower } from '../../src/shards/nalati-grasslands/runtime/weapons/GoldenBow';
 import { boltDamage } from '../../src/shards/pine-hollow/loadout/ammo';
 import { app } from '../../src/engine/app/runtime';
 import { setSetting } from '../../src/engine/ui/Settings';

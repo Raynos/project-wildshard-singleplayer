@@ -146,7 +146,7 @@ interface LimbPalette { leather: THREE.Color; leatherHi: THREE.Color; sinew: THR
 export type BowStyle = 'recurve' | 'golden' | 'sky-wolf';
 const LIMB_STYLES: Record<BowStyle, LimbPalette> = {
   recurve: { leather: PAL.leather, leatherHi: PAL.leatherHi, sinew: PAL.sinew, bone: PAL.bone, boneDark: PAL.boneDark, birchBark: PAL.birchBark, lenticel: PAL.lenticel, lacquer: PAL.lacquer, gold: PAL.gold, horn: PAL.horn, hornHoney: PAL.hornHoney, ornament: PAL.ornament, string: PAL.string, serving: PAL.serving },
-  // the Golden Bow (the Golden King's reward, src/shards/nalati-grasslands/weapons/GoldenBow.ts): gold-sheathed limbs, the scroll burnished bright
+  // the Golden Bow (the Golden King's reward, src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts): gold-sheathed limbs, the scroll burnished bright
   // (a touch over 1: it catches the bloom), ivory ears, a string of light
   golden: {
     leather: PAL.leather, leatherHi: PAL.leatherHi, sinew: C(0xf0c060), bone: C(0xf4e6c0), boneDark: C(0x8a6a30),

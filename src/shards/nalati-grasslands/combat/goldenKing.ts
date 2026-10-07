@@ -28,7 +28,7 @@ import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOI
 import type { BossScript } from '@wildshard/engine/ai/BossBrain';
 import { Boss, type BossDef } from '@wildshard/game/Boss';
 
-import { GoldenBowPower, goldenBowModel } from '../weapons/GoldenBow';
+import { GoldenBowPower, goldenBowModel } from '../runtime/weapons/GoldenBow';
 
 
 /**

@@ -16,8 +16,8 @@ import { HorseHerd } from '../runtime/groupRegistry';
 import { HORSE_SPEED } from '../species/horse';
 import { wildEnv } from '../creatures/env';
 import { Bow } from '@wildshard/kit/weapons/bow/family';
-import { Sabre, type MountState } from '../weapons/Sabre';
-import { Spear } from '../weapons/Spear';
+import { Sabre, type MountState } from '../runtime/weapons/Sabre';
+import { Spear } from '../runtime/weapons/Spear';
 import { RhythmSpur, roadSteer, SPUR_WINDOW, type RoadXZ } from './rideAssist';
 import { horseKey, savedHorseName, saveHorseName } from './horseNames';
 

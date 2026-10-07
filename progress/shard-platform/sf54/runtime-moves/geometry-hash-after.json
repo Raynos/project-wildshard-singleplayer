@@ -1,0 +1,16 @@
+{
+ "mode": "after",
+ "dir": "runtime/weapons",
+ "buildSabre": "8ba8637ef90df098 verts=5010 mat=6282f51b535d4c5d extras=59902f8370417fa5 verts=2550/c66de2712fd56c7d tipX=-0.12",
+ "buildSpear": "{\"paint\":\"f34e5ff67f34fef6 verts=2754\",\"metal\":\"81ac26bb364cb85d verts=597\"}",
+ "buildJavelin": "{\"paint\":\"f659aceb853d9e6a verts=1622\",\"metal\":\"f62956828bb0976a verts=536\"}",
+ "goldenBowModel": "6d26bb5adcaf5f37 meshes=9 verts=1282",
+ "naizagaiModel": "d46c291491410e91 meshes=4 verts=226",
+ "profiles": "f5ae4274cf6c9956",
+ "vm-sabre": "d6ac0028fddf0d63 meshes=5 verts=24529",
+ "vm-spear": "a782ba5948b20370 meshes=8 verts=48651",
+ "vm-golden-bow": "7ab84e1ec096ce53 meshes=5 verts=50055",
+ "vm-naizagai": "d94c63cbe454ff04 meshes=5 verts=24529",
+ "scene-fx": "09a6ed3ebf726f55 meshes=36 verts=126739",
+ "lightningStrip": "4aaf659ec11cb52f meshes=1 verts=60"
+}

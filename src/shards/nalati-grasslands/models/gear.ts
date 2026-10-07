@@ -10,11 +10,11 @@ import * as THREE from 'three';
 import { QUIVER_MAX } from '@wildshard/kit/weapons/bow/index';
 import { arrowMaterial, bowSpecimen, buildArrowGeometry, type BowStyle } from '../weapons/recurve';
 import { buildRifleParts } from '../runtime/weapons/Rifle';
-import { buildSabre } from '../weapons/Sabre';
-import { buildJavelin, buildSpear, type SpearParts } from '../weapons/Spear';
+import { buildSabre } from '../runtime/weapons/Sabre';
+import { buildJavelin, buildSpear, type SpearParts } from '../runtime/weapons/Spear';
 import { meleeMaterial, steelMaterial } from '../weapons/meleeGeo';
-import { goldenBowModel } from '../weapons/GoldenBow';
-import { naizagaiModel } from '../weapons/Naizagai';
+import { goldenBowModel } from '../runtime/weapons/GoldenBow';
+import { naizagaiModel } from '../runtime/weapons/Naizagai';
 
 import { whiteColors } from '@wildshard/engine/combat/view/ranged';
 import { live, type RosterEntry } from '@wildshard/engine/models/live';

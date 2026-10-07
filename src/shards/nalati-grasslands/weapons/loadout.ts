@@ -1,8 +1,8 @@
-import { GoldenBow, type GoldenBowPower } from './GoldenBow';
+import { GoldenBow, type GoldenBowPower } from '../runtime/weapons/GoldenBow';
 import { Bow } from '@wildshard/kit/weapons/bow/family';
 import { BOW as BOW_PROFILE } from '@wildshard/kit/weapons/bow/profiles';
 import { POSE, buildRecurve, arrowKind, ARROW_LEN } from './recurve';
-import { Naizagai, type NaizagaiPower } from './Naizagai';
+import { Naizagai, type NaizagaiPower } from '../runtime/weapons/Naizagai';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { Targets } from '@wildshard/engine/combat/types';
@@ -16,8 +16,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 
 
-import { Sabre, type MountState } from './Sabre';
-import { Spear } from './Spear';
+import { Sabre, type MountState } from '../runtime/weapons/Sabre';
+import { Spear } from '../runtime/weapons/Spear';
 import { BOW } from './equipment';
 
 /** Nalati's recurve: the kit bow's numbers with the recurve's view (SF54: moved out of the kit's BOW row unchanged), and

@@ -20,7 +20,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { Melee, type MeleeProfile } from '@wildshard/kit/weapons/melee/Melee';
 import { SWORD_WOOD } from '@wildshard/kit/weapons/melee/profiles';
 import { Thrown, type ThrownProfile } from '@wildshard/kit/weapons/thrown/Thrown';
-import { SPEAR } from './equipment';
+import { SPEAR } from '../../weapons/equipment';
 
 import * as THREE from 'three';
 
@@ -31,7 +31,7 @@ import * as THREE from 'three';
 
 
 
-import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
+import { tube, blob, xf, merge, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from '../../weapons/meleeGeo';
 
 
 
