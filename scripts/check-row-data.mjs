@@ -14,17 +14,19 @@ import ts from '@typescript/typescript6';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/row-functions.json';
-/** the content row types: what a shard registers or ships as rows, by the package that exports them (E434: a package's
- *  surface is the modules its package.json `exports` lists; there is no index) */
+/** Content row types by their defining public package or relocated shard module. Package surfaces come from
+ *  package.json exports (E434); a shard-private profile remains measured after it leaves the kit surface. */
 export const ROW_TYPES = {
   'src/engine/package.json': [
     'AmmoRow', 'BossDef', 'BossDefinition', 'DamageRuleDef', 'DayCycleSpec', 'EffectDef', 'EliteDefinition', 'EncounterDefinition',
     'EquipmentRow', 'HitscanProfile', 'HitStopProfile', 'InteractTable', 'LevelAudioProfile', 'LoadoutSpec', 'NpcDef', 'PickupDef',
-    'QuestDef', 'RangedFeelProfile', 'SkinDef', 'SkinRow', 'SlashTrailProfile', 'SpawnTableRow', 'SpeciesLook', 'SpeciesRow',
+    'MeleeProfile', 'QuestDef', 'RangedFeelProfile', 'SkinDef', 'SkinRow', 'SlashTrailProfile', 'SpawnTableRow', 'SpeciesLook', 'SpeciesRow', 'ThrownProfile',
     'StrikeSpec', 'StringTable', 'TableSpec', 'VoiceTable', 'WeatherProfile',
   ],
   'src/game/package.json': ['AchievementDef', 'CosmeticDef', 'EliteDef', 'ItemRow', 'LootTableRow', 'PresentedQuestDef', 'QuestRewardSpec', 'ShardManifest'],
-  'src/kit/package.json': ['BowProfile', 'CrossbowProfile', 'FirearmProfile', 'MeleeProfile', 'NpcRigProfile', 'NpcRow', 'RainCurtainSpec', 'ThrownProfile'],
+  'src/kit/package.json': ['BowProfile', 'NpcRigProfile', 'NpcRow', 'RainCurtainSpec'],
+  'src/sdk/package.json': ['FirearmProfile'],
+  'src/shards/pine-hollow/weapons/crossbow/profiles.ts': ['CrossbowProfile'],
 };
 const DEPTH = 5;
 
@@ -33,7 +35,7 @@ export function rowFunctions(root = ROOT) {
   const configPath = ts.findConfigFile(root, (f) => ts.sys.fileExists(f));
   const config = configPath ? ts.readConfigFile(configPath, (f) => ts.sys.readFile(f)).config : {};
   const { options } = ts.parseJsonConfigFileContent(config, ts.sys, root);
-  const modulesOf = (pkg) => Object.values(JSON.parse(readFileSync(resolve(root, pkg), 'utf8')).exports ?? {})
+  const modulesOf = (pkg) => !pkg.endsWith('/package.json') ? [resolve(root, pkg)] : Object.values(JSON.parse(readFileSync(resolve(root, pkg), 'utf8')).exports ?? {})
     .filter((target) => typeof target === 'string').map((target) => resolve(root, dirname(pkg), target));
   const program = ts.createProgram(Object.keys(ROW_TYPES).flatMap(modulesOf), { ...options, noEmit: true });
   const checker = program.getTypeChecker();
