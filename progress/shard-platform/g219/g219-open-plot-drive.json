@@ -1,0 +1,56 @@
+{
+  "url": "http://127.0.0.1:4402",
+  "legs": [
+    {
+      "name": "nw-south",
+      "end": {
+        "x": -572.4348848034244,
+        "z": 457.59730281057784,
+        "y": 0.45000001769622255
+      },
+      "state": {
+        "playingMB": 899.68,
+        "plots": [
+          [
+            "open-plot-nw",
+            true
+          ],
+          [
+            "open-plot-sw",
+            true
+          ],
+          [
+            "open-plot-se",
+            false
+          ]
+        ]
+      }
+    },
+    {
+      "name": "se-west",
+      "end": {
+        "x": 462.83598782727495,
+        "z": -571.7745030749154,
+        "y": 0.4500000176761767
+      },
+      "state": {
+        "playingMB": 899.68,
+        "plots": [
+          [
+            "open-plot-nw",
+            false
+          ],
+          [
+            "open-plot-sw",
+            true
+          ],
+          [
+            "open-plot-se",
+            true
+          ]
+        ]
+      }
+    }
+  ],
+  "seconds": 44.1
+}

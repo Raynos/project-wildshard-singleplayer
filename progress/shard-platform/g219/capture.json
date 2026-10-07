@@ -1,0 +1,458 @@
+{
+  "url": "http://127.0.0.1:4402",
+  "dev": true,
+  "shots": [
+    {
+      "name": "nw-north-road",
+      "x": -557,
+      "z": 826,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-north-demo",
+      "x": -545,
+      "z": 789,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-north-billboard",
+      "x": -569,
+      "z": 795,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-east-road",
+      "x": -284,
+      "z": 557,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-east-demo",
+      "x": -321,
+      "z": 545,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-east-billboard",
+      "x": -315,
+      "z": 569,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-south-road",
+      "x": -553,
+      "z": 284,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-south-demo",
+      "x": -565,
+      "z": 321,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-south-billboard",
+      "x": -541,
+      "z": 315,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-west-road",
+      "x": -826,
+      "z": 553,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-west-demo",
+      "x": -789,
+      "z": 565,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-west-billboard",
+      "x": -795,
+      "z": 541,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-centre",
+      "x": -525,
+      "z": 405,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "nw-air",
+      "x": -595,
+      "z": 175,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-north-road",
+      "x": -557,
+      "z": -284,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-north-demo",
+      "x": -545,
+      "z": -321,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-north-billboard",
+      "x": -569,
+      "z": -315,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-east-road",
+      "x": -284,
+      "z": -553,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-east-demo",
+      "x": -321,
+      "z": -565,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-east-billboard",
+      "x": -315,
+      "z": -541,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-south-road",
+      "x": -553,
+      "z": -826,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-south-demo",
+      "x": -565,
+      "z": -789,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-south-billboard",
+      "x": -541,
+      "z": -795,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-west-road",
+      "x": -826,
+      "z": -557,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-west-demo",
+      "x": -789,
+      "z": -545,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-west-billboard",
+      "x": -795,
+      "z": -569,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-centre",
+      "x": -525,
+      "z": -705,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "sw-air",
+      "x": -595,
+      "z": -935,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-north-road",
+      "x": 553,
+      "z": -284,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-north-demo",
+      "x": 565,
+      "z": -321,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-north-billboard",
+      "x": 541,
+      "z": -315,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-east-road",
+      "x": 826,
+      "z": -553,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-east-demo",
+      "x": 789,
+      "z": -565,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-east-billboard",
+      "x": 795,
+      "z": -541,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-south-road",
+      "x": 557,
+      "z": -826,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-south-demo",
+      "x": 545,
+      "z": -789,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-south-billboard",
+      "x": 569,
+      "z": -795,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-west-road",
+      "x": 284,
+      "z": -557,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-west-demo",
+      "x": 321,
+      "z": -545,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-west-billboard",
+      "x": 315,
+      "z": -569,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-centre",
+      "x": 585,
+      "z": -705,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    },
+    {
+      "name": "se-air",
+      "x": 515,
+      "z": -935,
+      "playingMB": 899.68,
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 31914
+    }
+  ],
+  "errors": [],
+  "plots": {
+    "plots": [
+      {
+        "instance": "open-plot-nw",
+        "visible": true,
+        "entries": {
+          "north": {
+            "billboard": "sky-race",
+            "demo": "alien-plain"
+          },
+          "east": {
+            "billboard": "night-market",
+            "demo": "desert-ruin"
+          },
+          "south": {
+            "billboard": "frozen-lighthouse",
+            "demo": "ink-valley"
+          },
+          "west": {
+            "billboard": "canyon-railway",
+            "demo": "sky-race"
+          }
+        }
+      },
+      {
+        "instance": "open-plot-sw",
+        "visible": true,
+        "entries": {
+          "north": {
+            "billboard": "coral-reef",
+            "demo": "night-market"
+          },
+          "east": {
+            "billboard": "alien-plain",
+            "demo": "frozen-lighthouse"
+          },
+          "south": {
+            "billboard": "desert-ruin",
+            "demo": "canyon-railway"
+          },
+          "west": {
+            "billboard": "ink-valley",
+            "demo": "coral-reef"
+          }
+        }
+      },
+      {
+        "instance": "open-plot-se",
+        "visible": true,
+        "entries": {
+          "north": {
+            "billboard": "frozen-lighthouse",
+            "demo": "ink-valley"
+          },
+          "east": {
+            "billboard": "canyon-railway",
+            "demo": "sky-race"
+          },
+          "south": {
+            "billboard": "coral-reef",
+            "demo": "night-market"
+          },
+          "west": {
+            "billboard": "alien-plain",
+            "demo": "frozen-lighthouse"
+          }
+        }
+      }
+    ],
+    "pictures": 8,
+    "draws": 27,
+    "triangles": 31914
+  }
+}
