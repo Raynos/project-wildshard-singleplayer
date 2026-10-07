@@ -209,6 +209,7 @@ export class LiveGridSession {
         } catch (error) { host.dispose(); throw error; }
       } },
       admit: (cell) => this.admit(cell),
+      prefetchable: (cell) => findShard(cell.slug)?.shardfile !== undefined,
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
       bindFrame: (frame) => { this.bind(frame); },
       gameplayReady: () => true, // a template copy has no entered hooks; Driftwood's hybrid stays default-off (its fence is SF46's)

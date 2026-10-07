@@ -37,6 +37,9 @@ export interface LiveGridPorts {
   home: LiveGridHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
   highway: { bytes: number; create: () => LiveGridRegion };
   admit: (cell: GridCell) => Promise<LiveGridAdmission>;
+  /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
+   *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
+  prefetchable?: (cell: GridCell) => boolean;
   save: (instance: string, snapshot: SimSnapshot) => boolean;
   read?: (instance: string) => SimSnapshot | undefined;
   bindFrame: (frame: LiveGridFrame) => void;
@@ -202,7 +205,8 @@ export class LiveGridHost {
     if (this.disposed) return;
     // Request the closest cells that fit the shard count. Requesting all eight within a wide cold bound
     // would repeatedly evict and rebuild earlier admissions even while the traveller stands still.
-    const nearby = this.assembly.cells.filter((cell) => cell.instance !== this.ports.home.instance)
+    // Unsupported far proxies do not consume the count before enterable cells inside the cold readiness bound.
+    const nearby = this.assembly.cells.filter((cell) => cell.instance !== this.ports.home.instance && (this.ports.prefetchable?.(cell) ?? true))
       .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, this.limit - 1);
     const requested = new Set(nearby.map((cell) => cell.instance));
     for (const cell of this.assembly.cells) {
