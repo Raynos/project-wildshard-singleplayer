@@ -1,8 +1,11 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- The admission check reads the committed, content-addressed islet module.
+import { readFileSync } from 'node:fs';
+import { LIFT_MODULE } from '../../../src/shards/far-reach/data/liftModule';
 import { describe, expect, it } from 'vitest';
 import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '../../../src/engine/core/config';
 import { contentHash } from '../../../src/sdk/project';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
-import { validateSocketLandings } from '../../../src/game/shardfile/entryLanding';
+import { socketLiftEntries, socketLiftRules } from '../../../src/game/shardfile/socketLift';
 import { validateEntrywayClearance } from '../../../src/game/shardfile/entryClearance';
 import { parseMovers } from '../../../src/game/shardfile/movers';
 import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
@@ -18,19 +21,26 @@ const deg = (rise: number, run: number): number => (Math.atan2(Math.abs(rise), r
 const inside = (isle: Isle, x: number, z: number): boolean => Math.hypot(x - isle.x, z - isle.z) < rimAlong(isle, Math.atan2(z - isle.z, x - isle.x));
 
 describe('Sky Reach Rising Islet entries', () => {
-  it('declares four sockets over the void, each proven by a full-width stone lip at y = 0', () => {
-    expect(source.entryways.map((row) => [row.edge, row.kind, row.width])).toEqual(['north', 'east', 'south', 'west'].map((edge) => [edge, 'socketOverWater', ENTRY_WIDTH]));
+  it('declares four socketLift entries: a static approach over a full-width stone lip at y = 0 to the islet, a road gate, the gate isle beyond', () => {
+    expect(source.entryways.map((row) => [row.edge, row.kind, row.width])).toEqual(['north', 'east', 'south', 'west'].map((edge) => [edge, 'socketLift', ENTRY_WIDTH]));
     expect(source.accent).toBe('pink'); // G104: 18 PINK
-    expect(() => validateShardfileAssets(source, new Map(), contentHash)).not.toThrow();
-    // no landing, one shifted 9.5 m along the edge, or one 1 cm proud of the road: refused
-    expect(() => validateShardfileAssets({ ...source, props: null }, new Map(), contentHash)).toThrow('full-width collision landing');
+    const module = Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${LIFT_MODULE.hash}`));
+    expect(() => validateShardfileAssets(source, new Map([[LIFT_MODULE.hash, module]]), contentHash)).not.toThrow();
+    const lifts = socketLiftEntries(source.entryways);
+    expect(lifts.map((row) => [row.lift.mover, row.lift.gate, row.lift.approach?.colliders])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`, [`landing.${e.edge}`]]));
+    expect(socketLiftRules(lifts, source.movers, source)).toEqual([]);
+    // the compiled movers are exactly the islets and their gates, on the one admitted module
+    expect(source.movers.map((m) => m.id).sort()).toEqual(RISING_ISLETS.flatMap((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`]).sort());
+    expect(new Set(source.movers.map((m) => m.module))).toEqual(new Set(source.sim.scripts));
+    // no lip, one shifted 9.5 m along the edge, or one 1 cm proud of the road: refused
     const props = source.props; if (props === null) throw new Error('Sky Reach declares its landings');
-    const shifted = (dy: number, dt: number) => RISING_ISLETS.map(({ edge, landing: l }) => {
-      const k = edge === 'north' ? 1 : 0;
-      return { id: `landing.${edge}`, panel: null, initialActive: true, shapes: [{ kind: 'box' as const, x: l.x + k * dt, y: l.y + k * dy, z: l.z, hx: l.hx, hy: l.hy, hz: l.hz, surface: l.surface }] };
+    const shifted = (dy: number, dt: number) => props.colliders.map((row) => {
+      if (row.id !== 'landing.north') return row;
+      return { ...row, shapes: row.shapes.map((shape) => (shape.kind === 'box' ? { ...shape, x: shape.x + dt, y: shape.y + dy } : shape)) };
     });
-    expect(() => validateSocketLandings({ ...source, props: { ...props, colliders: shifted(0, 9.5) } }, new Map())).toThrow('full-width collision landing');
-    expect(() => validateSocketLandings({ ...source, props: { ...props, colliders: shifted(0.01, 0) } }, new Map())).toThrow('full-width collision landing');
+    expect(socketLiftRules(lifts, source.movers, { ...source, props: null })).toHaveLength(4);
+    expect(socketLiftRules(lifts, source.movers, { ...source, props: { ...props, colliders: shifted(0, 9.5) } })).toHaveLength(1);
+    expect(socketLiftRules(lifts, source.movers, { ...source, props: { ...props, colliders: shifted(0.01, 0) } })).toHaveLength(1);
   });
 
   it('keeps the lips and the resting islets inside the cell and out of the 8 × 15 m socket above road height', () => {
@@ -58,14 +68,15 @@ describe('Sky Reach Rising Islet entries', () => {
       expect(entry.dock.y).toBe(entry.gate.y); expect(entry.gate.y).toBe(25);
       expect(Math.hypot(entry.dock.x - entry.gate.x, entry.dock.z - entry.gate.z) - apothem(entry.gate) - isletR).toBeCloseTo(ISLET.gap, 9);
       expect(CHUNK_HALF - Math.max(Math.abs(entry.gate.x), Math.abs(entry.gate.z))).toBe(52);
-      // a ride of a few seconds per ten metres, and the eased peak a gentle 1.5× the average
+      // a ride of a few seconds per ten metres, and the eased peak a gentle 1.11× the average
       expect(entry.travel).toBeGreaterThan(10); expect(entry.travel).toBeLessThan(30);
     }
-    // one mover row per islet, on the islet module, parameters exactly the entry's rest, dock, rests and travel
+    // one mover row per islet and one stationary gate row, on the islet module: rest, dock, travel, part, dwell
     const rows = MOVERS.filter((m) => m.id.startsWith('far.islet.'));
     expect(() => parseMovers(MOVERS)).not.toThrow();
-    expect(rows.map((m) => [m.id, m.kind, m.input])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, 'platform',
-      [e.rest.x, e.rest.y, e.rest.z, e.dock.x, e.dock.y, e.dock.z, ISLET.dwell, e.travel, 0]]));
+    expect(rows.map((m) => [m.id, m.kind, m.input])).toEqual([...RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, 'platform',
+      [e.rest.x, e.rest.y, e.rest.z, e.dock.x, e.dock.y, e.dock.z, e.travel, 0, ISLET.dwell]]), ...RISING_ISLETS.map((e) => [`far.islet.${e.edge}.gate`, 'static',
+      [e.gateBar.x, e.gateBar.y, e.gateBar.z, e.gateBar.x, e.gateBar.y, e.gateBar.z, e.travel, 1, ISLET.dwell]])]);
   });
 
   it('lands on playable island ground past no quest, clear of every island and the crown overhead', () => {

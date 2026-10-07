@@ -2236,7 +2236,7 @@ export const MOVERS: MoverData = [
   {
     "id": "far.islet.north",
     "entity": 8020,
-    "module": "9e858467b8536bad90ccb55aa5213c5ad8e8a1f48ed0963f20cb250014bc90a7",
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": 0,
@@ -2342,15 +2342,15 @@ export const MOVERS: MoverData = [
       0,
       25,
       212.62547997696493,
-      6,
       13.4,
-      0
+      0,
+      6
     ]
   },
   {
     "id": "far.islet.east",
     "entity": 8021,
-    "module": "9e858467b8536bad90ccb55aa5213c5ad8e8a1f48ed0963f20cb250014bc90a7",
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": 228.05081537278122,
@@ -2456,15 +2456,15 @@ export const MOVERS: MoverData = [
       204.728255040112,
       25,
       45.01403647503161,
-      6,
       25.7,
-      0
+      0,
+      6
     ]
   },
   {
     "id": "far.islet.south",
     "entity": 8022,
-    "module": "9e858467b8536bad90ccb55aa5213c5ad8e8a1f48ed0963f20cb250014bc90a7",
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": 0,
@@ -2570,15 +2570,15 @@ export const MOVERS: MoverData = [
       28.306750243091944,
       25,
       -206.78479223881658,
-      6,
       19.7,
-      0
+      0,
+      6
     ]
   },
   {
     "id": "far.islet.west",
     "entity": 8023,
-    "module": "9e858467b8536bad90ccb55aa5213c5ad8e8a1f48ed0963f20cb250014bc90a7",
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
     "kind": "platform",
     "at": {
       "x": -228.05081537278122,
@@ -2684,9 +2684,185 @@ export const MOVERS: MoverData = [
       -212.62547997696493,
       25,
       0,
-      6,
       13.4,
-      0
+      0,
+      6
+    ]
+  },
+  {
+    "id": "far.islet.north.gate",
+    "entity": 8030,
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
+    "kind": "static",
+    "at": {
+      "x": 0,
+      "y": 1.1,
+      "z": 234.9
+    },
+    "euler": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "enabled": false,
+    "boxes": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "hx": 4.3,
+        "hy": 1.1,
+        "hz": 0.1,
+        "rot": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        }
+      }
+    ],
+    "input": [
+      0,
+      1.1,
+      234.9,
+      0,
+      1.1,
+      234.9,
+      13.4,
+      1,
+      6
+    ]
+  },
+  {
+    "id": "far.islet.east.gate",
+    "entity": 8031,
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
+    "kind": "static",
+    "at": {
+      "x": 234.9,
+      "y": 1.1,
+      "z": 0
+    },
+    "euler": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "enabled": false,
+    "boxes": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "hx": 0.1,
+        "hy": 1.1,
+        "hz": 4.3,
+        "rot": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        }
+      }
+    ],
+    "input": [
+      234.9,
+      1.1,
+      0,
+      234.9,
+      1.1,
+      0,
+      25.7,
+      1,
+      6
+    ]
+  },
+  {
+    "id": "far.islet.south.gate",
+    "entity": 8032,
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
+    "kind": "static",
+    "at": {
+      "x": 0,
+      "y": 1.1,
+      "z": -234.9
+    },
+    "euler": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "enabled": false,
+    "boxes": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "hx": 4.3,
+        "hy": 1.1,
+        "hz": 0.1,
+        "rot": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        }
+      }
+    ],
+    "input": [
+      0,
+      1.1,
+      -234.9,
+      0,
+      1.1,
+      -234.9,
+      19.7,
+      1,
+      6
+    ]
+  },
+  {
+    "id": "far.islet.west.gate",
+    "entity": 8033,
+    "module": "f8f90ba2e03401910448a2af1e8b02420bc7b2e1003076bc6241d9cb0c688a22",
+    "kind": "static",
+    "at": {
+      "x": -234.9,
+      "y": 1.1,
+      "z": 0
+    },
+    "euler": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "enabled": false,
+    "boxes": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "hx": 0.1,
+        "hy": 1.1,
+        "hz": 4.3,
+        "rot": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        }
+      }
+    ],
+    "input": [
+      -234.9,
+      1.1,
+      0,
+      -234.9,
+      1.1,
+      0,
+      13.4,
+      1,
+      6
     ]
   }
 ];

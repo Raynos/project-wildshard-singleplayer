@@ -30,15 +30,18 @@ try {
     const islet = () => page.evaluate((e) => window.__wildshard.shard.farReach.isletAt(e), edge);
     const player = () => page.evaluate(() => { const p = window.__wildshard.world.player.position; return { x: p.x, y: p.y, z: p.z }; });
     const face = (from, to) => Math.atan2(-(to.x - from.x), -(to.z - from.z));
-    // wait for the islet to come back to rest, so the whole 6 s rest is ahead
-    for (let seen = false, t0 = Date.now(); Date.now() - t0 < 90000; await sleep(100)) {
-      const p = await islet(); if (p.y > 0.5) seen = true; if (seen && p.y < 0.001) break;
-    }
+    // SF8c socketLift: the islet rests at the road until called; make sure it is there (its road gate open)
+    for (let t0 = Date.now(); Date.now() - t0 < 90000; await sleep(100)) { const p = await islet(); if (p.y < 0.001) break; }
+    out.gateOpenAtRest = await page.evaluate((e) => window.__wildshard.shard.farReach.isletGateShut(e) === false, edge);
     // leg 1: the lip (road height, the socket's far edge) onto the resting islet
     const lip = entry.board[0], board = await page.evaluate(walkPhysicsLeg, { start: { x: lip.x, z: lip.z, yaw: face(lip, entry.rest), y: 0.3 }, waypoints: entry.board.slice(1).map((p) => ({ x: p.x, z: p.z })), timeout: 20 });
     out.legs.push({ name: 'board', stuck: board.stuck.length, end: board.trace.at(-1) });
     await shot('1-islet', face(entry.rest, entry.dock), 0.25);
-    // the ride: stand still; the islet carries the player up its chains to the gate isle
+    // the ride: INTERACT on the islet's RIDE prompt (the platform's commandSocketLift), then stand still while it carries
+    // the player up its chains to the gate isle; the road gate closes the socket while it is away
+    await page.evaluate((e) => { window.__wildshard.shard.farReach.interactIslet(e, 1); }, edge);
+    await sleep(600);
+    out.gateShutAway = await page.evaluate((e) => window.__wildshard.shard.farReach.isletGateShut(e) === true, edge);
     const ride = { samples: [], maxGap: 0 };
     for (let t0 = Date.now(); Date.now() - t0 < (entry.travel + 9) * 1000; await sleep(250)) {
       const [i, p] = [await islet(), await player()]; ride.samples.push([Number(i.y.toFixed(2)), Number(p.y.toFixed(2))]);
@@ -58,7 +61,7 @@ try {
     route['far-reach'].push({ name: `${edge} in`, start: { x: Number(g.x.toFixed(2)), z: Number(g.z.toFixed(2)), yaw: Number(face(g, entry.climb[3]).toFixed(2)), y: entry.gate.y + 0.3 }, waypoints: wps });
     const back = [...wps].reverse(), last = back[0];
     route['far-reach'].push({ name: `${edge} out`, start: { ...last, yaw: Number(face(last, back[1]).toFixed(2)), y: entry.isle.y + 0.3 }, waypoints: [...back.slice(1), { x: Number(g.x.toFixed(2)), z: Number(g.z.toFixed(2)) }] });
-    console.log(JSON.stringify({ edge, isle: out.isle, board: out.legs[0], ride: { onTop: ride.onTop, maxGap: ride.maxGap.toFixed(2), docked }, climb: out.legs[1], onIsland: out.onIsland, errors: errors.length }));
+    console.log(JSON.stringify({ edge, isle: out.isle, gate: [out.gateOpenAtRest, out.gateShutAway], board: out.legs[0], ride: { onTop: ride.onTop, maxGap: ride.maxGap.toFixed(2), docked }, climb: out.legs[1], onIsland: out.onIsland, errors: errors.length }));
     await ctx.close();
   }
 } finally { await browser.close(); }

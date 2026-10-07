@@ -25,17 +25,33 @@ export const ISLET = {
   /** the walk gap between the lip and the resting islet, and between the docked islet and the gate isle (SF8c's socketLift
    *  allows at most 5 cm at a road stop) */
   gap: 0.04,
-  /** the ride: seconds at rest at each end, average speed along the chains (m/s; the eased peak is 1.5×) */
+  /** the ride: seconds at rest at each end, average speed along the chains (m/s; the eased peak is 1.11×) */
   dwell: 6, speed: 2.2,
   /** the rope bridge's walking width */
   bridge: 2.4,
+  /** the stationary road gate (SF8c socketLift): a timber bar across the lip's road edge, closed while the islet is away
+   *  (u from the socket's inner line, its depth and height, and its width past the 8 m opening) */
+  gateBar: { depth: 0.2, height: 2.2, width: ENTRY_WIDTH + 0.6 },
+  /** the static approach's waypoint on the lip (metres in from the socket's inner line) */
+  approachU: 1,
+  /** the fixed steps a ride may take past its travel (the platform's ride bound, SF8c) */
+  rideSlack: 30,
 } as const;
 
 export interface P3 { readonly x: number; readonly y: number; readonly z: number }
 /** A plain axis-aligned box (the shardfile's collider shape): the road lip. */
 export interface LandingBox { readonly kind: 'box'; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly surface: 'stone' }
+/** The stationary road gate's box (feet frame, axis-aligned): it blocks the socket's whole 8 m inner line. */
+export interface GateBox { readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number }
+/** A gate isle's walk strips as the shardfile declares them (world/build.ts islandColliders' exact boxes, yaw form). */
+export interface IsleStrip { readonly kind: 'box'; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly yaw: number; readonly surface: 'grass' }
 export interface RisingIslet {
   readonly edge: EntryEdge;
+  /** the stationary road gate (closed while the islet is away) */
+  readonly gateBar: GateBox;
+  /** SF8c's socketLift link: the islet's road and top stops, the walk from the top stop onto the gate isle's ground, the
+   *  static approach over the lip, and the ride's fixed-step bound */
+  readonly lift: { readonly route: readonly P3[]; readonly approach: readonly P3[]; readonly rideTicks: number };
   /** the playable island the rope bridge reaches */
   readonly isle: Isle;
   /** the static lip at road height: declared by the shardfile, installed exactly */
@@ -85,9 +101,14 @@ function islet(edge: EntryEdge, isle: Isle, gateT: number): RisingIslet {
   const inward = (p: P3, k: number): P3 => ({ x: p.x + (dx / d) * k, y: p.y, z: p.z + (dz / d) * k });
   const bx = bridge.x1 - bridge.x0, bz = bridge.z1 - bridge.z0, bl = Math.hypot(bx, bz);
   const board: P3[] = [at(0, U0 + 0.5, 0), at(0, U0 + I.lip.depth + 1, 0), { ...rest }];
+  // the gate bar stands on the lip, its road face on the socket's inner line; the static approach crosses the lip
+  const gc = at(0, U0 + I.gateBar.depth / 2, I.gateBar.height / 2);
+  const gateBar: GateBox = { x: gc.x, y: gc.y, z: gc.z, hx: alongX ? I.gateBar.width / 2 : I.gateBar.depth / 2, hy: I.gateBar.height / 2, hz: alongX ? I.gateBar.depth / 2 : I.gateBar.width / 2 };
+  const lift = { route: [{ ...dock }, inward(dock, isletR + 2), { x: gate.x, y: gate.y, z: gate.z }], approach: [at(0, U0, 0), at(0, U0 + I.approachU, 0)],
+    rideTicks: Math.ceil(travel * 60) + I.rideSlack };
   const climb: P3[] = [{ ...dock }, inward(dock, isletR + 2), { x: gate.x, y: gate.y, z: gate.z }, { x: bridge.x0 - (bx / bl) * 2, y: gate.y, z: bridge.z0 - (bz / bl) * 2 },
     { x: bridge.x0, y: bridge.y, z: bridge.z0 }, { x: bridge.x1, y: bridge.y1, z: bridge.z1 }, { x: bridge.x1 + (bx / bl) * 4, y: isle.y, z: bridge.z1 + (bz / bl) * 4 }];
-  return { edge, isle, landing, rest, dock, travel, gate, bridge, board, climb, at };
+  return { edge, isle, landing, rest, dock, travel, gate, bridge, board, climb, at, gateBar, lift };
 }
 
 /**
@@ -100,3 +121,9 @@ function islet(edge: EntryEdge, isle: Isle, gateT: number): RisingIslet {
 export const RISING_ISLETS: readonly RisingIslet[] = [
   islet('north', SUNREST, 0), islet('east', ROOST, 58), islet('south', RUIN, 40), islet('west', GROVE, 0),
 ];
+
+/** A gate isle's six walk strips 30° apart (world/build.ts islandColliders, in the shardfile's yaw form). */
+export function isleStrips(isle: Isle): IsleStrip[] {
+  const half = apothem(isle), width = isle.r * 0.26;
+  return [0, 1, 2, 3, 4, 5].map((i) => ({ kind: 'box', x: isle.x, y: isle.y - 1, z: isle.z, hx: half, hy: 1, hz: width, yaw: 0 - (i * Math.PI) / 6, surface: 'grass' }));
+}

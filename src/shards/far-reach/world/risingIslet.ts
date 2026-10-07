@@ -1,4 +1,5 @@
 import type { MoverBox, MoverPose } from '@wildshard/engine/physics/mover';
+import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, Quaternion, TorusGeometry, Vector3 } from 'three';
 import { apothem, type Isle } from '../layout';
@@ -20,6 +21,8 @@ import { PALETTE, flat } from './shapes';
 const FILE = 'src/shards/far-reach/world/risingIslet.ts';
 /** The mover id of an entry's islet. */
 export const isletId = (entry: RisingIslet): string => `far.islet.${entry.edge}`;
+/** The mover id of an entry's stationary road gate (SF8c socketLift). */
+export const gateId = (entry: RisingIslet): string => `far.islet.${entry.edge}.gate`;
 /** The islet's footprint as an island (centred at its local origin, deck top y 0). */
 export const ISLET_ISLE: Isle = { id: 'islet', x: 0, z: 0, r: ISLET.islet.r, y: 0, keel: ISLET.islet.keel };
 /** The gate isles as islands (world/build.ts draws and collides them with the playable ones' builder). */
@@ -33,10 +36,25 @@ export function isletBoxes(): MoverBox[] {
     return { x: 0, y: -1, z: 0, hx: half, hy: 1, hz: width, rot: { x: q.x, y: q.y, z: q.z, w: q.w } };
   });
 }
-/** The four islet mover rows (generators/movers.ts bakes them): parameters rest, dock, dwell, travel, phase. */
-export function isletMoverRows(module: string): { id: string; entity: number; module: string; kind: 'platform'; at: P3; euler: P3; enabled: boolean; boxes: MoverBox[]; input: number[] }[] {
-  return RISING_ISLETS.map((entry, i) => ({ id: isletId(entry), entity: 8020 + i, module, kind: 'platform', at: { ...entry.rest }, euler: { x: 0, y: 0, z: 0 }, enabled: true,
-    boxes: isletBoxes(), input: [entry.rest.x, entry.rest.y, entry.rest.z, entry.dock.x, entry.dock.y, entry.dock.z, ISLET.dwell, entry.travel, 0] }));
+interface LiftRow { id: string; entity: number; module: string; kind: 'platform' | 'static'; at: P3; euler: P3; enabled: boolean; boxes: MoverBox[]; input: number[] }
+/** The four islet mover rows and their four stationary road gates (generators/movers.ts bakes them; shard.config.ts
+ *  declares them as the shardfile's compiled `movers`): parameters rest, dock, travel, part (0 islet, 1 gate), dwell. */
+export function isletMoverRows(module: string): LiftRow[] {
+  const zero = { x: 0, y: 0, z: 0 };
+  const islets = RISING_ISLETS.map((entry, i): LiftRow => ({ id: isletId(entry), entity: 8020 + i, module, kind: 'platform', at: { ...entry.rest }, euler: zero, enabled: true,
+    boxes: isletBoxes(), input: [entry.rest.x, entry.rest.y, entry.rest.z, entry.dock.x, entry.dock.y, entry.dock.z, entry.travel, 0, ISLET.dwell] }));
+  const gates = RISING_ISLETS.map((entry, i): LiftRow => {
+    const g = entry.gateBar;
+    return { id: gateId(entry), entity: 8030 + i, module, kind: 'static', at: { x: g.x, y: g.y, z: g.z }, euler: zero, enabled: false,
+      boxes: [{ x: 0, y: 0, z: 0, hx: g.hx, hy: g.hy, hz: g.hz, rot: { x: 0, y: 0, z: 0, w: 1 } }], input: [g.x, g.y, g.z, g.x, g.y, g.z, entry.travel, 1, ISLET.dwell] };
+  });
+  return [...islets, ...gates];
+}
+/** SF8c: an entry's declared socketLift link (shard.config.ts's entryway; the platform proves and commands it). */
+export function isletLift(entry: RisingIslet): { mover: string; gate: string; roadStop: [number, number, number]; topStop: [number, number, number]; route: [number, number, number][]; rideTicks: number; approach: { colliders: string[]; route: [number, number, number][] } } {
+  const v = (p: P3): [number, number, number] => [p.x + 0, p.y + 0, p.z + 0]; // JSON data: never −0
+  return { mover: isletId(entry), gate: gateId(entry), roadStop: v(entry.rest), topStop: v(entry.dock), route: entry.lift.route.map(v), rideTicks: entry.lift.rideTicks,
+    approach: { colliders: [`landing.${entry.edge}`], route: entry.lift.approach.map(v) } };
 }
 /** The lip's collider exactly as the shardfile declares it. */
 export function lipCollider(entry: RisingIslet): ColliderDesc {
@@ -115,8 +133,23 @@ export function isletViews(): IsletViews {
   };
   RISING_ISLETS.forEach((entry, i) => { lay(i, entry.rest); });
   links.instanceMatrix.needsUpdate = true;
+  // SF8c: each entry's stationary road gate, a timber bar across the lip's road edge, drawn while its mover collides
+  const bars = new InstancedMesh(new BoxGeometry(1, 1, 1), flat(PALETTE.trunk), RISING_ISLETS.length), shut = RISING_ISLETS.map(() => false);
+  bars.name = 'far.islet.gates'; bars.frustumCulled = false; group.add(bars);
+  const barAt = (i: number, on: boolean): void => {
+    const g = RISING_ISLETS[i]?.gateBar; if (g === undefined) return;
+    bars.setMatrixAt(i, on ? m.compose(c.set(g.x, g.y, g.z), q.identity(), a.set(2 * g.hx, 2 * g.hy, 2 * g.hz)) : hidden);
+  };
+  RISING_ISLETS.forEach((_entry, i) => { barAt(i, false); });
+  bars.instanceMatrix.needsUpdate = true;
   return { group, ids: RISING_ISLETS.map(isletId), update: (pose) => {
-    let moved = false;
+    let moved = false, gated = false;
+    for (let i = 0; i < RISING_ISLETS.length; i++) {
+      const entry = RISING_ISLETS[i]; if (entry === undefined) continue;
+      const on = pose(gateId(entry)).enabled; if (on === shut[i]) continue;
+      shut[i] = on; barAt(i, on); gated = true;
+    }
+    if (gated) bars.instanceMatrix.needsUpdate = true;
     for (let i = 0; i < RISING_ISLETS.length; i++) {
       const entry = RISING_ISLETS[i], g = islets[i]; if (entry === undefined || g === undefined) continue;
       const p = pose(isletId(entry)).position; g.position.set(p.x, p.y, p.z);
@@ -125,4 +158,29 @@ export function isletViews(): IsletViews {
     }
     if (moved) links.instanceMatrix.needsUpdate = true;
   } };
+}
+
+/**
+ * SF8c socketLift on the normal INTERACT binding: per entry, RIDE on the resting islet (action 1, at either stop), CALL on
+ * the road lip while the islet rests at the top (action 2) and CALL on the gate isle while it rests at the road (action 3).
+ * A prompt that does not apply right now parks far below the world, so it never shows. The command goes through the
+ * platform's `commandSocketLift` (the caller's), on the islet and its road gate together.
+ */
+export interface IsletCalls { readonly interactables: readonly Interactable[]; update: (pose: (id: string) => MoverPose) => void }
+export function isletCalls(command: (entry: RisingIslet, action: 1 | 2 | 3) => void): IsletCalls {
+  const away = -1e5, items: Interactable[] = [], updates: ((pose: (id: string) => MoverPose) => void)[] = [];
+  for (const entry of RISING_ISLETS) {
+    const ride: Interactable = { label: STRINGS.rideIslet, position: new Vector3(entry.rest.x, away, entry.rest.z), radius: apothem(ISLET_ISLE) - 0.4, onInteract: () => { command(entry, 1); } };
+    const l = entry.landing, down: Interactable = { label: STRINGS.callIslet, position: new Vector3(l.x, away, l.z), radius: 3, onInteract: () => { command(entry, 2); } };
+    const h = new Vector3(entry.dock.x - entry.rest.x, 0, entry.dock.z - entry.rest.z).normalize(), rim = new Vector3(entry.dock.x, entry.gate.y + 1, entry.dock.z).addScaledVector(h, apothem(ISLET_ISLE) + 1.5);
+    const up: Interactable = { label: STRINGS.callIslet, position: rim.clone().setY(away), radius: 3, onInteract: () => { command(entry, 3); } };
+    items.push(ride, down, up);
+    updates.push((pose) => {
+      const p = pose(isletId(entry)).position;
+      const atRoad = Math.hypot(p.x - entry.rest.x, p.y - entry.rest.y, p.z - entry.rest.z) < 0.001, atTop = Math.hypot(p.x - entry.dock.x, p.y - entry.dock.y, p.z - entry.dock.z) < 0.001;
+      ride.position.set(p.x, atRoad || atTop ? p.y + 1 : away, p.z);
+      down.position.y = atTop ? 1 : away; up.position.y = atRoad ? rim.y : away;
+    });
+  }
+  return { interactables: items, update: (pose) => { for (const update of updates) update(pose); } };
 }

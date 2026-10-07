@@ -14,6 +14,8 @@ import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, 
 import { buildWorld, type BuiltWorld } from './world/build';
 import { skyMoverViews } from './runtime/movers';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
+import { commandSocketLift } from '@wildshard/game/shardfile/socketLiftProof';
+import { isletCalls, type IsletCalls } from './world/risingIslet';
 import { gustFx } from './world/windFx';
 import { RISING_ISLETS, type RisingIslet } from './world/islets';
 import { FALL_TIME } from './world/distant';
@@ -74,6 +76,8 @@ export class SkyReachPlugin extends ShardPlugin {
   /** Sets the quest as a player has it at the crown (capture staging, `stage`). */
   private questFinished: (() => void) | null = null;
   private movers: MoverRuntime | null = null;
+  /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
+  private isletCalls: IsletCalls | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
   /** The near meadow that travels with the camera (loop 4). */
@@ -166,6 +170,10 @@ export class SkyReachPlugin extends ShardPlugin {
       if (!flags.has(FLAGS.raised)) { flags.set(FLAGS.raised); toast(STRINGS.raised); }
     }, () => { this.movers = null; }));
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
+    // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
+    const lifts = new Map(source.entryways.flatMap((row) => (row.kind === 'socketLift' && row.lift !== undefined ? [[row.edge, row.lift] as const] : [])));
+    const calls = isletCalls((entry, action) => { const movers = this.movers, lift = lifts.get(entry.edge); if (movers !== null && lift !== undefined) commandSocketLift(movers, lift, action); });
+    rt.interactables.push(...calls.interactables); this.isletCalls = calls;
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about UPDRAFT_LIFT / 3.5 m/s) floats you off the ramp to the high step.
     const lift = new Vector3();
@@ -184,7 +192,7 @@ export class SkyReachPlugin extends ShardPlugin {
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
       // SF49-g (G183): the Rising Islets ride their movers (behaviour/islet.as, in the fixed step); draw them and their chains
-      const movers = this.movers; if (movers !== null) built.islets.update((id) => movers.pose(id));
+      const movers = this.movers; if (movers !== null) { built.islets.update((id) => movers.pose(id)); this.isletCalls?.update((id) => movers.pose(id)); }
       built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
       for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
     } });
@@ -310,6 +318,17 @@ export class SkyReachPlugin extends ShardPlugin {
   isletAt(edge: string): { x: number; y: number; z: number } | null {
     const movers = this.movers; if (movers === null) return null;
     return movers.data.some((m) => m.id === `far.islet.${edge}`) ? movers.pose(`far.islet.${edge}`).position : null;
+  }
+  /** SF8c: does an entry's road gate close the socket right now (the islet is away from the road)? */
+  isletGateShut(edge: string): boolean | null {
+    const movers = this.movers; if (movers === null) return null;
+    return movers.data.some((m) => m.id === `far.islet.${edge}.gate`) ? movers.pose(`far.islet.${edge}.gate`).enabled : null;
+  }
+  /** SF8c: press an entry's RIDE (1) / road CALL (2) / gate-isle CALL (3) prompt, exactly as INTERACT does (walks and
+   *  captures use this through `__wildshard.shard.farReach`). */
+  interactIslet(edge: string, action: 1 | 2 | 3): void {
+    const index = RISING_ISLETS.findIndex((entry) => entry.edge === edge);
+    this.isletCalls?.interactables[index * 3 + action - 1]?.onInteract();
   }
   /** Turn the winch, ignoring the lock (captures and tests use this through `__wildshard.shard.farReach`). */
   raise(): void { if (this.built && !this.built.state.raised) this.movers?.command('far.winch.bridge', 2); }

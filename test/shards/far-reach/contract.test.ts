@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture serves the committed, content-addressed mover module without a browser server.
 import { readFileSync } from 'node:fs';
+import { LIFT_MODULE } from '../../../src/shards/far-reach/data/liftModule';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
@@ -45,7 +46,7 @@ async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: strin
   } };
   const originalFetch = globalThis.fetch;
   // the admitted mover modules: the bridges' and (SF49-g) the Rising Islets'
-  const modules = ['1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', '9e858467b8536bad90ccb55aa5213c5ad8e8a1f48ed0963f20cb250014bc90a7'];
+  const modules = ['1371d8959aebb567404fc8db59592b0d63f7afeb7060f0b74ea4f12389e6bafd', LIFT_MODULE.hash];
   vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const module = modules.find((hash) => url.endsWith(`/assets/${hash}`));
@@ -81,19 +82,26 @@ const piece = (app: App, id: string): { active?: () => boolean } | undefined => 
 
 describe('Sky Reach contract', () => {
   beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
-  it('SF49-g (G183): each Rising Islet rests at the road, rises to its gate isle in the fixed step and comes back', async () => {
+  it('SF49-g (G183) / SF8c: each Rising Islet rests at the road until INTERACT rides it to its gate isle, then comes back by itself', async () => {
     const { app, plugin } = await boot(), at = (edge: string) => plugin.isletAt(edge);
+    const gate = (entry: (typeof RISING_ISLETS)[number]) => plugin.isletGateShut(entry.edge);
+    for (const entry of RISING_ISLETS) { expect(at(entry.edge)).toEqual(entry.rest); expect(gate(entry)).toBe(false); }
+    // idle at the road: no automatic cycle (SF8c: a loaded lift rests at its road stop)
+    tick(app, ISLET.dwell + 2, 0);
     for (const entry of RISING_ISLETS) expect(at(entry.edge)).toEqual(entry.rest);
-    tick(app, ISLET.dwell - 0.5, 0);
-    for (const entry of RISING_ISLETS) expect(at(entry.edge)?.y).toBeCloseTo(0, 6);
+    for (const entry of RISING_ISLETS) plugin.interactIslet(entry.edge, 1);
     const longest = Math.max(...RISING_ISLETS.map((e) => e.travel));
-    tick(app, 0.5 + longest / 2, 0);
-    for (const entry of RISING_ISLETS) expect(at(entry.edge)?.y).toBeGreaterThan(0);
+    tick(app, longest / 2, 0);
+    for (const entry of RISING_ISLETS) { expect(at(entry.edge)?.y).toBeGreaterThan(0); expect(gate(entry)).toBe(true); }
     tick(app, longest / 2 + 1, 0);
     for (const entry of RISING_ISLETS) {
       const p = at(entry.edge); if (p === null) throw new Error('islet');
+      // the shorter rides already rest out their dwell at the top (or head home); the longest has just docked
       if (entry.travel === longest) { expect(p.y).toBeCloseTo(entry.dock.y, 3); expect(p.x).toBeCloseTo(entry.dock.x, 3); expect(p.z).toBeCloseTo(entry.dock.z, 3); }
     }
+    // the automatic idle return: after the dwell it comes back down and the road gate opens
+    tick(app, ISLET.dwell + longest + 1, 0);
+    for (const entry of RISING_ISLETS) { expect(at(entry.edge)?.y).toBe(0); expect(gate(entry)).toBe(false); }
     await app.unloadLevel();
   });
   it('bounds the whole cell for the Rising Islet entries (G194: the only way in), recovering only below the cloud sea', async () => {
