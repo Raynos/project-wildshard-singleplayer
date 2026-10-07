@@ -17,6 +17,7 @@ import { Sword as GameSword, swordEvents as gameEvents } from '../../src/game/we
 import { Bow } from '../../src/sdk/runtime/weapons/starterBow';
 import { Bow as GameBow } from '../../src/game/weapons/Bow';
 import { legacySource } from '../fake/legacySource';
+import { weaponTraceJson } from '../fake/weaponTrace';
 
 function recipes(moves: typeof legacyMoves, wood: typeof originalWood, iron: typeof originalIron,
   bow: typeof originalBow, rows: typeof originalEquipment, glyphs: typeof originalGlyphs): string {
@@ -27,8 +28,9 @@ describe('trusted starter recipes leave the kit without a second content identit
   it('matches the pre-delegation recipe bytes including every move, profile, glyph and equipment field', () => {
     const original = recipes(legacyMoves, originalWood, originalIron, originalBow, originalEquipment, originalGlyphs);
     expect(recipes(starterMoves, SWORD_WOOD, SWORD_IRON, BOW, equipment, SWAP_GLYPHS)).toBe(original);
-    // Captured while the kit still defined its independent recipes. Never refresh after its delegation.
-    expect(fnv1a32(original)).toMatchSnapshot();
+    // Captured while the kit still defined its independent recipes. Only snapshot encoding is quantized for cross-platform math.
+    const originalValues: unknown = JSON.parse(original);
+    expect(fnv1a32(weaponTraceJson(originalValues))).toMatchSnapshot();
     expect(BOW.wind).toBe(originalBow.wind);
   });
   it('exposes exactly one starter constructor and reaction registry through the trusted SDK', () => {

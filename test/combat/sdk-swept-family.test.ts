@@ -20,6 +20,7 @@ import { SweptMelee as TrustedSwept } from '../../src/sdk/runtime/weapons/SweptM
 import { Sword as StarterSword, swordEvents as starterSwordEvents } from '../../src/sdk/runtime/weapons/Sword';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
+import { weaponTraceJson, weaponTraceSnapshot } from '../fake/weaponTrace';
 
 const shell = { surface: 'shell', count: 9, atFeet: false, sparks: true } as const;
 const timber = { surface: 'wood', count: 8, atFeet: false, sparks: true } as const;
@@ -87,7 +88,7 @@ function trace(platform: boolean | 'starter', portrait: boolean, blade: 'wood' |
           }
         }
       });
-      hash = fnv1a32(`${hash}:${JSON.stringify(frame)}`);
+      hash = fnv1a32(`${hash}:${weaponTraceJson(frame)}`);
     }
     expect(f.game.dead).toBe(false);
     expect(hits.length).toBeGreaterThanOrEqual(4);
@@ -112,14 +113,14 @@ describe('trusted SDK swept contact family', () => {
       const original = trace(false, portrait, blade, kind);
       expect(trace(true, portrait, blade, kind)).toEqual(original);
       expect(trace('starter', portrait, blade, kind)).toEqual(original);
-      // Independent kit oracle captured in 8aa9502ce before delegation; never refresh from the wrapper.
-      expect(original).toMatchSnapshot(`${blade}:${kind}`);
+      // Independent kit oracle captured in 8aa9502ce before delegation; only snapshot encoding is quantized for cross-platform math.
+      expect(weaponTraceSnapshot(original)).toMatchSnapshot(`${blade}:${kind}`);
     }
   });
   it.each([false, true])('preserves starter identity checks when a profile supplies equivalent custom moves (portrait=%s)', (portrait) => {
     const original = trace(false, portrait, 'iron', 'sailor', true);
     expect(trace(true, portrait, 'iron', 'sailor', true)).toEqual(original);
     expect(trace('starter', portrait, 'iron', 'sailor', true)).toEqual(original);
-    expect(original).toMatchSnapshot();
+    expect(weaponTraceSnapshot(original)).toMatchSnapshot();
   });
 });

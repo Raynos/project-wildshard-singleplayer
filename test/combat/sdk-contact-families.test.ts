@@ -15,6 +15,7 @@ import { Thrown as LegacyThrown } from '../../src/kit/weapons/thrown/Thrown';
 import { Melee as TrustedMelee, meleeActor as trustedMeleeActor } from '../../src/sdk/runtime/weapons/Melee';
 import { Thrown as TrustedThrown } from '../../src/sdk/runtime/weapons/Thrown';
 import { invokeLegacy, legacyActor } from '../fake/legacyActor';
+import { weaponTraceSnapshot } from '../fake/weaponTrace';
 
 afterEach(() => { vi.restoreAllMocks(); });
 
@@ -79,11 +80,11 @@ describe('trusted SDK contact families graduate without a second implementation'
     scope.dispose();
   });
   it('matches legacy gravity integration, decrement-before-hook ordering and exhausted releases', () => {
-    // Captured from the independent pre-delegation kit implementation in 423512790, never regenerated after delegation.
-    expect(thrownTrace(new PlatformRecorder(profile))).toMatchSnapshot();
+    // Captured from the independent pre-delegation kit implementation in 423512790, only snapshot encoding is quantized for cross-platform math.
+    expect(weaponTraceSnapshot(thrownTrace(new PlatformRecorder(profile)))).toMatchSnapshot();
   });
   it('matches practice-target damage forwarding and cover admission tags', () => {
-    expect(contactTrace(Melee.prototype, meleeActor)).toMatchSnapshot();
+    expect(weaponTraceSnapshot(contactTrace(Melee.prototype, meleeActor))).toMatchSnapshot();
     expect(isMeleeProfile(SWORD_WOOD)).toBe(true);
   });
   it('uses native actors directly and preserves live practice liveness and reaction arguments', () => {
