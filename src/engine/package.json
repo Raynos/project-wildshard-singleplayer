@@ -143,6 +143,7 @@
     "./level/data": "./level/data.ts",
     "./level/load": "./level/load.ts",
     "./level/selection": "./level/selection.ts",
+    "./level/frame": "./level/frame.ts",
     "./level/spec": "./level/spec.ts",
     "./math/color": "./math/color.ts",
     "./meadowApi": "./meadowApi.ts",
