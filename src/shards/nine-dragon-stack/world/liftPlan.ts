@@ -78,9 +78,9 @@ export function liftColliders(l: Lift): ColliderDesc[] {
 export function cageBoxes(): MoverBox[] {
   const rot = { x: 0, y: 0, z: 0, w: 1 }, w = CAGE - 0.05;
   return [
-    // the floor stands a centimetre proud of the deck and the street at its rests: a foot steps off it down onto them, never
-    // into a coplanar seam (a character controller's ghost edge stops it there)
-    { x: 0, y: -0.14, z: 0, hx: w, hy: 0.15, hz: w, rot },
+    // the floor is flush with the deck and the street at its rests (the engine's mover-deck fix, 76eed8338 / 23e98a2fc,
+    // walks a flush kinematic seam; the g184 ride proves on, up, off, back on and down with 0 stuck)
+    { x: 0, y: -0.15, z: 0, hx: w, hy: 0.15, hz: w, rot },
     { x: -w + 0.05, y: CAGE_H / 2, z: 0, hx: 0.05, hy: CAGE_H / 2, hz: w, rot },
     { x: w - 0.05, y: CAGE_H / 2, z: 0, hx: 0.05, hy: CAGE_H / 2, hz: w, rot },
     { x: 0, y: CAGE_H + 0.15, z: 0, hx: w, hy: 0.15, hz: w, rot },

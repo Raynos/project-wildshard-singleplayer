@@ -21,7 +21,7 @@ export const MOVERS: MoverData = [
     "boxes": [
       {
         "x": 0,
-        "y": -0.14,
+        "y": -0.15,
         "z": 0,
         "hx": 1.55,
         "hy": 0.15,

@@ -50,8 +50,8 @@ export function fragmentColliders(north?: NorthStreet): FragmentColliders {
   let out = floors;
   // ── floors ──
   out.push(span(PLAZA.x0, Y0 - SLAB, PLAZA.z0, PLAZA.x1 + 0.6, Y0, PLAZA.z1 + 0.6));                  // the square
-  // (carried on, the street's slab reaches 6 cm under the docked cage's floor: no seam for a foot to find)
-  const streetEnd = north === undefined ? STREET_END - 1 : STREET.z0 - 0.06;
+  // (carried on, the street's slab ends at its drawn end, 5 cm short of the docked cage's floor, flush with it)
+  const streetEnd = north === undefined ? STREET_END - 1 : STREET.z0;
   out.push(span(STREET.x0, Y0 - SLAB, streetEnd, STREET.x1, Y0, PLAZA.z0));                            // the street north
   // the stair starts at the square's east edge (STAIR.x0 = PLAZA.x1): its first tread sits on the square's slab
   // dome D's stair-street (stairstreet.ts): 3 flights × 20 treads, two landings (the paifang's post bases on landing 2
