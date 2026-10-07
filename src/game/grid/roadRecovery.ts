@@ -86,6 +86,9 @@ export class RoadRecovery {
     this.last = alongX ? { x: feet.x, z: feet.z - az + lane(az), yaw } : Math.abs(ax) <= ON_ROAD && Math.abs(az) > ON_ROAD ? { x: feet.x - ax + lane(ax), z: feet.z, yaw } : { x: feet.x, z: feet.z, yaw };
   }
 
+  /** Last grounded road location for recovery reloads, even while a shard owns ordinary death respawn. */
+  lastRoad(): RoadPoint | null { return this.last === null ? null : { ...this.last }; }
+
   /** Where a fall death recovers: the last road point when the fall began from the road, else null (the frame's own rule). */
   target(): RoadPoint | null { return this.owner === null ? this.last : null; }
 
