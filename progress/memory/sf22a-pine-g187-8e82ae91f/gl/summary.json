@@ -1,0 +1,209 @@
+[
+  {
+    "round": 1,
+    "version": {
+      "build": "8e82ae9-muyoer44",
+      "time": "2026-10-07T22:25:32.934Z"
+    },
+    "poses": [
+      {
+        "name": "gate",
+        "x": 0,
+        "z": -200,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      {
+        "name": "cabin",
+        "x": -14,
+        "z": -62,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      {
+        "name": "pond",
+        "x": -56,
+        "z": 95,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      }
+    ],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 191109560,
+        "maxBytes": 205941312,
+        "samples": 30
+      },
+      {
+        "phase": "location:gate",
+        "minBytes": 202445088,
+        "maxBytes": 205941312,
+        "samples": 27
+      },
+      {
+        "phase": "location:cabin",
+        "minBytes": 206014706,
+        "maxBytes": 206368450,
+        "samples": 27
+      },
+      {
+        "phase": "location:pond",
+        "minBytes": 202987102,
+        "maxBytes": 203340846,
+        "samples": 26
+      },
+      {
+        "phase": "location:return",
+        "minBytes": 203340846,
+        "maxBytes": 203340846,
+        "samples": 27
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 246332454,
+        "maxBytes": 246332454,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "round": 2,
+    "version": {
+      "build": "8e82ae9-muyoer44",
+      "time": "2026-10-07T22:25:32.934Z"
+    },
+    "poses": [
+      {
+        "name": "gate",
+        "x": 0,
+        "z": -200,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      {
+        "name": "cabin",
+        "x": -14,
+        "z": -62,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      {
+        "name": "pond",
+        "x": -56,
+        "z": 95,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      }
+    ],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 191109560,
+        "maxBytes": 205941312,
+        "samples": 30
+      },
+      {
+        "phase": "location:gate",
+        "minBytes": 202445088,
+        "maxBytes": 202445088,
+        "samples": 27
+      },
+      {
+        "phase": "location:cabin",
+        "minBytes": 206014706,
+        "maxBytes": 206368450,
+        "samples": 27
+      },
+      {
+        "phase": "location:pond",
+        "minBytes": 202987102,
+        "maxBytes": 203340846,
+        "samples": 27
+      },
+      {
+        "phase": "location:return",
+        "minBytes": 203340846,
+        "maxBytes": 203340846,
+        "samples": 27
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 246332454,
+        "maxBytes": 246332454,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "round": 3,
+    "version": {
+      "build": "8e82ae9-muyoer44",
+      "time": "2026-10-07T22:25:32.934Z"
+    },
+    "poses": [
+      {
+        "name": "gate",
+        "x": 0,
+        "z": -200,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      {
+        "name": "cabin",
+        "x": -14,
+        "z": -62,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      },
+      {
+        "name": "pond",
+        "x": -56,
+        "z": 95,
+        "yaw": 3.141592653589793,
+        "pitch": 0
+      }
+    ],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 191109560,
+        "maxBytes": 205941312,
+        "samples": 30
+      },
+      {
+        "phase": "location:gate",
+        "minBytes": 205941312,
+        "maxBytes": 205941312,
+        "samples": 27
+      },
+      {
+        "phase": "location:cabin",
+        "minBytes": 206014706,
+        "maxBytes": 206368450,
+        "samples": 27
+      },
+      {
+        "phase": "location:pond",
+        "minBytes": 202987102,
+        "maxBytes": 202991294,
+        "samples": 27
+      },
+      {
+        "phase": "location:return",
+        "minBytes": 203340846,
+        "maxBytes": 203340846,
+        "samples": 27
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 246332454,
+        "maxBytes": 246332454,
+        "samples": 33
+      }
+    ]
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "opts": {
+    "out": "/private/tmp/claude-501/sp-builders/sp-x2/pine-g187-8e82/sim",
+    "expectedBuild": "8e82ae9-muyoer44",
+    "play": 30,
+    "fly": 30,
+    "locations": true,
+    "settings": [
+      "tex=auto"
+    ],
+    "deviceSaves": {
+      "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+    }
+  },
+  "runs": [
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4403/",
+      "round": 1,
+      "tag": "pine-hollow-r1"
+    },
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4403/",
+      "round": 2,
+      "tag": "pine-hollow-r2"
+    },
+    {
+      "label": "pine-hollow",
+      "shard": "pine-hollow",
+      "base": "http://127.0.0.1:4403/",
+      "round": 3,
+      "tag": "pine-hollow-r3"
+    }
+  ]
+}

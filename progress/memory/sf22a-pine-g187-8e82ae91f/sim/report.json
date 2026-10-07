@@ -1,0 +1,357 @@
+{
+  "verdict": "success",
+  "memoryProtocol": "cold-origin-build-verified-v1",
+  "memory": [
+    {
+      "shard": "pine-hollow",
+      "phase": "loading",
+      "nativeGB": 0.66167156,
+      "inspectorGB": 1.057593165,
+      "nativePeakGB": 0.756,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.66167156,
+        "inspectorGB": 1.057593165,
+        "minGB": 0.658624136,
+        "maxGB": 0.663834224,
+        "spreadGB": 0.005210088000000002,
+        "spreadPercent": 0.7874130180236252,
+        "samples": [
+          {
+            "seconds": 1.001,
+            "nativeGB": 0.663834224,
+            "inspectorGB": 1.102731085
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.66167156,
+            "inspectorGB": 1.057593165
+          },
+          {
+            "seconds": 3.004,
+            "nativeGB": 0.658624136,
+            "inspectorGB": 1.038309197
+          }
+        ],
+        "seconds": 3.004
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "play",
+      "nativeGB": 0.651235,
+      "inspectorGB": 1.003298649,
+      "nativePeakGB": 0.714,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.651235,
+        "inspectorGB": 1.003298649,
+        "minGB": 0.651218616,
+        "maxGB": 0.651366072,
+        "spreadGB": 0.00014745599999999026,
+        "spreadPercent": 0.02264251767794886,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.651218616,
+            "inspectorGB": 1.004640493
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.651235,
+            "inspectorGB": 1.003298649
+          },
+          {
+            "seconds": 3.006,
+            "nativeGB": 0.651366072,
+            "inspectorGB": 1.001919279
+          }
+        ],
+        "seconds": 3.006
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "explorer",
+      "nativeGB": 0.670551784,
+      "inspectorGB": 1.081398209,
+      "nativePeakGB": 0.695,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.670551784,
+        "inspectorGB": 1.081398209,
+        "minGB": 0.670502632,
+        "maxGB": 0.670584552,
+        "spreadGB": 0.00008191999999995758,
+        "spreadPercent": 0.012216804422066468,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.670502632,
+            "inspectorGB": 1.078450241
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.670584552,
+            "inspectorGB": 1.088051265
+          },
+          {
+            "seconds": 3.006,
+            "nativeGB": 0.670551784,
+            "inspectorGB": 1.081398209
+          }
+        ],
+        "seconds": 3.006
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "loading",
+      "nativeGB": 0.658427552,
+      "inspectorGB": 1.030748164,
+      "nativePeakGB": 0.781,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.658427552,
+        "inspectorGB": 1.030748164,
+        "minGB": 0.657510048,
+        "maxGB": 0.659541616,
+        "spreadGB": 0.002031568000000039,
+        "spreadPercent": 0.30854844907827295,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.659541616,
+            "inspectorGB": 1.030843141
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.658427552,
+            "inspectorGB": 1.023684469
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.657510048,
+            "inspectorGB": 1.030748164
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "play",
+      "nativeGB": 0.648990416,
+      "inspectorGB": 1.002031201,
+      "nativePeakGB": 0.71,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.648990416,
+        "inspectorGB": 1.002031201,
+        "minGB": 0.648826576,
+        "maxGB": 0.649105104,
+        "spreadGB": 0.0002785279999999446,
+        "spreadPercent": 0.04291712067438984,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.648826576,
+            "inspectorGB": 1.002031201
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.648990416,
+            "inspectorGB": 0.999738058
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.649105104,
+            "inspectorGB": 1.00429281
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "explorer",
+      "nativeGB": 0.667864808,
+      "inspectorGB": 1.074917619,
+      "nativePeakGB": 0.69,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.667864808,
+        "inspectorGB": 1.074917619,
+        "minGB": 0.667848424,
+        "maxGB": 0.667930344,
+        "spreadGB": 0.00008191999999995758,
+        "spreadPercent": 0.012265955477617796,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.667864808,
+            "inspectorGB": 1.074917619
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.667848424,
+            "inspectorGB": 1.072951539
+          },
+          {
+            "seconds": 3.009,
+            "nativeGB": 0.667930344,
+            "inspectorGB": 1.076690621
+          }
+        ],
+        "seconds": 3.009
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "loading",
+      "nativeGB": 0.643305144,
+      "inspectorGB": 1.03334411,
+      "nativePeakGB": 0.697,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.643305144,
+        "inspectorGB": 1.03334411,
+        "minGB": 0.633687736,
+        "maxGB": 0.64412432,
+        "spreadGB": 0.010436584000000027,
+        "spreadPercent": 1.6223380299909471,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.64412432,
+            "inspectorGB": 1.03334411
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.643305144,
+            "inspectorGB": 1.044059246
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.633687736,
+            "inspectorGB": 1.004131909
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "play",
+      "nativeGB": 0.629231336,
+      "inspectorGB": 1.019518512,
+      "nativePeakGB": 0.687,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.629231336,
+        "inspectorGB": 1.019518512,
+        "minGB": 0.62908388,
+        "maxGB": 0.629542632,
+        "spreadGB": 0.0004587520000000067,
+        "spreadPercent": 0.07290673139648066,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.62908388,
+            "inspectorGB": 1.019518512
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.629231336,
+            "inspectorGB": 1.016507831
+          },
+          {
+            "seconds": 3.006,
+            "nativeGB": 0.629542632,
+            "inspectorGB": 1.022258615
+          }
+        ],
+        "seconds": 3.006
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "pine-hollow",
+      "phase": "explorer",
+      "nativeGB": 0.64717184,
+      "inspectorGB": 1.075275728,
+      "nativePeakGB": 0.671,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.64717184,
+        "inspectorGB": 1.075275728,
+        "minGB": 0.64717184,
+        "maxGB": 0.64717184,
+        "spreadGB": 0,
+        "spreadPercent": 0,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.64717184,
+            "inspectorGB": 1.075275728
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.64717184,
+            "inspectorGB": 1.073235931
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.64717184,
+            "inspectorGB": 1.079855067
+          }
+        ],
+        "seconds": 3.008
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    }
+  ]
+}

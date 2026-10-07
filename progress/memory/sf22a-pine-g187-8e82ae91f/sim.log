@@ -1,0 +1,72 @@
+[pine-hollow-r1   3.0s] phase loading
+[pine-hollow-r1   7.5s] loaded in 4.5 s
+[pine-hollow-r1   7.5s] verified runtime 8e82ae9-muyoer44/pine-hollow
+[pine-hollow-r1  10.6s] loading median 0.662 GB; spread 0.659–0.664 GB (0.8%)
+[pine-hollow-r1  10.6s] phase play
+[pine-hollow-r1  43.7s] play median 0.651 GB; spread 0.651–0.651 GB (0.0%)
+[pine-hollow-r1  43.7s] phase location:gate
+[pine-hollow-r1  50.8s] location:gate median 0.650 GB; spread 0.650–0.653 GB (0.4%)
+[pine-hollow-r1  50.8s] phase location:cabin
+[pine-hollow-r1  57.9s] location:cabin median 0.662 GB; spread 0.662–0.664 GB (0.2%)
+[pine-hollow-r1  57.9s] phase location:pond
+[pine-hollow-r1  65.0s] location:pond median 0.662 GB; spread 0.662–0.665 GB (0.4%)
+[pine-hollow-r1  65.0s] phase location:return
+[pine-hollow-r1  72.1s] location:return median 0.661 GB; spread 0.661–0.661 GB (0.0%)
+[pine-hollow-r1  72.1s] phase menu
+[pine-hollow-r1  75.1s] phase explorer
+[pine-hollow-r1 111.3s] explorer median 0.671 GB; spread 0.671–0.671 GB (0.0%)
+[pine-hollow-r1 111.3s] explorer: ALT 42 m · x -12 z -247 · HDG 069°
+30 fps · 71 calls · 0.75 M tris; still held in JS: {"geometryBytes":60754696,"instancedBytes":3210472,"textureImageBytes":5246736,"arrays":1457,"textures":193,"gpu":{"geometries":227,"textures":423},"calls":71}
+[pine-hollow-r1 111.3s] phase done
+[pine-hollow-r2   3.0s] phase loading
+[pine-hollow-r2   7.1s] loaded in 4.1 s
+[pine-hollow-r2   7.2s] verified runtime 8e82ae9-muyoer44/pine-hollow
+[pine-hollow-r2  10.2s] loading median 0.658 GB; spread 0.658–0.660 GB (0.3%)
+[pine-hollow-r2  10.2s] phase play
+[pine-hollow-r2  43.3s] play median 0.649 GB; spread 0.649–0.649 GB (0.0%)
+[pine-hollow-r2  43.3s] phase location:gate
+[pine-hollow-r2  50.4s] location:gate median 0.650 GB; spread 0.650–0.650 GB (0.0%)
+[pine-hollow-r2  50.4s] phase location:cabin
+[pine-hollow-r2  57.5s] location:cabin median 0.661 GB; spread 0.661–0.664 GB (0.4%)
+[pine-hollow-r2  57.5s] phase location:pond
+[pine-hollow-r2  64.6s] location:pond median 0.662 GB; spread 0.662–0.664 GB (0.4%)
+[pine-hollow-r2  64.7s] phase location:return
+[pine-hollow-r2  72.1s] location:return median 0.660 GB; spread 0.660–0.660 GB (0.0%)
+[pine-hollow-r2  72.1s] phase menu
+[pine-hollow-r2  75.1s] phase explorer
+[pine-hollow-r2 111.3s] explorer median 0.668 GB; spread 0.668–0.668 GB (0.0%)
+[pine-hollow-r2 111.3s] explorer: ALT 42 m · x -12 z -247 · HDG 069°
+30 fps · 69 calls · 0.73 M tris; still held in JS: {"geometryBytes":60754696,"instancedBytes":3210472,"textureImageBytes":5596288,"arrays":1457,"textures":193,"gpu":{"geometries":226,"textures":421},"calls":69}
+[pine-hollow-r2 111.3s] phase done
+[pine-hollow-r3   2.7s] phase loading
+[pine-hollow-r3   6.9s] loaded in 4.2 s
+[pine-hollow-r3   6.9s] verified runtime 8e82ae9-muyoer44/pine-hollow
+[pine-hollow-r3   9.9s] loading median 0.643 GB; spread 0.634–0.644 GB (1.6%)
+[pine-hollow-r3   9.9s] phase play
+[pine-hollow-r3  43.0s] play median 0.629 GB; spread 0.629–0.630 GB (0.1%)
+[pine-hollow-r3  43.1s] phase location:gate
+[pine-hollow-r3  50.1s] location:gate median 0.631 GB; spread 0.628–0.631 GB (0.4%)
+[pine-hollow-r3  50.1s] phase location:cabin
+[pine-hollow-r3  57.2s] location:cabin median 0.639 GB; spread 0.639–0.641 GB (0.4%)
+[pine-hollow-r3  57.3s] phase location:pond
+[pine-hollow-r3  64.3s] location:pond median 0.640 GB; spread 0.640–0.642 GB (0.4%)
+[pine-hollow-r3  64.3s] phase location:return
+[pine-hollow-r3  71.5s] location:return median 0.638 GB; spread 0.638–0.638 GB (0.0%)
+[pine-hollow-r3  71.5s] phase menu
+[pine-hollow-r3  74.5s] phase explorer
+[pine-hollow-r3 110.6s] explorer median 0.647 GB; spread 0.647–0.647 GB (0.0%)
+[pine-hollow-r3 110.7s] explorer: ALT 42 m · x -12 z -247 · HDG 069°
+30 fps · 68 calls · 0.74 M tris; still held in JS: {"geometryBytes":60754696,"instancedBytes":3210472,"textureImageBytes":5596288,"arrays":1457,"textures":193,"gpu":{"geometries":226,"textures":421},"calls":68}
+[pine-hollow-r3 110.7s] phase done
+| Build | Run | Loading, native / Inspector (cap 1.8) | Play, native / Inspector | Explorer, native / Inspector (cap 1.0) | GPU process | JS-held at the end (geometry / textures) |
+| --- | --- | --- | --- | --- | --- | --- |
+| pine-hollow | 1 | 0.662 / 1.058 (spread 0.659–0.664, 0.8%) | 0.651 / 1.003 (spread 0.651–0.651, 0.0%) | 0.671 / 1.081 (spread 0.671–0.671, 0.0%) | 0.298 | 61 MB / 5 MB |
+| pine-hollow | 2 | 0.658 / 1.031 (spread 0.658–0.660, 0.3%) | 0.649 / 1.002 (spread 0.649–0.649, 0.0%) | 0.668 / 1.075 (spread 0.668–0.668, 0.0%) | 0.297 | 61 MB / 6 MB |
+| pine-hollow | 3 | 0.643 / 1.033 (spread 0.634–0.644, 1.6%) | 0.629 / 1.020 (spread 0.629–0.630, 0.1%) | 0.647 / 1.075 (spread 0.647–0.647, 0.0%) | 0.295 | 61 MB / 6 MB |
+
+| Build | mean loading | mean play | mean explorer |
+| --- | --- | --- | --- |
+| pine-hollow | 0.654 / 1.041 | 0.643 / 1.008 | 0.662 / 1.077 |
+
+native/Inspector = median of three one-second samples after each phase's work, their spread beside it. Native phase peaks still enforce absolute caps. Decimal GB. Simulator: a regression check, not phone evidence.
+

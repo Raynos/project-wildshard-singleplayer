@@ -1,0 +1,6 @@
+{
+  "build": "8e82ae9-muyoer44",
+  "injection": "<script>window.__wildshardHarness??={\"seed\":1,\"capture\":null,\"lane\":\"sf22a-memory-locations\",\"sha\":\"8e82ae9-muyoer44\",\"browser\":\"simulator-safari\",\"errors\":[],\"saves\":{\"read\":[],\"written\":[]},\"audioRequests\":[]};</script>",
+  "originalHTMLSHA256": "3bf6440e6fddbf311bf99ca8df3d127896108554e2af35512a44350f19eb1e5e",
+  "instrumentedHTMLSHA256": "4037e3ca98c9d8935abd7abf7cf201ca9dcb0280d94e56400c7558d71caf0283"
+}

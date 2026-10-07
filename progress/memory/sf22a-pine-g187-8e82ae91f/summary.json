@@ -1,0 +1,1118 @@
+{
+  "sourceRevision": "8e82ae91f701f8990199fe92407e4f1c61f14b20",
+  "build": "8e82ae9-muyoer44",
+  "units": "decimal MB",
+  "playingCapMB": 1000,
+  "loadingCapMB": 1800,
+  "rows": {
+    "loading": {
+      "native": {
+        "medianMB": 658.427552,
+        "minMB": 643.305144,
+        "maxMB": 661.67156,
+        "runsMB": [
+          661.67156,
+          658.427552,
+          643.305144
+        ]
+      },
+      "inspector": {
+        "medianMB": 1033.34411,
+        "minMB": 1030.748164,
+        "maxMB": 1057.593165,
+        "runsMB": [
+          1057.593165,
+          1030.748164,
+          1033.34411
+        ]
+      },
+      "nativePeak": {
+        "medianMB": 756.5,
+        "minMB": 697.5,
+        "maxMB": 781.5,
+        "runsMB": [
+          756.5,
+          781.5,
+          697.5
+        ]
+      },
+      "gl": null,
+      "proxyMedianMB": 904.760006,
+      "proxyColdRangeMB": [
+        889.637598,
+        908.004014
+      ],
+      "proxyTransientMB": 1027.832454
+    },
+    "play": {
+      "native": {
+        "medianMB": 648.990416,
+        "minMB": 629.231336,
+        "maxMB": 651.235,
+        "runsMB": [
+          651.235,
+          648.990416,
+          629.231336
+        ]
+      },
+      "inspector": {
+        "medianMB": 1003.298649,
+        "minMB": 1002.0312010000001,
+        "maxMB": 1019.5185120000001,
+        "runsMB": [
+          1003.298649,
+          1002.0312010000001,
+          1019.5185120000001
+        ]
+      },
+      "nativePeak": {
+        "medianMB": 710.5,
+        "minMB": 687.5,
+        "maxMB": 714.5,
+        "runsMB": [
+          714.5,
+          710.5,
+          687.5
+        ]
+      },
+      "gl": {
+        "medianMB": 205.941312,
+        "minMB": 205.941312,
+        "maxMB": 205.941312,
+        "runsMB": [
+          205.941312,
+          205.941312,
+          205.941312
+        ]
+      },
+      "proxyMedianMB": 854.931728,
+      "proxyColdRangeMB": [
+        835.1726480000001,
+        857.176312
+      ],
+      "proxyTransientMB": 920.441312
+    },
+    "explorer": {
+      "native": {
+        "medianMB": 667.864808,
+        "minMB": 647.1718400000001,
+        "maxMB": 670.551784,
+        "runsMB": [
+          670.551784,
+          667.864808,
+          647.1718400000001
+        ]
+      },
+      "inspector": {
+        "medianMB": 1075.275728,
+        "minMB": 1074.917619,
+        "maxMB": 1081.398209,
+        "runsMB": [
+          1081.398209,
+          1074.917619,
+          1075.275728
+        ]
+      },
+      "nativePeak": {
+        "medianMB": 690.5,
+        "minMB": 671.5,
+        "maxMB": 695.5,
+        "runsMB": [
+          695.5,
+          690.5,
+          671.5
+        ]
+      },
+      "gl": {
+        "medianMB": 246.332454,
+        "minMB": 246.332454,
+        "maxMB": 246.332454,
+        "runsMB": [
+          246.332454,
+          246.332454,
+          246.332454
+        ]
+      },
+      "proxyMedianMB": 914.197262,
+      "proxyColdRangeMB": [
+        893.5042940000001,
+        916.884238
+      ],
+      "proxyTransientMB": 941.832454
+    },
+    "location:gate": {
+      "native": {
+        "medianMB": 650.2519599999999,
+        "minMB": 630.591208,
+        "maxMB": 650.3339040000001,
+        "runsMB": [
+          650.2519599999999,
+          650.3339040000001,
+          630.591208
+        ]
+      },
+      "inspector": {
+        "medianMB": 1006.477262,
+        "minMB": 1001.0252660000001,
+        "maxMB": 1019.477293,
+        "runsMB": [
+          1001.0252660000001,
+          1006.477262,
+          1019.477293
+        ]
+      },
+      "nativePeak": {
+        "medianMB": 666.5,
+        "minMB": 644.5,
+        "maxMB": 666.5,
+        "runsMB": [
+          666.5,
+          666.5,
+          644.5
+        ]
+      },
+      "gl": {
+        "medianMB": 205.941312,
+        "minMB": 202.445088,
+        "maxMB": 205.941312,
+        "runsMB": [
+          205.941312,
+          202.445088,
+          205.941312
+        ]
+      },
+      "proxyMedianMB": 856.193272,
+      "proxyColdRangeMB": [
+        836.5325200000001,
+        856.2752160000001
+      ],
+      "proxyTransientMB": 872.441312
+    },
+    "location:cabin": {
+      "native": {
+        "medianMB": 661.1801360000001,
+        "minMB": 638.947048,
+        "maxMB": 662.114,
+        "runsMB": [
+          662.114,
+          661.1801360000001,
+          638.947048
+        ]
+      },
+      "inspector": {
+        "medianMB": 1027.400364,
+        "minMB": 1025.932938,
+        "maxMB": 1040.232257,
+        "runsMB": [
+          1027.400364,
+          1025.932938,
+          1040.232257
+        ]
+      },
+      "nativePeak": {
+        "medianMB": 664.5,
+        "minMB": 641.5,
+        "maxMB": 664.5,
+        "runsMB": [
+          664.5,
+          664.5,
+          641.5
+        ]
+      },
+      "gl": {
+        "medianMB": 206.36845,
+        "minMB": 206.36845,
+        "maxMB": 206.36845,
+        "runsMB": [
+          206.36845,
+          206.36845,
+          206.36845
+        ]
+      },
+      "proxyMedianMB": 867.5485860000001,
+      "proxyColdRangeMB": [
+        845.3154979999999,
+        868.48245
+      ],
+      "proxyTransientMB": 870.8684499999999
+    },
+    "location:pond": {
+      "native": {
+        "medianMB": 661.753576,
+        "minMB": 639.635176,
+        "maxMB": 662.245072,
+        "runsMB": [
+          662.245072,
+          661.753576,
+          639.635176
+        ]
+      },
+      "inspector": {
+        "medianMB": 1049.1685870000001,
+        "minMB": 1044.8331660000001,
+        "maxMB": 1062.4192930000002,
+        "runsMB": [
+          1044.8331660000001,
+          1049.1685870000001,
+          1062.4192930000002
+        ]
+      },
+      "nativePeak": {
+        "medianMB": 667.5,
+        "minMB": 645.5,
+        "maxMB": 667.5,
+        "runsMB": [
+          667.5,
+          667.5,
+          645.5
+        ]
+      },
+      "gl": {
+        "medianMB": 203.340846,
+        "minMB": 202.991294,
+        "maxMB": 203.340846,
+        "runsMB": [
+          203.340846,
+          203.340846,
+          202.991294
+        ]
+      },
+      "proxyMedianMB": 865.0944219999999,
+      "proxyColdRangeMB": [
+        842.9760220000001,
+        865.585918
+      ],
+      "proxyTransientMB": 870.840846
+    },
+    "location:return": {
+      "native": {
+        "medianMB": 659.951336,
+        "minMB": 638.029544,
+        "maxMB": 660.524752,
+        "runsMB": [
+          660.524752,
+          659.951336,
+          638.029544
+        ]
+      },
+      "inspector": {
+        "medianMB": 1048.7043250000002,
+        "minMB": 1044.939534,
+        "maxMB": 1060.025981,
+        "runsMB": [
+          1044.939534,
+          1048.7043250000002,
+          1060.025981
+        ]
+      },
+      "nativePeak": {
+        "medianMB": 662.5,
+        "minMB": 640.5,
+        "maxMB": 672.5,
+        "runsMB": [
+          672.5,
+          662.5,
+          640.5
+        ]
+      },
+      "gl": {
+        "medianMB": 203.340846,
+        "minMB": 203.340846,
+        "maxMB": 203.340846,
+        "runsMB": [
+          203.340846,
+          203.340846,
+          203.340846
+        ]
+      },
+      "proxyMedianMB": 863.2921819999999,
+      "proxyColdRangeMB": [
+        841.37039,
+        863.8655980000001
+      ],
+      "proxyTransientMB": 875.840846
+    }
+  },
+  "worstLocation": "location:gate",
+  "worstLocationTransientMB": 872.441312,
+  "runs": [
+    {
+      "tag": "pine-hollow-r1",
+      "loadSeconds": 4.527,
+      "phases": {
+        "loading": {
+          "nativeMB": 661.67156,
+          "inspectorMB": 1057.593165,
+          "nativePeakMB": 756.5,
+          "settling": {
+            "nativeGB": 0.66167156,
+            "inspectorGB": 1.057593165,
+            "minGB": 0.658624136,
+            "maxGB": 0.663834224,
+            "spreadGB": 0.005210088000000002,
+            "spreadPercent": 0.7874130180236252,
+            "samples": [
+              {
+                "seconds": 1.001,
+                "nativeGB": 0.663834224,
+                "inspectorGB": 1.102731085
+              },
+              {
+                "seconds": 2.004,
+                "nativeGB": 0.66167156,
+                "inspectorGB": 1.057593165
+              },
+              {
+                "seconds": 3.004,
+                "nativeGB": 0.658624136,
+                "inspectorGB": 1.038309197
+              }
+            ],
+            "seconds": 3.004
+          }
+        },
+        "play": {
+          "nativeMB": 651.235,
+          "inspectorMB": 1003.298649,
+          "nativePeakMB": 714.5,
+          "settling": {
+            "nativeGB": 0.651235,
+            "inspectorGB": 1.003298649,
+            "minGB": 0.651218616,
+            "maxGB": 0.651366072,
+            "spreadGB": 0.00014745599999999026,
+            "spreadPercent": 0.02264251767794886,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.651218616,
+                "inspectorGB": 1.004640493
+              },
+              {
+                "seconds": 2.004,
+                "nativeGB": 0.651235,
+                "inspectorGB": 1.003298649
+              },
+              {
+                "seconds": 3.006,
+                "nativeGB": 0.651366072,
+                "inspectorGB": 1.001919279
+              }
+            ],
+            "seconds": 3.006
+          }
+        },
+        "explorer": {
+          "nativeMB": 670.551784,
+          "inspectorMB": 1081.398209,
+          "nativePeakMB": 695.5,
+          "settling": {
+            "nativeGB": 0.670551784,
+            "inspectorGB": 1.081398209,
+            "minGB": 0.670502632,
+            "maxGB": 0.670584552,
+            "spreadGB": 8.191999999995758e-05,
+            "spreadPercent": 0.012216804422066468,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.670502632,
+                "inspectorGB": 1.078450241
+              },
+              {
+                "seconds": 2.004,
+                "nativeGB": 0.670584552,
+                "inspectorGB": 1.088051265
+              },
+              {
+                "seconds": 3.006,
+                "nativeGB": 0.670551784,
+                "inspectorGB": 1.081398209
+              }
+            ],
+            "seconds": 3.006
+          }
+        },
+        "location:gate": {
+          "nativeMB": 650.2519599999999,
+          "inspectorMB": 1001.0252660000001,
+          "nativePeakMB": 666.5,
+          "settling": {
+            "nativeGB": 0.65025196,
+            "inspectorGB": 1.001025266,
+            "minGB": 0.650219192,
+            "maxGB": 0.652889784,
+            "spreadGB": 0.0026705919999999717,
+            "spreadPercent": 0.4107011073061544,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.652889784,
+                "inspectorGB": 1.001025266
+              },
+              {
+                "seconds": 2.004,
+                "nativeGB": 0.65025196,
+                "inspectorGB": 1.001692357
+              },
+              {
+                "seconds": 3.006,
+                "nativeGB": 0.650219192,
+                "inspectorGB": 1.000856773
+              }
+            ],
+            "seconds": 3.006
+          }
+        },
+        "location:cabin": {
+          "nativeMB": 662.114,
+          "inspectorMB": 1027.400364,
+          "nativePeakMB": 664.5,
+          "settling": {
+            "nativeGB": 0.662114,
+            "inspectorGB": 1.027400364,
+            "minGB": 0.661982928,
+            "maxGB": 0.663604944,
+            "spreadGB": 0.001622016000000004,
+            "spreadPercent": 0.24497533657346074,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.663604944,
+                "inspectorGB": 1.022124427
+              },
+              {
+                "seconds": 2.006,
+                "nativeGB": 0.662114,
+                "inspectorGB": 1.053500076
+              },
+              {
+                "seconds": 3.008,
+                "nativeGB": 0.661982928,
+                "inspectorGB": 1.027400364
+              }
+            ],
+            "seconds": 3.008
+          }
+        },
+        "location:pond": {
+          "nativeMB": 662.245072,
+          "inspectorMB": 1044.8331660000001,
+          "nativePeakMB": 667.5,
+          "settling": {
+            "nativeGB": 0.662245072,
+            "inspectorGB": 1.044833166,
+            "minGB": 0.662245072,
+            "maxGB": 0.664850128,
+            "spreadGB": 0.002605055999999939,
+            "spreadPercent": 0.3933673665751247,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.664850128,
+                "inspectorGB": 1.044681899
+              },
+              {
+                "seconds": 2.003,
+                "nativeGB": 0.662245072,
+                "inspectorGB": 1.049990315
+              },
+              {
+                "seconds": 3.006,
+                "nativeGB": 0.662245072,
+                "inspectorGB": 1.044833166
+              }
+            ],
+            "seconds": 3.006
+          }
+        },
+        "location:return": {
+          "nativeMB": 660.524752,
+          "inspectorMB": 1044.939534,
+          "nativePeakMB": 672.5,
+          "settling": {
+            "nativeGB": 0.660524752,
+            "inspectorGB": 1.044939534,
+            "minGB": 0.660524752,
+            "maxGB": 0.660541136,
+            "spreadGB": 1.6383999999924903e-05,
+            "spreadPercent": 0.0024804520875736846,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.660524752,
+                "inspectorGB": 1.045777268
+              },
+              {
+                "seconds": 2.005,
+                "nativeGB": 0.660524752,
+                "inspectorGB": 1.044939534
+              },
+              {
+                "seconds": 3.007,
+                "nativeGB": 0.660541136,
+                "inspectorGB": 1.042786652
+              }
+            ],
+            "seconds": 3.007
+          }
+        }
+      },
+      "geometry": {
+        "geometryBytes": 60754696,
+        "instancedBytes": 3210472,
+        "textureImageBytes": 5246736,
+        "arrays": 1457,
+        "textures": 193,
+        "gpu": {
+          "geometries": 227,
+          "textures": 423
+        },
+        "calls": 71
+      },
+      "locations": [
+        {
+          "name": "gate",
+          "x": 0,
+          "z": -200,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        {
+          "name": "cabin",
+          "x": -14,
+          "z": -62,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        {
+          "name": "pond",
+          "x": -56,
+          "z": 95,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        }
+      ]
+    },
+    {
+      "tag": "pine-hollow-r2",
+      "loadSeconds": 4.14,
+      "phases": {
+        "loading": {
+          "nativeMB": 658.427552,
+          "inspectorMB": 1030.748164,
+          "nativePeakMB": 781.5,
+          "settling": {
+            "nativeGB": 0.658427552,
+            "inspectorGB": 1.030748164,
+            "minGB": 0.657510048,
+            "maxGB": 0.659541616,
+            "spreadGB": 0.002031568000000039,
+            "spreadPercent": 0.30854844907827295,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.659541616,
+                "inspectorGB": 1.030843141
+              },
+              {
+                "seconds": 2.004,
+                "nativeGB": 0.658427552,
+                "inspectorGB": 1.023684469
+              },
+              {
+                "seconds": 3.007,
+                "nativeGB": 0.657510048,
+                "inspectorGB": 1.030748164
+              }
+            ],
+            "seconds": 3.007
+          }
+        },
+        "play": {
+          "nativeMB": 648.990416,
+          "inspectorMB": 1002.0312010000001,
+          "nativePeakMB": 710.5,
+          "settling": {
+            "nativeGB": 0.648990416,
+            "inspectorGB": 1.002031201,
+            "minGB": 0.648826576,
+            "maxGB": 0.649105104,
+            "spreadGB": 0.0002785279999999446,
+            "spreadPercent": 0.04291712067438984,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.648826576,
+                "inspectorGB": 1.002031201
+              },
+              {
+                "seconds": 2.005,
+                "nativeGB": 0.648990416,
+                "inspectorGB": 0.999738058
+              },
+              {
+                "seconds": 3.007,
+                "nativeGB": 0.649105104,
+                "inspectorGB": 1.00429281
+              }
+            ],
+            "seconds": 3.007
+          }
+        },
+        "explorer": {
+          "nativeMB": 667.864808,
+          "inspectorMB": 1074.917619,
+          "nativePeakMB": 690.5,
+          "settling": {
+            "nativeGB": 0.667864808,
+            "inspectorGB": 1.074917619,
+            "minGB": 0.667848424,
+            "maxGB": 0.667930344,
+            "spreadGB": 8.191999999995758e-05,
+            "spreadPercent": 0.012265955477617796,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.667864808,
+                "inspectorGB": 1.074917619
+              },
+              {
+                "seconds": 2.006,
+                "nativeGB": 0.667848424,
+                "inspectorGB": 1.072951539
+              },
+              {
+                "seconds": 3.009,
+                "nativeGB": 0.667930344,
+                "inspectorGB": 1.076690621
+              }
+            ],
+            "seconds": 3.009
+          }
+        },
+        "location:gate": {
+          "nativeMB": 650.3339040000001,
+          "inspectorMB": 1006.477262,
+          "nativePeakMB": 666.5,
+          "settling": {
+            "nativeGB": 0.650333904,
+            "inspectorGB": 1.006477262,
+            "minGB": 0.650333904,
+            "maxGB": 0.650350288,
+            "spreadGB": 1.6384000000035925e-05,
+            "spreadPercent": 0.002519321213189575,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.650350288,
+                "inspectorGB": 1.009393614
+              },
+              {
+                "seconds": 2.005,
+                "nativeGB": 0.650333904,
+                "inspectorGB": 1.006477262
+              },
+              {
+                "seconds": 3.007,
+                "nativeGB": 0.650333904,
+                "inspectorGB": 1.001556995
+              }
+            ],
+            "seconds": 3.007
+          }
+        },
+        "location:cabin": {
+          "nativeMB": 661.1801360000001,
+          "inspectorMB": 1025.932938,
+          "nativePeakMB": 664.5,
+          "settling": {
+            "nativeGB": 0.661180136,
+            "inspectorGB": 1.025932938,
+            "minGB": 0.661180136,
+            "maxGB": 0.6635722,
+            "spreadGB": 0.002392063999999916,
+            "spreadPercent": 0.36178703348098107,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.6635722,
+                "inspectorGB": 1.029261757
+              },
+              {
+                "seconds": 2.005,
+                "nativeGB": 0.661180136,
+                "inspectorGB": 1.025932938
+              },
+              {
+                "seconds": 3.008,
+                "nativeGB": 0.661180136,
+                "inspectorGB": 1.024805828
+              }
+            ],
+            "seconds": 3.008
+          }
+        },
+        "location:pond": {
+          "nativeMB": 661.753576,
+          "inspectorMB": 1049.1685870000001,
+          "nativePeakMB": 667.5,
+          "settling": {
+            "nativeGB": 0.661753576,
+            "inspectorGB": 1.049168587,
+            "minGB": 0.661540584,
+            "maxGB": 0.664112872,
+            "spreadGB": 0.002572287999999978,
+            "spreadPercent": 0.3887078352561828,
+            "samples": [
+              {
+                "seconds": 1,
+                "nativeGB": 0.664112872,
+                "inspectorGB": 1.049168587
+              },
+              {
+                "seconds": 2.006,
+                "nativeGB": 0.661540584,
+                "inspectorGB": 1.054673611
+              },
+              {
+                "seconds": 3.008,
+                "nativeGB": 0.661753576,
+                "inspectorGB": 1.045247348
+              }
+            ],
+            "seconds": 3.008
+          }
+        },
+        "location:return": {
+          "nativeMB": 659.951336,
+          "inspectorMB": 1048.7043250000002,
+          "nativePeakMB": 662.5,
+          "settling": {
+            "nativeGB": 0.659951336,
+            "inspectorGB": 1.048704325,
+            "minGB": 0.659951336,
+            "maxGB": 0.65996772,
+            "spreadGB": 1.6384000000035925e-05,
+            "spreadPercent": 0.0024826072933407813,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.659951336,
+                "inspectorGB": 1.046909906
+              },
+              {
+                "seconds": 2.005,
+                "nativeGB": 0.659951336,
+                "inspectorGB": 1.05094037
+              },
+              {
+                "seconds": 3.008,
+                "nativeGB": 0.65996772,
+                "inspectorGB": 1.048704325
+              }
+            ],
+            "seconds": 3.008
+          }
+        }
+      },
+      "geometry": {
+        "geometryBytes": 60754696,
+        "instancedBytes": 3210472,
+        "textureImageBytes": 5596288,
+        "arrays": 1457,
+        "textures": 193,
+        "gpu": {
+          "geometries": 226,
+          "textures": 421
+        },
+        "calls": 69
+      },
+      "locations": [
+        {
+          "name": "gate",
+          "x": 0,
+          "z": -200,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        {
+          "name": "cabin",
+          "x": -14,
+          "z": -62,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        {
+          "name": "pond",
+          "x": -56,
+          "z": 95,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        }
+      ]
+    },
+    {
+      "tag": "pine-hollow-r3",
+      "loadSeconds": 4.174,
+      "phases": {
+        "loading": {
+          "nativeMB": 643.305144,
+          "inspectorMB": 1033.34411,
+          "nativePeakMB": 697.5,
+          "settling": {
+            "nativeGB": 0.643305144,
+            "inspectorGB": 1.03334411,
+            "minGB": 0.633687736,
+            "maxGB": 0.64412432,
+            "spreadGB": 0.010436584000000027,
+            "spreadPercent": 1.6223380299909471,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.64412432,
+                "inspectorGB": 1.03334411
+              },
+              {
+                "seconds": 2.005,
+                "nativeGB": 0.643305144,
+                "inspectorGB": 1.044059246
+              },
+              {
+                "seconds": 3.007,
+                "nativeGB": 0.633687736,
+                "inspectorGB": 1.004131909
+              }
+            ],
+            "seconds": 3.007
+          }
+        },
+        "play": {
+          "nativeMB": 629.231336,
+          "inspectorMB": 1019.5185120000001,
+          "nativePeakMB": 687.5,
+          "settling": {
+            "nativeGB": 0.629231336,
+            "inspectorGB": 1.019518512,
+            "minGB": 0.62908388,
+            "maxGB": 0.629542632,
+            "spreadGB": 0.0004587520000000067,
+            "spreadPercent": 0.07290673139648066,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.62908388,
+                "inspectorGB": 1.019518512
+              },
+              {
+                "seconds": 2.004,
+                "nativeGB": 0.629231336,
+                "inspectorGB": 1.016507831
+              },
+              {
+                "seconds": 3.006,
+                "nativeGB": 0.629542632,
+                "inspectorGB": 1.022258615
+              }
+            ],
+            "seconds": 3.006
+          }
+        },
+        "explorer": {
+          "nativeMB": 647.1718400000001,
+          "inspectorMB": 1075.275728,
+          "nativePeakMB": 671.5,
+          "settling": {
+            "nativeGB": 0.64717184,
+            "inspectorGB": 1.075275728,
+            "minGB": 0.64717184,
+            "maxGB": 0.64717184,
+            "spreadGB": 0,
+            "spreadPercent": 0,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.64717184,
+                "inspectorGB": 1.075275728
+              },
+              {
+                "seconds": 2.006,
+                "nativeGB": 0.64717184,
+                "inspectorGB": 1.073235931
+              },
+              {
+                "seconds": 3.008,
+                "nativeGB": 0.64717184,
+                "inspectorGB": 1.079855067
+              }
+            ],
+            "seconds": 3.008
+          }
+        },
+        "location:gate": {
+          "nativeMB": 630.591208,
+          "inspectorMB": 1019.477293,
+          "nativePeakMB": 644.5,
+          "settling": {
+            "nativeGB": 0.630591208,
+            "inspectorGB": 1.019477293,
+            "minGB": 0.627904232,
+            "maxGB": 0.630591208,
+            "spreadGB": 0.0026869760000000076,
+            "spreadPercent": 0.4261042599249192,
+            "samples": [
+              {
+                "seconds": 1.002,
+                "nativeGB": 0.627904232,
+                "inspectorGB": 1.00585811
+              },
+              {
+                "seconds": 2.004,
+                "nativeGB": 0.630591208,
+                "inspectorGB": 1.020702126
+              },
+              {
+                "seconds": 3.008,
+                "nativeGB": 0.630591208,
+                "inspectorGB": 1.019477293
+              }
+            ],
+            "seconds": 3.008
+          }
+        },
+        "location:cabin": {
+          "nativeMB": 638.947048,
+          "inspectorMB": 1040.232257,
+          "nativePeakMB": 641.5,
+          "settling": {
+            "nativeGB": 0.638947048,
+            "inspectorGB": 1.040232257,
+            "minGB": 0.638815976,
+            "maxGB": 0.641175272,
+            "spreadGB": 0.0023592960000000662,
+            "spreadPercent": 0.3692474998335177,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.641175272,
+                "inspectorGB": 1.045983041
+              },
+              {
+                "seconds": 2.006,
+                "nativeGB": 0.638815976,
+                "inspectorGB": 1.040232257
+              },
+              {
+                "seconds": 3.009,
+                "nativeGB": 0.638947048,
+                "inspectorGB": 1.03968902
+              }
+            ],
+            "seconds": 3.009
+          }
+        },
+        "location:pond": {
+          "nativeMB": 639.635176,
+          "inspectorMB": 1062.4192930000002,
+          "nativePeakMB": 645.5,
+          "settling": {
+            "nativeGB": 0.639635176,
+            "inspectorGB": 1.062419293,
+            "minGB": 0.63956964,
+            "maxGB": 0.64192896,
+            "spreadGB": 0.0023593199999999426,
+            "spreadPercent": 0.3688540106180687,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.64192896,
+                "inspectorGB": 1.063652011
+              },
+              {
+                "seconds": 2.005,
+                "nativeGB": 0.639635176,
+                "inspectorGB": 1.058746861
+              },
+              {
+                "seconds": 3.007,
+                "nativeGB": 0.63956964,
+                "inspectorGB": 1.062419293
+              }
+            ],
+            "seconds": 3.007
+          }
+        },
+        "location:return": {
+          "nativeMB": 638.029544,
+          "inspectorMB": 1060.025981,
+          "nativePeakMB": 640.5,
+          "settling": {
+            "nativeGB": 0.638029544,
+            "inspectorGB": 1.060025981,
+            "minGB": 0.638029544,
+            "maxGB": 0.638029544,
+            "spreadGB": 0,
+            "spreadPercent": 0,
+            "samples": [
+              {
+                "seconds": 1.003,
+                "nativeGB": 0.638029544,
+                "inspectorGB": 1.059930501
+              },
+              {
+                "seconds": 2.006,
+                "nativeGB": 0.638029544,
+                "inspectorGB": 1.061749125
+              },
+              {
+                "seconds": 3.008,
+                "nativeGB": 0.638029544,
+                "inspectorGB": 1.060025981
+              }
+            ],
+            "seconds": 3.008
+          }
+        }
+      },
+      "geometry": {
+        "geometryBytes": 60754696,
+        "instancedBytes": 3210472,
+        "textureImageBytes": 5596288,
+        "arrays": 1457,
+        "textures": 193,
+        "gpu": {
+          "geometries": 226,
+          "textures": 421
+        },
+        "calls": 68
+      },
+      "locations": [
+        {
+          "name": "gate",
+          "x": 0,
+          "z": -200,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        {
+          "name": "cabin",
+          "x": -14,
+          "z": -62,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        },
+        {
+          "name": "pond",
+          "x": -56,
+          "z": 95,
+          "yaw": 3.141592653589793,
+          "pitch": 0
+        }
+      ]
+    }
+  ],
+  "fullCoverageGLMB": 246.332454,
+  "conservativePlayingTransientMB": 960.832454,
+  "conservativePlayingMarginMB": 39.167546000000016,
+  "protocol": "Three cold Safari/origin resets; seed1 harness; 30s play/Explorer, all real capture poses120frames and three settled1s samples; separate three fresh Chromium/Metal phone GL contexts. Max GL by phase plus median or max interval-high native. Simulator+desktop GL proxy, not physical-phone evidence."
+}

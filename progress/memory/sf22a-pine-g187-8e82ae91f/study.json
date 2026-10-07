@@ -1,0 +1,25 @@
+{
+  "row": "SHARD-PLATFORM SF22a / SF47, E435 / G187 final re-read",
+  "sourceRevision": "8e82ae91f701f8990199fe92407e4f1c61f14b20",
+  "build": "8e82ae9-muyoer44",
+  "samplerRevision": "102219f73",
+  "samplerNote": "Same sampler102219f73578c03b85d068487d538959de2201b1 and exact play/capture/Explorer coverage as interim42c50944c; only source content pin changed.",
+  "device": "iOS 26.5 iPhone 17 Pro Simulator (one through sim-lane)",
+  "glBrowser": "Chromium/Metal iPhone 16 Pro portrait, phone tier, shipped render scale2",
+  "nativeRuns": 3,
+  "glRuns": 3,
+  "seconds": {
+    "play": 30,
+    "explorer": 30
+  },
+  "locationFrames": 120,
+  "settledSamples": 3,
+  "texturePick": "auto",
+  "devicePicks": {
+    "debug.plugin.pine-hollow.pineMemoryTrim": "on"
+  },
+  "scope": "Standalone Pine, cuts1/2/3 (02543ff4a + 69ff4a7dd), trim ON, cold Auto, demand dummies + viewB + G188.",
+  "productHTML": "Only standard seed1/non-capture harness pins injected in owned served HTML. All game bundles/assets from clean source pin; exact original/modified HTML hashes in bootstrap records.",
+  "problems": "No setup retries or discarded runs. All three native identities and all three GL ledgers match the same build; no page errors/native loss.",
+  "capMeaning": "Simulator native and separate labelled desktop GL composition proxy; not physical iPhone cap proof or simultaneous grid residency proof."
+}
