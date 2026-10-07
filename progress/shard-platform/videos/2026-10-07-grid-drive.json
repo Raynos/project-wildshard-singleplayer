@@ -1,0 +1,127 @@
+{
+  "url": "http://127.0.0.1:4401",
+  "date": "2026-10-07",
+  "started": "2026-10-07T21:10:25.755Z",
+  "legs": [
+    {
+      "leg": "reveal",
+      "inside": "driftwood-isle",
+      "hud": {
+        "safe": false,
+        "card": null,
+        "speed": 0,
+        "fov": 93.94,
+        "accent": "#fbbb2d"
+      },
+      "x": 0,
+      "z": -194,
+      "speed": 0,
+      "cells": {
+        "pine-hollow": "far proxy",
+        "sunscar-dunes": "far proxy",
+        "driftwood-isle": "playing",
+        "nalati-grasslands": "far proxy",
+        "far-reach": "far proxy"
+      },
+      "refused": {
+        "cells": []
+      },
+      "softWalls": {
+        "closed": 32,
+        "panel": null
+      },
+      "residentMB": 417.9
+    },
+    {
+      "leg": "road-then-driftwood:before",
+      "inside": null,
+      "hud": {
+        "safe": true,
+        "card": null,
+        "speed": 0,
+        "fov": 93.94,
+        "accent": "#8fe3ff"
+      },
+      "x": 278,
+      "z": 230,
+      "speed": 0,
+      "cells": {
+        "pine-hollow": "far proxy",
+        "sunscar-dunes": "far proxy",
+        "driftwood-isle": "frozen",
+        "nalati-grasslands": "far proxy",
+        "far-reach": "far proxy"
+      },
+      "refused": {
+        "cells": []
+      },
+      "softWalls": {
+        "closed": 28,
+        "panel": "nalati-grasslands"
+      },
+      "residentMB": 437.66
+    },
+    {
+      "leg": "road-then-driftwood",
+      "inside": "driftwood-isle",
+      "hud": {
+        "safe": false,
+        "card": null,
+        "speed": 0,
+        "fov": 93.94,
+        "accent": "#fbbb2d"
+      },
+      "x": 196,
+      "z": 88,
+      "speed": 9,
+      "cells": {
+        "pine-hollow": "far proxy",
+        "sunscar-dunes": "far proxy",
+        "driftwood-isle": "playing",
+        "nalati-grasslands": "far proxy",
+        "far-reach": "far proxy"
+      },
+      "refused": {
+        "cells": []
+      },
+      "softWalls": {
+        "closed": 28,
+        "panel": null
+      },
+      "residentMB": 437.24
+    },
+    {
+      "leg": "nalati-select",
+      "slug": "nalati-grasslands",
+      "errors": 0
+    }
+  ],
+  "errors": [],
+  "build": {
+    "build": "b64c2a9-muyledx1",
+    "time": "2026-10-07T21:01:17.056Z"
+  },
+  "cuts": [
+    [
+      2.33,
+      4.53
+    ],
+    [
+      10.9,
+      19.63
+    ],
+    [
+      21.54,
+      32.94
+    ],
+    [
+      35.11,
+      38.84
+    ],
+    [
+      43.01,
+      50.21
+    ]
+  ],
+  "seconds": 33.3
+}
