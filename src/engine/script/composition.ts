@@ -19,6 +19,8 @@ export interface ScriptSchedule {
 /** Exactly one level-wide host installs the union of admitted modules once. */
 export interface ScriptCompositionOptions extends Omit<ScriptHostOptions, 'world' | 'query'> {
   modules: readonly ScriptModule[]; roles: readonly ScriptRole[]; schedules: readonly ScriptSchedule[]; maxEntities: number;
+  /** Dedicated consuming-role modules restart from admitted initialization on a fresh load; their memory is never saved. */
+  transientModules?: readonly string[];
 }
 class RoleWorld extends ScriptWorld {
   private readonly roles: readonly ScriptRole[];
@@ -68,6 +70,7 @@ export class ScriptComposition {
   private readonly roles: readonly ScriptRole[];
   private readonly schedules: readonly ScriptSchedule[];
   private readonly contract: string;
+  private readonly transientModules: ReadonlySet<string>;
   constructor(options: ScriptCompositionOptions) {
     if (options.roles.length > 128 || options.schedules.length > 10000 || new Set(options.roles.map(role => role.id)).size !== options.roles.length
       || new Set(options.roles.map(role => role.world)).size !== options.roles.length || options.roles.some(role => role.id.length === 0)) throw new Error('Invalid script role identities');
@@ -85,6 +88,13 @@ export class ScriptComposition {
       keys.add(key);
       if (keys.size > 10000) throw new Error('Script binding count allowance');
     }
+    const transient = options.transientModules ?? [];
+    if (new Set(transient).size !== transient.length) throw new Error('Duplicate transient script module');
+    this.transientModules = new Set(transient);
+    for (const name of transient) {
+      const owners = new Set(this.schedules.filter(schedule => schedule.bindings.some(binding => binding.module === name)).map(schedule => schedule.role));
+      if (!modules.has(name) || owners.size !== 1 || !this.roles.some(role => owners.has(role.id) && role.events === 'consume')) throw new Error('Transient module requires one consuming role');
+    }
     this.host = new ScriptHost({ ...options, world: this.world, query: (kind, input, entity) => {
       const role = this.world.role(entity); if (role === undefined) throw new Error('Unknown query role'); return role.query(kind, input, entity);
     } });
@@ -92,7 +102,8 @@ export class ScriptComposition {
     this.contract = JSON.stringify({ roles: this.roles.map(role => ({ id: role.id, events: role.events })),
       schedules: this.schedules.map(schedule => ({ id: schedule.id, role: schedule.role, bindings: schedule.bindings })),
       modules: options.modules.map(module => ({ ...module, bytes: Array.from(module.bytes) })).sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
-      maxEntities: options.maxEntities, limits: this.host.limits });
+      maxEntities: options.maxEntities, limits: this.host.limits,
+      ...(transient.length === 0 ? {} : { transientModules: [...transient].sort() }) });
   }
   /** One strictly later global fixed tick; independent cadences never reset any per-level allowance. */
   step(tick: number): readonly ScriptCall[] {
@@ -119,19 +130,29 @@ export class ScriptComposition {
     if (this.world.role(event.target)?.events !== 'deliver') throw new Error('Script role does not accept queued input'); this.host.enqueue(event);
   }
   /** Complete role state and the one authoritative host continuation, including sleeping bindings' pending events. */
-  snapshot(): string { return JSON.stringify({ contract: this.contract, roles: this.roles.map(role => ({ id: role.id, state: role.snapshot() })), host: this.host.checkpoint() }); }
+  snapshot(): string {
+    const host = this.host.checkpoint();
+    return JSON.stringify({ contract: this.contract, roles: this.roles.map(role => ({ id: role.id, state: role.snapshot() })),
+      host: { ...host, modules: host.modules.filter(module => !this.transientModules.has(module.name)) } });
+  }
   /** Restore all roles atomically; no input, committed request, author initialization or decision is executed. */
   restore(text: string): void {
     const saved = v.parse(savedSchema, JSON.parse(text));
     if (saved.contract !== this.contract || saved.roles.length !== this.roles.length || new Set(saved.roles.map(role => role.id)).size !== saved.roles.length
       || saved.roles.some(role => !this.roles.some(current => current.id === role.id))) throw new Error('Incompatible composed continuation');
+    if (this.transientModules.size > 0 && this.host.currentTick !== -1) throw new Error('Transient continuation requires a fresh admitted host');
     const previous = this.roles.map(role => ({ role, state: role.snapshot() })), host = this.host.checkpoint();
+    const persistent = host.modules.filter(module => !this.transientModules.has(module.name));
+    if (saved.host.modules.length !== persistent.length || new Set(saved.host.modules.map(module => module.name)).size !== persistent.length
+      || saved.host.modules.some(module => !persistent.some(current => current.name === module.name))) throw new Error('Incompatible composed module continuation');
+    // Use the fresh host's initialized memories transiently, never retain another guest memory pool.
+    const continuation = { ...saved.host, modules: [...saved.host.modules, ...host.modules.filter(module => this.transientModules.has(module.name))] };
     try {
       for (const entry of saved.roles) this.roles.find(role => role.id === entry.id)?.restore(entry.state);
       this.world.refresh();
       for (const schedule of this.schedules) for (const binding of schedule.bindings) if (this.world.role(binding.entity)?.id !== schedule.role) throw new Error('Restored script role binding drift');
       for (const event of saved.host.pending) this.world.prepare([{ op: SCRIPT_OP.event, a: event.type, b: event.target, c: event.value, d: 0 }], event.target, 0, 1);
-      this.host.restoreState(saved.host);
+      this.host.restoreState(continuation);
     } catch (error) { for (const entry of previous) entry.role.restore(entry.state); this.world.refresh(); this.host.restoreState(host); throw error; }
   }
 }
