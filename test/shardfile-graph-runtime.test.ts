@@ -5,7 +5,7 @@ import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/game/shardfile/schema';
 import type { GraphIr, GraphLiteral, GraphNode, GraphValidationOptions } from '../src/engine/core/materialGraph';
-import { compileGraph, type CompileGraphOptions } from '../src/engine/render/graph/compile';
+import { attachOutline, compileGraph, type CompileGraphOptions } from '../src/engine/render/graph/compile';
 import type { GraphCompiler } from '../src/engine/render/graphBackend';
 import { clientGraphs, graphFallbackEntry, isGraphEntry } from '../src/game/shardfile/clientGraphs';
 import { graphBindingSources, materialGraphRules } from '../src/game/shardfile/materials';
@@ -32,7 +32,7 @@ function recording() {
     calls.push(opts);
     const compiled = compileGraph(input, opts);
     return { ...compiled, setParam: (name: string, value: GraphLiteral) => { fed.push([name, typeof value === 'number' ? value : [...value]]); compiled.setParam(name, value); } };
-  } };
+  }, attachOutline };
   return { compiler, calls, fed };
 }
 const fallbackMaterial = new THREE.MeshBasicMaterial({ name: 'fallback' });
