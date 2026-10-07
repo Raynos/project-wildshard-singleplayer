@@ -3,11 +3,13 @@
  * its rest surface under `root`, owned by `scope`. The swim / wade port is `shardfileWater` (the motor); this is only the
  * visible surface, so a level never gets a second water from an engine pond bootstrap. A pool is its circle or polygon,
  * a stream a ribbon through its points at their levels, the sea a cell-wide plane. The surface is `materials.get('water')`
- * when the look declares one, else the template's plain translucent grey (its old pool, `world/build.ts`).
+ * when the look declares one, else the template's plain translucent grey (its old pool, `world/build.ts`); a graph surface
+ * that declares `stages.outline` draws its hull through `outline` (`clientMaterials().outline`).
  */
 import { BufferAttribute, BufferGeometry, CircleGeometry, Mesh, MeshStandardMaterial, PlaneGeometry, Shape, ShapeGeometry, Vector2, type Material, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ShardWater } from './water';
+import type { GraphOutlineHook } from './clientGraphs';
 
 /** the cell edge (500 m) a sea plane covers */
 const CELL = 500;
@@ -35,13 +37,14 @@ function surface(body: ShardWater[number]): BufferGeometry {
 }
 
 /** Draw every declared water body's surface under `root`; the scope takes the meshes, geometry and default material. */
-export function installClientWater(water: ShardWater, ports: { root: Object3D; scope: Scope; materials?: ReadonlyMap<string, Material> }): readonly Mesh[] {
+export function installClientWater(water: ShardWater, ports: { root: Object3D; scope: Scope; materials?: ReadonlyMap<string, Material>; outline?: GraphOutlineHook }): readonly Mesh[] {
   if (water.length === 0) return [];
   const material = ports.materials?.get('water') ?? ports.scope.own(new MeshStandardMaterial({ color: 0x9aa6b0, transparent: true, opacity: 0.7 }));
   return water.map((body) => {
     const mesh = new Mesh(ports.scope.own(surface(body)), material);
     mesh.name = `water:${body.id}`; mesh.receiveShadow = true; mesh.castShadow = false; mesh.renderOrder = 1;
     ports.root.add(mesh); ports.scope.onDispose(() => { mesh.removeFromParent(); });
+    ports.outline?.(mesh, material, ports.scope);
     return mesh;
   });
 }

@@ -14,11 +14,17 @@
  *   vertex-coloured PBR family, an unlit one → the plain emissive family) instead of compiling. So does every graph while the
  *   default-off Debug row (Look ▸ "Graph materials") is off: the first graph-compiled look waits for a physical-iPhone
  *   reading (RENDERING.md; sf59-tsl-spike.md §5's cost flag).
+ * - **Outlines:** a compiled graph that declares `stages.outline` also has its hull material (`outline(material)`); the
+ *   views attach it to every mesh they bind that material to as its second draw (`graphOutlineHook`, the engine's
+ *   `attachOutline`: a child mesh over the same buffers, an instanced mesh's own matrices). A fallback preset has none, so a
+ *   graph without an outline, or any graph while the row is off, draws exactly as before. The outline's instructions are
+ *   already in the graph's admitted cost (`validateGraph` counts the `outlineVertex` / `outline` programs).
  */
-import { Color, SRGBColorSpace, type Material, type Texture } from 'three';
+import { Color, Mesh, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphIr, type GraphParamType } from '@wildshard/engine/core/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
+import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources } from './materials';
 import type { Shardfile } from './schema';
 
@@ -37,6 +43,34 @@ export interface GraphSources {
 /** What happened to each graph entry (tests, the debug handle). */
 export interface GraphReadout { compiled: number; fallback: number; reasons: string[] }
 
+/** A compiled graph's outline stage: its hull material and the attach that adds it to a mesh as the second draw. */
+export interface GraphOutline { readonly material: Material; readonly attach: (mesh: Mesh) => Mesh }
+/** Attach `material`'s outline (when its graph declares one) to every mesh under `root`; the hulls go with `scope`. */
+export type GraphOutlineHook = (root: Object3D, material: Material, scope: Scope) => readonly Mesh[];
+
+function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
+/** every live body the hook outlined and every hull it attached (a root walked twice gets no second hull) */
+const outlined = new WeakSet<Mesh>();
+/**
+ * The mesh-level outline hook over `outline` (a material's stage, or null): every mesh under `root` (root included) gets
+ * the hull as a child; on `scope`'s disposal each hull leaves its parent and its own geometry (a shallow copy whose
+ * attributes the body owns) is disposed. A material without an outline attaches nothing and touches no mesh.
+ */
+export function graphOutlineHook(outline: (material: Material) => GraphOutline | null): GraphOutlineHook {
+  return (root, material, scope) => {
+    const stage = outline(material);
+    if (stage === null) return [];
+    const bodies: Mesh[] = [];
+    root.traverse((object) => { if (isMesh(object) && !outlined.has(object)) bodies.push(object); });
+    return bodies.map((mesh) => {
+      const hull = stage.attach(mesh);
+      outlined.add(mesh); outlined.add(hull);
+      scope.onDispose(() => { hull.removeFromParent(); hull.geometry.dispose(); outlined.delete(mesh); });
+      return hull;
+    });
+  };
+}
+
 /** One bound param's feed, prepared once. */
 interface Feed { readonly set: () => void }
 
@@ -53,6 +87,8 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>
  */
 export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options: { compiler: GraphCompiler | null; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string) => Texture }): {
   compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
+  /** the outline stage of a material this compiled (null: no `stages.outline`, a fallback preset, or not a graph) */
+  outline: (material: Material) => GraphOutline | null;
 } {
   const lists = graphBindingSources(source), dayKeys = [...lists.day.keys()], stateFields = lists.state;
   const feeds: Feed[] = [], readout: GraphReadout = { compiled: 0, fallback: 0, reasons: [] };
@@ -62,6 +98,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
   const defaults = new Map<string, number>();
   for (const scope of ['shared', 'player'] as const) for (const field of source.state[scope]) if (typeof field.default === 'number') defaults.set(`${scope}.${field.name}`, field.default);
   const srgb = new Color();
+  const outlines = new WeakMap<Material, GraphOutline>();
 
   const feed = (setParam: (name: string, value: readonly number[] | number) => void, param: string, type: GraphParamType, bind: GraphBinding): Feed => {
     if ('state' in bind) {
@@ -113,7 +150,9 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
     }
     const ir = checked.graph;
     if (options.compiler === null) { readout.fallback++; readout.reasons.push('graph materials row off'); return options.fallback(graphFallbackEntry(ir)); }
-    const compiled = options.compiler.compileGraph(ir, { dayKeys, stateFields, budget: DEFAULT_GRAPH_BUDGET, textures: options.textures });
+    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { dayKeys, stateFields, budget: DEFAULT_GRAPH_BUDGET, textures: options.textures });
+    const hull = compiled.outline;
+    if (hull !== null) outlines.set(compiled.material, { material: hull, attach: (mesh) => compiler.attachOutline(mesh, hull) });
     for (const { param, bind } of compiled.bindings) {
       const spec = ir.params?.[param]; if (spec === undefined) throw new Error(`material graph: no param ${param}`);
       const f = feed((name, value) => { compiled.setParam(name, value); }, param, spec.type, bind);
@@ -124,7 +163,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
     return compiled.material;
   };
   return {
-    compile, readout,
+    compile, readout, outline: (material) => outlines.get(material) ?? null,
     tick: (dt) => { if (feeds.length === 0) return; if (sources.hour === undefined) ownClock?.update(dt); refresh(); },
     bind: (next) => { sources = { ...sources, ...next }; if (feeds.length > 0) refresh(); },
   };

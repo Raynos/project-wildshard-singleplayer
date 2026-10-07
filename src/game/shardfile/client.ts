@@ -124,7 +124,7 @@ export class ShardfileClient {
     const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
     this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
-    installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials });
+    installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
     this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
       ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}),
       views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, ...presentation }),
