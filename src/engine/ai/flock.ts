@@ -131,8 +131,8 @@ export class FlockBrain {
   /** panic the flock away from (x, z) for `secs` */
   scare(x: number, z: number, secs: number): void { this.panic = Math.max(this.panic, secs); this.panicX = x; this.panicZ = z; }
 
-  /** One scheduled frame; the owned distance clock discards time while paused. */
-  update(dt: number, t: number, player: Vector3, playerSpeed: number, wolves: readonly FlockThreat[]): void {
+  /** One scheduled frame; returns whether native pose inputs advanced, discarding time while paused. */
+  update(dt: number, t: number, player: Vector3, playerSpeed: number, wolves: readonly FlockThreat[]): boolean {
     if (!this.initialized) throw new Error('Flock is not initialized');
     if (!Number.isFinite(t) || !Number.isFinite(playerSpeed) || playerSpeed < 0) throw new Error('Invalid flock observations');
     this.scheduler.beginFrame(dt, player);
@@ -140,7 +140,7 @@ export class FlockBrain {
     const brainDt = this.scheduler.takeBrainDt('ai', this.tickActor);
     if (brainDt > 0) this.think(brainDt, player, playerSpeed, wolves);
     const bodyDt = this.scheduler.bodyDt('ai', this.tickActor);
-    if (bodyDt === 0) return;
+    if (bodyDt === 0) return false;
     this.uTime.value = t;
     const near = Math.hypot(player.x - this.cx, player.z - this.cz) < 160;
     for (let i = 0; i < this.n; i++) {
@@ -165,6 +165,7 @@ export class FlockBrain {
       const gTarget = sp < 0.2 && this.panic <= 0 && (this.shuffle[i] ?? 0) > 0.5 ? 1 : 0;
       this.graze[i] = (this.graze[i] ?? 0) + (gTarget - (this.graze[i] ?? 0)) * Math.min(1, bodyDt * 2.5);
     }
+    return true;
   }
 
   private think(dt: number, player: Vector3, playerSpeed: number, wolves: readonly FlockThreat[]): void {

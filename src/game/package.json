@@ -106,6 +106,7 @@
     "./shardfile/admissionLimits": "./shardfile/admissionLimits.ts",
     "./shardfile/preflight": "./shardfile/preflight.ts",
     "./shardfile/assetGraph": "./shardfile/assetGraph.ts",
-    "./shardfile/commonsCosts": "./shardfile/commonsCosts.ts"
+    "./shardfile/commonsCosts": "./shardfile/commonsCosts.ts",
+    "./shardfile/crowdRuntime": "./shardfile/crowdRuntime.ts"
   }
 }
