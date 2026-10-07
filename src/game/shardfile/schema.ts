@@ -11,6 +11,7 @@ import { RowsSchema } from './rows';
 import { TerrainSchema } from './terrain';
 import { WaterSchema } from './water';
 import { CreaturesSchema } from './creatures';
+import { FlockSchema } from './crowds';
 import { groupBrainRules } from './groupBrains';
 import { EncountersSchema, encounterRules } from './encounters';
 import { QuestDataSchema } from './quests';
@@ -75,6 +76,7 @@ const rawSchema = v.strictObject({
   terrain: v.optional(v.nullable(TerrainSchema), null),
   water: v.optional(v.pipe(WaterSchema, v.maxLength(limits.waterBodies)), []),
   creatures: v.optional(CreaturesSchema, { brains: [], groups: [], spawns: [] }),
+  crowds: v.optional(v.pipe(v.array(FlockSchema), v.maxLength(64)), []),
   encounters: v.optional(EncountersSchema, []),
   quests: v.optional(QuestDataSchema, { flags: [], quests: [], triggers: [], dialogue: [] }),
   audio: v.optional(AudioDataSchema, { cues: [], ambience: null, score: 'silent' }),
@@ -176,7 +178,11 @@ export function shardfileRules(s: Shardfile): string[] {
       if (s.creatures.spawns.some(spawn => spawn.brain === brain.id && species.get(spawn.species)?.flight === undefined)) errors.push('declared flyer species flight');
     }
   }
-  if (s.creatures.spawns.length > s.serverBudget.entities) errors.push('declared entity capacity');
+  if (new Set(s.crowds.map(row => row.id)).size !== s.crowds.length) errors.push('unique crowd identities');
+  const crowdMembers = s.crowds.reduce((sum, row) => sum + row.count, 0);
+  if (crowdMembers > 4096) errors.push('declared crowd member capacity');
+  if (s.crowds.some(row => Math.abs(row.x) > CHUNK_HALF || Math.abs(row.z) > CHUNK_HALF)) errors.push('declared crowd home in cell');
+  if (s.creatures.spawns.length + crowdMembers > s.serverBudget.entities) errors.push('declared entity capacity');
   for (const spawn of s.creatures.spawns) if (!species.get(spawn.species)?.variants.some((row) => row.id === spawn.variant) || (spawn.strike !== null && !strikes.has(spawn.strike))) errors.push('declared spawn species/variant/strike');
   errors.push(...encounterRules(s.encounters, s.creatures.spawns.map((spawn) => spawn.id), s.ui.filter((row) => row.kind === 'bossPanel')));
   const controlled = new Set(s.encounters.map((row) => row.entity));

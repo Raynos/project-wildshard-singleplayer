@@ -20,6 +20,7 @@ import { createShardfileScriptLane, type ShardScriptPorts } from './scripts';
 import { installDeclaredBrains, type DeclaredBrainPorts } from './brainRuntime';
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from './scriptComposition';
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from './groupRuntime';
+import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from './crowdRuntime';
 
 /** Positive stable actor handle; reordering spawns changes nothing. Hash collisions are refused during composition. */
 export function numericScriptEntityId(id: string): number { return (fnv1a32(id) & 0x7fffffff) || 1; }
@@ -32,6 +33,8 @@ export interface ShardfileSimPorts extends SimHostPorts {
   brains?: DeclaredBrainPorts;
   /** Trusted perception, prey/taming and body recipes for one controller per ordered pack/herd group. */
   groups?: DeclaredGroupPorts;
+  /** Trusted terrain, observation and presentation recipes; every crowd is preflighted before setup. */
+  crowds?: (host: SimHost) => DeclaredCrowdPorts;
   /** Trusted custom-policy observations and strike execution; aliases and actors belong to this factory. */
   scriptBrains?: (host: SimHost) => Pick<DeclaredScriptBrainPorts, 'ports'> & Partial<Pick<DeclaredScriptBrainPorts, 'query'>>;
   scriptEntities?: { entities: readonly ScriptEntity[]; actors: ReadonlyMap<number, string> };
@@ -47,6 +50,7 @@ export interface ShardfileSimulation {
   host: SimHost; lane: ScriptLanePort | undefined; actors: ReadonlyMap<string, number>; quest: DeclaredQuests;
   encounters: ReturnType<typeof installDeclaredEncounters>; water: WaterBodies; colliders: ReadonlyMap<string, PropColliderPort>; dispose: () => void;
   groups: ReadonlyMap<string, DeclaredGroupPolicy>;
+  crowds: PreparedCrowds['policies'];
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
 export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
@@ -110,6 +114,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const groupIds = new Set(shard.creatures.groups.map((group) => group.id));
     const preparedGroups = prepareDeclaredGroupBrains(host, shard.creatures.groups, shard.creatures.spawns, ports.groups ?? {},
       shard.creatures.brains.map((brain) => brain.id), shard.encounters.map((row) => row.entity));
+    if (shard.crowds.length > 0 && ports.crowds === undefined) throw new Error('Missing declared crowd ports');
+    const preparedCrowds = prepareDeclaredCrowds(shard.crowds, ports.crowds?.(host) ?? { flock: () => { throw new Error('Missing declared crowd recipe'); } });
     let lane: ScriptLanePort | undefined;
     if (shard.sim.scripts.length > 0) {
       const entities = new Map<number, ScriptEntity>();
@@ -170,6 +176,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     // All individual/custom aliases and encounter recipes have admitted successfully before setup draws or group work.
     const groups = preparedGroups.install(ports.restoring ?? false);
     if (!host.embedded && !ports.restoring) host.physics.step();
-    return { host, lane, actors, quest, encounters, water, colliders, groups, dispose: () => { host.dispose(); } };
+    // Crowd setup is last: all scripts, actor/group controllers, quests, encounters and physics have admitted.
+    const crowds = preparedCrowds.install(host, ports.restoring ?? false);
+    return { host, lane, actors, quest, encounters, water, colliders, groups, crowds, dispose: () => { host.dispose(); } };
   } catch (error) { host.dispose(); throw error; }
 }

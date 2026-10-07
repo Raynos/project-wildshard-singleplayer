@@ -616,3 +616,15 @@ The full client owns declared audio by default. An explicit `audioOwner: "runtim
 binding is allowed only for a trusted first-party runtime declaration, whose
 installer consumes the same audio data once. This transition avoids duplicate
 cues, beds and scores; ordinary authored products use the declared installer.
+
+Crowd declarations use optional top-level `crowds` (default `[]`), an ordered array
+of flock rows from `@wildshard/sdk/crowds`. Each row names its stable ID, home x/z,
+member count, seed, roaming range, run/walk/graze speeds and bleat cue. Admission
+allows at most 64 unique rows and 4,096 members, requires home centres in the cell,
+and counts members alongside creature spawns against `serverBudget.entities`.
+Trusted recipes supply terrain bounds, perception, sound and presentation; data
+cannot supply callbacks. The full client and headless factory share those injected
+ports, preflight every recipe, then initialize only after the remaining simulation
+admission succeeds. Each crowd owns one fixed callback and snapshot adapter;
+restore skips setup draws and resumes its ordered member state/private RNG. The
+minimal empty client refuses crowd content. No live shard changes selection here.
