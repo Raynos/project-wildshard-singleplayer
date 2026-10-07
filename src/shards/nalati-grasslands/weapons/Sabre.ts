@@ -1,7 +1,7 @@
 import { SABRE } from './equipment';
 import * as THREE from 'three';
 import type { SwordWorld, SwordRig, SwordMoveSet, Move } from '@wildshard/engine/combat/view/melee';
-import type { MeleeProfile } from '@wildshard/kit/weapons/melee/Melee';
+import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { key } from '@wildshard/kit/weapons/melee/moves';
 import { SWORD_WOOD } from '@wildshard/kit/weapons/melee/profiles';
 import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';

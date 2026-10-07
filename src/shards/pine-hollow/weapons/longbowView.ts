@@ -5,7 +5,7 @@ import { fixIBL, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged'
 import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { withHunterPalette } from './hunterHands';
-import type { BowView, GripPose } from '@wildshard/kit/weapons/bow/profile';
+import type { BowView, GripPose } from '@wildshard/sdk/weapons/bowProfile';
 
 
 

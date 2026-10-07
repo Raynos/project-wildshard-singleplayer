@@ -5,7 +5,7 @@ import { gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import { painterlyMaterial } from '@wildshard/engine/world/painterly';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
-import type { BowView, GripPose } from '@wildshard/kit/weapons/bow/profile';
+import type { BowView, GripPose } from '@wildshard/sdk/weapons/bowProfile';
 
 
 
@@ -419,7 +419,7 @@ export function bowSpecimen(sky: Sky, style: BowStyle): THREE.Group {
 }
 
 
-export function buildRecurve(sky: Sky): BowView {
+export function buildRecurve(sky: Sky): BowView<BowStyle> {
     // one painterly program for the whole viewmodel; drawn after the depth clear (renderOrder 999 / 1000, like Crossbow)
     // shade > 1: the painted sky tint is ADDED on the shade side (painterly.ts), so it doubles as the viewmodel's cool fill —
     // an arm turned away from the sun reads as a cool-shadowed sleeve, not a black hole

@@ -1,7 +1,7 @@
 import { macrotask } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { MeleeProfile } from '@wildshard/kit/weapons/melee/Melee';
+import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { SWORD_WOOD, SWORD_IRON } from '@wildshard/kit/weapons/melee/profiles';
 import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';
 import type { ShardSword } from '@wildshard/game/shard/manifest';
