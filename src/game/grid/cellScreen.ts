@@ -81,7 +81,7 @@ function wrap(text: string, width: number, lines: number): string[] {
 export function cellScreenContent(input: CellScreenInput, frame: CellScreenFrame): CellScreen {
   const { status } = input;
   const stages = [
-    { label: S.rows.product, done: input.product }, { label: S.rows.runtime, done: input.runtime },
+    { label: S.rows.product, done: input.product }, { label: S.rows.runtime, done: input.product && input.runtime },
     { label: S.rows.colliders, done: input.colliders }, { label: S.rows.sim, done: input.sim },
   ];
   const doneCount = stages.filter((stage) => stage.done).length, current = stages.find((stage) => !stage.done);

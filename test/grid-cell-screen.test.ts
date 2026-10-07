@@ -33,6 +33,17 @@ describe('G217: the cell state maps to the loading screen', () => {
     expect(queued.clock).toBe('01:05'); expect(queued.tracks[0].fact).toBe('product not requested yet · — declared');
     expect(queued.rows.map((r) => r.state)).toEqual(['on', 'todo', 'todo', 'todo', 'todo', 'todo', 'todo']);
   });
+  it('does not report the no-hybrid runtime ready until its product is admitted', () => {
+    // Readiness acknowledges an absent hybrid runtime up front; the product still needs admission.
+    const pending = cellScreenContent({ ...base, product: false, runtime: true }, frame);
+    expect(pending.rows.find((row) => row.label === 'runtime')).toEqual({ label: 'runtime', detail: 'pending', state: 'todo' });
+    expect(pending.tracks.map((track) => track.pct)).toEqual([0, 0]);
+    expect(pending.tracks[1].fact).toBe('step 1 / 4 · product');
+    const admitted = cellScreenContent({ ...base, product: true, runtime: true }, frame);
+    expect(admitted.rows.find((row) => row.label === 'runtime')).toEqual({ label: 'runtime', detail: 'ready', state: 'ok' });
+    expect(admitted.tracks[1].pct).toBe(50);
+    expect(admitted.tracks[1].fact).toBe('step 3 / 4 · colliders');
+  });
   it('waiting: no shardfile yet, said plainly, playable through SHARD SELECT, no fake progress', () => {
     const s = cellScreenContent({ ...base, name: 'Nalati Grasslands', status: 'waiting', wait: 'format', product: false, requested: false, issue: 'nalati-grasslands is not a shardfile shard (it stays a far proxy until M3)' }, { ...frame, elapsedS: null });
     expect(s.chip).toBe('WAITING'); expect(s.clock).toBe('--:--');
