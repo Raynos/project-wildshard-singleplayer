@@ -28,10 +28,6 @@ class PlatformRecorder extends Thrown {
   readonly hooks: { power: number; remaining: number }[] = [];
   protected override onRelease(power: number): void { this.hooks.push({ power, remaining: this.ammo }); }
 }
-class LegacyRecorder extends LegacyThrown {
-  readonly hooks: { power: number; remaining: number }[] = [];
-  protected override onRelease(power: number): void { this.hooks.push({ power, remaining: this.ammo }); }
-}
 function thrownTrace(helper: Pick<PlatformRecorder, 'ammo' | 'flightStep' | 'release' | 'hooks'>) {
   const position = new Vector3(1, 2, 3), velocity = new Vector3(4, 5, -6);
   const flight = [0, 1 / 60, 0.25, 0.5].map((dt) => {
@@ -72,6 +68,8 @@ function contactTrace(prototype: object, adapter: typeof meleeActor) {
 describe('trusted SDK contact families graduate without a second implementation', () => {
   it('publishes the exact platform constructors and target adapter', () => {
     expect(TrustedMelee).toBe(Melee); expect(TrustedThrown).toBe(Thrown); expect(trustedMeleeActor).toBe(meleeActor);
+    expect(LegacyThrown).toBe(Thrown); expect(legacyMeleeActor).toBe(meleeActor); expect(legacyIsMeleeProfile).toBe(isMeleeProfile);
+    expect(LegacyMelee.prototype).toBeInstanceOf(Melee);
   });
   it('constructs without global combat and sends contact through the injected pipeline', () => {
     const scope = new Scope('contact-fixture'), combat = new CombatPipeline(new Events(), scope), localHit = vi.spyOn(combat, 'hit').mockReturnValue(null);
@@ -81,13 +79,12 @@ describe('trusted SDK contact families graduate without a second implementation'
     scope.dispose();
   });
   it('matches legacy gravity integration, decrement-before-hook ordering and exhausted releases', () => {
-    expect(thrownTrace(new PlatformRecorder(profile))).toEqual(thrownTrace(new LegacyRecorder(profile)));
-    expect(thrownTrace(new LegacyRecorder(profile))).toMatchSnapshot();
+    // Captured from the independent pre-delegation kit implementation in 423512790, never regenerated after delegation.
+    expect(thrownTrace(new PlatformRecorder(profile))).toMatchSnapshot();
   });
   it('matches practice-target damage forwarding and cover admission tags', () => {
-    expect(contactTrace(Melee.prototype, meleeActor)).toEqual(contactTrace(LegacyMelee.prototype, legacyMeleeActor));
-    expect(contactTrace(LegacyMelee.prototype, legacyMeleeActor)).toMatchSnapshot();
-    expect(isMeleeProfile(SWORD_WOOD)).toBe(legacyIsMeleeProfile(SWORD_WOOD));
+    expect(contactTrace(Melee.prototype, meleeActor)).toMatchSnapshot();
+    expect(isMeleeProfile(SWORD_WOOD)).toBe(true);
   });
   it('uses native actors directly and preserves live practice liveness and reaction arguments', () => {
     const practice = target(), reaction = vi.fn(() => true); practice.applyDamage = reaction;

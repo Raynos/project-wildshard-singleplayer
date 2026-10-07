@@ -1,5 +1,6 @@
 import { CROSSBOW_PROFILE } from '../../src/shards/pine-hollow/weapons/crossbow/profiles';
 import { EliteBrain } from '../../src/engine/ai/EliteBrain';
+import { app } from '../../src/engine/app/runtime';
 import * as THREE from 'three';
 import { afterEach, beforeAll, describe, expect, it, vi, afterAll } from 'vitest';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
@@ -104,14 +105,14 @@ describe('wall bug baselines (owning migrations intentionally change B1/B2 expec
   });
   it('B1 thrust rejects a registered yurt wall and retains30 in the open', () => {
     wall(); const f = fakeWorld(), a = target();
-    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, profile: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast }, onHit: undefined, onImpact: undefined });
+    const spear = legacyActor(Spear.prototype, { combat: app.combat, row: SPEAR_PROFILE, profile: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast }, onHit: undefined, onImpact: undefined });
     invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([]);
     setActivePhysics(null); invokeLegacy(spear, 'thrustHit'); expect(a.dealt).toEqual([30]);
   });
   it('B1 lance rejects cover and preserves clear-path damage', () => {
     wall(); const f = fakeWorld(), a = target(); setAimTargets([a.animal]);
     const prev = a.animal.position.clone();
-    const spear = legacyActor(Spear.prototype, { row: SPEAR_PROFILE, profile: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast },
+    const spear = legacyActor(Spear.prototype, { combat: app.combat, row: SPEAR_PROFILE, profile: SPEAR_PROFILE, player: f.player, game: f.game.asGame(), targets: { raycast: a.raycast },
       mount: { yaw: 0, speed: 8 }, prevPos: new Map([[a.animal, prev]]), rehit: new Map(), onHit: undefined, onImpact: undefined });
     invokeLegacy(spear, 'contacts', 1 / 60, 1);
     expect(a.dealt).toEqual([]);
