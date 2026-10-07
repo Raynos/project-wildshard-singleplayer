@@ -176,6 +176,23 @@ Lighting reads engine-supplied `normalView`, `viewDirection` and `albedo` inputs
 and costed by the same validator. Toon/painterly engine presets use this stage;
 their trusted preset budget does not become a shardfile author budget.
 
+Material graphs may also add `stages.outline: { offset, colour }`: both references
+produce vec3 values (scalar values broadcast under the existing graph rules),
+with a model-space displacement evaluated in the vertex
+stage and linear ink colour evaluated without lighting inputs. The inverted hull
+has fixed render state: back faces, depth test and write, opaque, unlit, fogged and
+no shadow. Author data cannot change that state. Outline evaluation counts toward
+the same program budget and raw graph caps, including unused nodes.
+
+`objectOrigin` and `positionGeometry` supply vertex-only vec3 inputs;
+`worldToLocal(vec3)` changes a world-space direction to model space in the vertex
+stage; `viewToWorld(vec3)` changes a view-space direction to a unit world-space
+direction in mesh stages. Types and stage placement remain validated.
+These additions keep IR version 1. The engine compiler supports the second hull
+draw, but the shardfile client's current one-material-per-ID adapter does not yet
+attach an outline mesh: admitted outline data is preserved and costed, but is not
+yet drawn by that client. A mesh-level binding is still required.
+
 Before typing or compilation, graph admission bounds the raw JSON to 64,000
 UTF-8 bytes, depth 64 and 160 declared nodes across every nested node table,
 including unreachable nodes and loop bodies. The reachable program still must
