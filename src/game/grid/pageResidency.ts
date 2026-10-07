@@ -23,6 +23,9 @@ export class PageResidency {
 
   constructor(allocator = new ResidencyAllocator()) { this.allocator = allocator; }
 
+  /** The same policy follows early admission, the grid and every warning surface; never a second allocator. */
+  get memory(): ResidencyAllocator['memory'] { return this.allocator.memory; }
+
   /** Reserve the home before any bootstrap allocation. Identical repeated admission shares its immutable identity. */
   admitHome(instance: string, bytes: number): HomeResidencyClaim {
     if (this.closed) throw new Error('Page residency is disposed');

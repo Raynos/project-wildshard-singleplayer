@@ -13,6 +13,7 @@
  */
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { contentCost, type ContentCostInput } from '@wildshard/engine/core/contentCost';
+import { MemoryAdmission } from './memoryAdmission';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
 export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'library' | 'sim' | 'commons' | 'product';
@@ -52,12 +53,15 @@ const field = { l0: 'l0', l1: 'l1', far: 'far', library: 'libraries', sim: 'sims
 
 /** One allocator per grid session. `playing` defaults to the §3.2 envelope (1.0 GB, G65). */
 export class ResidencyAllocator {
+  /** G216: the page's trusted Developer policy; omitted callers retain strict admission. */
+  readonly memory: MemoryAdmission;
   private readonly entries_ = new Map<string, Entry>();
   private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, library: 0, sim: 0, commons: 0, product: 0 };
   private readonly playing: number;
   private generation = 0;
   private evicting = false;
-  constructor(options: { playing?: number } = {}) {
+  constructor(options: { playing?: number; memory?: MemoryAdmission } = {}) {
+    this.memory = options.memory ?? new MemoryAdmission();
     this.playing = options.playing ?? CONTENT_CAPS.playing;
     if (!Number.isFinite(this.playing) || this.playing <= 0) throw new RangeError('Invalid residency envelope');
   }
@@ -65,6 +69,7 @@ export class ResidencyAllocator {
   /** Admit a claim, or share one already held under the same id; null when it cannot fit even after eviction. */
   reserve(claim: ResidencyClaim): ResidencyLease | null {
     if (claim.id.length === 0 || claim.owner.length === 0 || !Number.isSafeInteger(claim.bytes) || claim.bytes < 0 || !Number.isFinite(claim.distance) || claim.distance < 0) throw new RangeError('Invalid residency claim');
+    if (claim.prepareEvict !== undefined && claim.evictSync !== undefined) throw new Error('A residency claim evicts in one phase or two, not both');
     if (this.evicting) throw new Error('Residency claims cannot be made from an evict callback');
     const existing = this.entries_.get(claim.id);
     if (existing !== undefined) {
@@ -74,9 +79,15 @@ export class ResidencyAllocator {
     }
     if (!this.fits(claim.category, claim.bytes)) {
       this.evicting = true;
-      try { if (!this.evictFor(claim.category, claim.bytes)) return null; } finally { this.evicting = false; }
+      try {
+        if (!this.evictFor(claim.category, claim.bytes)) {
+          const input = this.input(claim), cost = contentCost(input);
+          if (!this.memory.accept({ stage: 'resident', owner: claim.owner, id: claim.id, claimedBytes: claim.bytes,
+            accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
+            playingCap: this.playing, categories: input })) return null;
+        }
+      } finally { this.evicting = false; }
     }
-    if (claim.prepareEvict !== undefined && claim.evictSync !== undefined) throw new Error('A residency claim evicts in one phase or two, not both');
     const sync = claim.evictSync;
     const prepare = claim.prepareEvict ?? (sync === undefined ? undefined : (): ResidencyEviction => ({ commit: sync, abort: () => undefined }));
     const entry: Entry = { id: claim.id, category: claim.category, bytes: claim.bytes, owner: claim.owner, distance: claim.distance, needed: claim.needed, prepare, refs: 1, holds: 0, generation: ++this.generation };
@@ -123,6 +134,7 @@ export class ResidencyAllocator {
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
     this.entries_.delete(entry.id); this.totals[entry.category] -= entry.bytes;
+    if (this.cost().playing <= this.playing) this.memory.clearResidents();
   }
   private lease(entry: Entry): ResidencyLease {
     let released = false;
