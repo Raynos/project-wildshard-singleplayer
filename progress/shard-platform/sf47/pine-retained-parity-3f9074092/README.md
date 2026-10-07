@@ -6,4 +6,6 @@ All eight captures completed poses, walk, combat, pause/resume and ordinary plus
 
 This is **Select a shard parity**. ON witnesses the hybrid compositor but `runtime.entered` is absent without grid intent. It does not prove retained grid re-entry or memory admission; Pine remains fenced until its measured costs fit.
 
+`historical-grid-summary.json` and `historical-grid-assertions.json` record the separately approved **NONQUALIFYING** lifecycle witness on this historical pin, with its old admission row OFF. Two road exits and re-entries produced entered hooks 1 → 0 → 1, ten seconds of frozen road time per cycle and a stable 96 pieces at all seven observations. Final same-document unload left zero bodies, colliders and disposal errors. This witness does not override the current shipping cap or qualify Pine for SF57; current admission and the qualifying re-entry proof are separate gates.
+
 `summary.json` contains key results. `assertions.json.br` preserves every comparison, measured noise band and all eight raw captures plus activation witnesses as Brotli JSON; its checksum is in the summary. No assertions dropped. Raw screenshots remain in the reported builder scratch directory.
