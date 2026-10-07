@@ -1,3 +1,4 @@
+import { imagesFirstPlayingBytes } from '../grid/runtimeCost';
 import { consumeTravelHandoff } from '../travel/travel';
 import { type StepRunner, createBootPlan } from '@wildshard/engine/boot/plan';
 import { prepareShardAssets } from '../shard/load';
@@ -21,7 +22,7 @@ async function buildData(ctx: SessionContext) {
   // level.data consumes the per-tab intent before any expensive build can fail.
   boot.handoff = consumeTravelHandoff(manifest.slug);
   if (boot.handoff !== null) session.arrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
-  setTexturePolicy(manifest.tiers?.[TIER]?.textures, manifest.slug);
+  setTexturePolicy(manifest.tiers?.[TIER]?.textures, manifest.slug, imagesFirstPlayingBytes(manifest.runtimeCost));
   const loading = new Loading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });
   app.setState('loading');
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).

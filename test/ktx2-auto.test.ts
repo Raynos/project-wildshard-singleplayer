@@ -1,3 +1,4 @@
+import { imagesFirstPlayingBytes } from '../src/game/grid/runtimeCost';
 import { saveFixture } from './fake/saveFixture';
 /**
  * E157 B — "images on the first visit, KTX2 from the next launch" (src/engine/boot/gpuFiles.ts, src/engine/boot/shardPrefetch.ts).
@@ -15,6 +16,7 @@ import * as sp from '../src/engine/boot/shardPrefetch';
 import * as gf from '../src/engine/boot/gpuFiles';
 import { chunkFiles } from '../src/engine/boot/manifest';
 import { bootParts, packFor } from '../src/engine/boot/pack';
+import { bootFetches } from '../src/engine/boot/prefetch';
 import { setBootCatalog } from '../src/engine/boot/catalog';
 import { OPTION_VALUES, saveSetting } from '../src/engine/ui/Settings';
 
@@ -27,7 +29,7 @@ const texPick = (v: string | undefined): (typeof OPTION_VALUES.tex)[number] => O
  * A page load on a tier and a shard: the tier picked explicitly (initializeTier's named form), the GPU-textures pick saved
  * through Settings, the level selected, and the texture mode resolved afresh (setTexturePolicy) — not a module reload (E422).
  */
-/** a shard whose phone tier sets no texture policy, so Auto's own rule shows (Pine's phone boots KTX2 by policy, G180) */
+/** a shard whose phone tier sets no texture policy, so Auto's own rule shows (Pine's measured images-first phone cost forces KTX2, G188) */
 const AUTO_SHARD = 'driftwood-isle';
 async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (prefetch: SP, playable: readonly ShardManifest[]) => [string, string] | null } = {}) {
   const chunk = opts.chunk ?? AUTO_SHARD, tier = opts.tier ?? 'phone';
@@ -40,7 +42,7 @@ async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: st
   setBootCatalog({ levels: SHARDS, playable: SHARDS.filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   const PLAYABLE_SHARDS = SHARDS.filter(playable);
   const selected = SHARDS.find((manifest) => manifest.slug === chunk);
-  gf.setTexturePolicy(selected?.tiers?.[tier]?.textures, chunk);
+  gf.setTexturePolicy(selected?.tiers?.[tier]?.textures, chunk, imagesFirstPlayingBytes(selected?.runtimeCost));
   const m = opts.marker?.(sp, PLAYABLE_SHARDS);
   if (m) saveFixture('device', 'ktx2set', { [m[0].slice('ktx2set:'.length)]: m[1] });
   return { SHARDS, PLAYABLE_SHARDS, sp, gf, chunkFiles, packFor, bootParts, def: PLAYABLE_SHARDS.find((c) => c.slug === chunk) };
@@ -59,9 +61,11 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     const desktop = await load({ chunk: 'nine-dragon-stack', tier: 'desktop' });
     expect(desktop.gf.texMode()).toBe('img');
   });
-  it('Pine Hollow\'s phone boots KTX2 from the first visit by its level policy (G180); its desktop keeps Auto\'s rule', async () => {
+  it('Pine Hollow\'s measured cost boots KTX2 cold without a tier flag (G188); desktop keeps Auto\'s rule', async () => {
     const phone = await load({ chunk: 'pine-hollow', tier: 'phone' });
-    expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2', why: 'auto: level tier texture policy' });
+    expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2' });
+    expect(phone.gf.texModeWhy().why).toContain('images-first playing estimate');
+    expect(SHARDS.find(row => row.slug === 'pine-hollow')?.tiers?.phone?.textures).toBeUndefined();
     const desktop = await load({ chunk: 'pine-hollow', tier: 'desktop' });
     expect(desktop.gf.texMode()).toBe('img');
     const picked = await load({ chunk: 'pine-hollow', tier: 'phone', tex: 'img' });
@@ -117,6 +121,46 @@ describe('the explicit picks override Auto', () => {
   it('KTX2 always loads KTX2, cached or not', async () => {
     await load({ tex: 'ktx2' });
     expect(gf.texMode()).toBe('ktx2');
+  });
+});
+
+describe('G188 measured phone admission policy', () => {
+  it.each([999_999_999, 1_000_000_000])('keeps uncached Auto images at or below the cap (%s bytes)', async (bytes) => {
+    await load();
+    gf.setTexturePolicy(undefined, AUTO_SHARD, bytes);
+    expect(gf.texMode()).toBe('img');
+  });
+  it('selects a generic over-cap phone build before file resolution, regardless of its slug or cached marker', async () => {
+    await load();
+    gf.setTexturePolicy(undefined, 'authored-cost-fixture', 1_000_000_001);
+    expect(gf.texModeWhy()).toEqual({ mode: 'ktx2', why: 'auto: images-first playing estimate 1000000001 exceeds 1000000000' });
+    gf.registerGpuFiles({ phone: { '/assets/measured-fixture.webp': '/assets/measured-fixture.ktx2' }, desktop: {} });
+    expect(gf.gpuFile('/assets/measured-fixture.webp')).toBe('/assets/measured-fixture.ktx2');
+  });
+  it.each(['img', 'ktx2'] as const)('the explicit %s Debug pick wins over the measured policy', async (tex) => {
+    await load({ tex });
+    gf.setTexturePolicy(undefined, 'authored-cost-fixture', 2_000_000_000);
+    expect(gf.texMode()).toBe(tex);
+    expect(gf.texModeWhy().why).toContain('picked');
+  });
+  it.each(['phone', 'desktop'] as const)('bakes the exact %s default boot files with the same measured policy', async (tier) => {
+    await load({ tier });
+    for (const def of LEGACY_SHARDS.filter(playable)) {
+      gf.setTexturePolicy(def.tiers?.[tier]?.textures, def.slug, imagesFirstPlayingBytes(def.runtimeCost));
+      const pack = packFor(def);
+      const expected = new Set(bootFetches(def, chunkFiles(def)));
+      if (pack === null) { expect(expected.size, def.slug).toBeLessThan(2); continue; }
+      expect(new Set(pack.files.map(([path]) => path)), def.slug).toEqual(expected);
+    }
+  });
+  it('does not apply the phone estimate to desktop', async () => {
+    await load({ tier: 'desktop' });
+    gf.setTexturePolicy(undefined, 'authored-cost-fixture', 2_000_000_000);
+    expect(gf.texMode()).toBe('img');
+  });
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])('refuses invalid measured bytes (%s)', async (bytes) => {
+    await load();
+    expect(() => gf.setTexturePolicy(undefined, AUTO_SHARD, bytes)).toThrow('Invalid images-first playing estimate');
   });
 });
 

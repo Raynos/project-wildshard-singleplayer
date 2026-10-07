@@ -48,7 +48,8 @@ const { SHARDS } = await imp('src/shards.generated.ts');
 const { playable } = await imp('src/game/shard/registry.ts');
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 const { prepareShardAssets } = await imp('src/game/shard/load.ts');
-const { registerGpuFiles } = await imp('src/engine/boot/gpuFiles.ts');
+const { imagesFirstPlayingBytes } = await imp('src/game/grid/runtimeCost.ts');
+const { registerGpuFiles, autoTexturePolicy } = await imp('src/engine/boot/gpuFiles.ts');
 await Promise.all(SHARDS.map((m) => prepareShardAssets(m, registerGpuFiles)));
 const { chunkFiles } = await imp('src/engine/boot/manifest.ts');
 const { bootFetches } = await imp('src/engine/boot/prefetch.ts');
@@ -110,7 +111,7 @@ for (const def of PLAYABLE_SHARDS) {
   for (const tierName of TIERS) {
     if (tierName === 'desktop' && def.load === undefined) continue; // unmigrated shards keep their existing phone-only packs
     await initializeTier(tierName);
-    const files = chunkFiles(def, def.tiers?.[tierName]?.textures ?? 'img');
+    const files = chunkFiles(def, autoTexturePolicy(def.tiers?.[tierName]?.textures, imagesFirstPlayingBytes(def.runtimeCost))?.mode ?? 'img');
     const paths = packOrder(bootFetches(def, files));
     if (paths.length < 2) continue;
     for (const p of paths) if (!existsSync(resolve(PUBLIC, `.${p}`))) throw new Error(`bake-packs: ${def.slug} boots ${p} but public has no such file`);

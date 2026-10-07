@@ -22,7 +22,8 @@
  *                                                      background after the first visit and, when the worker has confirmed
  *                                                      every file, writes a marker (the set's hash) that the next page load
  *                                                      reads here. A half-downloaded set has no marker: images.
- * A level may fix Auto's texture mode through its tier data. An explicit Debug pick still wins.
+ * G188: a measured images-first playing estimate above the phone cap selects KTX2 on the first visit.
+ * A level may otherwise fix Auto through tier data. An explicit Debug pick still wins; desktop is unchanged.
  * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
  * running world. One page builds one level; navigation rebuilds the selected level on a fresh page.
  * The explicit Debug pick applies to that page's build. The
@@ -32,7 +33,7 @@
 
 import { GPU_FILES as ENGINE_GPU_FILES } from './ktx2.generated';
 import { TIER } from '../core/tier';
-import { PAGE_LEVEL } from '../core/config';
+import { CONTENT_CAPS, PAGE_LEVEL } from '../core/config';
 import { setting } from '../ui/Settings';
 
 export interface Ktx2Table { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> }
@@ -64,10 +65,18 @@ let autoReady: ((slug: string) => boolean) | null = null;
 export function setAutoKtx2Check(fn: (slug: string) => boolean): void { autoReady = fn; }
 
 let resolved: { mode: TexMode; why: string } | null = null;
-let texturePolicy: TexMode | undefined;
+let texturePolicy: { mode: TexMode; why: string } | undefined;
+/** G188's automatic tier policy: measured over-cap phone builds use KTX2 before the first visit, never desktop. */
+export function autoTexturePolicy(mode: TexMode | undefined, imagesFirstPlayingBytes?: number): { mode: TexMode; why: string } | undefined {
+  if (imagesFirstPlayingBytes !== undefined && (!Number.isSafeInteger(imagesFirstPlayingBytes) || imagesFirstPlayingBytes < 0)) throw new RangeError('Invalid images-first playing estimate');
+  if (TIER === 'phone' && imagesFirstPlayingBytes !== undefined && imagesFirstPlayingBytes > CONTENT_CAPS.playing) {
+    return { mode: 'ktx2', why: `auto: images-first playing estimate ${imagesFirstPlayingBytes} exceeds ${CONTENT_CAPS.playing}` };
+  }
+  return mode === undefined ? undefined : { mode, why: 'auto: level tier texture policy' };
+}
 /** The composition root installs tier data before this build resolves its file list. */
 /** a build's texture policy (its tier's `textures`) and the level it is for (the page's level when omitted); the mode resolves afresh */
-export function setTexturePolicy(mode: TexMode | undefined, level?: string): void { texturePolicy = mode; policyLevel = level; resolved = null; }
+export function setTexturePolicy(mode: TexMode | undefined, level?: string, imagesFirstPlayingBytes?: number): void { texturePolicy = autoTexturePolicy(mode, imagesFirstPlayingBytes); policyLevel = level; resolved = null; }
 let resolving = false;
 /** the mode this page loads with, and why (fixed on the first call) */
 export function texModeWhy(): { mode: TexMode; why: string } {
@@ -79,7 +88,7 @@ export function texModeWhy(): { mode: TexMode; why: string } {
     if (picked !== 'auto') resolved = { mode: picked, why: `picked (Settings ▸ Debug ▸ GPU textures: ${picked})` };
     else {
       const slug = buildSlug();
-      if (texturePolicy !== undefined) resolved = { mode: texturePolicy, why: 'auto: level tier texture policy' };
+      if (texturePolicy !== undefined) resolved = texturePolicy;
       else resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
     }
   } finally { resolving = false; }
