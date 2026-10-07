@@ -11,8 +11,5 @@
 | G123 Nalati family conversion board (not made yet) | Does Nalati stay fully painterly after moving to the shared families? | ship only if the board matches | SF48-g |
 | SF48 Nalati look board (G148; not made yet) | Nalati's grid-ready look: OK? | ship only if the board matches | SF48-g, the public grid |
 | SF55 Blender Template board (G161, G162; not built yet) | Its accent and grid slot | `teal`, the DEVSERVER slot (−1, −1) | SF55 |
-| SF57 soak verdict (info, not a pick) | Continuous, or fade-reload at shard exits? | whatever the soak records; SF57b is built default-off either way (G159) | SF22, M2 |
-| SF47 Pine content-cut board (G180; not made yet) | Which cut closes Pine's last ~100 MB: view distance, tree density or herd size? | the least visible measured cut | SF47-g |
-| Sky Reach nine entry ideas (G176; in flight) | Which way into Sky Reach? | the board's top pick | SF49-g |
-| Nine Dragon deck climb (G177; in flight) | Stairs, a lift or grapple points up to Lantern Square? | the board's pick | SF51 |
+| SF57 continuous-soak verdict (info, not a pick) | Did the memory and retention gates pass? On a genuine residual failure the grid stays Developer-only and a per-shard content-cut board comes to Jake (G171, G186); no fade-reload (SF57b deleted, `bb5fca3ff`) | — | SF22, M2 |
 | SF22c | Your normal INFINITE WILDSHARD playtest: three crossroads runs, no tab kill | no chore, just play | the format freeze, M2 |
