@@ -51,7 +51,7 @@ it('keeps one player damage/movement binding on the road and recreates only the 
     step(3); expect(health.attributes.health).toBe(82);
     expect(effects.active(health)).toEqual([]);
     expect(status.children).toHaveLength(0);
-    expect(rows.filter((row) => row.id === 'effects.apply')).toHaveLength(1);
+    expect(rows).toEqual([]); // G221: status gameplay/UI remains; the forcing tool is deleted.
     effects.apply(health, 'effect.slow'); effects.apply(health, 'effect.poison');
     app.events.emit('player.died', { actor: health, checkpoint: false }); app.events.flush('update');
     expect(effects.active(health)).toEqual([]); expect(player.effectMoveScale).toBe(1);
