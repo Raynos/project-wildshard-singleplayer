@@ -21,9 +21,10 @@ it('accounts CPU and GPU bytes before constructing a mesh and keeps the claim th
   scope.dispose(); scope.dispose(); expect(claimedDuringCleanup).toBe(true); expect(allocator.entries()).toEqual([]);
 });
 
-it('refuses before any array/canvas allocation when the real measured home leaves insufficient room', () => {
+it('keeps the pre-G173 measured refusal before any array/canvas allocation', () => {
   const scope = new Scope('measured-render'), page = new PageResidency();
-  page.admitHome('driftwood-isle', runtimeAccountedBytes(DRIFTWOOD_RUNTIME_COST));
+  const previousMeasurement = { ...DRIFTWOOD_RUNTIME_COST, webContentMB: 606.097, glMB: 282.4, rev: '6c0aaea4f', evidence: 'progress/memory/sf22a-repeat-6c0aaea4f/summary.json' };
+  page.admitHome('driftwood-isle', runtimeAccountedBytes(previousMeasurement));
   const admission = new PlatformRenderResidency(page.allocator, scope), before = page.allocator.entries(); let allocated = false;
   try {
     expect(() => admission.allocate({ id: 'roads', jsBytes: 20_000_000, gpuBytes: 20_000_000 }, () => { allocated = true; })).toThrow(PlatformRenderAdmissionError);

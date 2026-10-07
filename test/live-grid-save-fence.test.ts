@@ -16,6 +16,7 @@ import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { PageResidency } from '../src/game/grid/pageResidency';
 import { GridWallet } from '../src/game/grid/wallet';
 import { crossingSaveStatus } from '../src/game/grid/borderShimmer';
 import * as products from '../src/game/grid/products';
@@ -47,11 +48,13 @@ async function open(x: number, z: number, speed: number) {
     return generateStrip({ id: `gap.${axis}.${edge}`, axis, origin: { x: axis === 'x' ? sign * 277.5 : 0, z: axis === 'z' ? sign * 277.5 : 0 },
       profiles: [assembly.emptyNeighbour.edge, assembly.emptyNeighbour.edge], adjacent: [home], observations: [{ entryWidth: 8 }, { entryWidth: 8 }] });
   });
+  const owner = new PageResidency(allocator), residency = owner.admitHome(home.instance, 1_000_000);
+  scope.onDispose(() => { owner.dispose(); });
   const local = new Storage(), saves = new SaveStore({ local, session: null }), wallet = new GridWallet(saves, { id: home.instance, shard: home.slug });
   wallet.addCoins(7); wallet.savePack({ counts: { coconut: 3 }, order: ['coconut'] });
   const equipment = new EquipmentService(new EmptyEquipment(), { scope }), pre: (() => void)[] = [], post: (() => void)[] = [];
   let current = page.physics, pending = true, tick = 0, captured = -1;
-  const session = new LiveGridSession({ assembly, home, physics: page.physics, scope, strips, allocator,
+  const session = new LiveGridSession({ assembly, home, physics: page.physics, scope, strips, allocator, residency,
     walls: new ReadinessWalls(page.physics, [], scope), neighbourEdges: () => [], rimEdges: () => [] }, {
     traveller: player, health: page.player.health, equipment, events: page.events, saves, catalogue: [],
     checkpoint: () => { const durable = wallet.flush(); if (durable) captured = tick; return durable; },

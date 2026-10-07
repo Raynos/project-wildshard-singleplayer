@@ -6,9 +6,8 @@
  *
  * Six allocations, each with an exact preflight byte plan (retained JS: typed arrays, canvases and the grain data; GPU:
  * vertex and index buffers and every mip level): `road.asphalt`, `road.junctions`, `road.signs`, `road.void`, `road.deck`
- * (with the grain array it alone samples) and `road.curtain`. With `admission` (the Grid memory admission Debug row ON) each
- * is built only after its plan is admitted and disposes on the admission's child scope; a refusal never builds. Without it
- * the build is the same objects in the same order as before G144, and no plan is computed.
+ * (with the grain array it alone samples) and `road.curtain`. Each is built only after its plan is admitted and
+ * disposes on the admission's child scope; a refusal never builds. G112 removed the unmetered grid composition.
  *
  * Construction transients (the meshers' number arrays, the seams' split parts, the solid parts the deck merges) are made
  * before the deck's and the boulevard's claims and dropped after; the curtain's split arrays become its geometry without a
@@ -37,8 +36,8 @@ export interface PlatformRoadInput {
   readonly camera?: () => Camera | undefined;
   /** each culled mesh's plan, for the budget readouts (`roadViewCost`, `roadResident`) */
   readonly plans: Map<Mesh, CullPlan>;
-  /** G144: admit each allocation's byte plan before building it (absent: the unchanged build) */
-  readonly admission?: PlatformRenderAdmission;
+  /** G144: admit each allocation's byte plan before building it. */
+  readonly admission: PlatformRenderAdmission;
 }
 /** The readouts and the roots the road budget measures. */
 export interface PlatformRoad { readonly road: RoadLookState; readonly seams: SeamLookState; readonly roots: readonly Object3D[] }
@@ -58,27 +57,27 @@ export function installPlatformRoad(input: PlatformRoadInput): PlatformRoad {
   const { strips, home, pitch, layout, scene, scope, admission } = input;
   const culler: RoadCuller = { pitch, plans: input.plans, ...(input.camera === undefined ? {} : { camera: input.camera }) };
   const admit = (plan: () => PlatformRenderBytePlan, build: (owner: LookScope) => void): void => {
-    if (admission === undefined) build(scope); else admission.allocate(plan(), build);
+    admission.allocate(plan(), build);
   };
   // the seams' materials keyed by the generator's feature ranges: the same triangles the world collides with
   const seams = seamSolidSource(strips, home, undefined, pitch);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
-  const road = installRoadLook({ layout, home, scene, scope, solid, cull: culler, ...(admission === undefined ? {} : { admission }) });
-  installVoidLook({ rail: layout.rail, home, scene, scope, solid, ...(admission === undefined ? {} : { admission }) });
+  const road = installRoadLook({ layout, home, scene, scope, solid, cull: culler, admission });
+  installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
   const meshes: Mesh[] = [];
   admit(() => deckPlan(parts, pitch), (owner) => {
     const grain = grainArray({ gravel, stone, strata, riprap }), material = solidMaterial(grain), deck = new Mesh(solidGeometry(parts), material);
     owner.onDispose(() => { deck.removeFromParent(); deck.geometry.dispose(); material.dispose(); grain.dispose(); });
     deck.name = 'grid-deck'; deck.receiveShadow = true;
     deck.castShadow = false; deck.matrixAutoUpdate = false; deck.updateMatrix(); scene.add(deck); cullInto(culler, deck, ROAD_LOD); meshes.push(deck);
-    if (admission !== undefined) gpuOnlyRoad(deck, [grain]); // G144: admitted, its JS copies go on upload (the plan counts them gone)
+    gpuOnlyRoad(deck, [grain]); // G144: admitted, its JS copies go on upload (the plan counts them gone)
   });
   admit(() => curtainPlan(seams.curtain, pitch), (owner) => {
     const material = curtainMaterial(home), curtain = new Mesh(curtainGeometry(seams.curtain), material);
     owner.onDispose(() => { curtain.removeFromParent(); curtain.geometry.dispose(); material.dispose(); });
     curtain.name = 'grid-seam-curtain'; curtain.receiveShadow = false;
     curtain.castShadow = false; curtain.matrixAutoUpdate = false; curtain.updateMatrix(); scene.add(curtain); cullInto(culler, curtain); meshes.push(curtain);
-    if (admission !== undefined) gpuOnlyRoad(curtain, []);
+    gpuOnlyRoad(curtain, []);
   });
   const roots = [...meshes, scene.getObjectByName('grid-boulevard'), scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
   return { road, seams: seams.state, roots };

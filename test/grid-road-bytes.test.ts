@@ -90,10 +90,10 @@ const digest = (mesh: Mesh): string => {
 let platform: Promise<Awaited<ReturnType<typeof realPlatform>>> | undefined;
 const real = (): Promise<Awaited<ReturnType<typeof realPlatform>>> => { platform ??= realPlatform(); return platform; };
 const NO_SCOPE = { onDispose: (): void => undefined };
-function install(assembly: GridAssembly, strips: readonly GeneratedStrip[], admission?: PlatformRenderAdmission, scope: { onDispose: (fn: () => void) => void } = NO_SCOPE) {
+function install(assembly: GridAssembly, strips: readonly GeneratedStrip[], admission: PlatformRenderAdmission, scope: { onDispose: (fn: () => void) => void } = NO_SCOPE) {
   const home = assembly.cell(assembly.cells.find((c) => c.cell[0] === 0 && c.cell[1] === 0)?.instance ?? ''), scene = new Group(), plans = new Map<Mesh, CullPlan>();
   const layout = roadLayout(assembly, (slug) => slug);
-  const road = installPlatformRoad({ strips, home, pitch: assembly.pitch, layout, scene, scope, plans, ...(admission === undefined ? {} : { admission }) });
+  const road = installPlatformRoad({ strips, home, pitch: assembly.pitch, layout, scene, scope, plans, admission });
   return { scene, plans, road, home, layout };
 }
 const SLOW = 180_000;
@@ -131,24 +131,22 @@ it('plans exactly the bytes every platform render builder allocates on the real 
   expect(allocator.entries()).toEqual([]);
 }, SLOW);
 
-it('builds the same bytes with the row OFF (no admission), with it ON, and through the pre-G144 hook path', async () => {
+it('keeps the admitted render bytes identical to the pre-G144 reference composition', async () => {
   const { assembly, strips } = await real(), scope = new Scope('road-bytes-identical');
   try {
-    const off = install(assembly, strips), on = install(assembly, strips, new PlatformRenderResidency(new ResidencyAllocator(), scope), scope);
+    const on = install(assembly, strips, new PlatformRenderResidency(new ResidencyAllocator(), scope), scope);
     // the pre-G144 composition (session.ts before installPlatformRoad): seamSolid, the bare cull hook, the deck built by hand
     const scene = new Group(), parts: SolidPart[] = [], plans = new Map<Mesh, CullPlan>(), lifetime = { onDispose: () => undefined };
     const cull = (mesh: Mesh): void => { plans.set(mesh, cullRoadMesh(mesh, assembly.pitch, undefined, mesh.name === 'grid-deck' ? ROAD_LOD : []).plan); };
-    const seams = seamSolid(strips, off.home, undefined, assembly.pitch); parts.push(...seams.parts);
-    installRoadLook({ layout: off.layout, home: off.home, scene, scope: lifetime, solid: (p) => { parts.push(p); }, cull });
-    installVoidLook({ rail: off.layout.rail, home: off.home, scene, scope: lifetime, solid: (p) => { parts.push(p); } });
+    const seams = seamSolid(strips, on.home, undefined, assembly.pitch); parts.push(...seams.parts);
+    installRoadLook({ layout: on.layout, home: on.home, scene, scope: lifetime, solid: (p) => { parts.push(p); }, cull });
+    installVoidLook({ rail: on.layout.rail, home: on.home, scene, scope: lifetime, solid: (p) => { parts.push(p); } });
     const deck = new Mesh(solidGeometry(parts)), curtain = new Mesh(seams.curtain);
     deck.name = 'grid-deck'; curtain.name = 'grid-seam-curtain'; scene.add(deck, curtain); cull(deck); cull(curtain);
-    const legacy = meshesOf([scene]).map(digest).sort(), offDigest = meshesOf(off.road.roots).map(digest).sort();
-    expect(offDigest).toEqual(legacy);
-    expect(meshesOf(on.road.roots).map(digest).sort()).toEqual(offDigest);
-    expect(on.road.road).toEqual(off.road.road); expect(on.road.seams).toEqual(off.road.seams);
+    const legacy = meshesOf([scene]).map(digest).sort();
+    expect(meshesOf(on.road.roots).map(digest).sort()).toEqual(legacy);
     const sources = (p: Map<Mesh, CullPlan>): string[] => [...p].map(([m, plan]) => `${m.name}:${Array.from(plan.source).join(',')}`).sort();
-    expect(sources(on.plans)).toEqual(sources(off.plans)); expect(sources(off.plans)).toEqual(sources(plans));
+    expect(sources(on.plans)).toEqual(sources(plans));
   } finally { scope.dispose(); }
 }, SLOW);
 

@@ -41,7 +41,7 @@ import { GridAssembly, type GridCell } from './assembly';
 import { gridMode } from './menu';
 import { devserverCellOn } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
-import { ResidencyAllocator } from './allocator';
+import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
 import { PlatformRenderResidency } from './renderResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
@@ -209,7 +209,8 @@ export class GridSession {
 
   /** Load every cell's edge rows (`loadGridEdgeProfiles` over the shards' own data), then build the session. */
   static async create(host: GridSessionHost): Promise<GridSession> {
-    const allocator = host.residency?.allocator ?? new ResidencyAllocator();
+    if (host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
+    const allocator = host.residency.allocator;
     const assembly = new GridAssembly(gridMode(devserverCellOn())), empty = assembly.emptyNeighbour.edge;
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
@@ -228,7 +229,10 @@ export class GridSession {
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator) {
     this.host = host;
-    this.allocator = host.residency?.allocator ?? allocator ?? new ResidencyAllocator();
+    const residency = host.residency;
+    if (residency === undefined) throw new Error('Grid session requires the early page residency owner');
+    if (allocator !== undefined && allocator !== residency.allocator) throw new Error('Grid session must share the page allocator');
+    this.allocator = residency.allocator;
     const instance = pageGridInstance();
     this.assembly = new GridAssembly(gridMode(devserverCellOn()));
     if (instance === null) throw new Error('A grid session needs a grid page');
@@ -251,12 +255,11 @@ export class GridSession {
     const frame = this.frame;
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
-    // The early owner exists only for the boot-selected Grid memory admission variant. Row OFF keeps the old build;
-    // ON admits each exact CPU/GPU byte plan before its render allocation, on the same home/region/ring allocator.
-    const admission = host.residency === undefined ? undefined : new PlatformRenderResidency(this.allocator, host.scope);
+    // G112: every grid admits exact CPU/GPU byte plans on its early home/region/ring allocator.
+    const admission = new PlatformRenderResidency(this.allocator, host.scope);
     const platformRoad = installPlatformRoad({ strips: this.strips, home, pitch: this.assembly.pitch, layout,
       scene: host.scene, scope: host.scope, camera: () => host.frame?.camera, plans: this.roadPlans,
-      ...(admission === undefined ? {} : { admission }) });
+      admission });
     this.road = platformRoad.road; this.seams = platformRoad.seams;
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
     const roadRoots = platformRoad.roots;
@@ -336,7 +339,7 @@ export class GridSession {
     host.onFixed((dt) => { this.step(dt); this.life.fixed(); });
     host.scope.onDispose(app.debug.scopedExpose('grid', { state: () => this.state(), roadView: () => this.roadBudget.view(), roadResident: () => this.roadBudget.resident(),
       // G144 admission receipts read the same allocator, without reserving or changing any claim.
-      residency: () => ({ cost: this.allocator.cost(), claims: this.allocator.entries(), home: this.host.residency === undefined ? null : { instance: this.host.residency.home().instance, bytes: this.host.residency.home().bytes } }),
+      residency: () => ({ cost: this.allocator.cost(), claims: this.allocator.entries(), home: { instance: residency.home().instance, bytes: residency.home().bytes } }),
       ...(harnessPins() === undefined ? {} : { simulation: (instanceId: string) => this.live?.simulation(instanceId) }),
     }));
   }
@@ -392,8 +395,9 @@ export class GridSession {
   /** Step 2: the live crossing, once the page's player health and equipment exist (play.ts). */
   attach(page: LiveGridPage): LiveGridSession {
     if (this.live !== null) throw new Error('The grid session already has its live crossing');
+    if (this.host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     this.live = new LiveGridSession({ assembly: this.assembly, home: this.home, physics: this.host.physics, scope: this.host.scope, walls: this.walls, strips: this.strips, allocator: this.allocator,
-      ...(this.host.residency === undefined ? {} : { residency: this.host.residency.home() }),
+      residency: this.host.residency.home(),
       neighbourEdges: (cell, origin) => neighbourEdges(cell, { origin }), rimEdges: (origin) => rimEdges(this.assembly, { origin }) }, page);
     return this.live;
   }

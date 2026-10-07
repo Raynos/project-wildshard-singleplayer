@@ -62,8 +62,6 @@ export const GAME_STRINGS = {
     /** G119: on the border shimmer while a crossing waits for its durable save, and when that save fails (the crossing retries) */
     saving: 'SAVING…',
     saveFailed: 'SAVE FAILED, RETRY',
-    memoryAdmission: 'Grid memory admission',
-    memoryAdmissionNote: 'G144: account the home, platform and neighbours through one early owner. Applies at the next grid start; retires after the admitted Infinite entry proof is green.',
     off: 'Off',
     on: 'On',
   },

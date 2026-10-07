@@ -91,8 +91,8 @@ export async function start(): Promise<void> {
   try {
     const declaredIcons = ['lock', 'check', 'poi', 'you', 'map', 'pack', 'star', 'book', 'heart', 'pin', 'laurel', 'sword', 'glyph', 'coin', 'purse', 'crossbow', 'rifle', 'lever', 'longbow', 'grapple', 'horse'] as const;
     const bindings: Parameters<typeof installShardfileProduct>[2] = {
-      instance: page?.instance ?? (source === null ? 'template-solo' : `standalone-${source.identity.slug}`), catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
-      ...(page?.residency === undefined ? {} : { residency: page.residency }),
+      instance: page.instance ?? (source === null ? 'template-solo' : `standalone-${source.identity.slug}`), catalogue: [], items: declaredKitItemFamilies(), voices: declaredWeaponVoices,
+      ...(page.residency === undefined ? {} : { residency: page.residency }),
       icon: (name) => { const id = declaredIcons.find((entry) => entry === name); if (id === undefined) throw new Error(`Unknown catalogue item icon ${name}`); return id; },
       recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
     };
@@ -110,9 +110,9 @@ export async function start(): Promise<void> {
       tools: [HOVERBOARD_TOOL],
       combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
       bagIcons: BAG_ICONS,
-    }, page === undefined ? {} : { mode: page.mode, ...(page.residency === undefined ? {} : { residency: page.residency }) });
+    }, { mode: page.mode, ...(page.residency === undefined ? {} : { residency: page.residency }) });
   } catch (error) {
-    page?.residency?.dispose();
+    page.residency?.dispose();
     throw error;
   }
 }

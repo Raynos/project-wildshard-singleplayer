@@ -25,6 +25,7 @@ import { LiveGridSession } from '../src/game/grid/liveSession';
 import { GridRegionDurability } from '../src/game/grid/durability';
 import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { PageResidency } from '../src/game/grid/pageResidency';
 import { parseMigrations } from '../src/game/shardfile/migrations';
 import source from '../src/shards/_template/shard.config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -94,7 +95,9 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
   let homeDurable = false;
   const open = () => {
     const scope = new Scope('live.durability'), pre: (() => void)[] = [], post: (() => void)[] = [];
-    const allocator = new ResidencyAllocator();
+    const allocator = new ResidencyAllocator(), owner = new PageResidency(allocator);
+    const residency = owner.admitHome(home.instance, 1_000_000);
+    scope.onDispose(() => { owner.dispose(); });
     pageScope = scope;
     let currentPhysics = pageHost.physics;
     let mounted = true;
@@ -103,7 +106,7 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
       hover: true, get ride() { return mounted ? { dismount } : null; },
       bindFrame: (physics: typeof pageHost.physics, motor: typeof pageHost.player.motor) => { currentPhysics = physics; traveller.motor = motor; } };
     const session = withOwner(scope, () => new LiveGridSession({ assembly, home, physics: pageHost.physics, scope, walls: new ReadinessWalls(pageHost.physics, [], scope),
-      strips: [], allocator, neighbourEdges, rimEdges }, {
+      strips: [], allocator, residency, neighbourEdges, rimEdges }, {
       traveller, health: pageHost.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: pageHost.events,
       saves: store, checkpoint: () => homeDurable, catalogue: [], scriptNotices: { toast: text => { toast(text); }, devAlert: text => { devAlert(text); } }, setPhysics: (physics) => { currentPhysics = physics; },
       onFixedPre: (fn) => { pre.push(fn); }, onFixedPost: (fn) => { post.push(fn); }, onInput: () => undefined, onUpdate: () => undefined,
@@ -245,8 +248,10 @@ it('admits an old-revision region through its logical companion before exposing 
   const scope = new Scope('live.migration');
   const traveller = { position: pageHost.player.position, yaw: 0, motor: pageHost.releasePlayerMotor(), camera: new PerspectiveCamera(), hoverSpeedLimit: null,
     bindFrame: (_physics: typeof pageHost.physics, motor: typeof pageHost.player.motor) => { traveller.motor = motor; } };
+  const owner = new PageResidency(), residency = owner.admitHome(home.instance, 1_000_000);
+  scope.onDispose(() => { owner.dispose(); });
   const session = new LiveGridSession({ assembly, home, physics: pageHost.physics, scope, walls: new ReadinessWalls(pageHost.physics, [], scope),
-    strips: [], allocator: new ResidencyAllocator(), neighbourEdges: () => [], rimEdges: () => [] }, {
+    strips: [], allocator: owner.allocator, residency, neighbourEdges: () => [], rimEdges: () => [] }, {
     traveller, health: pageHost.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: pageHost.events,
     saves: store, checkpoint: () => true, catalogue: [], setPhysics: () => undefined,
     onFixedPre: () => undefined, onFixedPost: () => undefined, onInput: () => undefined, onUpdate: () => undefined,

@@ -19,7 +19,7 @@ import { installBounds } from '../src/engine/world/bounds';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { LiveGridSession } from '../src/game/grid/liveSession';
-import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { PageResidency } from '../src/game/grid/pageResidency';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { MemoryStorage } from './setup';
 
@@ -33,6 +33,8 @@ async function open(homeFloor?: number) {
   });
   const scope = new Scope('live.recovery'), app = new App(), post: (() => void)[] = [];
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle');
+  const owner = new PageResidency(), residency = owner.admitHome(home.instance, 1_000_000);
+  scope.onDispose(() => { owner.dispose(); });
   const profile = assembly.emptyNeighbour.edge;
   const strips = (['east', 'west', 'north', 'south'] as const).map(edge => {
     const axis = edge === 'east' || edge === 'west' ? 'x' : 'z', sign = edge === 'east' || edge === 'north' ? 1 : -1;
@@ -42,7 +44,7 @@ async function open(homeFloor?: number) {
   const traveller = { position: host.player.position, yaw: 0, motor: host.releasePlayerMotor(), camera: new PerspectiveCamera(), hoverSpeedLimit: null, onGround: true,
     hover: false, spawn: (x: number, z: number, yaw: number, y: number) => { traveller.position.set(x, y, z); traveller.yaw = yaw; },
     bindFrame: (_physics: typeof host.physics, motor: typeof host.player.motor) => { traveller.motor = motor; } };
-  const session = new LiveGridSession({ assembly, home, physics: host.physics, scope, strips, allocator: new ResidencyAllocator(),
+  const session = new LiveGridSession({ assembly, home, physics: host.physics, scope, strips, allocator: owner.allocator, residency,
     walls: new ReadinessWalls(host.physics, [], scope), neighbourEdges: () => [], rimEdges: () => [] }, {
     traveller, health: host.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: host.events,
     saves: new SaveStore({ local: new MemoryStorage(), session: null }), checkpoint: () => true, catalogue: [],

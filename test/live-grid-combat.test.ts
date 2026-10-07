@@ -13,6 +13,7 @@ import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { GridAssembly, type GridCell } from '../src/game/grid/assembly';
 import { LiveGridSession } from '../src/game/grid/liveSession';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
+import { PageResidency } from '../src/game/grid/pageResidency';
 import * as products from '../src/game/grid/products';
 import source from '../src/shards/_template/shard.config';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
@@ -31,9 +32,11 @@ it('gates real page and fresh/restored regional combat at geometry, irrespective
   });
   const scope = new Scope('live.combat'), allocator = new ResidencyAllocator();
   const assembly = new GridAssembly({ developer: false, devserver: false }), home = assembly.cell('driftwood-isle'), target = assembly.cell('template-3');
+  const owner = new PageResidency(allocator), residency = owner.admitHome(home.instance, 1_000_000);
+  scope.onDispose(() => { owner.dispose(); });
   const traveller = { position: page.player.position, yaw: 0, motor: page.releasePlayerMotor(), camera: new PerspectiveCamera(), hoverSpeedLimit: null,
     bindFrame: (_physics: typeof page.physics, motor: typeof page.player.motor) => { traveller.motor = motor; } };
-  const session = new LiveGridSession({ assembly, home, physics: page.physics, scope, strips: [], allocator,
+  const session = new LiveGridSession({ assembly, home, physics: page.physics, scope, strips: [], allocator, residency,
     walls: new ReadinessWalls(page.physics, [], scope), neighbourEdges: () => [], rimEdges: () => [] }, {
     traveller, health: page.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: page.events,
     saves: new SaveStore({ local: new MemoryStorage(), session: null }), checkpoint: () => true, catalogue: [], setPhysics: () => undefined,

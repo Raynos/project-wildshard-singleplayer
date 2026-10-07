@@ -95,7 +95,7 @@ export interface LiveGridPage {
 }
 /** What the session lends: the assembly, the home world and its walls, the strips and the one allocator. */
 export interface LiveGridSessionPorts {
-  readonly residency?: HomeResidencyClaim;
+  readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
   readonly walls: ReadinessWalls; readonly strips: readonly GeneratedStrip[]; readonly allocator: ResidencyAllocator;
   readonly neighbourEdges: (cell: GridCell, origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];
@@ -163,6 +163,7 @@ export class LiveGridSession {
   private readonly respawnCells = new Map<string, RoadRecoveryCell>();
 
   constructor(ports: LiveGridSessionPorts, page: LiveGridPage) {
+    if (ports.residency.allocator !== ports.allocator || ports.residency.instance !== ports.home.instance) throw new Error('Live grid requires its admitted home on the page allocator');
     this.ports = ports; this.page = page;
     this.framePhysics = ports.physics;
     const { assembly, home, scope } = ports, rapier = ports.physics.R;
@@ -191,7 +192,7 @@ export class LiveGridSession {
       + assembly.cells.length * TRANSFER_WALL_BYTES;
     try { this.live = new LiveGridHost(assembly, {
       continuations: 'durable', // Every owned production region below reconstructs its basis and reloads its durable save.
-      home: { instance: home.instance, physics: ports.physics, bytes: ports.residency?.bytes ?? 1, ...(ports.residency === undefined ? {} : { residency: ports.residency }), checkpoint: () => this.checkpointHome(), walls: ports.walls },
+      home: { instance: home.instance, physics: ports.physics, bytes: ports.residency.bytes, residency: ports.residency, checkpoint: () => this.checkpointHome(), walls: ports.walls },
       player, allocator: ports.allocator,
       highway: { bytes: highwayBytes, create: () => {
         const host = createSimHost(PLATFORM_LEVEL, { rapier, playerBody: false, ground: false });
@@ -224,7 +225,7 @@ export class LiveGridSession {
     });
     // the freeze fence: the home client's existing driver runs only while the traveller is in the home frame (sp-x5's handoff)
     scope.onDispose(gridHomeSim.take((sim) => {
-      if (ports.residency !== undefined && sim.residency !== ports.residency) throw new Error('Home simulation handoff must retain its admitted page claim');
+      if (sim.residency !== ports.residency) throw new Error('Home simulation handoff must retain its admitted page claim');
       this.homeSim = sim; sim.setActive(this.live.current() === home.instance);
     }));
     scope.onDispose(() => { this.homeSim?.setActive(true); this.homeSim = null; });
