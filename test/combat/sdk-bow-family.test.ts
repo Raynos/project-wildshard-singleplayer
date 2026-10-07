@@ -7,6 +7,7 @@ import { Bow } from '../../src/engine/combat/view/Bow';
 import { fnv1a32 } from '../../src/engine/core/rng';
 import { BowDraw as LegacyDraw } from '../../src/kit/weapons/bow/draw';
 import { Bow as LegacyBow } from '../../src/kit/weapons/bow/family';
+import { Bow as StarterBow } from '../../src/sdk/runtime/weapons/starterBow';
 import { Bow as TrustedBow } from '../../src/sdk/runtime/weapons/Bow';
 import { BOW } from '../../src/shards/nalati-grasslands/weapons/equipment';
 import { NALATI_BOW } from '../../src/shards/nalati-grasslands/weapons/loadout';
@@ -27,13 +28,14 @@ function drawTrace(Base: typeof BowDraw) {
   }
   return { ticks: 10_000, hash, events };
 }
-function bowTrace(platform: boolean, portrait: boolean) {
+function bowTrace(platform: boolean | 'starter', portrait: boolean) {
   const scope = new Scope('bow-parity'), f = fakeWorld(), rng = app.rng.snapshot();
   Reflect.set(f.player, 'swimming', false); Reflect.set(f.player, 'dashCd', 0);
   f.game.camera.aspect = portrait ? 402 / 874 : 16 / 9;
   const world = { game: f.game.asGame(), player: f.player, sky: f.sky, forest: f.forest };
-  const bow = withOwner(scope, () => platform
+  const bow = withOwner(scope, () => platform === true
     ? new Bow(world, undefined, { row: BOW, profile: NALATI_BOW, inputContext: 'weapon.bow', initialStyle: 'recurve' })
+    : platform === 'starter' ? new StarterBow(world, undefined, { row: BOW, profile: NALATI_BOW })
     : new LegacyBow(world, undefined, { row: BOW, profile: NALATI_BOW }));
   const edges: string[] = [], launches: number[][] = [];
   bow.install({ scope }); bow.wind = null;
@@ -67,6 +69,7 @@ describe('trusted SDK bow graduation', () => {
   it.each([false, true])('preserves live view transforms, input defaults, mounted draw and launch edges (portrait=%s)', (portrait) => {
     const original = bowTrace(false, portrait);
     expect(bowTrace(true, portrait)).toEqual(original);
+    expect(bowTrace('starter', portrait)).toEqual(original);
     expect(original).toMatchSnapshot();
   });
 });

@@ -17,6 +17,7 @@ import { SWORD_WOOD, SWORD_IRON } from '../../src/kit/weapons/melee/profiles';
 import { SWORD } from '../../src/kit/weapons/equipment';
 import { swordRig } from '../../src/shards/driftwood-isle/weapons/swordView';
 import { SweptMelee as TrustedSwept } from '../../src/sdk/runtime/weapons/SweptMelee';
+import { Sword as StarterSword, swordEvents as starterSwordEvents } from '../../src/sdk/runtime/weapons/Sword';
 import { fakeWorld } from '../fake/world';
 import { seedRandom } from '../fake/FakeGame';
 
@@ -30,9 +31,9 @@ function defaults(events: MeleeEvents): SweptMeleeDefaults {
     debris: (kind) => kind === 'crab' ? shell : kind === 'sailor' ? timber : sand };
 }
 
-function trace(platform: boolean, portrait: boolean, blade: 'wood' | 'iron', kind: string, customMoves = false) {
+function trace(platform: boolean | 'starter', portrait: boolean, blade: 'wood' | 'iron', kind: string, customMoves = false) {
   const scope = new Scope('swept-parity'), f = fakeWorld(), rng = app.rng.snapshot(), restoreRandom = seedRandom();
-  const savedEvents = { ...swordEvents };
+  const savedEvents = { ...swordEvents }, savedStarterEvents = { ...starterSwordEvents };
   setActivePhysics(null); app.input.consume('attack');
   f.game.camera.aspect = portrait ? 402 / 874 : 16 / 9;
   const hits: unknown[] = [], events: unknown[] = [], stops: number[] = [], debris: unknown[] = [];
@@ -46,15 +47,15 @@ function trace(platform: boolean, portrait: boolean, blade: 'wood' | 'iron', kin
     onStrike: (species, point, strength, killed) => { events.push(['strike', species, [...point], strength, killed]); },
     onClang: (point, strength, material) => { events.push(['clang', [...point], strength, material]); },
   };
-  Object.assign(swordEvents, reactions);
+  Object.assign(swordEvents, reactions); Object.assign(starterSwordEvents, reactions);
   const game = f.game.asGame(); game.hitStop = (seconds) => { stops.push(seconds); };
   const world = { game, player: f.player, sky: f.sky, forest: f.forest };
   const opts = { row: SWORD, rig: swordRig(f.sky, blade), allowUnlocked: true, blade,
     ...(customMoves ? { moves: { rest: REST, charge: CHARGE, sprint: SPRINT,
       combo: COMBO.map(copyMove), heavy: { ...HEAVY } } } : {}) };
-  const weapon = withOwner(scope, () => platform
+  const weapon = withOwner(scope, () => platform === true
     ? new SweptMelee(world, targets, { ...opts, profile: blade === 'iron' ? SWORD_IRON : SWORD_WOOD, inputContext: 'weapon.melee' }, defaults(reactions))
-    : new Sword(world, targets, opts));
+    : platform === 'starter' ? new StarterSword(world, targets, opts) : new Sword(world, targets, opts));
   weapon.install({ scope });
   const impact = vi.spyOn(Impacts.for(game), 'burst').mockImplementation((surface, point, direction, count) => {
     debris.push([surface, [...point], [...direction], count]);
@@ -96,6 +97,8 @@ function trace(platform: boolean, portrait: boolean, blade: 'wood' | 'iron', kin
     impact.mockRestore(); scope.dispose(); app.rng.restore(rng); restoreRandom();
     Object.assign(swordEvents, savedEvents);
     for (const key of ['onSwing', 'onStrike', 'onClang'] as const) if (savedEvents[key] === undefined) delete swordEvents[key];
+    Object.assign(starterSwordEvents, savedStarterEvents);
+    for (const key of ['onSwing', 'onStrike', 'onClang'] as const) if (savedStarterEvents[key] === undefined) delete starterSwordEvents[key];
     app.input.consume('attack'); setAimTargets([]); setActivePhysics(null);
   }
 }
@@ -108,6 +111,7 @@ describe('trusted SDK swept contact family', () => {
     for (const blade of ['wood', 'iron'] as const) for (const kind of ['crab', 'sailor', 'boar']) {
       const original = trace(false, portrait, blade, kind);
       expect(trace(true, portrait, blade, kind)).toEqual(original);
+      expect(trace('starter', portrait, blade, kind)).toEqual(original);
       // Independent kit oracle captured in 8aa9502ce before delegation; never refresh from the wrapper.
       expect(original).toMatchSnapshot(`${blade}:${kind}`);
     }
@@ -115,6 +119,7 @@ describe('trusted SDK swept contact family', () => {
   it.each([false, true])('preserves starter identity checks when a profile supplies equivalent custom moves (portrait=%s)', (portrait) => {
     const original = trace(false, portrait, 'iron', 'sailor', true);
     expect(trace(true, portrait, 'iron', 'sailor', true)).toEqual(original);
+    expect(trace('starter', portrait, 'iron', 'sailor', true)).toEqual(original);
     expect(original).toMatchSnapshot();
   });
 });

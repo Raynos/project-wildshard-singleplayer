@@ -110,6 +110,13 @@
     "./shardfile/commonsCosts": "./shardfile/commonsCosts.ts",
     "./shardfile/crowdRuntime": "./shardfile/crowdRuntime.ts",
     "./shardfile/socketLift": "./shardfile/socketLift.ts",
-    "./shardfile/socketLiftProof": "./shardfile/socketLiftProof.ts"
+    "./shardfile/socketLiftProof": "./shardfile/socketLiftProof.ts",
+    "./weapons/starterGlyphs": "./weapons/starterGlyphs.ts",
+    "./weapons/starterEquipment": "./weapons/starterEquipment.ts",
+    "./weapons/starterMoves": "./weapons/starterMoves.ts",
+    "./weapons/starterMeleeProfile": "./weapons/starterMeleeProfile.ts",
+    "./weapons/starterBowProfile": "./weapons/starterBowProfile.ts",
+    "./weapons/Sword": "./weapons/Sword.ts",
+    "./weapons/Bow": "./weapons/Bow.ts"
   }
 }

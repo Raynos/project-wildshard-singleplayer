@@ -289,6 +289,13 @@ Pick the lowest rung of the ladder that works ([ENGINE.md §18](ENGINE.md#18-com
 | **Extend** | a kit family almost does it | `class LeverRifle extends Firearm` (Pine Hollow) |
 | **Custom** | nothing in the kit is close | `class TemplateWhip extends Weapon` built from `blocks.viewmodel` + `blocks.melee` |
 
+The trusted runtime families are defined by `@wildshard/sdk/runtime/weapons/{Melee,Thrown,Firearm,SweptMelee,Bow}`.
+The existing starter recipes use `@wildshard/sdk/runtime/weapons/Sword` and `.../starterBow`; their defining
+`starterMoves`, `starterMeleeProfile`, `starterBowProfile`, `starterEquipment` and `starterGlyphs` modules preserve
+shared recipe identities. These are transitional trusted runtime ports, not uploaded TypeScript author hooks.
+A Sword always receives an explicit shard-owned `rig`; the family supplies contact and view execution, not a model.
+A Bow profile supplies its own model and arrow strategies. Models stay in the owning shard's lane.
+
 For each weapon:
 
 1. **A row** (`EquipmentRow`, in `weapons/rows.ts`): `id: 'weapon.<name>'`, `ui` (name, icon, touch mode, lock-on,

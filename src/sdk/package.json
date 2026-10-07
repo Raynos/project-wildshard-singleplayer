@@ -47,7 +47,14 @@
     "./runtime/weapons/SweptMelee": "./runtime/weapons/SweptMelee.ts",
     "./bake/textureWasm": "./bake/textureWasm.ts",
     "./bake/worldLod": "./bake/worldLod.ts",
-    "./socketLift": "./socketLift.ts"
+    "./socketLift": "./socketLift.ts",
+    "./runtime/weapons/starterGlyphs": "./runtime/weapons/starterGlyphs.ts",
+    "./runtime/weapons/starterEquipment": "./runtime/weapons/starterEquipment.ts",
+    "./runtime/weapons/starterMoves": "./runtime/weapons/starterMoves.ts",
+    "./runtime/weapons/starterMeleeProfile": "./runtime/weapons/starterMeleeProfile.ts",
+    "./runtime/weapons/starterBowProfile": "./runtime/weapons/starterBowProfile.ts",
+    "./runtime/weapons/Sword": "./runtime/weapons/Sword.ts",
+    "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -257,6 +264,34 @@
       "./socketLift": {
         "types": "./dist/types/sdk/socketLift.d.ts",
         "default": "./dist/socketLift.js"
+      },
+      "./runtime/weapons/starterGlyphs": {
+        "types": "./dist/types/sdk/runtime/weapons/starterGlyphs.d.ts",
+        "default": "./dist/runtime/weapons/starterGlyphs.js"
+      },
+      "./runtime/weapons/starterEquipment": {
+        "types": "./dist/types/sdk/runtime/weapons/starterEquipment.d.ts",
+        "default": "./dist/runtime/weapons/starterEquipment.js"
+      },
+      "./runtime/weapons/starterMoves": {
+        "types": "./dist/types/sdk/runtime/weapons/starterMoves.d.ts",
+        "default": "./dist/runtime/weapons/starterMoves.js"
+      },
+      "./runtime/weapons/starterMeleeProfile": {
+        "types": "./dist/types/sdk/runtime/weapons/starterMeleeProfile.d.ts",
+        "default": "./dist/runtime/weapons/starterMeleeProfile.js"
+      },
+      "./runtime/weapons/starterBowProfile": {
+        "types": "./dist/types/sdk/runtime/weapons/starterBowProfile.d.ts",
+        "default": "./dist/runtime/weapons/starterBowProfile.js"
+      },
+      "./runtime/weapons/Sword": {
+        "types": "./dist/types/sdk/runtime/weapons/Sword.d.ts",
+        "default": "./dist/runtime/weapons/Sword.js"
+      },
+      "./runtime/weapons/starterBow": {
+        "types": "./dist/types/sdk/runtime/weapons/starterBow.d.ts",
+        "default": "./dist/runtime/weapons/starterBow.js"
       }
     }
   }
