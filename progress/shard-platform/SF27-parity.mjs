@@ -21,6 +21,8 @@ const variants = flag('hybrid', 'off,on').split(',');
 const tiers = flag('tiers', 'phone,desktop').split(',');
 // G112 re-proofs compare the witnessed policy modes on each pin, independently of the director device row.
 const groupModes = { parent: flag('parent-groups', 'legacy'), current: flag('current-groups', 'variant') };
+const crowdModes = { parent: flag('parent-crowds', 'untracked'), current: flag('current-crowds', 'untracked') };
+if (Object.values(crowdModes).some(value => !['untracked', 'legacy', 'variant', 'declared-default'].includes(value))) throw new Error('Invalid crowd witness mode');
 const policyModes = { parent: flag('parent-policies', 'legacy'), current: flag('current-policies', 'variant') };
 if (Object.values(policyModes).some(value => !['legacy', 'variant', 'declared-default'].includes(value))) throw new Error('Invalid ordinary policy witness mode');
 if (Object.values(groupModes).some(value => !['legacy', 'variant', 'declared-default'].includes(value))) {
@@ -69,6 +71,7 @@ try {
                 if (!wildlife?.packs?.length || !wildlife?.herds?.length) return null;
                 return { packs: wildlife.packs.map(policy => ({ members: policy.members.map(actor => actor.entityId), declared: typeof policy.snapshot === 'function' })),
                   herds: wildlife.herds.map(policy => ({ members: policy.members.map(actor => actor.entityId), declared: typeof policy.snapshot === 'function' })),
+                  flocks: (wildlife.flocks ?? []).map(view => ({ count: view.n, declared: typeof view.controller?.snapshot === 'function' })),
                   saved: JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.['debug.plugin.nalati-grasslands.shardDirectors']?.data };
               });
               if (observed !== null) groupActivation = observed;
@@ -109,7 +112,12 @@ try {
           if (groupActivation === null || groupActivation.saved !== hybrid || [...groupActivation.packs, ...groupActivation.herds].some(policy => policy.declared !== expected)) {
             throw new Error(`Nalati group activation witness failed: ${label}/${hybrid}/${tier}: ${JSON.stringify(groupActivation)}`);
           }
-          record.activation = { deviceKey: 'debug.plugin.nalati-grasslands.shardDirectors', ...groupActivation };
+          const crowdMode = crowdModes[label], crowdExpected = crowdMode === 'declared-default' || (crowdMode === 'variant' && hybrid === 'on');
+          const installed = Object.values(object(get(record, 'boot.systems'))).flat(), crowdPresent = installed.includes('shard.nalati.wildlife.declared');
+          if (crowdMode !== 'untracked' && (crowdPresent !== crowdExpected || !groupActivation.flocks.length
+            || groupActivation.flocks.some(view => view.declared !== crowdExpected))) throw new Error(`Nalati crowd activation witness failed: ${label}/${hybrid}/${tier}: ${JSON.stringify(groupActivation)}`);
+          record.activation = { deviceKey: 'debug.plugin.nalati-grasslands.shardDirectors', ...groupActivation,
+            ...(crowdMode !== 'untracked' ? { crowdExpected, crowdSystemPresent: crowdPresent } : {}) };
         }
         if (['far-reach', 'sunscar-dunes'].includes(shard)) {
           const mode = policyModes[label], expected = mode === 'declared-default' || (mode === 'variant' && hybrid === 'on');
@@ -143,12 +151,15 @@ try {
         p.ssim = score.ssim; images.push({ name, ssim: score.ssim, full: score.full, masked: score.masked, note: score.note });
       }
       // Existing approved ambient information entry, also used by the main parity harness.
-      const result = compare(baseline, gameplayRecord(record), { ambientInfo: ['forest.thrall'] });
+      const parentCrowd = records[`parent/${key}`].activation?.crowdSystemPresent, currentCrowd = record.activation?.crowdSystemPresent;
+      const renames = typeof parentCrowd === 'boolean' && typeof currentCrowd === 'boolean' && parentCrowd !== currentCrowd
+        ? [{ systems: { [parentCrowd ? 'shard.nalati.wildlife.declared' : 'shard.nalati.wildlife']: currentCrowd ? 'shard.nalati.wildlife.declared' : 'shard.nalati.wildlife' } }] : [];
+      const result = compare(baseline, gameplayRecord(record), { ambientInfo: ['forest.thrall'], renames });
       reports.push({ hybrid, setting, shard, tier, verdict: result.verdict, images, differences: result.rows.filter((r) => r.verdict === 'red' || r.verdict === 'new'), checks: result.rows.filter((r) => r.class === 'D'), parent: records[`parent/${key}`], current: record });
       console.log(`SF27 ${key}: ${result.verdict}, images ${images.map((i) => `${i.name}=${i.ssim}`).join(', ')}`);
     }
   } finally { await context.close(); }
-  const record = { row: 'SF27', parent, current, tiers, groupModes, policyModes, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
+  const record = { row: 'SF27', parent, current, tiers, groupModes, policyModes, crowdModes, hybridDebugFixtures: variants, when: new Date().toISOString(), elapsedSeconds: (Date.now() - start) / 1000,
     method: 'Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.',
     ambientInfo: ['forest.thrall'], reports };
   writeFileSync(join(out, 'SF27-parity.json'), JSON.stringify(record, null, 2) + '\n');
