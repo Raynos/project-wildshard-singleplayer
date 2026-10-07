@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { deviceSavePicks, saveFixtureCode } from './debug-settings.mjs';
 // E357: per-shard cold Safari phases; the caller holds sim-lane.sh.
+// --locations=on additionally samples every real capture pose for 120 frames + three settled readings.
+// It requires the usual harness pins in the owned preview HTML before page boot (see SF22a receipts).
 import { shardFolders } from './gen-shards.mjs';
 import { spawn, spawnSync, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, createWriteStream, readdirSync, unlinkSync } from 'node:fs';
@@ -230,7 +232,9 @@ async function oneRun(udid, run, opts) {
       return actual;
     };
     result.identity = await checkIdentity();
+    if (opts.locations && !(await evaluate('Boolean(window.__wildshardHarness)'))) throw new Error('location sampling requires harness pins injected before boot');
     result.settings = JSON.parse(await evaluate('JSON.stringify(JSON.parse(localStorage.getItem("wildshard.save.v2.global") ?? "{}").keys?.settings?.data ?? {})'));
+    result.texturePolicy = JSON.parse(await evaluate('JSON.stringify(window.__ws_prefetch?.state.tex ?? null)'));
     if (Object.entries(settings).some(([key, value]) => result.settings[key] !== value)) throw new Error('Debug settings fixture did not survive the cold load');
     result.deviceSaves = JSON.parse(await evaluate('JSON.stringify(Object.fromEntries(Object.entries(JSON.parse(localStorage.getItem("wildshard.save.v2.device") ?? "{}").keys ?? {}).map(([key, value]) => [key, value.data])))'));
     if (Object.entries(deviceSaves).some(([key, value]) => result.deviceSaves[key] !== value)) throw new Error('Device Debug fixture did not survive the cold load');
@@ -259,6 +263,41 @@ async function oneRun(udid, run, opts) {
     const turn = (2 * Math.PI) / opts.play;
     result.phases.play = { fps: await fpsOver(opts.play, () => evaluate(`(() => { const p = window.__wildshard?.world?.player; if (p && typeof p.yaw === 'number') p.yaw += ${turn}; return 1; })()`)) };
     await settle();
+
+    // SF22a: optional real capture locations retain the kernel's interval-high transient,
+    // as well as three settled readings. Return to the original pose before Explorer.
+    if (opts.locations) {
+      const original = JSON.parse(await evaluate('JSON.stringify((() => { const p = window.__wildshard.world.player; return { ...p.position, yaw: p.yaw, pitch: p.pitch }; })())'));
+      await evaluate(`window.__wsMemoryPoses = null; Promise.resolve(window.__wildshard.world.game.level.capturePoses?.()).then((cameras) => {
+        window.__wsMemoryPoses = Object.entries(cameras ?? {}).flatMap(([name, camera]) => camera.probe ? [{ ...camera.probe, name }] : camera.feet ? [{ name, x: camera.feet[0], y: camera.feet[1], z: camera.feet[2], yaw: -camera.yaw * Math.PI / 180, pitch: camera.pitch * Math.PI / 180 }] : []);
+      }); 1`);
+      let poses = null;
+      for (let i = 0; i < 40 && poses === null; i++) {
+        poses = JSON.parse(await evaluate('JSON.stringify(window.__wsMemoryPoses)'));
+        if (poses === null) await sleep(250);
+      }
+      if (!Array.isArray(poses) || poses.length === 0) throw new Error('location sampling requires real capture poses');
+      result.locations = poses;
+      for (const pose of [...poses, { ...original, name: 'return' }]) {
+        if (typeof pose.name !== 'string' || !/^[a-z0-9_-]+$/i.test(pose.name)) throw new Error('invalid capture location name');
+        setPhase(`location:${pose.name}`);
+        await evaluate(`window.__wsMemoryLocation = 'pending'; window.__wildshard.pose(${JSON.stringify(pose)}).then(() => {
+          const end = window.__wildshard.world.game.frameCount + 120;
+          const wait = () => { if (window.__wildshard.world.game.frameCount >= end) window.__wsMemoryLocation = 'done'; else requestAnimationFrame(wait); };
+          requestAnimationFrame(wait);
+        }, (error) => { window.__wsMemoryLocation = String(error); }); 1`);
+        let completed = false;
+        for (let poll = 0; poll < 120; poll++) {
+          const status = await evaluate('window.__wsMemoryLocation');
+          if (status === 'done') { completed = true; break; }
+          if (status !== 'pending') throw new Error(`location failed: ${status}`);
+          await sleep(250);
+        }
+        if (!completed) throw new Error('location did not finish in 30 s');
+        await settle();
+        write({ kind: 'location', pose, identity: await checkIdentity() });
+      }
+    }
 
     setPhase('menu');
     await evaluate('document.dispatchEvent(new Event("ws:pause")); 1');
@@ -304,8 +343,9 @@ async function oneRun(udid, run, opts) {
     if (phase !== 'done') setPhase('done');
     if (page) { await Promise.race([page.send('Memory.stopTracking').catch(() => null), sleep(2000)]); page.close(); }
     const peak = (ph) => samples.filter((s) => s.phase === ph).reduce((m, s) => (s.bytes > m.bytes ? s : m), { bytes: 0, cats: [] });
-    result.inspectorPeakGB = Object.fromEntries(PHASES.map((ph) => [ph, Math.round(peak(ph).bytes / 1e6) / 1000]));
-    result.inspectorAtPeakMB = Object.fromEntries(PHASES.map((ph) => [ph, Object.fromEntries(peak(ph).cats.map((c) => [c.type, Math.round(c.size / 1e6)]))]));
+    const observedPhases = [...new Set([...PHASES, ...samples.map((sample) => sample.phase)])];
+    result.inspectorPeakGB = Object.fromEntries(observedPhases.map((ph) => [ph, Math.round(peak(ph).bytes / 1e6) / 1000]));
+    result.inspectorAtPeakMB = Object.fromEntries(observedPhases.map((ph) => [ph, Object.fromEntries(peak(ph).cats.map((c) => [c.type, Math.round(c.size / 1e6)]))]));
     write({ kind: 'summary', result });
     await new Promise((resolve) => { log.end(resolve); });
     proxy.kill();
@@ -337,7 +377,7 @@ async function main() {
   const count = Number(flag('runs', '1'));
   const expectedBuild = (await (await fetch(new URL('version.json', base))).json()).build;
   if (typeof expectedBuild !== 'string' || !expectedBuild) throw new Error('server build identity missing');
-  const opts = { out, expectedBuild, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), settings: flags('setting'), deviceSaves: deviceSavePicks(flags('device-save')) };
+  const opts = { out, expectedBuild, play: Number(flag('play', '60')), fly: Number(flag('fly', '60')), locations: flag('locations', 'off') === 'on', settings: flags('setting'), deviceSaves: deviceSavePicks(flags('device-save')) };
   if (!Number.isInteger(count) || count < 1 || !Number.isFinite(opts.play) || opts.play <= 0 || !Number.isFinite(opts.fly) || opts.fly <= 0) throw new Error('invalid run count/duration');
   if (shards.some((shard) => !/^_?[a-z0-9-]+$/.test(shard))) throw new Error('invalid shard');
   const previousReport = flag('previous', '') ? JSON.parse(readFileSync(flag('previous', ''), 'utf8')) : null;
