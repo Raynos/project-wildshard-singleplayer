@@ -181,7 +181,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
 
   // ── Performance ──
   opt('fps', 'perf', engineString('s_5f5c99339841'), [['auto', engineString('s_0286249762f7')], ['30', engineString('s_624b60c58c9d')], ['60', engineString('s_c1fe790a9f07')]], { purpose: 'developer', when: () => !MOBILE_DEVICE, ask: 'E193', reviewBy: '2026-12-30', note: engineString('s_d56f59162f05') }),
-  opt('loadProfile', 'perf', engineString('s_50fe86d601b8'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_e7db47a239eb') }),
 
   // ── Loading & memory ──
   {

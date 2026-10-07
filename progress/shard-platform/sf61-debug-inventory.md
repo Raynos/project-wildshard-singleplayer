@@ -153,3 +153,7 @@ and needed CLI-only engine hooks remain.
 
 - Clock-speed forcing and subscription deleted; the native day clock keeps its normal rate.
   Inventory: **9 comparisons / 12 Developer tools**.
+
+- Load profiling row, saved option, shader log collection, loading-bar trace and extra diagnostic render deleted.
+  Shader precompile batching, link resolution and texture uploads remain. No CLI uses this selector or its log hooks.
+  Inventory: **9 comparisons / 11 Developer tools**.

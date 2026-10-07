@@ -23,7 +23,6 @@ import { SkyRig as Sky } from '../world/skyRig';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { TIER, TIER_CONFIG, frameCapFps, type Tier } from './tier';
-import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms } from '../boot/perflog';
 import { worldTime } from './time';
 import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
@@ -643,34 +642,27 @@ export class Game {
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const prev = this.renderer.getRenderTarget();
-    let t0 = performance.now(); let before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.renderer.setRenderTarget(target);
     checkpoint('world:before');
     this.renderer.render(this.scene, this.camera);
     checkpoint('world:submitted');
     this.renderer.setRenderTarget(prev);
-    if (before) perfLog('firstFrame:world', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
     checkpoint('world:next-frame');
     // E153: the world once facing each way, so a turn finds every pipeline built (warmTurn)
     for (let k = 1; k <= warmTurns; k++) {
       onProgress?.(k, warmTurns + 2, `world, turned ${String(k * 360 / WARM_TURNS)}°`);
-      t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
       this.warmTurn(k, target);
-      if (before) perfLog(`firstFrame:turn${String(k)}`, performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
       await frame();
     }
     onProgress?.(warmTurns + 1, warmTurns + 2, 'post chain');
-    t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.lookStrategy?.frame?.(0.016, 0);
     checkpoint('post:before');
     if (tracedBoot) traceBootPasses(this.composer.passes, checkpoint, () => { this.composer.render(0.016); });
     else this.composer.render(0.016);
     checkpoint('post:submitted');
-    if (before) perfLog('firstFrame:post', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
     checkpoint('post:next-frame');
-    if (PERFLOAD) { t0 = performance.now(); before = snapshotPrograms(this.renderer); this.composer.render(0.016); perfLog('secondFrame', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | ')); console.info(`[perfload] programs:\n${dumpPrograms(this.renderer).join('\n')}`); }
   }
 
   /**

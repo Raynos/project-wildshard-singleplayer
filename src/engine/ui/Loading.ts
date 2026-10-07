@@ -3,7 +3,6 @@ import { engineString } from '../strings';
 import { saveStorage } from '../saves/slots';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
-import { PERFLOAD, barTrace } from '../boot/perflog';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { lastEndLine } from '../boot/lastEnd';
@@ -91,7 +90,6 @@ export class Loading {
     this.view = v;
     recordBootProgress(v);
     this.dirty = true;
-    if (PERFLOAD) barTrace.push([Math.round(performance.now() - this.t0), v.setup, v.download, v.step]);
     const pct = (f: number): string => String(Math.floor(f * 100));
     this.root.dataset['download'] = pct(v.download);
     this.root.dataset['setup'] = pct(v.setup);

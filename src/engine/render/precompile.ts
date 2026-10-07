@@ -2,7 +2,7 @@ import { resourceScope } from '../app/resources';
 import { engineString } from '../strings';
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
-import { PERFLOAD, perfLog, describeProgram, newProgramsSince, snapshotPrograms, type ProgramLike, parallelCompile } from '../boot/perflog';
+import { newProgramsSince, snapshotPrograms, type ProgramLike } from '../boot/perflog';
 import { TIER } from '../core/tier';
 import { recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import type { Renderer } from './renderer';
@@ -271,8 +271,6 @@ export async function runPrecompile(
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now();
   for (const [i, job] of jobs.entries()) {
-    const t0 = performance.now();
-    const snap = PERFLOAD ? snapshotPrograms(renderer) : null;
     const prevRt = renderer.getRenderTarget();
     const fog = job.target?.fog ?? null;
     try {
@@ -283,14 +281,12 @@ export async function runPrecompile(
       renderer.setRenderTarget(prevRt);
       if (job.fogOff && job.target) job.target.fog = fog;
     }
-    if (snap) perfLog(`issue ${job.label}`, performance.now() - t0, renderer, newProgramsSince(renderer, snap).map(describeProgram).join(' | ') || 'cached');
     onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`);
     // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
     if (performance.now() - tFrame > 12 || i === jobs.length - 1) { await frame(); tFrame = performance.now(); }
   }
   created.push(...newProgramsSince(renderer, before));
   const n = created.length;
-  const t0 = performance.now();
   // Phase A (parallel drivers): wait for COMPLETION_STATUS_KHR on every program, counting them up.
   const units = parallel ? 2 * n : n;
   if (parallel) {
@@ -301,7 +297,6 @@ export async function runPrecompile(
       if (ready >= n) break;
       await frame();
     }
-    if (PERFLOAD) perfLog('link', performance.now() - t0, renderer, `${n} programs · parallel`);
   }
   // Phase B: resolve each link. COMPLETION_STATUS only says the front end is done — ANGLE Metal
   // builds the Metal library on the first LINK_STATUS / uniform query (~20 ms a program with a cold
@@ -310,17 +305,14 @@ export async function runPrecompile(
   // is also where the link itself blocks. The resolve is three's own first use (`getUniforms()`: the
   // link-status + info-log checks, every uniform / attribute location), which the first draw of each
   // program otherwise ran inside the first frame (~45 ms of onFirstUse at 4x CPU).
-  const tB = performance.now();
-  let tSlice = tB;
+  let tSlice = performance.now();
   for (const [i, p] of created.entries()) {
     p.getUniforms();
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
-  if (PERFLOAD) perfLog('resolve', performance.now() - tB, renderer, `${n} programs · LINK_STATUS`);
   // Phase C: upload every texture (12 ms slices) so the first draw finds them resident.
-  const tC = performance.now();
-  tSlice = tC;
+  tSlice = performance.now();
   const base = jobs.length + units;
   for (const [i, tex] of textures.entries()) {
     const compressed = TIER === 'phone' && tex instanceof THREE.CompressedTexture;
@@ -338,7 +330,6 @@ export async function runPrecompile(
     onProgress?.(base + i + 1, base + textures.length, `${i + 1} / ${textures.length} textures uploaded`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
-  if (PERFLOAD) perfLog('textures', performance.now() - tC, renderer, `${textures.length} textures · initTexture`);
   return { materials, jobs: jobs.length, programs: n, parallel };
 }
 
@@ -370,7 +361,6 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const bg = backgroundJob(game.scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg);
     if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt));
-    if (PERFLOAD) perfLog('precompile:start', 0, game.renderer, `${materials} materials · ${jobs.length} jobs · parallel=${parallelCompile(game.renderer)}`);
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
