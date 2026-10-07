@@ -20,8 +20,8 @@ import { prepareBootAudio } from './audioInventory';
  * the response. The page thread only posts messages, so the game's frames do not pay for it.
  *
  * Polite: starts a few seconds after playable and only when idle; at most CONCURRENCY files in flight; nothing new while
- * the tab is hidden; on Wi-Fi and cellular alike (the user's pick), off on the OS's data saver (Save-Data), without a controlling worker (dev, `?sw=0`, the native shells), and
- * with pause ▸ Settings ▸ Debug ▸ Download in background (`setting('prefetch')`; no URL switch). The current shard goes first:
+ * the tab is hidden; on Wi-Fi and cellular alike (E158), off on the OS's data saver (Save-Data) or without a controlling
+ * worker (dev, `?sw=0`, the native shells). The current shard goes first:
  * whatever its own boot fetched before the worker controlled the page
  * (a first visit on a slow link, the ≤ 2.5 s cap in src/engine/boot/sw.ts) is stored now instead of on the next launch.
  *
@@ -117,8 +117,6 @@ function markKtx2(def: BootLevel, complete: boolean, hash: string): void {
 setAutoKtx2Check((slug) => { const def = bootCatalog().find(slug); return def !== undefined && ktx2Ready(def); });
 
 export interface PrefetchEnv {
-  /** pause ▸ Settings ▸ Debug ▸ Download in background is Off */
-  off?: boolean;
   /** a service worker controls the page (its caches are where the files go) */
   controlled: boolean;
   /** the OS's data saver (Android Data Saver, Chromium's Save-Data; iOS Low Data Mode does not reach the page) */
@@ -127,10 +125,9 @@ export interface PrefetchEnv {
 
 /**
  * Why the background download must not run here, or null when it may. Wi-Fi and cellular alike (the user's pick, E158):
- * only the player's explicit data saver and the Debug menu's switch turn it off — never the connection type.
+ * only the OS data saver or absence of a service worker prevents it — never the connection type.
  */
 export function prefetchVeto(env: PrefetchEnv): string | null {
-  if (env.off === true) return 'switched off (Settings ▸ Debug)';
   if (!env.controlled) return 'no service worker';
   if (env.saveData === true) return 'Save-Data';
   return null;
@@ -205,7 +202,7 @@ const visible = (): Promise<void> => new Promise((resolve) => {
  */
 export function startShardPrefetch(active: BootLevel): PrefetchHandle {
   const state: PrefetchState = { status: 'waiting', startedAt: 0, endedAt: 0, shards: {}, ktx2: {}, tex: texModeWhy() };
-  const veto = prefetchVeto({ off: setting('prefetch') === 'off', controlled: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null, ...connection() });
+  const veto = prefetchVeto({ controlled: 'serviceWorker' in navigator && navigator.serviceWorker.controller !== null, ...connection() });
   const finish = (status: PrefetchState['status'], reason?: string): PrefetchState => {
     state.status = status;
     if (reason !== undefined) state.reason = reason;

@@ -107,9 +107,6 @@ export const OPTION_VALUES = {
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (the level backdrop's) — live
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/shards/pine-hollow/world/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): mobile is locked at 30 whatever the pick (E193); desktop: auto = the display's rate — live
-  // E158: download the other shards' files in the background once this one is playable (src/engine/boot/shardPrefetch.ts) — the
-  // debug menu only (no URL switch); the bench scripts turn it off through the saved settings
-  prefetch: ['on', 'off'],
   // E157: the textures — GPU-compressed KTX2 (ASTC / BC7, src/engine/boot/gpuFiles.ts) or the JPEG / WebP images; 'auto' = images until the shard's KTX2 set is cached, then KTX2 (E157 B).
   // A load-time pick (pause ▸ Settings ▸ Debug saves and reloads); no URL switch (Jake: never) — the A/B scripts set it in
   // the saved settings
@@ -139,7 +136,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
-  prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
   calibrate: DEBUG_ONLY,
   loadProfile: DEBUG_ONLY, bootPack: DEBUG_ONLY,
@@ -201,7 +197,6 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'), fps: option('fps'),
-    prefetch: option('prefetch'),
     tex: option('tex'),
     calibrate: option('calibrate'),
     loadProfile: option('loadProfile'), bootPack: option('bootPack'),

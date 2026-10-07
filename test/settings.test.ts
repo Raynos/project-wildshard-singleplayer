@@ -25,6 +25,13 @@ describe('Settings', () => {
     s.setNumber('volume', 0.5);
     expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).not.toHaveProperty('creatures');
   });
+  it('drops the retired background-download opt-out on the next save (E158)', () => {
+    fixtures.setItem(STORE, JSON.stringify({ prefetch: 'off', music: 0.25 }));
+    const s = createSettings(saveStorage('global'));
+    expect(s.getNumber('music')).toBe(0.25);
+    s.setNumber('volume', 0.5);
+    expect(JSON.parse(fixtures.getItem(STORE) ?? '{}')).not.toHaveProperty('prefetch');
+  });
   it('defaults: aim assist + tracers on, volume 0.8, music 0.7', async () => {
     const s = await fresh();
     expect(s.getSetting('aimAssist')).toBe(true);

@@ -194,7 +194,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
     ...opt('tex', 'loading', engineString('s_334a93884d13'), [['auto', engineString('s_0286249762f7')], ['ktx2', engineString('s_66270d61a105')], ['img', engineString('s_be7e2f201293')]], { reload: true, ask: 'E157', reviewBy: '2026-12-30', note: engineString('s_5c0f164512c8') }),
     choices: () => [{ v: 'auto', text: engineString('s_7dc1f00169b6', [texMode() === 'ktx2' ? engineString('s_66270d61a105') : engineString('s_be7e2f201293')]) }, { v: 'ktx2', text: engineString('s_66270d61a105') }, { v: 'img', text: engineString('s_be7e2f201293') }],
   },
-  opt('prefetch', 'loading', engineString('s_c3fdc2f75125'), ON_OFF, { ask: 'E158', reviewBy: '2026-12-30', note: engineString('s_33ab8d7cc57e') }),
   opt('memorySaver', 'loading', engineString('s_memory_saver'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_memory_saver_note') }),
   opt('bootPack', 'loading', engineString('s_4cd17de104b7'), ON_OFF, { reload: true, ask: 'E162', reviewBy: '2026-12-30', note: engineString('s_f72e67795ca9') }),
   { id: 'storage', group: 'loading', label: engineString('s_a69c4dece144'), choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_281936523768') },

@@ -146,11 +146,10 @@ describe('prefetchVeto: when the background download must not run', () => {
   it('runs by default under a controlling worker', async () => {
     await load('desktop');
     expect(sp.prefetchVeto({ controlled: true })).toBeNull();
-    expect(sp.prefetchVeto({ off: false, controlled: true, saveData: false })).toBeNull();
+    expect(sp.prefetchVeto({ controlled: true, saveData: false })).toBeNull();
   });
-  it('is off by the Debug switch, without a worker and on the OS data saver — never by connection type', async () => {
+  it('refuses without a worker and on the OS data saver — never by connection type', async () => {
     await load('desktop');
-    expect(sp.prefetchVeto({ off: true, controlled: true })).toBe('switched off (Settings ▸ Debug)');
     expect(sp.prefetchVeto({ controlled: false })).toBe('no service worker');
     expect(sp.prefetchVeto({ controlled: true, saveData: true })).toBe('Save-Data');
   });
