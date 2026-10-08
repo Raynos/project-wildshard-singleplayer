@@ -294,6 +294,10 @@ const built = new WeakMap<RopeBridgeSpec, RopeBridgeBuilder>();
 
 function builderOf(sky: Sky, p: RopeBridgeParams, fresh: boolean): RopeBridgeBuilder {
   let b = built.get(p.span);
+  // SF63: the span outlives a world, its group does not. A grid region that leaves disposes its scene tree (sceneOwnership
+  // clears the group and frees its geometry), and the next world built on the same span was handed that empty group: no
+  // bridge in the cell. A builder whose group was emptied is stale; the new world builds its own
+  if (b?.mesh.children.length === 0) b = undefined;
   if (!b || fresh) { b = new RopeBridgeBuilder(sky, p.span, p.ground).build(); if (p.span !== ORIGIN) built.set(p.span, b); }
   return b;
 }
