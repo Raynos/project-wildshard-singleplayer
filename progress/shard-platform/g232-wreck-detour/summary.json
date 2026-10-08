@@ -1,0 +1,97 @@
+{
+  "pin": "7c7589f7b",
+  "verdict": "PASS: capture route around actual wreck collision",
+  "drives": [
+    {
+      "phase": "entry",
+      "waypoints": [
+        {
+          "x": 230,
+          "z": 0
+        }
+      ],
+      "why": "arrived",
+      "seconds": 6.318699999809265,
+      "feet": {
+        "x": 231.36546816593966,
+        "y": 0.9112197131272427,
+        "z": 0.0026246194811379644
+      },
+      "current": "driftwood-isle",
+      "inside": "driftwood-isle"
+    },
+    {
+      "phase": "entry",
+      "waypoints": [
+        {
+          "x": 172,
+          "z": 0
+        },
+        {
+          "x": 172,
+          "z": -30
+        },
+        {
+          "x": 120,
+          "z": -30
+        },
+        {
+          "x": 120,
+          "z": 0
+        }
+      ],
+      "why": "arrived",
+      "seconds": 16.677900000095367,
+      "feet": {
+        "x": 120.03312394039006,
+        "y": 2.0933464575721974,
+        "z": -1.3538933446814028
+      },
+      "current": "driftwood-isle",
+      "inside": "driftwood-isle"
+    },
+    {
+      "phase": "return",
+      "waypoints": [
+        {
+          "x": 120,
+          "z": -30
+        },
+        {
+          "x": 172,
+          "z": -30
+        },
+        {
+          "x": 172,
+          "z": 0
+        },
+        {
+          "x": 230,
+          "z": 0
+        },
+        {
+          "x": 277.5,
+          "z": 0
+        }
+      ],
+      "why": "arrived",
+      "seconds": 21.009599999904633,
+      "feet": {
+        "x": 276.1700647407092,
+        "y": 0.4499981144506944,
+        "z": -0.00022739956215644952
+      },
+      "current": null,
+      "inside": null
+    }
+  ],
+  "errors": [],
+  "shaderErrors": 0,
+  "roadReadBackExact": true,
+  "raw": {
+    "file": "assertions.json.gz",
+    "sha256": "5c389b30b6690ad3804c99d3c67ddceb7609272630a03a9c8257f942461d2412",
+    "uncompressedSha256": "c1b1a78ba0a84dac3bde24ed8ca76e508ba075c95b491155165612485a7360cb"
+  },
+  "closed": true
+}

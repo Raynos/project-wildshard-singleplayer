@@ -30,8 +30,10 @@ const SCENES = {
   ], back: [{ x: 322, z: 0 }, { x: 277.5, z: 0 }] },
   driftwood: { road: { x: 277.5, z: 0, yaw: W }, stops: [
     { at: [{ x: 230, z: 0 }], shots: [['driftwood-entry-w', W, 0.05]] },
-    { at: [{ x: 120, z: 0 }], shots: [['driftwood-inside-w', W, 0.08], ['driftwood-inside-n', N, 0.08]] },
-  ], back: [{ x: 230, z: 0 }, { x: 277.5, z: 0 }] },
+    // The direct x=230 -> 120, z=0 line hits the visible wreck's reef rocks and log pile (6b72b4496, 4/4 RED).
+    // Follow a real hoverboard detour south of the wreck; collision and the original failing receipt stay intact.
+    { at: [{ x: 172, z: 0 }, { x: 172, z: -30 }, { x: 120, z: -30 }, { x: 120, z: 0 }], shots: [['driftwood-inside-w', W, 0.08], ['driftwood-inside-n', N, 0.08]] },
+  ], back: [{ x: 120, z: -30 }, { x: 172, z: -30 }, { x: 172, z: 0 }, { x: 230, z: 0 }, { x: 277.5, z: 0 }] },
   pine: { road: { x: 0, z: 277.5, yaw: N }, stops: [
     { at: [{ x: 0, z: 330 }], shots: [['pine-entry-n', N, 0.05]] },
     { at: [{ x: 0, z: 470 }, { x: 60, z: 555 }], shots: [['pine-forest-e', E, 0.05]] },
@@ -40,7 +42,7 @@ const SCENES = {
 };
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
-const report = { base, tag, scene, stops: [], errors: [], console: [], look: [], shaderErrors: 0, poses: [] };
+const report = { base, tag, scene, stops: [], drives: [], errors: [], console: [], look: [], shaderErrors: 0, poses: [] };
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
@@ -133,6 +135,8 @@ try {
   report.road = { before: await pageState(), glMB: await glMB(), chain: await chainState() };
   for (const stop of plan.stops) {
     const drive = await driveTo(stop.at);
+    report.drives.push({ phase: 'entry', waypoints: stop.at, ...drive });
+    if (drive.why !== 'arrived') throw new Error('Capture entry drive did not arrive: ' + JSON.stringify(drive));
     await page.waitForTimeout(6000);
     const shots = [];
     for (const [name, yaw, pitch] of stop.shots) {
@@ -157,6 +161,8 @@ try {
   }
   if (plan.back) {
     const drive = await driveTo(plan.back);
+    report.drives.push({ phase: 'return', waypoints: plan.back, ...drive });
+    if (drive.why !== 'arrived') throw new Error('Capture return drive did not arrive: ' + JSON.stringify(drive));
     await page.waitForTimeout(6000);
     const after = await pageState(report.road.before.road?.uuid);
     // the look's shared uniforms only: three refreshes a material's own values (diffuse, roughness, scene fog near / far) at
