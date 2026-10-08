@@ -7,7 +7,7 @@ import { tagCollider } from './surface';
 /** Platform geometry is tagged separately so regional state hashes can omit shared deck and seam duplicates. */
 export const PLATFORM_COLLIDER_OWNER = 'platform.grid';
 /** Install the generated field itself as the WORLD collider; the renderer draws these same vertices. */
-export function installStripCollider(physics: Physics, mesh: StripMesh, scope: Scope): void {
+export function installStripCollider(physics: Physics, mesh: Pick<StripMesh, 'origin' | 'positions' | 'indices'>, scope: Scope): void {
   if (scope.disposed) throw new Error('Cannot install a strip into a disposed scope');
   withOwner(scope, () => {
     const collider = physics.world.createCollider(physics.R.ColliderDesc.trimesh(mesh.positions, mesh.indices, physics.R.TriMeshFlags.FIX_INTERNAL_EDGES)

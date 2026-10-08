@@ -10,7 +10,7 @@
  * uv, and flags the old unlit materials (the cyan rails, the lamp heads), which skip lighting exactly as `MeshBasicMaterial`
  * did. Parts never share a vertex across materials, so a triangle's layer is constant.
  */
-import { BufferAttribute, BufferGeometry, Color, DataArrayTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, type Texture, Uint32BufferAttribute } from 'three';
+import { BufferAttribute, BufferGeometry, Color, DataArrayTexture, LinearFilter, LinearMipmapLinearFilter, MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 
 /** The texture array's layers, in order. */
@@ -54,8 +54,8 @@ export function solidGeometry(parts: readonly SolidPart[]): BufferGeometry {
     for (let k = 0; k < p.indices.length; k++) index[i + k] = (p.indices[k] ?? 0) + v;
     v += n; i += p.indices.length;
   }
-  const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(position, 3)).setAttribute('normal', new Float32BufferAttribute(normal, 3))
-    .setAttribute('color', new Float32BufferAttribute(colour, 3)).setAttribute('grainUv', new Float32BufferAttribute(grain, 4)).setIndex(new Uint32BufferAttribute(index, 1));
+  const geometry = new BufferGeometry().setAttribute('position', new BufferAttribute(position, 3)).setAttribute('normal', new BufferAttribute(normal, 3))
+    .setAttribute('color', new BufferAttribute(colour, 3)).setAttribute('grainUv', new BufferAttribute(grain, 4)).setIndex(new BufferAttribute(index, 1));
   geometry.computeBoundingSphere();
   return geometry;
 }

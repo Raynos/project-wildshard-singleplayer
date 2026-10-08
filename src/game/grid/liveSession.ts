@@ -37,7 +37,7 @@ import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/ph
 import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/readinessWalls';
 import { TransferWalls, TRANSFER_WALL_BYTES } from '@wildshard/engine/physics/transferWalls';
 import type { ReadinessBundle, ReadinessLink } from '@wildshard/engine/sim/readiness';
-import type { GeneratedStrip, StripMesh } from '@wildshard/engine/sim/strips';
+import type { StripMesh } from '@wildshard/engine/sim/strips';
 import type { GridAssembly, GridCell } from './assembly';
 import type { ResidencyAllocator } from './allocator';
 import type { HomeResidencyClaim } from './pageResidency';
@@ -56,6 +56,7 @@ import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
 import { withCopyLayout } from './copyLayout';
+import type { CollisionStrip } from './collisionStrips';
 import { loadNavmesh } from '@wildshard/engine/physics/navmesh';
 import { yieldGridAdmission } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
@@ -112,7 +113,7 @@ export interface LiveGridPage {
 export interface LiveGridSessionPorts {
   readonly residency: HomeResidencyClaim;
   readonly assembly: GridAssembly; readonly home: GridCell; readonly physics: Physics; readonly scope: Scope;
-  readonly walls: ReadinessWalls; readonly strips: readonly GeneratedStrip[]; readonly allocator: ResidencyAllocator;
+  readonly walls: ReadinessWalls; readonly strips: readonly CollisionStrip[]; readonly allocator: ResidencyAllocator;
   /** G219: platform ground past the strips (the open plots' floors and showrooms), grid metres; the highway collides with it too */
   readonly platform?: readonly StripMesh[];
   readonly neighbourEdges: (cell: GridCell, origin: Readonly<{ x: number; z: number }>) => ReadinessEdge[];

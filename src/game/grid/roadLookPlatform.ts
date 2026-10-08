@@ -79,6 +79,9 @@ export function installPlatformRoad(input: PlatformRoadInput): PlatformRoad {
     curtain.castShadow = false; curtain.matrixAutoUpdate = false; curtain.updateMatrix(); scene.add(curtain); cullInto(culler, curtain); meshes.push(curtain);
     gpuOnlyRoad(curtain, []);
   });
+  // Disposer closures retain this build environment. Only the admitted meshes need to survive;
+  // the split/merge sources have already been copied into their final uploaded representation.
+  parts.length = 0; seams.parts.length = 0;
   const roots = [...meshes, scene.getObjectByName('grid-boulevard'), scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
   return { road, seams: seams.state, roots };
 }

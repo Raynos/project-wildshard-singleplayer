@@ -36,7 +36,7 @@ import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/re
 import { installGridBorders } from '@wildshard/engine/physics/gridBorders';
 import { WATER_UNBOUNDED, waterExtent } from '@wildshard/engine/world/waves';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { generatePlatform, type GeneratedStrip, type PlatformCell, type StripMesh } from '@wildshard/engine/sim/strips';
+import { generatePlatform, type GeneratedStrip, type PlatformCell } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
 import { gridMode } from './menu';
 import { devserverCellOn } from './debug';
@@ -56,6 +56,7 @@ import { jsonResidentBytes } from '../shardfile/productCost';
 import { RAIL_OFFSET, roadLayout } from './roadLayout';
 import type { RoadLookState } from './roadLook';
 import { installPlatformRoad } from './roadLookPlatform';
+import { collisionStrips, type CollisionMesh, type CollisionStrip } from './collisionStrips';
 import { installSoftWallLook, type SoftWallState } from './softWallLook';
 import type { SeamLookState } from './seamLook';
 import { roadResident, roadViewCost, type CullPlan, type RoadResident, type RoadViewCost } from './roadCull';
@@ -198,7 +199,7 @@ export class GridSession {
   private readonly costs = new Map<string, number>();
   /** G107: one ground + admitted-props raster per product, shared by all its copies. */
   private readonly mapImages: ProductMinimaps;
-  private readonly strips: readonly GeneratedStrip[];
+  private readonly strips: readonly CollisionStrip[];
   private readonly host: GridSessionHost;
   private last: { x: number; z: number } | null = null;
   private velocity = { x: 0, z: 0 };
@@ -271,7 +272,6 @@ export class GridSession {
       edges: { north: empty, east: empty, south: empty, west: empty }, observations: { north: entry, east: entry, south: entry, west: entry } }));
     let strips: readonly GeneratedStrip[];
     try { strips = generatePlatform([...(edges ?? flat), ...plots], empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform([...flat, ...plots], empty); }
-    this.strips = strips;
     // SF19a / G158 (on for everyone since Jake's G175 pick, E450): the shard the player stands in owns the whole frame, the
     // road look owns the road, blended over 16 m at the cell edge; a host with no camera / composer builds none
     const frameHost = host.frame;
@@ -282,9 +282,10 @@ export class GridSession {
     const layout = roadLayout(this.assembly, (slug) => findShard(slug)?.name ?? slug);
     // G112: every grid admits exact CPU/GPU byte plans on its early home/region/ring allocator.
     const admission = new PlatformRenderResidency(this.allocator, host.scope);
-    const platformRoad = installPlatformRoad({ strips: this.strips, home, pitch: this.assembly.pitch, layout,
+    const platformRoad = installPlatformRoad({ strips, home, pitch: this.assembly.pitch, layout,
       scene: host.scene, scope: host.scope, camera: () => host.frame?.camera, plans: this.roadPlans,
       admission });
+    this.strips = collisionStrips(strips);
     this.road = platformRoad.road; this.seams = platformRoad.seams;
     // SF17b's per-view road budget (§3.2, G101): what the view camera draws of the road system, and what stays resident
     const roadRoots = platformRoad.roots;
@@ -315,7 +316,7 @@ export class GridSession {
         status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
     const nativeOrigin = host.ownedHome === true ? { origin: { x: 0, z: 0 } } : home;
-    const nativeMesh = (mesh: StripMesh): StripMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
+    const nativeMesh = (mesh: CollisionMesh): CollisionMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
     for (const { mesh } of this.strips) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
     for (const mesh of openPlotColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
@@ -496,7 +497,7 @@ export class GridSession {
     return this.live;
   }
 
-  private rebased(mesh: StripMesh): StripMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
+  private rebased(mesh: CollisionMesh): CollisionMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
   /** G107: a cell's shared product raster once loaded, including the home when it shares that product. */
   mapImage(instance: string): HTMLCanvasElement | null { return this.mapImages.image(this.assembly.cell(instance).slug); }
   /** The traveller's feet in grid metres, whatever frame it is in. */
