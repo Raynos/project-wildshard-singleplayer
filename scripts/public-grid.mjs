@@ -16,7 +16,7 @@ export function publicGridPlans(state) {
   if (!cell || !end) throw new Error('Public grid needs a template destination');
   const road = entry.waypoints.length > 2 ? entry.waypoints.slice(0, 2)
     : [{x:(entry.start.x+end.x)/2,z:(entry.start.z+end.z)/2}];
-  return [{name:'public-road',from:entry.from,to:null,start:entry.start,waypoints:road,requiredResidents:[]},
+  return [{name:'public-road',from:entry.from,to:null,borrowedHome:state.home,start:entry.start,waypoints:road,requiredResidents:[]},
     {name:'public-template',from:null,to:entry.to,waypoints:[...entry.waypoints.slice(entry.waypoints.length > 2 ? 2 : 0),
       {x:cell.cell[0]*555,z:cell.cell[1]*555}],requiredResidents:[cell.instance]}];
 }
@@ -37,6 +37,7 @@ export function publicGridWitnessFailures(witness, requireRefusals) {
   const failures = [], state = witness.state;
   if (witness.developer || witness.savedDeveloper !== false) failures.push('Developer is not saved and effective OFF');
   if (state.home !== 'driftwood-isle' || witness.runtimeLevel !== 'driftwood-isle') failures.push('Public home is not borrowed Driftwood');
+  if (witness.homeResidency?.instance !== state.home || !Number.isSafeInteger(witness.homeResidency.bytes) || witness.homeResidency.bytes <= 0) failures.push('Borrowed home has no positive admitted residency claim');
   if (state.cells.some(row => !['driftwood-isle','_template','pine-hollow','nalati-grasslands'].includes(row.slug))) failures.push('Developer-only catalogue override installed');
   if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && ['driftwood-isle','_template'].includes(row.slug)))) failures.push('A refused native shard became a runtime resident');
   if (requireRefusals && ['pine-hollow','nalati-grasslands'].some(slug => !['upgrade','too-big','safety','load'].includes(witness.refusals[slug] ?? ''))) failures.push('Pine/Nalati hard-admission refusal was not witnessed');

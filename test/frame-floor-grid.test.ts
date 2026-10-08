@@ -194,3 +194,41 @@ it('walks the interior and hovers the road through the same held-input driver, r
     expect(player.hover).toBe(false); expect(player.hoverSpeedLimit).toBe(originalLimit);
   } finally { restoreGlobals(); }
 });
+
+
+it('accepts a borrowed page home only with the matching native level and positive admitted claim', async () => {
+  const current = state('home', 0, 230), pose = vi.fn();
+  current.live.live.residents = [];
+  const page = { __wildshard: { world: { player: { position: { x: 0, z: 230 } }, game: { level: { id: 'driftwood-isle' }, app: { input: { clear: vi.fn() } } } },
+    pose, shard: { grid: { state: () => current, residency: () => ({ claims: [], home: { instance: 'home', bytes: 1000 } }) } } } };
+  const plan = { name: 'borrowed-road', from: 'home', to: null, borrowedHome: 'home', start: { x: 0, z: 230 }, waypoints: [{ x: 0, z: 277.5 }], requiredResidents: [] };
+  vi.stubGlobal('window', page);
+  try {
+    const staged = await stageFloorGrid(plan, performance.timeOrigin);
+    expect(staged.borrowedHome).toEqual({ instance: 'home', bytes: 1000, level: 'driftwood-isle' });
+    expect(staged.live.live.residents).toEqual([]);
+    current.live.crossing.phase = 'blocked'; current.live.crossing.issue = 'source not proved';
+    await expect(stageFloorGrid({ ...plan, borrowedHome: 'pine' }, performance.timeOrigin)).rejects.toThrow('source not proved');
+    page.__wildshard.world.game.level.id = 'grid';
+    await expect(stageFloorGrid(plan, performance.timeOrigin)).rejects.toThrow('source not proved');
+  } finally { restoreGlobals(); }
+});
+
+it('grades borrowed source claims without relaxing destination runtime residency', () => {
+  const original = witness(), before = state('home', 0, 230);
+  before.live.live.residents = [];
+  before.borrowedHome = { instance: 'home', bytes: 1000, level: 'driftwood-isle' };
+  const row = { ...original, plan: { ...original.plan, from: 'home', borrowedHome: 'home' }, before };
+  row.after.live.live.transitions = [{ from: 'home', to: null }, { from: null, to: 'nalati' }];
+  expect(gridFloorWitnessFailures(row)).toEqual([]);
+  const changes: ((state: FloorGridState) => void)[] = [s => { delete s.borrowedHome; },
+    s => { s.borrowedHome = { instance: 'home', bytes: 0, level: 'driftwood-isle' }; },
+    s => { s.borrowedHome = { instance: 'pine', bytes: 1000, level: 'driftwood-isle' }; },
+    s => { s.borrowedHome = { instance: 'home', bytes: 1000, level: 'grid' }; }];
+  for (const change of changes) {
+    const changed = { ...before }; change(changed);
+    expect(gridFloorWitnessFailures({ ...row, before: changed })).toContain('Source interior gameplay or runtime residency was not ready');
+  }
+  row.after.live.live.residents = [];
+  expect(gridFloorWitnessFailures(row)).toContain('Required runtime residents are missing');
+});

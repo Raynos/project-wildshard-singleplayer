@@ -100,8 +100,13 @@ export async function stageFloorGrid(plan, documentOrigin) {
   const read = () => {
     if (readApi() !== api) throw new Error('Grid floor API was replaced during source admission');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
-    return { ...state, claims: api.shard.grid.residency().claims };
+    const residency = api.shard.grid.residency();
+    return { ...state, claims: residency.claims, ...(plan.borrowedHome === undefined ? {} : {
+      borrowedHome: { instance: residency.home?.instance, bytes: residency.home?.bytes, level: world.game.level?.id } }) };
   };
+  const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home
+    && state.borrowedHome?.instance === state.home && state.borrowedHome.level === state.cells.find(row => row.instance === state.home)?.slug
+    && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
   const initial = read(), live = initial.live.live;
   if (live.current !== plan.from && !(plan.start && live.current === null)) throw new Error(`Grid floor starts in ${live.current}, expected ${plan.from}`);
   input.clear();
@@ -111,7 +116,7 @@ export async function stageFloorGrid(plan, documentOrigin) {
   }
   while (performance.now() < deadline) {
     const state = read(), active = state.live.live;
-    if (active.current === plan.from && state.inside === plan.from && active.gameplayReady && (plan.from === null || active.residents.includes(plan.from))) return state;
+    if (active.current === plan.from && state.inside === plan.from && active.gameplayReady && (plan.from === null || active.residents.includes(plan.from) || borrowed(state))) return state;
     if (!plan.start) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
     if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor source blocked: ${state.live.crossing.issue}`);
     await new Promise(resolve => { setTimeout(resolve, 100); });
@@ -134,10 +139,15 @@ export async function driveFloorGrid(plan, documentOrigin) {
   const read = () => {
     if (!sameDocument() || window.__wildshard !== api) throw new Error('Grid floor document or API changed during travel (navigation or graphics recovery)');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
-    return { ...state, claims: api.shard.grid.residency().claims };
+    const residency = api.shard.grid.residency();
+    return { ...state, claims: residency.claims, ...(plan.borrowedHome === undefined ? {} : {
+      borrowedHome: { instance: residency.home?.instance, bytes: residency.home?.bytes, level: world.game.level?.id } }) };
   };
+  const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home
+    && state.borrowedHome?.instance === state.home && state.borrowedHome.level === state.cells.find(row => row.instance === state.home)?.slug
+    && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
   const source = read(), live = source.live.live;
-  if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || (plan.from !== null && !live.residents.includes(plan.from))) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
+  if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || (plan.from !== null && !live.residents.includes(plan.from) && !borrowed(source))) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
   const oldHover = player.hover, oldLimit = player.hoverSpeedLimit;
   const hoverMaxSpeed = plan.hoverMaxSpeed ?? 15;
   if (!Number.isFinite(hoverMaxSpeed) || hoverMaxSpeed <= 0 || hoverMaxSpeed > 30) throw new Error('Invalid grid harness hover speed');
@@ -181,7 +191,10 @@ export async function driveFloorGrid(plan, documentOrigin) {
 /** A visible destination without real frame commits or complete runtime residency never counts as this scenario. */
 export function gridFloorWitnessFailures(result) {
   const { plan, before, after } = result, previous = before.live.live, active = after.live.live, failures = [];
-  if (previous.current !== plan.from || before.inside !== plan.from || !previous.gameplayReady || (plan.from !== null && !previous.residents.includes(plan.from))) failures.push('Source interior gameplay or runtime residency was not ready');
+  const borrowed = state => plan.borrowedHome === state.home && plan.from === state.home
+    && state.borrowedHome?.instance === state.home && state.borrowedHome.level === state.cells.find(row => row.instance === state.home)?.slug
+    && Number.isSafeInteger(state.borrowedHome.bytes) && state.borrowedHome.bytes > 0;
+  if (previous.current !== plan.from || before.inside !== plan.from || !previous.gameplayReady || (plan.from !== null && !previous.residents.includes(plan.from) && !borrowed(before))) failures.push('Source interior gameplay or runtime residency was not ready');
   const count = active.crossings - previous.crossings;
   const transitions = count === 0 ? [] : active.transitions.slice(-count);
   const expected = plan.from === plan.to ? [] : [

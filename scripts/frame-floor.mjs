@@ -249,6 +249,7 @@ async function measureShard(driver, shard, deadline) {
     if (surface === 'sim' && (meta.viewport[0] >= meta.viewport[1] || !meta.userAgent.includes('iPhone'))) throw new Error('Simulator must be portrait iPhone Safari');
     if (surface === 'desktop' && !meta.renderer.includes('ANGLE Metal Renderer')) throw new Error(`Metal required, got ${meta.renderer}`);
     if (publicGrid) {
+      if (meta.settings.memorySaver !== 'off') throw new Error('Public grid Memory saver must be saved OFF');
       meta.publicGrid = await driver.evaluate(`(${readPublicGridWitness.toString()})()`);
       const failures = publicGridWitnessFailures(meta.publicGrid, false);
       if (failures.length > 0) throw new Error(failures.join('; '));

@@ -7,7 +7,7 @@ const cells = [{instance:'driftwood-isle',slug:'driftwood-isle',cell:[0,0] as co
   {instance:'template-2',slug:'_template',cell:[1,1] as const},
   {instance:'pine-hollow',slug:'pine-hollow',cell:[0,1] as const},
   {instance:'nalati-grasslands',slug:'nalati-grasslands',cell:[1,0] as const}];
-const witness = (): PublicGridWitness => ({developer:false,savedDeveloper:false,runtimeLevel:'driftwood-isle',homeResidency:{instance:'driftwood-isle'},
+const witness = (): PublicGridWitness => ({developer:false,savedDeveloper:false,runtimeLevel:'driftwood-isle',homeResidency:{instance:'driftwood-isle',bytes:1000},
   refusals:{'pine-hollow':'too-big','nalati-grasslands':'too-big'},state:{home:'driftwood-isle',inside:'driftwood-isle',cells,
     live:{crossing:{phase:'settled',issue:null},live:{current:'driftwood-isle',worldFeet:{x:0,y:.55,z:0},crossings:0,transitions:[],residents:['driftwood-isle'],gameplayReady:true}}}});
 
@@ -39,7 +39,7 @@ it('drives the corner copy through the road, with one initial approach and no te
 it('requires effective public mode, real refusals and no refused runtime residents', () => {
   expect(publicGridWitnessFailures(witness(),true)).toEqual([]);
   const checks: ((row:PublicGridWitness)=>void)[] = [row=>{row.developer=true;},row=>{row.savedDeveloper='false';},
-    row=>{row.runtimeLevel='pine-hollow';},row=>{row.state.live.live.residents.push('pine-hollow');},
+    row=>{row.homeResidency={instance:'driftwood-isle',bytes:0};},row=>{row.homeResidency=undefined;},row=>{row.runtimeLevel='pine-hollow';},row=>{row.state.live.live.residents.push('pine-hollow');},
     row=>{delete row.refusals['nalati-grasslands'];},row=>{row.state.cells.push({instance:'far-reach',slug:'far-reach',cell:[0,-1]});}];
   for (const change of checks) {const row=witness();row.state.cells=[...cells];change(row);expect(publicGridWitnessFailures(row,true).length).toBeGreaterThan(0);}
   const notRequested=witness();notRequested.refusals={};
