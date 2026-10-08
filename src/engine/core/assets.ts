@@ -43,9 +43,11 @@ const sharedSources = new Map<string, { source: THREE.TextureSource<unknown>; fl
 const imageUsers = new Map<string, number>();
 const sourceKey = (url: string, srgb: boolean): string => `${url}|${srgb ? 'srgb' : 'linear'}`;
 function shareSource(t: THREE.Texture, url: string, srgb: boolean, image: ImageBitmap | HTMLImageElement): void {
-  sharedSources.set(sourceKey(url, srgb), { source: t.source, flipY: t.flipY });
+  const key = sourceKey(url, srgb), source = t.source;
+  sharedSources.set(key, { source, flipY: t.flipY });
   imageUsers.set(url, (imageUsers.get(url) ?? 0) + 1);
   const done = (): void => {
+    if (sharedSources.get(key)?.source === source) sharedSources.delete(key);
     const left = (imageUsers.get(url) ?? 1) - 1;
     if (left > 0) { imageUsers.set(url, left); return; }
     imageUsers.delete(url);
