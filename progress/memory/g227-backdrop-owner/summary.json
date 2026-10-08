@@ -1,0 +1,396 @@
+{
+  "pin": "c2623699a9411249f6b1cd51e516968bcc7c9bf8",
+  "seconds": 216.686,
+  "rawPass": false,
+  "rawFailure": "Error: Retained GL residency reconciliation failed\n    at file:///Users/raynos/projects/games/wildshard-singleplayer/progress/memory/g226-cache-retirement/capture.mjs:69:182",
+  "checks": {
+    "routes": true,
+    "twelveCrossings": true,
+    "noErrors": true,
+    "nativeZero": true,
+    "scopeZero": true,
+    "debugRoots": true,
+    "durableHomeHP": true,
+    "sameDocument": true,
+    "accounting": false
+  },
+  "debugRoots": {
+    "probePresent": true,
+    "worldUndefined": true,
+    "physicsAbsent": true,
+    "heightfieldAbsent": true,
+    "perfHudAbsent": true,
+    "skyAbsent": true,
+    "bakeAbsent": true
+  },
+  "reconciliation": {
+    "rawGL": 13934476,
+    "rawComposer": 13140576,
+    "rawCaches": 793900,
+    "chargedComposer": 13140576,
+    "cachedGPU": 0,
+    "cachedCPU": 0,
+    "uncoveredGPU": 793900,
+    "engineBase": 286859424,
+    "noRuntimeClaims": true,
+    "allCachesUncovered": true,
+    "composerMatches": true,
+    "retainedGPUSafelyCharged": false
+  },
+  "previousUncoveredGPU": 1820520,
+  "deltaUncoveredGPU": -1026620,
+  "remaining": [
+    {
+      "id": "texture:32",
+      "kind": "texture",
+      "asset": "generated/Group/Sprite[4]/map/Texture",
+      "bytes": 349524
+    },
+    {
+      "id": "texture:1258",
+      "kind": "texture",
+      "asset": "generated/Scene/Mesh[0]/uniform/e7Lut/driftwood-isle-lut/Texture",
+      "bytes": 143748
+    },
+    {
+      "id": "texture:5504",
+      "kind": "texture",
+      "asset": "generated/Scene/Mesh[0]/uniform/e7Lut/driftwood-isle-lut/Texture",
+      "bytes": 143748
+    },
+    {
+      "id": "texture:2957",
+      "kind": "texture",
+      "asset": "generated/Group/Points[2]/map/Texture",
+      "bytes": 21844
+    },
+    {
+      "id": "buffer:1289",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[1]/normal",
+      "bytes": 18864
+    },
+    {
+      "id": "buffer:1287",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[1]/position",
+      "bytes": 18864
+    },
+    {
+      "id": "buffer:1295",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[3]/normal",
+      "bytes": 12672
+    },
+    {
+      "id": "buffer:1293",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[3]/position",
+      "bytes": 12672
+    },
+    {
+      "id": "buffer:1288",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[1]/uv",
+      "bytes": 12576
+    },
+    {
+      "id": "buffer:1294",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[3]/uv",
+      "bytes": 8448
+    },
+    {
+      "id": "buffer:59",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[3]/normal",
+      "bytes": 7500
+    },
+    {
+      "id": "buffer:58",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[3]/position",
+      "bytes": 7500
+    },
+    {
+      "id": "buffer:942",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[3]/index",
+      "bytes": 6624
+    },
+    {
+      "id": "buffer:1292",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[2]/normal",
+      "bytes": 5040
+    },
+    {
+      "id": "buffer:1290",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[2]/position",
+      "bytes": 5040
+    },
+    {
+      "id": "buffer:60",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[3]/uv",
+      "bytes": 5000
+    },
+    {
+      "id": "buffer:1291",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[2]/uv",
+      "bytes": 3360
+    },
+    {
+      "id": "buffer:1303",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[4]/normal",
+      "bytes": 1776
+    },
+    {
+      "id": "buffer:1302",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[4]/position",
+      "bytes": 1776
+    },
+    {
+      "id": "buffer:1304",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[4]/uv",
+      "bytes": 1184
+    },
+    {
+      "id": "texture:1327",
+      "kind": "texture",
+      "asset": "generated/texture/DFG_LUT/Texture",
+      "bytes": 1024
+    },
+    {
+      "id": "buffer:1314",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[4]/index",
+      "bytes": 576
+    },
+    {
+      "id": "buffer:1306",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[5]/normal",
+      "bytes": 312
+    },
+    {
+      "id": "buffer:1305",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[5]/position",
+      "bytes": 312
+    },
+    {
+      "id": "buffer:1309",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/normal",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:50",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/normal",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:1308",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/position",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:49",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/position",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:1297",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/normal",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:1296",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/position",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:1300",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/normal",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:1299",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/position",
+      "bytes": 288
+    },
+    {
+      "id": "buffer:1307",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[5]/uv",
+      "bytes": 208
+    },
+    {
+      "id": "buffer:1310",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/uv",
+      "bytes": 192
+    },
+    {
+      "id": "buffer:51",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/uv",
+      "bytes": 192
+    },
+    {
+      "id": "buffer:1298",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/uv",
+      "bytes": 192
+    },
+    {
+      "id": "buffer:1301",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/uv",
+      "bytes": 192
+    },
+    {
+      "id": "buffer:1313",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[5]/index",
+      "bytes": 144
+    },
+    {
+      "id": "buffer:1051",
+      "kind": "buffer",
+      "asset": "generated/Group/Sprite[4]/position",
+      "bytes": 80
+    },
+    {
+      "id": "buffer:1311",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/index",
+      "bytes": 72
+    },
+    {
+      "id": "buffer:947",
+      "kind": "buffer",
+      "asset": "generated/Group/Mesh[0]/index",
+      "bytes": 72
+    },
+    {
+      "id": "buffer:1312",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/index",
+      "bytes": 72
+    },
+    {
+      "id": "buffer:1315",
+      "kind": "buffer",
+      "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/index",
+      "bytes": 72
+    },
+    {
+      "id": "buffer:1238",
+      "kind": "buffer",
+      "asset": "generated/Scene/Mesh[0]/position",
+      "bytes": 36
+    },
+    {
+      "id": "texture:2",
+      "kind": "texture",
+      "asset": "builtin/renderer-initialization",
+      "bytes": 24
+    },
+    {
+      "id": "buffer:1239",
+      "kind": "buffer",
+      "asset": "generated/Scene/Mesh[0]/uv",
+      "bytes": 24
+    },
+    {
+      "id": "buffer:1126",
+      "kind": "buffer",
+      "asset": "generated/Group/Sprite[4]/index",
+      "bytes": 12
+    },
+    {
+      "id": "texture:1",
+      "kind": "texture",
+      "asset": "builtin/renderer-initialization",
+      "bytes": 4
+    },
+    {
+      "id": "texture:3",
+      "kind": "texture",
+      "asset": "builtin/renderer-initialization",
+      "bytes": 4
+    },
+    {
+      "id": "texture:4",
+      "kind": "texture",
+      "asset": "builtin/renderer-initialization",
+      "bytes": 4
+    },
+    {
+      "id": "texture:40",
+      "kind": "texture",
+      "asset": "generated/Group/neighbour-creature:grey-blob/map/family:pbr-filler/Texture",
+      "bytes": 4
+    },
+    {
+      "id": "texture:41",
+      "kind": "texture",
+      "asset": "generated/Group/neighbour-creature:grey-blob/normalMap/family:pbr-filler/Texture",
+      "bytes": 4
+    },
+    {
+      "id": "texture:1385",
+      "kind": "texture",
+      "asset": "src/shards/driftwood-isle/models/pier.ts#Pier/driftwood-isle/pier/map/Texture",
+      "bytes": 4
+    },
+    {
+      "id": "texture:1386",
+      "kind": "texture",
+      "asset": "src/shards/driftwood-isle/models/pier.ts#Pier/driftwood-isle/pier/normalMap/Texture",
+      "bytes": 4
+    }
+  ],
+  "hp": [
+    {
+      "instance": "driftwood-isle",
+      "hp": 59
+    },
+    {
+      "instance": "pine-hollow",
+      "hp": 99
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hp": 54
+    }
+  ],
+  "raw": {
+    "path": "assertions.json.gz",
+    "sha256": "a087441a60b53e6271fb86f4193d9a29ce71d38845a6f2bc0f246a3234b52e38",
+    "decodedBytes": 8833453
+  },
+  "closed": true,
+  "crossingDeltas": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+  ]
+}
