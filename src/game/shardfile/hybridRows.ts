@@ -59,7 +59,13 @@ export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, sourc
 }
 
 /** Emit one declared fact for an entity; the platform ledger decides the grant. */
-export type RuntimeFacts = (name: string, entity: string) => LedgerReceipt;
+export interface RuntimeFacts {
+  (name: string, entity: string): LedgerReceipt;
+  /** Retry pending writes from this exact ledger; false refuses the runtime's durable checkpoint. */
+  readonly flush: () => boolean;
+  /** Read this shard's achievement from the emitting ledger, including pending state; never grants. */
+  readonly achievement: (id: string) => { readonly count: number; readonly earned: boolean } | undefined;
+}
 
 /**
  * Bind the declared ledger rules for a runtime that has no simulation host: each fact is stamped tick 0 and told apart by
@@ -70,11 +76,15 @@ export function bindRuntimeLedger(ctx: Pick<ShardContext, 'app'>, source: Shardf
   requireBound(source, 'ledger');
   const identity = { instance, shard: source.identity.slug, revision: source.identity.revision };
   const ledger = new Ledger(ctx.app.saves, [{ id: instance, shard: identity.shard }], [{ shard: identity.shard, revision: identity.revision, rules: source.ledger }], []);
-  return (name, entity) => {
+  const emit = (name: string, entity: string): LedgerReceipt => {
     const rule = source.ledger.find((row) => row.fact === name);
     if (rule === undefined) throw new Error(`Undeclared ledger fact ${name}`);
     return new LedgerEmitter(ledger, { ...identity }, rule.origin, () => 0, []).emit(name, entity);
   };
+  return Object.assign(emit, { flush: () => ledger.flush(), achievement: (id: string) => {
+    const row = ledger.state().achievements[JSON.stringify([identity.shard, id])];
+    return row === undefined ? undefined : { count: row.count, earned: row.earned };
+  } });
 }
 
 /** What a runtime lends a declared quest: its flags, built marker positions and an optional trusted presentation override. */

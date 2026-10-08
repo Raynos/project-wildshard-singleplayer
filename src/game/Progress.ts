@@ -22,12 +22,22 @@ const PLAY_SAVE_S = 15;
 /** what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6) */
 export interface ProgressSink { recordEvent: (event: string, total?: number) => void }
 
+/** Read-only achievement state from the authoritative ledger; the shard's feat table owns presentation. */
+export interface ProgressLedger {
+  readonly count: (id: string) => number;
+  readonly earned: (id: string) => boolean;
+  /** Retry the actual ledger's pending profile write; false refuses the enclosing runtime checkpoint. */
+  readonly checkpoint: () => boolean;
+}
+
 export interface ProgressRow { def: AchievementDef; count: number; earned: boolean; active: boolean }
 
 export class Progress {
   private readonly scope = resourceScope().child('Progress');
   readonly defs: AchievementDef[];
   private shard: ShardProgress;
+  private ledger: ProgressLedger | undefined;
+  private projected = new Map<string, { count: number; earned: boolean }>();
   onEarned?: (def: AchievementDef) => void;
   onChange?: () => void;
 
@@ -40,6 +50,33 @@ export class Progress {
       this.scope.listen(window, 'pagehide', flush);
       this.scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
     }
+  }
+
+  /** Adopt ledger state without replaying grants, legacy counters or notifications for already-earned feats. */
+  bindLedger(ledger: ProgressLedger): void {
+    this.ledger = ledger;
+    this.projected = new Map(this.defs.map((def) => [def.id, { count: this.count(def.id), earned: this.earned(def.id) }]));
+    this.updateSummary();
+  }
+
+  /** Refresh after an authoritative fact: notify new feats once, without granting or writing progress counters. */
+  refreshLedger(): void {
+    if (this.ledger === undefined) return;
+    let changed = false;
+    const newlyEarned: AchievementDef[] = [];
+    for (const def of this.defs) {
+      const previous = this.projected.get(def.id), count = this.count(def.id), earned = this.earned(def.id);
+      if (previous === undefined || previous.count !== count || previous.earned !== earned) changed = true;
+      if (previous?.earned === false && earned) newlyEarned.push(def);
+      this.projected.set(def.id, { count, earned });
+    }
+    if (!changed) return;
+    if ((this.shard.title === null || this.shard.title === '') && newlyEarned[0] !== undefined) {
+      this.shard.title = newlyEarned[0].id;
+      this.save(); // Only title/play metadata changed; ledger counters and grants stay authoritative.
+    } else this.updateSummary();
+    for (const def of newlyEarned) this.onEarned?.(def);
+    this.onChange?.();
   }
 
   private unsaved = 0;
@@ -58,13 +95,16 @@ export class Progress {
   private featTotal: number | undefined;
   private updateSummary(): void {
     const slug = saveSlug(this.chunkId);
-    if (findShard(slug) !== undefined) updateSummary(slug as ShardSlug, this.shard, this.featTotal ?? this.defs.length);
+    if (findShard(slug) !== undefined) updateSummary(slug as ShardSlug, this.ledger === undefined ? this.shard
+      : { earned: this.defs.filter((def) => this.earned(def.id)).map((def) => def.id), playS: this.playS }, this.featTotal ?? this.defs.length);
   }
   private save() { progressSave.write(this.shard, saveSlug(this.chunkId)); this.updateSummary(); }
 
   /** Persist current progress and unsaved play time; false keeps the state available for a later retry. */
   checkpoint(): boolean {
-    const durable = progressSave.write(this.shard, saveSlug(this.chunkId));
+    const metadata = progressSave.write(this.shard, saveSlug(this.chunkId));
+    const ledger = this.ledger?.checkpoint() ?? true;
+    const durable = metadata && ledger;
     if (durable) this.unsaved = 0;
     this.updateSummary();
     return durable;
@@ -72,6 +112,7 @@ export class Progress {
 
   /** one kill of (kind, variant) — bumps every matching achievement, unlocks the ones that reach their count */
   recordKill(kind: string, variant?: string): void {
+    if (this.ledger !== undefined) return;
     let changed = false;
     for (const d of this.defs) {
       if (d.kind !== kind || (d.variant && d.variant !== variant)) continue;
@@ -92,6 +133,7 @@ export class Progress {
    * raises it to that total (idempotent: a collectible count read back from the quest flags after a reload).
    */
   recordEvent(event: string, total?: number): void {
+    if (this.ledger !== undefined) return;
     let changed = false;
     for (const d of this.defs) {
       if (d.event === undefined || d.event !== event) continue;
@@ -108,11 +150,12 @@ export class Progress {
     if (changed) { this.save(); this.onChange?.(); }
   }
 
-  count(id: string): number { return this.shard.counts[id] ?? 0; }
-  earned(id: string): boolean { return this.shard.earned.includes(id); }
-  get earnedCount(): number { return this.shard.earned.length; }
+  count(id: string): number { return this.ledger?.count(id) ?? this.shard.counts[id] ?? 0; }
+  earned(id: string): boolean { return this.ledger?.earned(id) ?? this.shard.earned.includes(id); }
+  get earnedCount(): number { return this.ledger === undefined ? this.shard.earned.length : this.defs.filter((def) => this.earned(def.id)).length; }
   /** the worn title's def, if any */
-  get title(): AchievementDef | null { return this.defs.find((d) => d.id === this.shard.title && this.earned(d.id)) ?? null; }
+  get title(): AchievementDef | null { return this.defs.find((d) => d.id === this.shard.title && this.earned(d.id))
+    ?? (this.ledger === undefined ? null : this.defs.find((d) => this.earned(d.id)) ?? null); }
   /** wear an earned title (ignored when not earned) */
   wear(id: string): void {
     if (!this.earned(id) || this.shard.title === id) return;
