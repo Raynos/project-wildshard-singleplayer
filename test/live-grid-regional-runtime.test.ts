@@ -69,12 +69,13 @@ it('admits a whole-cost runtime, runs hooks only after the real interior event, 
   vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source, assets: new Map(), cached: false }, release,
     options: { base: 'https://fixture.invalid/', offline: false, firstParty: true, fetch: () => Promise.reject(new Error('No network')), hash: () => Promise.reject(new Error('Already admitted')) } }));
   const regions: ReturnType<typeof createSimHost>[] = [];
+  let aimBodies: AnimalManager['animals'] = [];
   vi.spyOn(foundation, 'createRegionalWorldFoundation').mockImplementation(ports => request => {
     // View/terrain/rig construction is a declared foundation double; native host, grid installs, lease, scopes,
     // registry, trusted lifecycle, equipment and checkpoint writers remain the real production implementations.
     const host = createSimHost({ ...SIM_LEVEL, id: target.slug, entities: [], quests: [] }, { rapier: R, playerBody: false });
     regions.push(host); ports.install?.(host, request);
-    const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon' }); vi.spyOn(animals, 'update').mockImplementation(noop);
+    const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon' }); aimBodies = animals.animals; vi.spyOn(animals, 'update').mockImplementation(noop);
     return Promise.resolve({ region: { host, dispose: () => { disposed++; host.dispose(); } }, ground: { heightAt: () => 0, waterSurfaceAt: () => null },
       world: view => ({ ...world, registry: view.registry, physics: host.physics }),
       enter: entered => { const prior = app.levelScope; app.levelScope = host.scope; entered.onDispose(() => { app.levelScope = prior; }); },
@@ -92,13 +93,18 @@ it('admits a whole-cost runtime, runs hooks only after the real interior event, 
     await session.live.prefetch([target.instance]); expect(worlds).toBe(0); expect(plays).toBe(0);
     const claim = allocator.entries().find(row => row.id === `sim:${target.instance}`);
     expect(claim).toMatchObject({ bytes: regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW), refs: 1, holds: 0 });
+    expect(session.aimAnimals()).toEqual([]); expect(session.aimAnimals()).not.toBe(aimBodies);
     const prepared = await session.live.prepare(home.instance, target.instance); prepared.commit();
     traveller.position.set(0, 0.5, 0); expect(session.gameplayReady()).toBe(false);
     gridCells.enter({ instance: target.instance, slug: target.slug });
     for (let i = 0; i < 50 && !session.gameplayReady(); i++) await Promise.resolve();
     expect(session.gameplayReady()).toBe(true); expect([worlds, plays]).toEqual([1, 1]);
+    expect(session.aimAnimals()).toBe(aimBodies);
+    traveller.position.z = -260; expect(session.aimAnimals()).not.toBe(aimBodies);
+    traveller.position.z = 0; expect(session.aimAnimals()).toBe(aimBodies);
     expect(session.live.checkpoint(target.instance)).toBe(true);
     gridCells.leave(); expect(app.registryValue).toBe(registry);
+    expect(session.aimAnimals()).toEqual([]); expect(session.aimAnimals()).not.toBe(aimBodies);
     const leave = await session.live.prepare(target.instance, null); leave.commit();
     expect(session.live.unload(target.instance)).toBe(true); expect(disposed).toBe(1); expect(release).toHaveBeenCalledTimes(1);
     expect(scene.children).toHaveLength(0);

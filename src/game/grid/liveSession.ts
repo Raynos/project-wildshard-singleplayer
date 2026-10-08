@@ -560,6 +560,15 @@ export class LiveGridSession {
     const state = this.hybrid.state(); return state.instance === current && state.ready;
   }
 
+  /** Actual regional aim bodies only after entered hooks complete; parked neighbours and the road supply none. */
+  aimAnimals(): ReturnType<PreparedRegionalRuntime['aimAnimals']> {
+    const state = this.hybrid.state();
+    if (!state.ready || state.instance === null || this.live.current() !== state.instance) return [];
+    const feet = this.live.worldFeet();
+    if (this.ports.assembly.at(feet.x, feet.z)?.instance !== state.instance) return [];
+    return this.runtimeRegions.get(state.instance)?.aimAnimals() ?? [];
+  }
+
   /** The fixed-boundary rebind: the page's stepped world, the player's motor and the render origin. */
   private bind(frame: LiveGridFrame): void {
     this.framePhysics = frame.physics;

@@ -79,6 +79,8 @@ export interface PreparedRegionalRuntime {
   readonly loadout: GridLoadout;
   /** Flush authored runtime progress and its admitted continuation; false keeps the traveller in the source frame. */
   readonly checkpoint: () => boolean;
+  /** The actual retained herd; callers expose it to aiming only while this runtime is ready and entered. */
+  readonly aimAnimals: () => AnimalManager['animals'];
   /** Actual actor-object provenance in the retained region; repeated IDs in parked neighbours grant no permission. */
   readonly combatActors: () => ReadonlyMap<ReturnType<AnimalManager['animals'][number]['combatActor']>, Readonly<{ x: number; y: number; z: number }>>;
 }
@@ -219,6 +221,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           };
         } };
       return { resident, region: { ...foundation.region, dispose: () => { scope.dispose(); } }, queries: view.queries, checkpoint,
+        aimAnimals: () => localPlay?.animals.animals ?? [],
         combatActors: () => new Map((localPlay?.animals.animals ?? []).map(animal => [animal.combatActor(), animal.position])),
         loadout: { checkpoint, stow: () => {
           stowed = true;
