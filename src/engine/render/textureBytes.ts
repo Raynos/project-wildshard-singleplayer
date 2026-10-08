@@ -153,16 +153,22 @@ export function composerAllocationBytes(composer: object, renderer: THREE.WebGLR
       allocations.set(value, width * height * bytes * Math.max(1, samples));
     } finally { context.bindRenderbuffer(context.RENDERBUFFER, before instanceof WebGLRenderbuffer ? before : null); }
   };
-  for (const resource of containerResources(composer)) {
-    if (!(resource instanceof THREE.Texture || resource instanceof THREE.WebGLRenderTarget)) continue;
+  const addTexture = (texture: object): void => {
+    const properties: unknown = renderer.properties.get(texture);
+    if (typeof properties !== 'object' || properties === null) return;
+    const native: unknown = Reflect.get(properties, '__webglTexture');
+    if (typeof native === 'object' && native !== null && !allocations.has(native)) {
+      allocations.set(native, cachedResourceAllocations(texture).filter(row => row.kind === 'gpu').reduce((sum, row) => sum + row.bytes, 0));
+    }
+  };
+  // Sampled LUTs/sky/scene textures are content, not composer-owned allocations.
+  for (const resource of containerResources(composer)) if (resource instanceof THREE.WebGLRenderTarget) {
+    const textures: readonly unknown[] = resource.textures;
+    for (const texture of textures) if (texture instanceof THREE.Texture) addTexture(texture);
+    if (resource.depthTexture !== null) addTexture(resource.depthTexture);
     const properties: unknown = renderer.properties.get(resource);
     if (typeof properties !== 'object' || properties === null) continue;
-    if (resource instanceof THREE.Texture) {
-      const native: unknown = Reflect.get(properties, '__webglTexture');
-      if (typeof native === 'object' && native !== null && !allocations.has(native)) {
-        allocations.set(native, cachedResourceAllocations(resource).filter(row => row.kind === 'gpu').reduce((sum, row) => sum + row.bytes, 0));
-      }
-    } else for (const key of ['__webglDepthbuffer', '__webglDepthRenderbuffer', '__webglColorRenderbuffer']) addBuffer(Reflect.get(properties, key));
+    for (const key of ['__webglDepthbuffer', '__webglDepthRenderbuffer', '__webglColorRenderbuffer']) addBuffer(Reflect.get(properties, key));
   }
   return [...allocations.values()].reduce((sum, bytes) => sum + bytes, 0);
 }

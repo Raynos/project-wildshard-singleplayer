@@ -135,7 +135,13 @@ export class Game {
     if (this._composer === null) throw new Error('Composer allocation observed before build');
     read(composerAllocationBytes(this._composer, this.renderer));
     this.compositionObservers.add(read);
-    return () => { this.compositionObservers.delete(read); };
+    const scope = this.engineScope.child('composer.allocation');
+    scope.onDispose(() => { this.compositionObservers.delete(read); });
+    this.levelScope.onDispose(() => { queueMicrotask(() => {
+      // All synchronous resource disposers finish first; a retired observer cannot write into another lifetime.
+      if (!scope.disposed && this._composer !== null) read(composerAllocationBytes(this._composer, this.renderer));
+    }); });
+    return () => { scope.dispose(); };
   }
   private _sky: Sky | null = null;
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately

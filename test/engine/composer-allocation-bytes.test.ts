@@ -1,9 +1,12 @@
 import { expect, it, vi } from 'vitest';
-import { HalfFloatType, WebGLRenderTarget, type WebGLRenderer } from 'three';
+import { DataTexture, HalfFloatType, WebGLRenderTarget, type WebGLRenderer } from 'three';
 import { composerAllocationBytes } from '../../src/engine/render/textureBytes';
+import { App } from '../../src/engine/app/app';
+import { Scope } from '../../src/engine/app/scope';
+import { Game } from '../../src/engine/core/Game';
 import { legacyDouble } from '../fake/FakeGame';
 
-it('counts only allocated composer native handles once and restores the renderbuffer binding', () => {
+it('counts only allocated composer native handles once and restores the renderbuffer binding', async () => {
   class Renderbuffer { readonly renderbuffer = true; }
   class Context { readonly webgl2 = true; }
   vi.stubGlobal('WebGLRenderbuffer', Renderbuffer); vi.stubGlobal('WebGL2RenderingContext', Context);
@@ -19,14 +22,29 @@ it('counts only allocated composer native handles once and restores the renderbu
   });
   Object.setPrototypeOf(context, Context.prototype);
   const target = new WebGLRenderTarget(4, 4, { type: HalfFloatType }), spare = new WebGLRenderTarget(8, 8);
-  const alias = target.texture.clone();
+  const alias = target.texture.clone(), sampled = new DataTexture(new Uint8Array(4096), 32, 32);
+  let allocated = true;
   const renderer = legacyDouble<WebGLRenderer & { isWebGLRenderer: boolean }>({
     isWebGLRenderer: true, getContext: () => context,
-    properties: legacyDouble<WebGLRenderer['properties']>({ get: object => object === target.texture || object === alias ? { __webglTexture: nativeTexture }
+    properties: legacyDouble<WebGLRenderer['properties']>({ get: object => !allocated ? {} : object === sampled ? { __webglTexture: {} } : object === target.texture || object === alias ? { __webglTexture: nativeTexture }
       : object === target ? { __webglDepthbuffer: depth, __webglDepthRenderbuffer: depth } : {} }),
   });
   try {
-    expect(composerAllocationBytes({ target, alias, spare, renderer }, renderer)).toBe(16 * 8 + 16 * 2);
+    expect(composerAllocationBytes({ target, alias, sampled, spare, renderer }, renderer)).toBe(16 * 8 + 16 * 2);
     expect(binding).toBe(prior);
-  } finally { vi.unstubAllGlobals(); target.dispose(); spare.dispose(); alias.dispose(); }
+    const game: unknown = Object.create(Game.prototype);
+    if (!(game instanceof Game)) throw new Error('Game prototype');
+    const app = new App(), engineScope = new Scope('renderer'), levelScope = engineScope.child('level'), read = vi.fn<(bytes: number) => void>();
+    Reflect.set(game, '_composer', { target, alias, sampled, spare, renderer });
+    Reflect.set(game, 'renderer', renderer); Reflect.set(game, 'app', app);
+    Reflect.set(game, 'levelScope', levelScope); Reflect.set(game, 'engineScope', engineScope); Reflect.set(game, 'compositionObservers', new Set());
+    const detach = game.observeComposerAllocation(read);
+    expect(read).toHaveBeenLastCalledWith(160);
+    levelScope.onDispose(() => { allocated = false; }); levelScope.dispose();
+    expect(read).toHaveBeenCalledTimes(1); await Promise.resolve();
+    expect(read).toHaveBeenLastCalledWith(0);
+    detach(); await Promise.resolve();
+    expect(read).toHaveBeenCalledTimes(2); expect(app.events.census().listeners).toBe(0);
+    engineScope.dispose();
+  } finally { vi.unstubAllGlobals(); target.dispose(); spare.dispose(); alias.dispose(); sampled.dispose(); }
 });
