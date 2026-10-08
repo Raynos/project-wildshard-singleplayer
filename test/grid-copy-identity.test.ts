@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { PerspectiveCamera, Vector3, type BufferGeometry, type Mesh } from 'three';
+import { PerspectiveCamera, Vector3, type Mesh } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { GridCellEvents } from '../src/game/grid/boot';
@@ -30,7 +30,7 @@ describe('template copies read distinct without a second product (playtest 1, SF
       if (marks === null) continue;
       const meshes = marks.object.children as Mesh[];
       expect(meshes).toHaveLength(2);
-      const bytes = meshes.reduce((sum, mesh) => sum + ((mesh.geometry as BufferGeometry).getAttribute('position').array.byteLength), 0);
+      const bytes = meshes.reduce((sum, mesh) => sum + (mesh.geometry.getAttribute('position').array.byteLength), 0);
       expect(bytes).toBeLessThan(8 * 1024);
       marks.dispose();
       expect(marks.object.parent).toBeNull();
