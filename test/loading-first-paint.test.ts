@@ -42,10 +42,12 @@ it('adopts the same panel through admission and ordinary setup, keeps verified b
   loading.paintAdmission({ phase: 'complete', detail: 'Product admitted', bytesRead: 900, bytesTotal: 900, filesDone: 2, filesTotal: 2 });
   loading.waiting('Preparing audio catalogue');
   expect(beginLoading({ id: 'progress-fixture', name: 'Progress fixture' })).toBe(loading);
-  const view: ProgressView = { setup: 0.5, download: 0.5, done: false, error: null, step: 'audio', label: 'Audio', detail: '', bytes: null, bytesRead: 50, bytesTotal: 100, filesDone: 0, filesTotal: 1, doneCount: 0, rows: [] };
+  const view: ProgressView = { setup: 0.5, download: 0.5, worldBytesReady: true, done: false, error: null, step: 'audio', label: 'Audio', detail: '', bytes: null, bytesRead: 50, bytesTotal: 100, filesDone: 0, filesTotal: 1, doneCount: 0, rows: [] };
   loading.paint(view);
+  vi.advanceTimersByTime(35);
+  expect(loading.root.querySelector('[data-el="line"]')?.textContent).toContain('Building the world');
   expect(loading.root.dataset['download']).toBe('95');
-  loading.paint({ ...view, setup: 1, download: 1, done: true, bytesRead: 100, filesDone: 1 });
+  loading.paint({ ...view, setup: 1, download: 1, worldBytesReady: true, done: true, bytesRead: 100, filesDone: 1 });
   expect(loading.root.dataset['download']).toBe('100'); expect(loading.root.dataset['setup']).toBe('100');
   scope.dispose();
 });
@@ -53,6 +55,6 @@ it('adopts the same panel through admission and ordinary setup, keeps verified b
 it('keeps ordinary non-product boot completion at 100 after a module-only wait', () => {
   vi.useFakeTimers(); const scope = new Scope('loading-legacy'); app.levelScope = scope;
   const loading = beginLoading({ id: 'legacy-fixture', name: 'Legacy fixture' }); loading.waiting('Loading application modules');
-  loading.paint({ setup: 1, download: 1, done: true, error: null, step: 'audio', label: 'Audio', detail: '', bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, doneCount: 0, rows: [] });
+  loading.paint({ setup: 1, download: 1, worldBytesReady: true, done: true, error: null, step: 'audio', label: 'Audio', detail: '', bytes: null, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, doneCount: 0, rows: [] });
   expect(loading.root.dataset['setup']).toBe('100'); scope.dispose();
 });

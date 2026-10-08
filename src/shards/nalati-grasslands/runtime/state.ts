@@ -9,7 +9,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { installRide } from '../ride/input';
 import { Color, Vector3, type Object3D } from 'three';
-import { macrotask } from '@wildshard/engine/boot/plan';
+import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { TargetAnimal, TargetHit } from '@wildshard/engine/combat/types';
 import type { ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -114,8 +114,12 @@ export interface Nalati {
   skins: NalatiSkinLocker;
 }
 
-export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Promise<Nalati> {
+export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext, progress?: StepProgress): Promise<Nalati> {
   const { game, sky } = ctx;
+  const slice = slicer(0, progress);
+  let completed = 0;
+  const total = 7;
+  progress?.set(0, total, 'Preparing world builders');
   const [{ practiceRoom }, { modelContext }] = await Promise.all([import('@wildshard/engine/core/practiceRoom'), import('@wildshard/engine/models/model')]);
   const { trample, grassHeightAt, grassBaseHeightAt } = await loadGrassField();
   const crowdVariant = directorVariant(plugin);
@@ -137,7 +141,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   game.scene.add(water.group);
   groups['water'] = water.group;
   updates.push((dt) => water.update(dt));
-  await macrotask();
+  await slice(++completed, total, 'Water');
 
   // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
   const outcrops = buildOutcrops(sky);
@@ -146,14 +150,14 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   // E306 / E315: its rocks are models (the granite outcrop, the rounded boulder), placed drawnInto the mesh
   const rockCtx = modelContext(sky);
   const rockPlaced = [...await outcrops.register(plugin.app.registry, rockCtx, macrotask)];
-  await macrotask();
+  await slice(++completed, total, 'Outcrops');
   groups['outcrops'] = outcrops.mesh;
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
   const crags = buildCragRock(sky);
   game.scene.add(crags.group);
   rockPlaced.push(...await crags.register(plugin.app.registry, rockCtx, macrotask));   // the crag rock model (fins, ribs, towers), drawnInto its quadrants
-  await macrotask();
+  await slice(++completed, total, 'Crag rocks');
   groups['crags'] = crags.group;
 
   // ── grass + wind (grass agent, B1): the blade rings are Grass.ts → look/grass.ts (main.ts builds it); the Wind object goes here ──
@@ -165,7 +169,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   await pois.place(game.scene, ctx.player, macrotask);   // each POI into the world registry (NALATI-MERGE P1): drawn, collides, in Explore
   groups['pois'] = pois.group;
   updates.push((dt) => pois.update(dt));
-  await macrotask();
+  await slice(++completed, total, 'Places');
 
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/shards/nalati-grasslands/world/dressing/ ──
@@ -177,7 +181,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   await registerNalatiPlaces({ registry: plugin.app.registry, pois: pois.placed, others: [...rockPlaced, ...dressPlaced], yieldTask: macrotask });
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
-  await macrotask();
+  await slice(++completed, total, 'Dressing');
 
   // ── weather + day/night (weather agent, B10): the clock, storms, the sky rig — src/shards/nalati-grasslands/weather.ts ──
   const weather = wireWeather({ ctx: plugin, manifest: ctx.chunk, game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders, water: water.group });
@@ -214,7 +218,7 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
   weather.bind({ indoors: () => boss.inside }); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
-  await macrotask();
+  await slice(completed + 1, total, 'Dungeon and weather');
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
   const player = ctx.player;
@@ -432,5 +436,6 @@ export async function buildNalatiWorld(ctx: NalatiCtx, plugin: ShardContext): Pr
   plugin.debug.expose('nalati', nalati);
   plugin.debug.expose('nalati.ghosts', night.riders);
   plugin.debug.expose('nalati.dressing', dressing);
+  await slice(total, total, 'World services');
   return nalati;
 }

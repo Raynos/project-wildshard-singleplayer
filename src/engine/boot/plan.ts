@@ -47,6 +47,8 @@ export interface ProgressView {
   /** DOWNLOAD's live line: the source most recently read, its bytes so far and its declared total. */
   bytes: { key: ByteKey; label: string; done: number; total: number } | null;
   bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
+  /** World source bytes only; menu art and audio do not delay the building label. */
+  worldBytesReady: boolean;
   doneCount: number; rows: LogRow[];
 }
 export type Sink = (view: ProgressView) => void;
@@ -94,9 +96,10 @@ export const macrotask = (): Promise<void> => new Promise((resolve) => {
  * A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between
  * builders of uneven size — the ones a shard skips cost nothing, the heavy runs still break under ~100 ms.
  */
-export function slicer(budgetMs = 30): () => Promise<void> {
+export function slicer(budgetMs = 30, progress?: StepProgress): (done?: number, total?: number, detail?: string) => Promise<void> {
   let t0 = performance.now();
-  return async () => {
+  return async (done, total, detail) => {
+    if (done !== undefined && total !== undefined) progress?.set(done, total, detail);
     if (performance.now() - t0 < budgetMs) return;
     await macrotask();
     t0 = performance.now();
@@ -160,6 +163,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
       step: current, label: STEP_INFO[current].label, detail: steps[current].detail,
       bytes: lastRead && last ? { key: lastRead, label: byteLabel(lastRead), done: credited(last), total: last.total } : null,
       bytesRead: read, bytesTotal: total, filesDone, filesTotal, doneCount, rows,
+      worldBytesReady: BYTE_SOURCES.every(key => key === 'art' || key === 'music' || key === 'sfx' || credited(sources[key]) >= sources[key].total),
     };
     sink(view);
   }

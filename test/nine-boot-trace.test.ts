@@ -12,7 +12,7 @@ const inbox = vi.fn<BootTraceTransports['inbox']>();
 const listeners = new Map<string, (event: { persisted?: boolean }) => void>();
 const boot = (): Promise<BootTrace> => Promise.resolve(createBootTrace({ deliver: capture, inbox }));
 const progress = (step: ProgressView['step'], setup: number, done = false): ProgressView => ({
-  download: 1, setup, done, error: null, step, label: step, detail: '', bytes: null,
+  worldBytesReady: false, download: 1, setup, done, error: null, step, label: step, detail: '', bytes: null,
   bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0, doneCount: 0, rows: [],
 });
 

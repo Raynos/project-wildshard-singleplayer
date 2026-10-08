@@ -159,7 +159,7 @@ export class Loading {
     // the player's one bar: download and setup, half each (each only grows, so the sum does); 100 only when both are
     const all = (v.download + v.setup) / 2, allW = `${(all * 100).toFixed(1)}%`;
     if (this.els.bar.style.width !== allW) this.els.bar.style.width = allW;
-    set(this.els.line, v.done ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.download < 1 ? engineString('s_37b345555d7e') : engineString('s_080cd8d3b901'), pct(all)]));
+    set(this.els.line, v.done ? engineString('s_5fa7aac5375c') : engineString('s_bf5e849564ae', [v.worldBytesReady ? 'Building the world' : engineString('s_37b345555d7e'), pct(all)]));
     set(this.els.dlFact, v.bytesTotal > 0
       ? engineString('s_9efb7c208f96', [formatMB(v.bytesRead), formatMB(v.bytesTotal), v.filesDone, v.filesTotal, v.bytes && v.bytes.done < v.bytes.total ? engineString('s_614cafefe4f0', [v.bytes.label]) : ''])
       : engineString('s_387d49323b0f'));

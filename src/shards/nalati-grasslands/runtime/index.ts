@@ -56,7 +56,7 @@ export class NalatiPlugin extends ShardPlugin {
     shell.overhead.push(grass.group, particles.group);
     shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); particles.update(dt, shell.viewer(), game.camera); };
     await step('cabins', () => undefined);
-    this.rt = await step('props', () => buildNalatiWorld(world, ctx));
+    this.rt = await step('props', (progress) => buildNalatiWorld(world, ctx, progress));
     const rt = this.rt;
     // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
     // heights laid 9 fewer ramps)

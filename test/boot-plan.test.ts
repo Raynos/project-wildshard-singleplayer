@@ -3,7 +3,7 @@ import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 // both fractions are monotone, a running step never reads complete, and done() reads exactly 1 / 1.
 import { describe, expect, it, vi } from 'vitest';
 import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, shardTimingKey, useShardSteps, type BootStep, type ByteKey } from '../src/engine/boot/steps';
-import { createBootPlan, formatMB, runDirect, type Plan, type PlanOptions, type ProgressView, type StepProgress } from '../src/engine/boot/plan';
+import { createBootPlan, formatMB, runDirect, slicer, type Plan, type PlanOptions, type ProgressView, type StepProgress } from '../src/engine/boot/plan';
 import { expectedDurations, loadTimings, saveTimings, type Timings } from '../src/engine/boot/timing';
 
 type Totals = PlanOptions['totals'];
@@ -218,4 +218,20 @@ describe('authored loading step nouns', () => {
     useShardSteps('driftwood-isle');
     for (const k of BOOT_STEPS) expect(STEP_INFO[k].weight).toBeGreaterThan(0);
   });
+});
+
+
+it('reports world byte completion independently of title art and audio', () => {
+  const { plan } = harness();
+  expect(plan.view.worldBytesReady).toBe(false);
+  for (const key of BYTE_SOURCES) if (key !== 'art' && key !== 'music' && key !== 'sfx') plan.reader(key).add(1000);
+  expect(plan.view.worldBytesReady).toBe(true);
+  expect(plan.view.download).toBeLessThan(1);
+});
+
+it('reports actual builder units through the slicer even before its yield budget expires', async () => {
+  const set = vi.fn<StepProgress['set']>(), detail = vi.fn<StepProgress['detail']>();
+  const slice = slicer(1e9, { set, detail });
+  await slice(1, 3, 'First builder'); await slice(2, 3, 'Second builder');
+  expect(set.mock.calls).toEqual([[1, 3, 'First builder'], [2, 3, 'Second builder']]);
 });
