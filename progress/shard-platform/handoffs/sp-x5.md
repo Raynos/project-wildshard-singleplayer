@@ -1,7 +1,7 @@
 # sp-x5 handoff — 2026-10-08
 
 SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
-Never message wildshard-v. No Simulator requested or used for this slice.
+Never message wildshard-v. Simulator Safari is now authorized via sim-lane behind sky-mem; no timing claim until the matched captures finish.
 
 ## Landed source
 
@@ -28,16 +28,23 @@ harness observations are archived separately, not pooled into matched numbers.
 
 ## Exact next step
 
-Consume the report, then coordinator assigns the next SF67 row. Fix 3 (bake code-built
-worlds) is explicitly not assigned to this lane. Safari/Simulator task/phase profiling,
-physical phone, all-shard coverage, repeated cohorts and the other audit freezes remain
-open. Ask coordinator before Simulator. Missing Safari LongTask events are unavailable,
-never zero. Hook wall spans include awaits; do not charge them as CPU tasks.
+Finish the matched Simulator Safari cohort using `scripts/loading-benchmark/safari-matched.mjs`.
+It uses one owned device, erased only while shut down between shard pairs, and the same
+before `19e647272` / after `6f4490e83` pins as Chromium. Cold + warm use the real title,
+card and ENTER flow; fixtures are in owned exported HTML only and restore exact bytes.
+Unsupported Safari task events remain missing, never zero; rAF gaps are not CPU tasks.
+Coordinator authorized the sim-lane queue behind sky-mem (no extra GO needed).
+Fix 3 (bake code-built worlds) remains unassigned. Physical phone evidence is open.
 
 ## Resources / checks
 
-Owned :4412 before and :4413 after previews stopped through serve-build; no browser or
-Simulator remains. Full tests use the heavy-lane, no direct Vite or full Vitest.
+Old :4412/:4413 previews are stopped. Current owned Safari pair:
+- before :4406 `/private/tmp/wildshard-serve/20261008-144326-4406/dist`, exact19e647272;
+- after :4400 `/private/tmp/wildshard-serve/20261008-144558-4400/dist`, exact6f4490e83.
+HTTP/disk versions and listener/PGID verified. Stop both through serve-build after the
+Safari cohort. No owned browser/Simulator at this commit. New Safari conversion,
+fixture preservation tests (5/5), root strict and full folder typed lint are green.
+Docs/comments reconciliation `8039db709`, corrected Debug help `613714fc6`. Full tests use the heavy-lane, no direct Vite or full Vitest.
 Clean source pin `11da76006` passed full queued verification: 925 files / 5337 tests
 in 106.86 s. The later gate-path forward has focused 2/2 green; this receipt fixes the full scripts
 folder under root type-aware lint after that gate exposed script-only rules. Focused 24 boot/plugin checks and 9 benchmark/receipt checks passed;
