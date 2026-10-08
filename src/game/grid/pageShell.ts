@@ -4,6 +4,7 @@ import type { ShardManifest } from '../shard/manifest';
 import { ShardPlugin } from '../shard/plugin';
 import { toLevelSpec } from '../shard/spec';
 import { EmptyEquipment } from '../shardfile/emptyEquipment';
+import { emptyLook } from '../shardfile/emptyLook';
 
 /**
  * G226: the page owns the renderer, player and platform controls, never an opaque home world. Keep only identity and
@@ -19,6 +20,7 @@ export function gridPageShell(source: ShardManifest): ShardManifest {
     sky: { sunColor: sky.sunColor, sunIntensity: sky.sunIntensity, envIntensity: sky.envIntensity,
       bgIntensity: sky.bgIntensity, fogSunColor: sky.fogSunColor, cloudSunColor: sky.cloudSunColor,
       hemiSky: sky.hemiSky, hemiGround: sky.hemiGround, hemiIntensity: sky.hemiIntensity },
+    render: () => Promise.resolve(emptyLook(null)),
     atmosphere, grade, audio: { ambience: 'legacy', score: 'legacy' },
     boot: { files: () => [], precache: [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }) },
     loadout: { weapons: [], tools, start: tools.filter(id => source.loadout?.start.includes(id)) },
