@@ -167,8 +167,12 @@ export class RenderRings<D> {
   dispose(): void {
     if (this.disposed) return; this.disposed = true;
     const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level]);
-    for (const slot of order) this.drop(slot);
-    for (const done of this.completed.splice(0)) if (!(done.result instanceof Error)) this.ports.discard?.(done.tile, done.result);
+    const errors: unknown[] = [];
+    for (const slot of order) { try { this.drop(slot); } catch (error) { errors.push(error); } }
+    for (const done of this.completed.splice(0)) {
+      if (!(done.result instanceof Error)) { try { this.ports.discard?.(done.tile, done.result); } catch (error) { errors.push(error); } }
+    }
+    if (errors.length > 0) throw new AggregateError(errors, 'Ring tile cleanup failed');
   }
 
   private distance(tile: RingTile, camera: RingCamera): number {

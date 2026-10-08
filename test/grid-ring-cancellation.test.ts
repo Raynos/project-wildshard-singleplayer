@@ -59,13 +59,13 @@ it('retires construction and claims when preparation or upload throws synchronou
   }
 });
 
-it('keeps retiring a cancelled claim when a renderer cleanup fails', () => {
-  const allocator = new ResidencyAllocator(); let cancelled = false;
-  const rings = new RenderRings([{ instance: 'cell', origin: { x: 0, z: 0 } }], allocator,
+it('keeps retiring all cancelled claims when a renderer cleanup fails', () => {
+  const allocator = new ResidencyAllocator(); let cancelled = 0;
+  const rings = new RenderRings([{ instance: 'cell', origin: { x: 0, z: 0 } }, { instance: 'other', origin: { x: 0, z: 0 } }], allocator,
     (_instance, level) => level === 'far' ? 1000 : null, {
       fetch: (_tile, done) => { done('prepared'); }, upload: view,
-      discard: () => { throw new Error('discard failed'); }, cancel: () => { cancelled = true; },
+      discard: () => { throw new Error('discard failed'); }, cancel: () => { cancelled++; },
     }, { uploadsPerFrame: 0 });
   rings.step(here); expect(() => rings.dispose()).toThrow('Ring tile cleanup failed');
-  expect(cancelled).toBe(true); expect(allocator.entries()).toEqual([]);
+  expect(cancelled).toBe(2); expect(allocator.entries()).toEqual([]);
 });
