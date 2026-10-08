@@ -718,9 +718,11 @@ resampling heights, normalising attributes or simplifying geometry. Original
 samples remain exact; cut vertices interpolate the original triangle attributes.
 Supported channels include normal, UV, colour, splat and Nalati's `surf` vec4,
 `rdir` vec2 and `zone` vec3. Collision retains its original native bake; this is
-render geometry only. L1 initially retains native triangles, so its actual cost
-must be reported rather than assuming a simplification ratio. A subsequent LOD
-or material compiler must preserve the channel contract and measure any change.
+render geometry only. `simplifyNativeLatticeTile` from
+`@wildshard/sdk/bake/worldLod` then simplifies L1 with locked tile and hole
+borders, retaining exact surviving channel values. Report its actual count and
+appearance-error estimate (not an independent Hausdorff bound), and charge the
+emitted geometry; the target ratio is not a guaranteed reduction.
 
 `props.materials` is an optional exact map from each source glTF material name
 (case and spaces preserved) to `{id, colour?, normal?, metallicRoughness?,
@@ -732,6 +734,18 @@ materials replace `props.textures`; every GLB carries its used slot files as
 dependencies, charged with that GLB. Format admission checks ids, supported slots
 and declared references; immutable-byte admission refuses any unmapped or unnamed
 GLB material, naming it. Omitting this map preserves the existing one-family path.
+
+`props.splat` optionally declares `{material, layers: {colour: [four KTX2 hashes],
+normal: [four KTX2 hashes], arm: [four KTX2 hashes]}, tints: [four linear RGB
+triples], boreal: null | {normalK: [four factors], trailDust: [four factors]}}`.
+Its exact GLB material name is the sole exception to `props.materials`; it cannot
+also be a named prop slot. Each GLB using that name must directly declare all
+layer files as dependencies. These compressed bytes are preserved and deduplicated;
+colour and numeric roles cannot share a file, and array-owned layers cannot also
+be ordinary material textures. Native terrain GLBs carry `_SPLAT` vec4 and
+`_CANOPY` scalar channels. `WorldBakeRows.finish(family, {materials?, splat?})`
+packs the same declaration and verifies each GLB's own dependencies. Forest
+records and their renderer residency remain a separate pending product seam.
 
 ### Authored-world collision bake (SF55a)
 

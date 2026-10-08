@@ -2,7 +2,8 @@ import * as v from 'valibot';
 import { CELL_ABOVE, CELL_BELOW } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { isJsonData } from './json';
-import { PropMaterialsSchema, validatePropMaterials } from './propMaterials';
+import { PropMaterialsSchema, propMaterialTextureRefs, validatePropMaterials } from './propMaterials';
+import { SplatTerrainSchema, validateSplatTerrain } from './splatTerrain';
 import { glbPoint, glbTransform } from './glbTriangles';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
@@ -30,6 +31,7 @@ const collider = v.strictObject({ id, panel: v.nullable(id), initialActive: v.bo
 /** Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. */
 export const PropsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only props'), v.strictObject({ version: v.literal(1), family: id,
   materials: v.exactOptional(PropMaterialsSchema),
+  splat: v.exactOptional(SplatTerrainSchema),
   tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref })), v.maxLength(80)),
   panels: v.pipe(v.array(v.strictObject({ id, file: ref, visible: v.optional(v.boolean(), true) })), v.maxLength(64)), models: v.pipe(v.array(named), v.maxLength(64)), far: v.nullable(ref),
   colliders: v.optional(v.pipe(v.array(collider), v.maxLength(1024)), []),
@@ -47,6 +49,11 @@ export function validatePropsReferences(props: ShardProps, content: { files: rea
   const refs = new Set([...props.tiles.map((t) => t.file), ...props.panels.map((p) => p.file), ...props.models.map((p) => p.file), ...(props.far === null ? [] : [props.far])]);
   for (const texture of props.textures) if (!refs.has(texture.model) || files.get(texture.colour)?.kind !== 'ktx2' || !files.get(texture.model)?.dependencies.includes(texture.colour)) throw new Error('Prop texture must be a declared KTX2 dependency');
   if (props.materials !== undefined) validatePropMaterials(props.materials, { look: content.look?.materials ?? {}, models: [...refs], textures: props.textures, files: content.files });
+  if (props.splat !== undefined) {
+    if (props.materials !== undefined && Object.hasOwn(props.materials, props.splat.material)) throw new Error('Splat terrain material cannot also name a prop material');
+    validateSplatTerrain(props.splat, { look: content.look?.materials ?? {}, tiles: props.tiles.map(tile => tile.file),
+      propTextures: [...props.textures.map(texture => texture.colour), ...propMaterialTextureRefs(props.materials)], files: content.files });
+  }
 }
 
 /** Remove absent optional fields before handing admitted shapes to the engine's exact collider descriptor port. */

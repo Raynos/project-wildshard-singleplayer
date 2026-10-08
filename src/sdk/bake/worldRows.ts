@@ -4,7 +4,8 @@ import * as v from 'valibot';
 import { assetCost } from '../assets';
 import { contentHash } from '../project';
 import type { NativeLatticeTile } from './nativeLattice';
-import { checkStaticMaterialDependencies } from './staticMaterials';
+import { checkStaticMaterialDependencies, staticMaterialNames } from './staticMaterials';
+import { checkTileMaterialNames, splatTextureRefs } from '@wildshard/game/shardfile/splatTerrain';
 
 type FileRow = Shardfile['files'][number];
 type TileRow = Shardfile['tiles'][number];
@@ -75,17 +76,24 @@ export class WorldBakeRows {
   }
 
   /** Snapshot deterministic rows. Named packing checks every GLB material and its own texture dependencies; family remains the legacy fallback. */
-  finish(family: string, named?: { materials: NonNullable<ShardProps['materials']> }): BakedWorldRows {
+  finish(family: string, named?: { materials?: NonNullable<ShardProps['materials']>; splat?: NonNullable<ShardProps['splat']> }): BakedWorldRows {
     if (!/^[a-z][a-z0-9.-]{0,127}$/.test(family)) throw new Error('Invalid world material catalogue ID');
     const files = [...this.files.values()].sort((a, b) => order(a.hash, b.hash)).map(copyFile);
     const tiles = [...this.tiles.values()].sort((a, b) => a.lod - b.lod || a.z - b.z || a.x - b.x).map(copyTile);
     const props: ShardProps = { version: 1, family, tiles: tiles.map(row => {
       const model = this.models.get(`${row.lod}/${row.x}/${row.z}`); if (model === undefined) throw new Error('Missing world model'); return { ...model };
     }), panels: [], models: [], textures: [], colliders: [], far: null };
-    const admittedProps = named === undefined ? props : v.parse(PropsSchema, { ...props, materials: named.materials });
+    const admittedProps = named === undefined ? props : v.parse(PropsSchema, { ...props,
+      ...(named.materials === undefined ? {} : { materials: named.materials }), ...(named.splat === undefined ? {} : { splat: named.splat }) });
     if (named !== undefined) for (const file of files) if (file.kind === 'glb') {
       const bytes = this.assets.get(file.hash); if (bytes === undefined) throw new Error('Missing named world GLB');
-      checkStaticMaterialDependencies(bytes, named.materials, file.dependencies);
+      checkTileMaterialNames(named.materials, named.splat, bytes);
+      if (named.materials !== undefined) {
+        const slots = named.splat === undefined ? named.materials : { ...named.materials, [named.splat.material]: { id: family, colour: null, normal: null, metallicRoughness: null, occlusion: null, emissive: null } };
+        checkStaticMaterialDependencies(bytes, slots, file.dependencies);
+      }
+      if (named.splat !== undefined && staticMaterialNames(bytes).includes(named.splat.material)
+        && splatTextureRefs(named.splat).some(ref => !file.dependencies.includes(ref))) throw new Error('Splat terrain GLB must directly declare every layer dependency');
     }
     return { files, tiles, props: admittedProps, critical: files.filter(row => row.critical).map(row => row.hash), assets: new Map(files.map(row => {
       const bytes = this.assets.get(row.hash); if (bytes === undefined) throw new Error('Missing world bytes'); return [row.hash, Uint8Array.from(bytes)];

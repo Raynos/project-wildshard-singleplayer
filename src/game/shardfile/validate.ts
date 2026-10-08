@@ -8,7 +8,8 @@ import { validateTerrainAssets } from './terrain';
 import { validateMeshCollisionAssets } from './meshCollision';
 import { validateNativeGround } from './nativeGround';
 import { validateMeshEntryways } from './meshEntryways';
-import { checkPropMaterialNames, glbMaterialNames, validatePropMaterials, type PropMaterials } from './propMaterials';
+import { glbMaterialNames, validatePropMaterials, type PropMaterials } from './propMaterials';
+import { checkTileMaterialNames, splatTextureRefs } from './splatTerrain';
 import { validateSkinAssets } from './skins';
 import { validateEntrywayTerrain } from './entryways';
 import { validateEntrywayClearance } from './entryClearance';
@@ -103,12 +104,16 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     const actual = assetCost(f.kind, bytes);
     if (f.kind === 'wasm') admissions.set(f.hash, admitScript(bytes));
     if (actual.decoded > f.decoded || actual.gpu > f.gpu || actual.triangles > f.triangles || actual.draws > f.draws) throw new Error('asset cost declaration understated');
-    if (propMaterials !== undefined && propModels.has(f.hash)) {
-      checkPropMaterialNames(propMaterials, bytes);
+    if ((propMaterials !== undefined || s.props?.splat !== undefined) && propModels.has(f.hash)) {
+      checkTileMaterialNames(propMaterials, s.props?.splat, bytes);
       // Every GLB carries its own used slots; a dependency on another tile must not hide an uncharged texture.
       const used: PropMaterials = {};
       for (const name of glbMaterialNames(bytes)) {
-        const binding = propMaterials[name]; if (binding === undefined) throw new Error(`Missing admitted prop material ${name}`);
+        if (name === s.props?.splat?.material) {
+          if (splatTextureRefs(s.props.splat).some(ref => !f.dependencies.includes(ref))) throw new Error('Splat terrain GLB must directly declare every layer dependency');
+          continue;
+        }
+        const binding = propMaterials?.[name]; if (binding === undefined) throw new Error(`Missing admitted prop material ${name}`);
         used[name] = binding;
       }
       validatePropMaterials(used, { look: s.look.materials, models: [f.hash], textures: s.props?.textures ?? [], files: s.files });
