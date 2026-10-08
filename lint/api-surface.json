@@ -10075,6 +10075,12 @@
         "from": "@wildshard/engine/sim/snapshot"
       },
       {
+        "name": "finishSimSteps",
+        "kind": "function",
+        "doc": "Run a staged snapshot job to completion now.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
         "name": "regionalContinuation",
         "kind": "function",
         "doc": "Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes.",
@@ -10090,6 +10096,12 @@
         "name": "serializeSimSnapshot",
         "kind": "function",
         "doc": "Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis.",
+        "from": "@wildshard/engine/sim/snapshot"
+      },
+      {
+        "name": "serializeSimSnapshotSteps",
+        "kind": "function",
+        "doc": "The same wire in stages: each `yield` is a pause a caller may spread across frames (a periodic autosave), and",
         "from": "@wildshard/engine/sim/snapshot"
       },
       {
@@ -12088,6 +12100,54 @@
         "from": "@wildshard/engine/world/frameCamera"
       },
       {
+        "name": "addGeometryBake",
+        "kind": "function",
+        "doc": "Index a baked table (scripts/bake-geometry.mjs's bytes) for the builds that follow; the returned function drops it again.",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
+        "name": "bakedGeometry",
+        "kind": "function",
+        "doc": "The geometry `build` returns, or the bake's copy of it (see the module comment).",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
+        "name": "BakedGeometry",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
+        "name": "decodeGeometryBake",
+        "kind": "function",
+        "doc": "A baked table's entries, or null when the bytes are not one (the bake's tier merge reads it).",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
+        "name": "encodeGeometryBake",
+        "kind": "function",
+        "doc": "The table's bytes, entries in key order (a byte-stable bake).",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
+        "name": "geometryBakeStats",
+        "kind": "function",
+        "doc": "how many `bakedGeometry` calls the bake answered and how many built since the page loaded (the load benchmark reads it)",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
+        "name": "recordGeometryBake",
+        "kind": "function",
+        "doc": "The native bake's recorder: every `bakedGeometry` result from now until `stop()`, keyed by its inputs' hash (a recorder",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
+        "name": "withGeometryBake",
+        "kind": "function",
+        "doc": "Run a world build with the baked table at `url` added (fetched first; a missing or unreadable file adds nothing, so every",
+        "from": "@wildshard/engine/world/geometryBake"
+      },
+      {
         "name": "beam",
         "kind": "function",
         "doc": "a squared timber (w × h cross-section) between two points; `roll` spins it about its own axis",
@@ -12096,7 +12156,7 @@
       {
         "name": "blob",
         "kind": "function",
-        "doc": "a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed",
+        "doc": "a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed. A shard that adds",
         "from": "@wildshard/engine/world/geometryKit"
       },
       {
@@ -17550,6 +17610,18 @@
         "from": "@wildshard/game/shardfile/water"
       },
       {
+        "name": "CombatAudio",
+        "kind": "interface",
+        "doc": "Sound operations supplied by the owning mixer; the router allocates no audio resources.",
+        "from": "@wildshard/game/systems/audio/combatCues"
+      },
+      {
+        "name": "sharedCombatCues",
+        "kind": "function",
+        "doc": "Shared synth fallback retains the methods which own today's literal sound tap ids.",
+        "from": "@wildshard/game/systems/audio/combatCues"
+      },
+      {
         "name": "applyTravelCarry",
         "kind": "function",
         "doc": "Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly.",
@@ -18880,6 +18952,24 @@
         "from": "@wildshard/sdk/author"
       },
       {
+        "name": "ItemRow",
+        "kind": "type",
+        "doc": "A game bag row, including its optional travel permission and presentation metadata.",
+        "from": "@wildshard/sdk/bag"
+      },
+      {
+        "name": "normalizeItemRow",
+        "kind": "const",
+        "doc": "Normalize bag metadata without installing rows or changing their ids, labels or icons.",
+        "from": "@wildshard/sdk/bag"
+      },
+      {
+        "name": "RegisteredItemRow",
+        "kind": "type",
+        "doc": "A registered bag row with the default travel refusal made explicit.",
+        "from": "@wildshard/sdk/bag"
+      },
+      {
         "name": "SampledSkinClip",
         "kind": "interface",
         "doc": "Uniform local TRS samples for the mesh root and each joint, in the declared skeleton order.",
@@ -19666,6 +19756,18 @@
         "from": "@wildshard/sdk/rows"
       },
       {
+        "name": "CombatAudio",
+        "kind": "type",
+        "doc": "Existing mixer operations consumed by the trusted combat-cue router.",
+        "from": "@wildshard/sdk/runtime/audio/combatCues"
+      },
+      {
+        "name": "sharedCombatCues",
+        "kind": "const",
+        "doc": "Route stable equipment cues to the owning mixer's existing recipes, with the original melee-silence policy.",
+        "from": "@wildshard/sdk/runtime/audio/combatCues"
+      },
+      {
         "name": "Bow",
         "kind": "const",
         "doc": "The one platform bow constructor; the SDK owns no second draw clock, projectile pool or presentation implementation.",
@@ -20098,6 +20200,12 @@
         "kind": "function",
         "doc": "Build a versioned catalogue using only the SDK's author-tool contract. Nothing installs on import.",
         "from": "@wildshard/commons/catalogue"
+      },
+      {
+        "name": "starterBagPack",
+        "kind": "function",
+        "doc": "Emit the starter harvest rows as owned immutable JSON; provenance is supplied by the pack publisher.",
+        "from": "@wildshard/commons/packs/bag"
       },
       {
         "name": "bridgeScriptSources",

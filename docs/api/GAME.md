@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-700 members; 112 without a doc line (—).
+702 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -672,6 +672,8 @@ The game layer's public modules (src/game/package.json `exports`).
 | `shardfileWater` | function | @wildshard/game/shardfile/water | Validate untrusted declarations and return fresh motor-compatible bodies for one level instance. |
 | `ShardWater` | type | @wildshard/game/shardfile/water | A serialisable water section for pools, seas and streams, defaulting to [] in the full format. |
 | `WaterSchema` | const | @wildshard/game/shardfile/water | Bounded water declarations; the sea comes last so smaller regions retain their authored rest surfaces. |
+| `CombatAudio` | interface | @wildshard/game/systems/audio/combatCues | Sound operations supplied by the owning mixer; the router allocates no audio resources. |
+| `sharedCombatCues` | function | @wildshard/game/systems/audio/combatCues | Shared synth fallback retains the methods which own today's literal sound tap ids. |
 | `applyTravelCarry` | function | @wildshard/game/travel/travel | Arrival goes through the target shard's Bag rules, never writes another shard's inventory directly. |
 | `bindTravelInventory` | function | @wildshard/game/travel/travel | The composition root binds the live Bag and rows; the cold title has no running shard. |
 | `consumeTravelHandoff` | function | @wildshard/game/travel/travel | — |

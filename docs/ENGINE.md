@@ -1941,7 +1941,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2240 exports, grouped by the module to import them from.
+2250 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2225,7 +2225,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/sim/edgeProfiles`: `bakedEdgeProfiles`, `EdgeColour`, `EdgeProfiles`, `EdgeResolution`, `edgeSample`, `edgeSampleLocations`, `nativeEdgeProfiles`, `validateEdgeProfile`
 - `@wildshard/engine/sim/readiness`: `ReadinessBundle`, `ReadinessEstimate`, `ReadinessLink`, `readinessModel`, `ReadinessPart`, `ReadinessStatus`, `ReadinessTicket`, `TraversalReadiness`
 - `@wildshard/engine/sim/shore`: `SHORE_DEPTH`, `SHORE_REVETMENT_INNER_FACE`
-- `@wildshard/engine/sim/snapshot`: `decodeSimSnapshot`, `regionalContinuation`, `restoreSimHost`, `serializeSimSnapshot`, `SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `SnapshotBasisMismatchError`, `snapshotSimHost`
+- `@wildshard/engine/sim/snapshot`: `decodeSimSnapshot`, `finishSimSteps`, `regionalContinuation`, `restoreSimHost`, `serializeSimSnapshot`, `serializeSimSnapshotSteps`, `SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `SnapshotBasisMismatchError`, `snapshotSimHost`
 - `@wildshard/engine/sim/strips`: `generateCrossroads`, `GeneratedStrip`, `generatePlatform`, `generatePlatformSliced`, `generateStrip`, `PlatformCell`, `STRIP_OFFSETS`, `StripCell`, `StripCorner`, `StripMesh`, `StripProfile`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
@@ -2284,6 +2284,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/forest/treeSpec`: `TREE_SPECS`, `treeSetOf`
 - `@wildshard/engine/world/forest/treeSpecies`: `SpeciesWeights`, `TreeSetVariant`, `TreeSpecies`, `TreeSpeciesTraits`
 - `@wildshard/engine/world/frameCamera`: `FrameCamera`
+- `@wildshard/engine/world/geometryBake`: `addGeometryBake`, `bakedGeometry`, `BakedGeometry`, `decodeGeometryBake`, `encodeGeometryBake`, `geometryBakeStats`, `recordGeometryBake`, `withGeometryBake`
 - `@wildshard/engine/world/geometryKit`: `beam`, `blob`, `lathe`, `log`, `mergeVerticesByPos`, `plank`, `pole`, `revolve`, `revolveUV`, `rock`, `rope`, `sagLine`, `tris`, `wobble`
 - `@wildshard/engine/world/Grass`: `Grass`, `GrassTrampleField`, `TrampleField`
 - `@wildshard/engine/world/groundField`: `terrainFieldFor`
@@ -2320,7 +2321,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-700 exports, grouped by the module to import them from.
+702 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2442,6 +2443,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/validationReceipt`: `builtValidationReceipt`, `readValidationReceipt`, `ValidationReceipt`, `validationRevision`, `validationSourceBytes`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_PREVIOUS_VERSION`, `SHARDFILE_VERSION`, `shardfileRevision`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
+- `@wildshard/game/systems/audio/combatCues`: `CombatAudio`, `sharedCombatCues`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
 - `@wildshard/game/weapons/Bow`: `Bow`, `BowOptions`, `BowWorld`
 - `@wildshard/game/weapons/starterBowProfile`: `BOW`, `BowProfile`, `BowStyle`
@@ -2494,13 +2496,14 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-214 exports, grouped by the module to import them from.
+219 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
 - `@wildshard/sdk/assets`: `assetCost`, `AssetCost`, `assetOverdraw`, `OverdrawEstimate`, `parseAudio`, `parseGlb`, `parseKtx2`
 - `@wildshard/sdk/audio`: `AudioData`, `AudioDataSchema`, `parseAudioData`
 - `@wildshard/sdk/author`: `declareLookLut`, `emptyShardfile`
+- `@wildshard/sdk/bag`: `ItemRow`, `normalizeItemRow`, `RegisteredItemRow`
 - `@wildshard/sdk/bake/export`: `SampledSkinClip`, `sampleSkinClip`, `skinnedGlb`
 - `@wildshard/sdk/bake/glb`: `GlbPrimitive`, `propBounds`, `staticGlb`
 - `@wildshard/sdk/bake/nativeLattice`: `NativeLatticeAttribute`, `NativeLatticeSource`, `NativeLatticeTile`, `sliceNativeLattice`
@@ -2533,6 +2536,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/reportCard`: `PerformanceObservations`, `performanceReport`, `PerformanceReport`, `performanceReportLines`, `performanceTargetIssues`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
+- `@wildshard/sdk/runtime/audio/combatCues`: `CombatAudio`, `sharedCombatCues`
 - `@wildshard/sdk/runtime/weapons/Bow`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`
 - `@wildshard/sdk/runtime/weapons/Melee`: `Melee`, `meleeActor`, `MeleeInstance`
@@ -2558,9 +2562,10 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/commons` (`src/commons/package.json`)
 
-3 exports, grouped by the module to import them from.
+4 exports, grouped by the module to import them from.
 
 - `@wildshard/commons/catalogue`: `catalogueRef`, `createCatalogue`
+- `@wildshard/commons/packs/bag`: `starterBagPack`
 - `@wildshard/commons/scripts`: `bridgeScriptSources`
 
 <!-- exports:end -->

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2257 members; 834 without a doc line (—).
+2267 members; 835 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1684,9 +1684,11 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SHORE_DEPTH` | const | @wildshard/engine/sim/shore | A boundary sample counts as seabed when it is more than this below 0 (the entry rule's 2 cm road tolerance). |
 | `SHORE_REVETMENT_INNER_FACE` | const | @wildshard/engine/sim/shore | The revetment's inner (sea-side) face, in metres into the cell from the cell edge. The shard's sea is clipped here: no |
 | `decodeSimSnapshot` | function | @wildshard/engine/sim/snapshot | Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state. |
+| `finishSimSteps` | function | @wildshard/engine/sim/snapshot | Run a staged snapshot job to completion now. |
 | `regionalContinuation` | function | @wildshard/engine/sim/snapshot | Canonical logical continuation for a local authored region, without the profile-owned traveler or opaque world bytes. |
 | `restoreSimHost` | function | @wildshard/engine/sim/snapshot | Boot a fresh matching level, reinstall scoped adapters, then restore every continuation before replay. |
 | `serializeSimSnapshot` | function | @wildshard/engine/sim/snapshot | Serialize exact physics (≤32 MB) in bounded lossless blocks; optional immutable fresh-world bytes serve as a checked basis. |
+| `serializeSimSnapshotSteps` | function | @wildshard/engine/sim/snapshot | The same wire in stages: each `yield` is a pause a caller may spread across frames (a periodic autosave), and |
 | `SIM_REGION_SNAPSHOT_CHAR_BUDGET` | const | @wildshard/engine/sim/snapshot | Durable per-region ceiling in stored characters; the grid caller uses a logical checkpoint if exact encoding exceeds it. |
 | `SIM_SNAPSHOT_VERSION` | const | @wildshard/engine/sim/snapshot | Same-engine snapshot format; live callbacks and authored content are installed by the fresh host. |
 | `SimSnapshot` | interface | @wildshard/engine/sim/snapshot | Engine continuations plus typed F1 slots. Rapier bytes and event actor references survive JSON round trips. |
@@ -2019,8 +2021,16 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TreeSpecies` | type | @wildshard/engine/world/forest/treeSpecies | A tree set's species (PH-B4; E405: the set is content — Pine Hollow's is src/shards/pine-hollow/world/treeSet.ts): a |
 | `TreeSpeciesTraits` | interface | @wildshard/engine/world/forest/treeSpecies | how a species is planted: its scale range; whether it follows the zone's growth (ForestSpec.scale); the trunk's extra |
 | `FrameCamera` | class | @wildshard/engine/world/frameCamera | A camera's stand-in in a frame's own space (SHARD-PLATFORM SF63, E435). Content that culls against the view compares the |
+| `addGeometryBake` | function | @wildshard/engine/world/geometryBake | Index a baked table (scripts/bake-geometry.mjs's bytes) for the builds that follow; the returned function drops it again. |
+| `bakedGeometry` | function | @wildshard/engine/world/geometryBake | The geometry `build` returns, or the bake's copy of it (see the module comment). |
+| `BakedGeometry` | interface | @wildshard/engine/world/geometryBake | — |
+| `decodeGeometryBake` | function | @wildshard/engine/world/geometryBake | A baked table's entries, or null when the bytes are not one (the bake's tier merge reads it). |
+| `encodeGeometryBake` | function | @wildshard/engine/world/geometryBake | The table's bytes, entries in key order (a byte-stable bake). |
+| `geometryBakeStats` | function | @wildshard/engine/world/geometryBake | how many `bakedGeometry` calls the bake answered and how many built since the page loaded (the load benchmark reads it) |
+| `recordGeometryBake` | function | @wildshard/engine/world/geometryBake | The native bake's recorder: every `bakedGeometry` result from now until `stop()`, keyed by its inputs' hash (a recorder |
+| `withGeometryBake` | function | @wildshard/engine/world/geometryBake | Run a world build with the baked table at `url` added (fetched first; a missing or unreadable file adds nothing, so every |
 | `beam` | function | @wildshard/engine/world/geometryKit | a squared timber (w × h cross-section) between two points; `roll` spins it about its own axis |
-| `blob` | function | @wildshard/engine/world/geometryKit | a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed |
+| `blob` | function | @wildshard/engine/world/geometryKit | a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed. A shard that adds |
 | `lathe` | function | @wildshard/engine/world/geometryKit | a lathe from a (radius, height) profile, `seg` around; smooth normals |
 | `log` | function | @wildshard/engine/world/geometryKit | A faceted log / beam / post between two points: an n-sided prism (default 6) tapering r0 → r1, the |
 | `mergeVerticesByPos` | function | @wildshard/engine/world/geometryKit | weld an unindexed / seam-split geometry by position (so displacement keeps it watertight and normals smooth) |

@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-220 members; 0 without a doc line (—).
+225 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -27,6 +27,9 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseAudioData` | function | @wildshard/sdk/audio | Validate the thin audio section before compiling a shardfile. |
 | `declareLookLut` | function | @wildshard/sdk/author | Attach an already declared 33³ LUT to the charged library, accounting for both its CPU and GPU bytes once. |
 | `emptyShardfile` | function | @wildshard/sdk/author | Start an author project with a valid empty world; add baked content before shipping a playable shard. |
+| `ItemRow` | type | @wildshard/sdk/bag | A game bag row, including its optional travel permission and presentation metadata. |
+| `normalizeItemRow` | const | @wildshard/sdk/bag | Normalize bag metadata without installing rows or changing their ids, labels or icons. |
+| `RegisteredItemRow` | type | @wildshard/sdk/bag | A registered bag row with the default travel refusal made explicit. |
 | `SampledSkinClip` | interface | @wildshard/sdk/bake/export | Uniform local TRS samples for the mesh root and each joint, in the declared skeleton order. |
 | `sampleSkinClip` | function | @wildshard/sdk/bake/export | Sample an existing pose closure at bounded cadence, including both endpoints; restore the mesh's initial joint pose afterward. |
 | `skinnedGlb` | function | @wildshard/sdk/bake/export | Deterministic self-contained GLB of actual geometry, joint order, weights, inverse binds and sampled clips (constant channels keep only their endpoints); textures stay external KTX2 declarations. |
@@ -158,6 +161,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `ShardRows` | type | @wildshard/sdk/rows | Numeric row declarations and registered view/presentation recipes. |
 | `simStrikes` | const | @wildshard/sdk/rows | Numeric strike catalogue suitable for the authoritative sim. |
 | `speciesResolver` | const | @wildshard/sdk/rows | Resolve declared variant health, collision dimensions and motion multipliers. |
+| `CombatAudio` | type | @wildshard/sdk/runtime/audio/combatCues | Existing mixer operations consumed by the trusted combat-cue router. |
+| `sharedCombatCues` | const | @wildshard/sdk/runtime/audio/combatCues | Route stable equipment cues to the owning mixer's existing recipes, with the original melee-silence policy. |
 | `Bow` | const | @wildshard/sdk/runtime/weapons/Bow | The one platform bow constructor; the SDK owns no second draw clock, projectile pool or presentation implementation. |
 | `BowInstance` | type | @wildshard/sdk/runtime/weapons/Bow | The shared drawn-projectile instance; view recipes and profiles are supplied by its owner. |
 | `BowOptions` | type | @wildshard/sdk/runtime/weapons/Bow | Row, profile and unlock policy supplied to the trusted family constructor. |
