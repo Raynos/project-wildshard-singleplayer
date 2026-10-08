@@ -1,0 +1,340 @@
+{
+ "g253": "Sky Reach phone Auto = KTX2 (b49135480; served build d4a9075-mv02wp8o is the same tree on its old parent)",
+ "protocol": "progress/memory/g227-budget/native.mjs (04556bc45) <base> <out> <dist> sky-entry on --census=final: Developer on, Memory saver on, Auto textures, phone tier, 2x, muted; one cold iOS Simulator Safari boot per run (wildshard-iphone, scripts/sim-lane.sh run); light labelled GL at every pose, one census after sky-island. WebContent = kernel physical footprint, median of 3 fresh samples per pose. Decimal MB.",
+ "native": {
+  "attempts": 4,
+  "valid": 3,
+  "enteredSettledWorst": {
+   "median": 1086496232,
+   "min": 990305792,
+   "max": 1111350736
+  },
+  "runs": [
+   {
+    "attempt": 2,
+    "valid": true,
+    "build": "d4a9075-mv02wp8o",
+    "tex": "auto",
+    "memorySaver": "on",
+    "developer": true,
+    "poses": {
+     "home-settled": {
+      "webContentMedian": 568872536,
+      "webContentMin": 568331864,
+      "webContentMax": 571182680,
+      "labelledGL": 180920235
+     },
+     "sky-road": {
+      "webContentMedian": 752422488,
+      "webContentMin": 752242264,
+      "webContentMax": 752422488,
+      "labelledGL": 94096430
+     },
+     "sky-lip": {
+      "webContentMedian": 846270232,
+      "webContentMin": 841240344,
+      "webContentMax": 846335768,
+      "labelledGL": 187337152
+     },
+     "sky-board": {
+      "webContentMedian": 899157784,
+      "webContentMin": 899092248,
+      "webContentMax": 899829528,
+      "labelledGL": 187338448
+     },
+     "sky-gate": {
+      "webContentMedian": 892456728,
+      "webContentMin": 892423960,
+      "webContentMax": 893325080,
+      "labelledGL": 187338448
+     },
+     "sky-island": {
+      "webContentMedian": 870141792,
+      "webContentMin": 869928800,
+      "webContentMax": 870223712,
+      "labelledGL": 180347960
+     }
+    },
+    "enteredCost": [
+     {
+      "label": "sky-lip",
+      "webContentBytes": 846270232,
+      "labelledGLBytes": 187337152,
+      "combinedBytes": 1033607384,
+      "highSampleCombinedBytes": 1033672920,
+      "withinExplorerCap": false
+     },
+     {
+      "label": "sky-board",
+      "webContentBytes": 899157784,
+      "labelledGLBytes": 187338448,
+      "combinedBytes": 1086496232,
+      "highSampleCombinedBytes": 1087167976,
+      "withinExplorerCap": false
+     },
+     {
+      "label": "sky-gate",
+      "webContentBytes": 892456728,
+      "labelledGLBytes": 187338448,
+      "combinedBytes": 1079795176,
+      "highSampleCombinedBytes": 1080663528,
+      "withinExplorerCap": false
+     },
+     {
+      "label": "sky-island",
+      "webContentBytes": 870141792,
+      "labelledGLBytes": 180347960,
+      "combinedBytes": 1050489752,
+      "highSampleCombinedBytes": 1050571672,
+      "withinExplorerCap": false
+     }
+    ],
+    "enteredSettledWorstBytes": 1086496232,
+    "enteredHighSampleBytes": 1087167976,
+    "errors": "[]"
+   },
+   {
+    "attempt": 3,
+    "valid": true,
+    "build": "d4a9075-mv02wp8o",
+    "tex": "auto",
+    "memorySaver": "on",
+    "developer": true,
+    "poses": {
+     "home-settled": {
+      "webContentMedian": 552865344,
+      "webContentMin": 552488512,
+      "webContentMax": 557321840,
+      "labelledGL": 180920235
+     },
+     "sky-road": {
+      "webContentMedian": 685248112,
+      "webContentMin": 683445872,
+      "webContentMax": 685346416,
+      "labelledGL": 94096430
+     },
+     "sky-lip": {
+      "webContentMedian": 721964824,
+      "webContentMin": 719867672,
+      "webContentMax": 722046768,
+      "labelledGL": 187337152
+     },
+     "sky-board": {
+      "webContentMedian": 802967344,
+      "webContentMin": 802803504,
+      "webContentMax": 803131184,
+      "labelledGL": 187338448
+     },
+     "sky-gate": {
+      "webContentMedian": 798822192,
+      "webContentMin": 797888304,
+      "webContentMax": 798904112,
+      "labelledGL": 187338448
+     },
+     "sky-island": {
+      "webContentMedian": 804523896,
+      "webContentMin": 804507512,
+      "webContentMax": 804589432,
+      "labelledGL": 180347960
+     }
+    },
+    "enteredCost": [
+     {
+      "label": "sky-lip",
+      "webContentBytes": 721964824,
+      "labelledGLBytes": 187337152,
+      "combinedBytes": 909301976,
+      "highSampleCombinedBytes": 909383920,
+      "withinExplorerCap": true
+     },
+     {
+      "label": "sky-board",
+      "webContentBytes": 802967344,
+      "labelledGLBytes": 187338448,
+      "combinedBytes": 990305792,
+      "highSampleCombinedBytes": 990469632,
+      "withinExplorerCap": true
+     },
+     {
+      "label": "sky-gate",
+      "webContentBytes": 798822192,
+      "labelledGLBytes": 187338448,
+      "combinedBytes": 986160640,
+      "highSampleCombinedBytes": 986242560,
+      "withinExplorerCap": true
+     },
+     {
+      "label": "sky-island",
+      "webContentBytes": 804523896,
+      "labelledGLBytes": 180347960,
+      "combinedBytes": 984871856,
+      "highSampleCombinedBytes": 984937392,
+      "withinExplorerCap": true
+     }
+    ],
+    "enteredSettledWorstBytes": 990305792,
+    "enteredHighSampleBytes": 990469632,
+    "errors": "[]"
+   },
+   {
+    "attempt": 4,
+    "valid": true,
+    "build": "d4a9075-mv02wp8o",
+    "tex": "auto",
+    "memorySaver": "on",
+    "developer": true,
+    "poses": {
+     "home-settled": {
+      "webContentMedian": 427888216,
+      "webContentMin": 427871832,
+      "webContentMax": 430788184,
+      "labelledGL": 180920235
+     },
+     "sky-road": {
+      "webContentMedian": 755289688,
+      "webContentMin": 755207768,
+      "webContentMax": 755699288,
+      "labelledGL": 94096430
+     },
+     "sky-lip": {
+      "webContentMedian": 895536896,
+      "webContentMin": 895504128,
+      "webContentMax": 895536896,
+      "labelledGL": 187337152
+     },
+     "sky-board": {
+      "webContentMedian": 924012288,
+      "webContentMin": 923619072,
+      "webContentMax": 924438272,
+      "labelledGL": 187338448
+     },
+     "sky-gate": {
+      "webContentMedian": 909463296,
+      "webContentMin": 908611328,
+      "webContentMax": 909512448,
+      "labelledGL": 187338448
+     },
+     "sky-island": {
+      "webContentMedian": 911707928,
+      "webContentMin": 911626008,
+      "webContentMax": 911806232,
+      "labelledGL": 180347960
+     }
+    },
+    "enteredCost": [
+     {
+      "label": "sky-lip",
+      "webContentBytes": 895536896,
+      "labelledGLBytes": 187337152,
+      "combinedBytes": 1082874048,
+      "highSampleCombinedBytes": 1082874048,
+      "withinExplorerCap": false
+     },
+     {
+      "label": "sky-board",
+      "webContentBytes": 924012288,
+      "labelledGLBytes": 187338448,
+      "combinedBytes": 1111350736,
+      "highSampleCombinedBytes": 1111776720,
+      "withinExplorerCap": false
+     },
+     {
+      "label": "sky-gate",
+      "webContentBytes": 909463296,
+      "labelledGLBytes": 187338448,
+      "combinedBytes": 1096801744,
+      "highSampleCombinedBytes": 1096850896,
+      "withinExplorerCap": false
+     },
+     {
+      "label": "sky-island",
+      "webContentBytes": 911707928,
+      "labelledGLBytes": 180347960,
+      "combinedBytes": 1092055888,
+      "highSampleCombinedBytes": 1092154192,
+      "withinExplorerCap": false
+     }
+    ],
+    "enteredSettledWorstBytes": 1111350736,
+    "enteredHighSampleBytes": 1111776720,
+    "errors": "[]"
+   }
+  ],
+  "rejected": [
+   {
+    "attempt": 1,
+    "valid": false,
+    "ruler": "progress/memory/grid-base/native-final.mjs, G227_CENSUS_AT=sky-island (no GL reading before the island)",
+    "failure": "TypeError: Cannot read properties of undefined (reading 'gl') \u2014 enteredCost needs census GL at lip/board/gate (ruler bug, fixed in native.mjs 04556bc45)",
+    "webContentMedian": {
+     "home-settled": 564694640,
+     "sky-road": 565333640,
+     "sky-lip": 530698104,
+     "sky-board": 523554680,
+     "sky-gate": 536629232,
+     "sky-island": 564695120
+    },
+    "islandLabelledGL": 180347960
+   }
+  ]
+ },
+ "pixelDiff": {
+  "method": "views.mjs (art/far-reach/round-22-council-tools) with a GPU-textures pin, Playwright Chromium ANGLE Metal, iPhone 16 Pro portrait 390x844 @3x, muted, one served build; mean |diff| per channel and % px with max channel diff > 16",
+  "poses": {
+   "h1-sunrest": {
+    "autoVsDebugKtx2": {
+     "mean": 6.1,
+     "over16Pct": 12.62
+    },
+    "autoVsAutoControl": {
+     "mean": 5.38,
+     "over16Pct": 10.94
+    }
+   },
+   "mock-D-crown-arena": {
+    "autoVsDebugKtx2": {
+     "mean": 5.4,
+     "over16Pct": 11.26
+    },
+    "autoVsAutoControl": {
+     "mean": 5.49,
+     "over16Pct": 11.5
+    }
+   },
+   "mock-C-hands-fan": {
+    "autoVsDebugKtx2": {
+     "mean": 5.67,
+     "over16Pct": 11.55
+    },
+    "autoVsAutoControl": {
+     "mean": 5.47,
+     "over16Pct": 11.16
+    }
+   }
+  },
+  "requests": "Auto and Debug KTX2 load the same six content-addressed phone pack parts (far-reach.phone-849a0532 \u2026 -2a00763f); renderer 99 calls, 2,035,326 triangles, 78 textures in both"
+ },
+ "parity": {
+  "lane": "m5 local, far-reach phone, scripts/parity.mjs --url",
+  "g253": {
+   "gpuTextures": 167351696,
+   "gpuTotal": 191827004,
+   "textures": 78,
+   "ssimSpawn": 0.978503710347971,
+   "ssimHover": 0.9787370718182905
+  },
+  "parent_ffe27ada8": {
+   "gpuTextures": 240751400,
+   "gpuTotal": 265226708,
+   "textures": 78,
+   "ssimSpawn": 0.9794610017041606,
+   "ssimHover": 0.9793779064661319
+  },
+  "baseline_bfb9dc325": {
+   "gpuTextures": 258112104,
+   "gpuTotal": 282587412,
+   "textures": 79
+  },
+  "note": "the parent is already red against the committed baseline (textures count, bytes, spawn/hover SSIM); G253 moves textures -73.4 MB and SSIM by -0.001"
+ }
+}

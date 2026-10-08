@@ -38,6 +38,27 @@ open plots 33.8, composer 31.3, road deck 22.0, WASM 33.1, audio PCM 3.8. Sky's 
 - Board for Jake: [board-ktx2-ab.jpg](board-ktx2-ab.jpg) (A Images vs B KTX2 at Sunrest, the Crown arena and the hand;
   mean |diff| 0.90 / 6.12 / 5.86 vs the A-vs-A run control 6.28 / 7.45 / 5.75, i.e. inside animation noise).
 
+## G253: KTX2 is the phone's default (Jake picked B; `b49135480`)
+
+Sky's phone tier now sets `textures: 'ktx2'`, so Auto loads the 22 HD models' ASTC 4×4 GLBs from the first visit; the
+phone boot, pack and background prefetch name no HD images GLB. Desktop is unchanged (no desktop KTX2 set; G188). The
+images GLBs stay in `public/`: they are the desktop's files, the bake sources, and the engine-wide Debug ▸ GPU textures =
+Images fallback. Phone pack: 5.8 → 23.9 MB on the wire. All numbers: [g253.json](g253.json).
+
+- **Native, fixed ruler** (`g227-budget/native.mjs` `04556bc45`, `--census=final`; served build `d4a9075-mv02wp8o`, the same
+  tree): 4 attempts, 3 valid. Entered worst settled pose (sky-board every run) **1086.5 MB [990.3–1111.4]**: WebContent
+  803–924 + labelled GL 187.3. Island GL 180.3 MB in every run, the KTX2 reading (images: 253.7), so Safari's Auto really
+  loads KTX2. Not under the 1.0 GB cap. No images run was taken on this ruler, so there is no native delta here: the
+  exact saving is the GL one (−72 MB). Rejected attempt 1 (grid-base `native-final.mjs`, which crashed in `enteredCost`
+  with no GL before the island): WebContent at lip / board / gate 531 / 524 / 537 MB, ~300 MB below runs 2–4. That gap
+  is for the ruler lane: either attempt 1 is a low outlier, or the per-pose light GL read itself costs WebContent.
+- **Look:** at the board's three poses, Auto against Debug KTX2 on one build is mean |diff| 6.10 / 5.40 / 5.67 (Sunrest /
+  Crown arena / hand). Auto against Auto is 5.38 / 5.49 / 5.47, so the difference is animation noise. Both modes load the
+  same six content-addressed pack parts and draw the same calls, triangles and textures.
+- **Parity (m5 phone, local):** `gpuBytes.textures` 240.75 → 167.35 MB (parent `ffe27ada8` → G253). Spawn / hover SSIM
+  moves by 0.001 (0.9795 → 0.9785). The parent is already red against the committed `bfb9dc325` baseline: texture count
+  78 vs 79, 240.8 vs 258.1 MB, SSIM 0.979 vs ≥ 0.990. The far-reach phone baselines need a re-record.
+
 ## Not done in this lane
 
 Frame floor (`node scripts/frame-floor.mjs --shards=far-reach --surface=both`) waits for the coordinator's Simulator GO.
