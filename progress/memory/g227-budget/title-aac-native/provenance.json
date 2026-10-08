@@ -45,5 +45,17 @@
     "src/engine/audio/codecs.merge.d.ts": {
       "after": "7389c0fa4557d558d0dce611641ea73d593ab8b9"
     }
+  },
+  "beforeReconstruction": {
+    "base": "0e6d69988e4a78c546d691b57c49b8a509cef046",
+    "source": "8b0801cd4a6be45cc23b46b3e9966a596d1b97d2",
+    "paths": [
+      "src/engine/audio/Music.ts",
+      "src/engine/audio/preload.ts"
+    ],
+    "blobs": {
+      "src/engine/audio/Music.ts": "1035a164d5e6930225d801249c1c156d515c5973",
+      "src/engine/audio/preload.ts": "2e4988af47f06097c03d69b435f5504615111d15"
+    }
   }
 }

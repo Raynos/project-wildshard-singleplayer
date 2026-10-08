@@ -50,7 +50,7 @@ Eligibility remains Memory saver ON, unpaired track, integral sample loop cuts, 
 
 ## Reproduce and verify
 
-Materialize the before tree, then replace only the nine [listed paths](pair.json) from the reachable activation source to reconstruct the after tree; verify both tree/blob IDs in [provenance.json](provenance.json). Build each isolated pin through `serve-build`/the build lane. Recreate the helper tree from `frozen-harness/` (decompress each `.gz`, retaining its path), provide its ordinary `ws` package, and run from the repo so the native sampler resolves correctly:
+Reconstruct the before tree from reachable base `0e6d69988e4a78c546d691b57c49b8a509cef046` plus only `audio/Music.ts` and `audio/preload.ts` from `8b0801cd4a6be45cc23b46b3e9966a596d1b97d2`. Then replace only the nine [listed paths](pair.json) from activation source `39433e40772ef1764cffbe66275c26c0196ac3f9` to reconstruct the after tree. The private comparison commits need not survive garbage collection: [provenance.json](provenance.json) records reachable source IDs, exact paths, trees and blobs, all checked against the measured candidates. Build each isolated pin through `serve-build`/the build lane. Recreate the helper tree from `frozen-harness/` (decompress each `.gz`, retaining its path), provide its ordinary `ws` package, and run from the repo so the native sampler resolves correctly:
 
 ```sh
 scripts/browser-lane.sh --max 15 scripts/sim-lane.sh run --max 15 wildshard-iphone   node <frozen-helper>/progress/memory/g227-budget/native.mjs   http://127.0.0.1:<port>/ <unique-output.json> <isolated-dist> pine-centre on
