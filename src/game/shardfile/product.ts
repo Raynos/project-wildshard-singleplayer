@@ -1,7 +1,8 @@
 import { parseShardfile, type Shardfile } from './schema';
+import { builtValidationReceipt, readValidationReceipt, validationRevision, validationSourceBytes, type ValidationReceipt } from './validationReceipt';
 import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from './version';
 import { assertStateCompatibility, parseStateLineage } from './revision';
-import { preflightDeclaredCosts, validateShardfileAssets } from './validate';
+import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets } from './validate';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
 import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
@@ -12,7 +13,7 @@ import type { MemoryAdmission } from '../grid/memoryAdmission';
 const HASH = /^[a-f0-9]{64}$/u;
 const MAX_FILE_BYTES = 25_000_000;
 /** A complete visited product is published only after every immutable asset has passed admission. */
-export interface CachedProduct { source: unknown; firstParty: boolean }
+export interface CachedProduct { source: unknown; firstParty: boolean; validation?: ValidationReceipt }
 /** Storage is injected so offline admission uses the same path in browsers and tests. */
 export interface ProductCache {
   product: (key: string) => Promise<CachedProduct | null>;
@@ -99,7 +100,13 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   const source = reader(raw), assets = new Map<string, Uint8Array>(), hashes = new Map<Uint8Array, string>();
   if (!options.firstParty) assertExternalShardSlug(source.identity.slug);
   preflightAssetGraph(source);
-  preflightDeclaredCosts(source, options.memory);
+  const revisionKey = validationRevision();
+  const sourceHash = revisionKey === null ? '' : await options.hash(validationSourceBytes(source));
+  // Custom readers always revalidate. A build receipt is pinned inside this client, never fetched from data.
+  const receipt = options.versions === undefined && revisionKey !== null
+    ? readValidationReceipt(visited?.validation, sourceHash) ?? (options.firstParty ? builtValidationReceipt(sourceHash) : null) : null;
+  const worst = receipt?.worst ?? preflightDeclaredCosts(source, options.memory).worst;
+  if (receipt !== null) acceptValidatedCost(source, worst, options.memory);
   if (source.runtime !== null && !options.firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
   if (!options.offline && visited !== null && visited !== undefined && [versions.current, versions.previous].includes(version(visited.source))) assertStateCompatibility(parseStateLineage(visited.source), source);
   options.reserve?.(source);
@@ -150,8 +157,8 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     if (bytes === undefined) throw new Error('Asset was not admitted');
     assets.set(ref, bytes);
   }
-  progress('validation', 'Validating assets, simulation and entries');
-  validateShardfileAssets(source, assets, (bytes) => {
+  progress('validation', receipt === null ? 'Validating assets, simulation and entries' : 'Verified exact product validation receipt');
+  if (receipt === null) validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
   }, options.memory);
   if (!options.offline && options.cache !== undefined) {
@@ -171,7 +178,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
         // Repair that miss, then recheck durable presence just as for a newly fetched file.
         if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || await cache.asset(base, hash) === null) complete = false;
       }
-      if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty });
+      if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty, ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, worst } }) });
     } finally { release?.(); }
   }
   progress('complete', 'Product admitted');
@@ -188,7 +195,9 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'>): Produc
       const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(response, limits.sourceBytes)));
       preflightShardfile(value);
       if (typeof value !== 'object' || value === null || !('source' in value) || !('firstParty' in value) || typeof value.firstParty !== 'boolean') throw new Error('Invalid visited shardfile cache');
-      return { source: value.source, firstParty: value.firstParty };
+      const rawValidation = 'validation' in value ? value.validation : undefined;
+      const validation = typeof rawValidation === 'object' && rawValidation !== null && 'sourceHash' in rawValidation && typeof rawValidation.sourceHash === 'string' ? readValidationReceipt(rawValidation, rawValidation.sourceHash) : null;
+      return { source: value.source, firstParty: value.firstParty, ...(validation === null ? {} : { validation }) };
     },
     asset: async (base, hash) => {
       const bytes = await content.get(hash); if (bytes !== null) return bytes;

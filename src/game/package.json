@@ -129,6 +129,7 @@
     "./shardfile/portalTraversal": "./shardfile/portalTraversal.ts",
     "./shardfile/portalLinkProof": "./shardfile/portalLinkProof.ts",
     "./shardfile/nativeGround": "./shardfile/nativeGround.ts",
-    "./shardfile/splatTerrain": "./shardfile/splatTerrain.ts"
+    "./shardfile/splatTerrain": "./shardfile/splatTerrain.ts",
+    "./shardfile/validationReceipt": "./shardfile/validationReceipt.ts"
   }
 }

@@ -1,6 +1,8 @@
 import { defineConfig, type Plugin } from 'vite';
 import { execSync } from 'node:child_process';
-import { rmSync, readdirSync, existsSync } from 'node:fs';
+import { rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { shardfileValidationRevision } from './scripts/shardfile-validation-revision.mjs';
 import { join } from 'node:path';
 import type { ServerResponse } from 'node:http';
 import { pwaPlugin } from './vite/pwa-plugin';
@@ -77,9 +79,24 @@ const nativePlugin = (): Plugin => ({
   closeBundle() { for (const f of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(join('dist-native', f), { force: true }); },
 });
 
+function buildValidationReceipts(revision: string): unknown[] {
+  const directory = 'public/shardfiles';
+  if (!existsSync(directory)) return [];
+  const receipts: unknown[] = [];
+  for (const slug of readdirSync(directory).sort()) {
+    const receiptPath = join(directory, slug, 'validation.json'), sourcePath = join(directory, slug, 'shard.json');
+    if (!existsSync(receiptPath) || !existsSync(sourcePath)) continue;
+    const receipt: unknown = JSON.parse(readFileSync(receiptPath, 'utf8'));
+    if (typeof receipt === 'object' && receipt !== null && 'revision' in receipt && receipt.revision === revision && 'sourceHash' in receipt
+      && receipt.sourceHash === createHash('sha256').update(readFileSync(sourcePath)).digest('hex')) receipts.push(receipt);
+  }
+  return receipts;
+}
+
 export default defineConfig(({ mode, command }) => {
   if (command === 'build') assertHeavyLease('build');
   const native = mode === 'native';
+  const validationRevision = shardfileValidationRevision();
   return {
     server: { port: 5173, host: true },
     // keepNames: the uncaught-exception modal shows raw stacks on phones (no source-map resolution there), so keep
@@ -97,7 +114,7 @@ export default defineConfig(({ mode, command }) => {
       },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
-    define: { __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
+    define: { __SHARDFILE_VALIDATOR__: JSON.stringify(validationRevision), __SHARDFILE_VERDICTS__: JSON.stringify(buildValidationReceipts(validationRevision)), __DEVSERVER__: mode === 'devserver', __BUILD_ID__: JSON.stringify(BUILD_ID), __SAVE_NAMESPACES__: JSON.stringify(readdirSync('src/shards').filter((slug) => existsSync(join('src/shards', slug, 'manifest.ts')))) },
     plugins: native ? [devserverFlags(false), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), nativePlugin()] : [devserverFlags(mode === 'devserver'), genShardsPlugin(), backdropPrefixPlugin(), versionPlugin(), crossroadsRigPlugin(BUILD_ID), pwaPlugin(BUILD_ID), rapierPreviewPlugin(), chunkReport()],
   };
 });

@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
+import { validationRevision, validationSourceBytes } from '@wildshard/game/shardfile/validationReceipt';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import { preflightShardfile } from '@wildshard/game/shardfile/preflight';
 import { preflightAssetGraph } from '@wildshard/game/shardfile/assetGraph';
@@ -89,6 +90,8 @@ export async function buildProject(project: string, output?: string, options: { 
     writeFileSync(resolve(destination, hash), bytes); emitted.add(hash);
   }
   writeFileSync(resolve(destination, 'shard.json'), canonicalJson(shard));
+  // Informational for arbitrary SDK products; the first-party client pins its own build's receipts.
+  writeFileSync(resolve(destination, 'validation.json'), canonicalJson({ revision: validationRevision(), sourceHash: contentHash(validationSourceBytes(shard)), worst: preflightDeclaredCosts(shard, offlineMemory(projectPerformancePolicy(project, shard))).worst }));
   const directory = import.meta.dirname;
   const clientFolder = options.devserver === true ? 'client-devserver' : 'client';
   const client = options.client === null ? undefined : options.client ?? [resolve(directory, clientFolder), resolve(directory, 'dist', clientFolder)].find((path) => existsSync(resolve(path, 'index.html')));

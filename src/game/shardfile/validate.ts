@@ -29,6 +29,11 @@ function acceptsTotal(memory: MemoryAdmission | undefined, source: Shardfile, st
     claimedBytes: cost.accounted, accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading }) ?? false;
 }
 
+/** Reapply the current trusted memory policy to a previously validated exact declaration. */
+export function acceptValidatedCost(source: Shardfile, cost: ReturnType<typeof worstContentCost>, memory?: MemoryAdmission): void {
+  if (!acceptsTotal(memory, source, 'declared', cost)) throw new Error(`declared worst-location total exceeds envelope: ${cost.playing}`);
+}
+
 /** Check declared residency before immutable reads; exact parsed headers are checked again on admission. */
 export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmission): { commons: CommonsCosts; worst: ReturnType<typeof worstContentCost> } {
   const commons = assertCommonsCosts(source.requires.commons, source.requires.commonsCosts);

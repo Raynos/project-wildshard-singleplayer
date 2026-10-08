@@ -53,13 +53,20 @@ export function nearbyContentCost(shard: Shardfile, x: number, z: number, common
   return worst;
 }
 
+const worstCache = new Map<string, LocationCost>();
+
 /** Worst disc with three synthetic neighbours at the platform targets; grid padding covers unsampled gaps. */
 export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
+  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, tile.bounds.min[0], tile.bounds.min[2], tile.bounds.max[0], tile.bounds.max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons]);
+  const cached = worstCache.get(key);
+  if (cached !== undefined) return { ...cached, location: [...cached.location] };
   let worst: LocationCost = { playing: 0, loading: 0, accounted: 0, location: [0, 0] };
   for (const model of locationModels(shard, commons)) {
     for (let x = -280; x <= 280; x += GRID_STEP) for (let z = -280; z <= 280; z += GRID_STEP) {
       const cost = model(x, z); if (cost.playing > worst.playing) worst = cost;
     }
   }
-  return worst;
+  if (worstCache.size >= 8) { const oldest = worstCache.keys().next().value; if (oldest !== undefined) worstCache.delete(oldest); }
+  worstCache.set(key, worst);
+  return { ...worst, location: [...worst.location] };
 }

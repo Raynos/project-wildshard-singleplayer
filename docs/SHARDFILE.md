@@ -8,6 +8,14 @@ cross-field predicates remain opaque in the inventory and are explained below.
 
 ## Budget-first admission
 
+The SDK emits `validation.json` with the canonical declaration SHA-256, validator
+source revision, and conservative worst-location totals after full asset validation.
+Only the client build’s own first-party catalogue or a locally admitted visited
+product may reuse that exact verdict; authored/network sidecars are never trusted.
+Any declaration or validator change runs full validation again. Every admission
+still checks schema/closure, exact immutable wire sizes and SHA-256, runtime trust,
+and the current page’s complete memory caps. Unbundled clients validate in full.
+
 `wildshard build <folder>` and `wildshard validate <folder>` print the SF62 report:
 near-player and worst-location grid memory, declared draws/triangles per view,
 SF59 graph cost, measured script CPU/fuel, critical/tile/library downloads and

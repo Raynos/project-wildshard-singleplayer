@@ -7,8 +7,9 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { parseShardfile } from '../src/game/shardfile/schema';
 import { runWildshard } from '../scripts/wildshard.mjs';
-import { canonicalJson } from '../src/sdk/project';
+import { canonicalJson, contentHash } from '../src/sdk/project';
 import { emptyShardfile } from '../src/sdk/author';
+import { worstContentCost } from '../src/game/shardfile/budget';
 
 const output = mkdtempSync(join(tmpdir(), 'sdk-repo-build-'));
 beforeAll(async () => {
@@ -21,6 +22,10 @@ it('builds a canonical template product through the real workspace author CLI', 
   const first = readFileSync(join(output, 'shard.json'), 'utf8');
   const shard = parseShardfile(JSON.parse(first)); expect(shard.identity.slug).toBe('template');
   expect(first).toBe(canonicalJson(shard));
+  const receipt: unknown = JSON.parse(readFileSync(join(output, 'validation.json'), 'utf8'));
+  if (typeof receipt !== 'object' || receipt === null || !('revision' in receipt) || typeof receipt.revision !== 'string') throw new Error('Missing build validation revision');
+  expect(receipt.revision).toMatch(/^[a-f0-9]{64}$/u);
+  expect(receipt).toEqual({ revision: receipt.revision, sourceHash: contentHash(new TextEncoder().encode(first)), worst: worstContentCost(shard) });
 });
 
 it('validates the built template simulation and all 92 native entry lanes through the CLI', async () => {
