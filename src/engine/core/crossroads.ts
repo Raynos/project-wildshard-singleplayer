@@ -1,4 +1,4 @@
-import { CONTENT_CAPS, CONTENT_MB } from './config';
+import { CONTENT_CAPS, CONTENT_MB } from './config.js';
 
 /** Fixed crossroads experiment at provisional caps v1; shared by the static build and telemetry validator. */
 export const CROSSROADS_CONFIG = {

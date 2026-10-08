@@ -1,4 +1,4 @@
-import { CROSSROADS_CONFIG } from '../src/engine/core/crossroads';
+import { CROSSROADS_CONFIG } from '../src/engine/core/crossroads.js';
 
 const object = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
 const text = (value: unknown, max: number): string => typeof value === 'string' ? value.slice(0, max) : '';

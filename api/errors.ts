@@ -13,7 +13,7 @@
  * `pnpm inbox:pull` (scripts/inbox-pull.mjs), which drops them into `.review/inbox/` as category `error`.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { blobStore, type BlobPage } from './_blobStore';
+import { blobStore, type BlobPage } from './_blobStore.js';
 
 export const MAX_ERROR_BODY_BYTES = 16 * 1024;
 export const MAX_MESSAGE_CHARS = 500;

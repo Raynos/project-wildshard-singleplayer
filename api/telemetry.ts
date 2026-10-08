@@ -1,7 +1,7 @@
 /** Anonymous session/analytics records, private Blob reads and rolling thirty-day retention (E357 X8). */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { blobStore, type BlobPage } from './_blobStore';
-import { cleanCrossroads, type CrossroadsReading } from './_crossroads';
+import { blobStore, type BlobPage } from './_blobStore.js';
+import { cleanCrossroads, type CrossroadsReading } from './_crossroads.js';
 
 const PREFIX = 'telemetry/';
 const DAY = 86_400_000;
