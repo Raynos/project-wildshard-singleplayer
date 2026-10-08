@@ -60,7 +60,8 @@ async function rig(narrow = false, bytes = compiled) {
   let tick = 0;
   return { entry, physics, scope, runtime, props, colliders, approachSource: { props, targets: { panels: [] } }, fixedStep: () => {
     host.beginTick(++tick); runtime.step(tick); physics.step();
-    if (host.checkpoint().modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Lift script failed');
+    // The counter covers failed and disabled calls without copying both WASM memories on every physics tick.
+    if (host.failureCount !== 0) throw new Error('Lift script failed');
   }, dispose: () => { scope.dispose(); physics.dispose(); } };
 }
 describe('static approach actual WASM/capsule admission', () => {

@@ -34,7 +34,8 @@ async function rig(bytes = compiled, gateWidth = 4) {
   let tick = 0;
   const fixedStep = () => {
     host.beginTick(++tick); runtime.step(tick); physics.step();
-    if (host.checkpoint().modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Lift script failed');
+    // The counter covers failed and disabled calls without copying both WASM memories on every physics tick.
+    if (host.failureCount !== 0) throw new Error('Lift script failed');
   };
   return { physics, scope, host, runtime, fixedStep, dispose: () => { scope.dispose(); physics.dispose(); } };
 }
