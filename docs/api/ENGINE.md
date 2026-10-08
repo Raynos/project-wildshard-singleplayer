@@ -266,7 +266,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `AudioKind` | type | @wildshard/engine/audio/preload | — |
 | `cachedBytes` | function | @wildshard/engine/audio/preload | the bytes of `url` from the offline cache the bar filled — a style / set switch never touches the network |
 | `DECODE_RATE` | const | @wildshard/engine/audio/preload | — |
-| `decodeBytes` | function | @wildshard/engine/audio/preload | decode compressed audio into an AudioBuffer without an AudioContext (the bytes are detached) |
+| `decodeBytes` | function | @wildshard/engine/audio/preload | Decode at 48 kHz, sharing identical live recordings without retaining retired PCM (the bytes are detached on decode). |
 | `decodeSfxSet` | function | @wildshard/engine/audio/preload | Decode `set` — every file its sfx.json lists that this shard can play — from `read` (the boot's counted fetch at the bar; |
 | `onAudioBusy` | function | @wildshard/engine/audio/preload | — |
 | `SfxBank` | interface | @wildshard/engine/audio/preload | a decoded sound-effect set: what Audio.ts plays in place of the synth versions |

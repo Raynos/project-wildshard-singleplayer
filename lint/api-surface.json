@@ -1553,7 +1553,7 @@
       {
         "name": "decodeBytes",
         "kind": "function",
-        "doc": "decode compressed audio into an AudioBuffer without an AudioContext (the bytes are detached)",
+        "doc": "Decode at 48 kHz, sharing identical live recordings without retaining retired PCM (the bytes are detached on decode).",
         "from": "@wildshard/engine/audio/preload"
       },
       {
