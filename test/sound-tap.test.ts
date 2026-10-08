@@ -22,6 +22,8 @@ describe('every sound source is observed', () => {
       '../src/engine/audio/AmbienceBeds.ts': '../src/shards/nine-dragon-stack/runtime/audio/ambience.ts',
       '../src/engine/audio/ambience.ts': '../src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts',
       '../src/engine/audio/synth.ts': '../src/engine/audio/playerVoices.ts',
+      // Short native AAC windows are subdivisions of the Deck's single content sound, not new sounds.
+      '../src/engine/audio/aacSource.ts': '../src/engine/audio/Stems.ts',
     };
     for (const [file, text] of files) {
       const owner = owners[file];
@@ -30,6 +32,7 @@ describe('every sound source is observed', () => {
     expect(files.map(([file]) => file).sort()).toEqual([
       '../src/engine/audio/AmbienceBeds.ts', '../src/engine/audio/Audio.ts', '../src/engine/audio/Music.ts',
       '../src/engine/audio/Stems.ts', '../src/engine/audio/Voices.ts', '../src/engine/audio/ambience.ts',
+      '../src/engine/audio/aacSource.ts',
       '../src/engine/audio/synth.ts',
       '../src/shards/driftwood-isle/runtime/audio/ambience.ts', '../src/shards/driftwood-isle/runtime/audio/shrineHum.ts',
       '../src/shards/nalati-grasslands/runtime/audio/synth.ts',
