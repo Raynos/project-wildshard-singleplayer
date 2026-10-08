@@ -63,7 +63,8 @@
     "./bake/nativeLattice": "./bake/nativeLattice.ts",
     "./bake/worldRows": "./bake/worldRows.ts",
     "./bake/staticMaterials": "./bake/staticMaterials.ts",
-    "./bag": "./bag.ts"
+    "./bag": "./bag.ts",
+    "./runtime/effects": "./runtime/effects.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -337,6 +338,10 @@
       "./bag": {
         "types": "./dist/types/sdk/bag.d.ts",
         "default": "./dist/bag.js"
+      },
+      "./runtime/effects": {
+        "types": "./dist/types/sdk/runtime/effects.d.ts",
+        "default": "./dist/runtime/effects.js"
       }
     }
   }

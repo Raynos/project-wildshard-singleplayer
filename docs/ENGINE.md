@@ -1,5 +1,10 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
+`@wildshard/sdk/runtime/effects.bindPlayerEffects` is the same defining function
+as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns scoped
+status movement / periodic-damage / death bindings, with no second kit wrapper,
+HUD changes or import-time installation. `StatusMovement` derives from that port.
+
 `@wildshard/sdk/bag.normalizeItemRow` is the trusted facade for the existing
 `@wildshard/game/bag/items` normalizer. Starter harvest content is authored once in
 the build-only commons bag pack and expanded by `pnpm gen` into

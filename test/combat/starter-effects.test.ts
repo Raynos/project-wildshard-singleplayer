@@ -6,7 +6,7 @@ import { PlayerHealth } from '../../src/engine/combat/health';
 import { CombatPipeline, type Actor } from '../../src/engine/combat/pipeline';
 import { Events } from '../../src/engine/events/events';
 import { STARTER_EFFECTS } from '../../src/kit/effects/starter';
-import { bindStarterEffects } from '../../src/kit/effects/bindings';
+import { bindPlayerEffects } from '@wildshard/sdk/runtime/effects';
 
 function setup() {
   const scope = new Scope('starter-test'), events = new Events(), combat = new CombatPipeline(events, scope);
@@ -15,7 +15,7 @@ function setup() {
   const effects = new EffectService(STARTER_EFFECTS, scope, events), movement = { effectMoveLocked: false, effectMoveScale: 1 };
   const source: Actor = { id: 'test.hostile', tags: ['elite.blackpaw'], state: [], attributes: { health: 100, maxHealth: 100 }, alive: true, applyDamage: () => false };
   combat.playerRules(scope, { target });
-  bindStarterEffects({ effects, target, movement, combat, position: () => new Vector3(), scope });
+  bindPlayerEffects({ effects, target, movement, combat, position: () => new Vector3(), scope });
   return { scope, target, effects, movement, source, dodge: (on: boolean) => { dodging = on; } };
 }
 

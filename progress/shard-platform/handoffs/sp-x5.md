@@ -6,12 +6,15 @@ Boot and the existing six combat-cue regressions use the SDK port. No shard fold
 recipe DSP, graphical code, map inputs or commons content change. Approved exact
 edges: kit->engine -1, game->engine +1, sdk->game +1, root->kit -1, root->sdk +1.
 The audit's models/sword is already absent; lookApi and species/install remain
-live and may retire only after caller migrations. Bag slice: commons pack owns all ten unchanged harvest rows; pnpm gen emits the
+live and may retire only after caller migrations. Bag a04ac6e7b: commons pack owns all ten unchanged harvest rows; pnpm gen emits the
 only runtime literal table, SDK/bag exposes the existing normalizer. Pack/table
 drift and deterministic hash fixtures are required. Approved edges commons->sdk +1,
 sdk->game +1, root->kit -1, root->game +1. Next slices: non-graphical audio
 recipes and effects rows via G138 build-time packs, coordinating shard folders
-through wildshard-new. Opus owns weapons / looks / models / viewmodel.
+through wildshard-new. Effects binding slice deletes the redundant kit wrapper;
+SDK runtime/effects exposes the existing engine bindPlayerEffects, kit installer
+uses it directly with unchanged HUD/lifecycle behavior. Approved kit->engine -3,
+sdk->engine +1. Opus owns weapons / looks / models / viewmodel.
 
 SF45 4ba7ada99: 5046/5046 schema fields, 16/16 ABI calls; focused/strict/lint/ratchet
 green. Combined clean-export full proof remains pending (ticket434, also covers

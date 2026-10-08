@@ -72,3 +72,9 @@ catalogue/build hook. It owns their ids, labels, icons and travel flags. The gam
 expands the same pack into a gitignored literal table during every `pnpm gen`;
 boot never imports commons code. Trusted runtimes normalize bag metadata through
 `@wildshard/sdk/bag.normalizeItemRow`, whose default remains `travels: false`.
+
+`@wildshard/sdk/runtime/effects.bindPlayerEffects` exposes the engine's existing
+scope-owned status binding directly: movement lock/scale use independent channels,
+periodic damage uses the supplied combat pipeline, and death/disposal cleanup ends
+with the owner. It adds no HUD or visual policy; status-icon presentation stays
+separate. Importing the module installs nothing.

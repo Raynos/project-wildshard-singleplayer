@@ -1,19 +1,19 @@
 import type { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
-import type { EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import { bindPlayerEffects, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import type { LevelContext } from '@wildshard/engine/level/context';
-import { bindStarterEffects, type StatusMovement } from './bindings';
 import { StatusIcons } from './view';
 
+type StatusMovement = Parameters<typeof bindPlayerEffects>[0]['movement'];
 type StarterContext = Pick<LevelContext, 'app' | 'scope' | 'system' | 'on'> & { hud: Pick<LevelContext['hud'], 'widget'> };
 /** An optional entered installer retires observers and icons while statuses remain player-owned. */
 export function installStarterEffects(ctx: StarterContext, host: { player: StatusMovement & { position: Vector3 }; health: Actor | null; effects: EffectService | null },
   entered?: (install: (scope: Scope) => void) => void): void {
   const { player, health, effects } = host;
   if (health === null || effects === null) throw new Error('Starter effects need player health and effects services');
-  if (entered === undefined) bindStarterEffects({ effects, target: health, movement: player, combat: ctx.app.combat, position: () => player.position, scope: ctx.scope });
+  if (entered === undefined) bindPlayerEffects({ effects, target: health, movement: player, combat: ctx.app.combat, position: () => player.position, scope: ctx.scope });
   let iconScope: Scope | undefined;
   let icons: StatusIcons | null = null;
   if (entered !== undefined) entered((scope) => {
