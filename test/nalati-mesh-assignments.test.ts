@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
-import { assignNalatiMeshes } from '../scripts/bake/nalatiMeshAssignments';
+import { assignNalatiMeshes, type NalatiAssignmentInventory } from '../scripts/bake/nalatiMeshAssignments';
 
 const meshSchema = v.object({ sourceMesh: v.number(), name: v.string(), instances: v.nullable(v.object({ count: v.number(), capacity: v.number() })) });
 const schema = v.object({
@@ -58,5 +58,16 @@ describe('Nalati per-mesh static/hybrid assignment', () => {
     if (mesh?.instances === undefined || mesh.instances === null) throw new Error('Missing static GLB instances');
     mesh.instances.count = 0;
     expect(() => assignNalatiMeshes(changed)).toThrow('Incomplete Nalati static instance capture');
+  });
+
+  it('keeps old captures pending and refuses a truncated original scatter source', () => {
+    const changed: NalatiAssignmentInventory = source(), mesh = changed.roots[17]?.meshes[0];
+    if (mesh?.instances === undefined || mesh.instances === null) throw new Error('Missing actual scatter mesh');
+    const before = assignNalatiMeshes(changed).find(row => row.sourceMesh === mesh.sourceMesh);
+    expect(before?.replay).toBe('scatter-source-required');
+    mesh.scatter = { version: 1, count: mesh.instances.capacity - 1 };
+    expect(() => assignNalatiMeshes(changed)).toThrow('Incomplete Nalati original scatter source');
+    mesh.scatter = { version: 1, count: mesh.instances.capacity };
+    expect(assignNalatiMeshes(changed).find(row => row.sourceMesh === mesh.sourceMesh)?.replay).toBe('scatter-source');
   });
 });

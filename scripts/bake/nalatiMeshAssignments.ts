@@ -2,6 +2,8 @@
 export interface NalatiAssignmentMesh {
   sourceMesh: number; name: string;
   instances: { count: number; capacity: number } | null;
+  /** Common header of the full owned source and its compact hashed receipt. Older captures omit it. */
+  scatter?: { version: 1; count: number } | null;
 }
 /** Structural input accepts both owned capture arrays and the compact clean-pin witness. */
 export interface NalatiAssignmentInventory {
@@ -10,10 +12,10 @@ export interface NalatiAssignmentInventory {
 }
 /** A reference indexes the original owned capture; sourceMesh is capture-local, never a shipped entity id. */
 export interface NalatiMeshReference { kind: 'root' | 'build'; index: number; mesh: number }
-/** Static is an assignment, not admission. Scatter explicitly lacks its unfaded source transforms in this capture. */
+/** Static is an assignment, not admission. Older scatter captures explicitly lack original source data. */
 export interface NalatiMeshAssignment {
   sourceMesh: number; name: string; owner: 'static' | 'hybrid';
-  replay: 'world-mesh' | 'captured-instances' | 'scatter-source-required' | 'runtime';
+  replay: 'world-mesh' | 'captured-instances' | 'scatter-source' | 'scatter-source-required' | 'runtime';
   primary: NalatiMeshReference; references: NalatiMeshReference[];
 }
 
@@ -67,8 +69,8 @@ function ruleFor(root: NalatiAssignmentInventory['roots'][number]): RootRule {
 
 /** Assign every captured mesh once, retaining all overlapping references and refusing unreviewed ownership.
  * World meshes are already placed: never multiply their registry poses again. Complete static instance buffers
- * carry their own poses; scatter buffers are initially empty and require DressLayer's original matrices/tints/
- * per-copy fade data before packing. Dynamic riders, horses and balbals remain on their one hybrid owner.
+ * carry their own poses; scatter uses DressLayer's original matrices/tints/per-copy fade data rather than its
+ * empty/culled front buffer. Older scatter captures remain explicitly pending. Riders, horses and balbals stay hybrid.
  */
 export function assignNalatiMeshes(inventory: NalatiAssignmentInventory): NalatiMeshAssignment[] {
   const assignments = new Map<number, NalatiMeshAssignment[]>();
@@ -81,11 +83,16 @@ export function assignNalatiMeshes(inventory: NalatiAssignmentInventory): Nalati
   inventory.roots.forEach((root, index) => {
     const rule = ruleFor(root);
     root.meshes.forEach((mesh, i) => {
+      const scatter = mesh.scatter;
+      const hasScatter = scatter !== undefined && scatter !== null;
       if (rule.scatter && mesh.instances === null) throw new Error('Nalati scatter requires original instance source data');
+      if (rule.scatter && hasScatter && scatter.count !== mesh.instances?.capacity) {
+        throw new Error('Incomplete Nalati original scatter source');
+      }
       if (rule.owner === 'static' && !rule.scatter && mesh.instances !== null && mesh.instances.count !== mesh.instances.capacity) {
         throw new Error('Incomplete Nalati static instance capture');
       }
-      const replay = rule.owner === 'hybrid' ? 'runtime' : rule.scatter ? 'scatter-source-required' : mesh.instances === null ? 'world-mesh' : 'captured-instances';
+      const replay = rule.owner === 'hybrid' ? 'runtime' : rule.scatter ? hasScatter ? 'scatter-source' : 'scatter-source-required' : mesh.instances === null ? 'world-mesh' : 'captured-instances';
       add(mesh, rule.owner, replay, { kind: 'root', index, mesh: i });
     });
   });

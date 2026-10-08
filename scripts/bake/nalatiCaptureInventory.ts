@@ -2,6 +2,7 @@ import { BufferGeometry, InstancedMesh, Material, type Matrix4, Mesh, Object3D }
 import type { ModelBuildVisit, ModelPlacementVisitor } from '../../src/engine/models/model';
 import { poseOf } from '../../src/engine/models/colliders';
 import { NALATI_GRASSLANDS } from '../../src/shards/nalati-grasslands/manifest';
+import { captureDressLayerSource, type DressLayerSource } from '../../src/shards/nalati-grasslands/world/dressing/layer';
 import { visitAuthoredWorld, type AuthoredWorldOptions } from './worldHost.mjs';
 
 /** An exact owned copy of one decoded attribute, independent of later culling, mutation and host disposal. */
@@ -13,6 +14,8 @@ export interface NalatiCapturedMesh {
   name: string; type: string; visible: boolean; matrix: number[]; materials: { name: string; type: string }[];
   attributes: Record<string, NalatiCapturedAttribute>; indices: Uint32Array;
   instances: { count: number; capacity: number; matrices: Float32Array; colours: Float32Array | null } | null;
+  /** Original ordered scatter source, independent of the instance buffer's visible/cull order. */
+  scatter: DressLayerSource | null;
 }
 /** Source copies remain ordered, including those not drawn by the initial cull. */
 export interface NalatiCapturedPlacement {
@@ -42,6 +45,7 @@ function meshSnapshot(object: Mesh, geometry: BufferGeometry, sourceMesh: number
   if (!geometry.hasAttribute('position')) throw new Error('Nalati capture requires positions');
   return { sourceMesh, name: object.name, type: object.type, visible: object.visible, matrix: [...object.matrixWorld.elements], materials, attributes,
     indices: index === null ? Uint32Array.from({ length: position.count }, (_, i) => i) : Uint32Array.from(index.array),
+    scatter: captureDressLayerSource(object) ?? null,
     instances: object instanceof InstancedMesh ? { count: object.count, capacity: object.instanceMatrix.count,
       matrices: Float32Array.from(object.instanceMatrix.array), colours: object.instanceColor === null ? null : Float32Array.from(object.instanceColor.array) } : null };
 }

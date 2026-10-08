@@ -1,8 +1,26 @@
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { describe, expect, it } from 'vitest';
 import { NalatiCaptureInventory } from '../scripts/bake/nalatiCaptureInventory';
+import { DressLayer } from '../src/shards/nalati-grasslands/world/dressing/layer';
 
 describe('Nalati authored capture inventory', () => {
+  it('copies actual scatter source poses even when registry callbacks have only XYZ and the drawer has zero visible copies', async () => {
+    const collector = new NalatiCaptureInventory(), geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+    const material = new MeshStandardMaterial(), layer = new DressLayer('boulder', geometry, material,
+      [{ x: 20, y: 3, z: 4, yaw: 0.5, sx: 2, sy: 3, sz: 4, tiltX: 0.1, far: 100, r: 0.2, g: 0.3, b: 0.4 }], { farScale: 0.6 });
+    collector.visitPlacement({ model: 'nalati-grasslands/boulder', placements: [{ x: 20, y: 3, z: 4 }], draw: 'instanced', moving: false, drawnInto: layer.mesh });
+    try {
+      const result = await collector.snapshot(() => Promise.resolve()), mesh = result.roots[0]?.meshes[0];
+      if (mesh?.scatter === undefined || mesh.scatter === null) throw new Error('Missing original scatter source');
+      expect(mesh.instances?.count).toBe(0); expect(mesh.scatter.count).toBe(1);
+      expect(mesh.scatter).toEqual(layer.captureSource());
+      expect(mesh.scatter.matrices[0]).not.toBe(result.placements[0]?.copies[0]?.matrix[0]);
+      expect(mesh.scatter.ranges).toEqual(Float32Array.of(60));
+      mesh.scatter.matrices.fill(99); mesh.scatter.colours.fill(0);
+      expect(layer.captureSource().matrices[0]).not.toBe(99); expect(layer.captureSource().colours[0]).toBeCloseTo(0.2);
+    } finally { geometry.dispose(); material.dispose(); }
+  });
+
   it('identifies one physical mesh reached through overlapping static and hybrid roots', async () => {
     const collector = new NalatiCaptureInventory(), outer = new Group(), inner = new Group();
     const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3)), material = new MeshStandardMaterial();

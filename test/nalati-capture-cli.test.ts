@@ -12,13 +12,21 @@ import { execPath } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import * as v from 'valibot';
 import { expect, it } from 'vitest';
+import { assignNalatiMeshes } from '../scripts/bake/nalatiMeshAssignments';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
+const arraySummary = v.object({ values: v.number(), sha256: v.string() });
 const summarySchema = v.object({
   nativeTerrain: v.object({ bytes: v.number(), sha256: v.string() }),
   placements: v.array(v.object({ model: v.string(), role: v.picklist(['static-candidate', 'hybrid']), copies: v.number(), copiesSha256: v.string() })),
-  roots: v.array(v.object({ name: v.string(), meshes: v.array(v.object({ name: v.string(),
+  roots: v.array(v.object({ name: v.string(), models: v.array(v.string()), meshes: v.array(v.object({ sourceMesh: v.number(), name: v.string(),
     attributes: v.record(v.string(), v.object({ values: v.number(), sha256: v.string() })),
+    instances: v.nullable(v.object({ count: v.number(), capacity: v.number(), matricesSha256: v.string() })),
+    scatter: v.nullable(v.object({ version: v.literal(1), count: v.number(), matrices: arraySummary, colours: arraySummary, spheres: arraySummary,
+      ranges: arraySummary, cellSize: v.number(), keepNear: v.number(), fadeStart: v.number(), rangeScale: v.number() })),
+  })) })),
+  builds: v.array(v.object({ model: v.string(), kind: v.picklist(['model', 'weld']), meshes: v.array(v.object({ sourceMesh: v.number(), name: v.string(),
+    instances: v.nullable(v.object({ count: v.number(), capacity: v.number() })),
   })) })),
   counts: v.object({ placementRows: v.number(), authoredCopies: v.number(), roots: v.number(), meshes: v.number(), weldBuilds: v.number() }),
   physics: v.object({ colliders: v.number() }),
@@ -46,6 +54,21 @@ it('captures the actual settled Nalati world, including unculled copies and asyn
       expect(mesh.attributes['position']?.values).toBeGreaterThan(0);
       expect(mesh.attributes['position']?.sha256).toMatch(/^[a-f0-9]{64}$/u);
     }
+    const scatters = summary.roots.flatMap(entry => entry.meshes).filter(mesh => mesh.scatter !== null);
+    expect(scatters).toHaveLength(10);
+    for (const mesh of scatters) {
+      const source = mesh.scatter; if (source === null) throw new Error('Missing scatter source');
+      expect(source.count).toBe(mesh.instances?.capacity); expect(mesh.instances?.count).toBe(0);
+      expect(source.matrices.values).toBe(source.count * 16); expect(source.colours.values).toBe(source.count * 3);
+      expect(source.spheres.values).toBe(source.count * 4); expect(source.ranges.values).toBe(source.count);
+      expect(source.matrices.sha256).not.toBe(mesh.instances?.matricesSha256);
+      for (const array of [source.matrices, source.colours, source.spheres, source.ranges]) expect(array.sha256).toMatch(/^[a-f0-9]{64}$/u);
+      expect(source.cellSize).toBe(24); expect(source.fadeStart).toBe(0.82);
+      expect(source.rangeScale).toBeGreaterThan(0);
+    }
+    const assigned = assignNalatiMeshes(summary);
+    expect(assigned.filter(row => row.replay === 'scatter-source')).toHaveLength(10);
+    expect(assigned.filter(row => row.replay === 'scatter-source-required')).toHaveLength(0);
     expect(summary.cleanup).toMatchObject({ levelUnloaded: true, physicsReleased: true, renderReleased: true });
     expect(Object.values(summary.cleanup.page).every(value => value === 0)).toBe(true);
   } finally { rmSync(scratch, { recursive: true, force: true }); }

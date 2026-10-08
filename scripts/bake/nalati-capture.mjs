@@ -21,9 +21,12 @@ const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.Direction
 { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color') ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const arrayHash = values => hash(new Uint8Array(values.buffer, values.byteOffset, values.byteLength));
+const arraySummary = values => ({ values: values.length, sha256: arrayHash(values) });
 const meshSummary = mesh => ({ sourceMesh: mesh.sourceMesh, name: mesh.name, type: mesh.type, visible: mesh.visible, matrix: mesh.matrix, materials: mesh.materials,
   attributes: Object.fromEntries(Object.entries(mesh.attributes).map(([name, channel]) => [name, { itemSize: channel.itemSize, values: channel.values.length, sha256: arrayHash(channel.values) }])),
   indices: { count: mesh.indices.length, sha256: arrayHash(mesh.indices) },
+  scatter: mesh.scatter === null ? null : { ...mesh.scatter, matrices: arraySummary(mesh.scatter.matrices), colours: arraySummary(mesh.scatter.colours),
+    spheres: arraySummary(mesh.scatter.spheres), ranges: arraySummary(mesh.scatter.ranges) },
   instances: mesh.instances === null ? null : { count: mesh.instances.count, capacity: mesh.instances.capacity,
     matricesSha256: arrayHash(mesh.instances.matrices), coloursSha256: mesh.instances.colours === null ? null : arrayHash(mesh.instances.colours) } });
 

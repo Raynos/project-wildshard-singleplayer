@@ -43,7 +43,7 @@ interface Cell { cx: number; cy: number; cz: number; r: number; far: number; idx
  */
 export interface DressLayerSource {
   version: 1; count: number; matrices: Float32Array; colours: Float32Array; spheres: Float32Array; ranges: Float32Array;
-  cellSize: number; keepNear: number; fadeStart: number;
+  cellSize: number; keepNear: number; fadeStart: number; rangeScale: number;
 }
 
 const sourceLayers = new WeakMap<THREE.Object3D, DressLayer>();
@@ -60,6 +60,7 @@ export class DressLayer {
   private colors: Float32Array;
   private pos: Float32Array;
   private far: Float32Array;
+  private readonly rangeScale: number;
   private cells: Cell[] = [];
   private trisPer: number;
 
@@ -90,7 +91,7 @@ export class DressLayer {
     this.colors = new Float32Array(n * 3);
     this.pos = new Float32Array(n * 4);
     this.far = new Float32Array(n);
-    const fs = o.farScale ?? 1;
+    const fs = this.rangeScale = o.farScale ?? 1;
     const buckets = new Map<number, number[]>();
     instances.forEach((it, i) => {
       _e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ');
@@ -123,7 +124,7 @@ export class DressLayer {
   /** Independent copies survive culling, caller mutation and disposal of this layer's geometry. */
   captureSource(): DressLayerSource {
     return { version: 1, count: this.count, matrices: this.base.slice(), colours: this.colors.slice(),
-      spheres: this.pos.slice(), ranges: this.far.slice(), cellSize: CELL, keepNear: this.keepNear, fadeStart: FADE_START };
+      spheres: this.pos.slice(), ranges: this.far.slice(), cellSize: CELL, keepNear: this.keepNear, fadeStart: FADE_START, rangeScale: this.rangeScale };
   }
 
   cull(frustum: THREE.Frustum, viewer: THREE.Vector3): void {

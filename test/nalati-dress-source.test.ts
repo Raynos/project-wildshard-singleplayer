@@ -15,7 +15,7 @@ describe('Nalati immutable dressing source', () => {
       const captured = captureDressLayerSource(layer.mesh); if (captured === undefined) throw new Error('Missing actual layer source');
       const expected = Float32Array.from(instances.flatMap(instance => new Matrix4().compose(new Vector3(instance.x, instance.y, instance.z),
         new Quaternion().setFromEuler(new Euler(instance.tiltX ?? 0, instance.yaw, instance.tiltZ ?? 0, 'YXZ')), new Vector3(instance.sx, instance.sy, instance.sz)).elements));
-      expect(captured).toMatchObject({ version: 1, count: 2, ranges: Float32Array.of(20, 20), cellSize: 24, keepNear: 0, fadeStart: 0.82 });
+      expect(captured).toMatchObject({ version: 1, count: 2, ranges: Float32Array.of(20, 20), cellSize: 24, keepNear: 0, fadeStart: 0.82, rangeScale: 2 });
       expect(captured.matrices).toEqual(expected);
       expect(captured.colours).toEqual(Float32Array.of(0.2, 0.3, 0.4, 0.7, 0.8, 0.9));
       expect(captured.spheres.slice(0, 3)).toEqual(Float32Array.of(18, 2, 0));
