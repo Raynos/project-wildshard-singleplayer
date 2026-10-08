@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// E429: push CI runs vitest in 3 shards (deploy.yml `vitest`); each writes istanbul's coverage-final.json. This merges
+// E429: push CI runs vitest in shards (6 since E454; deploy.yml `vitest`); each writes istanbul's coverage-final.json. This merges
 // them into the json-summary that scripts/coverage-ratchet.mjs reads, measuring what ONE unsharded run measures:
 // - a file a shard ran is the sum of the shards that ran it (their statement maps are identical);
 // - a shard that never loaded a file adds it as an all-zero "untested" entry, which an unsharded run leaves out when any

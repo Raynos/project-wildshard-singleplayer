@@ -63,3 +63,18 @@ Measured on a one-file `src/` commit through a private index:
 | pre-commit (generated, graph, asks, architecture guards) | 2.6 | 2.6 |
 | post-commit ratchet (blocks the commit until it returns) | 54 | 9.6 |
 | **commit overhead**                    | **~57** | **~12** |
+
+## 4. GitHub Actions (commit 3; measured after the coordinator's next push)
+
+Before: run `37719308412` (`bf396ec27`, the last green push run), **6 min 52 s** to green. Critical path
+`build-and-deploy` 6:49: checkout 36 s · typecheck 22 s · **lint 1:48** · **Test 3:34** (of which the ratchet
+2:14, bake-check ~50 s, vite build ~15 s) · native build 13 s. The three vitest shards took 4:35–5:54 each.
+
+- §1's lint fix lands in CI with no workflow change: the same oxlint + ratchet passes are ~3–6× faster locally,
+  so `build-and-deploy` should drop to ~3.5 min.
+- The vitest matrix goes 3 → 6 shards (each ~2.5 min + ~45 s checkout/setup); the coverage job merges every shard
+  (`coverage-merge.mjs` sums any number) and refuses a partial set.
+- Not changed: concurrency stays one group per commit (E427, Jake: no replaced runs), and the deploy-pin's
+  newest-ci-green still needs every job of the run green.
+
+Expected: ~3.5–4 min to green. The real number goes here from the first push run that carries commit 3.

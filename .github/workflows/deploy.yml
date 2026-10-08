@@ -121,7 +121,7 @@ jobs:
         run: pnpm run lint
 
       # A release runs the whole `pnpm test` here. Push / PR CI runs its node checks here and the vitest suite once, in
-      # the 3 `vitest` shard jobs below, whose coverage the `coverage` job merges and ratchets (E429).
+      # the 6 `vitest` shard jobs below, whose coverage the `coverage` job merges and ratchets (E429).
       - name: Test
         if: steps.live.outputs.skip != 'true'
         run: |
@@ -171,7 +171,8 @@ jobs:
           code=$(curl -sS -o /dev/null -w '%{http_code}' -H 'x-review-password: invalid' https://wildshard-singleplayer.vercel.app/api/inbox)
           test "$code" = 401 || { echo "::error::/api/inbox returned HTTP $code, expected 401"; exit 1; }
 
-  # Push / PR CI runs the vitest suite once, split over 3 parallel jobs (E429, Jake 2026-10-03: "Split 3 ways"). Each
+  # Push / PR CI runs the vitest suite once, split over parallel jobs (E429, Jake 2026-10-03: "Split 3 ways"; E454, Jake
+  # 2026-10-07: CI must be fast, so 6 ways: each 3-way shard took ~4.5 min and was the run's critical path). Each
   # shard writes its istanbul coverage; the `coverage` job merges them (scripts/coverage-merge.mjs measures what one
   # unsharded run measures) and runs the coverage ratchet. A red shard, merge or ratchet fails the run, and deploy-pin's
   # newest-ci-green only takes a push run whose every job passed.
@@ -182,7 +183,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -204,10 +205,10 @@ jobs:
       # links the @wildshard/* workspace packages (E432), so it stays before vitest
       - name: Install
         run: pnpm install --frozen-lockfile
-      - name: Vitest shard ${{ matrix.shard }}/3
+      - name: Vitest shard ${{ matrix.shard }}/6
         run: |
           pnpm gen
-          pnpm exec vitest run --shard=${{ matrix.shard }}/3 --coverage --coverage.reporter=json --reporter=dot
+          pnpm exec vitest run --shard=${{ matrix.shard }}/6 --coverage --coverage.reporter=json --reporter=dot
       - uses: actions/upload-artifact@v4
         with:
           name: vitest-coverage-${{ matrix.shard }}
@@ -238,5 +239,6 @@ jobs:
           path: shards
       - name: Merge coverage and ratchet
         run: |
-          node scripts/coverage-merge.mjs --out coverage/coverage-summary.json shards/vitest-coverage-1/coverage-final.json shards/vitest-coverage-2/coverage-final.json shards/vitest-coverage-3/coverage-final.json
+          test "$(ls shards/vitest-coverage-*/coverage-final.json | wc -l)" = 6 # every shard's coverage, or the ratchet reads a partial run
+          node scripts/coverage-merge.mjs --out coverage/coverage-summary.json shards/vitest-coverage-*/coverage-final.json
           node scripts/coverage-ratchet.mjs
