@@ -5,7 +5,25 @@ export function installLoadingGlJournal() {
   window.__sf57GLEvents = JSON.parse(sessionStorage.getItem(key) ?? '[]');
   sessionStorage.removeItem(key);
   let sequence = 0;
-  const push = row => window.__sf57GLEvents.push({ ...row, document: documentId, sequence: sequence++ });
+  // Renderer draw hooks repeat labels each frame. Keep exact state changes, not those unchanged assertions.
+  const labels = new Map(), allocations = new Map();
+  const push = row => {
+    if (row.op === 'label') {
+      const previous = labels.get(row.id);
+      if (previous?.owner === row.owner && previous.asset === row.asset) return;
+      labels.set(row.id, { owner: row.owner, asset: row.asset });
+    } else if (row.op === 'allocation') {
+      const previous = allocations.get(row.id);
+      if (row.bytes === null) {
+        allocations.delete(row.id); labels.delete(row.id);
+        if (previous === undefined) return;
+      } else {
+        if (previous && ['bytes', 'kind', 'context', 'owner', 'asset', 'labelled'].every(field => previous[field] === row[field])) return;
+        allocations.set(row.id, { bytes: row.bytes, kind: row.kind, context: row.context, owner: row.owner, asset: row.asset, labelled: row.labelled });
+      }
+    }
+    window.__sf57GLEvents.push({ ...row, document: documentId, sequence: sequence++ });
+  };
   push({ op: 'begin', at: Date.now() / 1000 });
   window.__sc_gl_change = push;
   window.__sf57MarkGLCycle = cycle => {

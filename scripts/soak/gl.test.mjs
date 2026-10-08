@@ -1,6 +1,31 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { installSoakGl, installSoakWasm, installLoadingGlJournal } from './gl.mjs';
+import { loadingGlSamples } from './owned.mjs';
+
+void test('SF57 journal suppresses repeated assertions but preserves exact resize, relabel, deletion and new lifetime state', () => {
+  const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage;
+  try {
+    globalThis.sessionStorage = { getItem: () => null, removeItem: () => undefined };
+    globalThis.window = { __sf57DocumentId: 'mutations', addEventListener: () => undefined };
+    installLoadingGlJournal();
+    const emit = row => { window.__sc_gl_change({ at: Date.now() / 1000, id: 'buffer:1', ...row }); };
+    const allocation = { op: 'allocation', kind: 'buffer', bytes: 64, labelled: false };
+    emit(allocation); emit({ op: 'label', owner: 'first', asset: 'mesh' });
+    for (let index = 0; index < 10000; index++) emit({ op: 'label', owner: 'first', asset: 'mesh' });
+    const labelled = { ...allocation, labelled: true, owner: 'first', asset: 'mesh' }; emit(labelled);
+    for (let index = 0; index < 10000; index++) emit(labelled);
+    emit({ ...labelled, bytes: 128 }); emit({ op: 'label', owner: 'second', asset: 'mesh' });
+    emit({ ...allocation, bytes: null }); emit({ ...allocation, bytes: null });
+    emit(allocation); emit({ op: 'label', owner: 'second', asset: 'mesh' });
+    window.__sf57MarkGLCycle(0); window.__sf57StopGLJournal();
+    const events = window.__sf57GLEvents;
+    assert.equal(events.length, 11, 'Twenty thousand unchanged assertions create no journal entries');
+    assert.deepEqual(events.map(row => row.sequence), Array.from({ length: 11 }, (_, index) => index));
+    const at = events.at(-1).at, replay = loadingGlSamples(events, [at]).get(at);
+    assert.equal(replay.totalBytes, 64); assert.equal(replay.unlabelled, 0); assert.equal(replay.cycle, 0);
+  } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
+});
 
 void test('SF57 journal survives boot navigation and records explicit playing cycles until teardown', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map();
