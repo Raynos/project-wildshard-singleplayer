@@ -16320,6 +16320,12 @@
         "from": "@wildshard/game/shardfile/hybridRows"
       },
       {
+        "name": "RuntimeBossOptions",
+        "kind": "interface",
+        "doc": "Boss identity policy for a runtime adopting spawn data without changing its existing save identities.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
         "name": "RuntimeCoins",
         "kind": "type",
         "doc": "A runtime's coin port: what a declared quest or an encounter pays, in whole coins.",
