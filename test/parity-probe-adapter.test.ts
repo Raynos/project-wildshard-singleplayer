@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { installLegacyProbeAdapter } from '../scripts/parity/probe.mjs';
+
 const originalWindow = Reflect.get(globalThis, 'window'), originalDocument = Reflect.get(globalThis, 'document');
 afterEach(() => { Reflect.set(globalThis, 'window', originalWindow); Reflect.set(globalThis, 'document', originalDocument); });
 it('adapts an old page without capturing its world and refuses after that slot clears', () => {

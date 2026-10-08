@@ -8,5 +8,5 @@ export function installLegacyProbeAdapter() {
       if (world === undefined) throw new Error('Debug level has retired');
       return world;
     });
-  }, { once: true });
+  }, { once: true, capture: true });
 }
