@@ -6,22 +6,21 @@ import { purseSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as v from 'valibot';
-import { Scene, Vector3 } from 'three';
+import { Scene, type Vector3 } from 'three';
 import { FLAG, type SignalWorld } from '../world/build';
 import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../layout';
 import { STRINGS } from '../strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
 import { SCOUT_AT, SCOUT_FLAG, scout, scoutNpc } from './scout';
+import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG, SIGNAL_QUESTS } from '../quests/signal';
+import { signalFacts, type SignalFacts } from './facts';
+import { SIGNAL_LEDGER } from '../data/ledger';
 
 
-/** Whether the signal reward was paid (shard save, SHARDS §10). */
-const SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: () => false };
+/** The old reward record (SHARDS §10): read once to carry a current save over to PAID_FLAG (C26), never written again. */
+export const LEGACY_SIGNAL = { key: 'sunscar.signal', scope: 'shard' as const, version: 1, schema: v.boolean(), initial: (): boolean => false };
 export const LIT_FLAG = FLAG.lit;
-/** Raised when the Dune Matriarch falls (combat/matriarch.ts): the quest's last step. */
-export const MATRIARCH_FLAG = 'sunscar.matriarch.down';
-/** Raised when every step is done. */
-const COMPLETE_FLAG = 'sunscar.complete';
 
 /** The named places: walking into one toasts "Discovered · …" once and names it on the full map (review R4, R11). */
 const PLACES = [
@@ -41,38 +40,41 @@ const at = (p: Vector3, dy = 0): QuestMarker['at'] => ({ poi: 'world', x: p.x, y
  * tab carries the quest card, the places toast as they are found, and the Matriarch is the last step: the 5-coin
  * signal reward pays after her fall.
  */
-export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, onCoin?: (share: number) => void): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null } {
-  const { flags } = world, paid = ctx.app.saves.define(SIGNAL);
-  const basin = new Vector3(BASIN.x, 2, BASIN.z);
+export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, revision: number, onCoin?: (share: number) => void): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null; facts: SignalFacts } {
+  const { flags } = world, saves = ctx.app.saves, legacy = saves.define(LEGACY_SIGNAL);
+  // SF14: Signal Dunes' feats are ledger facts (quests/signal.ts, data/ledger.ts); the platform grants each achievement once.
+  const slug = ctx.manifest.slug, facts = signalFacts(saves, { instance: slug, shard: slug, revision }, SIGNAL_LEDGER);
   const groundAt = (x: number, z: number): number => ctx.manifest.ground.terrain?.heightAt(x, z) ?? 0;
+  // C26: a current save that recorded the paid reward in the old shard save carries it over as the quest flag.
+  if (!flags.has(PAID_FLAG) && legacy.read(slug)) flags.set(PAID_FLAG);
   // A save from before Sefa (loop 2) or a player who walked past her to the caravan: any later step done means the
   // scout's step is too, so a mid-quest save is never sent back to the crest; on load her flag is set for it (no wave).
-  const later = [FLAG.logbook, FLAG.oil, ...world.braziers.map((_, i) => FLAG.brazier(i)), FLAG.lit, MATRIARCH_FLAG];
-  if (!flags.has(SCOUT_FLAG) && [...later, COMPLETE_FLAG].some((f) => flags.has(f))) flags.set(SCOUT_FLAG);
-  const quest = new QuestState({ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: COMPLETE_FLAG, steps: [
-    { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...later] },
-      markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, y: groundAt(SCOUT_AT.x, SCOUT_AT.z), z: SCOUT_AT.z } }] }, // her feet: the pin adds its own 2.2 m (round 1, R1C-7)
-    { id: 'logbook', objective: STRINGS.stepLog, chip: STRINGS.chipLog, hint: STRINGS.hintLog, done: { all: [FLAG.logbook] },
-      markers: [{ id: 'logbook', label: STRINGS.readLog, short: STRINGS.shortLog, at: at(world.logbook.position, 0.4) }] },
-    { id: 'oil', objective: STRINGS.stepOil, chip: STRINGS.chipOil, hint: STRINGS.hintOil, done: { all: [FLAG.oil] },
-      markers: [{ id: 'well', label: STRINGS.well, short: STRINGS.shortWell, at: at(world.well.spot.position, 0.6) }] },
-    { id: 'waymarks', objective: STRINGS.stepWaymarks, chip: STRINGS.chipWaymarks, hint: STRINGS.hintWaymarks,
-      done: { all: world.braziers.map((_, i) => FLAG.brazier(i)) }, count: world.braziers.map((_, i) => FLAG.brazier(i)),
-      markers: world.braziers.map((b, i) => ({ id: `waymark.${String(i)}`, label: STRINGS.waymark, short: STRINGS.shortWaymark, at: at(b.spot.position, 0.8), hideWhen: { all: [FLAG.brazier(i)] } })) },
-    { id: 'fire', objective: STRINGS.step, chip: STRINGS.chipFire, hint: STRINGS.hintFire, done: { all: [FLAG.lit] },
-      markers: [{ id: 'tower', label: STRINGS.tower, short: STRINGS.shortTower, at: at(world.fire.brazier.position, 1) }] },
-    { id: 'matriarch', objective: STRINGS.stepBoss, chip: STRINGS.chipBoss, hint: STRINGS.hintBoss, done: { all: [MATRIARCH_FLAG] },
-      markers: [{ id: 'basin', label: STRINGS.placeBasin, short: STRINGS.shortBasin, at: at(basin) }] },
-  ] }, flags, ctx.app.events, ctx.scope);
-  const purse = shardSave(purseSave, ctx.manifest.slug);
+  if (!flags.has(SCOUT_FLAG) && [...LATER_FLAGS, COMPLETE_FLAG].some((f) => flags.has(f))) flags.set(SCOUT_FLAG);
+  // The declared quest (quests/signal.ts), each world-piece marker placed on its built piece.
+  const placed: Record<string, QuestMarker['at']> = {
+    scout: { poi: 'world', x: SCOUT_AT.x, y: groundAt(SCOUT_AT.x, SCOUT_AT.z), z: SCOUT_AT.z }, // her feet: the pin adds its own 2.2 m (round 1, R1C-7)
+    logbook: at(world.logbook.position, 0.4), well: at(world.well.spot.position, 0.6), tower: at(world.fire.brazier.position, 1),
+    ...Object.fromEntries(world.braziers.map((b, i) => [`waymark.${String(i)}`, at(b.spot.position, 0.8)])),
+  };
+  const declared = SIGNAL_QUESTS.quests[0];
+  if (declared === undefined) throw new Error('Signal Dunes declares its quest');
+  const reward = declared.onComplete?.coins ?? 0, fact = declared.onComplete?.fact;
+  // The format caps a chip at 18 characters; the scout step's chip names the quest's goal (21), so it is added here.
+  const quest = new QuestState({ id: declared.id, title: declared.title, completeFlag: declared.completeFlag, steps: declared.steps.map((step) => ({ ...step,
+    ...(step.id === 'scout' ? { chip: STRINGS.chipScout } : {}),
+    ...(step.markers === undefined ? {} : { markers: step.markers.map((marker) => ({ ...marker, at: placed[marker.id] ?? marker.at })) }) })) }, flags, ctx.app.events, ctx.scope);
+  // SF14: the quest's feat is a ledger fact; a save that finished it before facts existed emits it now (granted once).
+  const witness = (): void => { if (fact !== undefined) facts(fact, declared.id); };
+  if (quest.isComplete) witness();
+  const purse = shardSave(purseSave, slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
-  const alreadyPaid = paid.read(ctx.manifest.slug);
+  const alreadyPaid = flags.has(PAID_FLAG);
   // The one-call presentation (ENGINE §20): the chip with distance and bearing, minimap and map diamonds, world pins,
   // the MAP card, saved discovery of the places, step toasts, and the held reward beat after the Matriarch falls.
   const pay = (): undefined => {
-    if (paid.read(ctx.manifest.slug)) return undefined;
-    paid.write(true, ctx.manifest.slug);
-    burst.spawn(player, 5, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
+    if (flags.has(PAID_FLAG)) return undefined;
+    flags.set(PAID_FLAG);
+    burst.spawn(player, reward, onCoin ?? ((share) => { purse.write(purse.read() + share); }), () => { ctx.game.runtime?.play?.hud.toast(STRINGS.reward); });
     return undefined;
   };
   // Sefa, the caravan scout, starts the quest on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
@@ -91,11 +93,11 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } };
   const entered = live !== null && retainsRuntimeServices(ctx) ? installEnteredQuestPresentation(ctx, quest, presentation) : null;
   const view = live === null || entered !== null ? null : installQuestPresentation(ctx, quest, presentation);
-  // Headless (no play host: tests, a node bake) the reward pays at once.
-  if (live === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
+  // The feat's fact on completion; headless (no play host: tests, a node bake) the reward also pays at once.
+  ctx.scope.onDispose(quest.observe({ complete: () => { witness(); if (live === null) pay(); } }));
   // On the first frame the goal is on screen: the chip, and a toast that names the quest.
   if (!quest.isComplete) ctx.game.runtime?.play?.hud.toast(`${STRINGS.newQuest} · ${STRINGS.quest}`);
   ctx.system({ id: 'sunscar.reward', phase: 'update', run: (dt) => { burst.update(dt, player); } });
   ctx.scope.onDispose(() => { burst.update(3, player); burst.dispose(); });
-  return { quest, burst, get view() { return entered === null ? view : entered(); } };
+  return { quest, burst, facts, get view() { return entered === null ? view : entered(); } };
 }

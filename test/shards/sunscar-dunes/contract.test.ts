@@ -6,7 +6,7 @@ import type { Actor } from '../../../src/engine/combat/pipeline';
 import type { LevelDriver } from '../../../src/engine/level/load';
 import { TabRegistry } from '../../../src/engine/ui/tabs';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import { purseSave, shardSave } from '../../../src/game/saves';
+import { bossesSave, purseSave, shardSave } from '../../../src/game/saves';
 import { shardContext, type GameServices, type ShardContext } from '../../../src/game/shard/context';
 import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import { toLevelSpec } from '../../../src/game/shard/spec';
@@ -14,7 +14,13 @@ import { Vector3 } from 'three';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { SignalDunesPlugin } from '../../../src/shards/sunscar-dunes/plugin';
 import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
-import { MATRIARCH_FLAG } from '../../../src/shards/sunscar-dunes/quest/install';
+import { COMPLETE_FLAG, LATER_FLAGS, MATRIARCH_FLAG, PAID_FLAG } from '../../../src/shards/sunscar-dunes/quests/signal';
+import { LEGACY_SIGNAL } from '../../../src/shards/sunscar-dunes/quest/install';
+import { SIGNAL_LEDGER } from '../../../src/shards/sunscar-dunes/data/ledger';
+import source from '../../../src/shards/sunscar-dunes/shard.config';
+import { Ledger } from '../../../src/game/ledger';
+import { saves } from '../../../src/engine/saves/runtime';
+import { Flags } from '../../../src/engine/world/interact/flags';
 import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/quest/scout';
 import { DUNE_RAY, DUNE_RAY_LOOK, SWOOP } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { FakeGame } from '../../fake/FakeGame';
@@ -22,6 +28,8 @@ import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 import { DUSK, setDusk } from '../../../src/shards/sunscar-dunes/look/dusk';
 
 const noop = (): void => undefined;
+const ledger = (app: App): Ledger => new Ledger(app.saves, [{ id: manifest.slug, shard: source.identity.slug }], [{ shard: source.identity.slug, revision: source.identity.revision, rules: SIGNAL_LEDGER }], []);
+const achievements = (app: App): Record<string, boolean> => Object.fromEntries(Object.values(ledger(app).state().achievements).filter((a) => a.shard === manifest.slug).map((a) => [a.id, a.earned]));
 async function boot(retained = false): Promise<{ app: App; plugin: SignalDunesPlugin; stages: string[]; active: Set<string>; fake: FakeGame; hooks: RetainedRuntimeHooks | null }> {
   const fake = new FakeGame();
   const app = new App(), plugin = new SignalDunesPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
@@ -125,6 +133,39 @@ describe('Signal Dunes plugin contract', () => {
     expect(fake.dead).toBe(false); expect(purse.read()).toBe(before + 5);
     plugin.fire?.brazier.onInteract(); for (let i = 0; i < 30; i++) fake.advance(1 / 30); expect(purse.read()).toBe(before + 5);
     await app.unloadLevel();
+  });
+  it('writes no reward save of its own: the paid reward is a quest flag and the finished quest a ledger fact granting its achievement once (SF14)', async () => {
+    const { app, plugin, fake } = await boot(), places = plugin.places; if (places === null) throw new Error('no places');
+    const legacy = app.saves.define(LEGACY_SIGNAL);
+    for (const flag of [SCOUT_FLAG, ...LATER_FLAGS.filter((f) => f !== MATRIARCH_FLAG)]) places.flags.set(flag);
+    app.events.flush('update'); expect(achievements(app)).toEqual({});
+    places.flags.set(MATRIARCH_FLAG); app.events.flush('update');
+    for (let i = 0; i < 90; i++) fake.advance(1 / 30);
+    expect(places.flags.has(PAID_FLAG)).toBe(true); expect(legacy.read(manifest.slug)).toBe(false);
+    expect(achievements(app)).toEqual({ 'sunscar.signal': true }); // the flag alone, no boss fight: no Matriarch feat
+    const facts = Object.keys(ledger(app).state().facts).length;
+    await app.unloadLevel();
+    const again = await boot(); again.app.events.flush('update');
+    expect(Object.keys(ledger(again.app).state().facts)).toHaveLength(facts); // the reloaded feats are the same facts
+    await again.app.unloadLevel();
+  });
+  it('migrates a current Signal Dunes save (C26): the old paid record becomes the flag, no second payout, old feats grant once', async () => {
+    // the save as the shipped build leaves it: every quest flag, the reward paid in `sunscar.signal`, the Matriarch beaten
+    const flags = new Flags(manifest.slug);
+    for (const flag of [SCOUT_FLAG, ...LATER_FLAGS, COMPLETE_FLAG]) flags.set(flag);
+    shardSave(bossesSave, manifest.slug).write({ 'sunscar.matriarch': { defeated: true, rewardTaken: true, kills: 1 } });
+    const purse = shardSave(purseSave, manifest.slug); purse.write(25);
+    saves.define(LEGACY_SIGNAL).write(true, manifest.slug);
+    const loaded = await boot(); loaded.app.events.flush('update');
+    for (let i = 0; i < 90; i++) loaded.fake.advance(1 / 30);
+    expect(loaded.plugin.quest?.isComplete).toBe(true); expect(loaded.plugin.places?.flags.has(PAID_FLAG)).toBe(true);
+    expect(purse.read()).toBe(25); // paid once, under the old record
+    expect(achievements(loaded.app)).toEqual({ 'sunscar.signal': true, 'sunscar.matriarch': true });
+    const facts = Object.keys(ledger(loaded.app).state().facts).length; expect(facts).toBe(2);
+    await loaded.app.unloadLevel();
+    const third = await boot(); third.app.events.flush('update');
+    expect(Object.keys(ledger(third.app).state().facts)).toHaveLength(2);
+    await third.app.unloadLevel();
   });
   it('resumes a mid-quest save from before Sefa past her step, and skips her step once a later one is done', async () => {
     const first = await boot(), places = first.plugin.places; if (places === null) throw new Error('no places');

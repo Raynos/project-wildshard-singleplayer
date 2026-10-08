@@ -19,7 +19,8 @@ import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
-import { installQuest, MATRIARCH_FLAG } from './quest/install';
+import { installQuest } from './quest/install';
+import { FACT, MATRIARCH_FLAG } from './quests/signal';
 import { SCOUT_FLAG } from './quest/scout';
 import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';
@@ -117,9 +118,11 @@ export class SignalDunesPlugin extends ShardPlugin {
     const places = this.places;
     const onCoin = loot?.purse ? (share: number): void => { loot.purse?.add(share); } : undefined;
     if (places) {
-      this.quest = installQuest(ctx, position, places, onCoin).quest; this.whip?.aimAt(places.crackables);
-      // The signal fire summons the Dune Matriarch from the basin (C5).
-      const matriarch = installMatriarch(ctx, position, () => places.fire.lit, onCoin, () => { places.flags.set(MATRIARCH_FLAG); }); this.matriarch = matriarch.boss;
+      // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
+      const installed = installQuest(ctx, position, places, source.identity.revision, onCoin), facts = installed.facts;
+      this.quest = installed.quest; this.whip?.aimAt(places.crackables);
+      // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
+      const matriarch = installMatriarch(ctx, position, () => places.fire.lit, onCoin, () => { places.flags.set(MATRIARCH_FLAG); facts(FACT.matriarch, 'sunscar.matriarch'); }); this.matriarch = matriarch.boss;
       places.fire.onLight = matriarch.summon;
     }
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];
