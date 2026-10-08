@@ -135,7 +135,8 @@ export class Undergrowth {
     return yield* placeUndergrowth(this.forest.trees, this.forest, DecisionLog.record());
   }
 
-  update(_dt: number, playerPos: THREE.Vector3): void { underUniforms.uViewerPos.value.copy(playerPos); }
+  /** `playerPos` in the floor's own frame; the fade compares world positions, so it goes out through the group's world matrix (a grid region's offset, G223; identity standalone) */
+  update(_dt: number, playerPos: THREE.Vector3): void { underUniforms.uViewerPos.value.copy(playerPos).applyMatrix4(this.group.matrixWorld); }
 
   private makeMaterial(tex: THREE.Texture, key: string, wind: number, alphaTest: number) {
     const mat = new THREE.MeshStandardMaterial({ map: tex, alphaTest, side: THREE.DoubleSide, roughness: 0.8, metalness: 0 });

@@ -13,7 +13,8 @@
  * - `enter(entry)`: while an entered runtime scope lives, the root is visible and the page registry verbs (`ctx.piece`,
  *   `place`, `activeRegistry()`) resolve to this registry, exactly as the frame's physics replaces the page's on a
  *   crossing. Prepared geometry may park across exits, but it is hidden on leave: an inactive neighbour displays only
- *   its shardfile / frozen declared content;
+ *   its shardfile / frozen declared content; while entered, the cell's coarse cover (its far proxy and ring tiles) is
+ *   hidden through the scene's `cellCover.ts` port, so the region's own ground is what draws inside its cell (G223);
  * - disposal in dependency order: every piece's colliders and bodies leave the destination world, every object leaves
  *   the scene with its unacquired GPU resources, the registry binding is restored, and its residency hold is released.
  *
@@ -31,6 +32,7 @@ import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
 import { WorldRegistry, type Piece } from '@wildshard/engine/world/registry';
 import type { GridCell } from './assembly';
 import type { ResidencyAllocator, ResidencyLease } from './allocator';
+import { cellCoverOf } from './cellCover';
 
 /** The page's registry slot (`App.registryValue`): the frame that owns the traveller owns the registry verbs. */
 export interface RegionalRegistrySlot { registryValue: WorldRegistry | null }
@@ -149,9 +151,11 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     const prior = slot.registryValue;
     if (prior === registry) { unhold(); throw new Error('Regional registry is already entered'); }
     slot.registryValue = registry; bindings++; root.visible = true;
+    // G223: the cell's coarse cover (far proxy, ring tiles) hands over to this root while the entry lives
+    const uncover = cellCoverOf(request.scene)?.cover(cell.instance) ?? ((): void => undefined);
     let restored = false;
     const restore = (): void => {
-      if (restored) return; restored = true; bindings--; unhold(); held = bindings > 0;
+      if (restored) return; restored = true; bindings--; unhold(); uncover(); held = bindings > 0;
       if (bindings === 0) root.visible = false;
       if (slot.registryValue === registry) slot.registryValue = prior;
     };

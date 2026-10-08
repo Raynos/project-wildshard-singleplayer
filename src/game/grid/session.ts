@@ -46,6 +46,7 @@ import type { PageResidency } from './pageResidency';
 import { PlatformRenderAdmissionError, PlatformRenderResidency } from './renderResidency';
 import { RenderRings, levelPorts, type LevelPrepared, type RingPorts } from './rings';
 import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
+import { bindCellCover, cellCoverPort } from './cellCover';
 import type { FarLookRuntime } from './farProxy';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
@@ -338,6 +339,8 @@ export class GridSession {
       const marks = copyMarks(cell.instance, cell.identity);
       if (marks !== null) { root.add(marks.object); marks.object.updateMatrixWorld(true); host.scope.onDispose(marks.dispose); }
     }
+    // G223: an entered regional runtime draws its own cell; its coarse root (far proxy, tiles) hides until it leaves
+    host.scope.onDispose(bindCellCover(host.scene, cellCoverPort((id) => roots.get(id))));
     const far = farRingPorts({
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },
       load: async (id) => {

@@ -1,0 +1,318 @@
+{
+ "standalone-before": {
+  "base": "http://127.0.0.1:4402",
+  "version": null,
+  "errors": [],
+  "stops": [
+   {
+    "label": "east-inside",
+    "feet": [
+     231,
+     0.01,
+     0
+    ],
+    "current": null,
+    "ready": null,
+    "render": {
+     "calls": 127,
+     "triangles": 1254127
+    },
+    "coarse": []
+   },
+   {
+    "label": "east-deep",
+    "feet": [
+     180,
+     3.95,
+     0
+    ],
+    "current": null,
+    "ready": null,
+    "render": {
+     "calls": 137,
+     "triangles": 1432085
+    },
+    "coarse": []
+   },
+   {
+    "label": "east-deep-left",
+    "feet": [
+     180,
+     3.95,
+     0
+    ],
+    "current": null,
+    "ready": null,
+    "render": {
+     "calls": 114,
+     "triangles": 1401763
+    },
+    "coarse": []
+   }
+  ]
+ },
+ "standalone-after": {
+  "base": "http://127.0.0.1:4401",
+  "version": null,
+  "errors": [],
+  "stops": [
+   {
+    "label": "east-inside",
+    "feet": [
+     231,
+     0.01,
+     0
+    ],
+    "current": null,
+    "ready": null,
+    "render": {
+     "calls": 127,
+     "triangles": 1254127
+    },
+    "coarse": []
+   },
+   {
+    "label": "east-deep",
+    "feet": [
+     180,
+     3.95,
+     0
+    ],
+    "current": null,
+    "ready": null,
+    "render": {
+     "calls": 137,
+     "triangles": 1432085
+    },
+    "coarse": []
+   },
+   {
+    "label": "east-deep-left",
+    "feet": [
+     180,
+     3.95,
+     0
+    ],
+    "current": null,
+    "ready": null,
+    "render": {
+     "calls": 114,
+     "triangles": 1401763
+    },
+    "coarse": []
+   }
+  ]
+ },
+ "grid-before": {
+  "base": "http://127.0.0.1:4402",
+  "version": {
+   "build": "3f5ed6e-muyu77g9",
+   "time": "2026-10-08T01:07:44.869Z"
+  },
+  "errors": [],
+  "stops": [
+   {
+    "label": "east-inside",
+    "feet": [
+     231.53,
+     0.02,
+     0
+    ],
+    "current": "pine-hollow",
+    "ready": true,
+    "render": {
+     "calls": 142,
+     "triangles": 1000970
+    },
+    "coarse": [
+     {
+      "name": "grid-cell:pine-hollow",
+      "shown": true,
+      "meshes": [
+       1,
+       1
+      ]
+     },
+     {
+      "name": "region:pine-hollow",
+      "shown": true,
+      "meshes": [
+       563,
+       100
+      ]
+     }
+    ]
+   },
+   {
+    "label": "east-deep",
+    "feet": [
+     180.38,
+     3.94,
+     0.07
+    ],
+    "current": "pine-hollow",
+    "ready": true,
+    "render": {
+     "calls": 154,
+     "triangles": 1178535
+    },
+    "coarse": [
+     {
+      "name": "grid-cell:pine-hollow",
+      "shown": true,
+      "meshes": [
+       1,
+       1
+      ]
+     },
+     {
+      "name": "region:pine-hollow",
+      "shown": true,
+      "meshes": [
+       563,
+       111
+      ]
+     }
+    ]
+   },
+   {
+    "label": "east-deep-left",
+    "feet": [
+     180.38,
+     3.94,
+     0.08
+    ],
+    "current": "pine-hollow",
+    "ready": true,
+    "render": {
+     "calls": 150,
+     "triangles": 1399288
+    },
+    "coarse": [
+     {
+      "name": "grid-cell:pine-hollow",
+      "shown": true,
+      "meshes": [
+       1,
+       1
+      ]
+     },
+     {
+      "name": "region:pine-hollow",
+      "shown": true,
+      "meshes": [
+       563,
+       111
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "grid-after": {
+  "base": "http://127.0.0.1:4401",
+  "version": {
+   "build": "9b2b0ea-muyumrdj",
+   "time": "2026-10-08T01:19:44.660Z"
+  },
+  "errors": [],
+  "stops": [
+   {
+    "label": "east-inside",
+    "feet": [
+     231.46,
+     0.02,
+     0
+    ],
+    "current": "pine-hollow",
+    "ready": true,
+    "render": {
+     "calls": 265,
+     "triangles": 2568913
+    },
+    "coarse": [
+     {
+      "name": "grid-cell:pine-hollow",
+      "shown": false,
+      "meshes": [
+       1,
+       0
+      ]
+     },
+     {
+      "name": "region:pine-hollow",
+      "shown": true,
+      "meshes": [
+       563,
+       106
+      ]
+     }
+    ]
+   },
+   {
+    "label": "east-deep",
+    "feet": [
+     180.49,
+     3.92,
+     0.08
+    ],
+    "current": "pine-hollow",
+    "ready": true,
+    "render": {
+     "calls": 269,
+     "triangles": 2878896
+    },
+    "coarse": [
+     {
+      "name": "grid-cell:pine-hollow",
+      "shown": false,
+      "meshes": [
+       1,
+       0
+      ]
+     },
+     {
+      "name": "region:pine-hollow",
+      "shown": true,
+      "meshes": [
+       563,
+       115
+      ]
+     }
+    ]
+   },
+   {
+    "label": "east-deep-left",
+    "feet": [
+     180.49,
+     3.92,
+     0.09
+    ],
+    "current": "pine-hollow",
+    "ready": true,
+    "render": {
+     "calls": 320,
+     "triangles": 3915908
+    },
+    "coarse": [
+     {
+      "name": "grid-cell:pine-hollow",
+      "shown": false,
+      "meshes": [
+       1,
+       0
+      ]
+     },
+     {
+      "name": "region:pine-hollow",
+      "shown": true,
+      "meshes": [
+       563,
+       115
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

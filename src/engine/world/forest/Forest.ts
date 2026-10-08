@@ -273,11 +273,17 @@ export class Forest {
     return false;
   }
 
+  /**
+   * `viewer` is in the forest's own frame (its trees' coordinates). A forest whose group is drawn under an offset parent
+   * (a grid region at its cell's render offset, G223) culls in that frame: the view frustum is carried into it by the
+   * group's world matrix, and the shader's fade viewer is carried out of it. At the scene origin both are the identity.
+   */
   update(dt: number, viewer: THREE.Vector3): void {
     // the ONE wind clock (wind.ts, PH-L6): pines, grass and undergrowth all read it. A shard with a forest has no palms
     // (Palms.update ticks it on Driftwood, whose factory is 'none' → 0 trees), so it advances exactly once a frame.
     if (this.trees.length > 0) updateWind(dt);
-    forestFade.uViewer.value.copy(viewer); // the dissolve bands follow every frame; the buckets below only on a move / turn
+    const frame = this.group.matrixWorld;
+    forestFade.uViewer.value.copy(viewer).applyMatrix4(frame); // the dissolve bands follow every frame; the buckets below only on a move / turn
     const cam = this.sky.viewCamera;
     cam.getWorldDirection(this.viewDir);
     const moved = viewer.distanceToSquared(this.lastLodPos) > 1.5 * 1.5;
@@ -289,7 +295,7 @@ export class Forest {
     const cc = this.cullCam;
     cc.fov = cam.fov + CULL_FOV_PAD; cc.aspect = cam.aspect; cc.near = cam.near; cc.far = cam.far;
     cc.updateProjectionMatrix();
-    this.projView.multiplyMatrices(cc.projectionMatrix, cam.matrixWorldInverse);
+    this.projView.multiplyMatrices(cc.projectionMatrix, cam.matrixWorldInverse).multiply(frame);
     this.frustum.setFromProjectionMatrix(this.projView);
 
     const hiD2 = this.hiDist * this.hiDist, farD2 = this.farDist * this.farDist, twD2 = this.twigDist * this.twigDist, keepD2 = this.keepNear * this.keepNear, shadowD2 = this.shadowKeep * this.shadowKeep;
