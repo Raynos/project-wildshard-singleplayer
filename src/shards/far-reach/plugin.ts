@@ -41,6 +41,8 @@ import { ROC_ID, StormRocBoss } from './combat/stormRoc';
 import { BOSS_REWARD, installQuest } from './quest/install';
 import { FLAGS, vaneFlag } from './quest/flags';
 import { installSkyCues } from './runtime/audio/cues';
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { spawnSkyGoats } from './species/goats';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -223,7 +225,7 @@ export class SkyReachPlugin extends ShardPlugin {
     // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
     // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m
     // analytic floor), so they spawn on the first fixed step.
-    let goatsDue = true;
+    let goatsDue = !retainsRuntimeServices(ctx);
     ctx.system({ id: 'far.goats', phase: 'fixed.post', run: () => {
       if (!goatsDue) return; goatsDue = false;
       for (const g of GOATS) {
@@ -233,6 +235,9 @@ export class SkyReachPlugin extends ShardPlugin {
     } });
     for (const home of WISP_HOMES) { const a = spawn('galeWisp', 'gale', home, home.x + home.r, home.z); if (a) this.wisps.push(a); }
     this.roc = spawn('stormRoc', 'storm', ROC, ROC.x + ROC.r, ROC.z);
+    // Preserve the shipping identity order: deferred goats follow the Roc. Retained restore runs before any tick;
+    // these flat island tops have an authored exact height, so initialization needs no physics step or quest update.
+    if (retainsRuntimeServices(ctx) && animals !== undefined) this.goats.push(...spawnSkyGoats(animals));
     // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are
     // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
     if (this.roc !== null) for (const mat of Array.isArray(this.roc.mesh.material) ? this.roc.mesh.material : [this.roc.mesh.material]) {
