@@ -128,8 +128,30 @@ census. This is a shared-storage target (1,252,576 bytes), **not a dead owner or
 file bytes, every sampler parameter, late consumers and disposal behavior, then pass
 exact pixel comparison and an actual allocation delta.
 
+## Cross-wave compressed source proof
+
+`../ktx2-source-parity.mjs` exercises the production `ktx2Texture` loader and the
+actual encoded rock colour/normal files in fresh Mac WebKit phone-tier pages,
+Memory saver OFF then ON. `ktx2-source-parity.json.gz` preserves all allocation
+stages. All 14 RGBA readbacks are byte-identical (zero different bytes, maximum
+error zero). Two later decode waves keep the original owners live: their combined
+GL allocation falls by exactly **1,252,576 bytes** with sharing. First-owner
+disposal, same-sampler late clones, different samplers, a separate 512 mip chain,
+and fresh uploads after the last owner is disposed preserve the exact pixels.
+Disposing every texture returns to each page's renderer-only texture baseline.
+
+The production change reuses only weak source identity, bounded to 256 keys of
+exact encoded URL, selected mip level, format, type and dimensions. Each call still
+gets fresh transcoded mip data and independent sampler/transform state. The memo
+owns no strong source, texture, pixel or GL reference. Memory saver OFF retains
+the previous behavior. This proves the real-file allocation mechanism; **actual
+entered-Pine centre credit still awaits the corrected product route**, and native
+WC saving / a 1.0 GB pass is not claimed.
+
 ## Handoff (sp-x5)
 
-Pine remains over cap. The shared-source pixel/lifetime proof passes, but its isolated actual
-centre comparison is zero. Canvas/Float32 attribution is handed to sp-x1; the GL allocation audit is next. sp-x2 owns
-generic music; sp-x4 owns Nalati cuts. No native saving or cap pass is claimed.
+Pine remains over cap. The procedural shared-source comparison is zero. The new KTX2
+real-file pixel/lifetime proof removes 1,252,576 GL bytes in its controlled allocation
+fixture; actual centre credit awaits the corrected shared product route. Canvas/Float32
+attribution belongs to sp-x1; sp-x2 owns generic music; sp-x4 owns Nalati cuts.
+No native saving or cap pass is claimed.
