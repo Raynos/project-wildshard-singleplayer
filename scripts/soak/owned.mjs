@@ -62,7 +62,7 @@ export function soakRunPolicy(/** @type {boolean} */ dryRun, /** @type {import('
 }
 
 /** Match native and GL samples by wall timestamp, retaining missing reads as failures. GPU stays separate. */
-export function joinSoakSamples(native, gl) {
+export function joinSoakSamples(native, gl, gamePid = /** @type {number | null} */ (null)) {
   let cursor = 0;
   const samples = [];
   for (const row of native) {
@@ -72,6 +72,14 @@ export function joinSoakSamples(native, gl) {
     const left = gl[cursor], right = gl[cursor + 1];
     const closest = right && (!left || Math.abs(right.at - elapsed) < Math.abs(left.at - elapsed)) ? right : left;
     const sample = { ...row }; sample.elapsed = elapsed;
+    if (gamePid !== null) {
+      sample.gamePid = gamePid; sample.allWebContentBytes = row.footprint; sample.allWebContentIntervalBytes = row.interval;
+      // Cold navigation/install overlap remains conservatively aggregated. Playing follows one verified game PID.
+      if (row.phase !== 'loading') {
+        const process = row.pids?.[gamePid];
+        sample.footprint = process?.[0] ?? 0; sample.interval = process?.[1] ?? 0;
+      }
+    }
     if (closest && Math.abs(closest.at - elapsed) <= 1.5) sample.gl = closest;
     samples.push(sample);
   }
@@ -106,10 +114,11 @@ export function soakLapMemory(samples, circuits) {
     if (!/^(drive|settle)/u.test(row.phase) || row.gl?.cycle === null || row.gl?.cycle === undefined) continue;
     const cycle = row.gl.cycle;
     const lap = cycles.get(cycle) ?? { cycle, complete: cycle < circuits, samples: 0, peakBytes: 0,
-      troughBytes: Infinity, webContentPeakBytes: 0, glPeakBytes: 0, accountedPeakBytes: 0, gpuProcessPeakBytes: 0, wasmPeakBytes: 0 };
+      troughBytes: Infinity, webContentPeakBytes: 0, allWebContentPeakBytes: 0, glPeakBytes: 0, accountedPeakBytes: 0, gpuProcessPeakBytes: 0, wasmPeakBytes: 0 };
     const wc = Math.max(row.footprint, row.interval ?? row.footprint);
     lap.samples++; lap.peakBytes = Math.max(lap.peakBytes, wc + row.gl.totalBytes);
     lap.troughBytes = Math.min(lap.troughBytes, row.footprint + row.gl.totalBytes);
+    lap.allWebContentPeakBytes = Math.max(lap.allWebContentPeakBytes, row.allWebContentBytes ?? row.footprint);
     lap.webContentPeakBytes = Math.max(lap.webContentPeakBytes, wc); lap.glPeakBytes = Math.max(lap.glPeakBytes, row.gl.totalBytes);
     lap.accountedPeakBytes = Math.max(lap.accountedPeakBytes, row.gl.accountedBytes ?? 0);
     lap.gpuProcessPeakBytes = Math.max(lap.gpuProcessPeakBytes, row.gpu ?? 0);
@@ -119,4 +128,13 @@ export function soakLapMemory(samples, circuits) {
   const laps = [];
   for (const lap of cycles.values()) { lap.overCapBytes = Math.max(0, lap.peakBytes - 1e9); laps.push(lap); }
   return laps;
+}
+
+
+/** Fix the game PID after admission, never switch to a smaller process if the game later dies. */
+export function soakGamePid(native) {
+  const row = native.findLast(value => value.type === 'sample');
+  const selected = Object.entries(row?.pids ?? {}).sort((a, b) => b[1][0] - a[1][0]).at(0);
+  if (!selected || selected[1][0] <= 0) throw new Error('Missing native game WebContent PID after admission');
+  return Number(selected[0]);
 }

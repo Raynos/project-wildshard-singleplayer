@@ -17,7 +17,7 @@ import { installSoakGl, installSoakWasm } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid } from './owned.mjs';
 import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -93,7 +93,7 @@ async function worker() {
   const glFile = join(out, `${name}-gl.jsonl`), glRows = [];
   if (existsSync(glFile) || existsSync(nativeFile) || existsSync(join(out, `${name}.json`))) throw new Error('Soak evidence already exists; use a fresh output directory');
   writeFileSync(glFile, '');
-  const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, leg, device: udid, surface: 'iPhone 16 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
+  const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'Playing: fixed game WebContent PID physical footprint + live labelled GL. Loading: conservative all-WebContent overlap + GL. All-WebContent and GPU process also printed separately.', sha, layout, leg, device: udid, surface: 'portrait iPhone Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
   let lastResidents = [];
@@ -146,6 +146,7 @@ async function worker() {
     await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)})`);
     await driver.evaluate('window.__sf57={cycles:0};true');
     phase('baseline-0'); await measuredWait(10);
+    result.gamePid = soakGamePid(readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)));
     const initialStart = Date.now() / 1000; await measuredWait(10);
     result.windows.push({ cycle: 0, start: initialStart, end: Date.now() / 1000 });
     const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString(); result.circuits = 0;
@@ -212,7 +213,7 @@ async function worker() {
     try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Already closed. */ }
   }
   const native = existsSync(nativeFile) ? readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line)) : [];
-  const samples = joinSoakSamples(native, glRows);
+  const samples = joinSoakSamples(native, glRows, result.gamePid ?? null);
   result.grade = gradeSoak({ samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal, leg, contentCut });

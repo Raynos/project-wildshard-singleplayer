@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
@@ -61,4 +61,17 @@ void test('SF57 per-lap peaks sum WC+GL only and mark unfinished laps', () => {
   assert.equal(perLap[0].peakBytes, 1100); assert.equal(perLap[0].gpuProcessPeakBytes, 9999);
   assert.equal(perLap[0].accountedPeakBytes, 300); assert.equal(perLap[0].wasmPeakBytes, 50);
   assert.equal(perLap[0].complete, true); assert.equal(perLap[1].complete, false);
+});
+
+
+void test('SF57 binds playing WC to the admitted game PID, not the prewarm, and fails missing game readings', () => {
+  const native = [{ type: 'sample', phase: 'loading', t: new Date(0).toISOString(), footprint: 545,
+    pids: { 7: [500, 510], 9: [45, 45] } }, { type: 'sample', phase: 'drive', t: new Date(1000).toISOString(), footprint: 550,
+    pids: { 7: [505, 515], 9: [45, 45] } }];
+  assert.equal(soakGamePid(native), 7);
+  const gl = [0, 1, 2].map(at => ({ at, totalBytes: 200 }));
+  const rows = joinSoakSamples([...native, { type: 'sample', phase: 'drive', t: new Date(2000).toISOString(), footprint: 45, pids: { 9: [45, 45] } }], gl, 7);
+  assert.equal(rows[0].footprint, 545); assert.equal(rows[1].footprint, 505); assert.equal(rows[1].interval, 515);
+  assert.equal(rows[1].allWebContentBytes, 550); assert.equal(rows[2].footprint, 0);
+  assert.throws(() => soakGamePid([]), /Missing native game/u);
 });

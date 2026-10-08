@@ -7,6 +7,7 @@ import { createBrotliCompress, constants as compression } from 'node:zlib';
 import { pipeline } from 'node:stream/promises';
 import { execFileSync } from 'node:child_process';
 import { gradeSoak } from './route.ts';
+import { joinSoakSamples, soakLapMemory } from './owned.mjs';
 
 const flag = (name) => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const from = flag('from'), out = flag('out');
@@ -34,13 +35,14 @@ for (const { layout, leg, name } of runs) {
   const originalText = readFileSync(join(from, `${name}.json`), 'utf8'), original = JSON.parse(originalText);
   if (original.leg !== undefined && original.leg !== leg) throw new Error(`Receipt leg mismatch: ${name}`);
   writeFileSync(join(out, `${name}-original.json`), originalText);
-  const native = readFileSync(join(from, `${name}-native.jsonl`), 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
+  const rawNative = readFileSync(join(from, `${name}-native.jsonl`), 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
+  const native = joinSoakSamples(rawNative, [], original.gamePid ?? null);
   // Keep full labelled allocation groups in the compressed raw log; joins need only scalar telemetry.
   const gl = readFileSync(join(from, `${name}-gl.jsonl`), 'utf8').trim().split('\n').filter(Boolean).map((line) => {
     const row = JSON.parse(line); delete row.assets; return row;
   });
   let cursor = 0;
-  const missing = [], csv = ['seconds,phase,webContentBytes,intervalHighBytes,glBytes,accountedBytes,gpuProcessBytes'];
+  const missing = [], csv = ['seconds,phase,webContentBytes,intervalHighBytes,glBytes,accountedBytes,gpuProcessBytes,allWebContentBytes'];
   const samples = native.filter((row) => row.type === 'sample').map((row) => {
     row.elapsed = Date.parse(row.t) / 1000;
     while (cursor + 1 < gl.length && gl[cursor + 1].at < row.elapsed) cursor++;
@@ -49,7 +51,7 @@ for (const { layout, leg, name } of runs) {
     const gap = nearest === undefined ? null : Math.abs(nearest.at - row.elapsed);
     if (gap !== null && gap <= 1.5) row.gl = nearest;
     else missing.push({ phase: row.phase, t: row.t, nearestGlSeconds: gap });
-    csv.push([row.elapsed - Date.parse(original.driveStarted) / 1000, row.phase, row.footprint, row.interval, row.gl?.totalBytes ?? '', row.gl?.accountedBytes ?? '', row.gpu].join(','));
+    csv.push([row.elapsed - Date.parse(original.driveStarted) / 1000, row.phase, row.footprint, row.interval, row.gl?.totalBytes ?? '', row.gl?.accountedBytes ?? '', row.gpu, row.allWebContentBytes ?? ''].join(','));
     return row;
   });
   const grade = gradeSoak({ samples, windows: original.windows, seconds: original.seconds, circuits: original.circuits,
@@ -62,7 +64,7 @@ for (const { layout, leg, name } of runs) {
     artifacts.push({ file: `${file}.br`, rawBytes: bytes.length, rawSha256: createHash('sha256').update(bytes).digest('hex') });
   }
   writeFileSync(join(out, `${name}.csv`), `${csv.join('\n')}\n`);
-  summary.layouts.push({ layout, leg, sha: original.sha, seconds: original.seconds, circuits: original.circuits,
+  summary.layouts.push({ layout, leg, sha: original.sha, gamePid: original.gamePid ?? null, perLap: soakLapMemory(samples, original.circuits), seconds: original.seconds, circuits: original.circuits,
     evictions: original.evictions.length, grade, missing, artifacts,
     originalReceipt: `${name}-original.json`, errors: original.errors, nativeSummary: original.nativeSummary,
     attribution: 'No heap snapshots / Rapier memory readings were captured. Refusals, missing GL readings and unaccounted transitional home prevent a WebKit-retention attribution.' });
