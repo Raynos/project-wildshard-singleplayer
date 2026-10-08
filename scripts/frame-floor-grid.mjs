@@ -111,7 +111,7 @@ export async function stageFloorGrid(plan, documentOrigin) {
   }
   while (performance.now() < deadline) {
     const state = read(), active = state.live.live;
-    if (active.current === plan.from && state.inside === plan.from && active.gameplayReady && active.residents.includes(plan.from)) return state;
+    if (active.current === plan.from && state.inside === plan.from && active.gameplayReady && (plan.from === null || active.residents.includes(plan.from))) return state;
     if (!plan.start) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
     if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor source blocked: ${state.live.crossing.issue}`);
     await new Promise(resolve => { setTimeout(resolve, 100); });
@@ -137,11 +137,11 @@ export async function driveFloorGrid(plan, documentOrigin) {
     return { ...state, claims: api.shard.grid.residency().claims };
   };
   const source = read(), live = source.live.live;
-  if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || !live.residents.includes(plan.from)) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
+  if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || (plan.from !== null && !live.residents.includes(plan.from))) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
   const oldHover = player.hover, oldLimit = player.hoverSpeedLimit;
   if (typeof oldLimit !== 'function') throw new Error('Grid hover-speed rule missing');
   input.clear();
-  player.setHover(true);
+  player.setHover(plan.movement !== 'road-hover' || live.current === null);
   let distance = 100;
   player.hoverSpeedLimit = () => Math.min(15, oldLimit(), Math.max(3, distance * 1.5));
   const before = read(), trace = [], started = performance.now();
@@ -156,6 +156,7 @@ export async function driveFloorGrid(plan, documentOrigin) {
           window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: plan.waypoints[waypoint] ?? null };
           if (seconds - lastSample >= 0.25) { trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady }); lastSample = seconds; }
           if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
+          if (plan.movement === 'road-hover') player.setHover(active.current === null);
           const target = plan.waypoints[waypoint];
           if (!target) {
             input.clear();
@@ -178,10 +179,14 @@ export async function driveFloorGrid(plan, documentOrigin) {
 /** A visible destination without real frame commits or complete runtime residency never counts as this scenario. */
 export function gridFloorWitnessFailures(result) {
   const { plan, before, after } = result, previous = before.live.live, active = after.live.live, failures = [];
-  if (previous.current !== plan.from || before.inside !== plan.from || !previous.gameplayReady || !previous.residents.includes(plan.from)) failures.push('Source interior gameplay or runtime residency was not ready');
+  if (previous.current !== plan.from || before.inside !== plan.from || !previous.gameplayReady || (plan.from !== null && !previous.residents.includes(plan.from))) failures.push('Source interior gameplay or runtime residency was not ready');
   const count = active.crossings - previous.crossings;
-  const transitions = active.transitions.slice(-count);
-  if (count !== 2 || JSON.stringify(transitions) !== JSON.stringify([{ from: plan.from, to: null }, { from: null, to: plan.to }])) failures.push('Expected source/road/destination frame commits');
+  const transitions = count === 0 ? [] : active.transitions.slice(-count);
+  const expected = plan.from === plan.to ? [] : [
+    ...(plan.from === null ? [] : [{ from: plan.from, to: null }]),
+    ...(plan.to === null ? [] : [{ from: null, to: plan.to }]),
+  ];
+  if (count !== expected.length || JSON.stringify(transitions) !== JSON.stringify(expected)) failures.push('Expected source/road/destination frame commits');
   if (active.current !== plan.to || after.inside !== plan.to || !active.gameplayReady) failures.push('Destination interior gameplay is not ready');
   if (plan.requiredResidents.some(id => !active.residents.includes(id))) failures.push('Required runtime residents are missing');
   if ((plan.retiredResidents ?? []).some(id => {
@@ -190,7 +195,8 @@ export function gridFloorWitnessFailures(result) {
     return after.claims.some(claim => claim.owner === id && claim.category === 'sim');
   })) failures.push('Source runtime or its sim/basis claim was not retired');
   const cell = after.cells.find(row => row.instance === plan.to);
-  if (!cell || Math.abs(active.worldFeet.x - cell.cell[0] * 555) >= 250 || Math.abs(active.worldFeet.z - cell.cell[1] * 555) >= 250) failures.push('Destination feet are outside its interior');
+  if (plan.to !== null && (!cell || Math.abs(active.worldFeet.x - cell.cell[0] * 555) >= 250 || Math.abs(active.worldFeet.z - cell.cell[1] * 555) >= 250)) failures.push('Destination feet are outside its interior');
+  if (plan.to === null && after.cells.some(row => Math.abs(active.worldFeet.x - row.cell[0] * 555) < 250 && Math.abs(active.worldFeet.z - row.cell[1] * 555) < 250)) failures.push('Road destination lies inside a shard');
   if (![active.worldFeet.x, active.worldFeet.y, active.worldFeet.z, result.elapsedSeconds].every(Number.isFinite)
     || result.elapsedSeconds <= 0 || result.trace.length === 0
     || result.trace.some(row => ![row.seconds, row.x, row.y, row.z].every(Number.isFinite) || row.y < -0.25)) failures.push('Route has no valid above-ground motion witness');

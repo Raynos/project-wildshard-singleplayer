@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { gridFloorDocumentIdentity, gridFloorPlans, stageFloorGrid, gridFloorWitnessFailures, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, gridFloorPlans, stageFloorGrid, gridFloorWitnessFailures, driveFloorGrid, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
 
 const originalStorage = localStorage, originalLocation = location;
 function restoreGlobals(): void {
@@ -151,5 +151,44 @@ it('records Safari origin drift while requiring the original random document tok
     await expect(stageFloorGrid(plan, identity)).rejects.toThrow('document changed');
     page.__frameFloorGridDocumentToken = undefined;
     await expect(stageFloorGrid(plan, identity)).rejects.toThrow('document changed');
+  } finally { restoreGlobals(); }
+});
+
+
+it('fences road departure, same-cell motion and road return without inventing two cell commits', () => {
+  const original = witness(), road = state('home', 277.5, 0);
+  road.inside = null; road.live.live.current = null; road.live.live.residents = [];
+  const incoming: FloorGridWitness = { ...original, plan: { ...original.plan, from: null }, before: road };
+  incoming.after.live.live.crossings = 1; incoming.after.live.live.transitions = [{ from: null, to: 'nalati' }];
+  expect(gridFloorWitnessFailures(incoming)).toEqual([]);
+  const outgoing: FloorGridWitness = { ...original, plan: { ...original.plan, to: null, requiredResidents: [], retiredResidents: ['pine'] }, after: road };
+  road.live.live.crossings = 1; road.live.live.transitions = [{ from: 'pine', to: null }];
+  expect(gridFloorWitnessFailures(outgoing)).toEqual([]);
+  outgoing.after.live.live.current = 'pine';
+  expect(gridFloorWitnessFailures(outgoing)).toContain('Destination interior gameplay is not ready');
+  const centre = witness(); centre.plan = { ...centre.plan, from: 'nalati' }; centre.before = state('nalati', 325, 0);
+  centre.after.live.live.crossings = 0; centre.after.live.live.transitions = [];
+  centre.plan.retiredResidents = [];
+  expect(gridFloorWitnessFailures(centre)).toEqual([]);
+});
+
+it('walks the interior and hovers the road through the same held-input driver, restoring controls on exit', async () => {
+  const current = state('pine', 0, 325), input = { clear: vi.fn(), setHeld: vi.fn() };
+  let frame: (() => void) | undefined;
+  const originalLimit = () => 30;
+  const player = { hover: false, hoverSpeedLimit: originalLimit, yaw: 0, setHover: vi.fn((value: boolean) => { player.hover = value; }) };
+  const plan = { name: 'walking-soak', from: 'pine', to: null, movement: 'road-hover' as const,
+    waypoints: [{ x: 0, z: 277.5 }], requiredResidents: [] };
+  vi.stubGlobal('window', { __wildshard: { world: { player, game: { app: { input }, watchFrames: (observer: () => void) => { frame = observer; return vi.fn(); } } },
+    shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } });
+  try {
+    const driven = driveFloorGrid(plan, performance.timeOrigin);
+    if (!frame) throw new Error('Driver did not subscribe');
+    frame(); expect(player.hover).toBe(false); expect(input.setHeld).toHaveBeenCalledWith('move.forward', true);
+    current.live.live.current = null; current.inside = null; current.live.live.residents = [];
+    current.live.live.worldFeet.z = 277.5;
+    frame(); expect(player.hover).toBe(true); frame();
+    expect((await driven).after.live.live.current).toBeNull();
+    expect(player.hover).toBe(false); expect(player.hoverSpeedLimit).toBe(originalLimit);
   } finally { restoreGlobals(); }
 });
