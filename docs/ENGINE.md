@@ -1924,7 +1924,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2235 exports, grouped by the module to import them from.
+2236 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2021,7 +2021,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/combat/EquipmentService`: `EquipmentService`
 - `@wildshard/engine/combat/Firearm`: `Firearm`
 - `@wildshard/engine/combat/health`: `HealthLifecycle`, `PlayerHealth`, `PlayerHealthPorts`, `PlayerMode`
-- `@wildshard/engine/combat/itemFamilies`: `ItemFamily`, `ItemFamilyPorts`, `ItemViewRecipe`
+- `@wildshard/engine/combat/itemFamilies`: `ItemFamily`, `ItemFamilyPorts`, `ItemFamilyPresentation`, `ItemViewRecipe`
 - `@wildshard/engine/combat/items`: `ItemAction`, `ItemAttack`, `ItemContact`, `ItemHook`, `ItemPorts`, `ItemRuntime`, `ItemSpec`, `ItemState`, `ItemTarget`, `scriptItemHook`
 - `@wildshard/engine/combat/Melee`: `Melee`, `meleeActor`
 - `@wildshard/engine/combat/meleeProfile`: `isMeleeProfile`, `MeleeProfile`, `ViewmodelFeel`

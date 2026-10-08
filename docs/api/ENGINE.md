@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2252 members; 834 without a doc line (—).
+2253 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -546,6 +546,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `PlayerMode` | type | @wildshard/engine/combat/health | — |
 | `ItemFamily` | type | @wildshard/engine/combat/itemFamilies | Injected kit constructors; the game never imports a kit or constructs a second combat actor. |
 | `ItemFamilyPorts` | interface | @wildshard/engine/combat/itemFamilies | A trusted session binds standard input and one authoritative runtime to each kit family. |
+| `ItemFamilyPresentation` | type | @wildshard/engine/combat/itemFamilies | Trusted family presentation; declared identity, slot, input context, name, icon and swap glyph remain authoritative. |
 | `ItemViewRecipe` | interface | @wildshard/engine/combat/itemFamilies | Renderer-neutral parameters selecting a registered kit view recipe. |
 | `ItemAction` | type | @wildshard/engine/combat/items | Numeric action requests accepted from input and an admitted item hook. |
 | `ItemAttack` | interface | @wildshard/engine/combat/items | Trusted contact values; scripts select a row but never supply damage or an effect id. |

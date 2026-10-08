@@ -703,15 +703,41 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.identity.slug | string | required | regex /^[a-z][a-z0-9.-]*$/u; max_length 128 |
 | $.items | strict_object | optional; default {"contexts":[],"loadout":{"primary":null,"secondary":null,"tools":[]},"rows":[],"version":1} | check [function; not executed] "JSON-only items"; check [function; not executed] "valid item references" |
 | $.items.contexts | array | required | max_length 64 |
-| $.items.contexts[] | strict_object | required |  |
-| $.items.contexts[].actions | tuple | required |  |
-| $.items.contexts[].actions[0] | literal "attack" | required |  |
-| $.items.contexts[].actions[1] | literal "heavy" | required |  |
-| $.items.contexts[].actions[2] | literal "lock" | required |  |
-| $.items.contexts[].id | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
-| $.items.contexts[].keysFrom | picklist "weapon.melee" | required |  |
-| $.items.contexts[].lockable | boolean | required |  |
-| $.items.contexts[].touch | literal "melee" | required |  |
+| $.items.contexts[] | variant by keysFrom | required |  |
+| $.items.contexts[]<0> | strict_object | required |  |
+| $.items.contexts[]<0>.actions | tuple | required |  |
+| $.items.contexts[]<0>.actions[0] | literal "attack" | required |  |
+| $.items.contexts[]<0>.actions[1] | literal "heavy" | required |  |
+| $.items.contexts[]<0>.actions[2] | literal "lock" | required |  |
+| $.items.contexts[]<0>.id | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
+| $.items.contexts[]<0>.keysFrom | literal "weapon.melee" | required |  |
+| $.items.contexts[]<0>.lockable | boolean | required |  |
+| $.items.contexts[]<0>.touch | literal "melee" | required |  |
+| $.items.contexts[]<1> | strict_object | required |  |
+| $.items.contexts[]<1>.actions | tuple | required |  |
+| $.items.contexts[]<1>.actions[0] | literal "attack" | required |  |
+| $.items.contexts[]<1>.actions[1] | literal "aim" | required |  |
+| $.items.contexts[]<1>.actions[2] | literal "reload" | required |  |
+| $.items.contexts[]<1>.id | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
+| $.items.contexts[]<1>.keysFrom | literal "weapon.ranged" | required |  |
+| $.items.contexts[]<1>.lockable | boolean | required |  |
+| $.items.contexts[]<1>.touch | literal "ranged" | required |  |
+| $.items.contexts[]<2> | strict_object | required |  |
+| $.items.contexts[]<2>.actions | tuple | required |  |
+| $.items.contexts[]<2>.actions[0] | literal "attack" | required |  |
+| $.items.contexts[]<2>.actions[1] | literal "aim" | required |  |
+| $.items.contexts[]<2>.id | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
+| $.items.contexts[]<2>.keysFrom | literal "weapon.bow" | required |  |
+| $.items.contexts[]<2>.lockable | boolean | required |  |
+| $.items.contexts[]<2>.touch | literal "bow" | required |  |
+| $.items.contexts[]<3> | strict_object | required |  |
+| $.items.contexts[]<3>.actions | tuple | required |  |
+| $.items.contexts[]<3>.actions[0] | literal "attack" | required |  |
+| $.items.contexts[]<3>.actions[1] | literal "aim" | required |  |
+| $.items.contexts[]<3>.id | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
+| $.items.contexts[]<3>.keysFrom | literal "weapon.spear" | required |  |
+| $.items.contexts[]<3>.lockable | boolean | required |  |
+| $.items.contexts[]<3>.touch | literal "throwing" | required |  |
 | $.items.loadout | strict_object | required |  |
 | $.items.loadout.primary | custom | nullable; default undefined | custom predicate; not executed |
 | $.items.loadout.secondary | custom | nullable; default undefined | custom predicate; not executed |
@@ -752,7 +778,7 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.items.rows[]<0>.ui.blurb | string | required | max_length 4096 |
 | $.items.rows[]<0>.ui.icon | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
 | $.items.rows[]<0>.ui.name | string | required | max_length 4096 |
-| $.items.rows[]<0>.ui.swapIcon | string | required | max_length 64 |
+| $.items.rows[]<0>.ui.swapIcon | string | required | max_length 512 |
 | $.items.rows[]<0>.view | strict_object | required |  |
 | $.items.rows[]<0>.view.colour | string | required | regex /^#[a-fA-F0-9]{6}$/u |
 | $.items.rows[]<0>.view.position | tuple | required |  |
@@ -779,7 +805,7 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.items.rows[]<1>.ui.blurb | string | required | max_length 4096 |
 | $.items.rows[]<1>.ui.icon | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
 | $.items.rows[]<1>.ui.name | string | required | max_length 4096 |
-| $.items.rows[]<1>.ui.swapIcon | string | required | max_length 64 |
+| $.items.rows[]<1>.ui.swapIcon | string | required | max_length 512 |
 | $.items.rows[]<1>.view | strict_object | required |  |
 | $.items.rows[]<1>.view.colour | string | required | regex /^#[a-fA-F0-9]{6}$/u |
 | $.items.rows[]<1>.view.position | tuple | required |  |
@@ -791,6 +817,8 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.items.rows[]<1>.view.rotation[0] | number | required | min_value -10; max_value 10 |
 | $.items.rows[]<1>.view.rotation[1] | number | required | min_value -10; max_value 10 |
 | $.items.rows[]<1>.view.rotation[2] | number | required | min_value -10; max_value 10 |
+| $.items.runtimeContexts | array | exact_optional; default undefined | max_length 64 |
+| $.items.runtimeContexts[] | string | required | regex /^[a-z][a-zA-Z0-9.-]*$/u; max_length 128 |
 | $.items.version | literal 1 | required |  |
 | $.ledger | array | optional; default [] | max_length 128; check [function; not executed] "unique fact mappings" |
 | $.ledger[] | strict_object | required |  |
@@ -1910,7 +1938,7 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.runtime.spawns.bosses[].at[0] | number | required | min_value -250; max_value 250 |
 | $.runtime.spawns.bosses[].at[1] | number | required | min_value -250; max_value 250 |
 | $.runtime.spawns.bosses[].id | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
-| $.runtime.spawns.bosses[].kind | string | required | regex /^[a-z][a-zA-Z0-9]*$/u; max_length 64 |
+| $.runtime.spawns.bosses[].kind | string | required | regex /^[a-z][a-zA-Z0-9-]*$/u; max_length 64 |
 | $.runtime.spawns.bosses[].look | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
 | $.runtime.spawns.bosses[].yaw | number | required | finite [function; not executed] |
 | $.runtime.spawns.homes | array | required | max_length 256 |
@@ -1919,7 +1947,7 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.runtime.spawns.homes[].at[0] | number | required | min_value -250; max_value 250 |
 | $.runtime.spawns.homes[].at[1] | number | required | min_value -250; max_value 250 |
 | $.runtime.spawns.homes[].id | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
-| $.runtime.spawns.homes[].kind | string | required | regex /^[a-z][a-zA-Z0-9]*$/u; max_length 64 |
+| $.runtime.spawns.homes[].kind | string | required | regex /^[a-z][a-zA-Z0-9-]*$/u; max_length 64 |
 | $.runtime.spawns.homes[].look | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
 | $.runtime.spawns.homes[].respawn | number | required | min_value 1; max_value 3600 |
 | $.runtime.spawns.homes[].yaw | number | required | finite [function; not executed] |

@@ -3237,6 +3237,12 @@
         "from": "@wildshard/engine/combat/itemFamilies"
       },
       {
+        "name": "ItemFamilyPresentation",
+        "kind": "type",
+        "doc": "Trusted family presentation; declared identity, slot, input context, name, icon and swap glyph remain authoritative.",
+        "from": "@wildshard/engine/combat/itemFamilies"
+      },
+      {
         "name": "ItemViewRecipe",
         "kind": "interface",
         "doc": "Renderer-neutral parameters selecting a registered kit view recipe.",
