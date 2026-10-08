@@ -2221,7 +2221,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-638 exports, grouped by the module to import them from.
+648 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2243,6 +2243,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/grid/edgeProfiles`: `GridEdgeObservations`, `GridEdgeSource`, `loadGridEdgeProfiles`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`
 - `@wildshard/game/grid/live`: `LiveGridAdmission`, `LiveGridFrame`, `LiveGridHighway`, `LiveGridHome`, `LiveGridHost`, `LiveGridOwnedHome`, `LiveGridPorts`, `LiveGridRegion`, `LiveGridState`
+- `@wildshard/game/grid/memoryAdmission`: `AdmissionMeasurement`, `MemoryAdmission`, `MemoryAdmissionRequest`, `MemoryAdmissionWarning`
 - `@wildshard/game/grid/pageBoot`: `PageResidencyBoot`, `preparePageResidency`
 - `@wildshard/game/grid/recoveryBoot`: `clearGridRecovery`, `consumeGridRecovery`, `gridRecoveryLoop`, `gridRecoveryRefused`, `pageGridRecovery`, `safeGridRecovery`
 - `@wildshard/game/grid/regionalRuntime`: `createRegionalRuntimeFactory`, `PreparedRegionalRuntime`, `regionalRuntimeAccountedBytes`, `RegionalRuntimeFactory`, `RegionalRuntimeFactoryPorts`, `RegionalRuntimeFoundation`, `RegionalRuntimePage`, `RegionalRuntimeRequest`
@@ -2322,6 +2323,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/props`: `propColliderDescriptors`, `PropsSchema`, `ShardProps`, `validatePropsReferences`
 - `@wildshard/game/shardfile/quests`: `parseQuestData`, `QuestData`, `questDataRules`, `QuestDataSchema`
 - `@wildshard/game/shardfile/readiness`: `criticalWireBytes`, `CriticalWireSource`
+- `@wildshard/game/shardfile/reportCard`: `PerformanceIssue`, `PerformanceObservations`, `performanceReport`, `PerformanceReport`, `performanceReportLines`, `performanceTargetIssues`
 - `@wildshard/game/shardfile/revision`: `assertStateCompatibility`, `parseStateLineage`
 - `@wildshard/game/shardfile/rows`: `parseRows`, `rowRules`, `RowsSchema`, `scoredStrikes`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/game/shardfile/runtime`: `prepareTrustedRuntime`, `RuntimeDeclaration`, `RuntimeSchema`, `TrustedRuntimeEntry`
@@ -2390,7 +2392,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-199 exports, grouped by the module to import them from.
+204 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2426,6 +2428,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/portalLink`: `parsePortalLink`, `PortalLink`, `PortalLinkSchema`
 - `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
+- `@wildshard/sdk/reportCard`: `PerformanceObservations`, `performanceReport`, `PerformanceReport`, `performanceReportLines`, `performanceTargetIssues`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`
 - `@wildshard/sdk/runtime/weapons/Bow`: `Bow`, `BowInstance`, `BowOptions`, `BowWorld`
 - `@wildshard/sdk/runtime/weapons/Firearm`: `Firearm`, `FirearmInstance`

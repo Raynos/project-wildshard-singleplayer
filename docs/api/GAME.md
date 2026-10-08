@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-638 members; 112 without a doc line (—).
+648 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -115,6 +115,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `LiveGridPorts` | interface | @wildshard/game/grid/live | One live fixed-step owner supplies movement; region clocks/systems run only after that move. |
 | `LiveGridRegion` | interface | @wildshard/game/grid/live | An owned region has authored colliders and logical player state, but no second traveller capsule. |
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
+| `AdmissionMeasurement` | interface | @wildshard/game/grid/memoryAdmission | A measured opaque runtime retains both rulers and the evidence used to derive its full claim. All bytes are decimal. |
+| `MemoryAdmission` | class | @wildshard/game/grid/memoryAdmission | G216: Developer may exceed the total memory envelope while keeping truthful accounting. Public callers still refuse. |
+| `MemoryAdmissionRequest` | interface | @wildshard/game/grid/memoryAdmission | Trusted callers report only the total-memory envelope here. Parser, hash, script and content-understatement guards are separate. |
+| `MemoryAdmissionWarning` | interface | @wildshard/game/grid/memoryAdmission | G216's visible warning / G217 loading-screen read port: full claims and original caps, never a discounted allocation. |
 | `PageResidencyBoot` | interface | @wildshard/game/grid/pageBoot | The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. |
 | `preparePageResidency` | function | @wildshard/game/grid/pageBoot | G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply |
 | `clearGridRecovery` | function | @wildshard/game/grid/recoveryBoot | A failed recovery boot returns to the title and must not supply a selection to another boot. |
@@ -541,6 +545,12 @@ The game layer's public modules (src/game/package.json `exports`).
 | `QuestDataSchema` | const | @wildshard/game/shardfile/quests | Serialisable quest/dialogue section with semantic validation in the same admission pass. |
 | `criticalWireBytes` | function | @wildshard/game/shardfile/readiness | Count actual admitted critical bytes, deduplicating dependencies and including cold-cache commons. |
 | `CriticalWireSource` | interface | @wildshard/game/shardfile/readiness | Minimal admitted file graph used by the traversal scheduler; render tiles never enter this closure. |
+| `PerformanceIssue` | interface | @wildshard/game/shardfile/reportCard | A report issue distinguishes tradeable memory targets from enforceable complete totals and execution budgets. |
+| `PerformanceObservations` | interface | @wildshard/game/shardfile/reportCard | Native offline observations; script execution is timed separately from physics and checkpoint/IPC work. |
+| `performanceReport` | function | @wildshard/game/shardfile/reportCard | Report deterministic declared bounds and measured native execution; the caller supplies trusted provenance policy. |
+| `PerformanceReport` | interface | @wildshard/game/shardfile/reportCard | Build-time estimates retain units, their scope, and the measured execution samples they use. |
+| `performanceReportLines` | function | @wildshard/game/shardfile/reportCard | Human-readable card keeps estimates visibly distinct from measurements and prints every enforced limit. |
+| `performanceTargetIssues` | function | @wildshard/game/shardfile/reportCard | Cheap target grading before asset reads; format integrity and total-memory admission remain separate. |
 | `assertStateCompatibility` | function | @wildshard/game/shardfile/revision | Preserve saved field identities across validated author revisions; declaration ordering is immaterial. |
 | `parseStateLineage` | function | @wildshard/game/shardfile/revision | Read only strict portable state and identity from a previously visited product. Its legacy geometry and scripts remain unadmitted. |
 | `parseRows` | function | @wildshard/game/shardfile/rows | Validate rows at the author boundary, before JSON serialization can erase closures. |

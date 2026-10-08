@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-205 members; 0 without a doc line (—).
+210 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -137,6 +137,11 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parseQuestData` | function | @wildshard/sdk/quests | Compile TypeScript author data after checking declared flags and graph references. |
 | `QuestData` | type | @wildshard/sdk/quests | Validated quest/dialogue declarations consumed by the platform runtime. |
 | `QuestDataSchema` | const | @wildshard/sdk/quests | Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names. |
+| `PerformanceObservations` | type | @wildshard/sdk/reportCard | Trusted native tick observations used by the author CLI, separate from declared costs. |
+| `performanceReport` | function | @wildshard/sdk/reportCard | Evaluate complete performance with refusal by default; author identity never selects legacy warnings. |
+| `PerformanceReport` | type | @wildshard/sdk/reportCard | Author-facing report: declared bounds, measured scripts and explicit cold-network assumptions. |
+| `performanceReportLines` | function | @wildshard/sdk/reportCard | Format every measured or estimated report field without claiming it is a phone reading. |
+| `performanceTargetIssues` | function | @wildshard/sdk/reportCard | Check wire and render targets before immutable asset reads or execution. |
 | `isJsonData` | function | @wildshard/sdk/rows | Independent data-only check for functions, accessors, cycles and lossy JSON values. |
 | `parseRows` | function | @wildshard/sdk/rows | Parse author rows before JSON serialization can erase invalid closures. |
 | `RowsSchema` | const | @wildshard/sdk/rows | Validate row declarations without renderer or runtime code. |

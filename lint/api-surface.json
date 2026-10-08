@@ -13842,6 +13842,30 @@
         "from": "@wildshard/game/grid/live"
       },
       {
+        "name": "AdmissionMeasurement",
+        "kind": "interface",
+        "doc": "A measured opaque runtime retains both rulers and the evidence used to derive its full claim. All bytes are decimal.",
+        "from": "@wildshard/game/grid/memoryAdmission"
+      },
+      {
+        "name": "MemoryAdmission",
+        "kind": "class",
+        "doc": "G216: Developer may exceed the total memory envelope while keeping truthful accounting. Public callers still refuse.",
+        "from": "@wildshard/game/grid/memoryAdmission"
+      },
+      {
+        "name": "MemoryAdmissionRequest",
+        "kind": "interface",
+        "doc": "Trusted callers report only the total-memory envelope here. Parser, hash, script and content-understatement guards are separate.",
+        "from": "@wildshard/game/grid/memoryAdmission"
+      },
+      {
+        "name": "MemoryAdmissionWarning",
+        "kind": "interface",
+        "doc": "G216's visible warning / G217 loading-screen read port: full claims and original caps, never a discounted allocation.",
+        "from": "@wildshard/game/grid/memoryAdmission"
+      },
+      {
         "name": "PageResidencyBoot",
         "kind": "interface",
         "doc": "The composition root passes this selection to hydration and startSession; its grid intent has already been consumed.",
@@ -16398,6 +16422,42 @@
         "from": "@wildshard/game/shardfile/readiness"
       },
       {
+        "name": "PerformanceIssue",
+        "kind": "interface",
+        "doc": "A report issue distinguishes tradeable memory targets from enforceable complete totals and execution budgets.",
+        "from": "@wildshard/game/shardfile/reportCard"
+      },
+      {
+        "name": "PerformanceObservations",
+        "kind": "interface",
+        "doc": "Native offline observations; script execution is timed separately from physics and checkpoint/IPC work.",
+        "from": "@wildshard/game/shardfile/reportCard"
+      },
+      {
+        "name": "performanceReport",
+        "kind": "function",
+        "doc": "Report deterministic declared bounds and measured native execution; the caller supplies trusted provenance policy.",
+        "from": "@wildshard/game/shardfile/reportCard"
+      },
+      {
+        "name": "PerformanceReport",
+        "kind": "interface",
+        "doc": "Build-time estimates retain units, their scope, and the measured execution samples they use.",
+        "from": "@wildshard/game/shardfile/reportCard"
+      },
+      {
+        "name": "performanceReportLines",
+        "kind": "function",
+        "doc": "Human-readable card keeps estimates visibly distinct from measurements and prints every enforced limit.",
+        "from": "@wildshard/game/shardfile/reportCard"
+      },
+      {
+        "name": "performanceTargetIssues",
+        "kind": "function",
+        "doc": "Cheap target grading before asset reads; format integrity and total-memory admission remain separate.",
+        "from": "@wildshard/game/shardfile/reportCard"
+      },
+      {
         "name": "assertStateCompatibility",
         "kind": "function",
         "doc": "Preserve saved field identities across validated author revisions; declaration ordering is immaterial.",
@@ -18794,6 +18854,36 @@
         "kind": "const",
         "doc": "Compile declared quest graphs and dialogue trees with bounded, serialisable script hook names.",
         "from": "@wildshard/sdk/quests"
+      },
+      {
+        "name": "PerformanceObservations",
+        "kind": "type",
+        "doc": "Trusted native tick observations used by the author CLI, separate from declared costs.",
+        "from": "@wildshard/sdk/reportCard"
+      },
+      {
+        "name": "performanceReport",
+        "kind": "function",
+        "doc": "Evaluate complete performance with refusal by default; author identity never selects legacy warnings.",
+        "from": "@wildshard/sdk/reportCard"
+      },
+      {
+        "name": "PerformanceReport",
+        "kind": "type",
+        "doc": "Author-facing report: declared bounds, measured scripts and explicit cold-network assumptions.",
+        "from": "@wildshard/sdk/reportCard"
+      },
+      {
+        "name": "performanceReportLines",
+        "kind": "function",
+        "doc": "Format every measured or estimated report field without claiming it is a phone reading.",
+        "from": "@wildshard/sdk/reportCard"
+      },
+      {
+        "name": "performanceTargetIssues",
+        "kind": "function",
+        "doc": "Check wire and render targets before immutable asset reads or execution.",
+        "from": "@wildshard/sdk/reportCard"
       },
       {
         "name": "isJsonData",
