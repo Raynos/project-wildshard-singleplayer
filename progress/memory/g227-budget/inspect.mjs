@@ -92,6 +92,10 @@ export const snapshotExpression = `(() => {
         note: 'GPU allocations plus deduplicated directly retained scene ArrayBuffers. ImageBitmap/canvas/native costs are not inferred from dimensions.' };
       return { census, state: grid.state(), residency: grid.residency(), road: grid.roadResident(), roadView: grid.roadView?.() ?? null, camera: camera ? {position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov} : null, roots, longTasks: window.__gridAdmissionLongTasks,
         settings: JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.settings?.data,
+        devicePicks: Object.fromEntries(['debug.plugin.pine-hollow.pineMemoryTrim', 'debug.plugin.pine-hollow.pineHybrid',
+          'debug.plugin.nalati-grasslands.nalatiHybrid'].map(key =>
+          [key, JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.[key]?.data ?? null])),
+        gridPage: Boolean(api.shard.grid),
         runtime: { texture: api.world.game.level.assets?.texture, level: api.world.game.level.id },
         wasm: (window.__g227Wasm ?? []).map(({source,name,memory})=>({source,name,bytes:memory.deref()?.buffer.byteLength ?? 0})), reveal: window.__wsReveal, originDrift: window.__frameFloorGridOriginDrift };
 })()`;
@@ -134,4 +138,3 @@ export async function heapOwners(connection, heap) {
   } finally {await connection.send('Runtime.releaseObjectGroup',{objectGroup});}
   return {protocol:'Exact object-identity match through Heap.getRemoteObject + Runtime.callFunctionOn against active scene attributes/textures and weak WASM memory registrations. Strong remote handles released before the post-heap footprint. Unmatched objects require retainer paths; no owner is inferred from equal sizes.',rows};
 }
-
