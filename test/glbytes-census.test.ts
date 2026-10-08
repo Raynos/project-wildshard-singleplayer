@@ -11,10 +11,10 @@ interface Census { resources: Resource[]; totalBytes: number; listedBytes: numbe
 function census(scenario: string): Census[] {
   return runInNewContext(`
     class GL {
-      bindings = new Map(); canvas = {width:16,height:16}; lost = false;
+      listeners = new Map(); bindings = new Map(); canvas = {width:16,height:16,addEventListener:(name,fn)=>this.listeners.set(name,fn)}; lost = false;
       createTexture() { return {}; } createBuffer() { return {}; } createRenderbuffer() { return {}; }
       getParameter(key) { return this.bindings.get(key); } isContextLost() { return this.lost; }
-      loss = {loseContext:()=>{this.lost=true;}, restoreContext:()=>{this.lost=false;}};
+      loss = {loseContext:()=>{this.lost=true;this.listeners.get('webglcontextlost')?.();}, restoreContext:()=>{this.lost=false;}};
       getExtension(name) { return name === 'WEBGL_lose_context' ? this.loss : null; }
       bindTexture(_target, value) { this.bindings.set(0x8069,value); }
       bindBuffer(_target, value) { this.bindings.set(0x8894,value); }
@@ -135,7 +135,20 @@ it('joins native handles and uploaded sources by scalar identities without label
   expect(rows[0]?.totalBytes).toBe(0);
 });
 
-it('retires probe textures and every allocation when a context is lost, before the next census', () => {
+it('does not call the journal for unchanged per-draw owner labels, while preserving real relabels', () => {
+  const rows = census(`
+    const events=[]; window.__sc_gl_change=event=>events.push(event);
+    const resource=gl.createBuffer();
+    window.__sc_label_gl(resource,'owner','asset'); const initial=events.length;
+    for(let index=0;index<100000;index++)window.__sc_label_gl(resource,'owner','asset');
+    if(events.length!==initial)throw Error('Unchanged draw labels reached the journal');
+    window.__sc_label_gl(resource,'next','asset');
+    if(events.length!==initial+1 || events.at(-1).owner!=='next')throw Error('Real relabel was lost');
+  `);
+  expect(rows[0]?.resources[0]?.owner).toBe('next');
+});
+
+it('retires probe allocations on delivered loss without wrapping native extensions or querying the driver', () => {
   const rows = census(`
     const events=[]; window.__sc_gl_change=event=>events.push(event);
     const textures=[4,24,4,4].map(bytes=>{
@@ -145,7 +158,11 @@ it('retires probe textures and every allocation when a context is lost, before t
     const b=gl.createBuffer(); gl.bindBuffer(0x8892,b); gl.bufferData(0x8892,64,0x88e4);
     const rb=gl.createRenderbuffer(); gl.bindRenderbuffer(0x8d41,rb); gl.renderbufferStorageMultisample(0x8d41,1,0x8058,2,2);
     if(window.__sc_gl()[0].totalBytes!==116)throw Error('Fixture allocation');
-    const loss=gl.getExtension('WEBGL_lose_context'); gl.getExtension('WEBGL_lose_context'); loss.loseContext();
+    const loss=gl.getExtension('WEBGL_lose_context'), nativeLose=loss.loseContext;
+    gl.getExtension('WEBGL_lose_context');
+    if(loss.loseContext!==nativeLose || gl.getExtension.name!=='getExtension')throw Error('Native extension was wrapped');
+    const isLost=gl.isContextLost; gl.isContextLost=()=>{throw Error('Loss observer queried the driver');};
+    loss.loseContext(); gl.isContextLost=isLost;
     const retired=events.filter(e=>e.op==='allocation' && e.bytes===null);
     if(retired.length!==6 || new Set(retired.map(e=>e.id)).size!==6)throw Error('Missing immediate context retirement');
     if(retired.filter(e=>e.kind==='texture').length!==textures.length)throw Error('Missing probe texture retirement');

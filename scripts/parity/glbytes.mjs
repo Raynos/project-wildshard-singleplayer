@@ -4,7 +4,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
   const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap(), uploads = new WeakMap(), storage = new WeakMap();
   let scope = null, sequence = 0;
   const object = (v) => v !== null && (typeof v === 'object' || typeof v === 'function');
-  const label = (resource, owner, asset) => { if (object(resource) && owner && asset) { labels.set(resource, { owner, asset }); W.__sc_gl_change?.({at:Date.now()/1000,op:'label',id:identity(resource,'resource'),owner,asset}); } };
+  const label = (resource, owner, asset) => { if (object(resource) && owner && asset) { const previous=labels.get(resource); if(previous?.owner===owner && previous.asset===asset)return; labels.set(resource, { owner, asset }); W.__sc_gl_change?.({at:Date.now()/1000,op:'label',id:identity(resource,'resource'),owner,asset}); } };
   W.__sc_label_gl = label;
   W.__sc_label_source = (source, owner, asset, identity) => { if (object(source) && owner && asset) sources.set(source, { owner, asset, identity: object(identity) ? new WeakRef(identity) : undefined }); };
   W.__sc_gl_scope = (owner, asset, fn) => { const previous = scope; scope = { owner, asset }; try { return fn(); } finally { scope = previous; } };
@@ -23,15 +23,13 @@ export const GL_INIT = String.raw`(() => { const W = window;
   const changed = (gl, resource, kind, bytes) => { if (W.__sc_gl_change) {const row=entry(resource,kind,bytes);W.__sc_gl_change({at:Date.now()/1000,op:'allocation',context:identity(gl,'context'),...row,bytes});} };
   const changedTexture = (gl, resource) => { if (!W.__sc_gl_change) return; let bytes=0; for(const level of rec(gl).tex.get(resource)?.values() ?? []) bytes+=level.bytes; changed(gl,resource,'texture',bytes); };
   // Lost contexts have no live allocations. Record the same retirement in the journal as in the census.
-  const retireLost = (gl) => {
-    if (!gl.isContextLost()) return;
+  const retire = (gl) => {
     const r = recOf.get(gl); if (!r) return;
     for (const [field, kind] of [['tex', 'texture'], ['rb', 'renderbuffer'], ['buf', 'buffer']]) {
       for (const resource of r[field].keys()) changed(gl, resource, kind, null);
       r[field].clear();
     }
   };
-  const lossExtensions = new WeakSet();
   // GPU bytes at the WebGL API, per context: textures (per face + level), renderbuffers, buffers
   const SIZED = { 0x8229: 1, 0x822b: 2, 0x8051: 4, 0x8058: 4, 0x8c43: 4, 0x8c41: 4, 0x822d: 2, 0x822f: 4, 0x881b: 8, 0x881a: 8, 0x822e: 4, 0x8230: 8, 0x8815: 16, 0x8814: 16,
     0x8c3a: 4, 0x8c3d: 4, 0x8059: 4, 0x8d62: 2, 0x8056: 2, 0x8057: 2, 0x8232: 1, 0x8231: 1, 0x8234: 2, 0x8233: 2, 0x8236: 4, 0x8235: 4, 0x823a: 4, 0x823c: 8, 0x8d7c: 4, 0x8d76: 8,
@@ -53,7 +51,10 @@ export const GL_INIT = String.raw`(() => { const W = window;
     return w * h * d * texelBytes(ifmt, format, type);
   };
   const recs = []; const recOf = new WeakMap();
-  const rec = (gl) => { let r = recOf.get(gl); if (!r) { r = { gl, tex: new Map(), rb: new Map(), buf: new Map(), compressed: 0 }; recOf.set(gl, r); recs.push(r); } return r; };
+  const rec = (gl) => { let r = recOf.get(gl); if (!r) { r = { gl, tex: new Map(), rb: new Map(), buf: new Map(), compressed: 0 }; recOf.set(gl, r); recs.push(r);
+    // Observe the delivered loss. Never wrap extensions or synchronously query the driver after loseContext().
+    gl.canvas?.addEventListener?.('webglcontextlost', () => retire(gl));
+  } return r; };
   const texBinding = (gl, target) => {
     if (target === 0x0de1) return gl.getParameter(0x8069);
     if (target === 0x8513 || (target >= 0x8515 && target <= 0x851a)) return gl.getParameter(0x8514);
@@ -73,12 +74,6 @@ export const GL_INIT = String.raw`(() => { const W = window;
   const hook = (proto) => {
     if (!proto) return;
     const wrap = (name, after) => { const orig = proto[name]; if (typeof orig !== 'function') return; proto[name] = function wrapped(...a) { const r = orig.apply(this, a); try { after(this, a, r); } catch {} return r; }; };
-    wrap('getExtension', (gl, args, extension) => {
-      if (args[0] !== 'WEBGL_lose_context' || !extension || lossExtensions.has(extension)) return;
-      const lose = extension.loseContext;
-      extension.loseContext = function loseContext(...a) { const result = lose.apply(this, a); retireLost(gl); return result; };
-      lossExtensions.add(extension);
-    });
     for (const [method, kind, field] of [['createTexture', 'texture', 'tex'], ['createRenderbuffer', 'renderbuffer', 'rb'], ['createBuffer', 'buffer', 'buf']]) {
       wrap(method, (gl, _args, resource) => { if (!resource) return; const r = rec(gl); r[field].set(resource, kind === 'texture' ? new Map() : 0); identity(resource, kind); if (scope) label(resource, scope.owner, scope.asset); changed(gl,resource,kind,0); });
     }
@@ -123,7 +118,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
   };
   hook(W.WebGL2RenderingContext && W.WebGL2RenderingContext.prototype);
   hook(W.WebGLRenderingContext && W.WebGLRenderingContext.prototype);
-  W.__sc_gl = () => { for (const r of recs) retireLost(r.gl); return recs.filter((r) => !r.gl.isContextLost()).map((r) => {
+  W.__sc_gl = () => { for (const r of recs) if(r.gl.isContextLost())retire(r.gl); return recs.filter((r) => !r.gl.isContextLost()).map((r) => {
     let tex = 0, levels = 0; const per = [], resources = [];
     for (const [resource, e] of r.tex) { let b = 0, l0 = null; for (const [k, i] of e) { b += i.bytes; levels++; if (k === 0) l0 = i; } tex += b; per.push([b, l0 ? l0.w + 'x' + l0.h + (l0.d > 1 ? 'x' + l0.d : '') : '?', l0 ? '0x' + l0.ifmt.toString(16) : '?', e.size]); resources.push({ ...entry(resource, 'texture', b), subresources: [...e].map(([key, info]) => ({ face: Math.floor(key / 64), level: key % 64, ...info })) }); }
     per.sort((a, b) => b[0] - a[0]);
