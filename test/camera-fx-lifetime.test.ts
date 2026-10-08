@@ -20,7 +20,9 @@ it.each(['borrowed', 'owned'])('keeps one camera updater through two rebuilt %s 
   for (const [key, value] of Object.entries({ app, camera, levelScope: page, playerScope: page, registrationScope: page, faultSystems: faults, anonymous: 0 })) {
     Reflect.defineProperty(candidate, key, { value, writable: true });
   }
-  const root = candidate, fx = CameraFX.for(root), originalDt = worldTime.realDt;
+  const root = candidate, originalDt = worldTime.realDt;
+  // Owned shells have no home weapon: the first request may come from the first regional facade.
+  let fx = mode === 'borrowed' ? CameraFX.for(root) : undefined;
   worldTime.realDt = 1 / 60;
   try {
     for (let visit = 0; visit < 2; visit++) {
@@ -34,7 +36,9 @@ it.each(['borrowed', 'owned'])('keeps one camera updater through two rebuilt %s 
         };
         const value: unknown = Reflect.get(target, key, receiver); return value;
       } });
-      expect(CameraFX.for(facade)).toBe(fx);
+      const entered = CameraFX.for(facade);
+      fx ??= entered;
+      expect(entered).toBe(fx);
       expect(app.systemsByPhase().update.map(system => system.id)).toEqual(['engine.player.for']);
       fx.fovPunch(-2);
       for (const system of app.systemsByPhase().update) system.run(1 / 60, visit);
@@ -46,6 +50,7 @@ it.each(['borrowed', 'owned'])('keeps one camera updater through two rebuilt %s 
       for (let tick = 0; tick < 600; tick++) for (const system of app.systemsByPhase().update) system.run(1 / 60, tick);
       expect(fx.fovOffset).toBe(0);
     }
+    if (fx === undefined) throw new Error('No entered camera effects');
     page.dispose(); expect(app.systemsByPhase().update).toEqual([]); expect(faults.size).toBe(0);
     const replacement = new Scope('replacement-player');
     Reflect.defineProperty(root, 'playerScope', { value: replacement });
