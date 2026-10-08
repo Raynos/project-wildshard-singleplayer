@@ -5,6 +5,7 @@ import { encodeTerrainTile } from '../../../src/engine/world/terrainTileData';
 import { entrywayRules, validateEntrywayTerrain } from '../../../src/game/shardfile/entryways';
 import { contentHash } from '../../../src/sdk/project';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
+import { farLook } from '../../../src/shards/sunscar-dunes/look/far';
 
 // SF50-g (G93 / G99 / G103 / G131): Signal Dunes' declared boundary rows are its bake's, and the engine's entry roads make every
 // 8 m opening and 8 × 15 m socket footprint exactly road height.
@@ -44,4 +45,9 @@ it('admits the baked heightfield across all four 8 x 15 m socket footprints and 
   const trench = Float32Array.from(heights); trench[3 * res + Math.floor(res / 2)] = -0.2; // 6 m in from the south midpoint
   const forged = tile(trench);
   expect(() => { validateEntrywayTerrain(forged.source, forged.assets); }).toThrow('footprint must be flat');
+});
+
+it('carries the approved warm dust-haze band and dusk grade in the actual far product', () => {
+  const baked: unknown = JSON.parse(readFileSync('public/assets/baked/sunscar-dunes/far.json', 'utf8'));
+  expect(baked).toMatchObject({ look: { band: farLook.band, grade: farLook.grade } });
 });
