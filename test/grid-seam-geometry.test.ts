@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, type SeamEdge } from '../src/engine/sim/seamGeometry';
+import { seamGeometry, cornerSeamGeometry, SEAM_FACE_TOP, SEAM_OFFSETS, type SeamEdge } from '../src/engine/sim/seamGeometry';
 import { edgeSampleLocations, edgeSample } from '../src/engine/sim/edgeProfiles';
 
 const edge = (height: number, count = 257): SeamEdge => ({ profile: { heights: Array.from({ length: count }, () => height), colours: Array.from({ length: count }, () => [0.2, 0.4, 0.6]), roadHeight: 0 }, entryWidth: 0 });
@@ -69,7 +69,30 @@ it('builds same-mesh retaining faces,85degree cliffs with4m talus, and mandatory
     expect(Math.atan2(rise, run) * 180 / Math.PI).toBeCloseTo(85, 3); expect(face.sourceSurface).toBe('ridge');
   }
   for (const kind of ['talus', 'road-wall', 'guard-rail']) expect(high.features.some((f) => f.kind === kind)).toBe(true);
-  expect(() => seamGeometry(input(edge(250)))).toThrow(/study.edge.*H=250.*envelope/u);
+});
+it('caps every seam face at G90\'s 14 m band while the boundary row keeps the raw edge height (G222)', () => {
+  const faceTops = (result: { readonly mesh: { readonly positions: Float32Array; readonly indices: Uint32Array }; readonly features: readonly { readonly kind: string; readonly firstIndex: number; readonly indexCount: number; readonly top: number }[] }, kinds: readonly string[]): number => {
+    let top = -Infinity;
+    for (const feature of result.features.filter((f) => kinds.includes(f.kind))) {
+      expect(feature.top).toBeLessThanOrEqual(SEAM_FACE_TOP);
+      for (let i = feature.firstIndex; i < feature.firstIndex + feature.indexCount; i++) top = Math.max(top, result.mesh.positions[(result.mesh.indices[i] ?? 0) * 3 + 1] ?? Infinity);
+    }
+    return top;
+  };
+  // Nalati's 100 m west edge, Pine's 62 m north edge, and a 250 m edge that used to refuse the whole platform
+  for (const height of [20, 62, 100, 250]) {
+    const result = seamGeometry(input(edge(height)));
+    expect(faceTops(result, ['cliff', 'talus', 'retaining-wall'])).toBeCloseTo(SEAM_FACE_TOP, 6);
+    expect(result.features.some((f) => f.kind === 'cliff')).toBe(true);
+    // the native boundary row's apron under the shard's terrain stays at the true edge height
+    expect(result.features.filter((f) => f.kind === 'overlap' && f.side === -1).every((f) => f.top === height && f.bottom === height)).toBe(true);
+    const corner = { height, colour: [0.2, 0.4, 0.6] as const };
+    const junction = cornerSeamGeometry({ id: 'study.corner', origin: { x: 0, z: 0 }, corners: [corner, corner, corner, corner] });
+    expect(faceTops(junction, ['cliff', 'talus', 'retaining-wall'])).toBeCloseTo(SEAM_FACE_TOP, 6);
+  }
+  // a short > 14 m run (G108 C2) keeps its retaining face, capped too
+  const base = edge(0), spike = { ...base, profile: { ...base.profile, heights: base.profile.heights.map((_, i) => i >= 10 && i <= 13 ? 60 : 0) } };
+  expect(faceTops(seamGeometry(input(spike)), ['retaining-wall'])).toBeCloseTo(SEAM_FACE_TOP, 6);
 });
 it('keeps isolated high steps as retaining faces and never closes a legal midpoint entry', () => {
   const base = edge(0), spike = { ...base, profile: { ...base.profile, heights: base.profile.heights.map((_, i) => i >= 10 && i <= 13 ? 20 : 0) } };

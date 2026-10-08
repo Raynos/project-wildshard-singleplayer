@@ -1,0 +1,71 @@
+{
+  "url": "http://127.0.0.1:4408",
+  "label": "before",
+  "started": "2026-10-08T00:37:08.658Z",
+  "errors": [],
+  "home": "driftwood-isle",
+  "cells": [
+    "pine-hollow@0,1",
+    "_template@1,1",
+    "sunscar-dunes@-1,0",
+    "driftwood-isle@0,0",
+    "nalati-grasslands@1,0",
+    "far-reach@0,-1"
+  ],
+  "1-sw-corner-west": {
+    "pose": {
+      "x": -150,
+      "y": 2,
+      "z": -280,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05
+    }
+  },
+  "2-se-corner-east": {
+    "pose": {
+      "x": 150,
+      "y": 2,
+      "z": -280,
+      "yaw": -1.5707963267948966,
+      "pitch": 0.05
+    }
+  },
+  "3-se-corner-close": {
+    "pose": {
+      "x": 240,
+      "y": 2,
+      "z": -280,
+      "yaw": -1.5707963267948966,
+      "pitch": 0.15
+    }
+  },
+  "4-x279-north": {
+    "pose": {
+      "x": -279,
+      "y": 2,
+      "z": -150,
+      "yaw": 3.141592653589793,
+      "pitch": 0.05
+    }
+  },
+  "5-pine-north": {
+    "pose": {
+      "x": -279,
+      "y": 2,
+      "z": 400,
+      "yaw": 3.141592653589793,
+      "pitch": 0.05
+    }
+  },
+  "6-x277-nalati-west": {
+    "pose": {
+      "x": 277.5,
+      "y": 2,
+      "z": -150,
+      "yaw": 3.141592653589793,
+      "pitch": 0.1
+    }
+  },
+  "edgeFallback": [],
+  "warnings": []
+}
