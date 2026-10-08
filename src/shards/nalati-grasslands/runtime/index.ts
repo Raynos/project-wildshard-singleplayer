@@ -65,7 +65,13 @@ export class NalatiPlugin extends ShardPlugin {
     shell.menu = { skins: () => skinRows(rt.skins), onWearSkin: (id) => { rt.skins.toggle(id); }, skinsTitle: 'Skins' };
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
+    // G227's parity handle (`terrainTiles.set(mode)`): today's terrain redrawn as 62.5 m tiles with the family's painted-terrain layer (look/terrainTiles.ts), loaded on first use
+    let tiles: Promise<{ set: (mode: 'off' | 'slice' | 'lattice') => Promise<unknown> }> | null = null;
+    const terrainTiles = { set: async (mode: 'off' | 'slice' | 'lattice') => {
+      tiles ??= import('../look/terrainTiles').then((m) => m.terrainTileProbe(sky, ctx.scope));
+      return (await tiles).set(mode);
+    } };
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ terrainTiles }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     installEnteredRuntimeService(ctx, (scope) => { ctx.app.registerDayCycle(rt.weather.clock, scope); });
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
     installEnteredRuntimeService(ctx, (scope) => { scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); })); });

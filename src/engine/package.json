@@ -200,6 +200,7 @@
     "./render/families/emissive": "./render/families/emissive.ts",
     "./render/families/ground": "./render/families/ground.ts",
     "./render/families/measure": "./render/families/measure.ts",
+    "./render/families/paintedTerrain": "./render/families/paintedTerrain.ts",
     "./render/families/painterly": "./render/families/painterly.ts",
     "./render/families/params": "./render/families/params.ts",
     "./render/families/pbr": "./render/families/pbr.ts",

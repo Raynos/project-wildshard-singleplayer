@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { patchShader, PATCH_ORDER } from '../shaderPatches';
 import { parsePainterlyLook, type GradeParams, type PainterlyLookParams, type PainterlyMaterialParams } from './params';
 import type { TextureResolver } from './pbr';
+import { applyPaintedTerrain } from './paintedTerrain';
 
 /** the program-cache key every painterly material shares (`|g` when its look grades) */
 export const PAINTERLY_PROGRAM_KEY = 'family.painterly.v1';
@@ -300,5 +301,6 @@ export function compilePainterly(params: PainterlyMaterialParams, look: Painterl
     shader.fragmentShader = out.fragmentShader;
   }, { key: look.graded ? `${PAINTERLY_PROGRAM_KEY}|g` : PAINTERLY_PROGRAM_KEY });
   if (params.vertexColours) m.onBeforeRender = (_r, _s, _c, geometry) => { ensureColour(geometry); };
+  if (params.terrain !== undefined) applyPaintedTerrain(m, params.terrain, textures);
   return m;
 }

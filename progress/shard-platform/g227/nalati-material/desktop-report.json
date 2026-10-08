@@ -1,0 +1,171 @@
+{
+  "base": "http://127.0.0.1:4402",
+  "tier": "desktop",
+  "poses": [
+    {
+      "pose": {
+        "name": "road",
+        "x": 88,
+        "z": 205,
+        "yaw": 3.141592653589793,
+        "pitch": -0.6
+      },
+      "slice": {
+        "mode": "slice",
+        "tiles": 64,
+        "vertices": 69169,
+        "key": "family.painterly.v1|terrain|ice|csm"
+      },
+      "lattice": {
+        "meanAbs": 15.665,
+        "over8": 61.626,
+        "over24": 24.413,
+        "max": 157
+      },
+      "noise": {
+        "meanAbs": 5.504,
+        "over8": 15.711,
+        "over24": 3.848,
+        "max": 155
+      },
+      "tiled": {
+        "meanAbs": 15.844,
+        "over8": 62.088,
+        "over24": 26.631,
+        "max": 154
+      },
+      "back": {
+        "meanAbs": 15.643,
+        "over8": 60.718,
+        "over24": 26.024,
+        "max": 157
+      },
+      "fps": null
+    },
+    {
+      "pose": {
+        "name": "glacier",
+        "x": -30,
+        "z": -70,
+        "yaw": 1.6,
+        "pitch": -0.2
+      },
+      "slice": {
+        "mode": "slice",
+        "tiles": 64,
+        "vertices": 69169,
+        "key": "family.painterly.v1|terrain|ice|csm"
+      },
+      "lattice": {
+        "meanAbs": 17.833,
+        "over8": 66.441,
+        "over24": 27.338,
+        "max": 130
+      },
+      "noise": {
+        "meanAbs": 8.24,
+        "over8": 32.978,
+        "over24": 5.925,
+        "max": 128
+      },
+      "tiled": {
+        "meanAbs": 13.998,
+        "over8": 56.324,
+        "over24": 17.25,
+        "max": 133
+      },
+      "back": {
+        "meanAbs": 22.363,
+        "over8": 74.702,
+        "over24": 42.246,
+        "max": 137
+      },
+      "fps": null
+    },
+    {
+      "pose": {
+        "name": "river",
+        "x": -10,
+        "z": -140,
+        "yaw": 0.3,
+        "pitch": -0.7
+      },
+      "slice": {
+        "mode": "slice",
+        "tiles": 64,
+        "vertices": 69169,
+        "key": "family.painterly.v1|terrain|ice|csm"
+      },
+      "lattice": {
+        "meanAbs": 10.373,
+        "over8": 43.323,
+        "over24": 11.724,
+        "max": 137
+      },
+      "noise": {
+        "meanAbs": 6.029,
+        "over8": 22.497,
+        "over24": 4.718,
+        "max": 135
+      },
+      "tiled": {
+        "meanAbs": 7.397,
+        "over8": 31.811,
+        "over24": 4.768,
+        "max": 123
+      },
+      "back": {
+        "meanAbs": 10.074,
+        "over8": 42.071,
+        "over24": 11.118,
+        "max": 128
+      },
+      "fps": null
+    },
+    {
+      "pose": {
+        "name": "crags",
+        "x": -120,
+        "z": -60,
+        "yaw": 2.2,
+        "pitch": -0.05
+      },
+      "slice": {
+        "mode": "slice",
+        "tiles": 64,
+        "vertices": 69169,
+        "key": "family.painterly.v1|terrain|ice|csm"
+      },
+      "lattice": {
+        "meanAbs": 12.224,
+        "over8": 38.736,
+        "over24": 19.34,
+        "max": 179
+      },
+      "noise": {
+        "meanAbs": 13.568,
+        "over8": 44.017,
+        "over24": 29.276,
+        "max": 186
+      },
+      "tiled": {
+        "meanAbs": 7.148,
+        "over8": 24.055,
+        "over24": 5.958,
+        "max": 203
+      },
+      "back": {
+        "meanAbs": 11.981,
+        "over8": 42.163,
+        "over24": 16.203,
+        "max": 203
+      },
+      "fps": null
+    }
+  ],
+  "errors": [],
+  "version": {
+    "build": "1bf5492-muz0ipp1",
+    "time": "2026-10-08T04:04:33.945Z"
+  }
+}

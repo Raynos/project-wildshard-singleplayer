@@ -266,6 +266,75 @@ export const PainterlyLookSchema = v.strictObject({
 /** A painterly look with every default filled. */
 export type PainterlyLookParams = v.InferOutput<typeof PainterlyLookSchema>;
 
+/*
+ * The painterly family's painted-terrain layer (SHARD-PLATFORM G227; the mechanism is `paintedTerrain.ts`). A painted
+ * terrain is a vertex-coloured painterly ground (the vertex colour is the macro painting) with five painted tileable
+ * layers on top, per pixel: the base detail (luminance-preserving), a track laid along the nearest track's direction,
+ * gravel (wet below a margin height), triplanar rock and snow; three zone weights tint the ground and paint a cold ring
+ * (scree, granite, snowfields, an optional ice tongue). Every world-specific number is a parameter here; the style's own
+ * constants live in the shader. The per-vertex masks are the custom attributes `PAINTED_TERRAIN_ATTRIBUTES` names; the
+ * baked key-light visibility and contact shade arrive as live uniforms (`bindPaintedTerrainBake`).
+ */
+const ptMetres = v.pipe(v.number(), v.finite(), v.minValue(0.05), v.maxValue(256));
+const ptPositive = v.pipe(v.number(), v.finite(), v.minValue(1e-3));
+const ptPositiveLinear = v.tuple([ptPositive, ptPositive, ptPositive]);
+const ptXz = v.tuple([finite, finite]);
+
+/** The five painted layers, in their uniform order. */
+export const PAINTED_TERRAIN_LAYERS = ['base', 'track', 'gravel', 'rock', 'snow'] as const;
+/** One painted layer's name. */
+export type PaintedTerrainLayerName = (typeof PAINTED_TERRAIN_LAYERS)[number];
+
+/**
+ * The per-vertex inputs a painted-terrain mesh carries besides position, normal and colour (a baked tile keeps them
+ * exactly; a mesh without them is filled with `fill`, plain base ground). The names are what three's GLTFLoader gives the
+ * native GLB channels `_SURF` / `_RDIR` / `_ZONE` (custom semantics, lowercased):
+ * - `mask` (vec4): signed metres across the nearest track (|x| ≥ 5.5 = no track; bakes write 9), gravel 0..1, snow 0..1, rock 0..1;
+ * - `track` (vec2): the nearest track's unit direction (x, z), along which the track layer is laid;
+ * - `zone` (vec3): the zone weights: zone A, zone B, the cold ring.
+ */
+export const PAINTED_TERRAIN_ATTRIBUTES = {
+  mask: { name: '_surf', size: 4, fill: [9, 0, 0, 0] },
+  track: { name: '_rdir', size: 2, fill: [1, 0] },
+  zone: { name: '_zone', size: 3, fill: [0, 0, 0] },
+} as const;
+
+const zoneTint = v.strictObject({ tint: linear, amount: unit });
+
+/** The painted-terrain layer of a painterly surface. */
+export const PaintedTerrainSchema = v.strictObject({
+  /** the five painted tileable textures (sRGB colour), by layer */
+  maps: v.strictObject({ base: textureRef, track: textureRef, gravel: textureRef, rock: textureRef, snow: textureRef }),
+  /** the metres one repeat of each texture spans on the ground */
+  metres: v.strictObject({ base: ptMetres, track: ptMetres, gravel: ptMetres, rock: ptMetres, snow: ptMetres }),
+  /** the base and rock textures' mean colours (linear, after the sRGB decode): detail divides by them, so it never shifts brightness */
+  means: v.strictObject({ base: ptPositiveLinear, rock: ptPositiveLinear }),
+  /** the snow line (m): the cold ring's flatter facets catch snow from 10 m below it; `high` is the height window over which the peaks go white and ribbed */
+  snow: v.strictObject({ line: finite, high: v.pipe(ptXz, v.check((h) => h[0] < h[1], 'snow high low < high')) }),
+  /** the gravel's wet margin: wet from the first height down to fully wet at the second (m) */
+  wet: v.pipe(ptXz, v.check((w) => w[0] > w[1], 'wet margin runs downward')),
+  /** an ice tongue in the cold ring, flowing from `from` to `to` (x, z), `half` metres either side of its line; null = none */
+  ice: v.optional(v.nullable(v.strictObject({ from: ptXz, to: ptXz, half: v.pipe(v.number(), v.finite(), v.minValue(1)) })), null),
+  /** the zone A and zone B tints (linear multipliers) and how much of each a full zone weight takes */
+  zones: v.optional(v.strictObject({ a: zoneTint, b: zoneTint }), { a: { tint: [0.86, 1.1, 0.8], amount: 0.55 }, b: { tint: [1.2, 1.02, 0.6], amount: 0.65 } }),
+  /** where the key light on the ground is shadowed by the baked visibility (the static casters left out of the realtime map): on phones, always or never */
+  bakeKeyLight: v.optional(v.picklist(['phone', 'always', 'never']), 'phone'),
+});
+/** A painted-terrain layer with every default filled. */
+export type PaintedTerrainParams = v.InferOutput<typeof PaintedTerrainSchema>;
+
+/** Validate a painted-terrain layer and fill its defaults; throws a readable error on bad data. */
+export function parsePaintedTerrain(input: unknown): PaintedTerrainParams {
+  const r = v.safeParse(PaintedTerrainSchema, input);
+  if (!r.success) throw new Error(`painted terrain: ${r.issues.map((i) => `${v.getDotPath(i) ?? '(root)'}: ${i.message}`).join('; ')}`);
+  return r.output;
+}
+
+/** The painted layer's five texture references, in layer order. */
+export function paintedTerrainTextureRefs(params: PaintedTerrainParams): string[] {
+  return PAINTED_TERRAIN_LAYERS.map((layer) => params.maps[layer]);
+}
+
 /** One painterly surface: vertex-coloured, no specular, a per-surface rim, cel strength, shade share and sway. */
 export const PainterlyMaterialSchema = v.strictObject({
   family: v.literal('painterly'),
@@ -290,6 +359,8 @@ export const PainterlyMaterialSchema = v.strictObject({
   doubleSided: v.optional(v.boolean(), false),
   /** alpha test threshold (0 = opaque) */
   alphaCutoff: v.optional(unit, 0),
+  /** a painted-terrain layer (G227: five painted tileable layers over the vertex-coloured macro painting, `PaintedTerrainSchema` above); absent = a plain surface */
+  terrain: v.exactOptional(PaintedTerrainSchema),
 });
 /** A painterly material entry with every default filled. */
 export type PainterlyMaterialParams = v.InferOutput<typeof PainterlyMaterialSchema>;

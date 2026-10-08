@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { FAMILY_IDS, FamilyMaterialSchema, ToonLookSchema, PainterlyLookSchema, EmissiveLookSchema } from '@wildshard/engine/render/families/params';
+import { FAMILY_IDS, FamilyMaterialSchema, paintedTerrainTextureRefs, ToonLookSchema, PainterlyLookSchema, EmissiveLookSchema } from '@wildshard/engine/render/families/params';
 
 import { validateGraph, type GraphIr } from '@wildshard/engine/core/materialGraph';
 import { isJsonData } from './json';
@@ -29,7 +29,7 @@ export function materialTextureRefs(materials: Readonly<v.InferOutput<typeof Mat
     if (material.family === 'graph') return Object.values(material.graph.params ?? {}).flatMap((param) => param.type === 'texture' && typeof param.value === 'string' ? [param.value] : []);
     if (material.family === 'toon') return [];
     if (material.family === 'pbr') return [...Object.values(material.maps), material.ground?.grain.map, material.ground?.trail?.map, material.ground?.keyShadow?.map].filter((ref): ref is string => typeof ref === 'string');
-    if (material.family === 'painterly') return material.map === null ? [] : [material.map];
+    if (material.family === 'painterly') return (material.map === null ? [] : [material.map]).concat(material.terrain === undefined ? [] : paintedTerrainTextureRefs(material.terrain));
     return [material.map, material.tube?.field, ...(material.sky?.maps ?? [])].filter((ref): ref is string => typeof ref === 'string');
   });
 }
