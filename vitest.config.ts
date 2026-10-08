@@ -12,6 +12,10 @@ export const HEAVY_INTEGRATION_TESTS = [
   'test/live-grid.test.ts',
   'test/sdk-repo-build.test.ts',
   'test/template-copy-scaffold.test.ts',
+  // Real Rapier worlds and production vegetation builds exceed their unchanged 20 s deadlines
+  // under CI coverage when competing with the main pool. Keep their proofs serial as well.
+  'test/grid-collision-strips.test.ts',
+  'test/immutable-vegetation-canvases-off.test.ts',
 ];
 
 export default defineConfig({
