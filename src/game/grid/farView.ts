@@ -25,6 +25,13 @@ export const FAR_SKIRT_INSET = 3;
  * flat past `fade` metres where a bed is under two pixels.
  */
 export const FAR_STRATA = { bed: 3.8, contrast: 0.19, block: 11, fade: [1200, 2200] } as const;
+/**
+ * Playtest round 2: the light floor of the boundary face, as a multiple of its rock colour added after lighting. A face that
+ * turns away from the frame's sun got no light at all under a frame without an ambient term (any page where no admitted
+ * shard brings its sky light), so every shaded cliff drew as a pitch-black 100 m slab beside the road; with the floor a
+ * shaded face is the rock's own colour dimmed (×0.8) and a sunlit one only slightly brighter than before.
+ */
+export const FAR_CLIFF_FLOOR = 0.8;
 
 /** A drawn proxy: the rings' RingView shape plus its mesh. */
 export interface FarProxyView {
@@ -58,6 +65,7 @@ if (vFarCliff > 0.5) {
   float k = (1.0 + ${f(FAR_STRATA.contrast)} * (2.0 * layer - 1.0)) * (0.94 + 0.12 * block) * (1.0 + 0.1 * smoothstep(0.75, 1.0, u) - 0.12 * smoothstep(0.3, 0.0, u));
   diffuseColor.rgb *= mix(k, 1.0, smoothstep(${f(FAR_STRATA.fade[0])}, ${f(FAR_STRATA.fade[1])}, vFarDepth));
 }`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\nif (vFarCliff > 0.5) totalEmissiveRadiance += diffuseColor.rgb * ${f(FAR_CLIFF_FLOOR)};`)
       .replace('#include <fog_fragment>', '#include <fog_fragment>\ngl_FragColor.rgb = mix(gl_FragColor.rgb, farHazeColour, smoothstep(farHaze.x, farHaze.y, vFarDepth) * farHaze.z);\ngl_FragColor.a = 1.0;');
   }, { key: `sf23-far-${look.family}` });
   return { material, setMask: (excluded) => { for (let r = 0; r < 16; r++) mask[r] = excluded.has(r) ? 1 : 0; }, frame: { haze: hazeColour } };
