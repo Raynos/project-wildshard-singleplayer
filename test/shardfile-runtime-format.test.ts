@@ -29,11 +29,49 @@ it('admits only the unique bounded runtime-owned section names through the full 
   for (const binds of [[], ['quests'], ['ledger', 'items'], ['quests', 'ledger', 'items']]) {
     expect(parseShardfile({ ...source, runtime: { entry, binds } }).runtime?.binds).toEqual(binds);
   }
-  for (const binds of [['quests', 'quests'], ['world'], ['quests', 'ledger', 'items', 'quests'], null, 'quests']) {
+  for (const binds of [['quests', 'quests'], ['world'], ['quests', 'ledger', 'items', 'spawns', 'quests'], null, 'quests']) {
     expect(() => parseShardfile({ ...source, runtime: { entry, binds } })).toThrow();
   }
   expect(() => parseShardfile({ ...source, binds: ['quests'] })).toThrow();
   expect(() => parseShardfile({ ...source, runtime: { entry, binds: ['quests'], install: 'quests' } })).toThrow();
+});
+
+it('admits runtime spawn rows exactly when the full schema declares their binding', () => {
+  const source = empty(), entry = 'runtime/index.ts', spawns = { homes: [], bosses: [] };
+  for (const binds of [['spawns'], ['quests', 'ledger', 'items', 'spawns']]) {
+    const runtime = { entry, binds, spawns };
+    expect(parseShardfile({ ...source, runtime }).runtime).toEqual(runtime);
+    expect(() => parseShardfile({ ...source, runtime: { entry, binds } })).toThrow('runtime spawns');
+  }
+  for (const binds of [undefined, [], ['quests', 'ledger', 'items']]) {
+    expect(() => parseShardfile({ ...source, runtime: { entry, ...(binds === undefined ? {} : { binds }), spawns } })).toThrow('runtime spawns');
+  }
+  expect(() => parseShardfile({ ...source, runtime: { entry, binds: ['spawns'], spawns: null } })).toThrow();
+  expect(() => parseShardfile({ ...source, spawns })).toThrow();
+});
+
+it('validates runtime home and boss data, bounds and shared identities through the full schema', () => {
+  const source = empty(), home = { id: 'home:1', kind: 'sandBull', look: 'sand-bull', at: [-250, 250], yaw: 0, respawn: 3600 };
+  const boss = { id: 'boss:1', kind: 'matriarch', look: 'matriarch', at: [250, -250], yaw: Math.PI };
+  const admit = (spawns: unknown) => parseShardfile({ ...source, runtime: { entry: 'runtime/index.ts', binds: ['spawns'], spawns } });
+  const spawns = { homes: [home], bosses: [boss] };
+  expect(admit(spawns).runtime?.spawns).toEqual(spawns);
+  for (const bad of [{ homes: [home, home], bosses: [] }, { homes: [home], bosses: [{ ...boss, id: home.id }] },
+    { homes: [], bosses: [boss, boss] }, { homes: [], bosses: [], extra: true }, { homes: [] }, { bosses: [] }]) {
+    expect(() => admit(bad)).toThrow();
+  }
+  for (const badHome of [{ ...home, respawn: 0 }, { ...home, respawn: 3601 }, { ...home, at: [250.01, 0] },
+    { ...home, yaw: Infinity }, { ...home, kind: 'bad-kind' }, { ...home, look: 'BadLook' },
+    { ...home, id: 'h'.repeat(129) }, { ...home, kind: 'k'.repeat(65) }, { ...home, brain: 'pursue' }]) {
+    expect(() => admit({ ...spawns, homes: [badHome] })).toThrow();
+  }
+  expect(() => admit({ homes: [], bosses: [{ ...boss, respawn: 60 }] })).toThrow();
+  expect(() => admit({ homes: [], bosses: [{ ...boss, at: [0, -250.01] }] })).toThrow();
+  const homes = Array.from({ length: 256 }, (_, i) => ({ ...home, id: `home:${i}` }));
+  const bosses = Array.from({ length: 16 }, (_, i) => ({ ...boss, id: `boss:${i}` }));
+  expect(admit({ homes, bosses }).runtime?.spawns).toEqual({ homes, bosses });
+  expect(() => admit({ homes: [...homes, { ...home, id: 'home:256' }], bosses })).toThrow();
+  expect(() => admit({ homes, bosses: [...bosses, { ...boss, id: 'boss:16' }] })).toThrow();
 });
 
 it('keeps runtime-bound quest rows under ordinary format validation before any binding', () => {
@@ -48,7 +86,7 @@ it('keeps runtime-bound quest rows under ordinary format validation before any b
 });
 
 it('refuses external runtime declarations before fetching or publishing, including cached declarations', async () => {
-  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'ledger', 'items'] };
+  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'ledger', 'items', 'spawns'], spawns: { homes: [], bosses: [] } };
   let published = false;
   const cache = { product: () => Promise.resolve({ source, firstParty: true }), asset: () => Promise.resolve(null),
     putAsset: () => Promise.resolve(), putProduct: () => { published = true; return Promise.resolve(); } };

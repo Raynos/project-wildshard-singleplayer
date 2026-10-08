@@ -132,7 +132,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `tiles` | L0 62.5 m or L1 125 m; integer x/z address; exact horizontal grid bounds and vertical bounds inside the 500 m cube; nonnegative geometric error; file roots and declared costs. |
 | `library`, `critical`, `far` | Library roots, critical roots, optional whole-shard proxy with bounds and costs. Critical flags match critical roots. |
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
-| `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts", cost?, binds?}`; a bounded relative TypeScript entry resolved only through the trusted registry. Optional measured cost carries decimal-MB WebContent, GL and engine-base totals plus revision, device and evidence provenance. |
+| `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts", cost?, binds?, spawns?}`; a bounded relative TypeScript entry resolved only through the trusted registry. Optional measured cost carries decimal-MB WebContent, GL and engine-base totals plus revision, device and evidence provenance. Spawn rows are required exactly when `binds` includes `"spawns"` (below). |
 
 Manifest admission runs before schema/reference traversal and immutable asset reads.
 The canonical UTF-8 JSON source is at most 2,000,000 bytes, with at most 4,096
@@ -579,11 +579,25 @@ compositor, whose trusted registry matches both shard slug and entry. Content ca
 select an import URL. Neighbours retain data without running trusted play hooks;
 entering a cell installs those hooks in its child scope and leaving disposes them.
 The trusted compositor may explicitly request `trustedRuntime` for a first-party
-runtime declaration. Optional `runtime.binds` is a unique array of at most three
-section names: `"quests"`, `"ledger"`, `"items"`. Omitted or `[]` means none; unknown
+runtime declaration. Optional `runtime.binds` is a unique array of at most four
+section names: `"quests"`, `"ledger"`, `"items"`, `"spawns"`. Omitted or `[]` means none; unknown
 names, duplicates, null and unknown runtime keys are refused. The defining
 `RuntimeBindsSchema` is composed by `RuntimeSchema` at the full schema's `runtime`
 slot; it is not a second permissive format or a source-code hook.
+
+`runtime.spawns` is present exactly when `runtime.binds` includes `"spawns"`.
+The sole defining `RuntimeSchema` enforces this pairing through full shardfile
+admission; selecting the section without rows, or supplying rows without selecting
+it, is refused. Its strict object has required `homes` (at most 256) and `bosses`
+(at most 16) arrays; either array may be empty. Both rows contain
+`{id, kind, look, at: [x, z], yaw}`; homes also require `respawn` in seconds, from
+1 through 3600. Coordinates are finite and within [-250, 250]; yaw is finite.
+IDs and look names are lowercase identifiers of at most 128 characters; the
+runtime species `kind` allows camel case and is at most 64 characters. IDs must
+be unique across both arrays. Unknown fields and non-data values are refused.
+These rows place the trusted runtime's registered species and looks; their brains,
+rigs and encounter logic remain runtime-owned. They do not create local-simulation
+`creatures` rows or grant trust to a product.
 
 Every bound section remains ordinary declared data and passes its full schema,
 reference and budget checks before binding. The admitted source retains those rows.
@@ -606,6 +620,12 @@ The trusted runtime explicitly calls the game-owned installers in
   trusted shard's `<slug>.<name>` families. The runtime registers declared input
   contexts through its entered-scope path. This binder refuses item script hooks;
   declaring ownership does not invent an independent simulation lane.
+- `spawns`: `bindRuntimeHomes` keeps declared homes and refills fallen creatures
+  after their authored delay; `bindRuntimeBoss` binds a declared boss body whose
+  spawn/retry/retirement is driven by the runtime's encounter. Retained homes and
+  boss retries use the declared stable identity; standalone spawns keep their
+  ordinary identity allocation. Bodies retire with the play scope. Row admission
+  does not run either installer or register species.
 
 `binds` grants no runtime trust or automatic installation. The registered first-party
 entry must still match the same slug and entry exactly, and a runtime cannot bind a

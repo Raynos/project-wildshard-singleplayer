@@ -61,6 +61,19 @@ SHARDFILE.md documents ownership, admitted rows retained, data-client installati
 filtering, explicit scoped installers, item family/input rules and runtime trust.
 Two focused files / 11 tests and scoped typed lint pass. Coordinator owns the push.
 
+Runtime-spawns follow-up for 0f30825c9: the same RuntimeSchema enforces rows present
+exactly when binds names spawns. Full-schema tests cover all four bound sections,
+absent/unbound/null rows, strict fields, native coordinate and refill bounds,
+256-home/16-boss limits, shared unique identities and external/cached refusal.
+SHARDFILE.md now documents the fourth section and scoped home/boss installers.
+No new import/graph edges, generated edits, rendering changes or map-hash inputs.
+Clean export of 5cdf7baae plus the owned schema/docs/test patch: pnpm gen first,
+heavy-lane full vitest 933 files / 5357 tests passed / 14 skipped in 149.70 s;
+root-config pnpm exec oxlint and node lint/ratchet.mjs pass with no new debt.
+Focused runtime-format + Signal Dunes hybrid rows: 2 files / 15 tests pass.
+Only owned hunks land through a private index rebuilt from current HEAD with
+hooks, old-value CAS, subject/stat and ancestor verification. Coordinator pushes.
+
 ## SF67 Safari CPU attribution — blocked; lane idle
 
 No demonstrated non-zero CPU clock exists in the tested Simulator Safari route.
