@@ -47,11 +47,13 @@ async function loadBasis(): Promise<BasisModule> {
   } finally { rmSync(temporary, { recursive: true }); }
 }
 /** Encode embedded PNG/JPEG/WebP to deterministic single-threaded UASTC KTX2 with a complete mip chain.
- * Colour/emissive uses sRGB; normal/ORM uses linear transfer. No system binary, CDN or author code is executed. */
-export async function bakeWorldTexture(image: Uint8Array, colourSpace: 'srgb' | 'linear'): Promise<Uint8Array> {
+ * Colour/emissive uses sRGB; normal/ORM uses linear transfer. Source flipY is baked into raster rows for the glTF/KTX2 convention; atlas UVs stay unchanged. No system binary, CDN or author code is executed. */
+export async function bakeWorldTexture(image: Uint8Array, colourSpace: 'srgb' | 'linear', options: { flipY?: boolean } = {}): Promise<Uint8Array> {
   if (!['srgb', 'linear'].includes(colourSpace)) throw new Error('World texture transfer must be srgb or linear');
   const info = await worldImageInfo(image), size: [number, number] = [info.width, info.height];
-  const decoded = await sharp(image, { limitInputPixels: 4096 * 4096, animated: false, failOn: 'warning' }).ensureAlpha().raw({ depth: 'uchar' }).toBuffer({ resolveWithObject: true });
+  const raster = sharp(image, { limitInputPixels: 4096 * 4096, animated: false, failOn: 'warning' });
+  if (options.flipY === true) raster.flip();
+  const decoded = await raster.ensureAlpha().raw({ depth: 'uchar' }).toBuffer({ resolveWithObject: true });
   if (decoded.info.width !== size[0] || decoded.info.height !== size[1] || decoded.info.channels !== 4 || decoded.data.length !== size[0] * size[1] * 4) throw new Error('World texture decoded dimensions differ from admission');
   basis ??= loadBasis(); const module = await basis, raw = new module.BasisEncoder();
   if (!encoderApi(raw)) throw new Error('Invalid pinned encoder methods');

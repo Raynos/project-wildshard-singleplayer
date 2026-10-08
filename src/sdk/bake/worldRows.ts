@@ -1,8 +1,10 @@
 import type { Shardfile } from '@wildshard/game/shardfile/schema';
-import type { ShardProps } from '@wildshard/game/shardfile/props';
+import { PropsSchema, type ShardProps } from '@wildshard/game/shardfile/props';
+import * as v from 'valibot';
 import { assetCost } from '../assets';
 import { contentHash } from '../project';
 import type { NativeLatticeTile } from './nativeLattice';
+import { checkStaticMaterialDependencies } from './staticMaterials';
 
 type FileRow = Shardfile['files'][number];
 type TileRow = Shardfile['tiles'][number];
@@ -72,15 +74,20 @@ export class WorldBakeRows {
     const model = { lod, x, z, file: file.hash }; this.models.set(key, model); return { ...model };
   }
 
-  /** Snapshot deterministic rows selecting the admitted catalogue ID as props.family; no replacement family is made. */
-  finish(family: string): BakedWorldRows {
+  /** Snapshot deterministic rows. Named packing checks every GLB material and its own texture dependencies; family remains the legacy fallback. */
+  finish(family: string, named?: { materials: NonNullable<ShardProps['materials']> }): BakedWorldRows {
     if (!/^[a-z][a-z0-9.-]{0,127}$/.test(family)) throw new Error('Invalid world material catalogue ID');
     const files = [...this.files.values()].sort((a, b) => order(a.hash, b.hash)).map(copyFile);
     const tiles = [...this.tiles.values()].sort((a, b) => a.lod - b.lod || a.z - b.z || a.x - b.x).map(copyTile);
     const props: ShardProps = { version: 1, family, tiles: tiles.map(row => {
       const model = this.models.get(`${row.lod}/${row.x}/${row.z}`); if (model === undefined) throw new Error('Missing world model'); return { ...model };
     }), panels: [], models: [], textures: [], colliders: [], far: null };
-    return { files, tiles, props, critical: files.filter(row => row.critical).map(row => row.hash), assets: new Map(files.map(row => {
+    const admittedProps = named === undefined ? props : v.parse(PropsSchema, { ...props, materials: named.materials });
+    if (named !== undefined) for (const file of files) if (file.kind === 'glb') {
+      const bytes = this.assets.get(file.hash); if (bytes === undefined) throw new Error('Missing named world GLB');
+      checkStaticMaterialDependencies(bytes, named.materials, file.dependencies);
+    }
+    return { files, tiles, props: admittedProps, critical: files.filter(row => row.critical).map(row => row.hash), assets: new Map(files.map(row => {
       const bytes = this.assets.get(row.hash); if (bytes === undefined) throw new Error('Missing world bytes'); return [row.hash, Uint8Array.from(bytes)];
     })) };
   }

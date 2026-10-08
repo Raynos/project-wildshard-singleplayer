@@ -9,7 +9,15 @@ import { worldImageInfo } from './worldImage';
 /** Retained embedded raster input; the later pinned encoder owns its KTX2 conversion. */
 export interface WorldImage { hash: string; mime: string; width: number; height: number; bytes: Uint8Array }
 /** A material texture use preserves UV0 and sampler data rather than copying pixels into vertex colours. */
-export interface WorldTexture { image: string; wrapS: number; wrapT: number; minFilter: number | null; magFilter: number | null }
+export interface WorldTexture {
+  image: string; wrapS: number; wrapT: number; minFilter: number | null; magFilter: number | null;
+  /** Authored Three texture intake only: raster rows must be flipped before encoding when true. glTF defaults false. */
+  flipY?: boolean;
+  /** Original sampler anisotropy; absent preserves the glTF default of one. */
+  anisotropy?: number;
+  /** Original atlas extent, when captured from a live authored producer. No crop/repack is permitted. */
+  width?: number; height?: number;
+}
 /** Source glTF metallic/roughness surface with every supported texture slot and its explicit output material ID. */
 export interface WorldMaterial {
   name: string; id: string; colour: number[]; metalness: number; roughness: number; emissive: number[];

@@ -60,7 +60,8 @@
     "./meshCollision": "./meshCollision.ts",
     "./portalLink": "./portalLink.ts",
     "./bake/nativeLattice": "./bake/nativeLattice.ts",
-    "./bake/worldRows": "./bake/worldRows.ts"
+    "./bake/worldRows": "./bake/worldRows.ts",
+    "./bake/staticMaterials": "./bake/staticMaterials.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -322,6 +323,10 @@
       "./reportCard": {
         "types": "./dist/types/sdk/reportCard.d.ts",
         "default": "./dist/reportCard.js"
+      },
+      "./bake/staticMaterials": {
+        "types": "./dist/types/sdk/bake/staticMaterials.d.ts",
+        "default": "./dist/bake/staticMaterials.js"
       }
     }
   }

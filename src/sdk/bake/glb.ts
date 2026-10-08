@@ -42,7 +42,11 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     const index = geometry.getIndex(), indices = index === null ? Array.from({ length: p.count }, (_, i) => i) : Array.from(index.array);
     if (indices.length % 3 !== 0 || indices.some((i) => !Number.isInteger(i) || i < 0 || i >= p.count)) throw new Error('Invalid triangle indices');
     const materialIndex = materials.length;
-    materials.push({ name: material.name, pbrMetallicRoughness: { baseColorFactor: [...material.color, material.opacity], metallicFactor: material.metalness, roughnessFactor: material.roughness }, doubleSided: material.side === 2, alphaMode: material.transparent ? 'BLEND' : 'OPAQUE' });
+    materials.push({ name: material.name, pbrMetallicRoughness: { baseColorFactor: [...material.color, material.opacity], metallicFactor: material.metalness, roughnessFactor: material.roughness }, doubleSided: material.side === 2,
+      alphaMode: material.transparent ? 'BLEND' : material.alphaTest > 0 ? 'MASK' : 'OPAQUE',
+      ...(material.alphaTest > 0 ? { alphaCutoff: material.alphaTest } : {}),
+      ...(material.emissive.r !== 0 || material.emissive.g !== 0 || material.emissive.b !== 0 ? { emissiveFactor: [...material.emissive].map(value => value * material.emissiveIntensity) } : {}),
+    });
     meshes.push({ name, primitives: [{ attributes, indices: accessor(indices, 1, 'SCALAR', true), material: materialIndex }] });
     const node: Record<string, Json> = { name, mesh: meshes.length - 1, extras: { castShadow } };
     if (instances !== undefined) {
