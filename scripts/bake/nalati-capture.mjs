@@ -23,6 +23,7 @@ const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const arrayHash = values => hash(new Uint8Array(values.buffer, values.byteOffset, values.byteLength));
 const arraySummary = values => ({ values: values.length, sha256: arrayHash(values) });
 const meshSummary = mesh => ({ sourceMesh: mesh.sourceMesh, name: mesh.name, type: mesh.type, visible: mesh.visible, matrix: mesh.matrix, materials: mesh.materials,
+  indexed: mesh.indexed, groups: mesh.groups, drawRange: mesh.drawRange,
   attributes: Object.fromEntries(Object.entries(mesh.attributes).map(([name, channel]) => [name, { itemSize: channel.itemSize, values: channel.values.length, sha256: arrayHash(channel.values) }])),
   indices: { count: mesh.indices.length, sha256: arrayHash(mesh.indices) },
   scatter: mesh.scatter === null ? null : { ...mesh.scatter, matrices: arraySummary(mesh.scatter.matrices), colours: arraySummary(mesh.scatter.colours),

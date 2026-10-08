@@ -1,0 +1,7 @@
+# Nalati captured topology for named static packing
+
+The owned capture now retains the actual geometry triangle groups (`start`, `count`, material-array slot), the original draw range, and whether the source was indexed. Infinite Three draw-range count is explicitly represented as `null` in the JSON receipt; a finite range is copied unchanged. Synthetic linear capture indices remain useful for geometry inventory, but `indexed:false` prevents treating them as an original native index allocation or an instruction to add one during replay.
+
+The shared named material packer must use these original groups and material slots. It already refuses incomplete, overlapping or unknown triangle groups; this capture does not guess a slot, flatten materials or authorize filling a partial draw range. Source material factors/recipes and real generated atlas pixels remain separate explicit inputs. Mutation fixtures prove the copy survives later group/range/material edits, while the actual capture executable still settles real model loads and releases every scope counter. No placement rerun, geometry expansion, renderer, runtime or live boot change.
+
+The coordinator is holding the Nalati look recipe and real-browser sign raster until the model-versus-measured audit determines the next memory direction. Combined static packing, product admission, actual native retirement and the G227 net-saving proof remain open. Plan-State: unchanged.

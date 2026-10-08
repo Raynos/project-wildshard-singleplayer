@@ -13,6 +13,11 @@ export interface NalatiCapturedMesh {
   sourceMesh: number;
   name: string; type: string; visible: boolean; matrix: number[]; materials: { name: string; type: string }[];
   attributes: Record<string, NalatiCapturedAttribute>; indices: Uint32Array;
+  /** Synthetic capture indices must not be mistaken for an original indexed GPU allocation. */
+  indexed: boolean;
+  /** Exact triangle-group material slots and source draw range; null count means Three's unbounded default. */
+  groups: { start: number; count: number; materialIndex: number }[];
+  drawRange: { start: number; count: number | null };
   instances: { count: number; capacity: number; matrices: Float32Array; colours: Float32Array | null } | null;
   /** Original ordered scatter source, independent of the instance buffer's visible/cull order. */
   scatter: DressLayerSource | null;
@@ -45,6 +50,8 @@ function meshSnapshot(object: Mesh, geometry: BufferGeometry, sourceMesh: number
   if (!geometry.hasAttribute('position')) throw new Error('Nalati capture requires positions');
   return { sourceMesh, name: object.name, type: object.type, visible: object.visible, matrix: [...object.matrixWorld.elements], materials, attributes,
     indices: index === null ? Uint32Array.from({ length: position.count }, (_, i) => i) : Uint32Array.from(index.array),
+    indexed: index !== null, groups: geometry.groups.map(group => ({ start: group.start, count: group.count, materialIndex: group.materialIndex ?? 0 })),
+    drawRange: { start: geometry.drawRange.start, count: geometry.drawRange.count === Infinity ? null : geometry.drawRange.count },
     scatter: captureDressLayerSource(object) ?? null,
     instances: object instanceof InstancedMesh ? { count: object.count, capacity: object.instanceMatrix.count,
       matrices: Float32Array.from(object.instanceMatrix.array), colours: object.instanceColor === null ? null : Float32Array.from(object.instanceColor.array) } : null };

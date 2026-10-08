@@ -20,6 +20,8 @@ const summarySchema = v.object({
   nativeTerrain: v.object({ bytes: v.number(), sha256: v.string() }),
   placements: v.array(v.object({ model: v.string(), role: v.picklist(['static-candidate', 'hybrid']), copies: v.number(), copiesSha256: v.string() })),
   roots: v.array(v.object({ name: v.string(), models: v.array(v.string()), meshes: v.array(v.object({ sourceMesh: v.number(), name: v.string(),
+    indexed: v.boolean(), groups: v.array(v.object({ start: v.number(), count: v.number(), materialIndex: v.number() })),
+    drawRange: v.object({ start: v.number(), count: v.nullable(v.number()) }),
     attributes: v.record(v.string(), v.object({ values: v.number(), sha256: v.string() })),
     instances: v.nullable(v.object({ count: v.number(), capacity: v.number(), matricesSha256: v.string() })),
     scatter: v.nullable(v.object({ version: v.literal(1), count: v.number(), matrices: arraySummary, colours: arraySummary, spheres: arraySummary,
@@ -53,6 +55,7 @@ it('captures the actual settled Nalati world, including unculled copies and asyn
     for (const mesh of generated) {
       expect(mesh.attributes['position']?.values).toBeGreaterThan(0);
       expect(mesh.attributes['position']?.sha256).toMatch(/^[a-f0-9]{64}$/u);
+      expect(mesh.drawRange).toEqual({ start: 0, count: null });
     }
     const scatters = summary.roots.flatMap(entry => entry.meshes).filter(mesh => mesh.scatter !== null);
     expect(scatters).toHaveLength(10);

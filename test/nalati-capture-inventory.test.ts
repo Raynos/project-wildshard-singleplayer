@@ -13,12 +13,30 @@ describe('Nalati authored capture inventory', () => {
       const result = await collector.snapshot(() => Promise.resolve()), mesh = result.roots[0]?.meshes[0];
       if (mesh?.scatter === undefined || mesh.scatter === null) throw new Error('Missing original scatter source');
       expect(mesh.instances?.count).toBe(0); expect(mesh.scatter.count).toBe(1);
+      expect(mesh.indexed).toBe(false); expect(mesh.drawRange).toEqual({ start: 0, count: null });
       expect(mesh.scatter).toEqual(layer.captureSource());
       expect(mesh.scatter.matrices[0]).not.toBe(result.placements[0]?.copies[0]?.matrix[0]);
       expect(mesh.scatter.ranges).toEqual(Float32Array.of(60));
       mesh.scatter.matrices.fill(99); mesh.scatter.colours.fill(0);
       expect(layer.captureSource().matrices[0]).not.toBe(99); expect(layer.captureSource().colours[0]).toBeCloseTo(0.2);
     } finally { geometry.dispose(); material.dispose(); }
+  });
+
+  it('copies exact multi-material triangle groups and finite draw ranges independently of later source edits', async () => {
+    const collector = new NalatiCaptureInventory(), geometry = new BufferGeometry().setAttribute('position',
+      new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0], 3)).setIndex([0, 1, 2, 1, 3, 2]);
+    geometry.addGroup(0, 3, 1); geometry.addGroup(3, 3, 0); geometry.setDrawRange(0, 6);
+    const first = new MeshStandardMaterial(), second = new MeshStandardMaterial(); first.name = 'stone'; second.name = 'wood';
+    collector.visitPlacement({ model: 'nalati-grasslands/camp-prop', placements: [], draw: 'merged', moving: false,
+      drawnInto: new Mesh(geometry, [first, second]) });
+    try {
+      const captured = await collector.snapshot(() => Promise.resolve()), mesh = captured.roots[0]?.meshes[0];
+      if (mesh === undefined) throw new Error('Missing grouped mesh');
+      geometry.clearGroups(); geometry.addGroup(0, 6, 0); geometry.setDrawRange(3, 3); first.name = 'later';
+      expect(mesh.indexed).toBe(true); expect(mesh.indices).toEqual(Uint32Array.of(0, 1, 2, 1, 3, 2));
+      expect(mesh.groups).toEqual([{ start: 0, count: 3, materialIndex: 1 }, { start: 3, count: 3, materialIndex: 0 }]);
+      expect(mesh.drawRange).toEqual({ start: 0, count: 6 }); expect(mesh.materials.map(row => row.name)).toEqual(['stone', 'wood']);
+    } finally { geometry.dispose(); first.dispose(); second.dispose(); }
   });
 
   it('identifies one physical mesh reached through overlapping static and hybrid roots', async () => {
