@@ -1,0 +1,5391 @@
+{
+ "build": "46d6962-muzq309n",
+ "runs": [
+  {
+   "lane": "chromium-4x",
+   "shard": "Driftwood",
+   "slug": "driftwood-isle",
+   "cache": "cold",
+   "cpu": 4,
+   "status": "ok",
+   "playMs": 6816,
+   "readyMs": 6590,
+   "phases": [
+    [
+     "modules",
+     0,
+     450
+    ],
+    [
+     "engine world",
+     450,
+     721
+    ],
+    [
+     "shard world",
+     1171,
+     3453
+    ],
+    [
+     "creatures, weapons, HUD",
+     4624,
+     882
+    ],
+    [
+     "shaders, first frame",
+     5506,
+     845
+    ],
+    [
+     "audio, finish",
+     6351,
+     465
+    ]
+   ],
+   "long": [
+    [
+     348,
+     63
+    ],
+    [
+     427,
+     68
+    ],
+    [
+     523,
+     59
+    ],
+    [
+     724,
+     119
+    ],
+    [
+     1228,
+     236
+    ],
+    [
+     1583,
+     119
+    ],
+    [
+     1711,
+     490
+    ],
+    [
+     2211,
+     83
+    ],
+    [
+     2308,
+     130
+    ],
+    [
+     2446,
+     171
+    ],
+    [
+     2623,
+     193
+    ],
+    [
+     2863,
+     164
+    ],
+    [
+     3030,
+     107
+    ],
+    [
+     3141,
+     57
+    ],
+    [
+     3200,
+     163
+    ],
+    [
+     3366,
+     325
+    ],
+    [
+     3773,
+     741
+    ],
+    [
+     4519,
+     95
+    ],
+    [
+     4951,
+     55
+    ],
+    [
+     5079,
+     113
+    ],
+    [
+     5215,
+     291
+    ],
+    [
+     5902,
+     61
+    ],
+    [
+     5985,
+     126
+    ],
+    [
+     6115,
+     52
+    ],
+    [
+     6840,
+     881
+    ]
+   ],
+   "tasks": [
+    {
+     "at": 348,
+     "ms": 63,
+     "step": "admission.modules",
+     "owner": "r src/src/game/shardfile/json.ts:5",
+     "leaf": [
+      "r src/src/game/shardfile/json.ts:5",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "l src/src/game/shardfile/preflight.ts:37"
+     ],
+     "incl": [
+      "a src/src/sdk/shardfile.ts:10",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "r src/src/game/shardfile/json.ts:5",
+      "pt src/src/game/shardfile/json.ts:2",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "s src/src/sdk/author.ts:20",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "l src/src/game/shardfile/preflight.ts:37",
+      "cR src/src/game/session/session.ts:104",
+      "(anon) src/src/game/shardfile/schema.ts:213",
+      "loadLevel src/src/engine/app/app.ts:136",
+      "Ad src/src/engine/boot.ts:40"
+     ]
+    },
+    {
+     "at": 427,
+     "ms": 68,
+     "step": "admission.modules",
+     "owner": "(anon) src/src/engine/boot/shardPrefetch.ts:100",
+     "leaf": [
+      "(anon) src/src/engine/boot/shardPrefetch.ts:100",
+      "(anon) src/src/engine/render/renderer.ts:28",
+      "mO src/src/engine/core/webglStartup.ts:14"
+     ],
+     "incl": [
+      "(anon) src/src/engine/core/bootstrap.ts:66",
+      "kf src/src/game/session/data.ts:19",
+      "fO src/src/engine/core/Game.ts:340",
+      "lf src/src/engine/boot/extras.ts:72",
+      "(anon) src/src/engine/boot/shardPrefetch.ts:117",
+      "v src/src/engine/boot/gpuFiles.ts:103",
+      "y src/src/engine/boot/gpuFiles.ts:119",
+      "LL src/src/engine/boot/shardPrefetch.ts:106",
+      "Tt src/src/engine/render/renderer.ts:26",
+      "FL src/src/engine/boot/shardPrefetch.ts:98",
+      "(anon) src/src/engine/render/gpuLabels.ts:44",
+      "a src/src/engine/core/memoryAttribution.ts:121"
+     ]
+    },
+    {
+     "at": 523,
+     "ms": 59,
+     "step": "sky",
+     "owner": "J_ src/src/engine/physics/navmesh.ts:54",
+     "leaf": [
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "Z_ src/src/engine/physics/navmesh.ts:212",
+      "(anon) src/src/engine/physics/navmesh.ts:71"
+     ],
+     "incl": [
+      "$_ src/src/engine/physics/navmesh.ts:236",
+      "Z_ src/src/engine/physics/navmesh.ts:212",
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "(anon) src/src/engine/physics/navmesh.ts:71",
+      "u8s src/src/engine/physics/navmesh.ts:50",
+      "u16 src/src/engine/physics/navmesh.ts:46"
+     ]
+    },
+    {
+     "at": 724,
+     "ms": 120,
+     "step": "sky",
+     "owner": "j src/src/shards/driftwood-isle/look/stylizedSky.ts:143",
+     "leaf": [
+      "j src/src/shards/driftwood-isle/look/stylizedSky.ts:143",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "(anon) src/src/engine/render/gpuLabels.ts:177"
+     ],
+     "incl": [
+      "ce src/src/shards/driftwood-isle/look/backdrop.ts:154",
+      "build src/src/shards/driftwood-isle/look/stylizedSky.ts:62",
+      "c src/src/shards/driftwood-isle/look/backdrop.ts:163",
+      "j src/src/shards/driftwood-isle/look/stylizedSky.ts:143",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "build src/src/engine/world/skyRig.ts:93",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "make src/src/engine/world/shadowVariants.ts:91",
+      "apply src/src/engine/world/shadowVariants.ts:74"
+     ]
+    },
+    {
+     "at": 1228,
+     "ms": 237,
+     "step": "props",
+     "owner": "(anon) src/src/game/shardfile/budget.ts:34",
+     "leaf": [
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "K src/src/game/shardfile/budget.ts:20",
+      "r src/src/game/shardfile/json.ts:5"
+     ],
+     "incl": [
+      "Y src/src/game/shardfile/product.ts:85",
+      "Dr src/src/game/shardfile/budget.ts:57",
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Lr src/src/game/shardfile/validate.ts:68",
+      "Ir src/src/game/shardfile/validate.ts:33",
+      "K src/src/game/shardfile/budget.ts:20",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "r src/src/game/shardfile/json.ts:5",
+      "pt src/src/game/shardfile/json.ts:2",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "l src/src/game/shardfile/preflight.ts:37"
+     ]
+    },
+    {
+     "at": 1583,
+     "ms": 120,
+     "step": "props",
+     "owner": "ei src/src/shards/driftwood-isle/models/pier.ts:235",
+     "leaf": [
+      "ei src/src/shards/driftwood-isle/models/pier.ts:235",
+      "build src/src/shards/driftwood-isle/world/Ocean.ts:60",
+      "ui src/src/shards/driftwood-isle/models/boat.ts:67"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Z src/src/engine/models/place.ts:353",
+      "Fe src/src/engine/models/place.ts:370",
+      "place src/src/shards/driftwood-isle/world/Boat.ts:54",
+      "draw src/src/shards/driftwood-isle/world/Boat.ts:59",
+      "place src/src/shards/driftwood-isle/world/Pier.ts:79",
+      "draw src/src/shards/driftwood-isle/world/Pier.ts:84",
+      "(anon) src/src/engine/models/place.ts:382",
+      "ze src/src/engine/models/place.ts:663",
+      "(anon) src/src/engine/models/place.ts:667",
+      "build src/src/shards/driftwood-isle/models/boat.ts:284"
+     ]
+    },
+    {
+     "at": 1711,
+     "ms": 491,
+     "step": "props",
+     "owner": "St.world.createCollider src/src/engine/physics/Physics.ts:43",
+     "leaf": [
+      "St.world.createCollider src/src/engine/physics/Physics.ts:43",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "k src/src/engine/models/colliders.ts:45"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "draw src/src/shards/driftwood-isle/world/Boulders.ts:86",
+      "place src/src/shards/driftwood-isle/world/Boulders.ts:81",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "build src/src/shards/driftwood-isle/models/shoreBoulder.ts:30",
+      "Z src/src/engine/models/place.ts:353",
+      "_i src/src/shards/driftwood-isle/world/rockKit.ts:56",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "(anon) src/src/engine/physics/pieces.ts:74",
+      "_ src/src/engine/app/ownership.ts:7"
+     ]
+    },
+    {
+     "at": 2211,
+     "ms": 83,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "build src/src/shards/driftwood-isle/models/hut.ts:85",
+      "w src/src/engine/world/voxelAO.ts:94"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Hut.ts:47",
+      "draw src/src/shards/driftwood-isle/world/Hut.ts:52",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "Gi src/src/shards/driftwood-isle/models/hut.ts:363",
+      "build src/src/shards/driftwood-isle/models/hut.ts:378",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/hut.ts:85",
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "I src/src/engine/world/lowpolyKit.ts:296"
+     ]
+    },
+    {
+     "at": 2308,
+     "ms": 130,
+     "step": "props",
+     "owner": "I src/src/engine/world/lowpolyKit.ts:296",
+     "leaf": [
+      "I src/src/engine/world/lowpolyKit.ts:296",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "T src/src/engine/world/voxelAO.ts:103"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Lookout.ts:51",
+      "Qe src/src/engine/models/place.ts:1028",
+      "draw src/src/shards/driftwood-isle/world/Lookout.ts:56",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "ya src/src/shards/driftwood-isle/models/lookout.ts:373",
+      "build src/src/shards/driftwood-isle/models/lookout.ts:388",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/lookout.ts:83",
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "I src/src/engine/world/lowpolyKit.ts:296"
+     ]
+    },
+    {
+     "at": 2446,
+     "ms": 172,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "T src/src/engine/world/voxelAO.ts:103",
+      "w src/src/engine/world/voxelAO.ts:94"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Wreck.ts:60",
+      "draw src/src/shards/driftwood-isle/world/Wreck.ts:65",
+      "build src/src/shards/driftwood-isle/models/shipwreck.ts:188",
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "I src/src/engine/world/lowpolyKit.ts:296",
+      "(anon) src/src/shards/driftwood-isle/world/Wreck.ts:67",
+      "around src/src/shards/driftwood-isle/world/Wreck.ts:126",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "_i src/src/shards/driftwood-isle/world/rockKit.ts:56",
+      "T src/src/engine/world/voxelAO.ts:103"
+     ]
+    },
+    {
+     "at": 2623,
+     "ms": 194,
+     "step": "props",
+     "owner": "build src/src/shards/driftwood-isle/models/shrine.ts:105",
+     "leaf": [
+      "build src/src/shards/driftwood-isle/models/shrine.ts:105",
+      "T src/src/engine/world/voxelAO.ts:103",
+      "a src/src/engine/world/voxelAO.ts:62"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "draw src/src/shards/driftwood-isle/world/Shrine.ts:70",
+      "place src/src/shards/driftwood-isle/world/Shrine.ts:65",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/shrine.ts:515",
+      "ko src/src/shards/driftwood-isle/models/shrine.ts:500",
+      "build src/src/shards/driftwood-isle/models/shrine.ts:105",
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "I src/src/engine/world/lowpolyKit.ts:296"
+     ]
+    },
+    {
+     "at": 2863,
+     "ms": 165,
+     "step": "props",
+     "owner": "$o src/src/shards/driftwood-isle/models/hibiscusBush.ts:151",
+     "leaf": [
+      "$o src/src/shards/driftwood-isle/models/hibiscusBush.ts:151",
+      "Qo src/src/shards/driftwood-isle/models/hibiscusBush.ts:136",
+      "tri src/src/shards/driftwood-isle/models/hibiscusBush.ts:40"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "draw src/src/shards/driftwood-isle/world/Bushes.ts:74",
+      "place src/src/shards/driftwood-isle/world/Bushes.ts:69",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/hibiscusBush.ts:200",
+      "$o src/src/shards/driftwood-isle/models/hibiscusBush.ts:151",
+      "Qo src/src/shards/driftwood-isle/models/hibiscusBush.ts:136",
+      "tri src/src/shards/driftwood-isle/models/hibiscusBush.ts:40",
+      "(anon) src/src/engine/models/place.ts:386"
+     ]
+    },
+    {
+     "at": 3030,
+     "ms": 108,
+     "step": "props",
+     "owner": "(anon) src/src/shards/driftwood-isle/models/trailside.ts:35",
+     "leaf": [
+      "(anon) src/src/shards/driftwood-isle/models/trailside.ts:35",
+      "build src/src/shards/driftwood-isle/models/trailside.ts:53",
+      "f src/src/shards/driftwood-isle/world/Trailside.ts:132"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "build src/src/shards/driftwood-isle/world/Trailside.ts:112",
+      "build src/src/shards/driftwood-isle/models/trailside.ts:53",
+      "(anon) src/src/shards/driftwood-isle/models/trailside.ts:35",
+      "f src/src/shards/driftwood-isle/world/Trailside.ts:132",
+      "build src/src/shards/driftwood-isle/models/trailside.ts:126",
+      "(anon) src/src/shards/driftwood-isle/models/trailside.ts:129",
+      "(anon) src/src/engine/physics/pieces.ts:74",
+      "_ src/src/engine/app/ownership.ts:7",
+      "u src/src/engine/physics/pieces.ts:74",
+      "Jt src/src/engine/physics/pieces.ts:61",
+      "(anon) src/src/engine/core/bootstrap.ts:118"
+     ]
+    },
+    {
+     "at": 3141,
+     "ms": 57,
+     "step": "props",
+     "owner": "Xs src/src/shards/driftwood-isle/models/reef.ts:66",
+     "leaf": [
+      "Xs src/src/shards/driftwood-isle/models/reef.ts:66",
+      "build src/src/shards/driftwood-isle/world/Seabed.ts:97",
+      "scatterLagoon src/src/shards/driftwood-isle/world/Seabed.ts:52"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "build src/src/shards/driftwood-isle/world/Seabed.ts:97",
+      "(anon) src/src/shards/driftwood-isle/models/reef.ts:203",
+      "Xs src/src/shards/driftwood-isle/models/reef.ts:66",
+      "scatterLagoon src/src/shards/driftwood-isle/world/Seabed.ts:52",
+      "draw src/src/shards/driftwood-isle/world/RopeBridge.ts:42",
+      "place src/src/shards/driftwood-isle/world/RopeBridge.ts:37",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Hs src/src/shards/driftwood-isle/models/ropeBridge.ts:295",
+      "Us src/src/shards/driftwood-isle/models/ropeBridge.ts:302",
+      "l src/src/shards/driftwood-isle/world/Seabed.ts:57",
+      "build src/src/shards/driftwood-isle/models/ropeBridge.ts:83"
+     ]
+    },
+    {
+     "at": 3200,
+     "ms": 163,
+     "step": "props",
+     "owner": "x src/src/engine/world/geometryKit.ts:82",
+     "leaf": [
+      "x src/src/engine/world/geometryKit.ts:82",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "T src/src/engine/world/voxelAO.ts:103"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Cove.ts:129",
+      "build src/src/shards/driftwood-isle/world/Cove.ts:163",
+      "g src/src/shards/driftwood-isle/world/Cove.ts:179",
+      "x src/src/engine/world/geometryKit.ts:82",
+      "_i src/src/shards/driftwood-isle/world/rockKit.ts:56",
+      "c src/src/shards/driftwood-isle/world/Cove.ts:173",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "I src/src/engine/world/lowpolyKit.ts:296",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "T src/src/engine/world/voxelAO.ts:103"
+     ]
+    },
+    {
+     "at": 3366,
+     "ms": 326,
+     "step": "props",
+     "owner": "oc src/src/shards/driftwood-isle/models/palm.ts:45",
+     "leaf": [
+      "oc src/src/shards/driftwood-isle/models/palm.ts:45",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "o src/src/shards/driftwood-isle/world/GroundCover.ts:375"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "build src/src/shards/driftwood-isle/world/GroundCover.ts:315",
+      "draw src/src/shards/driftwood-isle/world/Palms.ts:80",
+      "place src/src/shards/driftwood-isle/world/Palms.ts:75",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "buildDriftwood src/src/shards/driftwood-isle/world/GroundCover.ts:504",
+      "build src/src/shards/driftwood-isle/models/palm.ts:178",
+      "Z src/src/engine/models/place.ts:353",
+      "oc src/src/shards/driftwood-isle/models/palm.ts:45",
+      "finish src/src/engine/world/lowpolyKit.ts:126"
+     ]
+    },
+    {
+     "at": 3773,
+     "ms": 742,
+     "step": "props",
+     "owner": "coverTriangles src/src/shards/driftwood-isle/world/islandInstances.ts:206",
+     "leaf": [
+      "coverTriangles src/src/shards/driftwood-isle/world/islandInstances.ts:206",
+      "build src/src/shards/driftwood-isle/world/BlenderIsland.ts:225",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232"
+     ],
+     "incl": [
+      "build src/src/shards/driftwood-isle/world/BlenderIsland.ts:225",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/smallRock.ts:31",
+      "_i src/src/shards/driftwood-isle/world/rockKit.ts:56",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "splat src/src/shards/driftwood-isle/world/coverTint.ts:82",
+      "Me src/src/shards/driftwood-isle/world/BlenderIsland.ts:195",
+      "coverTriangles src/src/shards/driftwood-isle/world/islandInstances.ts:206",
+      "$ src/src/shards/driftwood-isle/world/BlenderIsland.ts:147"
+     ]
+    },
+    {
+     "at": 4519,
+     "ms": 95,
+     "step": "props",
+     "owner": "m src/src/engine/core/gpuOnly.ts:47",
+     "leaf": [
+      "m src/src/engine/core/gpuOnly.ts:47",
+      "O src/src/engine/script/admission.ts:57",
+      "install src/src/engine/script/host.ts:104"
+     ],
+     "incl": [
+      "world src/src/shards/driftwood-isle/runtime/index.ts:31",
+      "jl src/src/shards/driftwood-isle/world/gpuOnlyCopies.ts:43",
+      "(anon) src/src/shards/driftwood-isle/world/gpuOnlyCopies.ts:47",
+      "m src/src/engine/core/gpuOnly.ts:47",
+      "qn src/src/game/shardfile/moverRuntime.ts:14",
+      "install src/src/engine/script/host.ts:104",
+      "O src/src/engine/script/admission.ts:57",
+      "te src/src/engine/script/admission.ts:30",
+      "Zn src/src/game/shardfile/moverRuntime.ts:145",
+      "R src/src/engine/script/host.ts:38",
+      "kl src/src/shards/driftwood-isle/world/gpuOnlyCopies.ts:34",
+      "Et src/src/game/shardfile/movers.ts:21"
+     ]
+    },
+    {
+     "at": 4951,
+     "ms": 55,
+     "step": "menu",
+     "owner": "ze src/src/engine/ui/DebugMenu.ts:52",
+     "leaf": [
+      "ze src/src/engine/ui/DebugMenu.ts:52",
+      "TL src/src/game/session/play.ts:83",
+      "RP src/src/engine/ui/SavePanel.ts:18"
+     ],
+     "incl": [
+      "TL src/src/game/session/play.ts:83",
+      "tF src/src/engine/ui/Menu.ts:123",
+      "buildSettings src/src/engine/ui/Menu.ts:373",
+      "create src/src/shards/driftwood-isle/loadout/rows.ts:22",
+      "placePickups src/src/engine/combat/EquipmentService.ts:31",
+      "Mp src/src/shards/driftwood-isle/weapons/IronSword.ts:253",
+      "select src/src/engine/ui/Menu.ts:299",
+      "applies src/src/engine/ui/Menu.ts:509",
+      "applies src/src/engine/ui/DebugMenu.ts:185",
+      "ze src/src/engine/ui/DebugMenu.ts:52",
+      "paint src/src/engine/ui/DebugMenu.ts:109",
+      "m src/src/engine/ui/DebugMenu.ts:160"
+     ]
+    },
+    {
+     "at": 5080,
+     "ms": 114,
+     "step": "menu",
+     "owner": "finish src/src/engine/world/lowpolyKit.ts:126",
+     "leaf": [
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "add src/src/engine/world/lowpolyKit.ts:54"
+     ],
+     "incl": [
+      "Nf src/src/shards/driftwood-isle/quest/adventure.ts:124",
+      "_ src/src/engine/app/ownership.ts:7",
+      "Qe src/src/engine/models/place.ts:1028",
+      "(anon) src/src/shards/driftwood-isle/quest/interactLifetime.ts:10",
+      "hd src/src/shards/driftwood-isle/quest/interactLifetime.ts:7",
+      "build src/src/engine/world/interact/Interactables.ts:254",
+      "(anon) src/src/engine/models/place.ts:667",
+      "ze src/src/engine/models/place.ts:663",
+      "Z src/src/engine/models/place.ts:353",
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "parts src/src/engine/world/interact/Interactables.ts:376",
+      "geo src/src/engine/world/interact/Interactables.ts:363"
+     ]
+    },
+    {
+     "at": 5215,
+     "ms": 292,
+     "step": "menu",
+     "owner": "g src/src/engine/world/shadowChunks.ts:74",
+     "leaf": [
+      "g src/src/engine/world/shadowChunks.ts:74",
+      "f src/src/engine/world/shadowChunks.ts:39",
+      "(anon) src/src/engine/render/gpuLabels.ts:177"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "P src/src/engine/boot/plan.ts:198",
+      "step src/src/engine/boot/plan.ts:212",
+      "(anon) src/src/game/session/data.ts:46",
+      "Fd src/src/game/shard/load.ts:39",
+      "u src/src/game/session/data.ts:46",
+      "(anon) src/src/game/session/finish.ts:52",
+      "B src/src/engine/render/precompile.ts:370",
+      "f src/src/engine/world/shadowChunks.ts:39",
+      "g src/src/engine/world/shadowChunks.ts:74",
+      "z src/src/engine/render/precompile.ts:287",
+      "(anon) src/src/engine/render/gpuLabels.ts:177"
+     ]
+    },
+    {
+     "at": 5902,
+     "ms": 61,
+     "step": "shaders",
+     "owner": "z src/src/engine/render/precompile.ts:287",
+     "leaf": [
+      "z src/src/engine/render/precompile.ts:287",
+      "i src/src/engine/render/precompile.ts:266",
+      "paint src/src/engine/ui/Loading.ts:125"
+     ],
+     "incl": [
+      "z src/src/engine/render/precompile.ts:287",
+      "i src/src/engine/render/precompile.ts:266",
+      "(anon) src/src/engine/render/precompile.ts:275",
+      "L src/src/engine/render/precompile.ts:262",
+      "paint src/src/engine/ui/Loading.ts:125",
+      "(anon) src/src/game/session/data.ts:41",
+      "j src/src/engine/boot/plan.ts:135",
+      "set src/src/engine/boot/plan.ts:170",
+      "(anon) src/src/game/session/finish.ts:52",
+      "r src/src/engine/render/precompile.ts:265",
+      "a src/src/engine/render/allocationJournal.ts:41",
+      "n src/src/engine/render/precompile.ts:264"
+     ]
+    },
+    {
+     "at": 5985,
+     "ms": 127,
+     "step": "firstFrame",
+     "owner": "(anon) src/src/engine/render/gpuLabels.ts:177",
+     "leaf": [
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a src/src/engine/render/allocationJournal.ts:41"
+     ],
+     "incl": [
+      "firstFrame src/src/engine/core/Game.ts:706",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a.render src/src/engine/core/Game.ts:383",
+      "a src/src/engine/render/allocationJournal.ts:41",
+      "e.properties.get src/src/engine/render/uploadOwnership.ts:50",
+      "e.properties.get src/src/engine/render/gpuLabels.ts:144",
+      "Y src/src/engine/render/gpuLabels.ts:74",
+      "i src/src/engine/render/gpuLabels.ts:76"
+     ]
+    },
+    {
+     "at": 6115,
+     "ms": 52,
+     "step": "firstFrame",
+     "owner": "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+     "leaf": [
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a.render src/src/engine/core/Game.ts:383",
+      "e.properties.get src/src/engine/render/gpuLabels.ts:144"
+     ],
+     "incl": [
+      "warmTurn src/src/engine/core/Game.ts:751",
+      "firstFrame src/src/engine/core/Game.ts:706",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "a.render src/src/engine/core/Game.ts:383",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "e.properties.get src/src/engine/render/uploadOwnership.ts:50",
+      "e.properties.get src/src/engine/render/gpuLabels.ts:144",
+      "i src/src/engine/render/gpuLabels.ts:76",
+      "Y src/src/engine/render/gpuLabels.ts:74"
+     ]
+    },
+    {
+     "at": 6840,
+     "ms": 882,
+     "step": "audio",
+     "owner": "QL src/src/engine/debug/probe.ts:171",
+     "leaf": [
+      "QL src/src/engine/debug/probe.ts:171",
+      "graph src/src/engine/audio/Audio.ts:172",
+      "(anon) src/src/engine/debug/probe.ts:197"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "tR src/src/engine/debug/probe.ts:266",
+      "eR src/src/engine/debug/probe.ts:205",
+      "$L src/src/engine/debug/probe.ts:196",
+      "QL src/src/engine/debug/probe.ts:171",
+      "start src/src/engine/core/Game.ts:781",
+      "s src/src/engine/core/Game.ts:805",
+      "_ src/src/engine/app/ownership.ts:7",
+      "runPhase src/src/engine/core/Game.ts:640",
+      "(anon) src/src/engine/app/app.ts:229",
+      "run src/src/engine/app/app.ts:229",
+      "st src/src/game/session/play.ts:405"
+     ]
+    }
+   ],
+   "programs": 96,
+   "lastStep": [
+    6590,
+    "audio | 100/100 | Driftwood Isle | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Driftwood",
+   "slug": "driftwood-isle",
+   "cache": "cold",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 1806,
+   "readyMs": 1588,
+   "phases": [
+    [
+     "modules",
+     0,
+     110
+    ],
+    [
+     "engine world",
+     110,
+     141
+    ],
+    [
+     "shard world",
+     251,
+     737
+    ],
+    [
+     "creatures, weapons, HUD",
+     988,
+     189
+    ],
+    [
+     "shaders, first frame",
+     1177,
+     248
+    ],
+    [
+     "audio, finish",
+     1425,
+     381
+    ]
+   ],
+   "long": [
+    [
+     253,
+     57
+    ],
+    [
+     318,
+     136
+    ],
+    [
+     688,
+     69
+    ],
+    [
+     795,
+     165
+    ],
+    [
+     1107,
+     69
+    ],
+    [
+     1839,
+     246
+    ]
+   ],
+   "tasks": [],
+   "programs": 96,
+   "lastStep": [
+    1588,
+    "audio | 100/100 | Driftwood Isle | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-4x",
+   "shard": "Driftwood",
+   "slug": "driftwood-isle",
+   "cache": "warm",
+   "cpu": 4,
+   "status": "ok",
+   "playMs": 6616,
+   "readyMs": 6384,
+   "phases": [
+    [
+     "modules",
+     0,
+     379
+    ],
+    [
+     "engine world",
+     379,
+     672
+    ],
+    [
+     "shard world",
+     1051,
+     3407
+    ],
+    [
+     "creatures, weapons, HUD",
+     4458,
+     862
+    ],
+    [
+     "shaders, first frame",
+     5320,
+     828
+    ],
+    [
+     "audio, finish",
+     6148,
+     468
+    ]
+   ],
+   "long": [
+    [
+     283,
+     62
+    ],
+    [
+     354,
+     73
+    ],
+    [
+     483,
+     55
+    ],
+    [
+     653,
+     109
+    ],
+    [
+     1131,
+     243
+    ],
+    [
+     1439,
+     119
+    ],
+    [
+     1562,
+     484
+    ],
+    [
+     2053,
+     85
+    ],
+    [
+     2148,
+     134
+    ],
+    [
+     2286,
+     171
+    ],
+    [
+     2465,
+     183
+    ],
+    [
+     2697,
+     162
+    ],
+    [
+     2863,
+     115
+    ],
+    [
+     2981,
+     59
+    ],
+    [
+     3042,
+     170
+    ],
+    [
+     3217,
+     307
+    ],
+    [
+     3608,
+     737
+    ],
+    [
+     4352,
+     95
+    ],
+    [
+     4779,
+     53
+    ],
+    [
+     4896,
+     116
+    ],
+    [
+     5041,
+     279
+    ],
+    [
+     5717,
+     58
+    ],
+    [
+     5785,
+     127
+    ],
+    [
+     5916,
+     51
+    ],
+    [
+     6635,
+     774
+    ]
+   ],
+   "tasks": [
+    {
+     "at": 283,
+     "ms": 63,
+     "step": "admission.modules",
+     "owner": "r src/src/game/shardfile/json.ts:5",
+     "leaf": [
+      "r src/src/game/shardfile/json.ts:5",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "l src/src/game/shardfile/preflight.ts:37"
+     ],
+     "incl": [
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "a src/src/sdk/shardfile.ts:10",
+      "pt src/src/game/shardfile/json.ts:2",
+      "r src/src/game/shardfile/json.ts:5",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "s src/src/sdk/author.ts:20",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "l src/src/game/shardfile/preflight.ts:37"
+     ]
+    },
+    {
+     "at": 354,
+     "ms": 74,
+     "step": "admission.modules",
+     "owner": "(anon) src/src/engine/boot/shardPrefetch.ts:100",
+     "leaf": [
+      "(anon) src/src/engine/boot/shardPrefetch.ts:100",
+      "(anon) src/src/engine/render/renderer.ts:28",
+      "mO src/src/engine/core/webglStartup.ts:14"
+     ],
+     "incl": [
+      "(anon) src/src/engine/core/bootstrap.ts:66",
+      "kf src/src/game/session/data.ts:19",
+      "fO src/src/engine/core/Game.ts:340",
+      "lf src/src/engine/boot/extras.ts:72",
+      "LL src/src/engine/boot/shardPrefetch.ts:106",
+      "(anon) src/src/engine/boot/shardPrefetch.ts:117",
+      "v src/src/engine/boot/gpuFiles.ts:103",
+      "y src/src/engine/boot/gpuFiles.ts:119"
+     ]
+    },
+    {
+     "at": 483,
+     "ms": 56,
+     "step": "sky",
+     "owner": "J_ src/src/engine/physics/navmesh.ts:54",
+     "leaf": [
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "Z_ src/src/engine/physics/navmesh.ts:212",
+      "u8s src/src/engine/physics/navmesh.ts:50"
+     ],
+     "incl": [
+      "$_ src/src/engine/physics/navmesh.ts:236",
+      "Z_ src/src/engine/physics/navmesh.ts:212",
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "u8s src/src/engine/physics/navmesh.ts:50",
+      "u8 src/src/engine/physics/navmesh.ts:45",
+      "f32 src/src/engine/physics/navmesh.ts:49",
+      "need src/src/engine/physics/navmesh.ts:44",
+      "(anon) src/src/engine/physics/navmesh.ts:105"
+     ]
+    },
+    {
+     "at": 653,
+     "ms": 111,
+     "step": "sky",
+     "owner": "j src/src/shards/driftwood-isle/look/stylizedSky.ts:143",
+     "leaf": [
+      "j src/src/shards/driftwood-isle/look/stylizedSky.ts:143",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "(anon) src/src/engine/render/gpuLabels.ts:177"
+     ],
+     "incl": [
+      "ce src/src/shards/driftwood-isle/look/backdrop.ts:154",
+      "build src/src/shards/driftwood-isle/look/stylizedSky.ts:62",
+      "j src/src/shards/driftwood-isle/look/stylizedSky.ts:143",
+      "c src/src/shards/driftwood-isle/look/backdrop.ts:163",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "build src/src/engine/world/skyRig.ts:93",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52"
+     ]
+    },
+    {
+     "at": 1130,
+     "ms": 244,
+     "step": "props",
+     "owner": "(anon) src/src/game/shardfile/budget.ts:34",
+     "leaf": [
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "K src/src/game/shardfile/budget.ts:20",
+      "r src/src/game/shardfile/json.ts:5"
+     ],
+     "incl": [
+      "Y src/src/game/shardfile/product.ts:85",
+      "Dr src/src/game/shardfile/budget.ts:57",
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Lr src/src/game/shardfile/validate.ts:68",
+      "Ir src/src/game/shardfile/validate.ts:33",
+      "K src/src/game/shardfile/budget.ts:20",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "r src/src/game/shardfile/json.ts:5"
+     ]
+    },
+    {
+     "at": 1439,
+     "ms": 119,
+     "step": "props",
+     "owner": "build src/src/shards/driftwood-isle/world/Ocean.ts:60",
+     "leaf": [
+      "build src/src/shards/driftwood-isle/world/Ocean.ts:60",
+      "ei src/src/shards/driftwood-isle/models/pier.ts:235",
+      "ui src/src/shards/driftwood-isle/models/boat.ts:67"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Z src/src/engine/models/place.ts:353",
+      "place src/src/shards/driftwood-isle/world/Boat.ts:54",
+      "draw src/src/shards/driftwood-isle/world/Boat.ts:59",
+      "Fe src/src/engine/models/place.ts:370",
+      "place src/src/shards/driftwood-isle/world/Pier.ts:79",
+      "draw src/src/shards/driftwood-isle/world/Pier.ts:84"
+     ]
+    },
+    {
+     "at": 1562,
+     "ms": 484,
+     "step": "props",
+     "owner": "St.world.createCollider src/src/engine/physics/Physics.ts:43",
+     "leaf": [
+      "St.world.createCollider src/src/engine/physics/Physics.ts:43",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "bi src/src/shards/driftwood-isle/world/rockKit.ts:119"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "draw src/src/shards/driftwood-isle/world/Boulders.ts:86",
+      "place src/src/shards/driftwood-isle/world/Boulders.ts:81",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/shoreBoulder.ts:30"
+     ]
+    },
+    {
+     "at": 2053,
+     "ms": 85,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "build src/src/shards/driftwood-isle/models/hut.ts:85",
+      "w src/src/engine/world/voxelAO.ts:94"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Hut.ts:47",
+      "Qe src/src/engine/models/place.ts:1028",
+      "draw src/src/shards/driftwood-isle/world/Hut.ts:52",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "build src/src/shards/driftwood-isle/models/hut.ts:378",
+      "Z src/src/engine/models/place.ts:353"
+     ]
+    },
+    {
+     "at": 2148,
+     "ms": 136,
+     "step": "props",
+     "owner": "I src/src/engine/world/lowpolyKit.ts:296",
+     "leaf": [
+      "I src/src/engine/world/lowpolyKit.ts:296",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "T src/src/engine/world/voxelAO.ts:103"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Lookout.ts:51",
+      "draw src/src/shards/driftwood-isle/world/Lookout.ts:56",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "build src/src/shards/driftwood-isle/models/lookout.ts:388",
+      "Z src/src/engine/models/place.ts:353"
+     ]
+    },
+    {
+     "at": 2286,
+     "ms": 172,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "T src/src/engine/world/voxelAO.ts:103",
+      "w src/src/engine/world/voxelAO.ts:94"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Wreck.ts:60",
+      "draw src/src/shards/driftwood-isle/world/Wreck.ts:65",
+      "build src/src/shards/driftwood-isle/models/shipwreck.ts:188",
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "I src/src/engine/world/lowpolyKit.ts:296",
+      "(anon) src/src/shards/driftwood-isle/world/Wreck.ts:67",
+      "around src/src/shards/driftwood-isle/world/Wreck.ts:126"
+     ]
+    },
+    {
+     "at": 2465,
+     "ms": 184,
+     "step": "props",
+     "owner": "build src/src/shards/driftwood-isle/models/shrine.ts:105",
+     "leaf": [
+      "build src/src/shards/driftwood-isle/models/shrine.ts:105",
+      "T src/src/engine/world/voxelAO.ts:103",
+      "finish src/src/engine/world/lowpolyKit.ts:126"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Shrine.ts:65",
+      "draw src/src/shards/driftwood-isle/world/Shrine.ts:70",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "build src/src/shards/driftwood-isle/models/shrine.ts:515",
+      "Z src/src/engine/models/place.ts:353"
+     ]
+    },
+    {
+     "at": 2697,
+     "ms": 163,
+     "step": "props",
+     "owner": "$o src/src/shards/driftwood-isle/models/hibiscusBush.ts:151",
+     "leaf": [
+      "$o src/src/shards/driftwood-isle/models/hibiscusBush.ts:151",
+      "Qo src/src/shards/driftwood-isle/models/hibiscusBush.ts:136",
+      "tri src/src/shards/driftwood-isle/models/hibiscusBush.ts:40"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "draw src/src/shards/driftwood-isle/world/Bushes.ts:74",
+      "place src/src/shards/driftwood-isle/world/Bushes.ts:69",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/hibiscusBush.ts:200"
+     ]
+    },
+    {
+     "at": 2863,
+     "ms": 115,
+     "step": "props",
+     "owner": "build src/src/shards/driftwood-isle/models/trailside.ts:53",
+     "leaf": [
+      "build src/src/shards/driftwood-isle/models/trailside.ts:53",
+      "(anon) src/src/shards/driftwood-isle/models/trailside.ts:35",
+      "f src/src/shards/driftwood-isle/world/Trailside.ts:132"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "build src/src/shards/driftwood-isle/world/Trailside.ts:112",
+      "build src/src/shards/driftwood-isle/models/trailside.ts:53",
+      "f src/src/shards/driftwood-isle/world/Trailside.ts:132",
+      "(anon) src/src/shards/driftwood-isle/models/trailside.ts:35",
+      "place src/src/shards/driftwood-isle/world/Trailside.ts:106",
+      "(anon) src/src/engine/physics/pieces.ts:74",
+      "_ src/src/engine/app/ownership.ts:7"
+     ]
+    },
+    {
+     "at": 2980,
+     "ms": 59,
+     "step": "props",
+     "owner": "Xs src/src/shards/driftwood-isle/models/reef.ts:66",
+     "leaf": [
+      "Xs src/src/shards/driftwood-isle/models/reef.ts:66",
+      "build src/src/shards/driftwood-isle/world/Seabed.ts:97",
+      "scatterLagoon src/src/shards/driftwood-isle/world/Seabed.ts:52"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "build src/src/shards/driftwood-isle/world/Seabed.ts:97",
+      "(anon) src/src/shards/driftwood-isle/models/reef.ts:203",
+      "Xs src/src/shards/driftwood-isle/models/reef.ts:66",
+      "scatterLagoon src/src/shards/driftwood-isle/world/Seabed.ts:52",
+      "place src/src/shards/driftwood-isle/world/RopeBridge.ts:37",
+      "draw src/src/shards/driftwood-isle/world/RopeBridge.ts:42",
+      "Qe src/src/engine/models/place.ts:1028"
+     ]
+    },
+    {
+     "at": 3042,
+     "ms": 171,
+     "step": "props",
+     "owner": "x src/src/engine/world/geometryKit.ts:82",
+     "leaf": [
+      "x src/src/engine/world/geometryKit.ts:82",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+      "T src/src/engine/world/voxelAO.ts:103"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "place src/src/shards/driftwood-isle/world/Cove.ts:129",
+      "build src/src/shards/driftwood-isle/world/Cove.ts:163",
+      "g src/src/shards/driftwood-isle/world/Cove.ts:179",
+      "x src/src/engine/world/geometryKit.ts:82",
+      "_i src/src/shards/driftwood-isle/world/rockKit.ts:56",
+      "c src/src/shards/driftwood-isle/world/Cove.ts:173",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232"
+     ]
+    },
+    {
+     "at": 3217,
+     "ms": 307,
+     "step": "props",
+     "owner": "oc src/src/shards/driftwood-isle/models/palm.ts:45",
+     "leaf": [
+      "oc src/src/shards/driftwood-isle/models/palm.ts:45",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "Fe src/src/engine/models/place.ts:370"
+     ],
+     "incl": [
+      "xl src/src/shards/driftwood-isle/world/build.ts:77",
+      "build src/src/shards/driftwood-isle/world/GroundCover.ts:315",
+      "draw src/src/shards/driftwood-isle/world/Palms.ts:80",
+      "place src/src/shards/driftwood-isle/world/Palms.ts:75",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "build src/src/shards/driftwood-isle/models/palm.ts:178"
+     ]
+    },
+    {
+     "at": 3608,
+     "ms": 737,
+     "step": "props",
+     "owner": "coverTriangles src/src/shards/driftwood-isle/world/islandInstances.ts:206",
+     "leaf": [
+      "coverTriangles src/src/shards/driftwood-isle/world/islandInstances.ts:206",
+      "build src/src/shards/driftwood-isle/world/BlenderIsland.ts:225",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232"
+     ],
+     "incl": [
+      "build src/src/shards/driftwood-isle/world/BlenderIsland.ts:225",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Fe src/src/engine/models/place.ts:370",
+      "(anon) src/src/engine/models/place.ts:382",
+      "Z src/src/engine/models/place.ts:353",
+      "build src/src/shards/driftwood-isle/models/smallRock.ts:31",
+      "_i src/src/shards/driftwood-isle/world/rockKit.ts:56",
+      "ji src/src/shards/driftwood-isle/world/rockKit.ts:232"
+     ]
+    },
+    {
+     "at": 4352,
+     "ms": 96,
+     "step": "props",
+     "owner": "m src/src/engine/core/gpuOnly.ts:47",
+     "leaf": [
+      "m src/src/engine/core/gpuOnly.ts:47",
+      "O src/src/engine/script/admission.ts:57",
+      "install src/src/engine/script/host.ts:104"
+     ],
+     "incl": [
+      "world src/src/shards/driftwood-isle/runtime/index.ts:31",
+      "jl src/src/shards/driftwood-isle/world/gpuOnlyCopies.ts:43",
+      "(anon) src/src/shards/driftwood-isle/world/gpuOnlyCopies.ts:47",
+      "m src/src/engine/core/gpuOnly.ts:47",
+      "qn src/src/game/shardfile/moverRuntime.ts:14",
+      "install src/src/engine/script/host.ts:104",
+      "O src/src/engine/script/admission.ts:57",
+      "te src/src/engine/script/admission.ts:30"
+     ]
+    },
+    {
+     "at": 4779,
+     "ms": 53,
+     "step": "menu",
+     "owner": "ze src/src/engine/ui/DebugMenu.ts:52",
+     "leaf": [
+      "ze src/src/engine/ui/DebugMenu.ts:52",
+      "TL src/src/game/session/play.ts:83",
+      "RP src/src/engine/ui/SavePanel.ts:18"
+     ],
+     "incl": [
+      "TL src/src/game/session/play.ts:83",
+      "tF src/src/engine/ui/Menu.ts:123",
+      "buildSettings src/src/engine/ui/Menu.ts:373",
+      "Mp src/src/shards/driftwood-isle/weapons/IronSword.ts:253",
+      "create src/src/shards/driftwood-isle/loadout/rows.ts:22",
+      "placePickups src/src/engine/combat/EquipmentService.ts:31",
+      "select src/src/engine/ui/Menu.ts:299",
+      "applies src/src/engine/ui/Menu.ts:509"
+     ]
+    },
+    {
+     "at": 4895,
+     "ms": 116,
+     "step": "menu",
+     "owner": "finish src/src/engine/world/lowpolyKit.ts:126",
+     "leaf": [
+      "finish src/src/engine/world/lowpolyKit.ts:126",
+      "add src/src/engine/world/lowpolyKit.ts:54",
+      "f src/src/engine/world/geometryKit.ts:16"
+     ],
+     "incl": [
+      "Nf src/src/shards/driftwood-isle/quest/adventure.ts:124",
+      "_ src/src/engine/app/ownership.ts:7",
+      "(anon) src/src/shards/driftwood-isle/quest/interactLifetime.ts:10",
+      "hd src/src/shards/driftwood-isle/quest/interactLifetime.ts:7",
+      "build src/src/engine/world/interact/Interactables.ts:254",
+      "Qe src/src/engine/models/place.ts:1028",
+      "(anon) src/src/engine/models/place.ts:667",
+      "ze src/src/engine/models/place.ts:663"
+     ]
+    },
+    {
+     "at": 5041,
+     "ms": 279,
+     "step": "menu",
+     "owner": "g src/src/engine/world/shadowChunks.ts:74",
+     "leaf": [
+      "g src/src/engine/world/shadowChunks.ts:74",
+      "m src/src/engine/world/shadowChunks.ts:80",
+      "(anon) src/src/engine/render/gpuLabels.ts:177"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "P src/src/engine/boot/plan.ts:198",
+      "step src/src/engine/boot/plan.ts:212",
+      "(anon) src/src/game/session/data.ts:46",
+      "Fd src/src/game/shard/load.ts:39",
+      "u src/src/game/session/data.ts:46",
+      "B src/src/engine/render/precompile.ts:370",
+      "(anon) src/src/game/session/finish.ts:52"
+     ]
+    },
+    {
+     "at": 5716,
+     "ms": 58,
+     "step": "shaders",
+     "owner": "z src/src/engine/render/precompile.ts:287",
+     "leaf": [
+      "z src/src/engine/render/precompile.ts:287",
+      "i src/src/engine/render/precompile.ts:266",
+      "paint src/src/engine/ui/Loading.ts:125"
+     ],
+     "incl": [
+      "z src/src/engine/render/precompile.ts:287",
+      "(anon) src/src/engine/render/precompile.ts:275",
+      "L src/src/engine/render/precompile.ts:262",
+      "i src/src/engine/render/precompile.ts:266",
+      "j src/src/engine/boot/plan.ts:135",
+      "set src/src/engine/boot/plan.ts:170",
+      "(anon) src/src/game/session/finish.ts:52",
+      "(anon) src/src/game/session/data.ts:41"
+     ]
+    },
+    {
+     "at": 5785,
+     "ms": 128,
+     "step": "firstFrame",
+     "owner": "(anon) src/src/engine/render/gpuLabels.ts:177",
+     "leaf": [
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a src/src/engine/render/allocationJournal.ts:41"
+     ],
+     "incl": [
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "firstFrame src/src/engine/core/Game.ts:706",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a.render src/src/engine/core/Game.ts:383",
+      "a src/src/engine/render/allocationJournal.ts:41"
+     ]
+    },
+    {
+     "at": 5916,
+     "ms": 52,
+     "step": "firstFrame",
+     "owner": "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+     "leaf": [
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "e.properties.get src/src/engine/render/gpuLabels.ts:144",
+      "a.render src/src/engine/core/Game.ts:383"
+     ],
+     "incl": [
+      "firstFrame src/src/engine/core/Game.ts:706",
+      "warmTurn src/src/engine/core/Game.ts:751",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "a.render src/src/engine/core/Game.ts:383"
+     ]
+    },
+    {
+     "at": 6635,
+     "ms": 775,
+     "step": "audio",
+     "owner": "QL src/src/engine/debug/probe.ts:171",
+     "leaf": [
+      "QL src/src/engine/debug/probe.ts:171",
+      "(anon) src/src/engine/debug/probe.ts:197",
+      "l src/src/engine/app/sceneOwnership.ts:8"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "tR src/src/engine/debug/probe.ts:266",
+      "eR src/src/engine/debug/probe.ts:205",
+      "$L src/src/engine/debug/probe.ts:196",
+      "QL src/src/engine/debug/probe.ts:171",
+      "start src/src/engine/core/Game.ts:781",
+      "s src/src/engine/core/Game.ts:805",
+      "_ src/src/engine/app/ownership.ts:7"
+     ]
+    }
+   ],
+   "programs": 96,
+   "lastStep": [
+    6384,
+    "audio | 100/100 | Driftwood Isle | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Driftwood",
+   "slug": "driftwood-isle",
+   "cache": "warm",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 2308,
+   "readyMs": 2073,
+   "phases": [
+    [
+     "modules",
+     0,
+     118
+    ],
+    [
+     "engine world",
+     118,
+     162
+    ],
+    [
+     "shard world",
+     280,
+     869
+    ],
+    [
+     "creatures, weapons, HUD",
+     1149,
+     227
+    ],
+    [
+     "shaders, first frame",
+     1376,
+     463
+    ],
+    [
+     "audio, finish",
+     1839,
+     469
+    ]
+   ],
+   "long": [
+    [
+     293,
+     76
+    ],
+    [
+     388,
+     153
+    ],
+    [
+     632,
+     57
+    ],
+    [
+     739,
+     50
+    ],
+    [
+     829,
+     78
+    ],
+    [
+     928,
+     193
+    ],
+    [
+     1290,
+     86
+    ],
+    [
+     2324,
+     205
+    ],
+    [
+     2533,
+     53
+    ]
+   ],
+   "tasks": [],
+   "programs": 96,
+   "lastStep": [
+    2073,
+    "audio | 100/100 | Driftwood Isle | Ready"
+   ]
+  },
+  {
+   "lane": "simulator-safari",
+   "shard": "Driftwood",
+   "slug": "driftwood-isle",
+   "cache": "first",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 3364,
+   "readyMs": 2857,
+   "phases": [
+    [
+     "modules",
+     0,
+     151
+    ],
+    [
+     "engine world",
+     151,
+     261
+    ],
+    [
+     "shard world",
+     412,
+     1452
+    ],
+    [
+     "creatures, weapons, HUD",
+     1864,
+     311
+    ],
+    [
+     "shaders, first frame",
+     2175,
+     386
+    ],
+    [
+     "audio, finish",
+     2561,
+     803
+    ]
+   ],
+   "long": [
+    [
+     410,
+     296
+    ],
+    [
+     746,
+     204
+    ],
+    [
+     950,
+     59
+    ],
+    [
+     1009,
+     67
+    ],
+    [
+     1076,
+     90
+    ],
+    [
+     1166,
+     76
+    ],
+    [
+     1281,
+     70
+    ],
+    [
+     1351,
+     114
+    ],
+    [
+     1526,
+     244
+    ],
+    [
+     1777,
+     85
+    ],
+    [
+     2057,
+     118
+    ],
+    [
+     3093,
+     271
+    ],
+    [
+     3364,
+     82
+    ]
+   ],
+   "tasks": [],
+   "programs": 96,
+   "lastStep": [
+    2859,
+    "audio | 100/100 | Driftwood Isle | Ready"
+   ]
+  },
+  {
+   "lane": "simulator-safari",
+   "shard": "Driftwood",
+   "slug": "driftwood-isle",
+   "cache": "second",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 3244,
+   "readyMs": 2725,
+   "phases": [
+    [
+     "modules",
+     0,
+     157
+    ],
+    [
+     "engine world",
+     157,
+     258
+    ],
+    [
+     "shard world",
+     415,
+     1380
+    ],
+    [
+     "creatures, weapons, HUD",
+     1795,
+     295
+    ],
+    [
+     "shaders, first frame",
+     2090,
+     368
+    ],
+    [
+     "audio, finish",
+     2458,
+     786
+    ]
+   ],
+   "long": [
+    [
+     401,
+     296
+    ],
+    [
+     735,
+     201
+    ],
+    [
+     936,
+     64
+    ],
+    [
+     1000,
+     57
+    ],
+    [
+     1057,
+     80
+    ],
+    [
+     1137,
+     73
+    ],
+    [
+     1248,
+     64
+    ],
+    [
+     1312,
+     106
+    ],
+    [
+     1482,
+     232
+    ],
+    [
+     1716,
+     77
+    ],
+    [
+     1969,
+     122
+    ],
+    [
+     2966,
+     247
+    ],
+    [
+     3213,
+     58
+    ]
+   ],
+   "tasks": [],
+   "programs": 96,
+   "lastStep": [
+    2727,
+    "audio | 100/100 | Driftwood Isle | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-4x",
+   "shard": "Nalati",
+   "slug": "nalati-grasslands",
+   "cache": "cold",
+   "cpu": 4,
+   "status": "ok",
+   "playMs": 10401,
+   "readyMs": 10188,
+   "phases": [
+    [
+     "modules",
+     0,
+     698
+    ],
+    [
+     "engine world",
+     698,
+     2010
+    ],
+    [
+     "shard world",
+     2708,
+     5334
+    ],
+    [
+     "creatures, weapons, HUD",
+     8042,
+     1100
+    ],
+    [
+     "shaders, first frame",
+     9142,
+     639
+    ],
+    [
+     "audio, finish",
+     9781,
+     620
+    ]
+   ],
+   "long": [
+    [
+     596,
+     64
+    ],
+    [
+     785,
+     62
+    ],
+    [
+     931,
+     237
+    ],
+    [
+     1253,
+     110
+    ],
+    [
+     1372,
+     96
+    ],
+    [
+     1473,
+     88
+    ],
+    [
+     1567,
+     70
+    ],
+    [
+     1645,
+     72
+    ],
+    [
+     1727,
+     58
+    ],
+    [
+     1859,
+     148
+    ],
+    [
+     2310,
+     162
+    ],
+    [
+     2938,
+     898
+    ],
+    [
+     3862,
+     116
+    ],
+    [
+     4027,
+     1176
+    ],
+    [
+     5318,
+     57
+    ],
+    [
+     5594,
+     94
+    ],
+    [
+     5841,
+     70
+    ],
+    [
+     6045,
+     77
+    ],
+    [
+     6127,
+     420
+    ],
+    [
+     7244,
+     748
+    ],
+    [
+     8166,
+     239
+    ],
+    [
+     8421,
+     240
+    ],
+    [
+     8734,
+     151
+    ],
+    [
+     9558,
+     96
+    ],
+    [
+     10439,
+     1311
+    ]
+   ],
+   "tasks": [
+    {
+     "at": 5,
+     "ms": 216,
+     "step": "",
+     "owner": "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+     "leaf": [
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "Be src/src/engine/core/GpuRecovery.ts:316",
+      "J src/src/engine/core/lifeTrace.ts:44"
+     ],
+     "incl": [
+      "_ src/src/engine/app/ownership.ts:7",
+      "f src/src/engine/app/scope.ts:174",
+      "(anon) src/src/engine/app/scope.ts:176",
+      "T src/src/engine/core/GpuRecovery.ts:266",
+      "y src/src/engine/core/GpuRecovery.ts:139",
+      "snapshot src/src/engine/core/Game.ts:320",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "render src/src/engine/core/worldDepth.ts:139",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366"
+     ]
+    },
+    {
+     "at": 596,
+     "ms": 65,
+     "step": "admission.modules",
+     "owner": "r src/src/game/shardfile/json.ts:5",
+     "leaf": [
+      "r src/src/game/shardfile/json.ts:5",
+      "or src/src/shards/nalati-grasslands/world/solid.ts:62",
+      "Mu src/src/game/shardfile/schema.ts:215"
+     ],
+     "incl": [
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "a src/src/sdk/shardfile.ts:10",
+      "r src/src/game/shardfile/json.ts:5",
+      "pt src/src/game/shardfile/json.ts:2",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "s src/src/sdk/author.ts:20",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "or src/src/shards/nalati-grasslands/world/solid.ts:62",
+      "l src/src/game/shardfile/preflight.ts:37",
+      "(anon) src/src/shards/nalati-grasslands/look/fog.ts:22",
+      "Vo src/src/game/shardfile/audio.ts:15",
+      "c src/src/sdk/audio.ts:9"
+     ]
+    },
+    {
+     "at": 785,
+     "ms": 63,
+     "step": "sky",
+     "owner": "J_ src/src/engine/physics/navmesh.ts:54",
+     "leaf": [
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "Z_ src/src/engine/physics/navmesh.ts:212",
+      "need src/src/engine/physics/navmesh.ts:44"
+     ],
+     "incl": [
+      "Z_ src/src/engine/physics/navmesh.ts:212",
+      "$_ src/src/engine/physics/navmesh.ts:236",
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "u8s src/src/engine/physics/navmesh.ts:50",
+      "u8 src/src/engine/physics/navmesh.ts:45",
+      "need src/src/engine/physics/navmesh.ts:44",
+      "u16s src/src/engine/physics/navmesh.ts:51",
+      "(anon) src/src/engine/physics/navmesh.ts:69",
+      "(anon) src/src/engine/physics/navmesh.ts:105",
+      "X_ src/src/engine/physics/navmesh.ts:115"
+     ]
+    },
+    {
+     "at": 931,
+     "ms": 238,
+     "step": "sky",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "Gy src/src/engine/world/skyBackdrop.ts:455",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184"
+     ],
+     "incl": [
+      "build src/src/engine/world/skyRig.ts:93",
+      "buildClouds src/src/engine/world/skyBackdrop.ts:115",
+      "b src/src/engine/boot/bakedTextures.ts:64",
+      "Gy src/src/engine/world/skyBackdrop.ts:455",
+      "get src/src/engine/core/noise.ts:19",
+      "setupHDRI src/src/engine/world/skyBackdrop.ts:58",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "buildSunDisc src/src/engine/world/skyBackdrop.ts:201"
+     ]
+    },
+    {
+     "at": 1253,
+     "ms": 111,
+     "step": "terrain",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537",
+      "X src/src/shards/nalati-grasslands/world/terrain.ts:376",
+      "w src/src/engine/world/terrainField.ts:133",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "z src/src/shards/nalati-grasslands/world/terrain.ts:62"
+     ]
+    },
+    {
+     "at": 1372,
+     "ms": 97,
+     "step": "terrain",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "get src/src/engine/core/noise.ts:19",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "fbm src/src/engine/core/noise.ts:38",
+      "X src/src/shards/nalati-grasslands/world/terrain.ts:376",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537",
+      "w src/src/engine/world/terrainField.ts:133",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365",
+      "V src/src/shards/nalati-grasslands/world/terrain.ts:70"
+     ]
+    },
+    {
+     "at": 1473,
+     "ms": 89,
+     "step": "terrain",
+     "owner": "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+     "leaf": [
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537",
+      "w src/src/engine/world/terrainField.ts:133",
+      "X src/src/shards/nalati-grasslands/world/terrain.ts:376",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "i src/src/engine/world/terrainField.ts:19"
+     ]
+    },
+    {
+     "at": 1567,
+     "ms": 71,
+     "step": "terrain",
+     "owner": "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+     "leaf": [
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133",
+      "fbm src/src/engine/core/noise.ts:38",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "z src/src/shards/nalati-grasslands/world/terrain.ts:62",
+      "V src/src/shards/nalati-grasslands/world/terrain.ts:70"
+     ]
+    },
+    {
+     "at": 1645,
+     "ms": 73,
+     "step": "terrain",
+     "owner": "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+     "leaf": [
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "w src/src/engine/world/terrainField.ts:133",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "$ src/src/shards/nalati-grasslands/world/terrain.ts:474",
+      "z src/src/shards/nalati-grasslands/world/terrain.ts:62"
+     ]
+    },
+    {
+     "at": 1727,
+     "ms": 59,
+     "step": "terrain",
+     "owner": "W src/src/shards/nalati-grasslands/look/terrainPainter.ts:110",
+     "leaf": [
+      "W src/src/shards/nalati-grasslands/look/terrainPainter.ts:110",
+      "get src/src/engine/core/noise.ts:19",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "W src/src/shards/nalati-grasslands/look/terrainPainter.ts:110",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "get src/src/engine/core/noise.ts:19",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "fbm src/src/engine/core/noise.ts:38",
+      "w src/src/engine/world/terrainField.ts:133",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "V src/src/shards/nalati-grasslands/world/terrain.ts:70"
+     ]
+    },
+    {
+     "at": 1859,
+     "ms": 148,
+     "step": "cards",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "Fe src/src/shards/nalati-grasslands/world/terrain.ts:198",
+      "R src/src/engine/world/forest/placement.ts:63"
+     ],
+     "incl": [
+      "P src/src/engine/boot/plan.ts:198",
+      "step src/src/engine/boot/plan.ts:212",
+      "(anon) src/src/game/session/data.ts:46",
+      "Fd src/src/game/shard/load.ts:39",
+      "u src/src/game/session/data.ts:46",
+      "SO src/src/engine/core/bootstrap.ts:57",
+      "(anon) src/src/engine/core/bootstrap.ts:84",
+      "build src/src/engine/world/forest/Forest.ts:108",
+      "place src/src/engine/world/forest/Forest.ts:216",
+      "R src/src/engine/world/forest/placement.ts:63",
+      "mask src/src/shards/nalati-grasslands/manifest.ts:104",
+      "Re src/src/shards/nalati-grasslands/world/terrain.ts:402"
+     ]
+    },
+    {
+     "at": 2309,
+     "ms": 162,
+     "step": "edge",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133",
+      "A src/src/kit/looks/grassField.ts:69"
+     ],
+     "incl": [
+      "world src/src/shards/nalati-grasslands/runtime/index.ts:38",
+      "P src/src/engine/boot/plan.ts:198",
+      "step src/src/engine/boot/plan.ts:212",
+      "(anon) src/src/game/session/data.ts:46",
+      "Fd src/src/game/shard/load.ts:39",
+      "u src/src/game/session/data.ts:46",
+      "(anon) src/src/shards/nalati-grasslands/runtime/index.ts:48",
+      "build src/src/shards/nalati-grasslands/look/render.ts:24",
+      "build src/src/engine/world/Grass.ts:147",
+      "Za src/src/shards/nalati-grasslands/look/grass.ts:486",
+      "M src/src/kit/looks/grassField.ts:131",
+      "j src/src/kit/looks/grassField.ts:123"
+     ]
+    },
+    {
+     "at": 2938,
+     "ms": 899,
+     "step": "props",
+     "owner": "Ha src/src/shards/nalati-grasslands/world/granite.ts:11",
+     "leaf": [
+      "Ha src/src/shards/nalati-grasslands/world/granite.ts:11",
+      "D src/src/engine/world/geometryKit.ts:140",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "Xa src/src/shards/nalati-grasslands/outcrops.ts:44",
+      "paint src/src/shards/nalati-grasslands/world/painted.ts:250",
+      "Wa src/src/shards/nalati-grasslands/models/outcrop.ts:53",
+      "Ha src/src/shards/nalati-grasslands/world/granite.ts:11",
+      "add src/src/shards/nalati-grasslands/world/painted.ts:201",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "D src/src/engine/world/geometryKit.ts:140",
+      "Ka src/src/shards/nalati-grasslands/models/outcrop.ts:84",
+      "get src/src/engine/core/noise.ts:19",
+      "E src/src/engine/world/geometryKit.ts:124",
+      "mesh src/src/shards/nalati-grasslands/world/paint.ts:203"
+     ]
+    },
+    {
+     "at": 3862,
+     "ms": 116,
+     "step": "props",
+     "owner": "lr src/src/shards/nalati-grasslands/world/solid.ts:77",
+     "leaf": [
+      "lr src/src/shards/nalati-grasslands/world/solid.ts:77",
+      "Za src/src/shards/nalati-grasslands/models/cragRock.ts:31",
+      "so src/src/shards/nalati-grasslands/cragRock.ts:54"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "so src/src/shards/nalati-grasslands/cragRock.ts:54",
+      "S src/src/shards/nalati-grasslands/cragRock.ts:79",
+      "no src/src/shards/nalati-grasslands/models/cragRock.ts:170",
+      "lr src/src/shards/nalati-grasslands/world/solid.ts:77",
+      "Za src/src/shards/nalati-grasslands/models/cragRock.ts:31",
+      "Qe src/src/engine/models/place.ts:1028",
+      "register src/src/shards/nalati-grasslands/cragRock.ts:173",
+      "(anon) src/src/shards/nalati-grasslands/cragRock.ts:160",
+      "u src/src/engine/physics/pieces.ts:74",
+      "Jt src/src/engine/physics/pieces.ts:61",
+      "(anon) src/src/engine/core/bootstrap.ts:118"
+     ]
+    },
+    {
+     "at": 4026,
+     "ms": 1180,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "D src/src/engine/world/geometryKit.ts:140"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "build src/src/shards/nalati-grasslands/world/index.ts:78",
+      "t src/src/shards/nalati-grasslands/world/index.ts:80",
+      "paint src/src/shards/nalati-grasslands/world/painted.ts:250",
+      "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+      "Ts src/src/shards/nalati-grasslands/world/NomadCamp.ts:43",
+      "xe src/src/shards/nalati-grasslands/world/paint.ts:270",
+      "mesh src/src/shards/nalati-grasslands/world/paint.ts:203",
+      "finish src/src/shards/nalati-grasslands/world/paint.ts:155",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "add src/src/shards/nalati-grasslands/world/painted.ts:201",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82"
+     ]
+    },
+    {
+     "at": 5318,
+     "ms": 57,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "D src/src/engine/world/geometryKit.ts:140",
+      "ic src/src/shards/nalati-grasslands/models/balbal.ts:73"
+     ],
+     "incl": [
+      "place src/src/shards/nalati-grasslands/world/index.ts:118",
+      "register src/src/shards/nalati-grasslands/world/Balbals.ts:85",
+      "registrations src/src/shards/nalati-grasslands/world/index.ts:124",
+      "Qe src/src/engine/models/place.ts:1028",
+      "Ie src/src/engine/models/place.ts:460",
+      "(anon) src/src/engine/models/place.ts:473",
+      "Z src/src/engine/models/place.ts:353",
+      "Pe src/src/engine/models/place.ts:362",
+      "build src/src/shards/nalati-grasslands/models/balbal.ts:174",
+      "ic src/src/shards/nalati-grasslands/models/balbal.ts:73",
+      "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+      "finish src/src/shards/nalati-grasslands/world/paint.ts:155"
+     ]
+    },
+    {
+     "at": 5594,
+     "ms": 94,
+     "step": "props",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133",
+      "Fn src/src/shards/nalati-grasslands/world/dressing/place.ts:246"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "Mn src/src/shards/nalati-grasslands/world/dressing/place.ts:122",
+      "build src/src/shards/nalati-grasslands/world/dressing/index.ts:132",
+      "Fn src/src/shards/nalati-grasslands/world/dressing/place.ts:246",
+      "B src/src/shards/nalati-grasslands/world/dressing/place.ts:77",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133",
+      "fbm src/src/engine/core/noise.ts:38",
+      "free src/src/shards/nalati-grasslands/world/dressing/place.ts:90",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "Ln src/src/shards/nalati-grasslands/world/dressing/place.ts:312",
+      "range src/src/engine/core/rng.ts:31"
+     ]
+    },
+    {
+     "at": 5841,
+     "ms": 70,
+     "step": "props",
+     "owner": "w src/src/engine/world/terrainField.ts:133",
+     "leaf": [
+      "w src/src/engine/world/terrainField.ts:133",
+      "free src/src/shards/nalati-grasslands/world/dressing/place.ts:90",
+      "get src/src/engine/core/noise.ts:19"
+     ],
+     "incl": [
+      "Mn src/src/shards/nalati-grasslands/world/dressing/place.ts:122",
+      "Hn src/src/shards/nalati-grasslands/world/dressing/place.ts:488",
+      "i src/src/shards/nalati-grasslands/world/dressing/place.ts:490",
+      "w src/src/engine/world/terrainField.ts:133",
+      "B src/src/shards/nalati-grasslands/world/dressing/place.ts:77",
+      "free src/src/shards/nalati-grasslands/world/dressing/place.ts:90",
+      "a src/src/shards/nalati-grasslands/world/dressing/place.ts:492",
+      "U src/src/shards/nalati-grasslands/world/terrain.ts:102",
+      "i src/src/shards/nalati-grasslands/world/dressing/place.ts:126",
+      "P src/src/kit/looks/grassField.ts:156",
+      "get src/src/engine/core/noise.ts:19",
+      "nearby src/src/engine/world/forest/placement.ts:51"
+     ]
+    },
+    {
+     "at": 6045,
+     "ms": 78,
+     "step": "props",
+     "owner": "(anon) src/src/shards/nalati-grasslands/world/dressing/layer.ts:96",
+     "leaf": [
+      "(anon) src/src/shards/nalati-grasslands/world/dressing/layer.ts:96",
+      "Sn src/src/shards/nalati-grasslands/world/dressing/layer.ts:67",
+      "c src/src/shards/nalati-grasslands/world/dressing/index.ts:144"
+     ],
+     "incl": [
+      "build src/src/shards/nalati-grasslands/world/dressing/index.ts:132",
+      "c src/src/shards/nalati-grasslands/world/dressing/index.ts:144",
+      "Sn src/src/shards/nalati-grasslands/world/dressing/layer.ts:67",
+      "(anon) src/src/shards/nalati-grasslands/world/dressing/layer.ts:96",
+      "Mi src/src/shards/nalati-grasslands/models/dressing.ts:303",
+      "ji src/src/shards/nalati-grasslands/models/dressing.ts:282",
+      "dr src/src/shards/nalati-grasslands/world/solid.ts:112",
+      "D src/src/engine/world/geometryKit.ts:140",
+      "(anon) src/src/shards/nalati-grasslands/world/glbPaint.ts:241",
+      "Ti src/src/shards/nalati-grasslands/models/dressing.ts:153",
+      "la src/src/shards/nalati-grasslands/world/dressing/index.ts:76",
+      "a src/src/engine/world/voxelAO.ts:62"
+     ]
+    },
+    {
+     "at": 6127,
+     "ms": 421,
+     "step": "props",
+     "owner": "D src/src/engine/world/geometryKit.ts:140",
+     "leaf": [
+      "D src/src/engine/world/geometryKit.ts:140",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "E src/src/engine/world/geometryKit.ts:124"
+     ],
+     "incl": [
+      "build src/src/shards/nalati-grasslands/world/dressing/index.ts:132",
+      "Qr src/src/shards/nalati-grasslands/world/dressing/statics.ts:38",
+      "paint src/src/shards/nalati-grasslands/world/painted.ts:250",
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "zr src/src/shards/nalati-grasslands/models/dressingProps.ts:105",
+      "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+      "E src/src/engine/world/geometryKit.ts:124",
+      "finish src/src/shards/nalati-grasslands/world/paint.ts:155",
+      "$r src/src/shards/nalati-grasslands/world/dressing/statics.ts:129",
+      "addTo src/src/shards/nalati-grasslands/world/dressing/index.ts:209",
+      "add src/src/shards/nalati-grasslands/world/painted.ts:201",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82"
+     ]
+    },
+    {
+     "at": 7244,
+     "ms": 748,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "Al src/src/shards/nalati-grasslands/world/KurganDungeon.ts:165"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "iu src/src/shards/nalati-grasslands/combat/goldenKing.ts:828",
+      "build src/src/shards/nalati-grasslands/combat/goldenKing.ts:667",
+      "build src/src/shards/nalati-grasslands/world/KurganDungeon.ts:268",
+      "buildStatic src/src/shards/nalati-grasslands/world/KurganDungeon.ts:284",
+      "finish src/src/shards/nalati-grasslands/world/paint.ts:155",
+      "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+      "a src/src/engine/world/voxelAO.ts:62",
+      "xe src/src/shards/nalati-grasslands/world/paint.ts:270",
+      "ic src/src/shards/nalati-grasslands/models/balbal.ts:73",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "buildMovables src/src/shards/nalati-grasslands/world/KurganDungeon.ts:553"
+     ]
+    },
+    {
+     "at": 8166,
+     "ms": 239,
+     "step": "animals",
+     "owner": "P src/src/engine/entities/species/loft.ts:123",
+     "leaf": [
+      "P src/src/engine/entities/species/loft.ts:123",
+      "A src/src/engine/models/animalGeometry.ts:5",
+      "model src/src/engine/entities/AnimalFactory.ts:303"
+     ],
+     "incl": [
+      "gj src/src/game/session/loadout.ts:28",
+      "t.hooks.animalsReady src/src/shards/nalati-grasslands/runtime/index.ts:65",
+      "attachAnimals src/src/shards/nalati-grasslands/runtime/state.ts:301",
+      "build src/src/shards/nalati-grasslands/creatures/wildlife.ts:98",
+      "model src/src/engine/entities/AnimalFactory.ts:303",
+      "spawnAnimal src/src/engine/entities/AnimalManager.ts:693",
+      "spawn src/src/engine/entities/AnimalManager.ts:680",
+      "P src/src/engine/entities/species/loft.ts:123",
+      "Rr src/src/shards/nalati-grasslands/species/horse.ts:118",
+      "spawnHerd src/src/shards/nalati-grasslands/creatures/wildlife.ts:150",
+      "s src/src/shards/nalati-grasslands/creatures/wildlife.ts:153",
+      "spawnPack src/src/shards/nalati-grasslands/creatures/wildlife.ts:135"
+     ]
+    },
+    {
+     "at": 8421,
+     "ms": 241,
+     "step": "weapon",
+     "owner": "Q src/src/engine/player/nalatiArms.ts:287",
+     "leaf": [
+      "Q src/src/engine/player/nalatiArms.ts:287",
+      "W src/src/engine/player/nalatiArms.ts:103",
+      "U src/src/engine/player/nalatiArms.ts:91"
+     ],
+     "incl": [
+      "t.buildEquipment src/src/shards/nalati-grasslands/runtime/index.ts:83",
+      "gj src/src/game/session/loadout.ts:28",
+      "Ah src/src/shards/nalati-grasslands/weapons/loadout.ts:49",
+      "Q src/src/engine/player/nalatiArms.ts:287",
+      "qd src/src/shards/nalati-grasslands/runtime/weapons/Spear.ts:293",
+      "build src/src/shards/nalati-grasslands/runtime/weapons/Spear.ts:356",
+      "uu src/src/shards/nalati-grasslands/runtime/weapons/Sabre.ts:225",
+      "ut src/src/game/weapons/Bow.ts:11",
+      "lt src/src/engine/combat/view/Bow.ts:111",
+      "Fh src/src/shards/nalati-grasslands/weapons/recurve.ts:422",
+      "eu src/src/shards/nalati-grasslands/runtime/weapons/Sabre.ts:74",
+      "oe src/src/engine/player/nalatiArms.ts:374"
+     ]
+    },
+    {
+     "at": 8734,
+     "ms": 152,
+     "step": "menu",
+     "owner": "P src/src/engine/entities/species/loft.ts:123",
+     "leaf": [
+      "P src/src/engine/entities/species/loft.ts:123",
+      "ze src/src/engine/ui/DebugMenu.ts:52",
+      "get src/src/engine/core/noise.ts:19"
+     ],
+     "incl": [
+      "play src/src/shards/nalati-grasslands/runtime/index.ts:91",
+      "qh src/src/shards/nalati-grasslands/adventure.ts:117",
+      "model src/src/engine/entities/AnimalFactory.ts:303",
+      "fg src/src/shards/nalati-grasslands/campPeople.ts:255",
+      "P src/src/engine/entities/species/loft.ts:123",
+      "bind src/src/shards/nalati-grasslands/combat/elites.ts:884",
+      "bind src/src/shards/nalati-grasslands/combat/goldenKing.ts:677",
+      "TL src/src/game/session/play.ts:83",
+      "reset src/src/shards/nalati-grasslands/combat/goldenKing.ts:124",
+      "spawnAnimal src/src/engine/entities/AnimalManager.ts:693",
+      "spawn src/src/engine/entities/AnimalManager.ts:680",
+      "wo src/src/shards/nalati-grasslands/species/goldenKing.ts:161"
+     ]
+    },
+    {
+     "at": 9046,
+     "ms": 53,
+     "step": "menu",
+     "owner": "(anon) src/src/kit/npc/figureRig.ts:166",
+     "leaf": [
+      "(anon) src/src/kit/npc/figureRig.ts:166",
+      "Rh src/src/kit/npc/figureRig.ts:29",
+      "Bh src/src/kit/npc/figureRig.ts:154"
+     ],
+     "incl": [
+      "Wh src/src/shards/nalati-grasslands/campPeopleModels.ts:51",
+      "Bh src/src/kit/npc/figureRig.ts:154",
+      "(anon) src/src/shards/nalati-grasslands/campPeopleModels.ts:53",
+      "Rh src/src/kit/npc/figureRig.ts:29",
+      "(anon) src/src/kit/npc/figureRig.ts:166",
+      "Lh src/src/kit/npc/figureRig.ts:16",
+      "zh src/src/kit/npc/figureRig.ts:128",
+      "(anon) src/src/kit/npc/figureRig.ts:137",
+      "play src/src/shards/nalati-grasslands/runtime/index.ts:91",
+      "Q src/src/shards/nalati-grasslands/world/glbPaint.ts:198",
+      "fragment src/src/game/bag/tabs.ts:76",
+      "fragment src/src/game/session/session.ts:121"
+     ]
+    },
+    {
+     "at": 9558,
+     "ms": 96,
+     "step": "firstFrame",
+     "owner": "(anon) src/src/engine/render/gpuLabels.ts:177",
+     "leaf": [
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a src/src/engine/render/allocationJournal.ts:41"
+     ],
+     "incl": [
+      "firstFrame src/src/engine/core/Game.ts:706",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "a src/src/engine/render/allocationJournal.ts:41",
+      "a.render src/src/engine/core/Game.ts:383",
+      "e.properties.get src/src/engine/render/uploadOwnership.ts:50",
+      "e.properties.get src/src/engine/render/gpuLabels.ts:144",
+      "observe src/src/engine/core/memoryAttribution.ts:57",
+      "K src/src/engine/render/gpuLabels.ts:46"
+     ]
+    },
+    {
+     "at": 10439,
+     "ms": 1312,
+     "step": "audio",
+     "owner": "QL src/src/engine/debug/probe.ts:171",
+     "leaf": [
+      "QL src/src/engine/debug/probe.ts:171",
+      "get src/src/engine/core/noise.ts:19",
+      "landscape src/src/shards/nalati-grasslands/world/terrain.ts:408"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "start src/src/engine/core/Game.ts:781",
+      "s src/src/engine/core/Game.ts:805",
+      "_ src/src/engine/app/ownership.ts:7",
+      "(anon) src/src/engine/app/app.ts:229",
+      "run src/src/engine/app/app.ts:229",
+      "runPhase src/src/engine/core/Game.ts:640",
+      "run src/src/engine/app/app.ts:219",
+      "(anon) src/src/game/session/play.ts:622",
+      "update src/src/engine/ui/Minimap.ts:298",
+      "paintLayer src/src/engine/ui/Minimap.ts:478",
+      "paintRegion src/src/engine/ui/Minimap.ts:540"
+     ]
+    }
+   ],
+   "programs": 98,
+   "lastStep": [
+    10188,
+    "audio | 100/100 | Nalati Grasslands | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Nalati",
+   "slug": "nalati-grasslands",
+   "cache": "cold",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 3074,
+   "readyMs": 2845,
+   "phases": [
+    [
+     "modules",
+     0,
+     137
+    ],
+    [
+     "engine world",
+     137,
+     458
+    ],
+    [
+     "shard world",
+     595,
+     1350
+    ],
+    [
+     "creatures, weapons, HUD",
+     1945,
+     293
+    ],
+    [
+     "shaders, first frame",
+     2238,
+     289
+    ],
+    [
+     "audio, finish",
+     2527,
+     547
+    ]
+   ],
+   "long": [
+    [
+     171,
+     65
+    ],
+    [
+     654,
+     224
+    ],
+    [
+     926,
+     300
+    ],
+    [
+     1434,
+     108
+    ],
+    [
+     1739,
+     191
+    ],
+    [
+     1977,
+     56
+    ],
+    [
+     2037,
+     59
+    ],
+    [
+     3096,
+     348
+    ]
+   ],
+   "tasks": [],
+   "programs": 98,
+   "lastStep": [
+    2845,
+    "audio | 100/100 | Nalati Grasslands | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-4x",
+   "shard": "Nalati",
+   "slug": "nalati-grasslands",
+   "cache": "warm",
+   "cpu": 4,
+   "status": "ok",
+   "playMs": 9989,
+   "readyMs": 9745,
+   "phases": [
+    [
+     "modules",
+     0,
+     506
+    ],
+    [
+     "engine world",
+     506,
+     2018
+    ],
+    [
+     "shard world",
+     2524,
+     5157
+    ],
+    [
+     "creatures, weapons, HUD",
+     7681,
+     1063
+    ],
+    [
+     "shaders, first frame",
+     8744,
+     623
+    ],
+    [
+     "audio, finish",
+     9367,
+     622
+    ]
+   ],
+   "long": [
+    [
+     423,
+     62
+    ],
+    [
+     598,
+     65
+    ],
+    [
+     782,
+     240
+    ],
+    [
+     1140,
+     118
+    ],
+    [
+     1270,
+     96
+    ],
+    [
+     1383,
+     89
+    ],
+    [
+     1481,
+     71
+    ],
+    [
+     1560,
+     72
+    ],
+    [
+     1639,
+     60
+    ],
+    [
+     1771,
+     146
+    ],
+    [
+     2124,
+     162
+    ],
+    [
+     2760,
+     882
+    ],
+    [
+     3668,
+     113
+    ],
+    [
+     3820,
+     1167
+    ],
+    [
+     5144,
+     72
+    ],
+    [
+     5421,
+     87
+    ],
+    [
+     5635,
+     66
+    ],
+    [
+     5769,
+     72
+    ],
+    [
+     5845,
+     426
+    ],
+    [
+     6902,
+     730
+    ],
+    [
+     7801,
+     230
+    ],
+    [
+     8049,
+     247
+    ],
+    [
+     8366,
+     150
+    ],
+    [
+     9141,
+     92
+    ],
+    [
+     9995,
+     1318
+    ]
+   ],
+   "tasks": [
+    {
+     "at": 4,
+     "ms": 206,
+     "step": "",
+     "owner": "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+     "leaf": [
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "Be src/src/engine/core/GpuRecovery.ts:316",
+      "J src/src/engine/core/lifeTrace.ts:44"
+     ],
+     "incl": [
+      "(anon) src/src/engine/app/scope.ts:176",
+      "_ src/src/engine/app/ownership.ts:7",
+      "f src/src/engine/app/scope.ts:174",
+      "T src/src/engine/core/GpuRecovery.ts:266",
+      "y src/src/engine/core/GpuRecovery.ts:139",
+      "snapshot src/src/engine/core/Game.ts:320",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29"
+     ]
+    },
+    {
+     "at": 423,
+     "ms": 62,
+     "step": "admission.modules",
+     "owner": "r src/src/game/shardfile/json.ts:5",
+     "leaf": [
+      "r src/src/game/shardfile/json.ts:5",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "or src/src/shards/nalati-grasslands/world/solid.ts:62"
+     ],
+     "incl": [
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "a src/src/sdk/shardfile.ts:10",
+      "r src/src/game/shardfile/json.ts:5",
+      "pt src/src/game/shardfile/json.ts:2",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "s src/src/sdk/author.ts:20",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "or src/src/shards/nalati-grasslands/world/solid.ts:62"
+     ]
+    },
+    {
+     "at": 598,
+     "ms": 66,
+     "step": "sky",
+     "owner": "J_ src/src/engine/physics/navmesh.ts:54",
+     "leaf": [
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "u8s src/src/engine/physics/navmesh.ts:50",
+      "Z_ src/src/engine/physics/navmesh.ts:212"
+     ],
+     "incl": [
+      "Z_ src/src/engine/physics/navmesh.ts:212",
+      "$_ src/src/engine/physics/navmesh.ts:236",
+      "J_ src/src/engine/physics/navmesh.ts:54",
+      "u8s src/src/engine/physics/navmesh.ts:50",
+      "need src/src/engine/physics/navmesh.ts:44",
+      "u8 src/src/engine/physics/navmesh.ts:45",
+      "u16 src/src/engine/physics/navmesh.ts:46",
+      "u16s src/src/engine/physics/navmesh.ts:51"
+     ]
+    },
+    {
+     "at": 782,
+     "ms": 240,
+     "step": "sky",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "Gy src/src/engine/world/skyBackdrop.ts:455",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184"
+     ],
+     "incl": [
+      "build src/src/engine/world/skyRig.ts:93",
+      "buildClouds src/src/engine/world/skyBackdrop.ts:115",
+      "b src/src/engine/boot/bakedTextures.ts:64",
+      "Gy src/src/engine/world/skyBackdrop.ts:455",
+      "get src/src/engine/core/noise.ts:19",
+      "setupHDRI src/src/engine/world/skyBackdrop.ts:58",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29"
+     ]
+    },
+    {
+     "at": 1140,
+     "ms": 118,
+     "step": "terrain",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "X src/src/shards/nalati-grasslands/world/terrain.ts:376",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537"
+     ]
+    },
+    {
+     "at": 1270,
+     "ms": 97,
+     "step": "terrain",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "X src/src/shards/nalati-grasslands/world/terrain.ts:376",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537"
+     ]
+    },
+    {
+     "at": 1383,
+     "ms": 90,
+     "step": "terrain",
+     "owner": "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+     "leaf": [
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537",
+      "X src/src/shards/nalati-grasslands/world/terrain.ts:376"
+     ]
+    },
+    {
+     "at": 1481,
+     "ms": 71,
+     "step": "terrain",
+     "owner": "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+     "leaf": [
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133",
+      "fbm src/src/engine/core/noise.ts:38",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365"
+     ]
+    },
+    {
+     "at": 1560,
+     "ms": 72,
+     "step": "terrain",
+     "owner": "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+     "leaf": [
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "Y src/src/shards/nalati-grasslands/world/terrain.ts:365",
+      "Ve src/src/shards/nalati-grasslands/world/terrain.ts:537"
+     ]
+    },
+    {
+     "at": 1639,
+     "ms": 60,
+     "step": "terrain",
+     "owner": "W src/src/shards/nalati-grasslands/look/terrainPainter.ts:110",
+     "leaf": [
+      "W src/src/shards/nalati-grasslands/look/terrainPainter.ts:110",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+     ],
+     "incl": [
+      "H src/src/shards/nalati-grasslands/look/terrainPainter.ts:32",
+      "U src/src/shards/nalati-grasslands/look/terrainPainter.ts:50",
+      "W src/src/shards/nalati-grasslands/look/terrainPainter.ts:110",
+      "Be src/src/shards/nalati-grasslands/world/terrain.ts:477",
+      "K src/src/shards/nalati-grasslands/look/terrainPainter.ts:178",
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133",
+      "fbm src/src/engine/core/noise.ts:38"
+     ]
+    },
+    {
+     "at": 1771,
+     "ms": 147,
+     "step": "cards",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "Fe src/src/shards/nalati-grasslands/world/terrain.ts:198",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "(anon) src/src/engine/core/bootstrap.ts:84",
+      "P src/src/engine/boot/plan.ts:198",
+      "step src/src/engine/boot/plan.ts:212",
+      "(anon) src/src/game/session/data.ts:46",
+      "Fd src/src/game/shard/load.ts:39",
+      "u src/src/game/session/data.ts:46",
+      "SO src/src/engine/core/bootstrap.ts:57",
+      "build src/src/engine/world/forest/Forest.ts:108"
+     ]
+    },
+    {
+     "at": 2124,
+     "ms": 163,
+     "step": "edge",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "Wa src/src/shards/nalati-grasslands/look/grass.ts:457",
+      "w src/src/engine/world/terrainField.ts:133"
+     ],
+     "incl": [
+      "world src/src/shards/nalati-grasslands/runtime/index.ts:38",
+      "P src/src/engine/boot/plan.ts:198",
+      "step src/src/engine/boot/plan.ts:212",
+      "(anon) src/src/game/session/data.ts:46",
+      "Fd src/src/game/shard/load.ts:39",
+      "u src/src/game/session/data.ts:46",
+      "(anon) src/src/shards/nalati-grasslands/runtime/index.ts:48",
+      "build src/src/shards/nalati-grasslands/look/render.ts:24"
+     ]
+    },
+    {
+     "at": 2760,
+     "ms": 883,
+     "step": "props",
+     "owner": "Ha src/src/shards/nalati-grasslands/world/granite.ts:11",
+     "leaf": [
+      "Ha src/src/shards/nalati-grasslands/world/granite.ts:11",
+      "D src/src/engine/world/geometryKit.ts:140",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "Xa src/src/shards/nalati-grasslands/outcrops.ts:44",
+      "paint src/src/shards/nalati-grasslands/world/painted.ts:250",
+      "Wa src/src/shards/nalati-grasslands/models/outcrop.ts:53",
+      "Ha src/src/shards/nalati-grasslands/world/granite.ts:11",
+      "add src/src/shards/nalati-grasslands/world/painted.ts:201",
+      "D src/src/engine/world/geometryKit.ts:140",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82"
+     ]
+    },
+    {
+     "at": 3668,
+     "ms": 113,
+     "step": "props",
+     "owner": "lr src/src/shards/nalati-grasslands/world/solid.ts:77",
+     "leaf": [
+      "lr src/src/shards/nalati-grasslands/world/solid.ts:77",
+      "Za src/src/shards/nalati-grasslands/models/cragRock.ts:31",
+      "so src/src/shards/nalati-grasslands/cragRock.ts:54"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "so src/src/shards/nalati-grasslands/cragRock.ts:54",
+      "S src/src/shards/nalati-grasslands/cragRock.ts:79",
+      "no src/src/shards/nalati-grasslands/models/cragRock.ts:170",
+      "Za src/src/shards/nalati-grasslands/models/cragRock.ts:31",
+      "lr src/src/shards/nalati-grasslands/world/solid.ts:77",
+      "register src/src/shards/nalati-grasslands/cragRock.ts:173",
+      "Qe src/src/engine/models/place.ts:1028"
+     ]
+    },
+    {
+     "at": 3820,
+     "ms": 1171,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "D src/src/engine/world/geometryKit.ts:140"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "build src/src/shards/nalati-grasslands/world/index.ts:78",
+      "t src/src/shards/nalati-grasslands/world/index.ts:80",
+      "paint src/src/shards/nalati-grasslands/world/painted.ts:250",
+      "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+      "Ts src/src/shards/nalati-grasslands/world/NomadCamp.ts:43",
+      "xe src/src/shards/nalati-grasslands/world/paint.ts:270",
+      "mesh src/src/shards/nalati-grasslands/world/paint.ts:203"
+     ]
+    },
+    {
+     "at": 5144,
+     "ms": 73,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "xe src/src/shards/nalati-grasslands/world/paint.ts:270",
+      "D src/src/engine/world/geometryKit.ts:140"
+     ],
+     "incl": [
+      "register src/src/shards/nalati-grasslands/world/Balbals.ts:85",
+      "registrations src/src/shards/nalati-grasslands/world/index.ts:124",
+      "place src/src/shards/nalati-grasslands/world/index.ts:118",
+      "Ie src/src/engine/models/place.ts:460",
+      "Qe src/src/engine/models/place.ts:1028",
+      "build src/src/shards/nalati-grasslands/models/balbal.ts:174",
+      "Z src/src/engine/models/place.ts:353",
+      "Pe src/src/engine/models/place.ts:362"
+     ]
+    },
+    {
+     "at": 5421,
+     "ms": 88,
+     "step": "props",
+     "owner": "get src/src/engine/core/noise.ts:19",
+     "leaf": [
+      "get src/src/engine/core/noise.ts:19",
+      "w src/src/engine/world/terrainField.ts:133",
+      "free src/src/shards/nalati-grasslands/world/dressing/place.ts:90"
+     ],
+     "incl": [
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "Mn src/src/shards/nalati-grasslands/world/dressing/place.ts:122",
+      "build src/src/shards/nalati-grasslands/world/dressing/index.ts:132",
+      "Fn src/src/shards/nalati-grasslands/world/dressing/place.ts:246",
+      "B src/src/shards/nalati-grasslands/world/dressing/place.ts:77",
+      "get src/src/engine/core/noise.ts:19",
+      "fbm src/src/engine/core/noise.ts:38",
+      "w src/src/engine/world/terrainField.ts:133"
+     ]
+    },
+    {
+     "at": 5635,
+     "ms": 66,
+     "step": "props",
+     "owner": "w src/src/engine/world/terrainField.ts:133",
+     "leaf": [
+      "w src/src/engine/world/terrainField.ts:133",
+      "free src/src/shards/nalati-grasslands/world/dressing/place.ts:90",
+      "nearby src/src/engine/world/forest/placement.ts:51"
+     ],
+     "incl": [
+      "Mn src/src/shards/nalati-grasslands/world/dressing/place.ts:122",
+      "Hn src/src/shards/nalati-grasslands/world/dressing/place.ts:488",
+      "i src/src/shards/nalati-grasslands/world/dressing/place.ts:490",
+      "w src/src/engine/world/terrainField.ts:133",
+      "B src/src/shards/nalati-grasslands/world/dressing/place.ts:77",
+      "free src/src/shards/nalati-grasslands/world/dressing/place.ts:90",
+      "a src/src/shards/nalati-grasslands/world/dressing/place.ts:492",
+      "P src/src/kit/looks/grassField.ts:156"
+     ]
+    },
+    {
+     "at": 5769,
+     "ms": 73,
+     "step": "props",
+     "owner": "(anon) src/src/shards/nalati-grasslands/world/dressing/layer.ts:96",
+     "leaf": [
+      "(anon) src/src/shards/nalati-grasslands/world/dressing/layer.ts:96",
+      "Sn src/src/shards/nalati-grasslands/world/dressing/layer.ts:67",
+      "c src/src/shards/nalati-grasslands/world/dressing/index.ts:144"
+     ],
+     "incl": [
+      "build src/src/shards/nalati-grasslands/world/dressing/index.ts:132",
+      "c src/src/shards/nalati-grasslands/world/dressing/index.ts:144",
+      "Sn src/src/shards/nalati-grasslands/world/dressing/layer.ts:67",
+      "(anon) src/src/shards/nalati-grasslands/world/dressing/layer.ts:96",
+      "Ei src/src/shards/nalati-grasslands/models/dressing.ts:178",
+      "dr src/src/shards/nalati-grasslands/world/solid.ts:112",
+      "Oi src/src/shards/nalati-grasslands/models/dressing.ts:230",
+      "E src/src/engine/world/geometryKit.ts:124"
+     ]
+    },
+    {
+     "at": 5845,
+     "ms": 426,
+     "step": "props",
+     "owner": "E src/src/engine/world/geometryKit.ts:124",
+     "leaf": [
+      "E src/src/engine/world/geometryKit.ts:124",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "D src/src/engine/world/geometryKit.ts:140"
+     ],
+     "incl": [
+      "build src/src/shards/nalati-grasslands/world/dressing/index.ts:132",
+      "Qr src/src/shards/nalati-grasslands/world/dressing/statics.ts:38",
+      "paint src/src/shards/nalati-grasslands/world/painted.ts:250",
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+      "zr src/src/shards/nalati-grasslands/models/dressingProps.ts:105",
+      "finish src/src/shards/nalati-grasslands/world/paint.ts:155",
+      "E src/src/engine/world/geometryKit.ts:124"
+     ]
+    },
+    {
+     "at": 6902,
+     "ms": 731,
+     "step": "props",
+     "owner": "a src/src/engine/world/voxelAO.ts:62",
+     "leaf": [
+      "a src/src/engine/world/voxelAO.ts:62",
+      "add src/src/shards/nalati-grasslands/world/paint.ts:82",
+      "Al src/src/shards/nalati-grasslands/world/KurganDungeon.ts:165"
+     ],
+     "incl": [
+      "iu src/src/shards/nalati-grasslands/combat/goldenKing.ts:828",
+      "Oh src/src/shards/nalati-grasslands/runtime/state.ts:117",
+      "build src/src/shards/nalati-grasslands/combat/goldenKing.ts:667",
+      "build src/src/shards/nalati-grasslands/world/KurganDungeon.ts:268",
+      "buildStatic src/src/shards/nalati-grasslands/world/KurganDungeon.ts:284",
+      "finish src/src/shards/nalati-grasslands/world/paint.ts:155",
+      "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+      "xe src/src/shards/nalati-grasslands/world/paint.ts:270"
+     ]
+    },
+    {
+     "at": 7801,
+     "ms": 231,
+     "step": "animals",
+     "owner": "P src/src/engine/entities/species/loft.ts:123",
+     "leaf": [
+      "P src/src/engine/entities/species/loft.ts:123",
+      "A src/src/engine/models/animalGeometry.ts:5",
+      "model src/src/engine/entities/AnimalFactory.ts:303"
+     ],
+     "incl": [
+      "gj src/src/game/session/loadout.ts:28",
+      "attachAnimals src/src/shards/nalati-grasslands/runtime/state.ts:301",
+      "t.hooks.animalsReady src/src/shards/nalati-grasslands/runtime/index.ts:65",
+      "model src/src/engine/entities/AnimalFactory.ts:303",
+      "build src/src/shards/nalati-grasslands/creatures/wildlife.ts:98",
+      "spawn src/src/engine/entities/AnimalManager.ts:680",
+      "spawnAnimal src/src/engine/entities/AnimalManager.ts:693",
+      "P src/src/engine/entities/species/loft.ts:123"
+     ]
+    },
+    {
+     "at": 8049,
+     "ms": 247,
+     "step": "weapon",
+     "owner": "Q src/src/engine/player/nalatiArms.ts:287",
+     "leaf": [
+      "Q src/src/engine/player/nalatiArms.ts:287",
+      "W src/src/engine/player/nalatiArms.ts:103",
+      "H src/src/engine/player/nalatiArms.ts:53"
+     ],
+     "incl": [
+      "t.buildEquipment src/src/shards/nalati-grasslands/runtime/index.ts:83",
+      "gj src/src/game/session/loadout.ts:28",
+      "Ah src/src/shards/nalati-grasslands/weapons/loadout.ts:49",
+      "Q src/src/engine/player/nalatiArms.ts:287",
+      "qd src/src/shards/nalati-grasslands/runtime/weapons/Spear.ts:293",
+      "build src/src/shards/nalati-grasslands/runtime/weapons/Spear.ts:356",
+      "uu src/src/shards/nalati-grasslands/runtime/weapons/Sabre.ts:225",
+      "eu src/src/shards/nalati-grasslands/runtime/weapons/Sabre.ts:74"
+     ]
+    },
+    {
+     "at": 8366,
+     "ms": 151,
+     "step": "menu",
+     "owner": "P src/src/engine/entities/species/loft.ts:123",
+     "leaf": [
+      "P src/src/engine/entities/species/loft.ts:123",
+      "get src/src/engine/core/noise.ts:19",
+      "ze src/src/engine/ui/DebugMenu.ts:52"
+     ],
+     "incl": [
+      "play src/src/shards/nalati-grasslands/runtime/index.ts:91",
+      "model src/src/engine/entities/AnimalFactory.ts:303",
+      "qh src/src/shards/nalati-grasslands/adventure.ts:117",
+      "fg src/src/shards/nalati-grasslands/campPeople.ts:255",
+      "bind src/src/shards/nalati-grasslands/combat/elites.ts:884",
+      "P src/src/engine/entities/species/loft.ts:123",
+      "TL src/src/game/session/play.ts:83",
+      "bind src/src/shards/nalati-grasslands/combat/goldenKing.ts:677"
+     ]
+    },
+    {
+     "at": 8652,
+     "ms": 53,
+     "step": "menu",
+     "owner": "(anon) src/src/kit/npc/figureRig.ts:166",
+     "leaf": [
+      "(anon) src/src/kit/npc/figureRig.ts:166",
+      "Rh src/src/kit/npc/figureRig.ts:29",
+      "Bh src/src/kit/npc/figureRig.ts:154"
+     ],
+     "incl": [
+      "Wh src/src/shards/nalati-grasslands/campPeopleModels.ts:51",
+      "Bh src/src/kit/npc/figureRig.ts:154",
+      "(anon) src/src/shards/nalati-grasslands/campPeopleModels.ts:53",
+      "(anon) src/src/kit/npc/figureRig.ts:166",
+      "Rh src/src/kit/npc/figureRig.ts:29",
+      "zh src/src/kit/npc/figureRig.ts:128",
+      "(anon) src/src/kit/npc/figureRig.ts:137",
+      "Lh src/src/kit/npc/figureRig.ts:16"
+     ]
+    },
+    {
+     "at": 9141,
+     "ms": 92,
+     "step": "firstFrame",
+     "owner": "(anon) src/src/engine/render/gpuLabels.ts:177",
+     "leaf": [
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a src/src/engine/render/allocationJournal.ts:41"
+     ],
+     "incl": [
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "firstFrame src/src/engine/core/Game.ts:706",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "a src/src/engine/render/allocationJournal.ts:41",
+      "e.properties.get src/src/engine/render/uploadOwnership.ts:50"
+     ]
+    },
+    {
+     "at": 9995,
+     "ms": 1319,
+     "step": "audio",
+     "owner": "QL src/src/engine/debug/probe.ts:171",
+     "leaf": [
+      "QL src/src/engine/debug/probe.ts:171",
+      "get src/src/engine/core/noise.ts:19",
+      "landscape src/src/shards/nalati-grasslands/world/terrain.ts:408"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "s src/src/engine/core/Game.ts:805",
+      "start src/src/engine/core/Game.ts:781",
+      "_ src/src/engine/app/ownership.ts:7",
+      "runPhase src/src/engine/core/Game.ts:640",
+      "(anon) src/src/engine/app/app.ts:229",
+      "run src/src/engine/app/app.ts:229",
+      "run src/src/engine/app/app.ts:219"
+     ]
+    }
+   ],
+   "programs": 98,
+   "lastStep": [
+    9745,
+    "audio | 100/100 | Nalati Grasslands | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Nalati",
+   "slug": "nalati-grasslands",
+   "cache": "warm",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 3059,
+   "readyMs": 2818,
+   "phases": [
+    [
+     "modules",
+     0,
+     115
+    ],
+    [
+     "engine world",
+     115,
+     508
+    ],
+    [
+     "shard world",
+     623,
+     1291
+    ],
+    [
+     "creatures, weapons, HUD",
+     1914,
+     298
+    ],
+    [
+     "shaders, first frame",
+     2212,
+     316
+    ],
+    [
+     "audio, finish",
+     2528,
+     531
+    ]
+   ],
+   "long": [
+    [
+     193,
+     71
+    ],
+    [
+     669,
+     223
+    ],
+    [
+     934,
+     302
+    ],
+    [
+     1440,
+     106
+    ],
+    [
+     1714,
+     189
+    ],
+    [
+     1946,
+     70
+    ],
+    [
+     2020,
+     56
+    ],
+    [
+     3070,
+     321
+    ]
+   ],
+   "tasks": [],
+   "programs": 98,
+   "lastStep": [
+    2818,
+    "audio | 100/100 | Nalati Grasslands | Ready"
+   ]
+  },
+  {
+   "lane": "simulator-safari",
+   "shard": "Nalati",
+   "slug": "nalati-grasslands",
+   "cache": "first",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 6260,
+   "readyMs": 5555,
+   "phases": [
+    [
+     "modules",
+     0,
+     260
+    ],
+    [
+     "engine world",
+     260,
+     643
+    ],
+    [
+     "shard world",
+     903,
+     2423
+    ],
+    [
+     "creatures, weapons, HUD",
+     3326,
+     557
+    ],
+    [
+     "shaders, first frame",
+     3883,
+     1092
+    ],
+    [
+     "audio, finish",
+     4975,
+     1285
+    ]
+   ],
+   "long": [
+    [
+     282,
+     52
+    ],
+    [
+     353,
+     66
+    ],
+    [
+     662,
+     55
+    ],
+    [
+     784,
+     63
+    ],
+    [
+     914,
+     341
+    ],
+    [
+     1377,
+     465
+    ],
+    [
+     2216,
+     238
+    ],
+    [
+     2454,
+     83
+    ],
+    [
+     2537,
+     104
+    ],
+    [
+     2641,
+     68
+    ],
+    [
+     2745,
+     65
+    ],
+    [
+     2815,
+     56
+    ],
+    [
+     2879,
+     58
+    ],
+    [
+     2947,
+     62
+    ],
+    [
+     3184,
+     127
+    ],
+    [
+     3339,
+     55
+    ],
+    [
+     3469,
+     99
+    ],
+    [
+     3568,
+     101
+    ],
+    [
+     3685,
+     61
+    ],
+    [
+     3746,
+     72
+    ],
+    [
+     4168,
+     463
+    ],
+    [
+     4631,
+     277
+    ],
+    [
+     5801,
+     413
+    ],
+    [
+     6214,
+     85
+    ]
+   ],
+   "tasks": [],
+   "programs": 98,
+   "lastStep": [
+    5558,
+    "audio | 100/100 | Nalati Grasslands | Ready"
+   ]
+  },
+  {
+   "lane": "simulator-safari",
+   "shard": "Nalati",
+   "slug": "nalati-grasslands",
+   "cache": "second",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 4590,
+   "readyMs": 4006,
+   "phases": [
+    [
+     "modules",
+     0,
+     162
+    ],
+    [
+     "engine world",
+     162,
+     536
+    ],
+    [
+     "shard world",
+     698,
+     1760
+    ],
+    [
+     "creatures, weapons, HUD",
+     2458,
+     424
+    ],
+    [
+     "shaders, first frame",
+     2882,
+     650
+    ],
+    [
+     "audio, finish",
+     3532,
+     1058
+    ]
+   ],
+   "long": [
+    [
+     238,
+     56
+    ],
+    [
+     704,
+     281
+    ],
+    [
+     1054,
+     416
+    ],
+    [
+     1710,
+     146
+    ],
+    [
+     1856,
+     69
+    ],
+    [
+     1925,
+     63
+    ],
+    [
+     2361,
+     87
+    ],
+    [
+     2593,
+     57
+    ],
+    [
+     2650,
+     84
+    ],
+    [
+     2746,
+     54
+    ],
+    [
+     2800,
+     63
+    ],
+    [
+     3111,
+     339
+    ],
+    [
+     4245,
+     352
+    ],
+    [
+     4597,
+     71
+    ]
+   ],
+   "tasks": [],
+   "programs": 98,
+   "lastStep": [
+    4008,
+    "audio | 100/100 | Nalati Grasslands | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-4x",
+   "shard": "Template",
+   "slug": "_template",
+   "cache": "cold",
+   "cpu": 4,
+   "status": "ok",
+   "playMs": 3646,
+   "readyMs": 3414,
+   "phases": [
+    [
+     "modules",
+     0,
+     345
+    ],
+    [
+     "admission",
+     345,
+     1924
+    ],
+    [
+     "engine world",
+     2269,
+     210
+    ],
+    [
+     "shard world",
+     2479,
+     143
+    ],
+    [
+     "creatures, weapons, HUD",
+     2622,
+     341
+    ],
+    [
+     "shaders, first frame",
+     2963,
+     433
+    ],
+    [
+     "audio, finish",
+     3396,
+     250
+    ]
+   ],
+   "long": [
+    [
+     350,
+     73
+    ],
+    [
+     426,
+     177
+    ],
+    [
+     892,
+     584
+    ],
+    [
+     2237,
+     65
+    ],
+    [
+     2472,
+     136
+    ],
+    [
+     2810,
+     94
+    ],
+    [
+     3664,
+     263
+    ],
+    [
+     3934,
+     129
+    ]
+   ],
+   "tasks": [
+    {
+     "at": 9,
+     "ms": 89,
+     "step": "",
+     "owner": "Be src/src/engine/core/GpuRecovery.ts:316",
+     "leaf": [
+      "Be src/src/engine/core/GpuRecovery.ts:316",
+      "J src/src/engine/core/lifeTrace.ts:44",
+      "J src/src/engine/render/gpuLabels.ts:66"
+     ],
+     "incl": [
+      "(anon) src/src/engine/app/scope.ts:176",
+      "_ src/src/engine/app/ownership.ts:7",
+      "f src/src/engine/app/scope.ts:174",
+      "T src/src/engine/core/GpuRecovery.ts:266",
+      "y src/src/engine/core/GpuRecovery.ts:139",
+      "snapshot src/src/engine/core/Game.ts:320",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29",
+      "render src/src/engine/core/worldDepth.ts:139",
+      "e.renderBufferDirect src/src/engine/render/uploadOwnership.ts:52",
+      "e.renderBufferDirect src/src/engine/render/memorySaver.ts:233",
+      "renderer.renderBufferDirect src/src/engine/core/Game.ts:366"
+     ]
+    },
+    {
+     "at": 350,
+     "ms": 74,
+     "step": "admission.descriptor",
+     "owner": "r src/src/game/shardfile/json.ts:5",
+     "leaf": [
+      "r src/src/game/shardfile/json.ts:5",
+      "c src/src/game/shardfile/preflight.ts:33",
+      "Mu src/src/game/shardfile/schema.ts:215"
+     ],
+     "incl": [
+      "Oo src/src/game/shardfile/loader.ts:121",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "pt src/src/game/shardfile/json.ts:2",
+      "r src/src/game/shardfile/json.ts:5",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "l src/src/game/shardfile/preflight.ts:37",
+      "c src/src/game/shardfile/preflight.ts:33",
+      "(anon) src/src/game/shardfile/schema.ts:213",
+      "Au src/src/game/shardfile/schema.ts:106",
+      "sc src/src/game/shardfile/props.ts:21",
+      "mr src/src/game/shardfile/sketch.ts:75"
+     ]
+    },
+    {
+     "at": 426,
+     "ms": 177,
+     "step": "admission.cache-read",
+     "owner": "(anon) src/src/game/shardfile/budget.ts:34",
+     "leaf": [
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "r src/src/game/shardfile/json.ts:5",
+      "K src/src/game/shardfile/budget.ts:20"
+     ],
+     "incl": [
+      "Y src/src/game/shardfile/product.ts:85",
+      "Ir src/src/game/shardfile/validate.ts:33",
+      "Dr src/src/game/shardfile/budget.ts:57",
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "r src/src/game/shardfile/json.ts:5",
+      "pt src/src/game/shardfile/json.ts:2",
+      "l src/src/game/shardfile/preflight.ts:37",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "K src/src/game/shardfile/budget.ts:20",
+      "c src/src/game/shardfile/preflight.ts:33"
+     ]
+    },
+    {
+     "at": 892,
+     "ms": 584,
+     "step": "admission.assets",
+     "owner": "(anon) src/src/game/shardfile/budget.ts:34",
+     "leaf": [
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Qr src/src/game/shardfile/terrain.ts:13",
+      "Kr src/src/engine/world/terrainTileData.ts:31"
+     ],
+     "incl": [
+      "Y src/src/game/shardfile/product.ts:85",
+      "Lr src/src/game/shardfile/validate.ts:68",
+      "Dr src/src/game/shardfile/budget.ts:57",
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Qr src/src/game/shardfile/terrain.ts:13",
+      "Zl src/src/game/shardfile/assets.ts:32",
+      "jr src/src/game/shardfile/entryClearance.ts:34",
+      "Xl src/src/game/shardfile/assets.ts:24",
+      "Ir src/src/game/shardfile/validate.ts:33",
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "eu src/src/game/shardfile/assets.ts:247",
+      "Ft src/src/game/shardfile/glbTriangles.ts:49"
+     ]
+    },
+    {
+     "at": 2237,
+     "ms": 66,
+     "step": "admission.complete",
+     "owner": "(anon) src/src/engine/render/renderer.ts:28",
+     "leaf": [
+      "(anon) src/src/engine/render/renderer.ts:28",
+      "mO src/src/engine/core/webglStartup.ts:14",
+      "fO src/src/engine/core/Game.ts:340"
+     ],
+     "incl": [
+      "(anon) src/src/engine/core/bootstrap.ts:66",
+      "fO src/src/engine/core/Game.ts:340",
+      "lR src/src/game/session/session.ts:157",
+      "a src/src/engine/boot.ts:14",
+      "l src/src/engine/level/load.ts:53",
+      "load src/src/engine/level/load.ts:42",
+      "SO src/src/engine/core/bootstrap.ts:57",
+      "DO src/src/game/session/world.ts:25",
+      "world src/src/engine/boot.ts:22",
+      "(anon) src/src/engine/level/load.ts:63",
+      "P src/src/engine/boot/plan.ts:198",
+      "Tt src/src/engine/render/renderer.ts:26"
+     ]
+    },
+    {
+     "at": 2472,
+     "ms": 136,
+     "step": "cabins",
+     "owner": "Ta src/src/engine/world/terrainTileView.ts:61",
+     "leaf": [
+      "Ta src/src/engine/world/terrainTileView.ts:61",
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "Wl src/src/game/shardfile/skinData.ts:32"
+     ],
+     "incl": [
+      "u src/src/game/shardfile/clientWorld.ts:57",
+      "terrain src/src/game/shardfile/clientViews.ts:61",
+      "terrain src/src/game/shardfile/clientViews.ts:98",
+      "Ta src/src/engine/world/terrainTileView.ts:61",
+      "ma src/src/game/shardfile/clientSkins.ts:66",
+      "ua src/src/game/shardfile/skinPlayback.ts:59",
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "world src/src/game/shardfile/client.ts:117",
+      "f src/src/game/shardfile/clientWorld.ts:64",
+      "Yl src/src/game/shardfile/assets.ts:22",
+      "u src/src/engine/world/declaredProps.ts:134",
+      "props src/src/game/shardfile/clientViews.ts:69"
+     ]
+    },
+    {
+     "at": 2810,
+     "ms": 94,
+     "step": "menu",
+     "owner": "Kr src/src/engine/world/terrainTileData.ts:31",
+     "leaf": [
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "$f src/src/engine/audio/Music.ts:121",
+      "St.world.createCollider src/src/engine/physics/Physics.ts:43"
+     ],
+     "incl": [
+      "play src/src/game/shardfile/client.ts:184",
+      "play src/src/game/session/session.ts:148",
+      "(anon) src/src/engine/level/load.ts:70",
+      "tr src/src/game/shardfile/simulation.ts:72",
+      "TL src/src/game/session/play.ts:83",
+      "nr src/src/game/shardfile/simulation.ts:92",
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "tF src/src/engine/ui/Menu.ts:123",
+      "Bt src/src/engine/physics/terrainTiles.ts:10",
+      "_ src/src/engine/app/ownership.ts:7",
+      "te src/src/game/session/world.ts:102",
+      "get master src/src/engine/audio/Audio.ts:221"
+     ]
+    },
+    {
+     "at": 3664,
+     "ms": 264,
+     "step": "audio",
+     "owner": "QL src/src/engine/debug/probe.ts:171",
+     "leaf": [
+      "QL src/src/engine/debug/probe.ts:171",
+      "paintRegion src/src/engine/ui/Minimap.ts:540",
+      "update src/src/engine/quest/view/ui.ts:75"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "tR src/src/engine/debug/probe.ts:266",
+      "eR src/src/engine/debug/probe.ts:205",
+      "$L src/src/engine/debug/probe.ts:196",
+      "QL src/src/engine/debug/probe.ts:171",
+      "start src/src/engine/core/Game.ts:781",
+      "s src/src/engine/core/Game.ts:805",
+      "runPhase src/src/engine/core/Game.ts:640",
+      "_ src/src/engine/app/ownership.ts:7",
+      "(anon) src/src/engine/app/app.ts:229",
+      "run src/src/engine/app/app.ts:229",
+      "run src/src/engine/app/app.ts:219"
+     ]
+    },
+    {
+     "at": 3934,
+     "ms": 130,
+     "step": "audio",
+     "owner": "step src/src/engine/physics/Physics.ts:89",
+     "leaf": [
+      "step src/src/engine/physics/Physics.ts:89",
+      "move src/src/engine/physics/CharacterMotor.ts:267",
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184"
+     ],
+     "incl": [
+      "s src/src/engine/core/Game.ts:805",
+      "(anon) src/src/engine/app/scope.ts:242",
+      "_ src/src/engine/app/ownership.ts:7",
+      "runPhase src/src/engine/core/Game.ts:640",
+      "run src/src/engine/app/app.ts:229",
+      "(anon) src/src/engine/app/app.ts:229",
+      "run src/src/engine/app/app.ts:219",
+      "runFixed src/src/engine/core/Game.ts:662",
+      "(anon) src/src/engine/core/bootstrap.ts:142",
+      "step src/src/engine/physics/Physics.ts:89",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29"
+     ]
+    }
+   ],
+   "programs": 35,
+   "lastStep": [
+    3414,
+    "audio | 100/100 | Template shard | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Template",
+   "slug": "_template",
+   "cache": "cold",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 1357,
+   "readyMs": 1112,
+   "phases": [
+    [
+     "modules",
+     0,
+     69
+    ],
+    [
+     "admission",
+     69,
+     665
+    ],
+    [
+     "engine world",
+     734,
+     73
+    ],
+    [
+     "shard world",
+     807,
+     41
+    ],
+    [
+     "creatures, weapons, HUD",
+     848,
+     99
+    ],
+    [
+     "shaders, first frame",
+     947,
+     163
+    ],
+    [
+     "audio, finish",
+     1110,
+     247
+    ]
+   ],
+   "long": [
+    [
+     309,
+     167
+    ],
+    [
+     1362,
+     70
+    ]
+   ],
+   "tasks": [],
+   "programs": 35,
+   "lastStep": [
+    1112,
+    "audio | 100/100 | Template shard | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-4x",
+   "shard": "Template",
+   "slug": "_template",
+   "cache": "warm",
+   "cpu": 4,
+   "status": "ok",
+   "playMs": 4090,
+   "readyMs": 3588,
+   "phases": [
+    [
+     "modules",
+     0,
+     363
+    ],
+    [
+     "admission",
+     363,
+     2108
+    ],
+    [
+     "engine world",
+     2471,
+     160
+    ],
+    [
+     "shard world",
+     2631,
+     141
+    ],
+    [
+     "creatures, weapons, HUD",
+     2772,
+     378
+    ],
+    [
+     "shaders, first frame",
+     3150,
+     419
+    ],
+    [
+     "audio, finish",
+     3569,
+     521
+    ]
+   ],
+   "long": [
+    [
+     370,
+     76
+    ],
+    [
+     450,
+     236
+    ],
+    [
+     1043,
+     599
+    ],
+    [
+     2442,
+     59
+    ],
+    [
+     2624,
+     135
+    ],
+    [
+     2944,
+     148
+    ],
+    [
+     3838,
+     251
+    ]
+   ],
+   "tasks": [
+    {
+     "at": 5,
+     "ms": 211,
+     "step": "",
+     "owner": "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+     "leaf": [
+      "e.renderBufferDirect src/src/engine/render/gpuLabels.ts:184",
+      "Be src/src/engine/core/GpuRecovery.ts:316",
+      "J src/src/engine/core/lifeTrace.ts:44"
+     ],
+     "incl": [
+      "(anon) src/src/engine/app/scope.ts:176",
+      "_ src/src/engine/app/ownership.ts:7",
+      "f src/src/engine/app/scope.ts:174",
+      "T src/src/engine/core/GpuRecovery.ts:266",
+      "y src/src/engine/core/GpuRecovery.ts:139",
+      "snapshot src/src/engine/core/Game.ts:320",
+      "(anon) src/src/engine/render/gpuLabels.ts:177",
+      "e.render src/src/engine/render/frameCounter.ts:29"
+     ]
+    },
+    {
+     "at": 369,
+     "ms": 76,
+     "step": "admission.descriptor",
+     "owner": "r src/src/game/shardfile/json.ts:5",
+     "leaf": [
+      "r src/src/game/shardfile/json.ts:5",
+      "c src/src/game/shardfile/preflight.ts:33",
+      "Mu src/src/game/shardfile/schema.ts:215"
+     ],
+     "incl": [
+      "Oo src/src/game/shardfile/loader.ts:121",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "(anon) src/src/game/shardfile/schema.ts:211",
+      "pt src/src/game/shardfile/json.ts:2",
+      "r src/src/game/shardfile/json.ts:5",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "l src/src/game/shardfile/preflight.ts:37",
+      "c src/src/game/shardfile/preflight.ts:33"
+     ]
+    },
+    {
+     "at": 450,
+     "ms": 237,
+     "step": "admission.cache-read",
+     "owner": "(anon) src/src/game/shardfile/budget.ts:34",
+     "leaf": [
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "r src/src/game/shardfile/json.ts:5",
+      "c src/src/game/shardfile/preflight.ts:33"
+     ],
+     "incl": [
+      "Y src/src/game/shardfile/product.ts:85",
+      "Ir src/src/game/shardfile/validate.ts:33",
+      "Dr src/src/game/shardfile/budget.ts:57",
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Tn src/src/game/shardfile/preflight.ts:22",
+      "l src/src/game/shardfile/preflight.ts:37",
+      "Mu src/src/game/shardfile/schema.ts:215",
+      "r src/src/game/shardfile/json.ts:5"
+     ]
+    },
+    {
+     "at": 1043,
+     "ms": 599,
+     "step": "admission.assets",
+     "owner": "(anon) src/src/game/shardfile/budget.ts:34",
+     "leaf": [
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Qr src/src/game/shardfile/terrain.ts:13",
+      "K src/src/game/shardfile/budget.ts:20"
+     ],
+     "incl": [
+      "Y src/src/game/shardfile/product.ts:85",
+      "Lr src/src/game/shardfile/validate.ts:68",
+      "Dr src/src/game/shardfile/budget.ts:57",
+      "(anon) src/src/game/shardfile/budget.ts:34",
+      "Qr src/src/game/shardfile/terrain.ts:13",
+      "Zl src/src/game/shardfile/assets.ts:32",
+      "jr src/src/game/shardfile/entryClearance.ts:34",
+      "Xl src/src/game/shardfile/assets.ts:24"
+     ]
+    },
+    {
+     "at": 2442,
+     "ms": 59,
+     "step": "admission.complete",
+     "owner": "(anon) src/src/engine/render/renderer.ts:28",
+     "leaf": [
+      "(anon) src/src/engine/render/renderer.ts:28",
+      "mO src/src/engine/core/webglStartup.ts:14",
+      "fO src/src/engine/core/Game.ts:340"
+     ],
+     "incl": [
+      "(anon) src/src/engine/core/bootstrap.ts:66",
+      "fO src/src/engine/core/Game.ts:340",
+      "load src/src/engine/level/load.ts:42",
+      "lR src/src/game/session/session.ts:157",
+      "a src/src/engine/boot.ts:14",
+      "l src/src/engine/level/load.ts:53",
+      "SO src/src/engine/core/bootstrap.ts:57",
+      "DO src/src/game/session/world.ts:25"
+     ]
+    },
+    {
+     "at": 2624,
+     "ms": 135,
+     "step": "cabins",
+     "owner": "Kr src/src/engine/world/terrainTileData.ts:31",
+     "leaf": [
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "Ta src/src/engine/world/terrainTileView.ts:61",
+      "value src/src/engine/core/ktx2.ts:96"
+     ],
+     "incl": [
+      "u src/src/game/shardfile/clientWorld.ts:57",
+      "terrain src/src/game/shardfile/clientViews.ts:61",
+      "terrain src/src/game/shardfile/clientViews.ts:98",
+      "Ta src/src/engine/world/terrainTileView.ts:61",
+      "ma src/src/game/shardfile/clientSkins.ts:66",
+      "ua src/src/game/shardfile/skinPlayback.ts:59",
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "world src/src/game/shardfile/client.ts:117"
+     ]
+    },
+    {
+     "at": 2944,
+     "ms": 148,
+     "step": "menu",
+     "owner": "restore src/src/engine/script/lane.ts:104",
+     "leaf": [
+      "restore src/src/engine/script/lane.ts:104",
+      "Kr src/src/engine/world/terrainTileData.ts:31",
+      "restoreState src/src/engine/script/host.ts:152"
+     ],
+     "incl": [
+      "play src/src/game/shardfile/client.ts:184",
+      "play src/src/game/session/session.ts:148",
+      "(anon) src/src/engine/level/load.ts:70",
+      "wr src/src/game/shardfile/clientState.ts:159",
+      "tr src/src/game/shardfile/simulation.ts:72",
+      "Sr src/src/game/shardfile/clientState.ts:118",
+      "restore src/src/engine/script/lane.ts:104",
+      "nr src/src/game/shardfile/simulation.ts:92"
+     ]
+    },
+    {
+     "at": 3838,
+     "ms": 252,
+     "step": "audio",
+     "owner": "QL src/src/engine/debug/probe.ts:171",
+     "leaf": [
+      "QL src/src/engine/debug/probe.ts:171",
+      "paintRegion src/src/engine/ui/Minimap.ts:540",
+      "l src/src/engine/app/sceneOwnership.ts:8"
+     ],
+     "incl": [
+      "rR src/src/game/session/finish.ts:20",
+      "tR src/src/engine/debug/probe.ts:266",
+      "eR src/src/engine/debug/probe.ts:205",
+      "$L src/src/engine/debug/probe.ts:196",
+      "QL src/src/engine/debug/probe.ts:171",
+      "start src/src/engine/core/Game.ts:781",
+      "s src/src/engine/core/Game.ts:805",
+      "_ src/src/engine/app/ownership.ts:7"
+     ]
+    }
+   ],
+   "programs": 35,
+   "lastStep": [
+    3588,
+    "audio | 100/100 | Template shard | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Template",
+   "slug": "_template",
+   "cache": "warm",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 1420,
+   "readyMs": 1095,
+   "phases": [
+    [
+     "modules",
+     0,
+     60
+    ],
+    [
+     "admission",
+     60,
+     658
+    ],
+    [
+     "engine world",
+     718,
+     55
+    ],
+    [
+     "shard world",
+     773,
+     36
+    ],
+    [
+     "creatures, weapons, HUD",
+     809,
+     115
+    ],
+    [
+     "shaders, first frame",
+     924,
+     169
+    ],
+    [
+     "audio, finish",
+     1093,
+     327
+    ]
+   ],
+   "long": [
+    [
+     86,
+     69
+    ],
+    [
+     267,
+     165
+    ],
+    [
+     1346,
+     72
+    ]
+   ],
+   "tasks": [],
+   "programs": 35,
+   "lastStep": [
+    1095,
+    "audio | 100/100 | Template shard | Ready"
+   ]
+  },
+  {
+   "lane": "simulator-safari",
+   "shard": "Template",
+   "slug": "_template",
+   "cache": "first",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 4373,
+   "readyMs": 3738,
+   "phases": [
+    [
+     "modules",
+     0,
+     123
+    ],
+    [
+     "admission",
+     123,
+     1884
+    ],
+    [
+     "engine world",
+     2007,
+     158
+    ],
+    [
+     "shard world",
+     2165,
+     63
+    ],
+    [
+     "creatures, weapons, HUD",
+     2228,
+     194
+    ],
+    [
+     "shaders, first frame",
+     2422,
+     1312
+    ],
+    [
+     "audio, finish",
+     3734,
+     639
+    ]
+   ],
+   "long": [
+    [
+     159,
+     238
+    ],
+    [
+     841,
+     561
+    ],
+    [
+     2025,
+     59
+    ],
+    [
+     2158,
+     92
+    ],
+    [
+     2250,
+     144
+    ],
+    [
+     2394,
+     55
+    ],
+    [
+     3564,
+     96
+    ],
+    [
+     3974,
+     130
+    ],
+    [
+     4104,
+     60
+    ]
+   ],
+   "tasks": [],
+   "programs": 35,
+   "lastStep": [
+    3738,
+    "audio | 100/100 | Template shard | Ready"
+   ]
+  },
+  {
+   "lane": "simulator-safari",
+   "shard": "Template",
+   "slug": "_template",
+   "cache": "second",
+   "cpu": 1,
+   "status": "ok",
+   "playMs": 3717,
+   "readyMs": 3157,
+   "phases": [
+    [
+     "modules",
+     0,
+     138
+    ],
+    [
+     "admission",
+     138,
+     2331
+    ],
+    [
+     "engine world",
+     2469,
+     204
+    ],
+    [
+     "shard world",
+     2673,
+     43
+    ],
+    [
+     "creatures, weapons, HUD",
+     2716,
+     240
+    ],
+    [
+     "shaders, first frame",
+     2956,
+     197
+    ],
+    [
+     "audio, finish",
+     3153,
+     564
+    ]
+   ],
+   "long": [
+    [
+     163,
+     267
+    ],
+    [
+     925,
+     616
+    ],
+    [
+     2480,
+     62
+    ],
+    [
+     2658,
+     54
+    ],
+    [
+     2729,
+     203
+    ],
+    [
+     2932,
+     57
+    ],
+    [
+     3391,
+     136
+    ],
+    [
+     3527,
+     53
+    ]
+   ],
+   "tasks": [],
+   "programs": 35,
+   "lastStep": [
+    3157,
+    "audio | 100/100 | Template shard | Ready"
+   ]
+  },
+  {
+   "lane": "chromium-4x",
+   "shard": "Pine Hollow",
+   "slug": "pine-hollow",
+   "cache": "cold",
+   "cpu": 4,
+   "status": "blocked",
+   "playMs": null,
+   "readyMs": null,
+   "phases": [
+    [
+     "modules",
+     0,
+     564
+    ],
+    [
+     "engine world",
+     564,
+     6042
+    ],
+    [
+     "shard world",
+     6606,
+     836
+    ],
+    [
+     "creatures, weapons, HUD",
+     7442,
+     2492
+    ],
+    [
+     "shaders, first frame",
+     9934,
+     738
+    ]
+   ],
+   "long": [
+    [
+     476,
+     56
+    ],
+    [
+     557,
+     58
+    ],
+    [
+     1662,
+     79
+    ],
+    [
+     1974,
+     67
+    ],
+    [
+     2471,
+     80
+    ],
+    [
+     4507,
+     93
+    ],
+    [
+     4868,
+     103
+    ],
+    [
+     6455,
+     59
+    ],
+    [
+     7075,
+     128
+    ],
+    [
+     8073,
+     72
+    ],
+    [
+     8400,
+     119
+    ],
+    [
+     8569,
+     141
+    ],
+    [
+     8821,
+     121
+    ],
+    [
+     9107,
+     149
+    ],
+    [
+     9290,
+     102
+    ],
+    [
+     9423,
+     95
+    ],
+    [
+     9523,
+     281
+    ],
+    [
+     9814,
+     119
+    ],
+    [
+     12258,
+     145
+    ]
+   ],
+   "tasks": [],
+   "programs": null,
+   "lastStep": [
+    10672,
+    "shaders | 99/76 | Pine Hollow | Downloading \u00b7 88%"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Pine Hollow",
+   "slug": "pine-hollow",
+   "cache": "cold",
+   "cpu": 1,
+   "status": "blocked",
+   "playMs": null,
+   "readyMs": null,
+   "phases": [
+    [
+     "modules",
+     0,
+     125
+    ],
+    [
+     "engine world",
+     125,
+     3821
+    ],
+    [
+     "shard world",
+     3946,
+     565
+    ],
+    [
+     "creatures, weapons, HUD",
+     4511,
+     1074
+    ],
+    [
+     "shaders, first frame",
+     5585,
+     822
+    ]
+   ],
+   "long": [
+    [
+     5481,
+     56
+    ]
+   ],
+   "tasks": [],
+   "programs": null,
+   "lastStep": [
+    6407,
+    "shaders | 99/76 | Pine Hollow | Downloading \u00b7 88%"
+   ]
+  },
+  {
+   "lane": "chromium-4x",
+   "shard": "Pine Hollow",
+   "slug": "pine-hollow",
+   "cache": "warm",
+   "cpu": 4,
+   "status": "blocked",
+   "playMs": null,
+   "readyMs": null,
+   "phases": [
+    [
+     "modules",
+     0,
+     586
+    ],
+    [
+     "engine world",
+     586,
+     7441
+    ],
+    [
+     "shard world",
+     8027,
+     1053
+    ],
+    [
+     "creatures, weapons, HUD",
+     9080,
+     3423
+    ],
+    [
+     "shaders, first frame",
+     12503,
+     707
+    ]
+   ],
+   "long": [
+    [
+     401,
+     51
+    ],
+    [
+     471,
+     86
+    ],
+    [
+     575,
+     90
+    ],
+    [
+     763,
+     73
+    ],
+    [
+     1578,
+     65
+    ],
+    [
+     2039,
+     111
+    ],
+    [
+     2640,
+     119
+    ],
+    [
+     3300,
+     51
+    ],
+    [
+     3421,
+     110
+    ],
+    [
+     5345,
+     135
+    ],
+    [
+     5483,
+     52
+    ],
+    [
+     5586,
+     50
+    ],
+    [
+     5711,
+     59
+    ],
+    [
+     5773,
+     51
+    ],
+    [
+     5890,
+     164
+    ],
+    [
+     7788,
+     94
+    ],
+    [
+     7951,
+     67
+    ],
+    [
+     8462,
+     64
+    ],
+    [
+     8592,
+     200
+    ],
+    [
+     9780,
+     102
+    ],
+    [
+     9884,
+     54
+    ],
+    [
+     10285,
+     180
+    ],
+    [
+     10470,
+     57
+    ],
+    [
+     10532,
+     205
+    ],
+    [
+     10904,
+     180
+    ],
+    [
+     11329,
+     207
+    ],
+    [
+     11562,
+     145
+    ],
+    [
+     11745,
+     136
+    ],
+    [
+     11889,
+     411
+    ],
+    [
+     12315,
+     188
+    ],
+    [
+     12597,
+     52
+    ],
+    [
+     15246,
+     211
+    ]
+   ],
+   "tasks": [],
+   "programs": null,
+   "lastStep": [
+    13210,
+    "shaders | 99/76 | Pine Hollow | Downloading \u00b7 88%"
+   ]
+  },
+  {
+   "lane": "chromium-1x",
+   "shard": "Pine Hollow",
+   "slug": "pine-hollow",
+   "cache": "warm",
+   "cpu": 1,
+   "status": "blocked",
+   "playMs": null,
+   "readyMs": null,
+   "phases": [
+    [
+     "modules",
+     0,
+     105
+    ],
+    [
+     "engine world",
+     105,
+     3740
+    ],
+    [
+     "shard world",
+     3845,
+     582
+    ],
+    [
+     "creatures, weapons, HUD",
+     4427,
+     1067
+    ],
+    [
+     "shaders, first frame",
+     5494,
+     829
+    ]
+   ],
+   "long": [
+    [
+     5392,
+     56
+    ]
+   ],
+   "tasks": [],
+   "programs": null,
+   "lastStep": [
+    6323,
+    "shaders | 99/76 | Pine Hollow | Downloading \u00b7 88%"
+   ]
+  },
+  {
+   "lane": "simulator-safari",
+   "shard": "Pine Hollow",
+   "slug": "pine-hollow",
+   "cache": "first",
+   "cpu": 1,
+   "status": "blocked",
+   "playMs": null,
+   "readyMs": null,
+   "phases": [
+    [
+     "modules",
+     0,
+     437
+    ],
+    [
+     "engine world",
+     437,
+     3924
+    ],
+    [
+     "shard world",
+     4361,
+     703
+    ],
+    [
+     "creatures, weapons, HUD",
+     5064,
+     1301
+    ],
+    [
+     "shaders, first frame",
+     6365,
+     565
+    ]
+   ],
+   "long": [
+    [
+     3127,
+     52
+    ],
+    [
+     4689,
+     76
+    ],
+    [
+     4787,
+     78
+    ],
+    [
+     5748,
+     63
+    ],
+    [
+     5819,
+     57
+    ],
+    [
+     5876,
+     52
+    ],
+    [
+     5993,
+     65
+    ],
+    [
+     6093,
+     67
+    ],
+    [
+     6193,
+     123
+    ]
+   ],
+   "tasks": [],
+   "programs": null,
+   "lastStep": [
+    6930,
+    "shaders | 100/73 | Pine Hollow | Building the world \u00b7 86%"
+   ]
+  }
+ ],
+ "simulatorProfile": [
+  {
+   "file": "driftwood-isle-a.sim.json",
+   "samples": 2493,
+   "firstApp": [
+    [
+     "(anon) src/src/game/shardfile/budget.ts:34",
+     6.5
+    ],
+    [
+     "QL src/src/engine/debug/probe.ts:171",
+     5.8
+    ],
+    [
+     "(anon) src/src/engine/render/gpuLabels.ts:184",
+     5.5
+    ],
+    [
+     "z src/src/engine/render/precompile.ts:292",
+     3.4
+    ],
+    [
+     "k src/src/engine/models/colliders.ts:45",
+     3.3
+    ],
+    [
+     "(vendor / native)",
+     3.2
+    ],
+    [
+     "g src/src/engine/world/shadowChunks.ts:74",
+     2.8
+    ],
+    [
+     "step src/src/engine/physics/Physics.ts:89",
+     2.8
+    ],
+    [
+     "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+     2.7
+    ],
+    [
+     "(anon) src/src/engine/render/gpuLabels.ts:144",
+     2.4
+    ],
+    [
+     "(anon) src/src/engine/render/frameCounter.ts:29",
+     2.1
+    ],
+    [
+     "a src/src/engine/render/allocationJournal.ts:41",
+     2
+    ]
+   ]
+  },
+  {
+   "file": "driftwood-isle-b.sim.json",
+   "samples": 2307,
+   "firstApp": [
+    [
+     "(anon) src/src/game/shardfile/budget.ts:34",
+     5.9
+    ],
+    [
+     "QL src/src/engine/debug/probe.ts:171",
+     5.4
+    ],
+    [
+     "(anon) src/src/engine/render/gpuLabels.ts:184",
+     4.9
+    ],
+    [
+     "(vendor / native)",
+     3.7
+    ],
+    [
+     "z src/src/engine/render/precompile.ts:292",
+     3.6
+    ],
+    [
+     "k src/src/engine/models/colliders.ts:45",
+     3.2
+    ],
+    [
+     "K src/src/game/shardfile/budget.ts:20",
+     2.9
+    ],
+    [
+     "ji src/src/shards/driftwood-isle/world/rockKit.ts:232",
+     2.9
+    ],
+    [
+     "g src/src/engine/world/shadowChunks.ts:74",
+     2.9
+    ],
+    [
+     "(anon) src/src/engine/render/gpuLabels.ts:144",
+     2.2
+    ],
+    [
+     "J src/src/engine/render/gpuLabels.ts:66",
+     2.2
+    ],
+    [
+     "(anon) src/src/engine/render/frameCounter.ts:29",
+     2.2
+    ]
+   ]
+  },
+  {
+   "file": "_template-a.sim.json",
+   "samples": 1757,
+   "firstApp": [
+    [
+     "(anon) src/src/game/shardfile/budget.ts:34",
+     25
+    ],
+    [
+     "(vendor / native)",
+     5.1
+    ],
+    [
+     "(anon) src/src/engine/render/gpuLabels.ts:184",
+     4.4
+    ],
+    [
+     "K src/src/game/shardfile/budget.ts:20",
+     4
+    ],
+    [
+     "J src/src/engine/render/gpuLabels.ts:66",
+     3.9
+    ],
+    [
+     "instantiate src/src/engine/script/host.ts:74",
+     3.9
+    ],
+    [
+     "QL src/src/engine/debug/probe.ts:171",
+     2.8
+    ],
+    [
+     "z src/src/engine/render/gpuLabels.ts:17",
+     2.1
+    ],
+    [
+     "q src/src/engine/render/gpuLabels.ts:50",
+     1.8
+    ],
+    [
+     "z src/src/engine/render/precompile.ts:292",
+     1.5
+    ],
+    [
+     "(anon) src/src/engine/render/gpuLabels.ts:144",
+     1.4
+    ],
+    [
+     "(anon) src/src/game/shardfile/product.ts:123",
+     1.3
+    ]
+   ]
+  },
+  {
+   "file": "nalati-grasslands-a.sim.json",
+   "samples": 4172,
+   "firstApp": [
+    [
+     "(anon) src/src/engine/physics/Physics.ts:43",
+     11.9
+    ],
+    [
+     "a src/src/engine/render/allocationJournal.ts:41",
+     8.3
+    ],
+    [
+     "get src/src/engine/core/noise.ts:19",
+     4.1
+    ],
+    [
+     "z src/src/engine/render/precompile.ts:292",
+     3.8
+    ],
+    [
+     "a src/src/engine/world/voxelAO.ts:62",
+     3.7
+    ],
+    [
+     "(vendor / native)",
+     3.1
+    ],
+    [
+     "(anon) src/src/engine/render/gpuLabels.ts:184",
+     2.7
+    ],
+    [
+     "D src/src/engine/world/geometryKit.ts:140",
+     2.7
+    ],
+    [
+     "J src/src/engine/render/gpuLabels.ts:66",
+     2.5
+    ],
+    [
+     "shade src/src/shards/nalati-grasslands/world/paint.ts:179",
+     2.3
+    ],
+    [
+     "w src/src/engine/world/terrainField.ts:133",
+     2.2
+    ],
+    [
+     "X src/src/engine/render/gpuLabels.ts:85",
+     2.2
+    ]
+   ]
+  },
+  {
+   "file": "pine-hollow-a.sim.json",
+   "samples": 3403,
+   "firstApp": [
+    [
+     "(vendor / native)",
+     11.3
+    ],
+    [
+     "_ src/src/engine/ui/Loading.ts:29",
+     10.9
+    ],
+    [
+     "Dt src/src/engine/strings.ts:630",
+     10.3
+    ],
+    [
+     "(anon) src/src/engine/ui/Loading.ts:192",
+     9.6
+    ],
+    [
+     "(anon) src/src/engine/render/compressedUpload.ts:61",
+     6.8
+    ],
+    [
+     "tickClock src/src/engine/ui/Loading.ts:203",
+     4.9
+    ],
+    [
+     "paintRows src/src/engine/ui/Loading.ts:187",
+     3.6
+    ],
+    [
+     "(anon) src/src/engine/physics/Physics.ts:43",
+     3
+    ],
+    [
+     "v src/src/kit/npc/npcRig.ts:143",
+     2.9
+    ],
+    [
+     "z src/src/engine/render/precompile.ts:292",
+     2.6
+    ],
+    [
+     "raf src/src/engine/app/scope.ts:238",
+     1.1
+    ],
+    [
+     "registration src/src/engine/app/scope.ts:145",
+     1.1
+    ]
+   ]
+  }
+ ]
+}
