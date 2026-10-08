@@ -921,6 +921,12 @@
         "from": "@wildshard/engine/app/sceneOwnership"
       },
       {
+        "name": "sceneResourceOwner",
+        "kind": "function",
+        "doc": "Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again.",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
         "name": "sceneResources",
         "kind": "function",
         "doc": "Resources a caller may own; explicit subtree owners are respected even when passed as the root.",
@@ -4556,6 +4562,12 @@
         "name": "isMeshCollisionData",
         "kind": "function",
         "doc": "Identify WMC1 bytes without allocating or admitting their contents.",
+        "from": "@wildshard/engine/core/meshCollision"
+      },
+      {
+        "name": "lowestMeshHeight",
+        "kind": "function",
+        "doc": "Lowest projected authored surface for the legacy two-dimensional terrain fallback, undefined over a void.",
         "from": "@wildshard/engine/core/meshCollision"
       },
       {
@@ -13792,6 +13804,78 @@
         "kind": "function",
         "doc": "Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection.",
         "from": "@wildshard/game/grid/rules"
+      },
+      {
+        "name": "RuntimeRenderDependencies",
+        "kind": "class",
+        "doc": "G208 explicit page owner, constructed before its region/tile consumers. The one allocator charges each stable",
+        "from": "@wildshard/game/grid/runtimeRenderDependencies"
+      },
+      {
+        "name": "RuntimeRenderDependencyLease",
+        "kind": "interface",
+        "doc": "One admitted reference. Share resources by scope identity; never attach a shared resource to a tile's scope.",
+        "from": "@wildshard/game/grid/runtimeRenderDependencies"
+      },
+      {
+        "name": "compileRuntimeRenderPlan",
+        "kind": "function",
+        "doc": "Refuse stale, dangling or under-counted preflight before allocation, and snapshot the trusted input.",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderChunk",
+        "kind": "interface",
+        "doc": "One independently disposable component in the 8x8 L0 / 4x4 L1 / one far layout. Components may share a tile.",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderDependency",
+        "kind": "interface",
+        "doc": "Immutable shared presentation resource; count retained CPU data and all GPU buffers/mips once by stable id.",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderDependencyScopes",
+        "kind": "interface",
+        "doc": "Only this component's admitted dependencies. Allocate once by shared scope identity; cancelled work cannot read it.",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderFootprint",
+        "kind": "interface",
+        "doc": "Selected components and their dependency union, with the residual retained until the region disposes.",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderInventory",
+        "kind": "interface",
+        "doc": "Immutable checked inventory. Pure costs: no allocation, installed renderer or discount of an existing live claim.",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderPlan",
+        "kind": "interface",
+        "doc": "G208 pure preflight, evaluated before world construction. nonStreamingBytes is already accounted bytes, without",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderPorts",
+        "kind": "interface",
+        "doc": "The renderer boundary. Component AND dependencies are admitted before prepare receives its construction Scope;",
+        "from": "@wildshard/game/grid/runtimeRenderPlan"
+      },
+      {
+        "name": "RuntimeRenderPrepared",
+        "kind": "interface",
+        "doc": "Opaque prepared tile; only the adapter that prepared it can publish or discard it.",
+        "from": "@wildshard/game/grid/runtimeRenderRings"
+      },
+      {
+        "name": "runtimeRenderRings",
+        "kind": "function",
+        "doc": "G208 bridge to the existing parent-first rings. The regional host owns the checked opaque residual separately.",
+        "from": "@wildshard/game/grid/runtimeRenderRings"
       },
       {
         "name": "GridResident",

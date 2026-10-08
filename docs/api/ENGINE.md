@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2163 members; 830 without a doc line (—).
+2165 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -161,6 +161,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `containerResources` | function | @wildshard/engine/app/sceneOwnership | Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. |
 | `ownSceneTree` | function | @wildshard/engine/app/sceneOwnership | Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never |
 | `SceneOwnership` | class | @wildshard/engine/app/sceneOwnership | — |
+| `sceneResourceOwner` | function | @wildshard/engine/app/sceneOwnership | Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. |
 | `sceneResources` | function | @wildshard/engine/app/sceneOwnership | Resources a caller may own; explicit subtree owners are respected even when passed as the root. |
 | `InterruptReason` | type | @wildshard/engine/app/scheduler | — |
 | `TickActor` | interface | @wildshard/engine/app/scheduler | — |
@@ -766,6 +767,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `decodeMeshCollision` | function | @wildshard/engine/core/meshCollision | Admit exact WMC1 wire bytes before native allocation and return owned arrays, including for unaligned input. |
 | `encodeMeshCollision` | function | @wildshard/engine/core/meshCollision | Encode bounded indexed geometry deterministically, with no simplification or heightfield conversion. |
 | `isMeshCollisionData` | function | @wildshard/engine/core/meshCollision | Identify WMC1 bytes without allocating or admitting their contents. |
+| `lowestMeshHeight` | function | @wildshard/engine/core/meshCollision | Lowest projected authored surface for the legacy two-dimensional terrain fallback, undefined over a void. |
 | `MESH_COLLISION_LIMITS` | const | @wildshard/engine/core/meshCollision | Bounds for one indexed collision chunk; larger geometry must be partitioned before encoding. |
 | `meshCollisionCost` | function | @wildshard/engine/core/meshCollision | Provisional collision residency: two wire copies, 64 bytes/vertex and 256 bytes/triangle; no render resources. |
 | `MeshCollisionData` | interface | @wildshard/engine/core/meshCollision | Cell-local triangle geometry. Each index names a vertex in the packed XYZ array; winding is preserved. |

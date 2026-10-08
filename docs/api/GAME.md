@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-606 members; 112 without a doc line (—).
+618 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -140,6 +140,18 @@ The game layer's public modules (src/game/package.json `exports`).
 | `installGridHoverSpeed` | function | @wildshard/game/grid/rules | Install the live deck/strip cap and restore the previous port when this residency scope leaves. |
 | `installGridTravellerCombat` | function | @wildshard/game/grid/rules | Hit-delivery permission for one authoritative world. The traveller's geometric cell owns combat, independently |
 | `reframeGridUnit` | function | @wildshard/game/grid/rules | Validate the whole unit before preparing a frame change. Input members remain untouched on success or rejection. |
+| `RuntimeRenderDependencies` | class | @wildshard/game/grid/runtimeRenderDependencies | G208 explicit page owner, constructed before its region/tile consumers. The one allocator charges each stable |
+| `RuntimeRenderDependencyLease` | interface | @wildshard/game/grid/runtimeRenderDependencies | One admitted reference. Share resources by scope identity; never attach a shared resource to a tile's scope. |
+| `compileRuntimeRenderPlan` | function | @wildshard/game/grid/runtimeRenderPlan | Refuse stale, dangling or under-counted preflight before allocation, and snapshot the trusted input. |
+| `RuntimeRenderChunk` | interface | @wildshard/game/grid/runtimeRenderPlan | One independently disposable component in the 8x8 L0 / 4x4 L1 / one far layout. Components may share a tile. |
+| `RuntimeRenderDependency` | interface | @wildshard/game/grid/runtimeRenderPlan | Immutable shared presentation resource; count retained CPU data and all GPU buffers/mips once by stable id. |
+| `RuntimeRenderDependencyScopes` | interface | @wildshard/game/grid/runtimeRenderPlan | Only this component's admitted dependencies. Allocate once by shared scope identity; cancelled work cannot read it. |
+| `RuntimeRenderFootprint` | interface | @wildshard/game/grid/runtimeRenderPlan | Selected components and their dependency union, with the residual retained until the region disposes. |
+| `RuntimeRenderInventory` | interface | @wildshard/game/grid/runtimeRenderPlan | Immutable checked inventory. Pure costs: no allocation, installed renderer or discount of an existing live claim. |
+| `RuntimeRenderPlan` | interface | @wildshard/game/grid/runtimeRenderPlan | G208 pure preflight, evaluated before world construction. nonStreamingBytes is already accounted bytes, without |
+| `RuntimeRenderPorts` | interface | @wildshard/game/grid/runtimeRenderPlan | The renderer boundary. Component AND dependencies are admitted before prepare receives its construction Scope; |
+| `RuntimeRenderPrepared` | interface | @wildshard/game/grid/runtimeRenderRings | Opaque prepared tile; only the adapter that prepared it can publish or discard it. |
+| `runtimeRenderRings` | function | @wildshard/game/grid/runtimeRenderRings | G208 bridge to the existing parent-first rings. The regional host owns the checked opaque residual separately. |
 | `GridResident` | interface | @wildshard/game/grid/simulation | Admission returns one owned, renderer-free regional host; its world is always in authored local coordinates. |
 | `GridSimLease` | interface | @wildshard/game/grid/simulation | Narrow adapter to the session's one residency allocator; bytes are charged only once. |
 | `GridSimulation` | class | @wildshard/game/grid/simulation | Independent local physics worlds; only the current one advances, while visible neighbours remain frozen. |
