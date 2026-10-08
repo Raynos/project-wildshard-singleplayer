@@ -1291,6 +1291,8 @@ The kit's starter set is `effect.poison`, `effect.burn`, `effect.bleed`, `effect
 
 ## 19. Creatures and AI
 
+`AnimalManager.replace(retired, x, z, yaw, variant?, placement?)` rebuilds one of that manager’s retired creatures with fresh rig and state, the same species and logical identity, and ordinary spawn RNG draws. It refuses foreign, live, already-replaced and simulation-bound views, or a live duplicate of the identity, before construction. This supports an authored home’s respawn after a portable logical checkpoint; it does not restore its former AI memory or reuse an authoritative simulation identity. Ordinary `spawn` is unchanged.
+
 Import `AnimalSim` from `@wildshard/engine/entities/AnimalSim` for creature state, motion, attack clocks, geometric perception and damage without a rig. Its `AnimalSimSpec` supplies authored dimensions and multipliers; `AnimalSimPorts` supplies height, floor, time, random and damage services, and `AnimalMotor` supplies collision displacement. `step(dt)` advances the body and attack clock. Every instance has a stable `entityId`.
 
 The client imports `Animal` from `@wildshard/engine/entities/AnimalView`. It extends the same simulation and retains skeletal pose, posed hit volumes, LOD, hit flash and ragdolls. `canReach(actor, target, physics)` requires the owning physics world explicitly.
