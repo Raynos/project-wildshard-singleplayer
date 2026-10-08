@@ -586,6 +586,8 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ## 8. Boot (staged load)
 
+`beginLoading({id, name, trace?})` from `@wildshard/engine/ui/Loading` adopts the first-HTML panel before product hydration. Repeating it for the same active identity returns the same panel and clock. `Loading.paintAdmission({phase, detail, bytesRead, bytesTotal, filesDone, filesTotal})` shows actual pre-plan work; an unknown total stays explicit. `waiting(detail)` identifies module or service waits. The session then hands its ordinary plan to that instance with `paint(view)`, preserving verified admission bytes and reaching 100 only at plan completion. The first HTML reads the title-arrival display name without consuming its one-shot navigation intent.
+
 ### Pre-entry safe
 
 `@wildshard/engine/boot/retry` is the import-free retry module: it exports only `retried`. Use it before the renderer and App can load; the chunk gate rejects App or Three in the pre-entry static graph. Every other loader imports the same module.

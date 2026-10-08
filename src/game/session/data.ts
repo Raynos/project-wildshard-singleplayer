@@ -13,7 +13,7 @@ import { bootFetches, prefetch, prefetchAfter, whenPrefetched } from '@wildshard
 import { useShardSteps } from '@wildshard/engine/boot/steps';
 import { startViewmodelTextures } from '@wildshard/engine/combat/view/ranged';
 import { TIER } from '@wildshard/engine/core/tier';
-import { Loading } from '@wildshard/engine/ui/Loading';
+import { beginLoading } from '@wildshard/engine/ui/Loading';
 import { resumeProgress, resumeScreen } from '@wildshard/engine/ui/Resume';
 
 async function buildData(ctx: SessionContext) {
@@ -23,7 +23,7 @@ async function buildData(ctx: SessionContext) {
   boot.handoff = consumeTravelHandoff(manifest.slug);
   if (boot.handoff !== null) session.arrival = { slug: boot.handoff.to, mode: boot.handoff.mode };
   setTexturePolicy(manifest.tiers?.[TIER]?.textures, manifest.slug, imagesFirstPlayingBytes(manifest.runtimeCost));
-  const loading = new Loading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });
+  const loading = beginLoading({ id: manifest.slug, name: manifest.name, trace: manifest.boot?.phone?.trace === true });
   app.setState('loading');
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/engine/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
@@ -31,7 +31,9 @@ async function buildData(ctx: SessionContext) {
   // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
   const brand = (): void => { resumeScreen().brand(manifest.name, manifest.card.portrait); };
   brand();
+  loading.waiting('Preparing texture formats');
   await stage('ktx2', () => prepareShardAssets(manifest, registerGpuFiles));
+  loading.waiting('Preparing audio catalogue');
   const audioProfile = await stage('audio.preload', () => manifest.audio?.preload?.());
   const files = bootFiles(manifest, undefined, audioProfile); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(manifest.slug, manifest.boot?.steps, manifest.boot?.bytes); // the shard's own loading nouns + weights (src/engine/boot/steps.ts)

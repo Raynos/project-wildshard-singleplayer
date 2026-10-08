@@ -7,7 +7,7 @@ const KEY = 'titleArrival';
 const BACKUP_KEY = 'titleArrival.once';
 const MAX_AGE_MS = 60_000;
 
-interface StoredArrival extends TitleArrival { at: number }
+interface StoredArrival extends TitleArrival { at: number; name?: string }
 
 function valid(raw: string | null, slug: string): TitleArrival | null {
   if (raw === null) return null;
@@ -21,7 +21,8 @@ function valid(raw: string | null, slug: string): TitleArrival | null {
   } catch { return null; }
 }
 
-export function setTitleArrival(arrival: TitleArrival): void {
+/** Optional display metadata lets the first HTML paint name the destination before application modules arrive. */
+export function setTitleArrival(arrival: TitleArrival & { name?: string }): void {
   const raw = JSON.stringify({ ...arrival, at: Date.now() } satisfies StoredArrival);
   try { saveStorage('session').setItem(KEY, raw); } catch { /* the local one-shot below can carry the intent */ }
   // iOS home-screen navigation can replace WebContent between the static title and the game document.

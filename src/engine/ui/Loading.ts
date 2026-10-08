@@ -6,8 +6,8 @@ import { TIER } from '../core/tier';
 import { loadShellTemplate } from '../boot/shell';
 import { appIdentity } from '../app/identity';
 import { lastEndLine } from '../boot/lastEnd';
-import { recordBootProgress, startBoot } from '../boot/bootTrace';
-import { isDev } from '../core/devMode';
+import { recordBootCheckpoint, recordBootProgress, startBoot } from '../boot/bootTrace';
+import { BOOT_STEPS } from '../boot/steps';
 import './loading.css';
 
 const savedStorage = saveStorage('session');
@@ -28,6 +28,11 @@ type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBa
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
 
+/** Renderer-independent admission facts; the caller owns its phases and actual byte counter. */
+export interface LoadingAdmission {
+  phase: string; detail: string; bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
+}
+let currentLoading: { id: string; loading: Loading } | null = null;
 /** the loading screen: the download and set-up bars, the boot steps' rows, the tier and the diagnostics */
 export class Loading {
   readonly scope = uiScope('Loading');
@@ -45,6 +50,14 @@ export class Loading {
   private lastFrameStep = '';
   private textureBytes = 0;
   private readonly attempt: number;
+  private admission: LoadingAdmission | null = null;
+  private descriptorBytes = 0;
+  private admittedBytes = 0;
+  private admittedFiles = 0;
+  private admissionUnits = 0;
+  private hasProductAdmission = false;
+  private moduleBytes = 0;
+  private readonly admissionPhases = new Set<string>();
 
   constructor(chunk: { id: string; name: string; trace?: boolean }) {
     startBoot({ id: chunk.id, name: chunk.name }, TIER === 'phone' && chunk.trace === true);
@@ -58,10 +71,13 @@ export class Loading {
       this.root.innerHTML = loadShellTemplate();
       mountUi(this.root, this.scope, document.body);
     }
+    this.moduleBytes = Number(this.root.dataset['moduleBytes']) || 0;
+    const startedAt = Number(this.root.dataset['startedAt']);
+    if (Number.isFinite(startedAt) && startedAt >= 0 && startedAt <= performance.now()) this.t0 = startedAt;
     const tagline = this.root.querySelector('.ws-load-tagline'); if (tagline === null) throw new Error('Loading: no tagline'); tagline.textContent = appIdentity().tagline;
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
     this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot'), bar: el('bar'), line: el('line'), diagnostics: el('diagnostics') };
-    this.els.slug.textContent = isDev() ? chunk.id : chunk.name;
+    this.els.slug.textContent = chunk.name;
     this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), nav.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']);
     const key = 'loadAttempt';
     let attempt = 1;
@@ -80,13 +96,43 @@ export class Loading {
     tick();
   }
 
+  /** Show real pre-session work. Unknown totals stay explicit instead of inventing a percentage. */
+  paintAdmission(progress: LoadingAdmission): void {
+    if (this.view !== null) throw new Error('Admission progress arrived after world setup started');
+    if (!this.admissionPhases.has(progress.phase)) { this.admissionPhases.add(progress.phase); recordBootCheckpoint(`admission:${progress.phase}`, { detail: progress.detail }); }
+    this.admission = progress;
+    if (progress.phase === 'descriptor') this.descriptorBytes = progress.bytesRead;
+    else if (progress.phase !== 'modules') { this.admittedBytes = progress.bytesRead; this.admittedFiles = progress.filesDone; }
+    if (progress.phase !== 'modules') {
+      this.hasProductAdmission = true;
+      this.admissionUnits = Math.max(this.admissionUnits, progress.phase === 'complete' ? 4 : progress.phase === 'cache' ? 3 : progress.phase === 'validation' ? 2 : progress.phase === 'assets' || progress.phase === 'hash' ? 1 : 0);
+    }
+    this.root.dataset['step'] = `admission.${progress.phase}`;
+    this.dirty = true;
+  }
+
+  /** Explain module/tier/SW waits before the first source denominator is known. */
+  waiting(detail: string): void {
+    this.paintAdmission({ phase: 'modules', detail, bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
+  }
+
   /**
    * The plan publishes a view on every event (every byte chunk of every fetch, every sub-step); the
    * cheap attributes land at once (`data-step` is what the bench and the tests read), the text and
    * bars at most once per frame (`tickClock`) — the DOM writes and the layout they force were ~8 %
    * of a phone-tier load at 4× CPU (project/archive/2026-09-22-load-perf.md Status). Integers floor, so 100 means done.
    */
-  paint(v: ProgressView): void {
+  paint(view: ProgressView): void {
+    let v = view;
+    if (this.hasProductAdmission || this.moduleBytes > 0) {
+      const prior = this.moduleBytes + this.descriptorBytes + this.admittedBytes;
+      const bytesRead = v.bytesRead + prior, bytesTotal = v.bytesTotal + prior;
+      v = { ...v, bytesRead, bytesTotal, filesDone: v.filesDone + this.admittedFiles + (this.descriptorBytes > 0 ? 1 : 0), filesTotal: v.filesTotal + this.admittedFiles + (this.descriptorBytes > 0 ? 1 : 0),
+        download: v.done ? 1 : bytesTotal > 0 ? Math.min(0.999, bytesRead / bytesTotal) : v.download,
+        setup: this.hasProductAdmission ? (v.setup * BOOT_STEPS.length + this.admissionUnits) / (BOOT_STEPS.length + 4) : v.setup };
+    }
+    const hardware: { hardwareConcurrency?: number | undefined } = navigator;
+    this.els.tier.textContent = engineString('s_783b614ae363', [TIER, Math.round(innerWidth * devicePixelRatio), Math.round(innerHeight * devicePixelRatio), hardware.hardwareConcurrency ?? engineString('s_8a8de823d5ed'), window.__ws_sw ? engineString('s_5c75b0e90774') : '']);
     this.view = v;
     recordBootProgress(v);
     this.dirty = true;
@@ -100,7 +146,9 @@ export class Loading {
 
   /** Text + bars from the latest view; only what changed is written (a write forces the next layout). */
   private paintNow(): void {
-    const v = this.view; if (!v || !this.dirty) return;
+    if (!this.dirty) return;
+    const v = this.view;
+    if (!v) { this.paintAdmissionNow(); return; }
     this.dirty = false;
     const pct = (f: number): string => String(Math.floor(f * 100));
     set(this.els.dlPct, pct(v.download));
@@ -117,6 +165,23 @@ export class Loading {
       : engineString('s_387d49323b0f'));
     set(this.els.suFact, engineString('s_af18899b96b3', [Math.min(v.doneCount + 1, v.rows.length), v.rows.length, v.label, v.detail ? engineString('s_614cafefe4f0', [v.detail]) : '']));
     this.paintRows();
+  }
+
+  private paintAdmissionNow(): void {
+    const p = this.admission;
+    if (p === null) return;
+    this.dirty = false;
+    const read = this.moduleBytes + this.descriptorBytes + this.admittedBytes;
+    const total = p.phase === 'modules' && this.admissionUnits === 4 ? read : p.bytesTotal > 0 ? this.moduleBytes + (p.phase === 'descriptor' ? p.bytesTotal : this.descriptorBytes + p.bytesTotal) : 0;
+    const download = total > 0 ? Math.min(0.999, read / total) : 0;
+    const setup = this.admissionUnits / (BOOT_STEPS.length + 4);
+    this.root.dataset['download'] = String(Math.floor(download * 100));
+    this.root.dataset['setup'] = String(Math.floor(setup * 100));
+    set(this.els.dlPct, String(Math.floor(download * 100))); set(this.els.suPct, String(Math.floor(setup * 100)));
+    this.els.dlBar.style.width = `${download * 100}%`; this.els.suBar.style.width = `${setup * 100}%`;
+    this.els.bar.style.width = `${(download + setup) * 50}%`;
+    set(this.els.dlFact, `${formatMB(read)} read${total > 0 ? ` / ${formatMB(total)}` : ' · total pending'} · ${p.filesDone} / ${p.filesTotal} files`);
+    set(this.els.suFact, p.detail); set(this.els.line, p.detail);
   }
 
   private paintRows(): void {
@@ -145,6 +210,7 @@ export class Loading {
     }
     this.lastFrameAt = now;
     if (this.view) this.lastFrameStep = `${this.view.label}${this.view.detail ? `: ${this.view.detail}` : ''}`;
+    else if (this.admission) this.lastFrameStep = this.admission.detail;
     if (now - this.lastDiagnosticAt > 250) { this.paintDiagnostics(); this.lastDiagnosticAt = now; }
     const s = (now - this.t0) / 1000;
     set(this.els.clock, engineString('s_c0951c6055b1', [String(Math.floor(s / 60)).padStart(2, '0'), (s % 60).toFixed(1).padStart(4, '0')]));
@@ -177,3 +243,14 @@ export class Loading {
     });
   }
 }
+
+/** Begin before product hydration; the session adopts this same panel and clock when its plan becomes available. */
+export function beginLoading(chunk: { id: string; name: string; trace?: boolean }): Loading {
+  if (currentLoading?.id === chunk.id && !currentLoading.loading.scope.disposed) return currentLoading.loading;
+  currentLoading?.loading.scope.dispose();
+  const loading = new Loading(chunk);
+  currentLoading = { id: chunk.id, loading };
+  loading.scope.onDispose(() => { if (currentLoading?.loading === loading) currentLoading = null; });
+  return loading;
+}
+

@@ -106,10 +106,14 @@ export async function start(): Promise<void> {
 
 async function startSelected(): Promise<void> {
   await retried(() => import('./shardList')); // the shard list before @wildshard/game reads it (AG4)
+  const { game } = await retried(() => import('./game/shard/registry'));
+  const { beginLoading } = await retried(() => import('./engine/ui/Loading'));
+  const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
+  loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
-  const [{ game }, { installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { KIT_ITEMS }, { HOVERBOARD_TOOL },
+  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { KIT_ITEMS }, { HOVERBOARD_TOOL },
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
-    retried(() => import('./game/shard/registry')), retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
+    retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
     retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./kit/bag/items')),
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('./kit/audio/combatCues')),
     retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
@@ -129,8 +133,8 @@ async function startSelected(): Promise<void> {
       recipes: new Map([['kit.look.boar', (row, species) => { if (row.animation.recipe !== 'kit.pose.quadruped') throw new Error('Unknown boar pose recipe'); return { ...BOAR_LOOK, id: row.id, species: species.id, kind: species.kind }; }]]),
     };
     const manifest = source === null
-      ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory }, bindings)
-      : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory }, bindings);
+      ? await installManifestShardfile(game.shard, { ...browserShardfileOptions(document.baseURI, true), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings)
+      : await installShardfileProduct(source, { ...browserShardfileOptions(document.baseURI), memory: page.memory, progress: (progress) => { loading.paintAdmission(progress); } }, bindings);
     if (source !== null || manifest.shardfile !== undefined) document.documentElement.classList.remove('title-first');
     installKitSpecies();
     installKitIcons();

@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import binaryen from 'binaryen';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { contentHash } from '@wildshard/sdk/project';
-import { admitProduct, boundedResponse, type CachedProduct, type ProductCache, type ProductOptions } from '../src/game/shardfile/product';
+import { admitProduct, boundedResponse, type CachedProduct, type ProductCache, type ProductOptions, type ProductProgress } from '../src/game/shardfile/product';
 import { parseShardfile } from '../src/game/shardfile/schema';
 
 const empty = () => emptyShardfile({ slug: 'product-test', name: 'Product', author: 'Local', seed: 1, revision: 1 });
@@ -159,4 +159,22 @@ it('shares one transport for identical file and commons addresses', async () => 
   f.shard.budgets.library.compressed *= 2; f.shard.budgets.library.resident *= 2;
   const product = await admitProduct(f.shard, f.options);
   expect(f.fetches()).toBe(1); expect(product.assets.get(f.hash)).toBe(product.assets.get(`commons:${f.hash}`));
+});
+
+it('reports real streaming and cached admission bytes, validation and durable publication before completing', async () => {
+  const f = fixture(), events: ProductProgress[] = [];
+  const run = () => admitProduct(f.shard, { ...f.options, progress: (event) => { events.push(event); } });
+  await run();
+  expect(events.map((event) => event.phase)).toEqual(expect.arrayContaining(['cache-read', 'assets', 'hash', 'validation', 'cache', 'complete']));
+  expect(events.at(-1)).toMatchObject({ phase: 'complete', bytesRead: f.bytes.length, bytesTotal: f.bytes.length, filesDone: 1, filesTotal: 1 });
+  expect(events.findIndex((event) => event.phase === 'validation')).toBeLessThan(events.findIndex((event) => event.phase === 'cache'));
+  events.length = 0; await run();
+  expect(f.fetches()).toBe(1);
+  expect(events.at(-1)?.bytesRead).toBe(f.bytes.length);
+});
+it('reports only bounded bytes and never completion for an oversized streaming response', async () => {
+  let read = 0;
+  const body = new ReadableStream<Uint8Array>({ start(controller) { controller.enqueue(new Uint8Array(2)); controller.enqueue(new Uint8Array(3)); controller.close(); } });
+  await expect(boundedResponse(new Response(body), 4, (bytes) => { read += bytes; })).rejects.toThrow('cap');
+  expect(read).toBe(2);
 });

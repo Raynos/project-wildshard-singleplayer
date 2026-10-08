@@ -101,6 +101,54 @@
 </div>
 </div>
 <div class="ws-load-foot"><span data-el="foot"></span></div></div>
+    <script data-loading-first-paint>
+      // This clock and the existing fields work before any application module has downloaded.
+      // Loading adopts the same DOM and time origin; title arrival is read here, never consumed.
+      (() => {
+        if (document.documentElement.classList.contains('title-first')) return;
+        const root = document.querySelector('.ws-load[data-shell]');
+        if (!root) return;
+        const started = performance.now();
+        root.dataset.startedAt = String(started);
+        root.dataset.step = 'admission.modules';
+        const field = (key, text) => { const el = root.querySelector('[data-el="' + key + '"]'); if (el && el.textContent !== text) el.textContent = text; };
+        const slug = new URLSearchParams(location.search).get('chunk') || 'driftwood-isle';
+        let name = slug.replace(/[_-]+/g, ' ').trim() || 'Selected shard';
+        let tier = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'phone' : 'desktop';
+        try {
+          const session = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') || '{}').keys?.titleArrival?.data;
+          const backup = JSON.parse(localStorage.getItem('wildshard.save.v2.device') || '{}').keys?.['titleArrival.once']?.data;
+          for (const raw of [session, backup]) {
+            const arrival = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            if (!arrival || typeof arrival !== 'object') continue;
+            if (arrival.slug === slug && typeof arrival.name === 'string' && arrival.name.length <= 256 && Date.now() - arrival.at >= 0 && Date.now() - arrival.at <= 60000) { name = arrival.name; break; }
+          }
+          const picked = JSON.parse(localStorage.getItem('wildshard.save.v2.global') || '{}').keys?.settings?.data?.tier;
+          if (picked === 'phone' || picked === 'desktop') tier = picked;
+        } catch { /* denied storage: device tier and destination slug remain available */ }
+        field('slug', name);
+        field('tier', tier + ' · selecting quality');
+        field('line', 'Loading application modules');
+        field('suFact', 'Loading application modules');
+        let bytes = 0;
+        const seen = new Set();
+        const resources = () => {
+          for (const item of performance.getEntriesByType('resource')) {
+            if ((item.initiatorType === 'script' || item.initiatorType === 'link') && !seen.has(item.name + ':' + item.startTime)) { seen.add(item.name + ':' + item.startTime); bytes += item.encodedBodySize || item.transferSize || 0; }
+          }
+          root.dataset.moduleBytes = String(bytes);
+          field('dlFact', bytes > 0 ? (bytes / 1048576).toFixed(2) + ' MB modules read · total pending' : 'Waiting for application modules');
+        };
+        const tick = () => {
+          if (!root.isConnected || !root.hasAttribute('data-shell')) return;
+          const seconds = (performance.now() - started) / 1000;
+          field('clock', String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + (seconds % 60).toFixed(1).padStart(4, '0'));
+          resources();
+          requestAnimationFrame(tick);
+        };
+        tick();
+      })();
+    </script>
     <!-- app-switch resume screen (E61, src/engine/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
          (?glreload, src/engine/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and
          never the first-boot loader above -->

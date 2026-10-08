@@ -61,7 +61,7 @@ export function bindTravelInventory(source: TravelSource): () => void {
   return () => { if (running === source) running = null; };
 }
 const service = travelService({ source: () => running, slot: travelSlot(), now: () => Date.now(), navigate: (request) => {
-  setTitleArrival({ slug: request.to, mode: request.mode });
+  setTitleArrival({ slug: request.to, mode: request.mode, name: findShard(request.to)?.name ?? request.to });
   const url = new URL(chunkUrl(request.to));
   for (const name of ['at', 'glreload', 'x', 'z', 'yaw', 'pitch', 'explore', 'cam', 'model', 'skipintro', 'tour', 'quest', 'drop']) url.searchParams.delete(name);
   if (request.mode === 'explore') url.searchParams.set('explore', 'hub');

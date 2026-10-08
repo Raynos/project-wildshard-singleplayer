@@ -23,6 +23,11 @@ export interface ProductCache {
 }
 /** Version readers are trusted client migrations; content cannot register its own compatibility rule. */
 export interface ProductVersions { current: string; previous?: string | 0; readers: ReadonlyMap<string | 0, (source: unknown) => Shardfile> }
+/** Actual admission work, before the ordinary world boot plan exists. Bytes include verified cache reads. */
+export interface ProductProgress {
+  phase: 'descriptor' | 'cache-read' | 'assets' | 'hash' | 'validation' | 'cache' | 'complete';
+  detail: string; bytesRead: number; bytesTotal: number; filesDone: number; filesTotal: number;
+}
 /** Loading is explicit about connectivity and first-party provenance, never inferred from an author field. */
 export interface ProductOptions {
   base: string; cache?: ProductCache; offline: boolean; firstParty: boolean;
@@ -33,6 +38,8 @@ export interface ProductOptions {
   memory?: MemoryAdmission;
   /** Trusted residency owner reserves parsed source and immutable transport before any asset-cache read or owned copy. */
   reserve?: (source: Shardfile) => void;
+  /** Trusted presentation observer; it does not participate in admission decisions. */
+  progress?: (progress: ProductProgress) => void;
 }
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
 export interface AdmittedProduct { source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string }
@@ -49,7 +56,7 @@ function readLegacyCache(input: unknown): Shardfile {
   return parseShardfile({ ...input, version: SHARDFILE_VERSION, requires: { ...input.requires, sdk: SHARDFILE_VERSION } });
 }
 /** Stream bounded wire bytes, including responses without a trustworthy Content-Length header. */
-export async function boundedResponse(response: Response, maximum: number): Promise<Uint8Array> {
+export async function boundedResponse(response: Response, maximum: number, read?: (bytes: number) => void): Promise<Uint8Array> {
   if (!response.ok || !Number.isSafeInteger(maximum) || maximum < 0 || maximum > MAX_FILE_BYTES) throw new Error('Unavailable or oversized shardfile asset');
   const length = response.headers.get('content-length');
   if (length !== null && (!/^[0-9]+$/u.test(length) || Number(length) > maximum)) throw new Error('Shardfile wire size exceeds cap');
@@ -61,6 +68,7 @@ export async function boundedResponse(response: Response, maximum: number): Prom
       size += next.value.length;
       if (size > maximum) throw new Error('Shardfile wire size exceeds cap');
       chunks.push(next.value);
+      read?.(next.value.length);
     }
   } catch (error) { await reader.cancel().catch(() => undefined); throw error; }
   finally { reader.releaseLock(); }
@@ -76,6 +84,7 @@ export async function browserContentHash(bytes: Uint8Array): Promise<string> {
 /** Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance. */
 export async function admitProduct(input: unknown, options: ProductOptions): Promise<AdmittedProduct> {
   const base = new URL('.', options.base).href;
+  options.progress?.({ phase: 'cache-read', detail: 'Checking visited product', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 0 });
   const visited = await options.cache?.product(base);
   if (visited !== null && visited !== undefined) preflightShardfile(visited);
   const cached = options.offline ? visited : null;
@@ -105,15 +114,24 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     unique.set(hash, cap);
   }
   const transport = new Map<string, Uint8Array>(), addresses = [...unique];
+  let bytesRead = 0, filesDone = 0;
+  const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
+  const progress = (phase: ProductProgress['phase'], detail: string): void => {
+    options.progress?.({ phase, detail, bytesRead, bytesTotal, filesDone, filesTotal: addresses.length });
+  };
+  progress('assets', 'Reading immutable assets');
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     let bytes = await options.cache?.asset(base, hash);
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
-      bytes = await boundedResponse(await options.fetch(new URL(hash, base).href), cap);
-    }
+      progress('assets', `Fetching ${hash.slice(0, 12)}`);
+      bytes = await boundedResponse(await options.fetch(new URL(hash, base).href), cap, (size) => { bytesRead += size; progress('assets', `Reading ${hash.slice(0, 12)}`); });
+    } else { bytesRead += bytes.length; progress('assets', `Cached ${hash.slice(0, 12)}`); }
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
+    progress('hash', `Verifying ${hash.slice(0, 12)}`);
     const owned = Uint8Array.from(bytes), actual = await options.hash(owned);
     if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
+    filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);
     return owned;
   };
   for (let at = 0; at < addresses.length; at += 4) {
@@ -129,18 +147,21 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     if (bytes === undefined) throw new Error('Asset was not admitted');
     assets.set(ref, bytes);
   }
+  progress('validation', 'Validating assets, simulation and entries');
   validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
   }, options.memory);
   if (!options.offline && options.cache !== undefined) {
+    progress('cache', 'Saving verified offline assets');
     const cache = options.cache, release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')));
     try {
       let complete = true;
-      for (const [ref, bytes] of assets) if (await cache.putAsset(base, ref.replace(/^commons:/u, ''), bytes) === false) complete = false;
-      for (const ref of assets.keys()) if (await cache.asset(base, ref.replace(/^commons:/u, '')) === null) complete = false;
+      for (const [ref, bytes] of assets) { progress('cache', `Saving ${ref.slice(0, 12)}`); if (await cache.putAsset(base, ref.replace(/^commons:/u, ''), bytes) === false) complete = false; }
+      for (const ref of assets.keys()) { progress('cache', `Checking saved ${ref.slice(0, 12)}`); if (await cache.asset(base, ref.replace(/^commons:/u, '')) === null) complete = false; }
       if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty });
     } finally { release?.(); }
   }
+  progress('complete', 'Product admitted');
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */

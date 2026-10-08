@@ -125,11 +125,20 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
   const productOptions = { ...options, base: new URL('.', url).href };
   let input: unknown;
   if (options.offline) {
+    options.progress?.({ phase: 'descriptor', detail: 'Reading visited shard descriptor', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
     const visited = await options.cache?.product(productOptions.base);
     if (visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
     input = visited.source;
   } else {
-    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await options.fetch(url.href), limits.sourceBytes)));
+    let bytesRead = 0;
+    options.progress?.({ phase: 'descriptor', detail: 'Fetching shard descriptor', bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
+    const response = await options.fetch(url.href), length = Number(response.headers.get('content-length'));
+    const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
+    const bytes = await boundedResponse(response, limits.sourceBytes, (size) => {
+      bytesRead += size; options.progress?.({ phase: 'descriptor', detail: 'Reading shard descriptor', bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
+    });
+    options.progress?.({ phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
+    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   }
   const source = parseShardfile(input);
   const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
