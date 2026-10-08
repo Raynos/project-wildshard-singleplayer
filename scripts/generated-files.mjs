@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { apiSurface, pages, undocumented } from './gen-api.mjs';
+import { SHARDFILE_REFERENCE, shardfileReference } from './docs/gen-shardfile-reference.mjs';
 import { compareEdges, graph } from './check-graph.mjs';
 import { appendixRange, engineAppendix, generatedIncreases, replaceDebt, verifyIncreaseTrailers } from './generated-policy.mjs';
 
@@ -39,6 +40,7 @@ export function generatedFiles(root) {
   const doc = read(root, 'docs/ENGINE.md'), { start, end } = appendixRange(doc);
   const outputs = {
     'lint/api-surface.json': json(surface), ...pages(surface),
+    [SHARDFILE_REFERENCE]: shardfileReference(root),
     'docs/ENGINE.md': doc.slice(0, start) + engineAppendix(surface) + doc.slice(end),
     'lint/layer-edges.json': json({ about: 'SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.', edges: sorted(edges) }),
     'lint/ratchet.json': json(sorted(ratchet)),

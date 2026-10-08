@@ -1,5 +1,11 @@
 # Shardfile 0.x
 
+The [generated schema and script ABI reference](api/SHARDFILE.md) lists the actual
+fields, optionality, defaults, union branches, bounds and Wasm signatures used by
+`@wildshard/sdk/shardfile`. It is regenerated from the same schema the SDK validates,
+through the serialized push; stale copies fail the committed-output check. Named
+cross-field predicates remain opaque in the inventory and are explained below.
+
 ## Budget-first admission
 
 `wildshard build <folder>` and `wildshard validate <folder>` print the SF62 report:
