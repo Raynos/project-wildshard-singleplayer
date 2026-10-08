@@ -38,7 +38,7 @@ export function createLevelInstallation(app: App, scope: Scope, adapters: LevelA
     scope.onDispose(() => { freeTree(root); });
     const ctx: LevelContext = {
       app, scope, root, get progress() { return progress(); },
-      system: (system) => { live(); app.addSystem(system, scope); },
+      system: (system) => { live(); app.addContentSystem(system, scope); },
       on: (name, fn, options) => { live(); app.events.on(name, fn, scope, options); },
       answer: (name, fn, options) => { live(); app.events.answer(name, fn, scope, options); },
       rows: {

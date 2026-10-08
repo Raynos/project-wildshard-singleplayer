@@ -30,6 +30,7 @@ import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
 import { frameCost } from './frameCost';
+import { diagnosticNow } from './clock';
 import { dropOutputDepth, halfLuminance, installMemorySaver, memorySaverOn, shadowLights } from '../render/memorySaver';
 import { dropShadowColour } from '../world/shadowVariants';
 import { recordGpuCheckpoint, traceBootPasses } from '../boot/gpuTrace';
@@ -218,6 +219,7 @@ export class Game {
   levelSystemIds(): string[] { return this.app.systemIds(this.levelScope); }
   /** The bootstrap boundary: everything registered next belongs to the level. */
   beginLevelSystems(): void {
+    this.app.cpu.bind(this.levelScope, this.levelId);
     this.registrationScope = this.levelScope; this.app.levelScope = this.levelScope;
     enterOwner(this.levelScope);
   }
@@ -570,9 +572,10 @@ export class Game {
    * marks one the game cannot run without — if it keeps throwing the loop stops and the fatal modal goes up, where any
    * other system is just switched off (src/engine/core/faults.ts).
    */
-  private register(phase: Phase, fn: (dt: number, t: number) => void, label?: string, core = false, scope = this.registrationScope): void {
+  private register(phase: Phase, fn: (dt: number, t: number) => void, label?: string, core = false, scope = this.registrationScope, content = true): void {
     const id = label === 'main' ? 'main.frame' : label ?? `engine.core.callback.${String(this.anonymous++)}`;
-    this.app.addSystem({ id, phase, run: fn, core }, scope);
+    if (content) this.app.addContentSystem({ id, phase, run: fn, core }, scope);
+    else this.app.addSystem({ id, phase, run: fn, core }, scope);
     this.faultSystems.set(id, makeSystem(fn, id, core, id));
     scope.onDispose(() => { this.faultSystems.delete(id); });
   }
@@ -580,7 +583,7 @@ export class Game {
   /** E357 F2: a temporary harness observer of simulation frames, removed when its walk finishes. */
   watchFrames(fn: (dt: number) => void): () => void {
     const scope = this.levelScope.child('observer');
-    this.register('update', fn, 'harness.walk', false, scope);
+    this.register('update', fn, 'harness.walk', false, scope, false);
     return () => { scope.dispose(); };
   }
   /** First in the frame: read controls into intents the fixed steps consume (the player's move, a queued jump). */
@@ -783,6 +786,7 @@ export class Game {
       // the dev fps panel's timing rows (src/engine/core/frameCost.ts): each system timed by its label only while the panel is open
       const on = frameCost.on;
       if (on) frameCost.begin();
+      this.app.cpu.begin();
       // each system in its own try/catch (faults.ts): one that throws is counted, reported and, if it keeps at it, switched off
       this.runPhase('input', dt, t);
       this.runFixed(dt);
@@ -794,7 +798,9 @@ export class Game {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
         sky.clouds?.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.raysDir, 1500);
-        this.lookStrategy?.frame?.(realDt, t); // a shard's per-frame uniforms, with the camera final (ShardManifest.LookStrategy)
+        const lookStart = this.app.cpu.enabled ? diagnosticNow() : 0;
+        try { this.lookStrategy?.frame?.(realDt, t); }
+        finally { if (this.app.cpu.enabled && this.lookStrategy?.frame !== undefined) this.app.cpu.record(this.app.cpu.ticket(this.levelScope), diagnosticNow() - lookStart); }
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);
         if (exploreEntryPending() && !this.renderer.getContext().isContextLost()) recordExploreFrame();
@@ -802,6 +808,7 @@ export class Game {
       this.flushEvents('render');
       if (this.captures.length > 0) this.flushCaptures();
       const done = performance.now(), work = done - lastRun;
+      this.app.cpu.end();
       this.workMs[this.frameI] = work; this.frameCount++;
       this.updateMs[this.frameI] = renderAt - lastRun; this.renderMs[this.frameI] = done - renderAt;
       if (on) frameCost.end(realDt * 1000, renderAt - lastRun, done - renderAt, cap > 0 ? 1000 / cap : 0);

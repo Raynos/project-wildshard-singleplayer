@@ -141,6 +141,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       const app = request.page.context.app, parent = request.page.context.game.runtime, pageScope = app.levelScope;
       if (parent === undefined) throw new Error('Regional factory requires the page runtime');
       if (pageScope === null) throw new Error('Regional factory requires the page level scope');
+      app.cpu.bind(scope, request.cell.instance);
       const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.rootScene,
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
         scope, ground: foundation.ground });
@@ -149,7 +150,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       const onUpdate: ShardWorld['game']['onUpdate'] = (run, label, core) => {
         if (enteredContext === null) throw new Error('Regional callback registered before its interior context');
         const id = `grid.runtime.${request.cell.instance}.callback.${label ?? String(anonymous++)}`;
-        installEnteredRuntimeService(enteredContext, entry => { app.addSystem({ id, phase: 'update', run, ...(core === undefined ? {} : { core }) }, entry); });
+        installEnteredRuntimeService(enteredContext, entry => { app.addContentSystem({ id, phase: 'update', run, ...(core === undefined ? {} : { core }) }, entry); });
       };
       // Content keeps the same renderer/player, but its stable scope and callback registration belong to this region.
       // The home Game's fields are never overwritten, even across yielded hooks or while this resident is parked.
@@ -191,7 +192,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           return { ...installation, context,
             beforeWorld: entered => { enteredContext = entered; installEnteredRuntimeService(entered, entry => {
               foundation.enter(entry); app.bindPlayerServices(pageScope, entry); view.enter(entry);
-              app.addSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
+              app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
             }); },
             afterWorld: entered => foundation.afterWorld?.(entered, world),
             afterKit: async entered => {
@@ -224,7 +225,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                   disposeRifleDrop: () => { runtime.hooks.disposeRifleDrop?.(); } };
                 runtime.play = localPlay;
                 installEnteredRuntimeService(entered, entry => {
-                  app.addSystem({ id: `grid.runtime.${request.cell.instance}.animals`, phase: 'update', run: (dt, t) => {
+                  app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.animals`, phase: 'update', run: (dt, t) => {
                     // Native hitboxes/controllers are lazy, but belong to the parked resident rather than this entry.
                     withOwner(owner, () => regional.animals.update(dt, t, world.player.position, world.player.sprinting, world.player.position, world.game.camera));
                     localPlay?.progress.addPlay(dt);

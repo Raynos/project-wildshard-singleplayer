@@ -19,7 +19,8 @@ import { AppDebug, resolveGrade } from './services';
 import { AppUi } from './ui';
 import { TickScheduler } from './scheduler';
 import { Events } from '../events/events';
-import { GameClock } from '../core/clock';
+import { GameClock, diagnosticNow } from '../core/clock';
+import { ScopedCpuMeter } from '../core/scopedCpu';
 import { AssetService } from './assets';
 import { Scope } from './scope';
 import { withOwner } from './ownership';
@@ -95,6 +96,8 @@ export class App {
     this.players.set(scope, player);
     scope.onDispose(() => { this.players.delete(scope); });
   }
+  /** Offline benchmarks enable this; trusted content registration alone chooses the charged owner. */
+  readonly cpu = new ScopedCpuMeter();
   readonly input = new InputService(() => this.clock.now * 1000);
   private readonly equipmentHosts = new WeakMap<Scope, EquipmentHost>();
   get equipmentHost(): EquipmentHost | null { return this.levelScope === null ? null : this.equipmentHosts.get(this.levelScope) ?? null; }
@@ -210,6 +213,15 @@ export class App {
   onEnter(state: AppState, fn: () => void, scope: Scope): void { this.hook(this.enters, state, fn, scope); }
   onExit(state: AppState, fn: () => void, scope: Scope): void { this.hook(this.exits, state, fn, scope); }
 
+  /** Content callbacks use their trusted level/instance ticket; system IDs and core flags never select the allowance. */
+  addContentSystem(spec: SystemSpec, scope: Scope): void {
+    const ticket = this.cpu.ticket(scope);
+    this.addSystem({ ...spec, run: (dt, t) => {
+      if (!this.cpu.enabled || ticket === null) { spec.run(dt, t); return; }
+      const started = diagnosticNow();
+      try { spec.run(dt, t); } finally { this.cpu.record(ticket, diagnosticNow() - started); }
+    } }, scope);
+  }
   addSystem(spec: SystemSpec, scope: Scope): void {
     if (scope.disposed) return;
     if (this.systems.has(spec.id)) throw new Error(`Duplicate system id: ${spec.id}`);
