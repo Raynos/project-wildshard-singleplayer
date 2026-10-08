@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
+import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
+import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
@@ -340,6 +342,8 @@ function canvasTexture(c: HTMLCanvasElement) {
   tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
   tex.anisotropy = 8;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
+  // Per-build immutable pixels; lit and depth materials share this exact texture, with no CPU readers.
+  if (memorySaverOn()) gpuOnlyTexture(tex, 'undergrowth/canvas');
   return tex;
 }
 

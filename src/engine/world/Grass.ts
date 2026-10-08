@@ -15,6 +15,8 @@ import { app } from '../app/runtime';
 import type { GrassLayer } from '../render/look';
 import { practiceRoom } from '../core/practiceRoom';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { memorySaverOn } from '../render/memorySaver';
+import { gpuOnlyTexture } from '../core/gpuOnly';
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -543,6 +545,7 @@ function makeFlowerTexture() {
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
   tex.anisotropy = 8;
+  if (memorySaverOn()) gpuOnlyTexture(tex, 'grass/flower-canvas');
   return tex;
 }
 
@@ -573,6 +576,7 @@ function makeBladeAtlas() {
   tex.anisotropy = 8;
   tex.generateMipmaps = true;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
+  if (memorySaverOn()) gpuOnlyTexture(tex, 'grass/blade-canvas');
   return tex;
 }
 
