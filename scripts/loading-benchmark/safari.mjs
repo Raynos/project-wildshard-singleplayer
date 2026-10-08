@@ -31,7 +31,7 @@ async function connect(base) {
   while (Date.now() < deadline) {
     try {
       const pages = await (await fetch('http://127.0.0.1:9232/json')).json(), page = pages.find(row => row.url?.startsWith(base));
-      if (page) { inspector = soakInspector(page.webSocketDebuggerUrl); await inspector.opened; await inspector.evaluate('performance.now()'); return; }
+      if (page) { inspector = soakInspector(page.webSocketDebuggerUrl); await inspector.opened; await sleep(600); await inspector.evaluate('performance.now()'); return; }
     } catch { if (inspector) { inspector.close(); inspector = null; } }
     await sleep(300);
   }
@@ -69,7 +69,7 @@ for (const arm of arms) {
       await gesture(`document.querySelector('.ws-main-select').click()`);
       await wait(`document.querySelectorAll('.ws-menu-card').length > 0`, arm.base);
       await sleep(1500);
-      const index = await inspector.evaluate(`(() => { const cards = [...document.querySelectorAll('.ws-menu-card')]; return cards.findIndex(card => (card.querySelector('b')?.textContent ?? '').toLowerCase().includes(${JSON.stringify(names[shard].toLowerCase())})); })()`);
+      const index = JSON.parse(await inspector.evaluate(`JSON.stringify((() => { const cards = [...document.querySelectorAll('.ws-menu-card')]; return cards.findIndex(card => (card.querySelector('b')?.textContent ?? '').toLowerCase().includes(${JSON.stringify(names[shard].toLowerCase())})); })())`));
       if (typeof index !== 'number' || index < 0) throw new Error('Selected shard card absent');
       await gesture(`document.querySelector('.ws-menu-dots i[data-i="${index}"]').click()`);
       await sleep(600);
@@ -80,7 +80,7 @@ for (const arm of arms) {
       for (const { method, params } of [{ method: 'Console.enable', params: {} }, { method: 'Timeline.enable', params: {} }, { method: 'Timeline.setAutoCaptureEnabled', params: { enabled: true } }, { method: 'Timeline.start', params: { maxCallStackDepth: 12 } }, { method: 'ScriptProfiler.startTracking', params: { includeSamples: true } }]) {
         try { await inspector.send(method, params); } catch (error) { result.protocolErrors.push(`${method}: ${String(error)}`); }
       }
-      await gesture(`(() => { sessionStorage.setItem('sf67.tap', String(performance.timeOrigin + performance.now())); const compiled = document.querySelector('.ws-menu-shardfile'); const button = compiled && getComputedStyle(compiled).display !== 'none' && !compiled.disabled ? compiled : document.querySelector('.ws-menu-play'); button.click(); })()`);
+      await gesture(`(() => { setTimeout(() => { sessionStorage.setItem('sf67.tap', String(performance.timeOrigin + performance.now())); const compiled = document.querySelector('.ws-menu-shardfile'); const button = compiled && getComputedStyle(compiled).display !== 'none' && !compiled.disabled ? compiled : document.querySelector('.ws-menu-play'); button.click(); }, 0); return true; })()`);
       await wait(`location.search.includes('chunk=${shard}') && window.__sf67?.play > 0`, arm.base);
       const raw = await inspector.evaluate(`JSON.stringify({ data: window.__sf67, tapEpoch: Number(sessionStorage.getItem('sf67.tap')), ua: navigator.userAgent, viewport: { width: innerWidth, height: innerHeight, dpr: devicePixelRatio }, sw: !!navigator.serviceWorker?.controller, resources: performance.getEntriesByType('resource').map(row => ({ url: row.name, at: row.startTime, duration: row.duration, transferred: row.transferSize, encoded: row.encodedBodySize })) })`);
       Object.assign(result, JSON.parse(raw));
