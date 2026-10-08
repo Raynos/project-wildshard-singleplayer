@@ -1849,7 +1849,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2196 exports, grouped by the module to import them from.
+2199 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1981,6 +1981,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/core/Game`: `FixedPhase`, `Game`
 - `@wildshard/engine/core/gpuOnly`: `gpuOnlyAttributes`, `gpuOnlyContent`, `gpuOnlyTexture`, `markGpuOnly`, `onGpuRestored`, `rebakeGpuContent`
 - `@wildshard/engine/core/GpuRecovery`: `installGpuRecovery`, `RecoveryHost`, `RELOAD_PARAM`
+- `@wildshard/engine/core/Grade`: `GradeEffect`, `GradeLookEffect`, `GradeOptions`
 - `@wildshard/engine/core/harnessTap`: `ambientTick`, `tap`
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `layerArrayMips`, `readTexturePixels`, `releaseAfterUpload`

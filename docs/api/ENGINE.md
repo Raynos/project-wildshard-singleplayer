@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2213 members; 830 without a doc line (—).
+2216 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -725,11 +725,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `gpuOnlyContent` | function | @wildshard/engine/core/gpuOnly | what was marked (empty: an in-place restore brings the whole scene back) |
 | `gpuOnlyTexture` | function | @wildshard/engine/core/gpuOnly | E264: a texture whose CPU source (decoded image, canvas or pixel array) nothing reads after its upload: it is released |
 | `markGpuOnly` | function | @wildshard/engine/core/gpuOnly | — |
-| `onGpuRestored` | function | @wildshard/engine/core/gpuOnly | — |
+| `onGpuRestored` | function | @wildshard/engine/core/gpuOnly | Repaint callback owned by its captured resource lifetime; disposal removes its captured scene and textures. |
 | `rebakeGpuContent` | function | @wildshard/engine/core/gpuOnly | GpuRecovery.ts: re-paint every registered bake (after an in-place restore) |
 | `installGpuRecovery` | function | @wildshard/engine/core/GpuRecovery | — |
 | `RecoveryHost` | interface | @wildshard/engine/core/GpuRecovery | — |
 | `RELOAD_PARAM` | const | @wildshard/engine/core/GpuRecovery | URL param the reload adds (index.html's inline script and main.ts read it; main.ts strips it and ?at= once read) |
+| `GradeEffect` | class | @wildshard/engine/core/Grade | Final colour grade (runs after tone mapping, in display space): cool shadows / warm highlights |
+| `GradeLookEffect` | class | @wildshard/engine/core/Grade | The look layer alone (SHARD-PLATFORM G232): the S-curve and vibrance `GradeEffect` runs after its split tone when built |
+| `GradeOptions` | type | @wildshard/engine/core/Grade | — |
 | `ambientTick` | function | @wildshard/engine/core/harnessTap | — |
 | `tap` | const | @wildshard/engine/core/harnessTap | E357 F2: dormant unless the parity harness installs its observers. |
 | `KeepAlive` | class | @wildshard/engine/core/KeepAlive | — |

@@ -4315,7 +4315,7 @@
       {
         "name": "onGpuRestored",
         "kind": "function",
-        "doc": "",
+        "doc": "Repaint callback owned by its captured resource lifetime; disposal removes its captured scene and textures.",
         "from": "@wildshard/engine/core/gpuOnly"
       },
       {
@@ -4341,6 +4341,24 @@
         "kind": "const",
         "doc": "URL param the reload adds (index.html's inline script and main.ts read it; main.ts strips it and ?at= once read)",
         "from": "@wildshard/engine/core/GpuRecovery"
+      },
+      {
+        "name": "GradeEffect",
+        "kind": "class",
+        "doc": "Final colour grade (runs after tone mapping, in display space): cool shadows / warm highlights",
+        "from": "@wildshard/engine/core/Grade"
+      },
+      {
+        "name": "GradeLookEffect",
+        "kind": "class",
+        "doc": "The look layer alone (SHARD-PLATFORM G232): the S-curve and vibrance `GradeEffect` runs after its split tone when built",
+        "from": "@wildshard/engine/core/Grade"
+      },
+      {
+        "name": "GradeOptions",
+        "kind": "type",
+        "doc": "",
+        "from": "@wildshard/engine/core/Grade"
       },
       {
         "name": "ambientTick",
