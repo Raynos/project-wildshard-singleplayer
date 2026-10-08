@@ -687,6 +687,10 @@ export class LiveGridSession {
     const feet = this.worldFeet(), cell = this.ports.assembly.at(feet.x, feet.z);
     if (cell === undefined) return -60;
     const runtime = this.runtimeRegions.get(cell.instance);
+    const active = this.hybrid.state();
+    // The entry can be at road level while its asynchronous world hook is still installing its bounds.
+    // Like regional input/gameplay, authored recovery must wait for that entered installation.
+    if (runtime !== undefined && (active.instance !== cell.instance || !active.ready)) return -CHUNK_HALF;
     const authored = findShard(cell.slug)?.bounds;
     const declared = runtime === undefined
       ? cell.instance === this.ports.home.instance ? this.page.homeFallFloor : authored?.floor

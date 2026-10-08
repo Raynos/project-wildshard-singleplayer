@@ -101,6 +101,7 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
     expect(session.aimAnimals()).toEqual([]); expect(session.aimAnimals()).not.toBe(aimBodies);
     const prepared = await session.live.prepare(home.instance, target.instance); prepared.commit();
     traveller.position.set(0, 0.5, 0); expect(session.gameplayReady()).toBe(false);
+    expect(session.fallFloor()).toBe(-250); // No authored recovery before the interior world hook is ready.
     gridCells.enter({ instance: target.instance, slug: target.slug });
     for (let i = 0; i < 50 && !session.gameplayReady(); i++) await Promise.resolve();
     expect(session.gameplayReady()).toBe(true); expect([worlds, plays]).toEqual([1, 1]);
