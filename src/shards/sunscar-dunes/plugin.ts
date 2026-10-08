@@ -128,3 +128,9 @@ export class SignalDunesPlugin extends ShardPlugin {
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
 export default SignalDunesPlugin;
+
+/** Resolve only the declared first-party entry, preserving the standalone constructor. */
+export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
+  if (entry !== 'runtime/index.ts') throw new Error('Unknown trusted runtime entry');
+  return SignalDunesPlugin;
+}
