@@ -326,7 +326,7 @@ try {
   }
   }
   }
-} catch (error) { report.diagnostic = await inspector?.raw(`JSON.stringify({url:location.href,origin:performance.timeOrigin,token:window.__frameFloorGridDocumentToken,stop:window.__frameFloorGridStop,body:document.body.innerText.slice(-4000),loading:document.querySelector('.ws-load')?.textContent,saved:(()=>{try{const keys=JSON.parse(localStorage.getItem('wildshard.save.v2.device')??'{"keys":{}}').keys;return Object.fromEntries(['life.lastEnd','life.lastUnload','boot.trace'].map(k=>[k,keys?.[k]?.data??null]));}catch(error){return{error:String(error)};}})()})`).catch(() => null); report.failure = String(error); process.exitCode = 1; console.error(report.failure); }
+} catch (error) { report.diagnostic = await inspector?.raw(`JSON.stringify({url:location.href,origin:performance.timeOrigin,token:window.__frameFloorGridDocumentToken,stop:window.__frameFloorGridStop,grid:window.__wildshard?.shard?.grid?.state(),player:window.__wildshard?.world?.player?.position,body:document.body.innerText.slice(-4000),loading:document.querySelector('.ws-load')?.textContent,saved:(()=>{try{const keys=JSON.parse(localStorage.getItem('wildshard.save.v2.device')??'{"keys":{}}').keys;return Object.fromEntries(['life.lastEnd','life.lastUnload','boot.trace'].map(k=>[k,keys?.[k]?.data??null]));}catch(error){return{error:String(error)};}})()})`).catch(() => null); report.failure = String(error); process.exitCode = 1; console.error(report.failure); }
 finally {
   report.errors = await inspector?.raw('JSON.stringify(window.__g227Errors ?? [])').catch(() => null);
   report.warnings = await inspector?.raw('JSON.stringify(window.__g227Warnings ?? [])').catch(() => null);
