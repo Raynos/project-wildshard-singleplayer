@@ -25,17 +25,23 @@ it.each(['stop', 'expiry'] as const)('keeps a detached preview alive after launc
   const dir = mkdtempSync(join(tmpdir(), 'serve-preview-')), log = join(dir, 'preview.log'), beat = join(dir, 'heartbeat');
   let pid: number | undefined;
   try {
-    const childCode = `import {writeFileSync} from 'node:fs'; let i=0; setInterval(() => writeFileSync(${JSON.stringify(beat)},String(++i)),20);`;
-    writeFileSync(join(dir, 'pnpm'), `#!${process.execPath}\nconst {spawn}=require('node:child_process'); const child=spawn(process.execPath,['--input-type=module','-e',${JSON.stringify(childCode)}],{stdio:'ignore'}); console.log('fixture-ready '+child.pid); setInterval(() => {},1000);\n`, { mode: 0o755 });
-    pid = Number(execFileSync(process.execPath, ['--input-type=module', '-', 'config', 'dist', '4402', log], {
-      input: launcher, env: { ...process.env, PATH: `${dir}:${process.env['PATH'] ?? ''}` }, encoding: 'utf8', timeout: 5000,
+    const childCode = `import {writeFileSync} from 'node:fs'; import {createServer} from 'node:http'; let i=0; setInterval(() => writeFileSync(${JSON.stringify(beat)},String(++i)),20); const server=createServer((_req,res)=>res.end('detached preview alive')); server.listen(0,'127.0.0.1',()=>console.log('fixture-port '+server.address().port));`;
+    writeFileSync(join(dir, 'pnpm'), `#!${process.execPath}\nconst {spawn}=require('node:child_process'); const child=spawn(process.execPath,['--input-type=module','-e',${JSON.stringify(childCode)}],{stdio:['ignore','inherit','inherit']}); console.log('fixture-ready '+child.pid); setInterval(() => {},1000);\n`, { mode: 0o755 });
+    const laneRoot = join(dir, 'lane');
+    pid = Number(execFileSync('python3', [join(process.cwd(), 'scripts/heavy-lane.py'), 'build', '--', process.execPath, '--input-type=module', '-', 'config', 'dist', '4402', log], {
+      input: launcher, env: { ...process.env, PATH: `${dir}:${process.env['PATH'] ?? ''}`, WS_HEAVY_ROOT: laneRoot, WS_HEAVY_TOKEN: '', WS_HEAVY_GATE: '' }, encoding: 'utf8', timeout: 5000,
     }).trim());
     if (!Number.isSafeInteger(pid) || pid <= 1) throw new Error('Invalid child identity');
     expect(process.kill(pid, 0)).toBe(true);
     expect(Number(execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)], { encoding: 'utf8' }).trim())).toBe(pid);
     let output = '';
-    for (let i = 0; i < 50; i++) { output = readFileSync(log, 'utf8'); if (output.includes('fixture-ready')) break; await delay(20); }
+    for (let i = 0; i < 50; i++) { output = readFileSync(log, 'utf8'); if (output.includes('fixture-ready') && output.includes('fixture-port')) break; await delay(20); }
     expect(output).toContain('fixture-ready');
+    // The real build wrapper exited and released its lease; the detached preview still serves bytes.
+    expect(existsSync(join(laneRoot, 'build.active.json'))).toBe(false);
+    const port = /fixture-port (\d+)/u.exec(output)?.[1];
+    if (!port) throw new Error('Missing listening preview port');
+    expect(await (await fetch(`http://127.0.0.1:${port}/`)).text()).toBe('detached preview alive');
     const child = /fixture-ready (\d+)/u.exec(output)?.[1];
     if (!child) throw new Error('Missing descendant identity');
     expect(Number(execFileSync('ps', ['-o', 'pgid=', '-p', child], { encoding: 'utf8' }).trim())).toBe(pid);

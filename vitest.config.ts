@@ -4,6 +4,9 @@
 // in plain node: the few browser globals the pure modules touch (localStorage, location) are stubbed in test/setup.ts.
 import { defineConfig } from 'vitest/config';
 import { rapierAlias } from './vite/rapier';
+import { assertVitestLane } from './scripts/vitest-lane';
+
+assertVitestLane();
 
 export const HEAVY_INTEGRATION_TESTS = [
   'test/live-grid.test.ts',

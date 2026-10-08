@@ -12,6 +12,7 @@ import { backdropPrefixPlugin } from './vite/backdropPrefix';
 import { chunkReport } from './vite/chunkReport';
 import { devserverFlags } from './vite/devserver';
 import { crossroadsRigPlugin } from './vite/crossroadsRig';
+import { assertHeavyLease } from './scripts/heavy-lane-lease.mjs';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
 // emitted as /version.json so the running app can tell when the server has a newer build
@@ -76,7 +77,8 @@ const nativePlugin = (): Plugin => ({
   closeBundle() { for (const f of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(join('dist-native', f), { force: true }); },
 });
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
+  if (command === 'build') assertHeavyLease('build');
   const native = mode === 'native';
   return {
     server: { port: 5173, host: true },

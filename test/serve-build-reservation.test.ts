@@ -18,7 +18,7 @@ it('protects a build directory from the reaper before the preview process starts
   const children: ChildProcess[] = [];
   try {
     for (const path of [bin, scripts, registry, builds, join(dir, 'public')]) mkdirSync(path);
-    for (const name of ['serve-build.sh', 'browser-lane.sh']) copyFileSync(`scripts/${name}`, join(scripts, name));
+    for (const name of ['serve-build.sh', 'browser-lane.sh', 'heavy-lane.py']) copyFileSync(`scripts/${name}`, join(scripts, name));
     writeFileSync(join(scripts, 'gen.mjs'), '');
     writeFileSync(join(scripts, 'build-shardfiles.mjs'), `import {mkdirSync,writeFileSync} from 'node:fs';
 mkdirSync('public/shardfiles/_template',{recursive:true});
@@ -38,7 +38,7 @@ else {
  const timer=setInterval(()=>{if(fs.existsSync(path.join(dir,'resume'))){fs.mkdirSync(out,{recursive:true});clearInterval(timer);}},10);
 }
 `);
-    const env = { ...process.env, PATH: `${bin}:${process.env['PATH'] ?? ''}`, SERVE_REG_DIR: registry, SERVE_BUILD_DIR: builds, SF0_SERVE_FIXTURE: dir, CLAUDE_CODE_SESSION_ID: 'sf0-reservation-fixture' };
+    const env = { ...process.env, PATH: `${bin}:${process.env['PATH'] ?? ''}`, SERVE_REG_DIR: registry, SERVE_BUILD_DIR: builds, SF0_SERVE_FIXTURE: dir, WS_HEAVY_ROOT: join(dir, 'fixture-lane'), WS_HEAVY_TOKEN: '', WS_HEAVY_GATE: '', CLAUDE_CODE_SESSION_ID: 'sf0-reservation-fixture' };
     const launch = (script: string, args: string[]) => {
       const child = spawn('bash', [join(scripts, script), ...args], { cwd: dir, env, detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
       children.push(child);

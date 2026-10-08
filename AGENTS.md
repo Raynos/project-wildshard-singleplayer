@@ -84,6 +84,7 @@ The rules for every agent in this repo, one or two lines each. The why, the inci
   capture as "iPhone 16 Pro".
 - **No vite dev servers**: `scripts/serve-build.sh`, started from your scratchpad. **One iOS Simulator**, through
   `scripts/sim-lane.sh`. **One local model at a time**, under the model lock.
+- **One full suite and one app build machine-wide**: use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted.
 - **Clean your scratchpad**: delete throwaways as soon as you have the result; never rename aside. What you keep goes in
   the repo.
 

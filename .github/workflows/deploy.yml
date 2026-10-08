@@ -126,7 +126,7 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: |
           if [ "$DEPLOY" = true ]; then pnpm test; else pnpm run test:checks; fi
-          pnpm exec vite build
+          python3 scripts/heavy-lane.py build -- pnpm exec vite build
           node scripts/check-chunks.mjs dist
 
       - name: CSS check
@@ -208,7 +208,7 @@ jobs:
       - name: Vitest shard ${{ matrix.shard }}/6
         run: |
           pnpm gen
-          pnpm exec vitest run --shard=${{ matrix.shard }}/6 --coverage --coverage.reporter=json --reporter=dot
+          python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/6 --coverage --coverage.reporter=json --reporter=dot
       - uses: actions/upload-artifact@v4
         with:
           name: vitest-coverage-${{ matrix.shard }}
@@ -249,7 +249,7 @@ jobs:
         run: |
           pnpm gen
           node scripts/build-shardfiles.mjs
-          pnpm exec vite build
+          python3 scripts/heavy-lane.py build -- pnpm exec vite build
       - name: Real title, Driftwood gameplay and Developer grid home
         run: node scripts/parity/boot-smoke.mjs
       # E454: retain queue/start/step timings so macOS contention cannot silently slow the CI gate.

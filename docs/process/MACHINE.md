@@ -26,6 +26,30 @@ Each open game tab costs ~1.5 cores and ~1 GB for as long as it is open.
   when Jake asks for it (~3 cores per page). No `--disable-frame-rate-limit`. One Android emulator at a time, killed
   when the run ends.
 
+## Full suites and app builds: one of each machine-wide (E435 SF62)
+
+Ten simultaneous full suites pushed machine load above 150 and timed out real worker proofs. Python 3 and `flock`
+now provide separate full-test and build lanes across working trees and clean exports:
+
+- `python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run` (coverage and sharded full runs also take this lane).
+- `python3 scripts/heavy-lane.py build -- <command…>` for a whole app build pipeline, including generation.
+- `python3 scripts/heavy-lane.py status` shows active owners, commands and FIFO tickets.
+
+`pnpm test`, `pnpm build`, native builds, preview builds, parity builds and CI use the wrapper. Direct full Vitest
+and app Vite builds refuse an absent or copied lease before workers start. Focused file or directory filters remain
+unrestricted; `--project`, `--shard` and reporter flags alone are still full runs. Listing tests needs no lease.
+An SDK package build that includes its app clients also runs through the build wrapper.
+
+The push gate reserves both lanes atomically and takes priority over waiting ordinary jobs, without interrupting
+active work. Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate retains its existing
+internal parallel steps. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
+full-test lease; request `check` up front when one ordinary command needs both resources (`gate` is push priority).
+
+The default owned-command deadline is 30 minutes (`--max <minutes>`); queue time is separate. Signals and deadlines
+stop only the wrapper's own process group. The command inherits the lock descriptors, so killing a wrapper cannot
+free capacity while its child remains live. A stale queue PID is pruned; a lock is never stolen on age alone. Use the
+recorded PID and command to diagnose a stuck owner, and never kill another lane's processes.
+
 ## No vite dev servers (Jake, E317: "Vite dev sucks")
 
 Serve a build: `scripts/serve-build.sh [--head] [--hours <h>] [--name <label>]` (≈ 10 s) prints the URL;

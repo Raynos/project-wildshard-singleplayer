@@ -29,7 +29,7 @@ else if (!state.failed) {
   let preview;
   try {
     const out = join(scratch, 'dist');
-    if (run(['exec', 'vite', 'build', '--outDir', out], 'pnpm')) {
+    if (run(['scripts/heavy-lane.py', 'build', '--', 'pnpm', 'exec', 'vite', 'build', '--outDir', out], 'python3')) {
       const server = createServer();
       server.listen(0, '127.0.0.1'); await once(server, 'listening');
       const address = server.address();

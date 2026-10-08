@@ -5,7 +5,10 @@ import { relative, resolve } from 'node:path';
 import { cpSync, existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { rapierAlias } from '../vite/rapier.ts';
+import { assertHeavyLease } from './heavy-lane-lease.mjs';
 
+// This package also compiles the two real app clients; acquire the build lane before generation or type emission.
+assertHeavyLease('build');
 const root = resolve(import.meta.dirname, '..');
 process.chdir(root);
 execFileSync('node', ['scripts/gen.mjs'], { cwd: root, stdio: 'inherit' });

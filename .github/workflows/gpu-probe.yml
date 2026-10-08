@@ -28,7 +28,7 @@ jobs:
           path: ~/Library/Caches/ms-playwright
           key: pw-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install chromium
-      - run: pnpm exec vite build
+      - run: python3 scripts/heavy-lane.py build -- pnpm exec vite build
       - name: Serve build
         run: |
           pnpm exec vite preview --host 127.0.0.1 --port 4400 --strictPort > preview.log 2>&1 &

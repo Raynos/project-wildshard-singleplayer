@@ -30,7 +30,7 @@ it('makes built-dist boot a required parallel push job, outside pre-push', () =>
   expect(job).not.toMatch(/continue-on-error|needs:/u);
   expect(job).toContain('runs-on: macos-15');
   expect(job).toContain('job-timing.json');
-  expect(job).toContain('node scripts/build-shardfiles.mjs\n          pnpm exec vite build');
+  expect(job).toContain('node scripts/build-shardfiles.mjs\n          python3 scripts/heavy-lane.py build -- pnpm exec vite build');
   expect(job).toContain('node scripts/parity/boot-smoke.mjs');
   expect(readFileSync('scripts/deploy-pin.mjs', 'utf8')).toContain('event=push&status=success');
   expect(readFileSync('scripts/vercel-tree-gate.sh', 'utf8')).not.toContain('boot-smoke');

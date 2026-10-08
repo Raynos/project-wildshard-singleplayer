@@ -71,7 +71,7 @@
     "bin"
   ],
   "scripts": {
-    "prepack": "node ../../scripts/build-sdk.mjs"
+    "prepack": "python3 ../../scripts/heavy-lane.py build -- node ../../scripts/build-sdk.mjs"
   },
   "engines": {
     "node": ">=22.18"

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-only harness fixtures use isolated temporary repositories and a browser-API VM.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-only harness fixtures use isolated temporary repositories and a browser-API VM.
@@ -26,6 +26,10 @@ function fixture() {
 describe('parity build-cache eviction', () => {
   it('builds a committed declared product before the real build process copies public into its cached output', async () => {
     const f = fixture(), cache = join(f.root, 'cache');
+    // This tiny executable only copies fixture bytes; its lane must not upgrade the enclosing real full suite.
+    vi.stubEnv('WS_HEAVY_ROOT', join(f.root, 'fixture-lane'));
+    vi.stubEnv('WS_HEAVY_TOKEN', '');
+    vi.stubEnv('WS_HEAVY_GATE', '');
     try {
       f.put('package.json', '{"name":"parity-product-fixture","private":true}');
       f.put('scripts/gen.mjs', "import {writeFileSync} from 'node:fs'; writeFileSync('generated', 'ready');");
@@ -38,7 +42,7 @@ describe('parity build-cache eviction', () => {
         expect(JSON.parse(readFileSync(join(result.tree, 'dist/version.json'), 'utf8'))).toEqual({ sha });
         expect(result.hit).toBe(false);
       } finally { result.cleanup(); }
-    } finally { f.close(); }
+    } finally { vi.unstubAllEnvs(); f.close(); }
   });
   it('keeps the newest three completed entries by mtime and supports a different limit', () => {
     const root = mkdtempSync(join(tmpdir(), 'parity-eviction-test-'));

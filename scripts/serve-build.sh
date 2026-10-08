@@ -157,7 +157,8 @@ export default async (env) => {
 JS
 # the generated files first, as CI's `pnpm build` does: without them a new asset (round 13: Sky Reach's LUT) had no
 # bytes.generated entry, the build skipped it, and every capture scored a game the deploy doesn't ship (E399)
-( cd "$SRC" && node scripts/gen.mjs && node scripts/build-shardfiles.mjs && pnpm exec vite build --mode "$MODE" --config "$CFG" ) > "$BASE/$stamp/build.log" 2>&1 \
+( cd "$SRC" && python3 "$REPO/scripts/heavy-lane.py" build -- bash -c \
+  'node scripts/gen.mjs && node scripts/build-shardfiles.mjs && pnpm exec vite build --mode "$1" --config "$2"' bash "$MODE" "$CFG" ) > "$BASE/$stamp/build.log" 2>&1 \
   || { tail -30 "$BASE/$stamp/build.log" >&2; exit 1; }
 # public/ by symlink (vite preview follows them): an entry the build didn't write is linked whole; a folder both have
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins

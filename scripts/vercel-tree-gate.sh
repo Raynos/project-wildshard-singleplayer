@@ -28,6 +28,12 @@ if git show "$sha:scripts/push-main.sh" | grep -q 'node scripts/regenerate-commi
 fi
 if [ -f "$stamp_dir/$sha" ]; then echo "vercel-gate: $short already passed"; exit 0; fi
 
+# Reserve both resources before exporting; queue time is separate from the E454 gate wall time.
+if [ "${WS_HEAVY_GATE:-}" != 1 ] || ! node --input-type=module -e \
+  "import {assertHeavyLease} from './scripts/heavy-lane-lease.mjs'; assertHeavyLease('full-test'); assertHeavyLease('build');" >/dev/null 2>&1; then
+  exec python3 "$ROOT/scripts/heavy-lane.py" gate -- bash "$ROOT/scripts/vercel-tree-gate.sh" "$@"
+fi
+
 work="$(cd "$(mktemp -d -t vercel-gate)" && pwd -P)" || exit 1 # canonical: /var is a symlink on macOS (E432)
 trap 'kill $(jobs -p) 2>/dev/null; rm -rf "$work"' EXIT
 fail() { echo "vercel-gate: FAILED at $short — $1" >&2; echo "            (Vercel would have built this tree and gone red; fix it and commit, then push again)" >&2; exit 1; }

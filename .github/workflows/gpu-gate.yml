@@ -80,7 +80,7 @@ jobs:
       - name: Build declared shardfile products before Vite copies public
         run: node scripts/build-shardfiles.mjs
         if: matrix.mode != 'prove'
-      - run: pnpm exec vite build
+      - run: python3 scripts/heavy-lane.py build -- pnpm exec vite build
         if: matrix.mode != 'prove'                         # prove builds each part from its own export
       - name: Serve the build
         if: matrix.mode != 'prove'
@@ -148,7 +148,7 @@ jobs:
       - name: Apply Linux case plant
         if: inputs.plant == 'asset-case'
         run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
-      - run: pnpm exec vite build
+      - run: python3 scripts/heavy-lane.py build -- pnpm exec vite build
       - run: node scripts/check-asset-case.mjs dist --out=asset-case.json
       - name: Status
         if: always() && !inputs.prove && inputs.plant == ''
