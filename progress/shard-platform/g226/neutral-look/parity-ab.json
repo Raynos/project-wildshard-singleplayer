@@ -1,0 +1,37 @@
+{
+ "note": "Driftwood standalone parity A/B: control 589069017 (parent) vs candidate 6871dbc75 (same tree as the landed G226 code commit). Compiled program sources (boot.render.programKeys, a hash of every compiled vertex+fragment source) are identical on both tiers; the committed baseline is stale for both (walk / scene / systems fields drifted since it was recorded), so the A/B is the comparison. The first candidate phone run hit ERR_NETWORK_CHANGED (a texture failed to load) and was rerun.",
+ "tiers": {
+  "phone": {
+   "programKeys": {
+    "control": "53d89deefba73e2cf5c2bc57d3d9b02ecf3c912ce6054ae1605f58fd6554fce9",
+    "candidate": "53d89deefba73e2cf5c2bc57d3d9b02ecf3c912ce6054ae1605f58fd6554fce9"
+   },
+   "programs": {
+    "control": 96,
+    "candidate": 96
+   },
+   "identicalFields": 565,
+   "nonTimingDiffs": [
+    "poses.pier.ssim",
+    "poses.beach.ssim",
+    "poses.wreck.ssim",
+    "walk.legs.pier.seconds"
+   ]
+  },
+  "desktop": {
+   "programKeys": {
+    "control": "bc1d0963680f90417e42fb103afabf14b08f84e23e4ccbe50045f3ec64a0f044",
+    "candidate": "bc1d0963680f90417e42fb103afabf14b08f84e23e4ccbe50045f3ec64a0f044"
+   },
+   "programs": {
+    "control": 109,
+    "candidate": 109
+   },
+   "identicalFields": 560,
+   "nonTimingDiffs": [
+    "walk.legs.pier.seconds",
+    "walk.legs.cave.seconds"
+   ]
+  }
+ }
+}

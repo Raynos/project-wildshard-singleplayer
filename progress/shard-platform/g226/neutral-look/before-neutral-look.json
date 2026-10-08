@@ -1,0 +1,101 @@
+{
+ "base": "http://127.0.0.1:4402",
+ "results": [
+  {
+   "slug": "driftwood-isle",
+   "console": [
+    "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: \nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1672: 'uToonNight' : undeclared identifier\nERROR: 0:1699: 'uFogZenith' : undeclared identifier\nERROR: 0:1699: 'mix' : no matching overloaded function found\nERROR: 0:1699: '=' : dimension mismatch\nERROR: 0:1699: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\nERROR: 0:1712: 'uFogZenith' : undeclared identifier\nERROR: 0:1712: 'mix' : no matching overloaded function found\nERROR",
+    "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: \nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1674: 'uToonNight' : undeclared identifier\nERROR: 0:1701: 'uFogZenith' : undeclared identifier\nERROR: 0:1701: 'mix' : no matching overloaded function found\nERROR: 0:1701: '=' : dimension mismatch\nERROR: 0:1701: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\nERROR: 0:1714: 'uFogZenith' : undeclared identifier\nERROR: 0:1714: 'mix' : no matching overloaded function found\nERROR"
+   ],
+   "pageErrors": [],
+   "shaderErrors": [
+    "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: \nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1672: 'uToonNight' : undeclared identifier\nERROR: 0:1699: 'uFogZenith' : undeclared identifier\nERROR: 0:1699: 'mix' : no matching overloaded function found\nERROR: 0:1699: '=' : dimension mismatch\nERROR: 0:1699: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\nERROR: 0:1712: 'uFogZenith' : undeclared identifier\nERROR: 0:1712: 'mix' : no matching overloaded function found\nERROR: 0:1712: '=' : dimension mismatch\nERROR: 0:1712: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\n\n  1667:             // 2.6× the old one (picked from 1.0 / 1.4 / 1.8 / 2.6 on the phone). fwidth keeps each step's edge one pixel wide\n  1668:             float gr = (fn.x * 4.2 + fn.z * 2.6) * 2.6 / 0.1;\n  1669:             float gw = clamp(fwidth(gr), 0.02, 0.5);\n  1670:             gr = floor(gr) + smoothstep(0.5 - gw, 0.5 + gw, fract(gr));\n  1671:             water *= clamp(1.0 + gr * 0.1, 0.58, 1.48);\n> 1672:             water = mix(water, water * vec3(",
+    "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: \nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1674: 'uToonNight' : undeclared identifier\nERROR: 0:1701: 'uFogZenith' : undeclared identifier\nERROR: 0:1701: 'mix' : no matching overloaded function found\nERROR: 0:1701: '=' : dimension mismatch\nERROR: 0:1701: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\nERROR: 0:1714: 'uFogZenith' : undeclared identifier\nERROR: 0:1714: 'mix' : no matching overloaded function found\nERROR: 0:1714: '=' : dimension mismatch\nERROR: 0:1714: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\n\n  1669:             // 2.6× the old one (picked from 1.0 / 1.4 / 1.8 / 2.6 on the phone). fwidth keeps each step's edge one pixel wide\n  1670:             float gr = (fn.x * 4.2 + fn.z * 2.6) * 2.6 / 0.1;\n  1671:             float gw = clamp(fwidth(gr), 0.02, 0.5);\n  1672:             gr = floor(gr) + smoothstep(0.5 - gw, 0.5 + gw, fract(gr));\n  1673:             water *= clamp(1.0 + gr * 0.1, 0.58, 1.48);\n> 1674:             water = mix(water, water * vec3("
+   ],
+   "programs": 211,
+   "failedPrograms": [
+    {
+     "name": "",
+     "log": "Fragment shader is not compiled. ERROR: 0:1672: 'uToonNight' : undeclared identifier\nERROR: 0:1699: 'uFogZenith' : undeclared identifier\nERROR: 0:1699: 'mix' : no matching overloaded function found\nERROR: 0:1699: '=' : dimension mismatch\nERROR: 0:1699: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\nERROR: 0:1712: 'uFogZenith' : undeclared identifier\nERROR: 0:1712: 'mix' : no matching overloaded function found\nERROR: 0:1712: '=' : dimension mismatch\nERROR: 0:1712: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float' "
+    },
+    {
+     "name": "",
+     "log": "Fragment shader is not compiled. ERROR: 0:1674: 'uToonNight' : undeclared identifier\nERROR: 0:1701: 'uFogZenith' : undeclared identifier\nERROR: 0:1701: 'mix' : no matching overloaded function found\nERROR: 0:1701: '=' : dimension mismatch\nERROR: 0:1701: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float'\nERROR: 0:1714: 'uFogZenith' : undeclared identifier\nERROR: 0:1714: 'mix' : no matching overloaded function found\nERROR: 0:1714: '=' : dimension mismatch\nERROR: 0:1714: '=' : cannot convert from 'const mediump float' to 'highp 3-component vector of float' "
+    }
+   ],
+   "shell": {
+    "level": "platform.grid",
+    "home": "driftwood-isle",
+    "live": "driftwood-isle",
+    "cells": [
+     "pine-hollow@0,1",
+     "_template@1,1",
+     "sunscar-dunes@-1,0",
+     "driftwood-isle@0,0",
+     "nalati-grasslands@1,0",
+     "far-reach@0,-1"
+    ]
+   },
+   "shots": [
+    "e/driftwood-isle-spawn.jpg",
+    "e/driftwood-isle-look-out.jpg"
+   ],
+   "bootSeconds": 11.2,
+   "compileError": null
+  },
+  {
+   "slug": "pine-hollow",
+   "console": [],
+   "pageErrors": [],
+   "shaderErrors": [],
+   "programs": 256,
+   "failedPrograms": [],
+   "shell": {
+    "level": "platform.grid",
+    "home": "pine-hollow",
+    "live": "pine-hollow",
+    "cells": [
+     "pine-hollow@0,1",
+     "_template@1,1",
+     "sunscar-dunes@-1,0",
+     "driftwood-isle@0,0",
+     "nalati-grasslands@1,0",
+     "far-reach@0,-1"
+    ]
+   },
+   "shots": [
+    "e/pine-hollow-spawn.jpg",
+    "e/pine-hollow-look-out.jpg"
+   ],
+   "bootSeconds": 27.7,
+   "compileError": null
+  },
+  {
+   "slug": "nalati-grasslands",
+   "console": [],
+   "pageErrors": [],
+   "shaderErrors": [],
+   "programs": 258,
+   "failedPrograms": [],
+   "shell": {
+    "level": "platform.grid",
+    "home": "nalati-grasslands",
+    "live": "nalati-grasslands",
+    "cells": [
+     "pine-hollow@0,1",
+     "_template@1,1",
+     "sunscar-dunes@-1,0",
+     "driftwood-isle@0,0",
+     "nalati-grasslands@1,0",
+     "far-reach@0,-1"
+    ]
+   },
+   "shots": [
+    "e/nalati-grasslands-spawn.jpg",
+    "e/nalati-grasslands-look-out.jpg"
+   ],
+   "bootSeconds": 16.9,
+   "compileError": null
+  }
+ ]
+}
