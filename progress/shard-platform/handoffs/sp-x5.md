@@ -52,7 +52,9 @@ with the explicit final Simulator release to the working coordinator. Separate
 Signal Dunes correction: keep18-character cap, declare the17-character “Light
 signal fire” scout chip and remove the runtime override from e9c0c5945 hybridRows.
 Actual QuestState chip is checked in the existing contract; 2files/12tests and
-scoped typed lint green. Coordinator owns the serialized push of both commits. SF67 remains OPEN: the desktop ruler still
+scoped typed lint green. Source40aa26ece160da70e97427bc677ee92cf046dcd1 landed
+and was relayed. A stale sf50 receipt clause is corrected in this docs follow-up.
+Coordinator owns the serialized push of the receipt and source commits. SF67 remains OPEN: the desktop ruler still
 has >100ms tasks (Driftwood733ms/Nalati1207ms/Pine263ms); bake/worker/time-slice
 follow-ups and physical-phone evidence remain. Fix3 is not assigned to this lane.
 
