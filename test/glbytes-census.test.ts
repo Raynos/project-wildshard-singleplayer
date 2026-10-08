@@ -11,10 +11,10 @@ interface Census { resources: Resource[]; totalBytes: number; listedBytes: numbe
 function census(scenario: string): Census[] {
   return runInNewContext(`
     class GL {
-      listeners = new Map(); bindings = new Map(); canvas = {width:16,height:16,addEventListener:(name,fn)=>this.listeners.set(name,fn)}; lost = false;
+      listeners = new Map(); bindings = new Map(); canvas = {width:16,height:16,addEventListener:(name,fn,options)=>{if(options?.once!==true)throw Error('Loss observer must release itself');this.listeners.set(name,fn);}}; lost = false;
       createTexture() { return {}; } createBuffer() { return {}; } createRenderbuffer() { return {}; }
       getParameter(key) { return this.bindings.get(key); } isContextLost() { return this.lost; }
-      loss = {loseContext:()=>{this.lost=true;this.listeners.get('webglcontextlost')?.();}, restoreContext:()=>{this.lost=false;}};
+      loss = {loseContext:()=>{this.lost=true;const delivered=this.listeners.get('webglcontextlost');this.listeners.delete('webglcontextlost');delivered?.();}, restoreContext:()=>{this.lost=false;}};
       getExtension(name) { return name === 'WEBGL_lose_context' ? this.loss : null; }
       bindTexture(_target, value) { this.bindings.set(0x8069,value); }
       bindBuffer(_target, value) { this.bindings.set(0x8894,value); }
@@ -169,8 +169,10 @@ it('retires probe allocations on delivered loss without wrapping native extensio
     if(window.__sc_gl().length || events.filter(e=>e.bytes===null).length!==6)throw Error('Repeated context retirement');
     loss.restoreContext();
     if(window.__sc_gl()[0].totalBytes!==0 || window.__sc_gl()[0].resources.length)throw Error('Restored context resurrected dead allocations');
-    gl.createTexture(); gl.lost=true; window.__sc_gl();
-    if(events.filter(e=>e.bytes===null).length!==7)throw Error('Unrequested loss not reconciled');
+    gl.createTexture(); loss.loseContext();
+    if(gl.listeners.size || events.filter(e=>e.bytes===null).length!==7)throw Error('Restored allocation did not rearm one-shot loss');
+    loss.restoreContext(); gl.createTexture(); gl.lost=true; window.__sc_gl();
+    if(events.filter(e=>e.bytes===null).length!==8)throw Error('Unrequested loss not reconciled');
     gl.lost=false;
   `);
   expect(rows[0]?.totalBytes).toBe(0);

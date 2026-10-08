@@ -51,10 +51,11 @@ export const GL_INIT = String.raw`(() => { const W = window;
     return w * h * d * texelBytes(ifmt, format, type);
   };
   const recs = []; const recOf = new WeakMap();
-  const rec = (gl) => { let r = recOf.get(gl); if (!r) { r = { gl, tex: new Map(), rb: new Map(), buf: new Map(), compressed: 0 }; recOf.set(gl, r); recs.push(r);
-    // Observe the delivered loss. Never wrap extensions or synchronously query the driver after loseContext().
-    gl.canvas?.addEventListener?.('webglcontextlost', () => retire(gl));
-  } return r; };
+  const rec = (gl) => { let r = recOf.get(gl); if (!r) { r = { gl, tex: new Map(), rb: new Map(), buf: new Map(), compressed: 0, listening: false }; recOf.set(gl, r); recs.push(r); }
+    // Observe delivered loss once, rearming only if the restored context allocates again.
+    // Never wrap extensions or synchronously query the driver after loseContext().
+    if(!r.listening && gl.canvas?.addEventListener){r.listening=true;gl.canvas.addEventListener('webglcontextlost',()=>{r.listening=false;retire(gl);},{once:true});}
+    return r; };
   const texBinding = (gl, target) => {
     if (target === 0x0de1) return gl.getParameter(0x8069);
     if (target === 0x8513 || (target >= 0x8515 && target <= 0x851a)) return gl.getParameter(0x8514);
