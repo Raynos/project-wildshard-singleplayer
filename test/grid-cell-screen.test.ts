@@ -2,7 +2,7 @@
 // mapping (loading with real stages, waiting for its shardfile, refused with the reason), and the panels: the nearest cells
 // only, redrawn only when the text changes, standing at the soft wall facing the traveller, charged as one platform claim.
 import { describe, expect, it, vi } from 'vitest';
-import { Group, type Mesh } from 'three';
+import { Group, Vector3, type Mesh } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { cellScreenBytes, cellScreenContent, cellScreenStatus, drawCellScreen, installCellScreens, SCREEN_M, type CellScreenInput, type ScreenContext } from '../src/game/grid/cellScreen';
 import { PlatformRenderResidency, type PlatformRenderAdmission, type PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
@@ -202,4 +202,35 @@ it('does not allocate or throw on an unaffordable screen slot, and retries once 
     blocker.release(); screens.step(); expect(canvases).toBe(1); expect(screens.state().shown).toHaveLength(1);
   } finally { scope.dispose(); blocker.release(); restoreGlobals(); }
   expect(allocator.entries()).toEqual([]);
+});
+
+// rt3 (round 3's #4, round 1's #2 back): f3bf8c0cd kept an opened cell LOADING while its entered hooks finish, and the
+// panel stayed up while the traveller walked in, so the camera sat inside the card for 7–15 s. Sweep the feet from the
+// road through the soft wall into the cell: a visible panel is always far enough in front of the feet that a trailing
+// third-person camera (≤ 8 m boom) is on the road side of it too, and a cell the feet are inside wears none.
+it('never stands a panel behind or around the traveller, from the road through the soft wall into the cell', () => {
+  const scope = new Scope('screen-sweep'), scene = new Group(), wall = 256;
+  vi.stubGlobal('document', { createElement: () => ({ width: 0, height: 0, getContext: () => recorder([]) }) });
+  const admission: PlatformRenderAdmission = { allocate: (plan, build) => build(scope.child(plan.id)) };
+  const cells = [{ instance: 'east', x: 560, z: 0, art: null }, { instance: 'north', x: 0, z: 560, art: null }];
+  // both stay LOADING the whole sweep: data-ready (the wall opened) but gameplay hooks still installing
+  const snapshot = new Map(cells.map((cell) => [cell.instance, { ...base, instance: cell.instance, product: true, runtime: true, colliders: true }]));
+  let feet = { x: 200, z: 12 };
+  try {
+    const screens = installCellScreens({ cells, wall, scene, admission, time: () => 0, build: 'b', tier: 'phone', ports: { read: () => snapshot, ready: () => false, feet: () => feet } });
+    let shownOnRoad = 0, shownInside = 0;
+    for (let x = 200; x <= 560; x += 2) {
+      feet = { x, z: 12 + Math.sin(x / 9) * 30 };
+      for (let k = 0; k < 6; k++) screens.step();
+      const inEast = Math.abs(feet.x - 560) < wall && Math.abs(feet.z) < wall;
+      scene.traverse((node) => {
+        if (node.name !== 'grid-cell-screen' || !node.visible) return;
+        const normal = new Vector3(0, 0, 1).applyEuler(node.rotation), ahead = new Vector3(feet.x, node.position.y, feet.z).sub(node.position).dot(normal);
+        expect(ahead).toBeGreaterThan(8); // the feet, and the camera behind them, face the card from its front
+      });
+      const east = screens.state().shown.some((s) => s.instance === 'east');
+      if (inEast) { expect(east).toBe(false); if (east) shownInside++; } else if (east) shownOnRoad++;
+    }
+    expect(shownOnRoad).toBeGreaterThan(0); expect(shownInside).toBe(0);
+  } finally { scope.dispose(); restoreGlobals(); }
 });

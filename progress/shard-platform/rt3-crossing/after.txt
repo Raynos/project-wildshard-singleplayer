@@ -1,0 +1,39 @@
+version {'build': 'b-mv059ndr', 'time': '2026-10-08T23:05:17.375Z'} cpu 4 errors 0 failure 
+cold grid load 24.1s
+     0.3s  step 14 / 16 · Shaders · 90 / 91 programs resolved · parallel · 93 programs
+     0.3s  navigating
+     0.3s  
+     0.3s  step 7 / 16 · Physics · Rapier · navmesh · 0 colliders
+     0.4s  step 11 / 16 · Animals
+    13.7s  step 13 / 16 · Weapons · HUD
+     0.3s  step 13 / 16 · Title art · explore · 12 / 13 pictures · UI
+     5.1s  step 14 / 16 · Title art · explore · 13 / 13 pictures · UI
+     0.3s  step 14 / 16 · Shaders · 165 materials · 1 / 35 batches · parallel · 6 programs
+     0.3s  step 14 / 16 · Shaders · 165 materials · 23 / 35 batches · parallel · 58 programs
+     0.3s  step 14 / 16 · Shaders · 63 / 100 programs resolved · parallel · 102 programs
+     0.3s  step 15 / 16 · First frame · world + shadows · 102 programs
+     2.4s  step 16 / 16 · Audio · music + sound effects · 94 / 94 audio files
+
+driftwood-isle-to-pine-hollow  fail=None
+  wait(near->gameplay) 16.6s | near->world resident 2.1 | resident->commit 0.2 | commit->inside 1.0 | inside->gameplay 13.3 | screen-rows-inside 0
+  longest frame gap 517ms @None | longest task 501ms @None | gaps>100ms 17 sum 3.7s
+  top gaps: 517@+0.2s:None, 500@+10.1s:pine-hollow:afterKit, 350@+11.8s:pine-hollow:afterPlay, 250@+16.3s:None, 217@+10.6s:pine-hollow:play, 217@+11.3s:pine-hollow:play
+  hooks ms: beforeWorld=2 constructor=1 world=4861 afterWorld=0 kit=249 afterKit=2423 play=1349 afterPlay=4349
+
+pine-hollow-to-nalati-grasslands  fail=None
+  wait(near->gameplay) 13.5s | near->world resident 2.4 | resident->commit 0.1 | commit->inside 0.8 | inside->gameplay 10.2 | screen-rows-inside 0
+  longest frame gap 2083ms @nalati-grasslands:world | longest task 2089ms @nalati-grasslands:world | gaps>100ms 22 sum 9.3s
+  top gaps: 2083@+6.0s:nalati-grasslands:world, 1683@+4.1s:nalati-grasslands:world, 800@+11.3s:nalati-grasslands:play, 683@+0.2s:None, 683@+9.2s:nalati-grasslands:world, 467@+13.5s:None
+  hooks ms: beforeWorld=1 constructor=0 world=7751 afterWorld=0 kit=1 afterKit=1024 play=565 afterPlay=791
+
+nalati-grasslands-to-far-reach  fail=None
+  wait(near->gameplay) 8.7s | near->world resident 0.3 | resident->commit 0.1 | commit->inside 1.0 | inside->gameplay 7.4 | screen-rows-inside 0
+  longest frame gap 4350ms @None | longest task 4338ms @None | gaps>100ms 5 sum 5.5s
+  top gaps: 4350@+2.6s:None, 667@+8.0s:None, 200@+7.1s:far-reach:afterPlay, 133@+7.8s:None, 117@+1.4s:far-reach:world
+  hooks ms: beforeWorld=1 constructor=0 world=5638 afterWorld=0 kit=39 afterKit=4 play=287 afterPlay=709
+
+far-reach-to-driftwood-isle  fail=None
+  wait(near->gameplay) 7.2s | near->world resident 0.8 | resident->commit 0.0 | commit->inside 1.0 | inside->gameplay 5.3 | screen-rows-inside 0
+  longest frame gap 783ms @driftwood-isle:world | longest task 767ms @driftwood-isle:world | gaps>100ms 12 sum 4.3s
+  top gaps: 783@+4.5s:driftwood-isle:world, 700@+6.4s:None, 583@+2.0s:driftwood-isle:world, 517@+3.9s:driftwood-isle:world, 450@+0.0s:None, 250@+3.7s:driftwood-isle:world
+  hooks ms: beforeWorld=1 constructor=0 world=3528 afterWorld=0 kit=2 afterKit=154 play=154 afterPlay=681

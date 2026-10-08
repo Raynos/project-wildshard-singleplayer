@@ -327,7 +327,11 @@ export function installCellScreens(input: {
       if (ticks++ % REFRESH === 0) snapshot = ports.read();
       const feet = ports.feet(), now = time();
       const distance = (cell: CellScreenCell): number => Math.hypot(Math.max(0, Math.abs(feet.x - cell.x) - wall), Math.max(0, Math.abs(feet.z - cell.z) - wall));
-      const wanted = [...snapshot.keys()].flatMap((id) => { const cell = byInstance.get(id); return ports.ready?.(id) === true || cell === undefined || distance(cell) > RANGE ? [] : [cell]; })
+      // rt3 (round 1's #2 again): a screen is the face of a closed cell seen from the road. A traveller already past its
+      // soft wall (an opened cell still installing its entered hooks) would stand between the panel and the wall with the
+      // camera inside the card, so a cell the feet are inside never wears one: they see the world instead.
+      const inside = (cell: CellScreenCell): boolean => Math.abs(feet.x - cell.x) < wall && Math.abs(feet.z - cell.z) < wall;
+      const wanted = [...snapshot.keys()].flatMap((id) => { const cell = byInstance.get(id); return ports.ready?.(id) === true || cell === undefined || inside(cell) || distance(cell) > RANGE ? [] : [cell]; })
         .sort((a, b) => distance(a) - distance(b) || a.instance.localeCompare(b.instance)).slice(0, count);
       const keep = new Set(wanted.map((cell) => cell.instance));
       for (let i = slots.length - 1; i >= 0; i--) {

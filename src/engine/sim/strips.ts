@@ -1,3 +1,4 @@
+import { diagnosticNow } from '../core/clock';
 import { validateEdgeProfile } from './edgeProfiles';
 import { SHORE_DEPTH } from './shore';
 import { seamGeometry, cornerSeamGeometry, SEAM_OFFSETS, type SeamEdge, type SeamFeature, type SeamTurnIn } from './seamGeometry';
@@ -36,6 +37,26 @@ export function generateCrossroads(input: { id: string; origin: { x: number; z: 
 
 /** Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter. */
 export function generatePlatform(cells: readonly PlatformCell[], empty: StripProfile): readonly GeneratedStrip[] {
+  const steps = platformSteps(cells, empty);
+  for (;;) { const next = steps.next(); if (next.done === true) return next.value; }
+}
+
+/**
+ * `generatePlatform` in slices (rt3-crossing): the same strips, in the same order, but `pause` is awaited whenever a
+ * slice of strip generation has run `budgetMs`, so a page building its platform during a load keeps painting instead of
+ * freezing for the whole generation (40 strips, seconds on a throttled phone). A strip is the unit: one never splits.
+ */
+export async function generatePlatformSliced(cells: readonly PlatformCell[], empty: StripProfile, pause: () => Promise<void>, budgetMs = 12): Promise<readonly GeneratedStrip[]> {
+  const steps = platformSteps(cells, empty);
+  let since = diagnosticNow();
+  for (;;) {
+    const next = steps.next(); if (next.done === true) return next.value;
+    if (diagnosticNow() - since >= budgetMs) { await pause(); since = diagnosticNow(); }
+  }
+}
+
+/** The generator behind both: yields after each strip or crossroads it adds, returns the whole platform. */
+function* platformSteps(cells: readonly PlatformCell[], empty: StripProfile): Generator<void, readonly GeneratedStrip[]> {
   validateEdgeProfile(empty);
   if (cells.length === 0 || cells.length > 9 || new Set(cells.map((c) => c.instance)).size !== cells.length
     || new Set(cells.map((c) => c.cell.join(','))).size !== cells.length
@@ -72,10 +93,12 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ; z <= maxZ; z++) {
     const low = get(x, z), high = get(x + 1, z);
     result.push(strip({ id: `gap.x.${x}.${z}`, axis: 'x', origin: { x: x * 555 + 277.5, z: z * 555 }, profiles: [low?.edges.east ?? empty, high?.edges.west ?? empty], adjacent: present([low, high]), observations: [low?.observations?.east ?? { entryWidth: 0 }, high?.observations?.west ?? { entryWidth: 0 }] }));
+    yield;
   }
   for (let z = minZ - 1; z <= maxZ; z++) for (let x = minX; x <= maxX; x++) {
     const low = get(x, z), high = get(x, z + 1);
     result.push(strip({ id: `gap.z.${x}.${z}`, axis: 'z', origin: { x: x * 555, z: z * 555 + 277.5 }, profiles: [low?.edges.north ?? empty, high?.edges.south ?? empty], adjacent: present([low, high]), observations: [low?.observations?.north ?? { entryWidth: 0 }, high?.observations?.south ?? { entryWidth: 0 }] }));
+    yield;
   }
   const corner = (cell: PlatformCell | undefined, horizontal: 'north' | 'south', vertical: 'east' | 'west'): StripCorner => {
     const a = cell?.edges[horizontal] ?? empty, b = cell?.edges[vertical] ?? empty, i = vertical === 'east' ? a.heights.length - 1 : 0, j = horizontal === 'north' ? b.heights.length - 1 : 0;
@@ -88,6 +111,7 @@ export function generatePlatform(cells: readonly PlatformCell[], empty: StripPro
   for (let x = minX - 1; x <= maxX; x++) for (let z = minZ - 1; z <= maxZ; z++) {
     const sw = get(x, z), se = get(x + 1, z), nw = get(x, z + 1), ne = get(x + 1, z + 1);
     result.push(cross({ id: `cross.${x}.${z}`, origin: { x: x * 555 + 277.5, z: z * 555 + 277.5 }, corners: [corner(sw, 'north', 'east'), corner(se, 'north', 'west'), corner(nw, 'south', 'east'), corner(ne, 'south', 'west')], adjacent: present([sw, se, nw, ne]) }));
+    yield;
   }
   return result;
 }

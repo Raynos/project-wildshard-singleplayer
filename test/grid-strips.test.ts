@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateStrip, generateCrossroads, generatePlatform, STRIP_OFFSETS, type StripProfile } from '../src/engine/sim/strips';
+import { generateStrip, generateCrossroads, generatePlatform, generatePlatformSliced, STRIP_OFFSETS, type StripProfile } from '../src/engine/sim/strips';
 
 const profile = (height: number, colour: readonly [number, number, number]): StripProfile => ({ heights: Array.from({ length: 257 }, (_, i) => height + Math.sin(i / 8)), colours: Array.from({ length: 257 }, () => colour), roadHeight: 0 });
 const profiles = [profile(2, [0.1, 0.4, 0.2]), profile(4, [0.5, 0.2, 0.1])] as const;
@@ -59,3 +59,17 @@ describe('deterministic shared platform seams', () => {
     }
   });
 });
+
+// rt3-crossing: the cold grid start built these 40 strips in one main-thread task (11.8 s at 4x CPU under "Weapons · HUD").
+// The sliced generator is the same platform, strip for strip, with a paint opportunity whenever a slice runs out.
+it('generates the same platform in slices, pausing between strips once a slice has used its budget', async () => {
+  const empty = { heights: Array.from({ length: 257 }, () => 0), colours: Array.from({ length: 257 }, () => [0.25, 0.25, 0.25]), roadHeight: 0 };
+  const cells = [-1, 0, 1].flatMap((x) => [-1, 0, 1].map((z) => ({ instance: `${x}/${z}`, origin: { x: x * 555, z: z * 555 }, cell: [x, z] as const, edges: { north: empty, south: empty, east: empty, west: empty } })));
+  let pauses = 0;
+  const sliced = await generatePlatformSliced(cells, empty, () => { pauses++; return Promise.resolve(); }, 0);
+  expect(sliced).toEqual(generatePlatform(cells, empty));
+  expect(pauses).toBe(40); // a zero budget pauses after every strip and crossroads
+  let none = 0;
+  expect(await generatePlatformSliced(cells, empty, () => { none++; return Promise.resolve(); }, Number.POSITIVE_INFINITY)).toHaveLength(40);
+  expect(none).toBe(0);
+}, 60_000);

@@ -36,8 +36,9 @@ import { ReadinessWalls, type ReadinessEdge } from '@wildshard/engine/physics/re
 import { installGridBorders } from '@wildshard/engine/physics/gridBorders';
 import { WATER_UNBOUNDED, waterExtent } from '@wildshard/engine/world/waves';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import { generatePlatform, type GeneratedStrip, type PlatformCell } from '@wildshard/engine/sim/strips';
+import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type PlatformCell, type StripProfile } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
+import { yieldGridAdmission } from './admissionYield';
 import { gridMode } from './menu';
 import { devserverCellOn } from './debug';
 import { gridCells, pageGridInstance, pageMode } from './boot';
@@ -245,10 +246,13 @@ export class GridSession {
         return { kind: 'declared', profiles: { north: empty, east: empty, south: empty, west: empty }, observations: { north: closed, east: closed, south: closed, west: closed } };
       }
     });
-    return new GridSession(host, edges, allocator);
+    // rt3-crossing: the 40-strip platform generation was one main-thread task (11.8 s at 4x CPU, the cold start's long
+    // park under "Weapons · HUD"); generate it here in slices between paints, then construct with the finished strips
+    const strips = await platformStrips(assembly, edges, (platform, edge) => generatePlatformSliced(platform, edge, () => yieldGridAdmission(host.scope)));
+    return new GridSession(host, edges, allocator, strips);
   }
 
-  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator) {
+  constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator, prebuilt?: readonly GeneratedStrip[]) {
     this.host = host;
     this.mapImages = new CellMinimaps(host.scope, (slug) => bakedMapUrl(findShard(slug)?.minimap?.image));
     const residency = host.residency;
@@ -259,20 +263,11 @@ export class GridSession {
     this.assembly = new GridAssembly(gridMode(devserverCellOn()));
     if (instance === null) throw new Error('A grid session needs a grid page');
     this.home = this.assembly.cell(instance);
-    const home = this.home, empty = this.assembly.emptyNeighbour.edge;
+    const home = this.home;
     this.neighbours = this.assembly.cells.filter((cell) => host.ownedHome === true || cell.instance !== home.instance);
     for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); }
-    // the deck: one generator run, one draw, the same vertices as the platform colliders
-    // the shards' real edge rows and observations (loaded once by `create`, before this one generation); a platform the
-    // generator refuses (an edge past the cliff envelope, an entry off road height) falls back to road-level edges
-    const flat = this.assembly.cells.map((cell): PlatformCell => ({ instance: cell.instance, cell: cell.cell, origin: { x: cell.origin.x, z: cell.origin.z },
-      edges: { north: empty, east: empty, south: empty, west: empty } }));
-    // G198: an open plot is road-level platform ground with an open entry on all four sides (its showroom faces each one)
-    const entry = { entryWidth: ENTRY_WIDTH, geometry: 'ground' } as const;
-    const plots = this.assembly.plots.map((plot): PlatformCell => ({ instance: plot.instance, cell: plot.cell, origin: { x: plot.origin.x, z: plot.origin.z },
-      edges: { north: empty, east: empty, south: empty, west: empty }, observations: { north: entry, east: entry, south: entry, west: entry } }));
-    let strips: readonly GeneratedStrip[];
-    try { strips = generatePlatform([...(edges ?? flat), ...plots], empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); strips = generatePlatform([...flat, ...plots], empty); }
+    // the deck: one generator run (`create` runs it sliced and hands it over), one draw, the same vertices as the platform colliders
+    const strips = prebuilt ?? platformStripsNow(this.assembly, edges);
     // SF19a / G158 (on for everyone since Jake's G175 pick, E450): the shard the player stands in owns the whole frame, the
     // road look owns the road, blended over 16 m at the cell edge; a host with no camera / composer builds none
     const frameHost = host.frame;
@@ -554,4 +549,31 @@ export class GridSession {
       life: this.life.state(),
     };
   }
+}
+
+/** The platform's cells: the shards' real edge rows and observations (loaded once by `create`, before this one generation),
+ *  each cell at road level as the fallback, and G198's open plots (road-level ground with an open entry on all four sides,
+ *  its showroom facing each one). */
+function platformInputs(assembly: GridAssembly, edges: readonly PlatformCell[] | undefined): { readonly cells: readonly PlatformCell[]; readonly flat: readonly PlatformCell[]; readonly empty: StripProfile } {
+  const empty = assembly.emptyNeighbour.edge;
+  const flat = assembly.cells.map((cell): PlatformCell => ({ instance: cell.instance, cell: cell.cell, origin: { x: cell.origin.x, z: cell.origin.z },
+    edges: { north: empty, east: empty, south: empty, west: empty } }));
+  const entry = { entryWidth: ENTRY_WIDTH, geometry: 'ground' } as const;
+  const plots = assembly.plots.map((plot): PlatformCell => ({ instance: plot.instance, cell: plot.cell, origin: { x: plot.origin.x, z: plot.origin.z },
+    edges: { north: empty, east: empty, south: empty, west: empty }, observations: { north: entry, east: entry, south: entry, west: entry } }));
+  return { cells: [...(edges ?? flat), ...plots], flat: [...flat, ...plots], empty };
+}
+/** Generate the platform; a platform the generator refuses (an edge past the cliff envelope, an entry off road height)
+ *  falls back to road-level edges. A disposed page stops between slices and builds nothing more. */
+async function platformStrips(assembly: GridAssembly, edges: readonly PlatformCell[] | undefined,
+  generate: (cells: readonly PlatformCell[], empty: StripProfile) => Promise<readonly GeneratedStrip[]>): Promise<readonly GeneratedStrip[]> {
+  const { cells, flat, empty } = platformInputs(assembly, edges);
+  try { return await generate(cells, empty); } catch (error) {
+    if (error instanceof Error && error.message === 'Grid admission scope disposed') throw error; // the page left mid-generation
+    console.warn('[grid] the platform keeps road-level edges:', error); return generate(flat, empty);
+  }
+}
+function platformStripsNow(assembly: GridAssembly, edges: readonly PlatformCell[] | undefined): readonly GeneratedStrip[] {
+  const { cells, flat, empty } = platformInputs(assembly, edges);
+  try { return generatePlatform(cells, empty); } catch (error) { console.warn('[grid] the platform keeps road-level edges:', error); return generatePlatform(flat, empty); }
 }
