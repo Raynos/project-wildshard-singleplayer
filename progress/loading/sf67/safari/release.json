@@ -1,0 +1,29 @@
+{
+  "releasedAt": "2026-10-08T21:01:13.503411+00:00",
+  "checks": [
+    {
+      "arm": "before",
+      "originalHTMLRestored": true,
+      "sha256": "a0dbbd99b4c8d3defaaa0a9a91964a76b51bd81a0f87305e28cf05c91b281ba9"
+    },
+    {
+      "arm": "after",
+      "originalHTMLRestored": true,
+      "sha256": "32664b159b5e1bda2bf1ac7063b7bbf0f9f1ec384a641aa0809a211dbc49c973"
+    },
+    {
+      "cohort": "safari-abba",
+      "ownedDeviceDeleted": "000F994B-2C8E-4A32-8E3F-69FACE871839"
+    },
+    {
+      "cohort": "safari-experimental",
+      "ownedDeviceDeleted": "3D862C64-0458-43D2-B2A0-6024629D4F33"
+    }
+  ],
+  "bootedDevices": [],
+  "previewsStopped": [
+    4406,
+    4400
+  ],
+  "ownedBrowserInspectorSamplerProcesses": 0
+}

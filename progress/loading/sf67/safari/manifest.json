@@ -1,0 +1,768 @@
+{
+  "schema": "sf67-safari-evidence/1",
+  "primary": {
+    "validEntries": 56,
+    "pairs": 14,
+    "repeatPairsPerShard": 2,
+    "core": "safari-abba: Driftwood, Nalati, template, Pine only",
+    "experimental": "safari-experimental: Sky Reach, Signal Dunes, Nine Dragon only",
+    "pins": {
+      "before": "19e647272191b6e823bd6dd7caf06b71780052f4",
+      "after": "6f4490e833fabf317d81578508983f96d118ca26"
+    }
+  },
+  "excludedControls": [
+    {
+      "path": "safari-abba/r1-after-far-reach-cold.json",
+      "reportedFailure": "Error: Safari Inspector page did not become ready",
+      "classification": "harness refusal: Developer OFF left experimental ENTER disabled, click did not navigate; not a game loading failure",
+      "includedInPrimary": false
+    },
+    {
+      "path": "safari-abba/r1-after-sunscar-dunes-cold.json",
+      "reportedFailure": "Error: Safari Inspector page did not become ready",
+      "classification": "harness refusal: Developer OFF left experimental ENTER disabled, click did not navigate; not a game loading failure",
+      "includedInPrimary": false
+    },
+    {
+      "path": "safari-abba/r1-before-far-reach-cold.json",
+      "reportedFailure": "Error: Safari Inspector page did not become ready",
+      "classification": "harness refusal: Developer OFF left experimental ENTER disabled, click did not navigate; not a game loading failure",
+      "includedInPrimary": false
+    },
+    {
+      "path": "safari-abba/r1-before-sunscar-dunes-cold.json",
+      "reportedFailure": "Error: Safari Inspector page did not become ready",
+      "classification": "harness refusal: Developer OFF left experimental ENTER disabled, click did not navigate; not a game loading failure",
+      "includedInPrimary": false
+    },
+    {
+      "path": "safari-abba/r2-after-far-reach-cold.json",
+      "reportedFailure": "Error: Safari Inspector page did not become ready",
+      "classification": "harness refusal: Developer OFF left experimental ENTER disabled, click did not navigate; not a game loading failure",
+      "includedInPrimary": false
+    },
+    {
+      "path": "safari-abba/r2-before-far-reach-cold.json",
+      "reportedFailure": "Error: Safari Inspector page did not become ready",
+      "classification": "harness refusal: Developer OFF left experimental ENTER disabled, click did not navigate; not a game loading failure",
+      "includedInPrimary": false
+    }
+  ],
+  "archives": [
+    {
+      "path": "safari-abba.tar.gz",
+      "bytes": 336775,
+      "sha256": "50ca8a601cf0d54487bbd9c67c966a7af42ca0aa376cc871699865c372303a8a",
+      "decodedBytes": 4648960,
+      "decodedSHA256": "3c438c415364dcc68ec43319f42f45f7f052ba67ac99dbbe983649dca84d7e9c",
+      "entries": [
+        {
+          "path": "safari-abba/device.json",
+          "bytes": 19671,
+          "sha256": "c498dc545cc6bfc49a2b447e119e99ddf490273aec788ff9ec8485632e05ab17"
+        },
+        {
+          "path": "safari-abba/harness.json",
+          "bytes": 1888,
+          "sha256": "a76455ddebfd5f4f9d171f6e92260c2b232c08e053727bd92c214f420371e8b5"
+        },
+        {
+          "path": "safari-abba/r1-_template-load.json",
+          "bytes": 379,
+          "sha256": "b2d53d2c4f8d0a305424b0cae055fc81771fea965ae2aecfaa0a84d7bd098607"
+        },
+        {
+          "path": "safari-abba/r1-_template-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r1-after-_template-cold.json",
+          "bytes": 191158,
+          "sha256": "4cadd3caf4c6103ba999c946755197fe80c2168e505a18003cd623f9ac3a4604"
+        },
+        {
+          "path": "safari-abba/r1-after-_template-warm.json",
+          "bytes": 183319,
+          "sha256": "73dd2675b0855db07aa4a33d081adfe25fd2531d3c00f05f1822d716115c3dd9"
+        },
+        {
+          "path": "safari-abba/r1-after-driftwood-isle-cold.json",
+          "bytes": 85126,
+          "sha256": "a2ef7ea0ab9e923f25e69d21c58d7cfaa858bc6ac3c81b918f07a501c06b3278"
+        },
+        {
+          "path": "safari-abba/r1-after-driftwood-isle-warm.json",
+          "bytes": 81664,
+          "sha256": "13338ab79a7a689df3fa279e5163a680b41e4f3289610996cf42fab08045bfb4"
+        },
+        {
+          "path": "safari-abba/r1-after-far-reach-cold.json",
+          "bytes": 692,
+          "sha256": "be611eb890550e9e7188da6a47533931f6f9a9ba64b3f92465ae8ea9bda22227"
+        },
+        {
+          "path": "safari-abba/r1-after-nalati-grasslands-cold.json",
+          "bytes": 107263,
+          "sha256": "82d6ae0cabd62d747ce4aab74fc4df7db158d32eedd00295bcdb3b71e8202910"
+        },
+        {
+          "path": "safari-abba/r1-after-nalati-grasslands-warm.json",
+          "bytes": 97482,
+          "sha256": "6723e9db3c240545e3af80761fff73c5cc7ae244f4985d568e355a06d921c184"
+        },
+        {
+          "path": "safari-abba/r1-after-pine-hollow-cold.json",
+          "bytes": 161152,
+          "sha256": "6087f15ed4289963671dbec40a88d21b5e4eba718090c9dc858dad4e325f087d"
+        },
+        {
+          "path": "safari-abba/r1-after-pine-hollow-warm.json",
+          "bytes": 166981,
+          "sha256": "00e92175b7ec863e1200145408f9244d2a1c148ad3192c7c0675aaa68a33c7bb"
+        },
+        {
+          "path": "safari-abba/r1-after-sunscar-dunes-cold.json",
+          "bytes": 702,
+          "sha256": "d441a0556440f5b35875fc1e6bda47986bb52e2bbe8d42bf65d1e26e8e03cde9"
+        },
+        {
+          "path": "safari-abba/r1-before-_template-cold.json",
+          "bytes": 215919,
+          "sha256": "55cff8ececbfd78ec53581f1da1743795bb57be6420fa43bc0833a6113f4401f"
+        },
+        {
+          "path": "safari-abba/r1-before-_template-warm.json",
+          "bytes": 181633,
+          "sha256": "5a1c0ab236ceecd894b37348174422bd8a142696a1e49ba9296bca59a2111ebf"
+        },
+        {
+          "path": "safari-abba/r1-before-driftwood-isle-cold.json",
+          "bytes": 124848,
+          "sha256": "84954421a6de53767160d3114447410f2639c99c4d2e7a81e7875fc2741484ae"
+        },
+        {
+          "path": "safari-abba/r1-before-driftwood-isle-warm.json",
+          "bytes": 82059,
+          "sha256": "5df71dafca7072253a9479bbb75de102364a23e5a8840e95065cf589d5ea608d"
+        },
+        {
+          "path": "safari-abba/r1-before-far-reach-cold.json",
+          "bytes": 693,
+          "sha256": "a27b6d4fdc58de7908dade9001e16893661e12bc5f434df75c066d22766339e1"
+        },
+        {
+          "path": "safari-abba/r1-before-nalati-grasslands-cold.json",
+          "bytes": 137061,
+          "sha256": "c2143c68e2950f417efda9e5930ff2f60c50f45223cdb8f61ed1ac720815ad2a"
+        },
+        {
+          "path": "safari-abba/r1-before-nalati-grasslands-warm.json",
+          "bytes": 97046,
+          "sha256": "de925831d538d6f0a2fec0a853a4d07a945e8b4c0852c2e0636dda48d933fde1"
+        },
+        {
+          "path": "safari-abba/r1-before-pine-hollow-cold.json",
+          "bytes": 207962,
+          "sha256": "9f0bc9a3b8b4ae198e8b9f94076b13061df12b03f1cf68be5bcd344dfc372179"
+        },
+        {
+          "path": "safari-abba/r1-before-pine-hollow-warm.json",
+          "bytes": 156260,
+          "sha256": "d8af22b7858e7474c5157e29964574847d2992966dfbccf07d5f9563e7fca3a1"
+        },
+        {
+          "path": "safari-abba/r1-before-sunscar-dunes-cold.json",
+          "bytes": 704,
+          "sha256": "6852d177accce85491c3d2f1d56e6de9c079669f4868f2bb992e7a25017de6ab"
+        },
+        {
+          "path": "safari-abba/r1-driftwood-isle-load.json",
+          "bytes": 378,
+          "sha256": "f3fd3e7d7230ac756cdaee8b9b9920e16a14e7a0ed2a180b1046782fd7101922"
+        },
+        {
+          "path": "safari-abba/r1-driftwood-isle-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r1-far-reach-load.json",
+          "bytes": 378,
+          "sha256": "c54f0f0c2329798c372cfbc50be6482bcc250ddd70bb9ff02227c57d3c095054"
+        },
+        {
+          "path": "safari-abba/r1-far-reach-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r1-nalati-grasslands-load.json",
+          "bytes": 380,
+          "sha256": "34bdb35b7b58dc0c715832c46b66ffdd63c6be1e90fd84624c269a62b31698fd"
+        },
+        {
+          "path": "safari-abba/r1-nalati-grasslands-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r1-pine-hollow-load.json",
+          "bytes": 378,
+          "sha256": "eb25e54a9eb0f17a9e92af3393e85ad8f28298f73e966daa8c4a489e0091b2f4"
+        },
+        {
+          "path": "safari-abba/r1-pine-hollow-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r1-sunscar-dunes-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r2-_template-load.json",
+          "bytes": 372,
+          "sha256": "439a8e0a2a235f927de4a79efebfc91b6ffbc6b54adf563a8b8aede98b99a7c7"
+        },
+        {
+          "path": "safari-abba/r2-_template-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r2-after-_template-cold.json",
+          "bytes": 216781,
+          "sha256": "30a510f753845fd09bf3d4d80173a31a8e5a73a6bc34e978a8d0cf8c5d680d25"
+        },
+        {
+          "path": "safari-abba/r2-after-_template-warm.json",
+          "bytes": 196295,
+          "sha256": "7c69c7d80d005c64341f90f412e48d3df943e8b2842b20ceb8a0322b98523905"
+        },
+        {
+          "path": "safari-abba/r2-after-driftwood-isle-cold.json",
+          "bytes": 124012,
+          "sha256": "d6d1d5a8f57a4bdb9f761b733f919db59060ca68f8109cca3ff613c20b43b92c"
+        },
+        {
+          "path": "safari-abba/r2-after-driftwood-isle-warm.json",
+          "bytes": 81111,
+          "sha256": "613a7212980f40004f8cb2ccda2f76afd01c98c2cb2c733195788a3a6d22f713"
+        },
+        {
+          "path": "safari-abba/r2-after-far-reach-cold.json",
+          "bytes": 692,
+          "sha256": "9e744563e12802c5434d087889f815add4c2b059faab6032ddb6cc266fb09d31"
+        },
+        {
+          "path": "safari-abba/r2-after-nalati-grasslands-cold.json",
+          "bytes": 139168,
+          "sha256": "a69fbbd877b90284d17c3f7ee260ad341d89bdcada32f3472558ab726824ce26"
+        },
+        {
+          "path": "safari-abba/r2-after-nalati-grasslands-warm.json",
+          "bytes": 98731,
+          "sha256": "fcbb350709dde22617faaf0fe92945cae36847812c89e081a1c60c1b039da629"
+        },
+        {
+          "path": "safari-abba/r2-after-pine-hollow-cold.json",
+          "bytes": 214832,
+          "sha256": "4ba837881bcf6a7df0813a9844727e4bdfdbaf44786f18006fcf8c12931fd08a"
+        },
+        {
+          "path": "safari-abba/r2-after-pine-hollow-warm.json",
+          "bytes": 156469,
+          "sha256": "0f190801c0e579a4a9059955a0308c37823af6ce7635de3e8de7edc781805497"
+        },
+        {
+          "path": "safari-abba/r2-before-_template-cold.json",
+          "bytes": 194726,
+          "sha256": "be01c26a2c32f55e01cefcc01053629392f41fe6ec598ced61f1fff36a44ee07"
+        },
+        {
+          "path": "safari-abba/r2-before-_template-warm.json",
+          "bytes": 189285,
+          "sha256": "75d3862092d8c0da97ee5e5fd55742407a6fed14abcc2b93d81bcdcca915db83"
+        },
+        {
+          "path": "safari-abba/r2-before-driftwood-isle-cold.json",
+          "bytes": 85981,
+          "sha256": "0a0e3bf034863b131b0246f5510ed30ee99bf75a63237652ad738c2a7c1ab4d7"
+        },
+        {
+          "path": "safari-abba/r2-before-driftwood-isle-warm.json",
+          "bytes": 80708,
+          "sha256": "1b6c50d8c408da12c44b2550ef6dd505860605606444b83a2224ac1501ab79f8"
+        },
+        {
+          "path": "safari-abba/r2-before-far-reach-cold.json",
+          "bytes": 699,
+          "sha256": "27dcdbd4796b78d6e9122c3290bd73d9e18fa9b0bf1771a2ab036ba25c26b2f6"
+        },
+        {
+          "path": "safari-abba/r2-before-nalati-grasslands-cold.json",
+          "bytes": 107588,
+          "sha256": "738ff9c7cc81f7edd0053d4e62635e3290c27f12de765d4476c0e59bceb245d5"
+        },
+        {
+          "path": "safari-abba/r2-before-nalati-grasslands-warm.json",
+          "bytes": 97445,
+          "sha256": "98aeb86cc8614c63fc5fbd8b45914f7aac125fa37d4ef93802e8224485a95c3f"
+        },
+        {
+          "path": "safari-abba/r2-before-pine-hollow-cold.json",
+          "bytes": 149430,
+          "sha256": "c5194965fe407d828060b05ced11c45057fe4decde227064b277aba5856917dd"
+        },
+        {
+          "path": "safari-abba/r2-before-pine-hollow-warm.json",
+          "bytes": 156855,
+          "sha256": "f854ece44498b86bff399168b2c119e64ed87f29bb7432238b58a54c7ad14a4f"
+        },
+        {
+          "path": "safari-abba/r2-driftwood-isle-load.json",
+          "bytes": 378,
+          "sha256": "a9b47ad993daff2a4937b476581db3649edca9029c0f80f1914a16f39dd3b332"
+        },
+        {
+          "path": "safari-abba/r2-driftwood-isle-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r2-far-reach-load.json",
+          "bytes": 381,
+          "sha256": "17ee1da0cf0f9b5ce3ed57319b64b03c7c91a9e99b6e1d8b3da89b555313b1b5"
+        },
+        {
+          "path": "safari-abba/r2-far-reach-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r2-nalati-grasslands-load.json",
+          "bytes": 382,
+          "sha256": "a5d4ef55794662c98f952fdc004616841125a813f1d32a54c8939943948d03c0"
+        },
+        {
+          "path": "safari-abba/r2-nalati-grasslands-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba/r2-pine-hollow-load.json",
+          "bytes": 383,
+          "sha256": "58e6495546753895b3b1361c477250a694a51017b943e5e98db0cf27bf71dc5e"
+        },
+        {
+          "path": "safari-abba/r2-pine-hollow-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-abba.log",
+          "bytes": 1604,
+          "sha256": "9de99ca8e5f6cfea331aa7ab930afe129b5a4a6b584cdfa2222497d288b1a6e8"
+        }
+      ]
+    },
+    {
+      "path": "safari-experimental.tar.gz",
+      "bytes": 217414,
+      "sha256": "4202f1b69d9d0eb1888a9c7e111af58c377d0463f3dc4096e4d12832874b2ba3",
+      "decodedBytes": 2508800,
+      "decodedSHA256": "aed7e2d05b40ef464275ba0bb297004218816b4dbb94737eba9b26035a33fc6d",
+      "entries": [
+        {
+          "path": "safari-experimental/after-report.json",
+          "bytes": 44806,
+          "sha256": "d00b4969c1d8e61d8634ef3f9379125eb6cf7c9dcb03e67eb5027740643cf673"
+        },
+        {
+          "path": "safari-experimental/before-report.json",
+          "bytes": 45644,
+          "sha256": "92cbcd248f0f34a98ffef5b12fbe30d8c96bda04d2f6af5c4fbcbcc6c68774ac"
+        },
+        {
+          "path": "safari-experimental/device.json",
+          "bytes": 19671,
+          "sha256": "0d870f3be512de67db7f5bb056b9e8294fd59e1b99f370ebcd1dd118775ea809"
+        },
+        {
+          "path": "safari-experimental/harness.json",
+          "bytes": 1970,
+          "sha256": "4e5f754a1dd482ba8034752fc64ee93b15cfa3d5fd7f781876c687d52da23f21"
+        },
+        {
+          "path": "safari-experimental/r1-after-far-reach-cold.json",
+          "bytes": 80087,
+          "sha256": "a1093e2d5af2e0c8235063b3bcd5c134f636be08059c292c1c517a6b84e8dbb0"
+        },
+        {
+          "path": "safari-experimental/r1-after-far-reach-warm.json",
+          "bytes": 76428,
+          "sha256": "0a09f7e774b9c646d5d602488e379b6d5ae0e855513bf7bea5182e2ff6a7231e"
+        },
+        {
+          "path": "safari-experimental/r1-after-nine-dragon-stack-cold.json",
+          "bytes": 114398,
+          "sha256": "010e0f4154bddc191dca9990cc4fb45f54da3fc65787a5ad9cc7644a857b76f6"
+        },
+        {
+          "path": "safari-experimental/r1-after-nine-dragon-stack-warm.json",
+          "bytes": 124785,
+          "sha256": "254290dca51af6f8191915ae04c46e0364cf1c91ca387bfef6b98161e43fcddc"
+        },
+        {
+          "path": "safari-experimental/r1-after-sunscar-dunes-cold.json",
+          "bytes": 77240,
+          "sha256": "8a42953a77da003ca65d5d15283853bb18047b40b877ec548c1461b33757a1a8"
+        },
+        {
+          "path": "safari-experimental/r1-after-sunscar-dunes-warm.json",
+          "bytes": 72971,
+          "sha256": "9251150b45112f0d099b8c8b532e7641044bdb262a8d76fd7afe0a245bff1211"
+        },
+        {
+          "path": "safari-experimental/r1-before-far-reach-cold.json",
+          "bytes": 124995,
+          "sha256": "fb59336afdf8cf1a301ef787fa32af4aa98b577d39b95325770e32a67211d46e"
+        },
+        {
+          "path": "safari-experimental/r1-before-far-reach-warm.json",
+          "bytes": 77373,
+          "sha256": "c2bc6fe7a2f855638789485ebbd7e6e42e2e4f52f3840bb7f64e1a49068807a0"
+        },
+        {
+          "path": "safari-experimental/r1-before-nine-dragon-stack-cold.json",
+          "bytes": 137228,
+          "sha256": "3086058dc8de3e84dec7edc42a0e9981717e9d352d84b804b2cbf7aec3f90a72"
+        },
+        {
+          "path": "safari-experimental/r1-before-nine-dragon-stack-warm.json",
+          "bytes": 119999,
+          "sha256": "d948cdc24019d53684581e7248a1bdfee76ced3b3671999147e38617c6c1181c"
+        },
+        {
+          "path": "safari-experimental/r1-before-sunscar-dunes-cold.json",
+          "bytes": 100547,
+          "sha256": "37ac6edd6460f04b7dfc439370996b2f2e68ede026f4662c0aa2f404ad007743"
+        },
+        {
+          "path": "safari-experimental/r1-before-sunscar-dunes-warm.json",
+          "bytes": 70192,
+          "sha256": "f8d890860c0c65b7c9ff3cf1b48ae1dcd22ef2df1829fea355f07cbb77c28cc2"
+        },
+        {
+          "path": "safari-experimental/r1-far-reach-load.json",
+          "bytes": 373,
+          "sha256": "5bb26c2e6231e7b7237d02995d08f91b0135a3c6d5097d9a2b5888f01971d92c"
+        },
+        {
+          "path": "safari-experimental/r1-far-reach-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-experimental/r1-nine-dragon-stack-load.json",
+          "bytes": 393,
+          "sha256": "776d5707c270e1f30e7832350d36dbe77dc708dd002f94e37686ca1fbfd0f4a0"
+        },
+        {
+          "path": "safari-experimental/r1-nine-dragon-stack-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-experimental/r1-sunscar-dunes-load.json",
+          "bytes": 383,
+          "sha256": "20f585a6df9c6850a1a61e3c7af35ed29971c0f05d9814dfc441e8c60cfce01d"
+        },
+        {
+          "path": "safari-experimental/r1-sunscar-dunes-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-experimental/r2-after-far-reach-cold.json",
+          "bytes": 121358,
+          "sha256": "20b959529dbcd61411267b559a2c5177505d9df96fcb8fa6877886d13f8a1348"
+        },
+        {
+          "path": "safari-experimental/r2-after-far-reach-warm.json",
+          "bytes": 79144,
+          "sha256": "01adc554534921f02767d4739760b3e80ae5dafcf98c1b89e82a92df47ea7f8d"
+        },
+        {
+          "path": "safari-experimental/r2-after-nine-dragon-stack-cold.json",
+          "bytes": 135636,
+          "sha256": "89fc15c7f1ceb43bd6eb995e68839ad100f2adec861dae3d616783adfe8e6389"
+        },
+        {
+          "path": "safari-experimental/r2-after-nine-dragon-stack-warm.json",
+          "bytes": 118139,
+          "sha256": "cacfb73c60f4a18da16301bbb4055dd77f17f6aa95298380259b00d54db67868"
+        },
+        {
+          "path": "safari-experimental/r2-after-sunscar-dunes-cold.json",
+          "bytes": 114691,
+          "sha256": "3d7e9e122281be37646a0acdd92347f30631c14e471cb14a168ba52e5c361f7c"
+        },
+        {
+          "path": "safari-experimental/r2-after-sunscar-dunes-warm.json",
+          "bytes": 74588,
+          "sha256": "7582e21d73e18818279191c3d301fdd0a6fb41659f85d10800e4f51152fb4920"
+        },
+        {
+          "path": "safari-experimental/r2-before-far-reach-cold.json",
+          "bytes": 82707,
+          "sha256": "c040e98813be9ace88ba25a5700d50ed408ce3c4443805e5e2361fa0368fdcdd"
+        },
+        {
+          "path": "safari-experimental/r2-before-far-reach-warm.json",
+          "bytes": 82137,
+          "sha256": "6d8f52bb77665b1b6b24e919e25b3a2a06e0f486cba5cbe2156be94f6473bcc6"
+        },
+        {
+          "path": "safari-experimental/r2-before-nine-dragon-stack-cold.json",
+          "bytes": 104084,
+          "sha256": "737bec633a2210a0fcf60b11d80c3b6c07756a2ff53fe0605ab67fd67049c779"
+        },
+        {
+          "path": "safari-experimental/r2-before-nine-dragon-stack-warm.json",
+          "bytes": 122620,
+          "sha256": "8d748c00508eab187d56dab4b7b64a5984f6c69b7f74609754862bd440afedee"
+        },
+        {
+          "path": "safari-experimental/r2-before-sunscar-dunes-cold.json",
+          "bytes": 73197,
+          "sha256": "de724a39b858a18e1d1fb7fa7f1f3fedcb8c409c0f3ca222656d3d114c33c57e"
+        },
+        {
+          "path": "safari-experimental/r2-before-sunscar-dunes-warm.json",
+          "bytes": 69678,
+          "sha256": "2efbed1466bdd66547d0f6aa33d00daf6c8d427da93cf89c60452b27beebd306"
+        },
+        {
+          "path": "safari-experimental/r2-far-reach-load.json",
+          "bytes": 374,
+          "sha256": "c451aade6772af83de731cb2da02beda96890736fdf961336ecf09afa4127da8"
+        },
+        {
+          "path": "safari-experimental/r2-far-reach-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-experimental/r2-nine-dragon-stack-load.json",
+          "bytes": 389,
+          "sha256": "de9957ad6b689e42b79e45228e1e8ca066c65ac26fb185414c9a1242fbfe958e"
+        },
+        {
+          "path": "safari-experimental/r2-nine-dragon-stack-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-experimental/r2-sunscar-dunes-load.json",
+          "bytes": 387,
+          "sha256": "517006eaf0f49bc8e0b1a4aeac0e97c085a1ed5468298b9ef0b728e26d96e205"
+        },
+        {
+          "path": "safari-experimental/r2-sunscar-dunes-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-experimental.log",
+          "bytes": 863,
+          "sha256": "7b119a77ca3b1b796332cb91b6d17b35f5f8e81fa381ecf89f5e65a754a248a4"
+        }
+      ]
+    },
+    {
+      "path": "safari-matched.tar.gz",
+      "bytes": 14127,
+      "sha256": "9f4b457fb30797fbbf7ee611366f02521dc85dc4428e5165de069323117c0177",
+      "decodedBytes": 307200,
+      "decodedSHA256": "8aefbbfdd4d9cc5719c95d3e8036a15a7fd47d8c67c824795fcc3d1dd0764095",
+      "entries": [
+        {
+          "path": "safari-matched/after-driftwood-isle-cold.json",
+          "bytes": 116697,
+          "sha256": "44d23a7e0946f5de8fc499b1f9a9695d8b311d30efb1c163472aff784afcedce"
+        },
+        {
+          "path": "safari-matched/after-nalati-grasslands-cold.json",
+          "bytes": 78491,
+          "sha256": "efbfefff50899e6f51f329d5526764c17339591bc46243b9f631ead1aa552f56"
+        },
+        {
+          "path": "safari-matched/before-driftwood-isle-cold.json",
+          "bytes": 451,
+          "sha256": "c118dd819d085b305f3c9f0f688d04bea2fa0b5641ae96390145661dc0a4add0"
+        },
+        {
+          "path": "safari-matched/before-nalati-grasslands-cold.json",
+          "bytes": 81684,
+          "sha256": "13a6d457f1d0fa8b9d8c1180258efe4ee5a21670a9ce80985cc5e8ee008421ff"
+        },
+        {
+          "path": "safari-matched/device.json",
+          "bytes": 19671,
+          "sha256": "e812015048eede7f308cb8c723386d98a8d56c11805738463285f3947579d75e"
+        },
+        {
+          "path": "safari-matched/driftwood-isle-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-matched/harness.json",
+          "bytes": 1092,
+          "sha256": "a031b5e5f968444f4dd0c09c3361545dc2fd8670dbc05d55880fa52460cdb280"
+        },
+        {
+          "path": "safari-matched/nalati-grasslands-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-matched.log",
+          "bytes": 282,
+          "sha256": "b3bdd42c4110ec6ffca3172f86cd718356a8d1f63aa0c2af587bc38d3d6f9b0a"
+        }
+      ]
+    },
+    {
+      "path": "safari-smoke-r2.tar.gz",
+      "bytes": 353997,
+      "sha256": "b4dc126a38a4603c4aa6d892c3a6184645d2bed4933870eacb426773b4037767",
+      "decodedBytes": 13834240,
+      "decodedSHA256": "4e3ca31034dc905735b80df75edb117bc43f75e6572a823f4b5c5a046c494ec3",
+      "entries": [
+        {
+          "path": "safari-smoke-r2/after-driftwood-isle-cold.json",
+          "bytes": 8008918,
+          "sha256": "28e3241202316c5cc0c87d98659af7fd9e6f3039347cbcf1e0ec697e581223bb"
+        },
+        {
+          "path": "safari-smoke-r2/after-driftwood-isle-warm.json",
+          "bytes": 5694289,
+          "sha256": "6a09e50ad99c911ae6ca1ea81e2c9a0e4ba07609a409647d4a5b641f878bce52"
+        },
+        {
+          "path": "safari-smoke-r2/after-report.json",
+          "bytes": 7610,
+          "sha256": "5a69b73f4c4a618f2e14449444002fec0daf94ed9675f1d391564bcac82deb59"
+        },
+        {
+          "path": "safari-smoke-r2/before-driftwood-isle-cold.json",
+          "bytes": 91308,
+          "sha256": "aef65f71731855009036dbcab2f9d592e94b86037ab776ab4a76a3826e7296ce"
+        },
+        {
+          "path": "safari-smoke-r2/before-report.json",
+          "bytes": 343,
+          "sha256": "93d3e30f45590dd1205c28be2a4419d093a93491d245ba42b52771f9af5285bc"
+        },
+        {
+          "path": "safari-smoke-r2/device.json",
+          "bytes": 19671,
+          "sha256": "67b00ba78ba701c99302bb03c453070cd0826fa68ff5670c135f7438fb2c562f"
+        },
+        {
+          "path": "safari-smoke-r2/driftwood-isle-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-smoke-r2.log",
+          "bytes": 122,
+          "sha256": "b8a6a6047878b9d8b6c87845e6f227ebe0eb8a96f6e0750844624763ca07bf80"
+        }
+      ]
+    },
+    {
+      "path": "safari-matched-r3.tar.gz",
+      "bytes": 44964,
+      "sha256": "9774fdde0f371898e4c635407b0c8dce702610edaf66765d07b61e3de7ee1c20",
+      "decodedBytes": 696320,
+      "decodedSHA256": "39f0fbaff3cef0890d53865cc475c42e492898c93b65616d603e3375cc05c819",
+      "entries": [
+        {
+          "path": "safari-matched-r3/after-driftwood-isle-cold.json",
+          "bytes": 205268,
+          "sha256": "475d0404265fbd25020b8b2243b820e547a954cc94121af47c14be231a35de72"
+        },
+        {
+          "path": "safari-matched-r3/after-driftwood-isle-warm.json",
+          "bytes": 237597,
+          "sha256": "c3439bb5644e2fd3b89ac9a26a021b5d3b3cda55c13bdd20ff24dde42de44486"
+        },
+        {
+          "path": "safari-matched-r3/before-driftwood-isle-cold.json",
+          "bytes": 126184,
+          "sha256": "5f1c4270bdb9f4a78626241bd33d7a4f6bafa7d37257fa177ea6e85883d1d538"
+        },
+        {
+          "path": "safari-matched-r3/before-driftwood-isle-warm.json",
+          "bytes": 89820,
+          "sha256": "b6bc2e3909c01ed3617ac905dfaf16fe5501d19393c5c2bbab108019138f18ad"
+        },
+        {
+          "path": "safari-matched-r3/device.json",
+          "bytes": 19671,
+          "sha256": "b1356473f3e76763782642ab9755784db557fe9b9d3c413dbcde1e0b1bb63be7"
+        },
+        {
+          "path": "safari-matched-r3/driftwood-isle-proxy.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "safari-matched-r3/harness.json",
+          "bytes": 1247,
+          "sha256": "e87478a7b7c81006880541ea042fcd4816e0ea1f67817336dfd898b3d488f933"
+        },
+        {
+          "path": "safari-matched-r3/load-overlap.json",
+          "bytes": 1788,
+          "sha256": "efc6931fc60cd53ccee4e4d560a065d12f08063602303d63ef0a64eeb164731b"
+        },
+        {
+          "path": "safari-matched-r3.log",
+          "bytes": 147,
+          "sha256": "2ae1a75f5a58ec0354053b871db4ac6df8ed93a71d5fee7e3c6909dc8b7d78cb"
+        }
+      ]
+    }
+  ],
+  "verificationLog": {
+    "path": "verification.log.gz",
+    "sha256": "d5b5197d27d1ea45be3a145e388bdd4935ddb11e7562325a59bcc66a091f8386",
+    "decodedSHA256": "172a442b172f3116fab1d64907c03d81d268fe2130e66ab5e5837084fd4f353c",
+    "decodedBytes": 64289
+  },
+  "artifacts": [
+    {
+      "path": "summary.json",
+      "sha256": "41430c85a38bcdc5510a150c312925603517091378faf617e6ad83833e023b3a"
+    },
+    {
+      "path": "before-report.json",
+      "sha256": "f841bc518d99fdd630b69b4ae2250c96589acc59678b654142e6c5a172a888ac"
+    },
+    {
+      "path": "after-report.json",
+      "sha256": "9b3757a02f25b31d048c70d9210b5ca1c33a7779571f672d475915080c6ae8aa"
+    },
+    {
+      "path": "release.json",
+      "sha256": "aec564119f3309c9d47e9a68f31c5456d4af595d757716b25c30f509d0e13219"
+    }
+  ]
+}

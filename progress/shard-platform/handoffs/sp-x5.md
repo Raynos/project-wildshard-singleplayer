@@ -26,37 +26,47 @@ After timing pin is `6f4490e833fabf317d81578508983f96d118ca26`; later hybrid for
 and dependency guards are not measured speedup claims. Prior exploratory/rejected
 harness observations are archived separately, not pooled into matched numbers.
 
+## Simulator Safari receipt / resources released
+
+`progress/loading/sf67/safari/README.md`: 56/56 timed entries playable, all seven
+shards, two independent AB/BA cold + same-tab warm pairs each. Before19e647272 /
+after6f4490e83 match Chromium. Template cold median6.856→5.429s; warm3.558→3.263s.
+All capture-start loads >30; n=2 medians/ranges are descriptive, no per-fix causal
+speedup claim. Strong first-arm cold shader/initialization cost on both revisions.
+Safari LongTask unsupported / pilot Inspector timestamps zero: CPU tasks remain
+missing, not zero; frame gaps stay separate. Six initial Developer-OFF experimental
+card refusals are preserved and excluded, corrected by6fe1dcd83. Both cohorts have
+identical injected HTML hashes per arm. Strict before/after reports have28runs each.
+
+FINAL RELEASE 2026-10-08T21:01Z: both owned devices deleted, sim0/1, no owned
+Safari/Inspector/proxy/browser remains. Exact original HTML hashes restored;
+owned :4406 and :4400 previews stopped through serve-build. `safari/release.json`
+is the cleanup receipt. No new Simulator/browser/build/full-suite work queued.
+Coordinator wildshard-new currently reports blocked in Herdr; do not prompt or
+press keys into its question. Release and SHAs must be relayed when it is working.
+
 ## Exact next step
 
-Finish the corrected experimental-card Simulator Safari cohort using `scripts/loading-benchmark/safari-matched.mjs`.
-It uses one owned device, erased only while shut down between shard pairs, and the same
-before `19e647272` / after `6f4490e83` pins as Chromium. Cold + warm use the real title,
-card and ENTER flow; fixtures are in owned exported HTML only and restore exact bytes.
-Unsupported Safari task events remain missing, never zero; rAF gaps are not CPU tasks.
-Coordinator authorized the sim-lane queue; the current sole turn covers two AB/BA pairs per shard, shared CPU load recorded and >30 flagged. Original four shards completed 32/32 valid entries in safari-abba, helper fe1b5040f. Experimental Sky/Sun/Nine require Developer ON; the initial driver attempted disabled public ENTER controls and those refused attempts are preserved, excluded from timing. This commit fixes explicit mode/button policy and checks enabled/visible before the tap. Finish the remaining three in a fresh output, keeping the same immutable before/after pins. The recorder itself is unchanged. Then archive all evidence, publish medians/ranges/load and release/delete only the owned device and previews. Keep Safari CPU durations missing (unsupported LongTask; pilot Inspector timestamps all zero), not zero. After cohort, shorten Signal Dunes chip to fit the existing 18-char format (read defining row first).
-Fix 3 (bake code-built worlds) remains unassigned. Physical phone evidence is open.
+Finish the separate Signal Dunes format correction requested after this cohort:
+keep the18-character chip cap; shorten `STRINGS.chipScout` to “Light signal fire”,
+put it in declared scout quest data, remove the runtime over-cap workaround, run
+focused quest/contract checks and land alone. Then send both receipt/fix SHAs to
+wildshard-new for the serialized push. SF67 remains OPEN: the desktop ruler still
+has >100ms tasks (Driftwood733ms/Nalati1207ms/Pine263ms); bake/worker/time-slice
+follow-ups and physical-phone evidence remain. Fix3 is not assigned to this lane.
 
-## Resources / checks
+## Checks and scratch
 
-Old :4412/:4413 previews are stopped. Current owned Safari pair:
-- before :4406 `/private/tmp/wildshard-serve/20261008-144326-4406/dist`, exact19e647272;
-- after :4400 `/private/tmp/wildshard-serve/20261008-144558-4400/dist`, exact6f4490e83.
-HTTP/disk versions and listener/PGID verified. Stop both through serve-build after the
-Safari cohort. One active Simulator worker is finishing its refused Sun pair before the corrected restart; the parent is paused. Do not edit fixtures while it cleans up. New Safari conversion,
-fixture preservation tests (5/5), root strict and full folder typed lint are green.
-Docs/comments reconciliation `8039db709`, corrected Debug help `613714fc6`. Full tests use the heavy-lane, no direct Vite or full Vitest.
-Latest clean source `64a1f0b4b` passed 927 files / 5326 tests + 14 skips in 121.37 s through the heavy lane; subsequent harness controls pass focused checks and full root folder typed lint. Earlier clean source pin `11da76006` passed full queued verification: 925 files / 5337 tests
-in 106.86 s. The later gate-path forward has focused 2/2 green; this receipt fixes the full scripts
-folder under root type-aware lint after that gate exposed script-only rules. Focused 24 boot/plugin checks and 9 benchmark/receipt checks passed;
-root strict, scoped typed lint and check-paths passed. The earlier gate packaging red is
-fixed by `ea8634804` (scripts path, focused 2/2).
+Clean source64a1f0b4b passed927files/5326tests+14skips in121.37s through heavy-lane,
+root strict and typed lint. Later tool controls pass3focusedfiles/6tests and full
+root typed lint on scripts/loading-benchmark. Receipt converters validate all56
+captures; five deterministic raw archives round-trip, each member hashed.
+Docs/comments reconciliation8039db709, Debug-help613714fc6 already landed.
+Never import test tools from progress (excluded by gate); reusable code stays in
+scripts/loading-benchmark. HEAD+hunks only, private index/hooks/CAS/ancestor check.
 
-Scratch `/private/tmp/claude-501/sp-builders/sp-x5/sf67/` holds transient analysis/logs;
-clean export `/private/tmp/claude-501/sp-builders/sp-x5/sf67-clean/` is removed after checks.
-Authoritative captures/analysis are committed under the receipt; raw 100 MB Chrome
-traces are discarded after hashing and source-map analysis. Preserve shared foreign WIP;
-land exact HEAD + owned hunks with hooks/CAS and verify subject/stat/ancestry.
-
-Cleanup note: recursive deletion of the completed clean export was blocked by the local
-command guard. It remains at the scratch path above with raw transient traces; all
-servers/processes are stopped, and meaningful evidence is committed. No guard bypass.
+Scratch `/private/tmp/claude-501/sp-builders/sp-x5/sf67/` holds analysis, raw captures,
+logs and throwaway clean exports. Meaningful Safari evidence is now archived under
+progress/loading/sf67/safari. Earlier recursive export cleanup was blocked by the
+local command guard; no bypass. No live server/process remains in those exports.
+Do not delete anyone else's working-tree/index WIP or edit generated API/graph/debt.

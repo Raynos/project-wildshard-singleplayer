@@ -1,10 +1,16 @@
-# SF67 / E461 — first loading fixes, matched 4× CPU report
+# SF67 / E461 — loading fixes, desktop and Safari reports
 
 **The loading target remains open.** All 16 matched entries reached playable. The
 template warm visit fell from 4.967 s to 3.138 s; cold fell from 5.794 s to 5.380 s.
 Its longest cold main-thread task fell from 755 ms to 305 ms. Other cold timings
 were mixed, and Driftwood / Nalati still contain large synchronous world builders.
-These are single observations per arm and cache state, not statistical speedup claims.
+These desktop rows are single observations per arm and cache state, not statistical speedup claims.
+
+The [matched Simulator Safari report](safari/README.md) adds all seven shards, two
+AB/BA pairs each, cold + same-tab warm: 56/56 valid entries. Its medians/ranges and
+shared-machine load are reported separately. Template Safari cold median is
+6.856 → 5.429 s, warm 3.558 → 3.263 s; n=2 and all capture loads >30.
+The 3.138 s figure above remains Chromium only, never a physical-phone claim.
 
 The strict consumer artifacts are [before/report.json](before/report.json) and
 [after/report.json](after/report.json), both `loading-benchmark/1`, validated by
@@ -111,8 +117,11 @@ are also archived separately; their noisy, non-alternated results are not mixed 
 the matched comparison. Full traces are transient scratch because of their size;
 the manifest retains input hashes and the committed analysis retains every long task.
 
-Safari/Simulator phase and task measurements, physical-phone loading, all-shard
-coverage and repeated matched cohorts are **missing**, not zeros. Pine's original
+Simulator Safari phase measurements, all-seven-shard coverage and repeated
+matched cohorts are now in [the Safari receipt](safari/README.md). Safari CPU task
+durations/owners and physical-phone loading remain **missing**, not zeros. The
+Safari observer is unsupported and Inspector task timestamps are all zero; rAF gaps
+are not substituted for CPU durations. Pine's original
 audit no-mipmaps P0 predates the fixed runtime used here; Pine is playable in both
 arms. Async shader compilation already exists; this slice preserves it and makes no
 new compile-speed claim. The before/after range contains other agents' commits, so
