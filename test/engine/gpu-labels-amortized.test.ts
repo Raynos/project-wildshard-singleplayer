@@ -62,3 +62,20 @@ it('keeps the full walk on every render under the census harness', () => {
   renderer.render(scene, camera);
   expect(reads()).toBe(first * 2);
 });
+
+it('marks a multi-material mesh once across its groups, every material included', () => {
+  Reflect.set(globalThis, 'window', {});
+  const renderer = fakeRenderer();
+  installGpuLabels(renderer, () => true); // Developer on
+  const { geometry, reads } = countedGeometry();
+  const a = new MeshBasicMaterial(), b = new MeshBasicMaterial();
+  const mesh = new Mesh(geometry, [a, b]);
+  const scene = new Scene(); scene.add(mesh);
+  const camera = new PerspectiveCamera();
+  const before = reads();
+  for (let i = 0; i < 5; i++) {
+    renderer.renderBufferDirect(camera, scene, geometry, a, mesh, { start: 0, count: 3, materialIndex: 0 });
+    renderer.renderBufferDirect(camera, scene, geometry, b, mesh, { start: 3, count: 3, materialIndex: 1 });
+  }
+  expect(reads() - before).toBeLessThanOrEqual(1); // the group's material no longer flips the cache on every draw
+});

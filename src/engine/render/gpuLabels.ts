@@ -238,11 +238,15 @@ export function installGpuLabels(renderer: Renderer, developer: () => boolean = 
   }
   const draw = renderer.renderBufferDirect.bind(renderer);
   renderer.renderBufferDirect = (camera, scene, geo, mat, object, group) => {
-    if (!census() && !due(drawn, object, geo, mat)) { draw(camera, scene, geo, mat, object, group); return; }
+    // keyed on the object's own material (an array for multi-material meshes), not the group's: a per-group key flipped on
+    // every draw of a multi-material mesh and re-marked it each time (SF69: ~1.2 MB / frame)
+    const own: unknown = Reflect.get(object, 'material');
+    if (!census() && !due(drawn, object, geo, own)) { draw(camera, scene, geo, mat, object, group); return; }
     const owner = sceneObjectOwner(object);
     const label = owner === null ? labels.get(object) ?? { owner: 'unattributed', asset: `generated/${mat.name || mat.type}`, priority: 0 }
       : { owner: owner.name, asset: labels.get(object)?.asset ?? `generated/${object.name || mat.name || mat.type}`, priority: 2 };
     markGeometry(geo, label); markMaterial(mat, label);
+    if (Array.isArray(own)) for (const m of own as readonly unknown[]) if (isMaterial(m) && m !== mat) markMaterial(m, label);
     draw(camera, scene, geo, mat, object, group);
   };
 }
