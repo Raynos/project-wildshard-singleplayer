@@ -29,7 +29,7 @@ export function proveShardfileEntries(source: Shardfile, sim: ShardfileSimulatio
   let liftRides = 0, liftCalls = 0;
   for (const entry of lifts) {
     // Every ride starts at a freshly admitted road stop, independently of validation ticks or other lifts.
-    const fresh = createShardfileSim(source, assets, ports);
+    const fresh = createShardfileSim(source, assets, { ...ports, ground: false });
     try {
       const runtime = fresh.movers; if (runtime === undefined) throw new Error('Socket lift requires admitted mover runtime');
       const proof = proveSocketLift(entry, { physics: fresh.host.physics, runtime,

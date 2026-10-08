@@ -76,7 +76,7 @@ export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string,
   const host = createSimHost({ version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed,
     ground: { size: 500, height: 0 }, player: { at: { x: shard.spawn.x, y: shard.spawn.y, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     entities: buildPlatformSpawns(shard.creatures.spawns, speciesResolver(shard.rows), simStrikes(shard.rows)), weapon, quests: [],
-  }, { ...ports, ground: terrain === undefined && shard.meshCollision === null && socketLiftEntries(shard.entryways).length === 0, heightAt });
+  }, { ...ports, ground: ports.ground !== false && terrain === undefined && shard.meshCollision === null && shard.entryways.some(entry => (entry.kind ?? 'ground') === 'ground'), heightAt });
   return bindShardfileSim(host, shard, assets, ports);
 }
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
