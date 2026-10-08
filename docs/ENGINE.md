@@ -2543,3 +2543,5 @@ allocator `accountedBytes`, and optional provenance-bearing native `measured` (W
 Capacity is not dirty resident RAM: never add the RAM census to WebContent or call its difference physical attribution.
 `measurement()` accepts a native ruler receipt; absent readings stay null. `bindAccounting()` borrows the existing
 allocator reader and returns an exact detach; it creates no admission claims.
+
+The existing Developer MEMORY budget chip consumes this same scalar ledger when expanded: GPU and RAM storage by owner or asset, sortable rows of at least 1 MB and an explicit smaller-row remainder. Its accounted PLAYING / LOAD lines remain the admission model; the provenance-bearing native WC + labelled GPU ruler is shown separately, or NOT SAMPLED. No additional Developer tool or panel is installed.
