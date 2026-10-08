@@ -1,0 +1,152 @@
+{
+  "runtimeRevision": "cdad59776201998220705ca0c6fc16a5e7dd38b5",
+  "harnessRevision": "4bb6f888a760e4710c5335a0017aa019544482b0",
+  "verdict": "REJECTED HARNESS REHEARSAL: intrusive mutation journal, then document-fence failure; no route, cap, saving, retention or leak claim.",
+  "failure": "Error: Soak document changed (navigation or graphics recovery)\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:181:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:180:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:318:40",
+  "diagnostic": {
+    "url": "http://127.0.0.1:4401/",
+    "documentId": "1791452628500:0.12263742552460766",
+    "errors": [],
+    "body": "\nCDAD597 · RELOAD"
+  },
+  "routesCompleted": 0,
+  "glEvents": 1971986,
+  "glSamples": 183,
+  "sampleCount": 203,
+  "glSampling": {
+    "journal": 0,
+    "observed": 191,
+    "missing": 12,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "nativeSummary": {
+    "type": "summary",
+    "t": "2026-10-08T09:43:49.048159+00:00",
+    "phases": {
+      "loading": {
+        "samples": 51,
+        "seconds": 50.3,
+        "gamePid": 81455,
+        "gameHighGB": 0.485,
+        "gameSampledGB": 0.442,
+        "allWebContentGB": 0.522,
+        "gpuProcessGB": 0.168
+      },
+      "baseline-0": {
+        "samples": 127,
+        "seconds": 126.7,
+        "gamePid": 81455,
+        "gameHighGB": 0.478,
+        "gameSampledGB": 0.443,
+        "allWebContentGB": 0.517,
+        "gpuProcessGB": 0.165
+      },
+      "drive": {
+        "samples": 25,
+        "seconds": 24.1,
+        "gamePid": 81455,
+        "gameHighGB": 0.482,
+        "gameSampledGB": 0.471,
+        "allWebContentGB": 0.513,
+        "gpuProcessGB": 0.195
+      }
+    },
+    "lost": [
+      {
+        "pid": 81874,
+        "phase": "loading",
+        "elapsed": 1
+      },
+      {
+        "pid": 81889,
+        "phase": "loading",
+        "elapsed": 1
+      },
+      {
+        "pid": 81988,
+        "phase": "loading",
+        "elapsed": 1
+      }
+    ]
+  },
+  "grade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 654663051,
+    "loadingPeakBytes": 613891079,
+    "phoneEstimateBytes": 916528271.4,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791452577.342,
+        "end": 1791452602.886,
+        "samples": 26,
+        "bytes": 539696571
+      }
+    ],
+    "baselineDeltaBytes": [
+      null
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": false,
+        "peakBytes": 654663051,
+        "troughBytes": 465033238
+      }
+    ],
+    "recovery": false,
+    "calibration": true,
+    "ratios": [],
+    "missingGlSamples": 12,
+    "sampling": false,
+    "leakZero": false,
+    "admitted": [],
+    "refused": [
+      "pine-hollow",
+      "template-2",
+      "sunscar-dunes",
+      "driftwood-isle",
+      "nalati-grasslands",
+      "far-reach"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 0,
+    "rehearsal": true,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+  },
+  "artifacts": [
+    {
+      "file": "dev-cells.json.br",
+      "rawBytes": 405274,
+      "rawSha256": "992aadf7ed9a6a0182966f95d49d2c08c91578a44eb2eefa90cd9a00bdc2b354",
+      "compressedBytes": 15204
+    },
+    {
+      "file": "dev-cells-native.jsonl.br",
+      "rawBytes": 49980,
+      "rawSha256": "3eb7b82656f46f7f04c4792be7838a3865a8ba118acef581541277ce44e2f8c2",
+      "compressedBytes": 7099
+    },
+    {
+      "file": "dev-cells-gl.jsonl.br",
+      "rawBytes": 24882740,
+      "rawSha256": "2118a63ab68ea62b580583ba053a0f3caef584963c39ffe646064aeed3af9ef0",
+      "compressedBytes": 22071
+    },
+    {
+      "file": "dev-cells-gl-events.jsonl.br",
+      "rawBytes": 406406137,
+      "rawSha256": "269f27c4f533c4b24924a019ea1b19098fff19fb2913ee3eab96102668a7cbdf",
+      "compressedBytes": 8218711
+    },
+    {
+      "file": "manifest.json.br",
+      "rawBytes": 747,
+      "rawSha256": "8728d39d0c464d808a4473b79fa78ecc5ec4c04aae6a91e58a390669fbd7e098",
+      "compressedBytes": 477
+    }
+  ]
+}
