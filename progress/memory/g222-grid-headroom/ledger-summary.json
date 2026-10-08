@@ -1,0 +1,44 @@
+{
+  "pin": "ae94f0fd1e85aa9e2441463550e18a943ab9594f",
+  "build": "ae94f0f-muysrury",
+  "browser": "Chromium Metal iPhone 16 Pro, portrait, DPR2, muted",
+  "developer": true,
+  "pose": {
+    "x": -277.5,
+    "y": 0.4500000175223488,
+    "z": -277.5
+  },
+  "model": {
+    "playing": 2338099602,
+    "loading": 2418099602,
+    "accounted": 1764053695,
+    "input": {
+      "l0": 106506546,
+      "l1": 0,
+      "far": 8000000,
+      "libraries": 0,
+      "sims": 1642930917,
+      "commons": 0,
+      "overlap": 80000000,
+      "products": 6616232
+    }
+  },
+  "ownersAccountedBytes": {
+    "platform": 106506546,
+    "grid": 5909576,
+    "driftwood-isle": 341965462,
+    "far-reach": 1717640,
+    "nalati-grasslands": 491627566,
+    "pine-hollow": 806398233,
+    "sunscar-dunes": 1717656,
+    "template-2": 1718104,
+    "platform.highway": 6492912
+  },
+  "coldWholeSimAccountedBytes": 1294590487,
+  "projectedPlayingAfterBothColdClaimsRetire": 901104161,
+  "liveSlots": 2,
+  "glBytes": 338995629,
+  "glReconciled": true,
+  "pageErrors": 0,
+  "warningPass": true
+}
