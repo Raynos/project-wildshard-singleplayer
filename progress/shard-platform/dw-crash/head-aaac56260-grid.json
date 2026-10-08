@@ -1,0 +1,13 @@
+{
+  "mode": "grid",
+  "base": "http://127.0.0.1:4400/",
+  "status": {
+    "ready": false,
+    "grid": false
+  },
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

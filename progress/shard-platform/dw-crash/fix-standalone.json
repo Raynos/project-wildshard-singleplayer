@@ -1,0 +1,16 @@
+{
+  "mode": "driftwood-isle",
+  "base": "http://127.0.0.1:4403/",
+  "status": {
+    "ready": true,
+    "level": "driftwood-isle",
+    "grid": false
+  },
+  "spawn": [
+    -0.000006830439069571703,
+    1.2139821316224697,
+    -194.00000990784025
+  ],
+  "errors": [],
+  "consoleErrors": []
+}

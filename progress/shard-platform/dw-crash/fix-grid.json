@@ -1,0 +1,54 @@
+{
+  "mode": "grid",
+  "base": "http://127.0.0.1:4403/",
+  "status": {
+    "ready": true,
+    "level": "driftwood-isle",
+    "grid": true
+  },
+  "spawn": [
+    -0.000006675607620576507,
+    1.2141828913219797,
+    -194.00000703871865
+  ],
+  "gridHome": "driftwood-isle",
+  "route": {
+    "home": "driftwood-isle",
+    "peer": "template-2"
+  },
+  "drive": {
+    "complete": true,
+    "timedOut": false,
+    "stuck": [],
+    "crossingDelta": 4,
+    "transitions": [
+      {
+        "from": "driftwood-isle",
+        "to": null
+      },
+      {
+        "from": null,
+        "to": "template-2"
+      },
+      {
+        "from": "template-2",
+        "to": null
+      },
+      {
+        "from": null,
+        "to": "driftwood-isle"
+      }
+    ],
+    "issues": {},
+    "failures": []
+  },
+  "after": {
+    "ready": true,
+    "level": "driftwood-isle",
+    "grid": true
+  },
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}
