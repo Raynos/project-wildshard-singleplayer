@@ -138,3 +138,22 @@ void test('SF57 WASM telemetry is weak, deduplicated and never added to GL alloc
     assert.equal(window.__sf57Wasm[0].memory.deref().buffer.byteLength, 64);
   } finally { globalThis.window = oldWindow; }
 });
+
+void test('optional travel storage call sites are sampled once per operation per second with a hard scalar cap', () => {
+  const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage;
+  try {
+    globalThis.sessionStorage = { getItem: () => null, removeItem: () => undefined };
+    globalThis.window = { __sf57DocumentId: 'sites', __sf57TraceUploads: true, addEventListener: () => undefined };
+    installLoadingGlJournal();
+    const row = { op: 'allocation', operation: 'bufferData', kind: 'buffer', id: 'buffer:1', context: 'game', stage: 'travel', bytes: 64, at: 1 };
+    for (let index = 0; index < 1000; index++) window.__sc_gl_change(row);
+    for (let second = 2; second < 140; second++) window.__sc_gl_change({ ...row, at: second });
+    const sites = window.__sf57GLUploads.filter(value => typeof value.callSite === 'string');
+    assert.equal(sites.length, 128);
+    assert.equal(sites.filter(value => value.at === 1).length, 1);
+    assert.ok(sites.every(value => value.callSite.length <= 6000 && value.callSite.includes('SF57 storage call site')));
+    window.__sf57TraceUploads = false;
+    window.__sc_gl_change({ ...row, at: 200 });
+    assert.equal(window.__sf57GLUploads.length, 1138);
+  } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
+});

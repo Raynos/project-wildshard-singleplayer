@@ -1,5 +1,5 @@
 /** Scalar diagnostics only: storage footprints are not upload-transfer bytes or GPU-process footprint. */
-export function summarizePineAllocations(events, uploads, native, before) {
+export function summarizePineAllocations(events, uploads, native, before, after = -Infinity) {
   const live = new Map(); let total = 0, peakIndex = -1;
   /** @type {{bytes:number,at:number|null,largest:Array<{id:string,bytes:number,asset?:string}>}} */
   let peak = { bytes: 0, at: null, largest: [] };
@@ -35,10 +35,35 @@ export function summarizePineAllocations(events, uploads, native, before) {
     bucket.storageCalls++; bucket.touchedFootprintBytes += row.bytes; bucket.largestFootprintBytes = Math.max(bucket.largestFootprintBytes, row.bytes);
     bucket.operations[row.operation] = (bucket.operations[row.operation] ?? 0) + 1; seconds.set(second, bucket);
   }
+  const entryGrowth = positive.filter(row => row.at >= after);
+  const entryCalls = uploads.filter(row => row.at >= after && row.at <= before);
+  const maximumWindow = (rows, measure) => {
+    const ordered = [...rows].sort((a, b) => a.at - b.at);
+    let left = 0, sum = 0, bestSum = -1, bestLeft = 0, bestRight = -1;
+    for (const [right, row] of ordered.entries()) {
+      sum += measure(row);
+      while (ordered[left].at < row.at - 1) { sum -= measure(ordered[left]); left++; }
+      if (sum > bestSum) { bestSum = sum; bestLeft = left; bestRight = right; }
+    }
+    const chosen = ordered.slice(bestLeft, bestRight + 1), operations = {}, kinds = {}, stages = {};
+    for (const row of chosen) {
+      operations[row.operation ?? 'unknown'] = (operations[row.operation ?? 'unknown'] ?? 0) + 1;
+      kinds[row.kind] = (kinds[row.kind] ?? 0) + measure(row);
+      stages[row.stage ?? 'unknown'] = (stages[row.stage ?? 'unknown'] ?? 0) + 1;
+    }
+    return { from: chosen[0]?.at ?? null, through: chosen.at(-1)?.at ?? null, count: chosen.length,
+      bytes: Math.max(0, bestSum), operations, kinds, stages };
+  };
   const processes = native.filter(row => row.type === 'sample' && Math.abs(Date.parse(row.t) / 1000 - before) <= 3)
     .map(row => ({ at: row.t, gpuBytes: row.gpu, identities: row.processIdentities ?? null }));
-  return { policy: 'API allocation-state peak and five-second storage-call footprint window. Touched footprints count repeats and mip totals; they are NOT transfer bytes. Native GPU process stays separate.',
-    through: before, apiPeak: peak, lastFiveSeconds: [...seconds.values()],
+  return { policy: 'API allocation-state peak, sliding one-second entry maxima and five-second pre-end storage-call footprint window. Touched footprints count repeats and mip totals; they are NOT transfer bytes. Native GPU process stays separate.',
+    through: before, entryFrom: Number.isFinite(after) ? after : null, apiPeak: peak,
+    entryOneSecondGrowth: maximumWindow(entryGrowth, row => row.increaseBytes),
+    entryOneSecondStorageFootprints: maximumWindow(entryCalls, row => row.bytes),
+    entryOneSecondStorageCalls: maximumWindow(entryCalls, () => 1),
+    entryCallSites: entryCalls.filter(row => typeof row.callSite === 'string').map(row => ({
+      at: row.at, operation: row.operation, context: row.context, stage: row.stage, callSite: row.callSite,
+    })), lastFiveSeconds: [...seconds.values()],
     allocationBearingContexts: events.filter(row => row.op === 'context' && row.at <= before),
     largestGrowth: positive.sort((a, b) => b.increaseBytes - a.increaseBytes).slice(0, 10),
     largestNearEvent: [...window].sort((a, b) => b.bytes - a.bytes).slice(0, 10), nativeNearEvent: processes };

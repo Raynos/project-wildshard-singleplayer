@@ -56,7 +56,8 @@ async function main() {
     const readRows = file => existsSync(file) ? readFileSync(file, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
     row.allocations = summarizePineAllocations(readRows(join(directory, 'dev-cells-gl-events.jsonl')),
       readRows(join(directory, 'dev-cells-gl-uploads.jsonl')), readRows(join(directory, 'dev-cells-native.jsonl')),
-      row.loss?.at ?? result.diagnosticEntry?.at ?? Date.now() / 1000);
+      row.loss?.at ?? result.diagnosticEntry?.at ?? Date.now() / 1000,
+      typeof result.driveStarted === 'string' ? Date.parse(result.driveStarted) / 1000 : Infinity);
     report.attempts.push(row);
     report.counts = { coldBoots: report.attempts.length, entryAttempts: report.attempts.filter(value => value.entryStarted).length,
       entryLosses: report.attempts.filter(value => value.entryLoss).length, completedEntries: report.attempts.filter(value => value.entryCompleted).length,

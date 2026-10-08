@@ -18,3 +18,19 @@ void test('Pine allocation summary distinguishes a live peak from repeated stora
   assert.equal(result.lastFiveSeconds.reduce((sum, row) => sum + row.touchedFootprintBytes, 0), 384);
   assert.equal(result.nativeNearEvent[0].gpuBytes, 100); assert.equal(result.nativeNearEvent[0].identities.gpu[7].startAbstime, 123);
 });
+
+void test('successful settled entries retain their earlier sliding burst and exclude the cold boot', () => {
+  const row = (at, id, bytes) => ({ at, id, bytes, document: 'game', op: 'allocation', kind: 'buffer', operation: 'bufferData', stage: 'travel' });
+  const events = [row(1, 'boot', 10000), row(10.8, 'first', 100), row(11.1, 'second', 200), row(11.9, 'third', 50), row(12, 'second', null)];
+  const uploads = [row(1, 'boot', 10000), row(10.8, 'first', 100), { ...row(11.1, 'second', 200), callSite: 'composer render' }, row(11.2, 'second', 200)];
+  const result = summarizePineAllocations(events, uploads, [], 40, 10);
+  assert.equal(result.entryOneSecondGrowth.bytes, 300);
+  assert.equal(result.entryOneSecondGrowth.count, 2);
+  assert.equal(result.entryOneSecondGrowth.from, 10.8);
+  assert.equal(result.entryOneSecondGrowth.through, 11.1);
+  assert.equal(result.entryOneSecondStorageFootprints.bytes, 500, 'Repeated calls count in touched footprints only');
+  assert.equal(result.entryOneSecondStorageCalls.count, 3);
+  assert.equal(result.lastFiveSeconds.length, 0, 'Final settle window is distinct from the upload burst');
+  assert.equal(result.entryCallSites[0].callSite, 'composer render');
+  assert.equal(result.apiPeak.bytes, 10350, 'Whole-page live peak is reported independently');
+});

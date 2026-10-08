@@ -48,13 +48,23 @@ export function installLoadingGlJournal() {
   sessionStorage.removeItem(uploadKey);
   window.__sf57GLUploads = previousUploads.rows; window.__sf57UploadOverflow = previousUploads.overflow;
   let uploadSequence = 0;
+  const callSites = new Set();
   // Renderer draw hooks repeat labels each frame. Keep exact state changes, not those unchanged assertions.
   const labels = new Map(), allocations = new Map();
   const push = row => {
     if (window.__sf57TraceUploads === true && row.op === 'allocation' && typeof row.bytes === 'number'
       && ['bufferData', 'texImage2D', 'texImage3D', 'copyTexImage2D', 'compressedTexImage2D',
         'compressedTexImage3D', 'texStorage2D', 'texStorage3D', 'generateMipmap', 'renderbufferStorage', 'renderbufferStorageMultisample'].includes(row.operation)) {
-      if (window.__sf57GLUploads.length < 10000) window.__sf57GLUploads.push({ ...row, document: documentId, uploadSequence: uploadSequence++ });
+      if (window.__sf57GLUploads.length < 10000) {
+        // One scalar stack per operation/second during travel, at most 128 per document.
+        // Never capture one stack per texture/mip, retain GL objects or issue another GL query.
+        const site = `${row.context}:${row.stage}:${row.operation}:${Math.floor(row.at)}`;
+        let callSite;
+        if (row.stage === 'travel' && callSites.size < 128 && !callSites.has(site)) {
+          callSites.add(site); callSite = (new Error('SF57 storage call site').stack ?? '').slice(0, 6000);
+        }
+        window.__sf57GLUploads.push({ ...row, ...(callSite === undefined ? {} : { callSite }), document: documentId, uploadSequence: uploadSequence++ });
+      }
       else window.__sf57UploadOverflow++;
     }
     if (row.op === 'label') {
