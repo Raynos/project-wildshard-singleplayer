@@ -11266,6 +11266,12 @@
         "from": "@wildshard/engine/world/BakedTerrain"
       },
       {
+        "name": "installBakedGrid",
+        "kind": "function",
+        "doc": "Install original native samples and their placement decisions into one selected binding without fetching or rebuilding.",
+        "from": "@wildshard/engine/world/BakedTerrain"
+      },
+      {
         "name": "loadBakedTerrain",
         "kind": "function",
         "doc": "Fetch the active chunk's bake and install it; resolves either way. Idempotent per chunk.",

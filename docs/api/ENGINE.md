@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2196 members; 830 without a doc line (—).
+2197 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1882,6 +1882,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `bakedSamplers` | function | @wildshard/engine/world/BakedTerrain | Bilinear samplers over the grid, in the TerrainField shapes. |
 | `bakedTerrainUrl` | const | @wildshard/engine/world/BakedTerrain | — |
 | `bakedUndergrowth` | function | @wildshard/engine/world/BakedTerrain | The active chunk's undergrowth decision log from its installed bake, if it has one (src/shards/pine-hollow/world/undergrowth.ts). |
+| `installBakedGrid` | function | @wildshard/engine/world/BakedTerrain | Install original native samples and their placement decisions into one selected binding without fetching or rebuilding. |
 | `loadBakedTerrain` | function | @wildshard/engine/world/BakedTerrain | Fetch the active chunk's bake and install it; resolves either way. Idempotent per chunk. |
 | `parseBakedTerrain` | function | @wildshard/engine/world/BakedTerrain | — |
 | `BlenderArea` | interface | @wildshard/engine/world/blenderArea | a level's Blender area: world bounds in metres |

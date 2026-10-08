@@ -1848,7 +1848,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2179 exports, grouped by the module to import them from.
+2180 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2172,7 +2172,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ui/WindupWarn`: `Warned`, `WindupWarn`
 - `@wildshard/engine/world/Atmosphere`: `addFogUniforms`, `atmosphereTerms`, `attachFogUniforms`, `fogUniforms`, `installAtmosphere`, `isUnderwater`, `setUnderwater`, `updateUnderwater`, `volumetricFog`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `weatherFogUniforms`, `weatherUniforms`
 - `@wildshard/engine/world/BakedCards`: `bakedCardUrls`, `CardTextures`, `exportCardTextures`, `loadBakedCards`
-- `@wildshard/engine/world/BakedTerrain`: `BakedGrid`, `BakedPlacement`, `bakedSamplers`, `bakedTerrainUrl`, `bakedUndergrowth`, `loadBakedTerrain`, `parseBakedTerrain`
+- `@wildshard/engine/world/BakedTerrain`: `BakedGrid`, `BakedPlacement`, `bakedSamplers`, `bakedTerrainUrl`, `bakedUndergrowth`, `installBakedGrid`, `loadBakedTerrain`, `parseBakedTerrain`
 - `@wildshard/engine/world/blenderArea`: `BlenderArea`, `blenderAreaFor`, `blenderModelsBase`, `CELL`, `STEP`
 - `@wildshard/engine/world/Boundary`: `Boundary`
 - `@wildshard/engine/world/bounds`: `BoundsHost`, `installBounds`
