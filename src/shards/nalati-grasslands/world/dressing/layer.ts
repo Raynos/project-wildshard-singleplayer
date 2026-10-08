@@ -31,10 +31,27 @@ export interface Inst {
 }
 
 const CELL = 24;
+const FADE_START = 0.82;
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 const _sphere = new THREE.Sphere();
 
 interface Cell { cx: number; cy: number; cz: number; r: number; far: number; idx: Int32Array }
+
+/** Owned pre-cull source copies, in original instance order. Ranges already include the selected tier scale.
+ * Matrices include yaw/lean/scale; colours are linear RGB. Spheres are source xyz/radius for visibility tests.
+ * No live buffer, model, material or renderer escapes through this offline data port.
+ */
+export interface DressLayerSource {
+  version: 1; count: number; matrices: Float32Array; colours: Float32Array; spheres: Float32Array; ranges: Float32Array;
+  cellSize: number; keepNear: number; fadeStart: number;
+}
+
+const sourceLayers = new WeakMap<THREE.Object3D, DressLayer>();
+
+/** Copy only an actual layer's original source; never regenerate placements or read its culled front buffers. */
+export function captureDressLayerSource(mesh: THREE.Object3D): DressLayerSource | undefined {
+  return sourceLayers.get(mesh)?.captureSource();
+}
 
 export class DressLayer {
   readonly mesh: THREE.InstancedMesh;
@@ -65,6 +82,7 @@ export class DressLayer {
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1, n) * 3), 3);
     this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
     this.mesh.count = 0;
+    sourceLayers.set(this.mesh, this);
     this.keepNear = o.keepNear ?? 26;
     this.trisPer = (geometry.index ? geometry.index.count : geometry.getAttribute('position').count) / 3;
 
@@ -102,6 +120,12 @@ export class DressLayer {
   get tris(): number { return this.mesh.count * this.trisPer; }
   get trisEach(): number { return this.trisPer; }
 
+  /** Independent copies survive culling, caller mutation and disposal of this layer's geometry. */
+  captureSource(): DressLayerSource {
+    return { version: 1, count: this.count, matrices: this.base.slice(), colours: this.colors.slice(),
+      spheres: this.pos.slice(), ranges: this.far.slice(), cellSize: CELL, keepNear: this.keepNear, fadeStart: FADE_START };
+  }
+
   cull(frustum: THREE.Frustum, viewer: THREE.Vector3): void {
     const arr = this.mesh.instanceMatrix.array as Float32Array;
     const col = this.mesh.instanceColor?.array as Float32Array | undefined;
@@ -123,7 +147,7 @@ export class DressLayer {
           _sphere.center.set(pos[i * 4] ?? 0, pos[i * 4 + 1] ?? 0, pos[i * 4 + 2] ?? 0); _sphere.radius = pos[i * 4 + 3] ?? 1;
           if (!frustum.intersectsSphere(_sphere)) continue;
         }
-        const k = smoothstep(f, f * 0.82, Math.sqrt(d2));
+        const k = smoothstep(f, f * FADE_START, Math.sqrt(d2));
         const o = out * 16, s = i * 16;
         for (let q = 0; q < 16; q++) arr[o + q] = base[s + q] ?? 0;
         if (k < 1) { for (let q = 0; q < 11; q++) if ((q & 3) !== 3) arr[o + q] = (arr[o + q] ?? 0) * k; }
