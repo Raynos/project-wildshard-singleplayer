@@ -19,7 +19,7 @@ import { resourceScope } from '../app/resources';
 import type { AmbientBed, LoopName, SampleLoop } from './Audio';
 import { sfxDir } from '../boot/audioFiles';
 import { currentOwner, onOwnerDispose } from '../app/ownership';
-import { observeAudioMemory } from '../render/memoryResources';
+import { observeAudioMemory } from '../core/memoryResources';
 
 export const DECODE_RATE = 48000;
 let offline: OfflineAudioContext | undefined;

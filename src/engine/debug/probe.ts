@@ -19,7 +19,7 @@ import { ExternalTimerBaseline } from './timerBaseline';
 import { poseBudgets } from '../render/budgetReport';
 import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus, type Scope } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
-import { memoryAttribution, type MemorySnapshot } from '../render/memoryAttribution';
+import { memoryAttribution, type MemorySnapshot } from '../core/memoryAttribution';
 
 declare const __BUILD_ID__: string;
 export interface Vec3 { x: number; y: number; z: number }

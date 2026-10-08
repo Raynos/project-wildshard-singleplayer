@@ -2,8 +2,8 @@ import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, 
 import type { Renderer } from './renderer';
 import { arrayReleased } from './releasedArrays';
 import { isDev } from '../core/devMode';
-import { memoryAttribution, withMemoryLabel } from './memoryAttribution';
-import { observeImageMemory } from './memoryResources';
+import { memoryAttribution, withMemoryLabel } from '../core/memoryAttribution';
+import { observeImageMemory } from './memoryImages';
 import { sceneObjectOwner, sceneResourceOwner } from '../app/sceneOwnership';
 
 interface Label { owner: string; asset: string; priority: number }

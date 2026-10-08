@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { MemoryAttribution } from '../../src/engine/render/memoryAttribution';
+import { MemoryAttribution } from '../../src/engine/core/memoryAttribution';
 
 it('deduplicates shared backing storage, replaces reallocations, and separates domains/native footprint', () => {
   const ledger = new MemoryAttribution(), buffer = new ArrayBuffer(4096), handle = {};

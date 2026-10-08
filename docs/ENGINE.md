@@ -2528,7 +2528,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### Allocation memory diagnostics (SF64)
 
-`@wildshard/engine/render/memoryAttribution` defines `MemoryAttribution`, the shared `memoryAttribution` ledger and scalar
+`@wildshard/engine/core/memoryAttribution` defines `MemoryAttribution`, the shared `memoryAttribution` ledger and scalar
 `MemorySnapshot` v1. Native GPU handles are counted by allocation storage (compressed blocks, faces, mip levels, array
 layers, buffers and multisample targets), using the existing upload labels and scene owners. Subuploads add no bytes.
 CPU rows count shared array backing stores once, decoded PCM and Wasm linear capacity; image/canvas RGBA backing is

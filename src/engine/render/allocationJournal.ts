@@ -1,5 +1,5 @@
 import { allocationImageBytes } from './allocationBytes';
-import { memoryAttribution, memoryCreationLabel, type MemoryAttribution } from './memoryAttribution';
+import { memoryAttribution, memoryCreationLabel, type MemoryAttribution } from '../core/memoryAttribution';
 import { pageScope } from '../app/resources';
 
 interface Context { readonly canvas: EventTarget }

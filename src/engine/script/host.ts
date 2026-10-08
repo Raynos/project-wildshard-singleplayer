@@ -2,7 +2,7 @@ import { SCRIPT_ABI } from './abi';
 import { admitScript, type ScriptAdmission } from './admission';
 import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
-import { observeWasmMemory } from '../render/memoryResources';
+import { observeWasmMemory } from '../core/memoryResources';
 import { currentOwner } from '../app/ownership';
 
 /** Per-level tick allowances shared by every module and entity, not reset by individual calls. */

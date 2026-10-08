@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it } from 'vitest';
-import { memoryAttribution } from '../../src/engine/render/memoryAttribution';
-import { observeAudioMemory, observeImageMemory, observeWasmMemory } from '../../src/engine/render/memoryResources';
+import { memoryAttribution } from '../../src/engine/core/memoryAttribution';
+import { observeAudioMemory, observeWasmMemory } from '../../src/engine/core/memoryResources';
+import { observeImageMemory } from '../../src/engine/render/memoryImages';
 
 it('reads resized canvases, shared PCM and grown linear memory without copying their data', () => {
   const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 512;

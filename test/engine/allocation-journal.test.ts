@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { installAllocationJournal } from '../../src/engine/render/allocationJournal';
-import { MemoryAttribution } from '../../src/engine/render/memoryAttribution';
+import { MemoryAttribution } from '../../src/engine/core/memoryAttribution';
 
 class Context {
   readonly canvas = new EventTarget();

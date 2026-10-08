@@ -3,7 +3,7 @@ import type { App } from '@wildshard/engine/app/app';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';
 import { AssetResidencyBridge, type AssetAllocationReader } from './assetResidency';
-import { memoryAttribution } from '@wildshard/engine/render/memoryAttribution';
+import { memoryAttribution } from '@wildshard/engine/core/memoryAttribution';
 
 /** An admitted home claim, shared by the early boot and the later live registry without charging it twice. */
 export interface HomeResidencyClaim {
