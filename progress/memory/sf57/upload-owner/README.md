@@ -53,13 +53,14 @@ iPhone 16 Pro, muted, Developer on, phone tier, 2×.
 | c0 | 70.2 | 324 / 96 / 154 | 74 | 97 | 1 / 0 / 0 |
 | c1 | 129.6 | 257 / 100 / 305 | 78 | 384 | 3 / 1 / 1 |
 | c2 | 137.4 | 258 / 106 / 312 | 91 | 671 | 5 / 2 / 2 |
+| c3 | 141.9 | 258 / 106 / 312 | 104 | 958 | 7 / 3 / 3 |
 
 - **The upload live set no longer grows by about 185 a circuit.** Unowned uploads go +4, then +13. Before, about 100
   a circuit were held only by the set.
-- **The heap step c1 → c2 is +7.8 MB.** leak3's first step was +6.7, so the ≤ 2 MB target is not shown yet. Only one
-  step was measured; c3 / c4 were still running at the lane's 90-minute cap.
+- **Heap steps are +7.8 then +4.5 MB** (leak3: +6.7, +4.4), so the ≤ 2 MB target is not met. **GL is flat from c2 to
+  c3** (geometries 258, textures 106, programs 312). c4 was cut at the lane's 90-minute cap.
 - **Stray owner reads are about 290 a circuit.** leak3 counted about 1,320.
-- **GL textures still rise by 6 a circuit.** The weak set does not hold them, so something else keeps them alive. Its
+- **GL textures rose by 6 from c1 to c2, then held.** The unowned live set still grows by 13 a circuit; the weak set does not hold those, so something else keeps them alive. Its
   site list (`sites.py`) names:
   - PMREM `cubeUv` targets from the sky's environment refresh (`_applyGGXFilter`, `refreshEnvironment`);
   - one target from a `bake`;
