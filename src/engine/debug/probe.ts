@@ -20,7 +20,6 @@ import { poseBudgets } from '../render/budgetReport';
 import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus, type Scope } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 import { memoryAttribution, type MemorySnapshot } from '../core/memoryAttribution';
-import { placementCensus, type PlacementCensus } from '../models/place';
 
 declare const __BUILD_ID__: string;
 export interface Vec3 { x: number; y: number; z: number }
@@ -115,8 +114,6 @@ export interface ProbeApp {
   readonly clock: Readonly<{ now: number; real: number; frame: number; mode: 'live' | 'capture' }>;
   readonly rngSeed: number;
   readonly census: Readonly<{ engine: Readonly<ScopeCensus>; level: Readonly<ScopeCensus> }>;
-  /** placed models' live worlds, records, groups and per-frame cullers (SF57: flat across shard visits) */
-  readonly placement: PlacementCensus;
 }
 export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
   /** Scalar allocation storage and native-ruler provenance; available independently of a retired level. */
@@ -367,7 +364,6 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get clock() { return Object.freeze({ now: app.clock.now, real: app.clock.real, frame: app.clock.frame, mode: app.clock.mode }); },
       get rngSeed() { return app.rng.seedValue; },
       get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
-      get placement() { return placementCensus(); },
     }),
     version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     get boot() { boot ??= fingerprint(world, deps, saves); return boot; }, fingerprint: () => fingerprint(world, deps, saves), pose, nav,
