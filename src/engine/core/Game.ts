@@ -264,6 +264,7 @@ export class Game {
   /** true once a core system died (faults.ts 'fatal'): the loop stops; the fatal modal is up */
   dead = false;
   private fixedAcc = 0;
+  private firstFixedStep = true;
   /** 0‥1: how far this frame's render sits past the last fixed step (interpolate anything the fixed step moves) */
   alpha = 0;
   /** fixed steps run this frame (hit-stop does not change simulation time) */
@@ -631,6 +632,9 @@ export class Game {
   private runFixed(dt: number): void {
     if ('app' in this && this.app.state === 'paused') { this.fixedSteps = 0; return; }
     this.fixedAcc += dt;
+    // Loading and the first minimap/UI paint are not simulation time. Start live physics with one tick,
+    // even if the first eligible frame arrives late; deterministic capture retains its authored cadence.
+    if (this.firstFixedStep && this.app.clock.mode !== 'capture' && this.fixedAcc >= FIXED_STEP) this.fixedAcc = FIXED_STEP;
     let n = 0;
     while (this.fixedAcc >= FIXED_STEP && n < MAX_FIXED_STEPS) {
       this.runPhase(this.fixed.pre);
@@ -641,6 +645,7 @@ export class Game {
     if (n === MAX_FIXED_STEPS && this.fixedAcc >= FIXED_STEP) this.fixedAcc %= FIXED_STEP;
     this.alpha = this.fixedAcc / FIXED_STEP;
     this.fixedSteps = n;
+    if (n > 0) this.firstFixedStep = false;
   }
 
   private stopLeft = 0;
@@ -757,6 +762,7 @@ export class Game {
     this.app.scheduler.configure(this.level.tiers?.[TIER]?.ticks);
     const composer = this.composer, sky = this.sky; // both built before start() (buildComposer reads the sky)
     this.clock.start();
+    this.fixedAcc = 0; this.firstFixedStep = true;
     this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
     // Returning from the background: draw one frame at once (bypassing the gate). The 1–2 s of black on an
     // iOS app switch is iOS restoring a suspended standalone web app before any of this runs — investigated
