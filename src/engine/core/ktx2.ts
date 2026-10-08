@@ -24,6 +24,7 @@ import { texMode, gpuFile } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
 import { type Renderer, probeRenderer } from '../render/renderer';
 import { labelAsset } from '../render/gpuLabels';
+import { ScopedWorkerPool } from './scopedWorkerPool';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -31,13 +32,19 @@ export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
 let loader: KTX2Loader | null = null;
 let gameRenderer: Renderer | null = null;
 
+function createLoader(): KTX2Loader {
+  const made = new KTX2Loader().setTranscoderPath(BASIS_PATH);
+  made.workerPool = new ScopedWorkerPool(pageScope);
+  return made;
+}
+
 /** detect the GPU's formats and start the transcoder download (idempotent) */
 export function initKtx2(renderer: Renderer): void {
   gameRenderer ??= renderer; // the building shard's (a slot: each resident shard has its own, below)
   if (texMode() !== 'ktx2') return;
   markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)'); // this build's (a shard built with images restores in place)
   if (loader !== null) return; // the formats are the GPU's: one loader for every KTX2 build
-  loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
+  loader = createLoader().detectSupport(renderer);
   loader.init().catch((e: unknown) => { console.warn('[ktx2] transcoder failed to load', e); });
 }
 
@@ -46,7 +53,7 @@ function ktx2Loader(): KTX2Loader {
   if (loader !== null) return loader;
   const probe = probeRenderer();
   try {
-    const made = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(probe);
+    const made = createLoader().detectSupport(probe);
     loader = made;
     return made;
   } finally { probe.dispose(); probe.forceContextLoss(); }
