@@ -34,11 +34,20 @@ async function until(page, faults, condition, label, deadline) {
   throw new Error(`Boot deadline: ${label}; ${JSON.stringify(await page.evaluate(bootObservation))}`);
 }
 
-/** Preserve the original report behind a static-preview transport failure; no error is suppressed.
+/** Preserve the original report behind a static-preview transport failure, including lifecycle diagnostics.
  * @param {string} url @param {string} method @param {string|null} body @returns {unknown} */
 export function bootErrorReport(url, method, body) {
   if (new URL(url).pathname !== '/api/errors' || method !== 'POST') return null;
   try { return JSON.parse(body ?? 'null'); } catch { return { malformed: body }; }
+}
+
+/** Lifecycle reports describe navigation/frame health and never raise the game's error UI.
+ * Keep their full payloads as evidence; only the explicit nonfatal diagnostic is acknowledged.
+ * @param {unknown} report @param {boolean} observedGridNavigation */
+export function bootLifecycleDiagnostic(report, observedGridNavigation) {
+  return observedGridNavigation && typeof report === 'object' && report !== null && 'system' in report && report.system === 'lifecycle' &&
+    'fatal' in report && report.fatal === false && 'message' in report && typeof report.message === 'string' &&
+    /^boot after the last page ended on "hide" \(nav navigate\): \d+ frames \/ 6s$/u.test(report.message);
 }
 
 /** @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out */
@@ -47,18 +56,32 @@ export async function bootCase(browser, base, mode, out) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   // Both ordinary documents read the same device choice. Standalone proves the public default too.
   await saveFixture(context, { scope: 'device', key: 'devMode', data: mode === 'grid' });
-  // Static dist has no serverless API. Acknowledge only outbound anonymous telemetry; every game/asset request stays real.
+  // Static dist has no serverless API. Acknowledge telemetry and recorded nonfatal lifecycle diagnostics only.
   let telemetryPosts = 0;
   await context.route(new URL('/api/telemetry', base).href, async route => {
     if (route.request().method() !== 'POST') { await route.continue(); return; }
     telemetryPosts++; await route.fulfill({ status: 204 });
   });
+  let gridNavigationIntent = false, gridNavigationObserved = false;
+  await context.route(new URL('/api/errors', base).href, async route => {
+    const request = route.request();
+    const report = bootErrorReport(request.url(), request.method(), request.postData());
+    if (bootLifecycleDiagnostic(report, gridNavigationObserved)) { await route.fulfill({ status: 204 }); return; }
+    await route.continue();
+  });
   const page = await context.newPage();
+  page.on('framenavigated', frame => {
+    if (gridNavigationIntent && frame === page.mainFrame()) gridNavigationObserved = true;
+  });
   /** @type {string[]} */ const faults = [];
   /** @type {unknown[]} */ const reports = [];
+  let lifecycleReports = 0;
   page.on('request', request => {
     const report = bootErrorReport(request.url(), request.method(), request.postData());
-    if (report !== null) reports.push(report);
+    if (new URL(request.url()).pathname !== '/api/errors' || request.method() !== 'POST') return;
+    reports.push(report);
+    if (bootLifecycleDiagnostic(report, gridNavigationObserved)) lifecycleReports++;
+    else faults.push(`Game error report: ${JSON.stringify(report)}`);
   });
   page.on('pageerror', error => faults.push(`pageerror: ${error.message}`));
   page.on('console', message => { if (message.type() === 'error') faults.push(`console: ${message.text()} ${JSON.stringify(message.location())}`); });
@@ -85,6 +108,7 @@ export async function bootCase(browser, base, mode, out) {
       await page.locator('.ws-menu-play').click();
     } else {
       // The real grid button writes its one-shot intent and deliberately changes the document.
+      gridNavigationIntent = true;
       await page.locator('.ws-main-grid').click();
     }
     await until(page, faults, async () => {
@@ -101,13 +125,13 @@ export async function bootCase(browser, base, mode, out) {
     }, `${mode} gameplay`, deadline);
     const initial = await page.evaluate(bootObservation);
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
-    const result = { mode, telemetryPosts, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
+    const result = { mode, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
     writeFileSync(join(out, `${mode}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;
   } catch (error) {
     await page.screenshot({ path: join(out, `${mode}-failure.jpg`), type: 'jpeg', quality: 70 }).catch(() => undefined);
-    writeFileSync(join(out, `${mode}.json`), `${JSON.stringify({ mode, faults, reports, error: String(error), observation: await page.evaluate(bootObservation).catch(() => null) }, null, 2)}\n`);
+    writeFileSync(join(out, `${mode}.json`), `${JSON.stringify({ mode, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation: await page.evaluate(bootObservation).catch(() => null) }, null, 2)}\n`);
     throw error;
   } finally { await context.close(); }
 }
