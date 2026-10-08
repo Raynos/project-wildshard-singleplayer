@@ -10,9 +10,13 @@
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { boxInFrame } from '@wildshard/engine/physics/box';
-import { QuestState } from '@wildshard/engine/quest/core';
+import type { QuestState } from '@wildshard/engine/quest/core';
 import { NpcTalk, type LiveMarker } from '@wildshard/engine/quest/view';
 import { DialogueBox, type ObjectiveLine } from '@wildshard/engine/quest/view/ui';
+import type { ShardContext } from '@wildshard/game/shard/context';
+import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
+import source from '../shard.config';
+import { DRIFTWOOD_MARKERS } from '../data/quests';
 import { presentQuest } from '@wildshard/game/quest/presentation';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './questLine';
 import type { Castaway } from '../npc/Castaway';
@@ -31,9 +35,9 @@ export interface Spine {
 
 const TALK_R = 3.2;
 
-export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): Spine {
+export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ShardContext, facts: RuntimeFacts): Spine {
   const { flags, kit, place } = adv;
-  const quest = new QuestState(DRIFTWOOD_QUEST, flags);
+  const quest = bindRuntimeQuest(ctx, source, DRIFTWOOD_QUEST.id, { flags, facts, place: marker => DRIFTWOOD_MARKERS[marker.id] }).state;
   // the chip (the shared quest core, core.ts) — built before the dialogue box, as it always was (their DOM order)
   // after the quest (E132): "Still to find" + the nearest sea glass / place / treasure left (Complete.ts); hidden once all are found
   const leftovers = (): LiveMarker[] | null => (quest.isComplete && adv.complete ? adv.complete.leftMarkers() : null);

@@ -35,6 +35,8 @@ export interface FinaleWorld<A extends AdvAnimal> {
   hud: Pick<AdventureWorld<A>['hud'], 'toast'>;
   music: AdventureWorld<A>['music'];
   scope?: AdventureWorld<A>['scope'];
+  /** The declared boss body bound by the trusted runtime; replay oracles retain the legacy spawn port. */
+  spawnCaptain?: () => AdvAnimal | null;
   setViewmodel?: AdventureWorld<A>['setViewmodel'];
 }
 interface FinaleRecipe extends Finale {
@@ -47,7 +49,7 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
   const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
   const bar = new BossBar();
-  let captain: A | null = null;
+  let captain: AdvAnimal | null = null;
 
   // ── the reward spot: back along the planet's direction from the ring's centre until the eye is at standing height ──
   const planet = w.sky.planetDir.clone();
@@ -67,8 +69,11 @@ function finaleRecipe<A extends AdvAnimal>(adv: FinaleAdventure, w: FinaleWorld<
   adv.setAnchor('shrine.reward', { x: rewardAt.x, y: rewardAt.y, z: rewardAt.z });   // the quest's last marker
 
   const spawn = (): void => {
-    if (captain || !w.animals.spawn) return;
-    try { captain = w.animals.spawn('captain', pool.x, pool.z, pool.yaw + Math.PI, 'captain'); }
+    if (captain || (w.spawnCaptain === undefined && !w.animals.spawn)) return;
+    try {
+      captain = w.spawnCaptain === undefined ? w.animals.spawn?.('captain', pool.x, pool.z, pool.yaw + Math.PI, 'captain') ?? null : w.spawnCaptain();
+      if (captain === null) throw new Error('Captain spawn host unavailable');
+    }
     catch (e) { console.error('[finale] the captain failed to spawn', e); flags.set('dead:captain'); return; }   // never strand the quest
     captain.herd = -1;
     captain.mem['poolX'] = pool.x; captain.mem['poolZ'] = pool.z; captain.mem['arena'] = ARENA;

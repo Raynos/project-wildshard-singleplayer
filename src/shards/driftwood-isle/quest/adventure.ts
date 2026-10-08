@@ -11,7 +11,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { ITEMS } from '@wildshard/game/bag/itemCatalog';
 import type { ItemId } from '@wildshard/game/Inventory';
-import type { ProgressSink } from '@wildshard/game/Progress';
+import type { Progress, ProgressSink } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../manifest';
 import { Cove } from '../world/Cove';
@@ -19,6 +19,9 @@ import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from './interactables';
 import { installAdventureInteractables } from './interactLifetime';
 import { installSpine, type Spine } from './Spine';
 import { installTrader, type TraderStall } from './TraderStall';
+import { bindDriftwoodFacts } from './facts';
+import declaration from '../shard.config';
+import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { installFeats } from './Feats';
 import { installPlaces } from './Places';
 import type { Places } from '@wildshard/engine/quest/view';
@@ -62,7 +65,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   animals: { animals?: A[]; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
-  progress?: ProgressSink & CompleteProgress;
+  progress?: ProgressSink & CompleteProgress & Partial<Pick<Progress, 'bindLedger' | 'refreshLedger'>>;
   /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5), and the quest card (E51) */
   fullMap?: { setPois: (source: () => MapPoi[], opts?: { tally?: boolean }) => void; setQuest?: (source: () => MapQuest | null) => void };
   /** the island's gulls: three fly you toward the nearest unfound place when you wander or idle (E309 B, gullGuide.ts) */
@@ -195,9 +198,11 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   }
 
   const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
-  adventure.spine = installSpine(adventure, w);
+  const grants = bindDriftwoodFacts(ctx, w.progress?.rows ?? [], w.progress, w.chunk.slug);
+  adventure.spine = installSpine(adventure, w, ctx, grants.facts);
+  w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
   adventure.trader = installTrader(adventure, w);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
-  if (w.progress) installFeats(adventure, w, w.progress);
+  installFeats(adventure, w, grants.count);
   if (w.ironDrop) {
     const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)
     w.ironDrop.guard = () => (all ? ironSwordGuard(all) : flags.has('dead:sailor') ? null : SWORD_GUARDED);
@@ -230,7 +235,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
   if (w.gulls) installGullGuide({ game: w.game, player: w.player, hud: w.hud, gulls: w.gulls }, places, flags);
   adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
-  adventure.finale = await installFinale(adventure, w, ctx);
+  const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
+  adventure.finale = await installFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
 
   // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──

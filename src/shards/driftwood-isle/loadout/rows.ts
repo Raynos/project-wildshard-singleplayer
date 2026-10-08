@@ -1,14 +1,11 @@
-import { macrotask } from '@wildshard/engine/boot/plan';
+import source from '../shard.config';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import type { MeleeProfile } from '@wildshard/sdk/weapons/meleeProfile';
 import { SWORD_WOOD, SWORD_IRON } from '@wildshard/kit/weapons/melee/profiles';
-import { Sword } from '@wildshard/kit/weapons/melee/SweptMelee';
-import type { ShardSword } from '@wildshard/game/shard/manifest';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { driftwoodWorld } from '../world/build';
 import { IronSwordPickup, ironSwordSite } from '../weapons/IronSword';
-import { swordRig } from '../weapons/swordView';
 
 const drops = new WeakMap<ShardRuntime, IronSwordPickup>();
 
@@ -16,8 +13,10 @@ const drops = new WeakMap<ShardRuntime, IronSwordPickup>();
 export function ironSwordDrop(shell: ShardRuntime): IronSwordPickup | null { return drops.get(shell) ?? null; }
 
 export function driftwoodLoadoutRows(world: World, shell: ShardRuntime): readonly [MeleeProfile, MeleeProfile] {
-  const wood: MeleeProfile = { ...SWORD_WOOD };
-  const iron: MeleeProfile = { ...SWORD_IRON, pickup: {
+  const declaredWood = source.items.rows[0], declaredIron = source.items.rows[1];
+  if (declaredWood?.kind !== 'weapon' || declaredIron?.kind !== 'weapon') throw new Error('Driftwood declares both swords');
+  const wood: MeleeProfile = { ...SWORD_WOOD, damage: declaredWood.light.damage, reach: declaredWood.light.range, cooldown: declaredWood.light.cooldown, heavyCharge: declaredWood.charge };
+  const iron: MeleeProfile = { ...SWORD_IRON, damage: declaredIron.light.damage, reach: declaredIron.light.range, cooldown: declaredIron.light.cooldown, heavyCharge: declaredIron.charge, pickup: {
     owned: 'iron-sword', prompt: 'Take iron sword', toast: 'Iron sword acquired · 1/2 to switch, Q to swap',
     create: (at, prompt) => {
       if (at !== 'wreck.deck') throw new Error(`Unknown iron sword pickup site: ${at}`);
@@ -32,19 +31,6 @@ export function driftwoodLoadoutRows(world: World, shell: ShardRuntime): readonl
     },
   } };
   return [wood, iron];
-}
-
-/** Both swords use the same castaway rig parts the shell already loaded, with the original task break. */
-export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows: readonly [MeleeProfile, MeleeProfile]): void {
-  shell.buildEquipment = async (targets, nolock, viewmodel?: ShardSword | null) => {
-    const { ironArms, swim: _swim, ...woodArms } = viewmodel ?? {};
-    const [wood, iron] = rows;
-    const primary = new Sword(world, targets, { row: wood, profile: wood, allowUnlocked: nolock, rig: swordRig(world.sky, 'wood'), ...woodArms,
-      ...(world.game.level.camera ? { portraitFov: world.game.level.camera.portraitFov } : {}) });
-    await macrotask();
-    const extra = new Sword(world, targets, { row: iron, profile: iron, allowUnlocked: nolock, blade: 'iron', rig: swordRig(world.sky, 'iron'), ...(ironArms ? { arms: ironArms } : {}) });
-    return { primary, rifle: null, secondary: null, extras: [extra] };
-  };
 }
 
 export function clearDriftwoodDrop(shell: ShardRuntime): void { drops.delete(shell); }

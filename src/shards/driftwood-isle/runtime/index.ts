@@ -13,7 +13,8 @@ import { GOODS } from '../loot/shop';
 import { installDriftwoodAdventure } from '../quest/install';
 import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
-import { driftwoodLoadoutRows, installDriftwoodLoadout, clearDriftwoodDrop } from '../loadout/rows';
+import { driftwoodLoadoutRows, clearDriftwoodDrop } from '../loadout/rows';
+import { installDriftwoodLoadout } from './loadout';
 
 type WorldBuilder = (world: World, viewer: () => Vector3, progress: ShardContext['progress']) => Promise<DriftwoodWorld>;
 const PROBE_KEYS = ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
@@ -60,7 +61,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (shell.world === null) throw new Error('Driftwood kit requires its world host');
     this.installCreatures(ctx);
     const rows = driftwoodLoadoutRows(shell.world, shell);
-    ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows);
+    ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows, ctx);
     ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
     ctx.rows.item(DRIFTWOOD_ITEMS); ctx.rows.feat(DRIFTWOOD_FEATS);
     ctx.rows.effect(DRIFTWOOD_EFFECTS); ctx.rows.shop(GOODS);

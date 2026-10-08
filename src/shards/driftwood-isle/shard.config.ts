@@ -1,5 +1,9 @@
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
+import { DRIFTWOOD_QUESTS } from './data/quests';
+import { DRIFTWOOD_LEDGER } from './data/ledger';
+import { DRIFTWOOD_SWORDS } from './data/items';
+import { DRIFTWOOD_SPAWNS } from './data/spawns';
 import { DRIFTWOOD_AUDIO } from './data/audio';
 import { DRIFTWOOD_EDGE_HEIGHTS } from './data/edges';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
@@ -27,7 +31,8 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
 export default parseShardfile({
   ...base,
   accent: 'marigold',
-  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST },
+  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns'], spawns: DRIFTWOOD_SPAWNS },
+  quests: DRIFTWOOD_QUESTS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: DRIFTWOOD_AUDIO,
   // G164 (SHARDFILE.md socketOverWater): every entry meets the road over the lowered sea. The sea row clips the four 8 × 15 m

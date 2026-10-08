@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { driftwoodLoadoutRows, ironSwordDrop } from '../../../src/shards/driftwood-isle/loadout/rows';
 import { ironSwordSite } from '../../../src/shards/driftwood-isle/weapons/IronSword';
+import { SWORD_WOOD, SWORD_IRON } from '../../../src/game/weapons/starterMeleeProfile';
 
 describe('Driftwood authored loadout (E357 S4.1 step 5)', () => {
   it('retains both profiles and the original pickup strings and saved key; no wreck means no pickup', () => {
@@ -13,6 +14,9 @@ describe('Driftwood authored loadout (E357 S4.1 step 5)', () => {
       ['weapon.sword', 'sword', 12, 2.2], ['weapon.sword-iron', 'sword-iron', 28, 2.2],
     ]);
     expect(wood.pickup).toBeUndefined();
+    expect(wood).toEqual(SWORD_WOOD);
+    const { pickup, ...profile } = iron;
+    expect(profile).toEqual(SWORD_IRON); expect(pickup).toBeDefined();
     expect(iron.pickup).toMatchObject({ owned: 'iron-sword', prompt: 'Take iron sword', toast: 'Iron sword acquired · 1/2 to switch, Q to swap' });
     expect(iron.pickup?.create('wreck.deck', 'Take iron sword')).toBeNull();
     expect(ironSwordDrop(shell)).toBeNull();

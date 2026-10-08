@@ -44,7 +44,7 @@ function callerWeapons(file: string, name: string, globals: Record<string, unkno
 interface Fixture { scope: Scope; services: App; world: ReturnType<typeof fakeWorld> }
 const emptyTargets = { raycast: () => null };
 const constructors: Record<string, (fixture: Fixture) => readonly Weapon[]> = {
-  'driftwood-isle': ({ world: f }) => callerWeapons('src/shards/driftwood-isle/loadout/rows.ts', 'Sword', {
+  'driftwood-isle': ({ world: f }) => callerWeapons('src/shards/driftwood-isle/runtime/loadout.ts', 'Sword', {
     Sword, world: { ...f, game: f.game.asGame() }, targets: emptyTargets, nolock: true,
     wood: SWORD_WOOD, iron: SWORD_IRON, swordRig, woodArms: {}, ironArms: undefined,
   }),

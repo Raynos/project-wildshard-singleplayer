@@ -1,27 +1,20 @@
 /**
- * Driftwood's collectibles + event achievements (A4): the flags the adventure raises become Progress events
- * (src/game/Progress.ts `recordEvent`, the Driftwood table in src/game/achievements.ts). Counts are read back from
- * the flags (`recordEvent('glass', total)`), so a save made before an achievement existed still earns it on load.
- * Kill achievements (the sailor, crabs, monkeys) need nothing here — main.ts records every kill.
- *
- * The vista bench: sitting turns you to the view it was placed for and holds you there a moment.
+ * Driftwood's collectible/event feat counts come from the existing flags and emit stable SF14 ledger facts.
+ * The platform Progress view reads that ledger; this runtime owns no second achievement counter store.
+ * The vista bench keeps its original player pose and toast.
  */
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
 import { QUEST_DONE } from './questLine';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
-import type { ProgressSink } from '@wildshard/game/Progress';
 
 
-export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, progress: ProgressSink): void {
+export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, factCount: (id: string, total: number) => void): void {
   const { flags } = adv;
   const sync = (): void => {
-    if (flags.has('talked:castaway')) progress.recordEvent('talked', 1);
-    progress.recordEvent('shard', SHARD_FLAGS.filter((f) => flags.has(f)).length);
-    progress.recordEvent('glass', flags.count(SEA_GLASS_FLAG));
-    if (flags.has('open:reef-treasure')) progress.recordEvent('treasure', 1);
-    if (flags.has('used:vista-bench')) progress.recordEvent('vista', 1);
-    if (flags.has('used:zipline')) progress.recordEvent('zipline', 1);
-    if (flags.has(QUEST_DONE)) progress.recordEvent('quest', 1);
+    const counts = { castaway: Number(flags.has('talked:castaway')), shards: SHARD_FLAGS.filter(f => flags.has(f)).length,
+      glass: flags.count(SEA_GLASS_FLAG), treasure: Number(flags.has('open:reef-treasure')), vista: Number(flags.has('used:vista-bench')),
+      zipline: Number(flags.has('used:zipline')), quest: Number(flags.has(QUEST_DONE)) };
+    for (const [id, total] of Object.entries(counts)) factCount(id, total);
   };
   sync();
   const offFlags = flags.onChange((f, on) => {
