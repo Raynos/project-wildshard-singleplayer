@@ -247,6 +247,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [precommit-generated.mjs](./precommit-generated.mjs)
 - [precommit-guards.mjs](./precommit-guards.mjs)
 - [progress-video.sh](./progress-video.sh)
+- [public-grid.d.mts](./public-grid.d.mts)
+- [public-grid.mjs](./public-grid.mjs)
 - [regenerate-committed.d.mts](./regenerate-committed.d.mts)
 - [regenerate-committed.mjs](./regenerate-committed.mjs)
 - [release-url.sh](./release-url.sh)
