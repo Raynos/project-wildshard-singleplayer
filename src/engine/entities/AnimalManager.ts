@@ -684,7 +684,7 @@ export class AnimalManager {
   /** Rebuild one retired authored home with fresh rig/state and ordinary spawn RNG, preserving its logical identity.
    * Only an actor retired by this manager can be replaced, once; a foreign/live actor or live duplicate refuses before construction. */
   replace(retired: Animal, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number }): Animal {
-    if (!this.retiredActors.has(retired) || this.animals.some(actor => actor.entityId === retired.entityId)) throw new Error('Replacement requires this manager\'s unreplaced retired actor');
+    if (retired.simulationBound || !this.retiredActors.has(retired) || this.animals.some(actor => actor.entityId === retired.entityId)) throw new Error('Replacement requires this manager\'s unreplaced retired actor');
     const replacement = this.spawnAnimal(retired.kind, x, z, yaw, variant, placement, retired.entityId);
     this.retiredActors.delete(retired);
     return replacement;

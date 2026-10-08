@@ -52,6 +52,7 @@ describe('creature rig over one authoritative simulation', () => {
     for (let i = 0; i < 30; i++) world.manager.update(1 / 60, i / 60, new Vector3(0, 0, 1));
     expect(sim.snapshot()).toEqual(saved); expect(view.mesh.position.toArray()).toEqual(sim.position.toArray());
     world.manager.retire(view); expect(sim.snapshot()).toEqual(saved); expect(world.manager.animals).not.toContain(view);
+    expect(() => world.manager.replace(view, 0, 0, 0, 'boar')).toThrow('unreplaced retired actor');
   });
   it('keeps posed query hitboxes while leaving the only movement motor with the host', () => {
     const { sim, view } = fixture(); view.bindSimulation(sim);
