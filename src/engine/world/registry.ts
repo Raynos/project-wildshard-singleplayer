@@ -17,7 +17,8 @@ import type { Material } from '../physics/surface';
 import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/AnimalView';
 import { app } from '../app/runtime';
-import { currentOwner } from '../app/ownership';
+import { currentOwner, enteredOwner } from '../app/ownership';
+import type { Scope } from '../app/scope';
 import { labelObjectTree } from '../render/gpuLabels';
 
 interface Vec3 { x: number; y: number; z: number }
@@ -221,6 +222,12 @@ export class WorldRegistry {
    * `place`'s cullers measure the camera from it (`FrameCamera`), as its copies' boxes are in that space. null: the scene's.
    */
   frame: THREE.Object3D | null = null;
+  /**
+   * The lifetime of the world this registry describes, when it has one of its own (a grid region's view scope). A
+   * registration made outside any `withOwner` section (after an `await` in a resident's build) then belongs to it, not to
+   * the page's ambient owner (SF57). null: the ambient owner, as a standalone page's registry.
+   */
+  scope: Scope | null = null;
 
   /** true once `retire` ran: the world this registry describes has left */
   get retired(): boolean { return this.retiredAt; }
@@ -248,7 +255,7 @@ export class WorldRegistry {
    * when this registry retires, or every shard visit's pieces would live as long as the page.
    */
   private untilOwnerOrRetire(remove: () => void): void {
-    const owner = currentOwner();
+    const owner = this.scope === null ? currentOwner() : enteredOwner() ?? this.scope;
     if (owner === null) return;
     if (owner.disposed) { remove(); return; } // (as a disposed scope's onDispose: at once)
     const hold = { forgetRetire: (): void => undefined };

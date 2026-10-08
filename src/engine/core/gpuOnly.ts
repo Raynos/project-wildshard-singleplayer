@@ -4,7 +4,7 @@
  * src/engine/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
 import { BufferAttribute, type BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, StaticDrawUsage, type Texture } from 'three';
-import { currentOwner } from '../app/ownership';
+import { enteredOwner } from '../app/ownership';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 
@@ -12,7 +12,7 @@ const labels = new Set<string>();
 /** marks made outside any shard (at module load: KTX2 mode drops every texture's mips once uploaded) — the page's, never reset */
 const pageLabels = new Set<string>();
 
-export function markGpuOnly(label: string): void { (currentOwner() === null ? pageLabels : labels).add(label); }
+export function markGpuOnly(label: string): void { (enteredOwner() === null ? pageLabels : labels).add(label); }
 
 /**
  * A runtime bake that can paint itself again (Nalati's painted range, look v2's shadow / contact bake) registers its

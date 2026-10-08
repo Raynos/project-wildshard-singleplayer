@@ -16,7 +16,9 @@ export function installFinale<A extends AdvAnimal>(adv: FinaleAdventure, world: 
 export function installFinale<A extends AdvAnimal>(adv: FinaleAdventure, world: FinaleWorld<A>, context: Parameters<typeof installDirectorFinale>[2]): Promise<Finale>;
 export function installFinale<A extends AdvAnimal>(adv: FinaleAdventure, world: FinaleWorld<A>, context?: Parameters<typeof installDirectorFinale>[2]): Finale | Promise<Finale> {
   if (context === undefined) return installLegacyFinale(adv, world, app);
-  const host: FinaleHost = { events: app.events, encounters: app.encounters, levelScope: context.scope,
+  const owner = context.scope, host: FinaleHost = { events: app.events, encounters: app.encounters, levelScope: owner,
     engineScope: app.engineScope, clock: app.clock };
-  return installDirectorFinale(adv, world, context, host);
+  // SF57: the recipe (its boss bar, reward beat and update) is built synchronously under the shard's scope, never under the
+  // page's ambient owner that an awaiting caller is left with
+  return owner.run(() => installDirectorFinale(adv, world, context, host));
 }

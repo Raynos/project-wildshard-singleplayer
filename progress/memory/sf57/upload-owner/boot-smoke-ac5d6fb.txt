@@ -1,0 +1,3 @@
+standalone: gameplay PASS in 5218ms, frame=13, faults=0
+standalone: gameplay PASS in 11193ms, frame=13, faults=0
+grid: gameplay PASS in 12631ms, frame=20, faults=0

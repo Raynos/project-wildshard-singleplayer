@@ -1,0 +1,3 @@
+PASS desktop: {"multiDrawSupported":true,"batches":0,"instances":16389,"lanterns":true,"lost":false,"calls":126,"error":false,"navigations":1,"errors":[]}
+PASS phone-tier: {"multiDrawSupported":true,"batches":0,"instances":24710,"lanterns":true,"lost":false,"calls":86,"error":false,"navigations":1,"errors":[]}
+PASS iphone-desktop-quality: {"multiDrawSupported":true,"batches":0,"instances":24710,"lanterns":true,"lost":false,"calls":104,"error":false,"navigations":1,"errors":[]}

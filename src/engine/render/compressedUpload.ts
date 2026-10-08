@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { resourceScope } from '../app/resources';
+import { pageScope } from '../app/resources';
 import { recordBootCheckpoint } from '../boot/bootTrace';
 import type { Renderer } from './renderer';
 import { retainCompressedMipmaps, finalizeCompressedMipmaps, assertCompressedMipmapsUnchanged, compressedTextureKey } from './compressedMipmaps';
@@ -13,8 +13,9 @@ interface UploadState {
   failed: WeakMap<THREE.Texture, { allocation: unknown; error: Error }>;
 }
 const states = new WeakMap<UploadTarget, UploadState>();
+// A painted frame between uploads belongs to no shard: the page's (SF57: never an ambient owner read mid-build).
 const frame = (): Promise<void> => new Promise(resolve => {
-  resourceScope().raf(() => { resourceScope().timeout(0, resolve); });
+  pageScope.raf(() => { pageScope.timeout(0, resolve); });
 });
 
 // A loader upload is not a draw: its caller may still change the sampler. Observe the

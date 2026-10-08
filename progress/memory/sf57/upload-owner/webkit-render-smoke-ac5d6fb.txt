@@ -1,0 +1,4 @@
+  world: mean 153, 0% near-black, 273762 px sampled
+  weapon.template-whip: mean 86, 0% near-black, 20027 px sampled
+  weapon.sword-iron: mean 109, 0% near-black, 31024 px sampled
+{"gate":"webkit-render-smoke","pass":true,"seconds":4,"failures":[]}

@@ -1,4 +1,4 @@
-import { resourceScope } from '../app/resources';
+import { pageScope, resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 import * as THREE from 'three';
@@ -12,6 +12,7 @@ import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
 import { uploadCompressedTexture } from './compressedUpload';
+import { linkStandIn } from '../app/sceneOwnership';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -97,6 +98,7 @@ type BatchedLike = MeshLike & { isBatchedMesh?: boolean; _colorsTexture?: THREE.
  */
 function standIn(mesh: MeshLike): MeshLike {
   const copy = mesh.clone(false) as BatchedLike;
+  linkStandIn(copy, mesh); // its uploads belong to the mesh's owner (SF57 upload-owner)
   const src = mesh as BatchedLike;
   if (src.isBatchedMesh && src._colorsTexture && !copy._colorsTexture) copy._colorsTexture = src._colorsTexture;
   return copy;
@@ -278,7 +280,7 @@ export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   return [...out];
 }
 
-const frame = (): Promise<void> => new Promise((resolve) => { resourceScope().raf(() => { resourceScope().timeout(0, resolve); }); }); // a real paint between
+const frame = (): Promise<void> => new Promise((resolve) => { pageScope.raf(() => { pageScope.timeout(0, resolve); }); }); // a real paint between (the page's: no ambient owner read mid-build, SF57)
 
 /**
  * Issue every job, then wait for the driver: reports (done, total, detail) monotonically —

@@ -1,9 +1,9 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
-import { BatchedMesh, BoxGeometry, Group, MeshBasicMaterial, Scene, Texture, DataTexture, PerspectiveCamera, WebGLRenderTarget, type WebGLRenderer } from 'three';
+import { BatchedMesh, BoxGeometry, Group, Mesh, MeshBasicMaterial, MeshDepthMaterial, Scene, Texture, DataTexture, PerspectiveCamera, WebGLRenderTarget, type Object3D, type WebGLRenderer } from 'three';
 import { app } from '../../src/engine/app/runtime';
 import { AssetService } from '../../src/engine/app/assets';
-import { SceneOwnership, ownSceneTree, ownSceneResource, sceneResourceOwner } from '../../src/engine/app/sceneOwnership';
+import { SceneOwnership, linkStandIn, ownSceneTree, ownSceneResource, sceneResourceOwner } from '../../src/engine/app/sceneOwnership';
 import { Scope } from '../../src/engine/app/scope';
 import { enterOwner } from '../../src/engine/app/ownership';
 import { legacyDouble } from '../fake/FakeGame';
@@ -137,4 +137,75 @@ it('SF57: a retiring owner\'s dispose-time lookup (three\'s deallocateMaterial) 
   }
   expect(page.census.materials).toBe(0);
   page.dispose();
+});
+
+it('SF57 upload-owner: a compile attributes each stand-in\'s uploads to the owner of the mesh it stands in for', () => {
+  const page = new Scope('page'), assets = new AssetService(), uploads = new UploadOwnership(page, assets);
+  const renderer = legacyDouble<WebGLRenderer>({
+    properties: legacyDouble<WebGLRenderer['properties']>({ get: () => ({}) }),
+    renderBufferDirect: () => undefined,
+    compile: (scene: Object3D) => { scene.traverse((node) => { if (node instanceof Mesh) renderer.properties.get(node.material); }); return new Set(); },
+  });
+  uploads.attach(renderer);
+  for (let visit = 0; visit < 3; visit++) {
+    const resident = page.child(`resident:${visit}`), root = new Group(); ownSceneTree(root, resident, assets);
+    const map = new Texture(), material = new MeshBasicMaterial({ map }), depth = new MeshDepthMaterial();
+    const mesh = new Mesh(new BoxGeometry(), material); mesh.customDepthMaterial = depth; root.add(mesh);
+    const materialDispose = vi.spyOn(material, 'dispose'), mapDispose = vi.spyOn(map, 'dispose'), depthDispose = vi.spyOn(depth, 'dispose');
+    // the warm-up compiles detached clones: one with the mesh's material, one with its custom depth material
+    const job = new Group(), lit = mesh.clone(false), shadow = new Mesh(mesh.geometry, depth);
+    linkStandIn(lit, mesh); linkStandIn(shadow, mesh); job.add(lit, shadow);
+    renderer.compile(job, new PerspectiveCamera());
+    expect(sceneResourceOwner(map)).toBe(null); // a sampler is only attributed by its own upload (the warm-up's texture pass)
+    renderer.properties.get(map);
+    // the mesh then leaves the resident's tree before it ever draws (a pooled creature): only the upload-time owner remains
+    root.remove(mesh);
+    expect(sceneResourceOwner(material)).toBe(resident); expect(sceneResourceOwner(map)).toBe(resident); expect(sceneResourceOwner(depth)).toBe(resident);
+    resident.dispose();
+    expect(materialDispose).toHaveBeenCalledOnce(); expect(mapDispose).toHaveBeenCalledOnce(); expect(depthDispose).toHaveBeenCalledOnce();
+    expect(uploads.resources().size).toBe(0);
+  }
+  page.dispose();
+});
+
+it('SF57 upload-owner: an upload with no owner is held weakly, adopted by a later owned draw, and freed by the level otherwise', () => {
+  const page = new Scope('page'), assets = new AssetService(), uploads = new UploadOwnership(page, assets);
+  const scene = new Scene(), camera = new PerspectiveCamera(), resident = page.child('resident'), root = new Group();
+  scene.add(root); ownSceneTree(root, resident, assets);
+  const renderer = legacyDouble<WebGLRenderer>({
+    properties: legacyDouble<WebGLRenderer['properties']>({ get: () => ({}) }),
+    renderBufferDirect: () => undefined,
+  });
+  uploads.attach(renderer);
+  const drawn = new MeshBasicMaterial(), global = new MeshBasicMaterial(), mesh = new Mesh(new BoxGeometry(), drawn); root.add(mesh);
+  const drawnDispose = vi.spyOn(drawn, 'dispose'), globalDispose = vi.spyOn(global, 'dispose');
+  renderer.properties.get(drawn); renderer.properties.get(global); // uploaded before any draw: no owner yet
+  expect(uploads.orphanCensus().live).toBe(2); expect(uploads.has(drawn)).toBe(true);
+  renderer.renderBufferDirect(camera, scene, mesh.geometry, drawn, mesh, { start: 0, count: 36, materialIndex: 0 });
+  expect(sceneResourceOwner(drawn)).toBe(resident); expect(uploads.orphanCensus().live).toBe(1);
+  resident.dispose(); expect(drawnDispose).toHaveBeenCalledOnce(); expect(uploads.has(drawn)).toBe(false);
+  expect(globalDispose).not.toHaveBeenCalled(); expect(uploads.has(global)).toBe(true);
+  page.dispose(); expect(globalDispose).toHaveBeenCalledOnce(); expect(uploads.resources().size).toBe(0);
+  expect(uploads.orphanCensus()).toEqual({ live: 0, collected: 0 });
+});
+
+it('SF57 upload-owner: three\'s dispose-time lookup of an explicitly disposed upload never puts it back in the live set', () => {
+  const page = new Scope('page'), assets = new AssetService(), uploads = new UploadOwnership(page, assets);
+  const renderer = legacyDouble<WebGLRenderer>({
+    properties: legacyDouble<WebGLRenderer['properties']>({ get: () => ({}) }),
+    renderBufferDirect: () => undefined,
+  });
+  uploads.attach(renderer);
+  const resident = page.child('resident'), owned = new Texture(), orphan = new MeshBasicMaterial();
+  ownSceneResource(owned, resident);
+  for (const resource of [owned, orphan]) {
+    renderer.properties.get(resource);
+    // the renderer's own listener, registered after ours at upload, reads the properties while deallocating
+    const onDispose = (): void => { resource.removeEventListener('dispose', onDispose); renderer.properties.get(resource); };
+    resource.addEventListener('dispose', onDispose);
+  }
+  expect(uploads.has(owned)).toBe(true); expect(uploads.has(orphan)).toBe(true);
+  owned.dispose(); orphan.dispose(); // disposed by their code while the owner lives on
+  expect(uploads.has(owned)).toBe(false); expect(uploads.has(orphan)).toBe(false); expect(uploads.resources().size).toBe(0);
+  resident.dispose(); page.dispose();
 });

@@ -1,0 +1,132 @@
+// SF57 upload-owner (round 4): the leak3 driver plus, at every heap pose, the GL counts (renderer.info.memory), the SF64
+// ledger's GPU / RAM totals, the scope census of the slow-growing UI / music scopes, and the upload live set grouped by
+// owner (null / disposed / live) and type, with the stray-owner census. From leak3:
+// SF57 place-lifetime: Chromium (muted, iPhone 16 Pro, Developer on, phone tier, 2x) drives the D -> P -> N -> template
+// -> D cell circuit N times (the pmrem lane's ../pmrem/drive.mjs route). After every leg it reads the placement census
+// (the probe's `app.placement`: live worlds, model records, groups, per-frame cullers). At home after each circuit it
+// stands at one fixed Driftwood pose, forces a full GC over CDP and reads the JS heap.
+//   scripts/browser-lane.sh node drive.mjs --base=http://127.0.0.1:44xx/ --out=<dir> [--circuits=4]
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+const ROOT = '/Users/raynos/projects/games/wildshard-singleplayer';
+const { saveFixtureCode } = await import(`${ROOT}/scripts/debug-settings.mjs`);
+const { ownedSoakPlans } = await import(`${ROOT}/scripts/soak/owned.mjs`);
+const { gridFloorDocumentIdentity, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures } = await import(`${ROOT}/scripts/frame-floor-grid.mjs`);
+const { chromium, devices } = await import(`${ROOT}/node_modules/playwright/index.mjs`);
+
+const flag = (name, d) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3) ?? d;
+const BASE = flag('base'), OUT = flag('out'), CIRCUITS = Number(flag('circuits', '4')), SNAP = (flag('snap', '') || '').split(',').filter(Boolean).map(Number);
+mkdirSync(OUT, { recursive: true });
+const STAGE = stageFloorGrid.toString().replace('performance.now() + 120000', 'performance.now() + 600000');
+const DRIVE = driveFloorGrid.toString().replace('}, 150000);', '}, 900000);');
+const runRoute = async (page, plan, origin) => { await page.evaluate(`(${STAGE})(${JSON.stringify(plan)},${JSON.stringify(origin)})`); return page.evaluate(`(${DRIVE})(${JSON.stringify(plan)},${JSON.stringify(origin)})`); };
+const loadavg = async () => (await import('node:os')).loadavg().map((x) => Number(x.toFixed(1)));
+const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+const fixtures = [
+  saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: 'midday' } }),
+  saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
+  saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
+].join(';');
+
+const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const result = { base: BASE, circuits: CIRCUITS, samples: [], heap: [], errors: [] };
+const save = () => { writeFileSync(join(OUT, 'result.json'), `${JSON.stringify(result, null, 2)}\n`); };
+try {
+  const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
+  await context.addInitScript(`${fixtures};window.__wildshardHarness={seed:357,capture:null};`);
+  const page = await context.newPage();
+  const cdp = await context.newCDPSession(page);
+  page.on('pageerror', (e) => { result.errors.push(e.message.slice(0, 300)); console.log('PAGEERROR', e.message.slice(0, 300)); });
+  page.on('request', (q) => { if (q.url().includes('/api/errors')) { const b = (q.postData() || '').slice(0, 1500); result.errors.push(`reported: ${b}`); console.log('REPORTED', b.slice(0, 400)); } });
+  page.setDefaultTimeout(600000);
+  await page.goto(`${BASE}?mute=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => Boolean(document.querySelector('.ws-main-grid')), null, { timeout: 6000000, polling: 1000 });
+  await page.evaluate(() => { setTimeout(() => { document.querySelector('.ws-main-grid').click(); }, 100); });
+  await sleep(3000);
+  await page.waitForFunction(() => Boolean(!document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live), null, { timeout: 900000, polling: 500 });
+  await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
+  await page.waitForFunction(() => window.__wsReveal?.endedMs != null, null, { timeout: 600000, polling: 500 });
+  result.version = await page.evaluate(() => fetch('/version.json').then((r) => r.json()));
+  const state = await page.evaluate(() => window.__wildshard.shard.grid.state());
+  const route = ownedSoakPlans(state, 'cells', 'prepared');
+  result.route = route.plans.map((p) => p.name);
+  const documentOrigin = await page.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
+  const stage = () => page.evaluate(`(${STAGE})(${JSON.stringify({ ...route.plans[0], start: route.reference })},${JSON.stringify(documentOrigin)})`);
+  await stage();
+  const census = () => page.evaluate(() => {
+    const s = window.__wildshard.shard.grid.state();
+    return { placement: window.__wildshard.app.placement ?? null, owners: window.__wildshard.app.owners ? { pendingTasks: window.__wildshard.app.owners.pendingTasks, strayReads: window.__wildshard.app.owners.strayReads, stacks: window.__wildshard.app.owners.stacks.slice(-4) } : null, current: s.live?.live?.current ?? null, residents: s.live?.live?.residents ?? [] };
+  });
+  const sample = async (cycle, leg) => {
+    const row = { cycle, leg, at: Date.now() / 1000, load: await loadavg(), ...(await census()) };
+    result.samples.push(row); save();
+    console.log(JSON.stringify({ cycle, leg, current: row.current, placement: row.placement }));
+  };
+  const heap = async (cycle) => {
+    // one fixed Driftwood pose (the pmrem lane's home-east), settled, then a forced full GC
+    await page.evaluate(async ({ ref }) => {
+      const api = window.__wildshard, live = api.shard.grid.state().live.live, player = api.world.player;
+      const origin = { x: live.worldFeet.x - player.position.x, z: live.worldFeet.z - player.position.z };
+      await api.pose({ x: ref.x - origin.x, y: 0.55, z: ref.z - origin.z, yaw: Math.PI / 2, pitch: 0.06 });
+    }, { ref: route.reference });
+    await sleep(8000);
+    for (let i = 0; i < 3; i++) { await cdp.send('HeapProfiler.collectGarbage'); await sleep(500); }
+    const usage = await cdp.send('Runtime.getHeapUsage');
+    const gpu = await page.evaluate(() => {
+      const api = window.__wildshard, game = api.world.game, d = game.gpuResourceDiagnostics(), m = api.memory();
+      const groups = {}, unowned = [];
+      for (const r of d.resources) {
+        const state = r.owner === null ? 'null' : r.owner.disposed ? 'disposed' : r.owner.level ? `level:${r.owner.name}` : `live:${r.owner.name}`;
+        const key = `${state}|${r.type}`; groups[key] = (groups[key] ?? 0) + 1;
+        if (r.owner === null || r.owner.disposed) unowned.push({ type: r.type, name: r.name, owner: r.owner?.name ?? null, retained: r.retained, site: r.site ?? null });
+      }
+      const scopes = {};
+      const walk = (s, depth) => {
+        if (depth > 40 || s === undefined || s === null) return;
+        if (/BossBar|EliteBar|Music|Deck|AAC|Elites/.test(s.name ?? '')) {
+          const row = scopes[s.name] ?? { n: 0, cleanups: 0, own: {} }; row.n++; row.cleanups += Object.values(s.census).reduce((a, b) => a + b, 0);
+          for (const c of s.cleanups ?? []) row.own[c.kind] = (row.own[c.kind] ?? 0) + 1;
+          scopes[s.name] = row;
+        }
+        for (const k of s.children ?? []) walk(k, depth + 1);
+      };
+      let root = game.engineScope; while (root.parent) root = root.parent; walk(root, 0);
+      if (game.levelScope !== root && !game.levelScope.belongsTo(root)) walk(game.levelScope, 0);
+      return { memory: d.total, orphans: d.orphans ?? null, retained: d.retained, live: d.resources.length, groups, unowned, scopes, ledger: { gpuMB: m.totals.gpu / 1e6, ramMB: m.totals.ram / 1e6, unattributedGpuMB: m.unattributed.gpu / 1e6 } };
+    });
+    const row = { cycle, usedMB: usage.usedSize / 1e6, totalMB: usage.totalSize / 1e6, load: await loadavg(), gpu, ...(await census()) };
+    result.heap.push(row); save();
+    console.log(JSON.stringify({ heap: cycle, usedMB: row.usedMB.toFixed(2), gl: gpu.memory, live: gpu.live, unowned: gpu.unowned.length, orphans: gpu.orphans, scopes: gpu.scopes, ledger: gpu.ledger, stray: row.owners?.strayReads }));
+    if (SNAP.includes(cycle)) {
+      const { createWriteStream } = await import('node:fs');
+      const file = join(OUT, `heap-c${cycle}.heapsnapshot`), ws = createWriteStream(file);
+      const onChunk = (m) => { ws.write(m.chunk); };
+      cdp.on('HeapProfiler.addHeapSnapshotChunk', onChunk);
+      await cdp.send('HeapProfiler.takeHeapSnapshot', { reportProgress: false });
+      cdp.off('HeapProfiler.addHeapSnapshotChunk', onChunk);
+      await new Promise((r) => { ws.end(r); });
+      console.log('snapshot', file);
+    }
+    await stage();
+  };
+  await sleep(5000);
+  await sample(0, 'start');
+  await heap(0);
+  for (let cycle = 1; cycle <= CIRCUITS; cycle++) {
+    for (const plan of route.plans) {
+      const witness = await runRoute(page, plan, documentOrigin);
+      const failures = gridFloorWitnessFailures(witness);
+      if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
+      await sleep(3000);
+      await sample(cycle, plan.name);
+    }
+    await sleep(5000);
+    await sample(cycle, 'settled');
+    await heap(cycle);
+  }
+} catch (error) {
+  result.failure = String(error?.stack ?? error); console.error(result.failure);
+} finally {
+  save();
+  await browser.close();
+}

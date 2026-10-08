@@ -248,6 +248,9 @@ export class Scope {
     return id;
   }
   onDispose(fn: () => void): void { this.track('disposers', fn); }
+  /** Run `fn` now with this scope as the construction owner (`withOwner`): what it registers ends with this scope. For code
+   *  after an `await`, where the owner has fallen back to the page's ambient one (SF57). */
+  run<T>(fn: () => T): T { return withOwner(this, fn); }
 
   dispose(): void {
     if (this.closed) return;

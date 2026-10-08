@@ -43,11 +43,18 @@ function resourceKey(resource: object): string {
 /** Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. */
 export function sceneResourceOwner(resource: object): Scope | null { return resourceOwners.get(resource) ?? null; }
 
+const standIns = new WeakMap<Object3D, Object3D>();
+/** A detached copy drawn or compiled in place of `source` (the shader warm-up's stand-ins, SF57) uploads for `source`'s
+ *  owner: its materials and geometry are `source`'s. */
+export function linkStandIn(copy: Object3D, source: Object3D): void { standIns.set(copy, source); }
+
 /** Nearest explicitly owned scene subtree, including meshes drawn through a shared page renderer. */
 export function sceneObjectOwner(node: Object3D): Scope | null {
   for (let parent: Object3D | null = node; parent !== null; parent = parent.parent) {
     const delegated = delegatedScenes.get(parent);
     if (delegated !== undefined) return delegated.scope;
+    const source = standIns.get(parent);
+    if (source !== undefined) return sceneObjectOwner(source);
   }
   return null;
 }

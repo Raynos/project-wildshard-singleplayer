@@ -206,8 +206,10 @@ export class PineHollow extends ShardPlugin {
     if (retainsRuntimeServices(ctx)) installRetainedPlayerEffects(ctx, { movement: player, position: () => player.position });
     installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects },
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
-    const fights = installPineCombat({ context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
-      longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } });
+    // SF57: after the play hook's first await the owner is the page's; the boss / elite bars and the Elites service end with
+    // this runtime, not with the page (one set per visit used to stay for the page's life)
+    const fights = ctx.scope.run(() => installPineCombat({ context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,
+      longbow: { displayModel: () => longbow.displayModel(), grant: () => { loadout.grantLongbow(); } }, ironFirst: () => { loadout.onPlayerDeath(); } }));
     ctx.answer('weather.hold', (previous) => ctx.app.render === game ? Math.max(previous, fights.weatherHold()) : previous);
     const compendium = installPineCompendium({ context: ctx, chunkId: ctx.manifest.slug, game, camera: game.camera, hud, menu, animals, cabins, interactables: rt.interactables, weapons, touchUi, nolock });
     const quest = await installPineQuest({ ctx, game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons,

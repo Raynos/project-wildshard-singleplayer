@@ -24,7 +24,7 @@
  */
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { currentOwner, withOwner } from '@wildshard/engine/app/ownership';
+import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { addPiece } from '@wildshard/engine/physics/pieces';
@@ -96,6 +96,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   root.position.set(cell.origin.x - request.home.x, 0, cell.origin.z - request.home.z);
   const registry = new WorldRegistry();
   registry.frame = root; // SF63: what this region places culls against the camera seen from its root (FrameCamera)
+  registry.scope = scope; // SF57: an ambient registration belongs to this view, never to the page
   const movers = new Set<() => void>(), platforms: Floor[] = [];
   const objects = new Map<Object3D, { scope: Scope; refs: number }>();
   let bindings = 0, held = false;
@@ -114,7 +115,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
     registry.onAdd((piece) => {
       if (scope.disposed) throw new Error('Regional view left before registration');
       // Each piece owns its native handles in a child of the view; its registering owner can release it earlier.
-      const pieceScope = scope.child(`grid.piece:${piece.id}`), owner = currentOwner();
+      const pieceScope = scope.child(`grid.piece:${piece.id}`), owner = enteredOwner();
       if (owner !== null && owner !== scope && !owner.disposed) {
         const forget = owner.capture('disposers', () => { pieceScope.dispose(); });
         pieceScope.onDispose(forget);

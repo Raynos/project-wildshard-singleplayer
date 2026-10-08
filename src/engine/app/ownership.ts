@@ -17,6 +17,10 @@ export function currentOwner(): Scope | null {
   if (entered === 0 && tasks.size > 0) strayRead();
   return owner;
 }
+/** The owner an enclosing `withOwner` section set, or null when the owner is only the ambient one (an `await`
+ *  continuation, a native callback). A service with a lifetime of its own (a region's registry) uses this to take its own
+ *  scope instead of the page's ambient one; it is never a stray read (SF57). */
+export function enteredOwner(): Scope | null { return entered > 0 ? owner : null; }
 export function enterOwner(next: Scope | null): void { owner = next; }
 export function withOwner<T>(scope: Scope | null, fn: () => T): T {
   const previous = owner; owner = scope; entered++;
