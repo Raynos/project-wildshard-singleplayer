@@ -77,4 +77,8 @@ Before: run `37719308412` (`bf396ec27`, the last green push run), **6 min 52 s**
 - Not changed: concurrency stays one group per commit (E427, Jake: no replaced runs), and the deploy-pin's
   newest-ci-green still needs every job of the run green.
 
-Expected: ~3.5–4 min to green. The real number goes here from the first push run that carries commit 3.
+Expected: ~3.5–4 min to green.
+
+**Measured** (run `37722474435`, `a661cebcf`, the first push run with commits 1–3): **4 min 32 s** to green (was 6:52).
+Jobs: `build-and-deploy` 4:29 (the critical path; was 6:49), vitest shards 2:23–3:54 (was 4:35–5:54), coverage 9 s.
+The remaining lever is `build-and-deploy`'s Test step (`pnpm test:checks`: bake-check and the vitest pass it repeats).
