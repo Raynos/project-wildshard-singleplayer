@@ -16,9 +16,14 @@ export function publicGridPlans(state) {
   if (!cell || !end) throw new Error('Public grid needs a template destination');
   const road = entry.waypoints.length > 2 ? entry.waypoints.slice(0, 2)
     : [{x:(entry.start.x+end.x)/2,z:(entry.start.z+end.z)/2}];
+  const centre = {x:cell.cell[0]*555,z:cell.cell[1]*555};
+  // The southern approach to the template centre meets the grey hut's back wall
+  // at local z=-15. Walk around its west side; keep every segment real input.
+  const interior = end.x === centre.x && end.z < centre.z
+    ? [{x:centre.x-8,z:centre.z-25},{x:centre.x-8,z:centre.z},centre] : [centre];
   return [{name:'public-road',from:entry.from,to:null,borrowedHome:state.home,start:entry.start,waypoints:road,requiredResidents:[]},
     {name:'public-template',from:null,to:entry.to,waypoints:[...entry.waypoints.slice(entry.waypoints.length > 2 ? 2 : 0),
-      {x:cell.cell[0]*555,z:cell.cell[1]*555}],requiredResidents:[cell.instance]}];
+      ...interior],requiredResidents:[cell.instance]}];
 }
 
 /** Serialized read-only witness: effective mode, catalogue, runtime residents and the platform's own refusal receipt. */

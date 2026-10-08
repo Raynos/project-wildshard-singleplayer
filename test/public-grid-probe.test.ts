@@ -34,6 +34,14 @@ it('drives the corner copy through the road, with one initial approach and no te
   expect(copy?.start).toBeUndefined();
 });
 
+it('walks the new northern public copy around its real hut instead of driving through its back wall', () => {
+  const [road,copy] = publicGridPlans({home:'driftwood-isle',cells:[{instance:'driftwood-isle',slug:'driftwood-isle',cell:[0,0]},
+    {instance:'template-1',slug:'_template',cell:[0,1]}]});
+  expect(road).toMatchObject({start:{x:0,z:230},waypoints:[{x:0,z:277.5}]});
+  expect(copy).toMatchObject({to:'template-1',waypoints:[{x:0,z:325},{x:-8,z:530},{x:-8,z:555},{x:0,z:555}],requiredResidents:['template-1']});
+  expect(copy?.start).toBeUndefined();
+});
+
 it('requires effective public mode and excludes every Developer-only runtime resident', () => {
   expect(publicGridWitnessFailures(witness(),false)).toEqual([]);
   const checks: ((row:PublicGridWitness)=>void)[] = [row=>{row.developer=true;},row=>{row.savedDeveloper='false';},
