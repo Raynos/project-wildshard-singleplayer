@@ -39,12 +39,13 @@ try {
     page.on('request', request => { if (request.isNavigationRequest() && request.frame() === page.mainFrame()) row.documents.push(request.url()); });
     try {
       await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
-      await saveFixture(context, { scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver: 'on' }, merge: true });
+      await saveFixture(context, { scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver: 'on', volume: 0 }, merge: true });
       await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
       await context.addInitScript(installResources); await context.addInitScript(GL_INIT);
       await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null, resources: () => window.__parityResources() }; });
       await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
-      await page.goto(`${base}?mute=1&nolock=1&sw=0`, { waitUntil: 'commit' });
+      // A query-bearing URL chooses standalone boot; the grid must be entered from the ordinary title.
+      await page.goto(base, { waitUntil: 'commit' });
       await page.locator('.ws-main-grid').click();
       await page.waitForFunction(() => Boolean(document.querySelector('#wserr .msg')?.textContent)
         || (!document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live)));
