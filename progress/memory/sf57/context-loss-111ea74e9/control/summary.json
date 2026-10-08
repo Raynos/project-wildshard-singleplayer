@@ -1,0 +1,383 @@
+{
+  "runtimeRevision": "cdad59776201998220705ca0c6fc16a5e7dd38b5",
+  "harnessRevision": "1ee89edf42b8ec99f9fd791fa8266dd5d7460001",
+  "verdict": "REJECTED: historical runtime also loses the first-crossing game context under the current harness. No runtime-pin regression established; instrumentation attribution remains open. No cap/saving/DFG corroboration.",
+  "failure": "Error: Soak document changed (navigation or graphics recovery)\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:198:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:184:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:324:40",
+  "errors": [
+    "Error: Soak document changed (navigation or graphics recovery)\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:198:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:184:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:324:40"
+  ],
+  "routesCompleted": 0,
+  "glSampling": {
+    "journal": 40,
+    "observed": 44,
+    "missing": 1,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "glEvents": 10423,
+  "glSamples": 68,
+  "sampleCount": 85,
+  "nativeSummary": {
+    "type": "summary",
+    "t": "2026-10-08T10:44:08.203464+00:00",
+    "phases": {
+      "loading": {
+        "samples": 40,
+        "seconds": 39.2,
+        "gamePid": 13842,
+        "gameHighGB": 0.48,
+        "gameSampledGB": 0.456,
+        "allWebContentGB": 0.508,
+        "gpuProcessGB": 0.164
+      },
+      "baseline-0": {
+        "samples": 20,
+        "seconds": 19.1,
+        "gamePid": 13842,
+        "gameHighGB": 0.425,
+        "gameSampledGB": 0.411,
+        "allWebContentGB": 0.465,
+        "gpuProcessGB": 0.162
+      },
+      "drive": {
+        "samples": 25,
+        "seconds": 24.2,
+        "gamePid": 13842,
+        "gameHighGB": 0.544,
+        "gameSampledGB": 0.47,
+        "allWebContentGB": 0.584,
+        "gpuProcessGB": 0.194
+      }
+    },
+    "lost": []
+  },
+  "rawGrade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 658259722,
+    "loadingPeakBytes": 676133799,
+    "phoneEstimateBytes": 921563610.8,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791456211.959,
+        "end": 1791456222.052,
+        "samples": 10,
+        "bytes": 580246659
+      }
+    ],
+    "baselineDeltaBytes": [
+      null
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": false,
+        "peakBytes": 658259722,
+        "troughBytes": 493010722
+      }
+    ],
+    "recovery": false,
+    "calibration": true,
+    "ratios": [],
+    "missingGlSamples": 1,
+    "sampling": false,
+    "leakZero": false,
+    "admitted": [],
+    "refused": [
+      "pine-hollow",
+      "template-2",
+      "sunscar-dunes",
+      "driftwood-isle",
+      "nalati-grasslands",
+      "far-reach"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 0,
+    "rehearsal": true,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+  },
+  "diagnostics": [
+    {
+      "at": 1791456163.133,
+      "document": "1791456162150:0.44516439148955134",
+      "sequence": 0,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "at": 1791456166.357,
+      "document": "1791456162150:0.44516439148955134",
+      "sequence": 1,
+      "kind": "console",
+      "method": "info",
+      "text": "[island] blender: terrain 22374 tris, props 751781 tris in 66 meshes, 11949/16675 placements (phone)"
+    },
+    {
+      "at": 1791456167.004,
+      "document": "1791456162150:0.44516439148955134",
+      "sequence": 2,
+      "kind": "console",
+      "method": "info",
+      "text": "[shadow] 8 casters in 244 pieces (328061 tris)"
+    },
+    {
+      "at": 1791456167.009,
+      "document": "1791456162150:0.44516439148955134",
+      "sequence": 3,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+    },
+    {
+      "at": 1791456167.009,
+      "document": "1791456162150:0.44516439148955134",
+      "sequence": 4,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+    },
+    {
+      "at": 1791456167.737,
+      "document": "1791456162150:0.44516439148955134",
+      "sequence": 5,
+      "kind": "console",
+      "method": "info",
+      "text": "[lastEnd] unloading: shard switch to driftwood-isle (fresh page)"
+    },
+    {
+      "at": 1791456167.748,
+      "document": "1791456162150:0.44516439148955134",
+      "sequence": 6,
+      "kind": "pagehide",
+      "inside": null,
+      "current": null,
+      "pending": [],
+      "admitting": null,
+      "persisted": false
+    },
+    {
+      "at": 1791456167.767,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 0,
+      "kind": "console",
+      "method": "info",
+      "text": "[lastEnd] the previous page: shard switch to driftwood-isle (fresh page)"
+    },
+    {
+      "at": 1791456173.357,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 1,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "at": 1791456181.641,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 2,
+      "kind": "console",
+      "method": "info",
+      "text": "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog"
+    },
+    {
+      "at": 1791456182.727,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 3,
+      "kind": "console",
+      "method": "info",
+      "text": "[island] blender: terrain 22374 tris, props 751781 tris in 66 meshes, 11949/16675 placements (phone)"
+    },
+    {
+      "at": 1791456183.02,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 4,
+      "kind": "console",
+      "method": "info",
+      "text": "[shadow] 2 casters in 86 pieces (111535 tris)"
+    },
+    {
+      "at": 1791456188.73,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 5,
+      "kind": "console",
+      "method": "info",
+      "text": "[region look] driftwood-isle: 90 materials on driftwood-isle's light and fog"
+    },
+    {
+      "at": 1791456236.917,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 6,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    },
+    {
+      "at": 1791456236.917,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 7,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    },
+    {
+      "at": 1791456236.955,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 8,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    },
+    {
+      "at": 1791456236.955,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 9,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    },
+    {
+      "at": 1791456236.955,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 10,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    },
+    {
+      "at": 1791456236.956,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 11,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    },
+    {
+      "at": 1791456239.087,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 12,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.Material: parameter 'displacementScale' has value of undefined."
+    },
+    {
+      "at": 1791456239.087,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 13,
+      "kind": "console",
+      "method": "warn",
+      "text": "THREE.Material: parameter 'displacementBias' has value of undefined."
+    },
+    {
+      "at": 1791456246.671,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 14,
+      "kind": "contextlost",
+      "inside": "pine-hollow",
+      "current": "pine-hollow",
+      "pending": [],
+      "admitting": null,
+      "gameCanvas": true,
+      "target": {
+        "tag": "CANVAS",
+        "id": "game",
+        "connected": true
+      },
+      "status": ""
+    },
+    {
+      "at": 1791456246.671,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 15,
+      "kind": "console",
+      "method": "log",
+      "text": "THREE.WebGLRenderer: Context Lost."
+    },
+    {
+      "at": 1791456246.687,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 16,
+      "kind": "console",
+      "method": "warn",
+      "text": "[gl] context lost: holding the frame loop"
+    },
+    {
+      "at": 1791456246.688,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 17,
+      "kind": "console",
+      "method": "warn",
+      "text": "[gl] reloading: the GPU process restarted: every canvas was wiped"
+    },
+    {
+      "at": 1791456246.688,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 18,
+      "kind": "console",
+      "method": "info",
+      "text": "[lastEnd] unloading: graphics recovery: the GPU process restarted: every canvas was wiped"
+    },
+    {
+      "at": 1791456246.688,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 19,
+      "kind": "console",
+      "method": "warn",
+      "text": "[gl] context lost"
+    },
+    {
+      "at": 1791456246.964,
+      "document": "1791456167751:0.35229025271200387",
+      "sequence": 20,
+      "kind": "pagehide",
+      "inside": "pine-hollow",
+      "current": "pine-hollow",
+      "pending": [],
+      "admitting": null,
+      "persisted": false
+    },
+    {
+      "at": 1791456246.989,
+      "document": "1791456246975:0.06297571678533231",
+      "sequence": 0,
+      "kind": "console",
+      "method": "info",
+      "text": "[lastEnd] the previous page: graphics recovery: the GPU process restarted: every canvas was wiped · resident driftwood-isle (playing) ~22 MB"
+    }
+  ],
+  "diagnostic": "{\"url\":\"http://127.0.0.1:4401/\",\"documentId\":\"1791456246975:0.06297571678533231\",\"errors\":[],\"body\":\"BACK\\nSHARD SELECT\\n\\nEXPLORE WORLD\\nFLY · INSPECT\\n\\nLOAD\\nDRIFTWOOD ISLE\\nLOW-POLY ISLAND, OPEN OCEAN\\n\\nLOADEARLY ACCESS\\nPINE HOLLOW\\nBOREAL PINE FOREST\\n\\nLOADEARLY ACCESS\\nNALATI GRASSLANDS\\nALPINE STEPPE\\n\\nLOADEXPERIMENTAL\\nNINE DRAGON STACK\\nVERTICAL NEON CITY\\n\\nLOADEXPERIMENTAL\\nSIGNAL DUNES\\nDESERT DUNES AT DUSK\\n\\nLOADEXPERIMENTAL\\nSKY REACH\\nFLOATING ISLANDS ABOVE THE CLOUDS\\n\\nLOADDEVELOPER ONLY\\nTEMPLATE SHARD\\nGREY-BOX TEACHING LEVEL\\n\\nDRAFT · P6\\nTHIN ICE\\nTHE FERRY IS GONE AND THE FJORD HAS FROZEN.\\nDRIFTWOOD ISLE · 0 FEATS\\nWILDSHARD · 0 FEATS\\n\\nENTER WORLD\\nLOADS DRIFTWOOD ISLE\\nSETTINGS\\nWILDSHARD\\n\\nWHAT'S NEW · 5 CHANGES\\nCDAD597\\n\\nSHARD SELECT\\n\\nINFINITE WILDSHARD\\nSETTINGS\\n\\nCDAD597 · RELOAD\"}",
+  "artifacts": [
+    {
+      "file": "dev-cells.json",
+      "rawBytes": 431136,
+      "rawSha256": "4f64352766e187c3c6eb822d1733e2d56301087d887e9924997170d9e4244104",
+      "compressedBytes": 15655
+    },
+    {
+      "file": "dev-cells-native.jsonl",
+      "rawBytes": 21048,
+      "rawSha256": "f4a79b01156e022c059f16710b5044fc01f057d9d4ec79a2467041251ffc08ed",
+      "compressedBytes": 3379
+    },
+    {
+      "file": "dev-cells-gl.jsonl",
+      "rawBytes": 6499841,
+      "rawSha256": "2d9d24ae352a3d20b0390dcd94566f165a7ffd9881c1212be342d41daf7aa04b",
+      "compressedBytes": 15662
+    },
+    {
+      "file": "dev-cells-gl-events.jsonl",
+      "rawBytes": 2791464,
+      "rawSha256": "d4d4d1748554961c2ae65001895ddbbb7fc2c1f95c7ccdd3243d46fd235a1510",
+      "compressedBytes": 90002
+    },
+    {
+      "file": "manifest.json",
+      "rawBytes": 847,
+      "rawSha256": "10f571cf20437a06ef6275f47c3810f52d48f905794811f4305a58337f61f2df",
+      "compressedBytes": 487
+    }
+  ]
+}

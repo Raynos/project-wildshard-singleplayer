@@ -1,0 +1,136 @@
+{
+  "runtimeRevision": "111ea74e990b7596903ef12334b1fbb34564931a",
+  "harnessRevision": "86c2565b4911d3f8c878b961f61573f6dd7384a0",
+  "verdict": "REJECTED: first-crossing graphics recovery and measurement-document fence failure. No cap/saving/DFG corroboration.",
+  "failure": "Error: Soak document changed (navigation or graphics recovery)\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:198:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:180:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:318:40",
+  "errors": [
+    "WebGL context lost",
+    "Error: Soak document changed (navigation or graphics recovery)\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:198:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:180:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:318:40"
+  ],
+  "routesCompleted": 0,
+  "glSampling": {
+    "journal": 45,
+    "observed": 46,
+    "missing": 0,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "glEvents": 9263,
+  "glSamples": 72,
+  "sampleCount": 91,
+  "nativeSummary": {
+    "type": "summary",
+    "t": "2026-10-08T10:33:02.872169+00:00",
+    "phases": {
+      "loading": {
+        "samples": 45,
+        "seconds": 44.3,
+        "gamePid": 51761,
+        "gameHighGB": 0.592,
+        "gameSampledGB": 0.526,
+        "allWebContentGB": 0.629,
+        "gpuProcessGB": 0.159
+      },
+      "baseline-0": {
+        "samples": 20,
+        "seconds": 19.1,
+        "gamePid": 51761,
+        "gameHighGB": 0.389,
+        "gameSampledGB": 0.383,
+        "allWebContentGB": 0.428,
+        "gpuProcessGB": 0.157
+      },
+      "drive": {
+        "samples": 26,
+        "seconds": 25.2,
+        "gamePid": 51761,
+        "gameHighGB": 0.557,
+        "gameSampledGB": 0.541,
+        "allWebContentGB": 0.596,
+        "gpuProcessGB": 0.19
+      }
+    },
+    "lost": []
+  },
+  "rawGrade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 670859114,
+    "loadingPeakBytes": 629495520,
+    "phoneEstimateBytes": 939202759.5999999,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791455546.158,
+        "end": 1791455556.275,
+        "samples": 10,
+        "bytes": 545774819
+      }
+    ],
+    "baselineDeltaBytes": [
+      null
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": false,
+        "peakBytes": 670859114,
+        "troughBytes": 481154854
+      }
+    ],
+    "recovery": false,
+    "calibration": true,
+    "ratios": [],
+    "missingGlSamples": 0,
+    "sampling": false,
+    "leakZero": false,
+    "admitted": [],
+    "refused": [
+      "pine-hollow",
+      "template-2",
+      "sunscar-dunes",
+      "driftwood-isle",
+      "nalati-grasslands",
+      "far-reach"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 0,
+    "rehearsal": true,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+  },
+  "diagnostics": [],
+  "diagnostic": "{\"url\":\"http://127.0.0.1:4402/\",\"documentId\":\"1791455581922:0.3235379966720341\",\"errors\":[],\"body\":\"BACK\\nSHARD SELECT\\n\\nEXPLORE WORLD\\nFLY · INSPECT\\n\\nLOAD\\nDRIFTWOOD ISLE\\nLOW-POLY ISLAND, OPEN OCEAN\\n\\nLOADEARLY ACCESS\\nPINE HOLLOW\\nBOREAL PINE FOREST\\n\\nLOADEARLY ACCESS\\nNALATI GRASSLANDS\\nALPINE STEPPE\\n\\nLOADEXPERIMENTAL\\nNINE DRAGON STACK\\nVERTICAL NEON CITY\\n\\nLOADEXPERIMENTAL\\nSIGNAL DUNES\\nDESERT DUNES AT DUSK\\n\\nLOADEXPERIMENTAL\\nSKY REACH\\nFLOATING ISLANDS ABOVE THE CLOUDS\\n\\nLOADDEVELOPER ONLY\\nTEMPLATE SHARD\\nGREY-BOX TEACHING LEVEL\\n\\nDRAFT · P6\\nTHIN ICE\\nTHE FERRY IS GONE AND THE FJORD HAS FROZEN.\\nDRIFTWOOD ISLE · 0 FEATS\\nWILDSHARD · 0 FEATS\\n\\nENTER WORLD\\nLOADS DRIFTWOOD ISLE\\nSETTINGS\\nWILDSHARD\\n\\nWHAT'S NEW · 5 CHANGES\\n111EA74\\n\\nSHARD SELECT\\n\\nINFINITE WILDSHARD\\nSETTINGS\\n\\n111EA74 · RELOAD\"}",
+  "artifacts": [
+    {
+      "file": "dev-cells.json.br",
+      "rawBytes": 422618,
+      "rawSha256": "e29bf0c1c26103e6974c9aa78b84377c12f225154494b6e714256da22a10e8a2",
+      "compressedBytes": 14745
+    },
+    {
+      "file": "dev-cells-native.jsonl.br",
+      "rawBytes": 22466,
+      "rawSha256": "cd1757ac4afbc9e119045e0588c4f55c4c83a9fbead5f7be99b91ca73f80a12f",
+      "compressedBytes": 3541
+    },
+    {
+      "file": "dev-cells-gl.jsonl.br",
+      "rawBytes": 6691461,
+      "rawSha256": "6c6ab94cb7b0db7f56c06ab997e280bf5c0ef33ea112f3ff83698e4a2e41fd8b",
+      "compressedBytes": 17276
+    },
+    {
+      "file": "dev-cells-gl-events.jsonl.br",
+      "rawBytes": 2443014,
+      "rawSha256": "b4d0f7300d8d78ab0fde2daffe18e78fdb5d883cbba95ccfa64c22e18f4d7ff7",
+      "compressedBytes": 78787
+    },
+    {
+      "file": "manifest.json.br",
+      "rawBytes": 819,
+      "rawSha256": "708aeb84d0a57c0ca5dc9de03dc30472b211096a8fb2f31bc7307e32ef3f903a",
+      "compressedBytes": 472
+    }
+  ]
+}
