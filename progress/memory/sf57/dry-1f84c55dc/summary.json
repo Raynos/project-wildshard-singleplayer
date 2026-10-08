@@ -1,0 +1,217 @@
+{
+  "purpose": "REHEARSAL; incomplete M3 and sampling, cannot close SF57 or establish retained WebKit memory",
+  "engineBase": 300000000,
+  "formula": "1.01 <= (WebContent + labelled GL - engineBase) / accounted <= 1.21; raw ratio informational",
+  "graderRevision": "add751415496e54d6308ec43ed4d511911b79ebb",
+  "layouts": [
+    {
+      "layout": "dev",
+      "leg": "cells",
+      "sha": "1f84c55dc00fb1af857be583876abf1f10c44a30",
+      "gamePid": 49055,
+      "perLap": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "samples": 271,
+          "peakBytes": 945384402,
+          "troughBytes": 494625612,
+          "webContentPeakBytes": 826167832,
+          "allWebContentPeakBytes": 672291728,
+          "glPeakBytes": 299272412,
+          "accountedPeakBytes": 726635001,
+          "gpuProcessPeakBytes": 274320312,
+          "wasmPeakBytes": 71041024,
+          "overCapBytes": 0
+        }
+      ],
+      "seconds": 122.01,
+      "circuits": 0,
+      "evictions": 4,
+      "grade": {
+        "contentCut": null,
+        "requiredSeconds": 1800,
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 945384402,
+        "loadingPeakBytes": 851491451,
+        "phoneEstimateBytes": 1323538162.8,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791447727.244,
+            "end": 1791447737.375,
+            "samples": 10,
+            "bytes": 606428375
+          }
+        ],
+        "baselineDeltaBytes": [
+          null
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "peakBytes": 945384402,
+            "troughBytes": 494625612
+          }
+        ],
+        "recovery": false,
+        "calibration": true,
+        "ratios": [],
+        "missingGlSamples": 8,
+        "sampling": false,
+        "leakZero": false,
+        "admitted": [
+          "pine-hollow",
+          "template-2",
+          "nalati-grasslands"
+        ],
+        "refused": [
+          "sunscar-dunes",
+          "driftwood-isle",
+          "far-reach"
+        ],
+        "attemptedEveryCell": false,
+        "crossroads": 0,
+        "rehearsal": true,
+        "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+      },
+      "missing": [
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:20.302983+00:00",
+          "nearestGlSeconds": 2.4700000286102295
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:21.337477+00:00",
+          "nearestGlSeconds": 1.9900000095367432
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:29.396968+00:00",
+          "nearestGlSeconds": 1.8889999389648438
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:30.412204+00:00",
+          "nearestGlSeconds": 2.9049999713897705
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:31.415714+00:00",
+          "nearestGlSeconds": 2.1019999980926514
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:45.519867+00:00",
+          "nearestGlSeconds": 2.069000005722046
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:46.489888+00:00",
+          "nearestGlSeconds": 2.8259999752044678
+        },
+        {
+          "phase": "loading",
+          "t": "2026-10-08T08:21:47.478907+00:00",
+          "nearestGlSeconds": 1.8370001316070557
+        }
+      ],
+      "artifacts": [
+        {
+          "file": "dev-cells-native.jsonl.br",
+          "rawBytes": 82534,
+          "rawSha256": "545258a44e729998332b76ed26b4df40f471115c570fac6becfa71b0ce390ab6"
+        },
+        {
+          "file": "dev-cells-gl.jsonl.br",
+          "rawBytes": 17833205,
+          "rawSha256": "fd39ead92be033c6b5e9bca4bbb952531f341d487fc5df1c260843661d12dcda"
+        },
+        {
+          "file": "dev-cells-original.json.br",
+          "rawBytes": 1349275,
+          "rawSha256": "2618ca0f1a4b5a53eb2f9e792a07a06c5be84a094cc913db78f4c7fa8d738716"
+        }
+      ],
+      "originalReceipt": "dev-cells-original.json.br",
+      "errors": [
+        "Error: Error: Grid floor route template-2-to-far-reach timed out\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:102:59)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:166:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:288:40"
+      ],
+      "nativeSummary": {
+        "type": "summary",
+        "t": "2026-10-08T08:26:56.527060+00:00",
+        "phases": {
+          "loading": {
+            "samples": 43,
+            "seconds": 42.3,
+            "gamePid": 49055,
+            "gameHighGB": 0.613,
+            "gameSampledGB": 0.491,
+            "allWebContentGB": 0.655,
+            "gpuProcessGB": 0.163
+          },
+          "baseline-0": {
+            "samples": 20,
+            "seconds": 19.1,
+            "gamePid": 49055,
+            "gameHighGB": 0.432,
+            "gameSampledGB": 0.432,
+            "allWebContentGB": 0.472,
+            "gpuProcessGB": 0.162
+          },
+          "drive": {
+            "samples": 271,
+            "seconds": 271.8,
+            "gamePid": 49055,
+            "gameHighGB": 0.826,
+            "gameSampledGB": 0.633,
+            "allWebContentGB": 0.866,
+            "gpuProcessGB": 0.287
+          },
+          "unloaded": {
+            "samples": 6,
+            "seconds": 5,
+            "gamePid": 49055,
+            "gameHighGB": 0.479,
+            "gameSampledGB": 0.479,
+            "allWebContentGB": 0.518,
+            "gpuProcessGB": 0.204
+          }
+        },
+        "lost": [
+          {
+            "pid": 49128,
+            "phase": "loading",
+            "elapsed": 2
+          },
+          {
+            "pid": 49380,
+            "phase": "loading",
+            "elapsed": 2
+          },
+          {
+            "pid": 49544,
+            "phase": "loading",
+            "elapsed": 4
+          },
+          {
+            "pid": 49549,
+            "phase": "loading",
+            "elapsed": 4
+          },
+          {
+            "pid": 49651,
+            "phase": "loading",
+            "elapsed": 4
+          }
+        ]
+      },
+      "attribution": "No heap snapshots / Rapier memory readings were captured. Refusals, missing GL readings and unaccounted transitional home prevent a WebKit-retention attribution."
+    }
+  ],
+  "missingReceipts": [
+    "dev-road.json"
+  ]
+}
