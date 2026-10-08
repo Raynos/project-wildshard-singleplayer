@@ -687,6 +687,18 @@ a triangle target is never treated as proof that the output fits a cap.
 
 ### Authored-world material bindings (SF55a)
 
+Native world conversions can use `@wildshard/sdk/bake/nativeLattice`:
+`sliceNativeLattice(source, lod)` accepts the original 256 or 257 vertex lattice,
+explicit triangle indices (including its diagonal and holes) and bounded named
+vertex channels. It clips those triangles into all 64 L0 or 16 L1 squares without
+resampling heights, normalising attributes or simplifying geometry. Original
+samples remain exact; cut vertices interpolate the original triangle attributes.
+Supported channels include normal, UV, colour, splat and Nalati's `surf` vec4,
+`rdir` vec2 and `zone` vec3. Collision retains its original native bake; this is
+render geometry only. L1 initially retains native triangles, so its actual cost
+must be reported rather than assuming a simplification ratio. A subsequent LOD
+or material compiler must preserve the channel contract and measure any change.
+
 `props.materials` is an optional exact map from each source glTF material name
 (case and spaces preserved) to `{id, colour?, normal?, metallicRoughness?,
 occlusion?, emissive?}`. The id selects an admitted `look.materials` entry or
