@@ -41,7 +41,7 @@ import { ROC_ID, StormRocBoss } from './combat/stormRoc';
 import { BOSS_REWARD, installQuest } from './quest/install';
 import { FLAGS, vaneFlag } from './quest/flags';
 import { installSkyCues } from './runtime/audio/cues';
-import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { spawnSkyGoats } from './species/goats';
 
 declare module '@wildshard/engine/input/InputService' {
@@ -145,8 +145,19 @@ export class SkyReachPlugin extends ShardPlugin {
     if (host !== null) { host.viewmodel.add(fan.model); ctx.scope.onDispose(() => { fan.model.removeFromParent(); }); }
     fan.stowed = () => this.board();
     // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
-    bindPlayerPush((v) => { ctx.app.player?.impulse(v); }); ctx.scope.onDispose(() => { bindPlayerPush(null); });
-    if (rt?.play) { if (source.audio.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope); }
+    const push = (v: Vector3): void => { ctx.app.player?.impulse(v); };
+    if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
+      bindPlayerPush(push); scope.onDispose(() => { bindPlayerPush(null); });
+    });
+    else { bindPlayerPush(push); ctx.scope.onDispose(() => { bindPlayerPush(null); }); }
+    if (rt?.play) {
+      const play = rt.play;
+      if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
+        if (source.audio.score === 'silent') installSilentScore(play.music, scope);
+        installSkyCues(play.audio, play.cues, scope);
+      });
+      else { if (source.audio.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope); }
+    }
     const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
       presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;
@@ -154,11 +165,18 @@ export class SkyReachPlugin extends ShardPlugin {
     this.quest = quest; this.flags = flags; this.questFinished = finished;
     if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
 
+    const showGust = (): boolean => ctx.app.state === 'play' && !this.board();
+    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, { id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
+      touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
+        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: showGust } } } },
+    { rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] });
+    else {
     ctx.inputContext({ id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
       touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
-        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: () => ctx.app.state === 'play' && !this.board() } } } });
+        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: showGust } } } });
     // the gust in the key-bindings table, under Combat (E418: G worked but was listed nowhere), while the shard is loaded
     ctx.app.input.bindings.describe({ rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] }, ctx.scope);
+    }
 
     // Step 1: the keeper's notes.
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };

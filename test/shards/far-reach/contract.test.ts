@@ -13,6 +13,8 @@ import { TabRegistry } from '../../../src/engine/ui/tabs';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import { purseSave, shardSave } from '../../../src/game/saves';
 import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
+import type { LevelContext } from '../../../src/engine/level/context';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { resolveLevelBounds, type ShardPlayHooks } from '../../../src/game/shard/runtime';
 import { installBounds } from '../../../src/engine/world/bounds';
@@ -35,7 +37,7 @@ import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 const noop = (): void => undefined;
 const loaded = new Set<App>();
 afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); });
-async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame; hooks: ShardPlayHooks }> {
+async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame; hooks: ShardPlayHooks; physics: Physics; retained: RetainedRuntimeHooks | undefined }> {
   const fake = new FakeGame(), surface = fakeWorld();
   const physics = new Physics(await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer));
   const app = new App(), plugin = new SkyReachPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
@@ -67,12 +69,19 @@ async function boot(): Promise<{ app: App; plugin: SkyReachPlugin; stages: strin
     play: () => stage('play'), finish: () => stage('finish') };
   app.levelDriver = driver;
   loaded.add(app);
-  await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(shardContext(ctx, manifest, game)), kit: (ctx) => plugin.kit(shardContext(ctx, manifest, game)), play: (ctx) => plugin.play(shardContext(ctx, manifest, game)) });
+  let retained: RetainedRuntimeHooks | undefined;
+  const context = (level: LevelContext) => {
+    const base = shardContext(level, manifest, game);
+    if (!retain) return base;
+    retained ??= new RetainedRuntimeHooks(base);
+    return retained.context;
+  };
+  await app.loadLevel(toLevelSpec(manifest), { world: ctx => plugin.world(context(ctx)), kit: ctx => plugin.kit(context(ctx)), play: ctx => plugin.play(context(ctx)) });
   fake.onFixed('pre', (dt) => { for (const system of app.systemsByPhase()['fixed.pre']) system.run(dt, fake.clock.elapsedTime); });
   fake.onFixed('step', (dt) => { for (const system of app.systemsByPhase()['fixed.step']) system.run(dt, fake.clock.elapsedTime); });
   fake.onFixed('post', (dt) => { for (const system of app.systemsByPhase()['fixed.post']) system.run(dt, fake.clock.elapsedTime); });
   fake.onUpdate((dt, time) => { for (const system of app.systemsByPhase().update) system.run(dt, time); });
-  app.setState('play'); return { app, plugin, stages, active, fake, hooks: game.runtime?.hooks ?? {} };
+  app.setState('play'); return { app, plugin, stages, active, fake, hooks: game.runtime?.hooks ?? {}, physics, retained };
 }
 const tick = (app: App, dt: number, t: number): void => {
   for (let i = 0; i < Math.round(dt * 60); i++) for (const phase of ['fixed.pre', 'fixed.step', 'fixed.post'] as const) for (const system of app.systemsByPhase()[phase]) system.run(1 / 60, t);
@@ -82,6 +91,32 @@ const piece = (app: App, id: string): { active?: () => boolean } | undefined => 
 
 describe('Sky Reach contract', () => {
   beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  it('keeps the actual Sky world and mover roster stable across two retained entries with 600 frozen ticks between', async () => {
+    const { app, plugin, retained, physics } = await boot(true);
+    if (retained === undefined) throw new Error('Missing retained lifetime');
+    const pieces = app.registry.pieces.slice(), boss = plugin.boss;
+    const native = [physics.world.bodies.len(), physics.world.colliders.len()];
+    for (let visit = 0; visit < 2; visit++) {
+      retained.activate();
+      expect(app.registry.pieces).toEqual(pieces); expect(plugin.boss).toBe(boss);
+      expect([physics.world.bodies.len(), physics.world.colliders.len()]).toEqual(native);
+      expect(app.systemsByPhase()['fixed.pre'].filter(system => system.id === 'far.movers')).toHaveLength(1);
+      expect(app.debug.scopedSnapshot()['farReach']).toBe(plugin);
+      plugin.interactIslet('north', 1); tick(app, 1, visit);
+      const pose = plugin.isletAt('north');
+      retained.deactivate();
+      expect(app.debug.scopedSnapshot()['farReach']).toBeUndefined();
+      expect(Object.values(app.systemsByPhase()).flat().some(system => system.id.startsWith('far.'))).toBe(false);
+      for (let frame = 0; frame < 600; frame++) tick(app, 1 / 60, frame);
+      expect(plugin.isletAt('north')).toEqual(pose);
+      expect(app.registry.pieces).toEqual(pieces);
+      expect(() => app.input.push('far.fan', app.engineScope)).toThrow('Unknown input context');
+    }
+    await app.unloadLevel();
+    expect(app.registry.pieces).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
+    expect(Object.values(app.systemsByPhase()).flat()).toEqual([]);
+    expect(physics.world.bodies).toBeUndefined(); expect(physics.world.colliders).toBeUndefined();
+  });
   it('SF49-g (G183) / SF8c: each Rising Islet rests at the road until INTERACT rides it to its gate isle, then comes back by itself', async () => {
     const { app, plugin } = await boot(), at = (edge: string) => plugin.isletAt(edge);
     const gate = (entry: (typeof RISING_ISLETS)[number]) => plugin.isletGateShut(entry.edge);

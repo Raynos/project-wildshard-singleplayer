@@ -1,9 +1,10 @@
 import { QuestState, type QuestMarker } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
-import { installQuestPresentation, type QuestPresentation } from '@wildshard/game/quest/presentation';
+import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from '@wildshard/game/quest/presentation';
 import { purseSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as v from 'valibot';
 import { Scene, Vector3 } from 'three';
 import { CROWN, DECK, GROVE, HIGH, KEEPER, ROOST, RUIN, STEP, SUNREST, VANES, WINCH, WINDMILL } from '../layout';
@@ -73,12 +74,14 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   const npc = keeper(DECK); ctx.root.add(npc.group); ownPrimitives(npc.group, ctx.scope);
   ctx.system({ id: 'far.keeper', phase: 'update', run: (_dt, t) => { npc.update(t, player); } });
   const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
-  const view = live === null ? null : installQuestPresentation(ctx, quest, { flags, places: [...PLACES], introTitle: STRINGS.quest,
+  const presentation: QuestPresentationOptions = { flags, places: [...PLACES], introTitle: STRINGS.quest,
     npc: { npc: KEEPER_NPC, at: npc.head, label: STRINGS.talkKeeper, speaker: npc.speaker, radius: 3.5 },
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !rewarded.read(ctx.manifest.slug) && quest.isComplete,
-      at: REWARD_VIEW.at, yaw: REWARD_VIEW.yaw, pitch: REWARD_VIEW.pitch, holdSeconds: 5, finish: pay } });
+      at: REWARD_VIEW.at, yaw: REWARD_VIEW.yaw, pitch: REWARD_VIEW.pitch, holdSeconds: 5, finish: pay } };
+  const entered = live !== null && retainsRuntimeServices(ctx) ? installEnteredQuestPresentation(ctx, quest, presentation) : null;
+  const view = live === null || entered !== null ? null : installQuestPresentation(ctx, quest, presentation);
   // Headless (tests, a node bake): no presentation, the reward pays at once.
-  if (view === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
+  if (live === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
   if (!quest.isComplete) ctx.game.runtime?.play?.hud.toast(`${STRINGS.newQuest} · ${STRINGS.quest}`);
   ctx.system({ id: 'far.vanes', phase: 'update', run: () => {
     if (!flags.has(FLAGS.vanes) && VANES.every((vane) => flags.has(vaneFlag(vane.id)))) flags.set(FLAGS.vanes);
@@ -93,5 +96,5 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
     for (const vane of VANES) flags.set(vaneFlag(vane.id));
     for (const flag of [FLAGS.notes, FLAGS.roost, FLAGS.vanes, FLAGS.raised]) flags.set(flag);
   };
-  return { quest, flags, burst, view, finished };
+  return { quest, flags, burst, get view() { return entered === null ? view : entered(); }, finished };
 }
