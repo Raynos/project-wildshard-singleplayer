@@ -79,7 +79,10 @@
    strip (an amber DEVELOPER tag, a COMING SOON lock) and a wide ENTER WORLD. */
 .ws-menu.ws-menu-carousel .ws-menu-hero { background-image: url('/assets/title/main-crossroads-portrait.jpg') !important; filter: blur(6px) brightness(0.62) saturate(0.9); transform: scale(1.06); }
 .ws-menu.ws-menu-carousel .ws-wordmark { display: none; }
-.ws-menu.ws-menu-carousel .ws-menu-bar { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; padding-right: 150px; }
+/* The Explore action shares header flow; on a phone it wraps below BACK/title instead of covering them. */
+.ws-menu.ws-menu-carousel .ws-menu-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ws-menu.ws-menu-carousel .ws-menu-bar { display: flex; flex: 1 0 auto; align-items: center; gap: 14px; }
+.ws-menu.ws-menu-carousel .ws-menu-head .ws-menu-explore { position: static; margin-left: auto; }
 .ws-menu.ws-menu-carousel .ws-menu-back { flex: none; padding: 9px 14px 9px 12px; appearance: none; -webkit-appearance: none; background: rgba(9, 22, 36, 0.86); border: 1px solid var(--ws-cyan-line); font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.2em; color: var(--ws-cyan); cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
 .ws-menu.ws-menu-carousel .ws-menu-back::before { content: '‹'; margin-right: 8px; font-size: 15px; }
 .ws-menu.ws-menu-carousel .ws-menu-title { font-family: var(--ws-display); font-weight: 700; font-size: 26px; letter-spacing: 0.2em; color: #bdeeff; text-shadow: 0 0 14px rgba(143, 227, 255, 0.4); white-space: nowrap; }
@@ -99,7 +102,7 @@
 .ws-menu.ws-menu-carousel .ws-menu-modes { width: min(var(--card-w), calc(100% - 32px)); }
 .ws-menu.ws-menu-carousel .ws-menu-play { background: rgba(9, 22, 36, 0.88); }
 @media (max-width: 700px) {
-  .ws-menu.ws-menu-carousel .ws-menu-bar { padding-right: 140px; gap: 10px; }
+  .ws-menu.ws-menu-carousel .ws-menu-bar { gap: 10px; }
   .ws-menu.ws-menu-carousel .ws-menu-title { font-size: 19px; letter-spacing: 0.14em; }
   .ws-menu.ws-menu-carousel .ws-menu-back { font-size: 10px; padding: 7px 10px 7px 9px; }
 }
