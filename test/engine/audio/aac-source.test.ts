@@ -58,6 +58,7 @@ describe('bounded live native-source lifecycle', () => {
     const source = new AacSource(prepared, { context: world.ctx, output: {} as AudioNode, scope: owner,
       failed: () => { failed++; }, ended: () => { ended++; } }, .05);
     try {
+      const pending = source.pump(); expect(source.pump()).toBe(pending); await pending;
       await settle(); expect(source.residentWindows).toBeLessThanOrEqual(6);
       for (let step = 1; step <= 280; step++) {
         world.advance(step * .25); await source.pump();

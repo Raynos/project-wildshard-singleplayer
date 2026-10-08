@@ -50,6 +50,12 @@ The25 focused tests cover the packet reader, codec feature/configuration refusal
 
 This proves source/window scheduling coordinates, including a fractional bar-aligned start. It does not yet prove a running lookahead scheduler or live peak memory: the offline diagnostic schedules every source before rendering. Those sources must be admitted in a bounded horizon and release their PCM at ended / owner retirement. No playback activation has landed.
 
+## Bounded source clock proof (no boot activation)
+
+The defining `AacSource` now uses serialized context-clock pumps, a 1.25 s horizon and a hard six-source cap. Calling `pump()` during a pending pull awaits that same work; an offline suspend/resume test exposed the need for this explicit synchronization. Ended sources retire their short AudioBuffers and listeners. Owner disposal cancels pending decode without publishing later windows; a missed deadline refuses rather than skipping or retiming samples.
+
+The [actual-source offline comparison](title-stream-foundation/aac-source-piano.json) runs 64 s through the real piano interior loop and the unchanged fade, with absolute starts 0.050021 s and 2.3076923076923075 s. **12,514,344 samples match exactly, max/RMS 0; observed peak four windows, hard cap six; every scope census field returns to zero.** The reference alone decodes whole PCM. Four focused lifecycle checks plus strict TypeScript / typed lint pass. This is source scheduling proof only: Stems / Music still use the original playback path, and no native saving is credited.
+
 All diagnostic browsers/servers are closed, no live sound was emitted, and no production assets or playback changed. The bounded source / validated demux and lifecycle integration remain open before a3-cold-runs-per-side native candidate can exist.
 
 Next acceptable candidate must preserve the interior seam and the existing AudioParam crossfade, use a bounded decode/streaming window, and pass a recorded-output comparison before any production switch or native saving claim. A small bridge buffer plus a seek does not automatically fix decoder/output timing; no credit is booked. A passing source candidate then needs≥3 cold native boots **per side**, median and min–max spread, at Pine centre. The original audio ownership fix and its no-credit single native comparison remain in [audio-title-retirement.md](audio-title-retirement.md).

@@ -28,7 +28,7 @@ export class AacSource {
   private readonly plans: AacWindows;
   private readonly pull: AacPull;
   private next: AacWindow;
-  private busy = false;
+  private pending: Promise<void> | undefined;
   private stopAt = Infinity;
   private retired = false;
   private peak = 0;
@@ -86,9 +86,14 @@ export class AacSource {
     } catch (error) { this.windows.delete(owner); owner.dispose(); throw error; }
   }
   /** Explicit pump is also usable by offline conformance via the context's suspend/resume clock. */
-  async pump(): Promise<void> {
-    if (this.busy || !this.active()) return;
-    this.busy = true;
+  pump(): Promise<void> {
+    if (this.pending) return this.pending;
+    if (!this.active()) return Promise.resolve();
+    const work = this.fill().finally(() => { if (this.pending === work) this.pending = undefined; });
+    this.pending = work;
+    return work;
+  }
+  private async fill(): Promise<void> {
     try {
       while (this.active() && this.windows.size < MAX_WINDOWS) {
         const plan = this.next, start = this.t0 + plan.timeline / RATE;
@@ -105,6 +110,6 @@ export class AacSource {
       }
     } catch (error) {
       if (this.active()) { this.dispose(); this.ports.failed(error); }
-    } finally { this.busy = false; }
+    }
   }
 }
