@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-08T12:28:46.083804+00:00",
+  "command": "node --test scripts/soak/owned.test.mjs scripts/soak/gl.test.mjs",
+  "passed": 22,
+  "failed": 0,
+  "sourceChanged": false,
+  "rerun": {
+    "at": "2026-10-08T13:37:38.173507+00:00",
+    "nodeObserverRoutePassed": 22,
+    "gridRouteVitestPassed": 11,
+    "failed": 0,
+    "harnessChange": "Committed788482c19 borrowedHome opt-in recorded; SF57 plans omit it"
+  }
+}

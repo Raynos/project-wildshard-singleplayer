@@ -1,0 +1,585 @@
+{
+  "cells": [
+    {
+      "instance": "pine-hollow",
+      "slug": "pine-hollow",
+      "cell": [
+        0,
+        1
+      ]
+    },
+    {
+      "instance": "template-2",
+      "slug": "_template",
+      "cell": [
+        1,
+        1
+      ],
+      "identity": {
+        "accent": "lime",
+        "marks": [
+          {
+            "x": -88,
+            "y": 28.3,
+            "z": -85,
+            "yaw": 0,
+            "size": 4
+          },
+          {
+            "x": -88,
+            "y": 28.3,
+            "z": -91,
+            "yaw": 3.14159265,
+            "size": 4
+          },
+          {
+            "x": -85,
+            "y": 28.3,
+            "z": -88,
+            "yaw": 1.570796325,
+            "size": 4
+          },
+          {
+            "x": -91,
+            "y": 28.3,
+            "z": -88,
+            "yaw": -1.570796325,
+            "size": 4
+          },
+          {
+            "x": 0,
+            "y": 13.25,
+            "z": 229.8,
+            "yaw": 0,
+            "size": 1.5
+          },
+          {
+            "x": 0,
+            "y": 10.75,
+            "z": -219.55,
+            "yaw": 3.14159265,
+            "size": 2.2
+          },
+          {
+            "x": 221.05,
+            "y": 2.5,
+            "z": 14,
+            "yaw": 1.570796325,
+            "size": 3
+          },
+          {
+            "x": -234.2,
+            "y": 5.6,
+            "z": 0,
+            "yaw": -1.570796325,
+            "size": 1.8
+          }
+        ],
+        "layout": {
+          "seed": 7,
+          "plots": [
+            {
+              "x": 66,
+              "z": 162,
+              "half": 20
+            },
+            {
+              "x": -162,
+              "z": 66,
+              "half": 20
+            },
+            {
+              "x": -66,
+              "z": -162,
+              "half": 20
+            },
+            {
+              "x": 162,
+              "z": -66,
+              "half": 20
+            }
+          ]
+        }
+      }
+    },
+    {
+      "instance": "sunscar-dunes",
+      "slug": "sunscar-dunes",
+      "cell": [
+        -1,
+        0
+      ]
+    },
+    {
+      "instance": "driftwood-isle",
+      "slug": "driftwood-isle",
+      "cell": [
+        0,
+        0
+      ]
+    },
+    {
+      "instance": "nalati-grasslands",
+      "slug": "nalati-grasslands",
+      "cell": [
+        1,
+        0
+      ]
+    },
+    {
+      "instance": "far-reach",
+      "slug": "far-reach",
+      "cell": [
+        0,
+        -1
+      ]
+    }
+  ],
+  "route": {
+    "reference": {
+      "x": 0,
+      "z": 230
+    },
+    "plans": [
+      {
+        "name": "driftwood-isle-to-pine-hollow",
+        "from": "driftwood-isle",
+        "to": "pine-hollow",
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 0,
+            "z": 277.5
+          },
+          {
+            "x": 0,
+            "z": 325
+          }
+        ],
+        "requiredResidents": [
+          "pine-hollow"
+        ],
+        "retiredResidents": [
+          "driftwood-isle"
+        ]
+      },
+      {
+        "name": "pine-hollow-to-nalati-grasslands",
+        "from": "pine-hollow",
+        "to": "nalati-grasslands",
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 0,
+            "z": 277.5
+          },
+          {
+            "x": 277.5,
+            "z": 277.5
+          },
+          {
+            "x": 277.5,
+            "z": 0
+          },
+          {
+            "x": 325,
+            "z": 0
+          }
+        ],
+        "requiredResidents": [
+          "nalati-grasslands"
+        ],
+        "retiredResidents": [
+          "pine-hollow"
+        ]
+      },
+      {
+        "name": "nalati-grasslands-to-template-2",
+        "from": "nalati-grasslands",
+        "to": "template-2",
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 0
+          },
+          {
+            "x": 277.5,
+            "z": 277.5
+          },
+          {
+            "x": 555,
+            "z": 277.5
+          },
+          {
+            "x": 555,
+            "z": 325
+          }
+        ],
+        "requiredResidents": [
+          "template-2"
+        ],
+        "retiredResidents": [
+          "nalati-grasslands"
+        ]
+      },
+      {
+        "name": "template-2-to-driftwood-isle",
+        "from": "template-2",
+        "to": "driftwood-isle",
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 555,
+            "z": 277.5
+          },
+          {
+            "x": 277.5,
+            "z": 277.5
+          },
+          {
+            "x": 0,
+            "z": 277.5
+          },
+          {
+            "x": 0,
+            "z": 230
+          }
+        ],
+        "requiredResidents": [
+          "driftwood-isle"
+        ],
+        "retiredResidents": []
+      }
+    ],
+    "coveragePlans": [
+      {
+        "name": "home-to-road-tour",
+        "from": "driftwood-isle",
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 0,
+            "z": 277.5
+          },
+          {
+            "x": -832.5,
+            "z": 277.5
+          },
+          {
+            "x": -832.5,
+            "z": -832.5
+          }
+        ],
+        "requiredResidents": [],
+        "retiredResidents": [
+          "driftwood-isle"
+        ]
+      },
+      {
+        "name": "road-0",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -832.5,
+            "z": -832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-832.5,-832.5"
+      },
+      {
+        "name": "road-1",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -277.5,
+            "z": -832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-277.5,-832.5"
+      },
+      {
+        "name": "road-2",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": -832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "277.5,-832.5"
+      },
+      {
+        "name": "road-3",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 832.5,
+            "z": -832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "832.5,-832.5"
+      },
+      {
+        "name": "road-4",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 832.5,
+            "z": -277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "832.5,-277.5"
+      },
+      {
+        "name": "road-5",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": -277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "277.5,-277.5"
+      },
+      {
+        "name": "road-6",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -277.5,
+            "z": -277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-277.5,-277.5"
+      },
+      {
+        "name": "road-7",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -832.5,
+            "z": -277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-832.5,-277.5"
+      },
+      {
+        "name": "road-8",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -832.5,
+            "z": 277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-832.5,277.5"
+      },
+      {
+        "name": "road-9",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -277.5,
+            "z": 277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-277.5,277.5"
+      },
+      {
+        "name": "road-10",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "277.5,277.5"
+      },
+      {
+        "name": "road-11",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 832.5,
+            "z": 277.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "832.5,277.5"
+      },
+      {
+        "name": "road-12",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 832.5,
+            "z": 832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "832.5,832.5"
+      },
+      {
+        "name": "road-13",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "277.5,832.5"
+      },
+      {
+        "name": "road-14",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -277.5,
+            "z": 832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-277.5,832.5"
+      },
+      {
+        "name": "road-15",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": -832.5,
+            "z": 832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": "-832.5,832.5"
+      },
+      {
+        "name": "road-16",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": null
+      },
+      {
+        "name": "road-17",
+        "from": null,
+        "to": null,
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": -832.5
+          }
+        ],
+        "requiredResidents": [],
+        "crossroads": null
+      },
+      {
+        "name": "road-tour-to-home",
+        "from": null,
+        "to": "driftwood-isle",
+        "movement": "road-hover",
+        "hoverMaxSpeed": 30,
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 277.5
+          },
+          {
+            "x": 0,
+            "z": 277.5
+          },
+          {
+            "x": 0,
+            "z": 230
+          }
+        ],
+        "requiredResidents": [
+          "driftwood-isle"
+        ]
+      }
+    ],
+    "omitted": [
+      "sunscar-dunes",
+      "far-reach"
+    ]
+  }
+}

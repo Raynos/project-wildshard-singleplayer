@@ -1,0 +1,56 @@
+[
+  {
+    "archive": "rehearsal.json.br",
+    "bytes": 302491,
+    "sha256": "471bf369156386309a85405ccff829d58a3ec5c51f1b8e416ea4a9ad1b76e842",
+    "files": [
+      {
+        "file": "manifest.json",
+        "bytes": 492,
+        "sha256": "f49c0ecf3e163cac104154575311115a58217fb1a7ab654a96ff8f7834a4ec64"
+      },
+      {
+        "file": "dev-cells.json",
+        "bytes": 3014506,
+        "sha256": "f35cd30302d9fbb202b4112a58ec59b13acb46a1ce491c67c454bd645e8fc803"
+      },
+      {
+        "file": "dev-cells-native.jsonl",
+        "bytes": 92624,
+        "sha256": "a7a7dbf4beb26727e887b0a3293c8b8db6a5e950d4ea7888bc94b9b4bf6184e8"
+      },
+      {
+        "file": "dev-cells-gl.jsonl",
+        "bytes": 20537325,
+        "sha256": "19a80bd88f49b0a373cf96c3c70a992a6fb81fe590ce3123cf52cf0efa5fd58e"
+      },
+      {
+        "file": "dev-cells-gl-events.jsonl",
+        "bytes": 6219609,
+        "sha256": "a2f6b4fa0983d2ac364d35b965298715d32f9e142640f8aa67ed4f63d77a1be5"
+      },
+      {
+        "file": "dev-cells-gl-uploads.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "dev-cells.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "file": "command.log",
+        "bytes": 3304,
+        "sha256": "4538aceb1e40798cf1252fb9b1bd87d283872823f3489672d5b177a0b5003473"
+      }
+    ]
+  },
+  {
+    "archive": "fixture.html.br",
+    "bytes": 8173,
+    "sha256": "69581d0afea0bc1077eeb4480b47fea3661e8416f61f222b391358b7e88c4f52",
+    "rawBytes": 31529,
+    "rawSha256": "d3af7cc43225382fb69d02f9870662d839b32c3c15d73a83cceabe0664468603"
+  }
+]
