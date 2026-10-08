@@ -96,11 +96,11 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
   const traveller = { position: pageHost.player.position, yaw: 0, motor: pageHost.releasePlayerMotor(), camera: player.camera, hoverSpeedLimit: null,
     bindFrame: (_physics: typeof pageHost.physics, motor: typeof pageHost.player.motor) => { traveller.motor = motor; } };
   gridCells.enter({ instance: home.instance, slug: home.slug }); // bootPageMode publishes this before the owned shell exists
-  let beforeFixed = noop;
+  let beforeFixed = noop, checkpointReady = true;
   const session = new LiveGridSession({ assembly, home, physics: pageHost.physics, scope, walls: new ReadinessWalls(pageHost.physics, [], scope), strips: [], allocator, residency,
     neighbourEdges: () => [], rimEdges: () => [] }, {
     ownedHome: true, traveller, health: pageHost.player.health, equipment: new EquipmentService(new EmptyEquipment(), { scope }), events: app.events,
-    saves: app.saves, checkpoint: () => true, catalogue: [], runtimePage: () => ({ world, play, context }), setPhysics: noop,
+    saves: app.saves, checkpoint: () => true, crossingSaveReady: () => checkpointReady, catalogue: [], runtimePage: () => ({ world, play, context }), setPhysics: noop,
     onFixedPre: run => { beforeFixed = run; }, onFixedPost: noop, onInput: noop, onUpdate: noop,
   });
   const wait = async (ready: () => boolean): Promise<void> => {
@@ -132,6 +132,14 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     const first = herds[0]?.animals[0]; if (first === undefined) throw new Error('Missing first native herd');
     first.hp = 55; first.position.set(12, 0, 34);
     expect(session.live.checkpoint(home.instance)).toBe(true);
+    checkpointReady = false;
+    traveller.position.set(268, 0.5, 0);
+    await wait(() => session.state().crossing.phase === 'save-failed');
+    expect(session.live.current()).toBe(home.instance);
+    expect(session.live.state().residents).toEqual([home.instance]);
+    expect(regions).toHaveLength(1); expect(regions[0]?.scope.disposed).toBe(false);
+    expect(disposed).toBe(0); expect(first.hp).toBe(55);
+    checkpointReady = true; session.retrySave();
     await leave();
     await enter(target); expect([worlds, plays]).toEqual([2, 2]);
     expect(herds[1]?.animals[0]?.hp).not.toBe(55);
