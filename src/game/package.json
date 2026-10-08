@@ -119,6 +119,9 @@
     "./weapons/starterBowProfile": "./weapons/starterBowProfile.ts",
     "./weapons/Sword": "./weapons/Sword.ts",
     "./weapons/Bow": "./weapons/Bow.ts",
-    "./shardfile/meshCollision": "./shardfile/meshCollision.ts"
+    "./shardfile/meshCollision": "./shardfile/meshCollision.ts",
+    "./grid/runtimeRenderPlan": "./grid/runtimeRenderPlan.ts",
+    "./grid/runtimeRenderDependencies": "./grid/runtimeRenderDependencies.ts",
+    "./grid/runtimeRenderRings": "./grid/runtimeRenderRings.ts"
   }
 }
