@@ -5,15 +5,32 @@ const xyz = [[0.4124564 / 0.95047, 0.3575761 / 0.95047, 0.1804375 / 0.95047],
 const slope = (minimum: number): number => minimum <= (6 / 29) ** 3 ? 1 / (3 * (6 / 29) ** 2) : 1 / (3 * minimum ** (2 / 3));
 interface Vertex { u: number; v: number; row: number; values: readonly number[] }
 
+function readVertex(field: SeamFloorField, index: number, column: number): Vertex {
+  const row = Math.floor(index / field.columns), at = index * 3;
+  return { row, u: index % field.columns - column, v: Math.fround(field.along[row] ?? 0),
+    values: [Math.fround(field.positions[at + 1] ?? 0), ...Array.from({ length: 3 }, (_unused, channel) => Math.fround(field.colours[at + channel] ?? 0))] };
+}
+
+/** Reuse native vertex reads only during one immutable field certification; no cache survives a generation. */
+export function seamTriangleErrorEvaluator(field: SeamFloorField): (indices: readonly [number, number, number]) => { height: number; colour: number } {
+  const bands = new Map<number, Map<number, Vertex>>();
+  return (indices) => triangleError(field, indices, (index, column) => {
+    let vertices = bands.get(column);
+    if (vertices === undefined) { vertices = new Map(); bands.set(column, vertices); }
+    let vertex = vertices.get(index);
+    if (vertex === undefined) { vertex = readVertex(field, index, column); vertices.set(index, vertex); }
+    return vertex;
+  });
+}
+
 /** Exact height extrema of the two piecewise-linear fields, and a conservative CIE76 colour bound over their complete overlap. */
 export function seamTriangleError(field: SeamFloorField, indices: readonly [number, number, number]): { height: number; colour: number } {
+  return triangleError(field, indices, (index, column) => readVertex(field, index, column));
+}
+function triangleError(field: SeamFloorField, indices: readonly [number, number, number], read: (index: number, column: number) => Vertex): { height: number; colour: number } {
   const column = Math.min(...indices.map(index => index % field.columns));
   if (indices.some(index => index % field.columns < column || index % field.columns > column + 1)) throw new RangeError('Non-adjacent seam columns');
-  const vertex = (index: number): Vertex => {
-    const row = Math.floor(index / field.columns), at = index * 3;
-    return { row, u: index % field.columns - column, v: Math.fround(field.along[row] ?? 0),
-      values: [Math.fround(field.positions[at + 1] ?? 0), ...Array.from({ length: 3 }, (_unused, channel) => Math.fround(field.colours[at + channel] ?? 0))] };
-  };
+  const vertex = (index: number): Vertex => read(index, column);
   const [a, b, c] = indices.map(vertex);
   if (a === undefined || b === undefined || c === undefined) throw new Error('Missing seam triangle');
   const denominator = (b.v - c.v) * (a.u - c.u) + (c.u - b.u) * (a.v - c.v);

@@ -1,4 +1,4 @@
-import { seamTriangleError, type SeamFloorField } from './seamError';
+import { seamTriangleErrorEvaluator, type SeamFloorField } from './seamError';
 /** Interior tolerance leaves rounding headroom under G90's 2 cm and CIE76 delta-E3 bounds. */
 const HEIGHT_ERROR = 0.019, COLOUR_ERROR = 2.9, CONTACT_SPAN = 64;
 const xyz = [[0.4124564 / 0.95047, 0.3575761 / 0.95047, 0.1804375 / 0.95047],
@@ -90,6 +90,9 @@ export function seamLatticeRows(field: Field): readonly number[][] {
     const column = direction === 1 ? at : field.columns - 1 - at;
     const initial = output[column]; if (initial === undefined) throw new Error('Missing adaptive column');
     let kept: number[] = initial;
+    // Only the two affected bands are read here (at most four native vertices per row).
+    // Reuse their rounded values until this column completes; no field survives the generation.
+    const triangleError = seamTriangleErrorEvaluator(field);
     for (let i = 1; i < kept.length - 1;) {
       const row: number = kept[i] ?? 0, previous = kept[i - 1] ?? 0, next = kept[i + 1] ?? 0;
       if (Math.abs(field.along[row] ?? 0) <= 2) { i++; continue; }
@@ -100,7 +103,8 @@ export function seamLatticeRows(field: Field): readonly number[][] {
         const triangleRows = triangle.map(index => Math.floor(index / field.columns)), low = Math.min(...triangleRows), high = Math.max(...triangleRows);
         if (high < previous || low > next) return;
         if ((field.along[high] ?? 0) - (field.along[low] ?? 0) > CONTACT_SPAN) { status.good = false; return; }
-        const error = seamTriangleError(field, triangle); status.good = error.height <= HEIGHT_ERROR && error.colour <= COLOUR_ERROR;
+        const error = triangleError(triangle);
+        status.good = error.height <= HEIGHT_ERROR && error.colour <= COLOUR_ERROR;
       });
       if (status.good) { kept = output[column] ?? kept; } else { output[column] = kept; i++; }
     }
