@@ -8898,6 +8898,12 @@
         "from": "@wildshard/engine/render/hoverboardGeometry"
       },
       {
+        "name": "CINEMATIC_FX",
+        "kind": "const",
+        "doc": "The cinematic chain's fixed fringe and grain (`Game.buildComposer`; a grid page carries them into a cinematic region's",
+        "from": "@wildshard/engine/render/look"
+      },
+      {
         "name": "ENGINE_CHAIN_TUNING",
         "kind": "const",
         "doc": "The knobs that differ between the two chains beside which effects they hold (Game.buildComposer builds from these; a grid",
