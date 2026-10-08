@@ -1,0 +1,84 @@
+{
+  "source": "1f84c55dc00fb1af857be583876abf1f10c44a30",
+  "harness": "b38c036a423bfbae51a4b06bc2441a03cfed48cc",
+  "ask": "E451 / E435",
+  "pass": true,
+  "acceptedSurfaces": {
+    "desktop": {
+      "artifacts": [
+        "progress/frame-floor/1f84c55dc-61834-1791445829459.json"
+      ],
+      "harnessRevisions": [
+        "ab6581ae50dc72e817eb92fa5cd1a013e4156f4d"
+      ],
+      "posePasses": 12,
+      "rawMedianFps": [
+        59.88
+      ],
+      "maxP99Ms": 16.8,
+      "maxP95Ms": 16.8,
+      "maxCpuOwnerP95Ms": 0.9000000953674316,
+      "maxEvaluationOriginDriftMs": 0,
+      "shards": [
+        "driftwood-isle",
+        "pine-hollow",
+        "nalati-grasslands",
+        "grid"
+      ],
+      "developerWitness": true,
+      "memorySaverWitness": "on",
+      "pageErrors": 0,
+      "contextLosses": 0
+    },
+    "sim": {
+      "artifacts": [
+        "progress/frame-floor/1f84c55dc-93372-1791446324646.json",
+        "progress/frame-floor/1f84c55dc-4735-1791446554984.json"
+      ],
+      "harnessRevisions": [
+        "4ed351163d4bde59d71ed56d52304625382c16a8",
+        "0de0069da6e63d1b4bf1d1ddab37b8ae539a2d0d"
+      ],
+      "posePasses": 12,
+      "rawMedianFps": [
+        30.303
+      ],
+      "maxP99Ms": 43,
+      "maxP95Ms": 34,
+      "maxCpuOwnerP95Ms": 3,
+      "maxEvaluationOriginDriftMs": 1,
+      "shards": [
+        "driftwood-isle",
+        "pine-hollow",
+        "nalati-grasslands",
+        "grid"
+      ],
+      "developerWitness": true,
+      "memorySaverWitness": "on",
+      "pageErrors": 0,
+      "contextLosses": 0
+    }
+  },
+  "simulatorGridRetry": {
+    "artifact": "progress/frame-floor/1f84c55dc-4735-1791446554984.json",
+    "replaces": "progress/frame-floor/1f84c55dc-93372-1791446324646.json",
+    "reason": "Coordinator reported an external browser launch near the first retry grid crossroads p99=45ms; reran only grid in isolation, preserving both reports."
+  },
+  "initialAttempt": {
+    "artifact": "progress/frame-floor/1f84c55dc-61834-1791445829459.json",
+    "complete": false,
+    "accepted": "Desktop section only; Simulator standalone rows refused by exact timeOrigin comparison. Simulator grid also passed but is replaced by the complete retry."
+  },
+  "tests": {
+    "cleanVitestFiles": 855,
+    "cleanVitestPasses": 5034,
+    "skipped": 14,
+    "rootStrict": true,
+    "scriptsStrict": true,
+    "typedLint": true,
+    "precommitGuards": true
+  },
+  "behaviour": "Absent pick defaults ON only in Developer. Explicit OFF/ON remains saved; Developer off reads OFF even with saved ON. Implicit defaults are not materialized by unrelated saves. Existing Memory saver reload row remains.",
+  "limitation": "Simulator fps is Mac-backed Safari evidence; public default remains OFF pending the physical-device reading.",
+  "resources": "All owned previews, browsers, Inspector proxies and Simulator lease closed."
+}
