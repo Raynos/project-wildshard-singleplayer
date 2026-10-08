@@ -1,10 +1,13 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The offline assembly consumes the committed native authority.
 import { readFileSync } from 'node:fs';
-import { BufferAttribute, BufferGeometry, Float32BufferAttribute, Material, Mesh, MeshStandardMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Float32BufferAttribute, InstancedMesh, Material, Matrix4, Mesh, MeshLambertMaterial, MeshStandardMaterial, SRGBColorSpace, Texture } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it } from 'vitest';
-import { parseGlb } from '@wildshard/sdk/assets';
+import * as v from 'valibot';
+import { parseGlb, parseKtx2 } from '@wildshard/sdk/assets';
 import { contentHash } from '@wildshard/sdk/project';
+import { captureStaticMaterial, StaticMaterialCatalogue } from '@wildshard/sdk/bake/staticMaterials';
+import { MaterialsSchema } from '../src/game/shardfile/materials';
 import { bakeNalatiWorldRows } from '../scripts/bake/nalatiWorldRows';
 import { bakeNalatiGround, nalatiGroundSource } from '../scripts/bake/nalatiGroundSource';
 
@@ -52,6 +55,50 @@ describe('Nalati combined world rows', () => {
       expect(geometry.getAttribute('position').count).toBe(3); expect(material.name).toBe('nalati.static');
     } finally { geometry.dispose(); material.dispose(); }
   }, 120_000); // Complete offline world rows share CPU in the parallel gate; elapsed time is not a verdict.
+
+  it('retains encoded atlas bytes once, exact per-tile dependencies and static instancing under named materials', async () => {
+    const atlas = readFileSync(new URL('fixtures/sim-level/props/checker.ktx2', import.meta.url)), atlasHash = contentHash(atlas);
+    const ground = new MeshStandardMaterial(), prop = new MeshLambertMaterial(), texture = new Texture();
+    texture.colorSpace = SRGBColorSpace; prop.map = texture;
+    const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 1], 3))
+      .setAttribute('uv', new Float32BufferAttribute([0, 0, 1, 0, 0, 1], 2)).setIndex([0, 1, 2]);
+    const sources = [captureStaticMaterial(ground, { name: 'nalati.ground', id: 'nalati.ground' }, () => { throw new Error('Untextured ground witness'); }),
+      captureStaticMaterial(prop, { name: 'nalati.prop', id: 'nalati.prop' }, () => ({ id: 'original-checker', width: 16, height: 16 }))];
+    const catalogue = new StaticMaterialCatalogue(sources, v.parse(MaterialsSchema, {
+      'nalati.ground': { family: 'painterly', colour: [1, 1, 1] }, 'nalati.prop': { family: 'painterly', colour: [1, 1, 1] },
+    }), (image, role) => { expect(image.image).toBe('original-checker'); expect(role).toBe('srgb'); return atlas; });
+    try {
+      const primitives = (x: number) => [catalogue.primitive('nalati.prop', geometry, {
+        instances: [new Matrix4().makeTranslation(x, 2, -249), new Matrix4().makeTranslation(x + 1, 2, -248)],
+      })];
+      const baked = bakeNalatiWorldRows(native, [{ lod: 0, x: 0, z: 0, primitives: primitives(-249) },
+        { lod: 0, x: 1, z: 0, primitives: primitives(-186) }], 'nalati.ground', catalogue);
+      expect(baked.props.materials).toEqual(catalogue.snapshot().materials);
+      expect(baked.files.filter(row => row.kind === 'ktx2')).toEqual([{
+        hash: atlasHash, kind: 'ktx2', compressed: atlas.length, ...parseKtx2(atlas), dependencies: [], critical: false,
+      }]);
+      expect(baked.assets.get(atlasHash)).toEqual(Uint8Array.from(atlas));
+      for (const tile of baked.tiles) {
+        const hash = tile.files[0], file = baked.files.find(row => row.hash === hash);
+        if (file === undefined) throw new Error('Missing named tile');
+        const textured = tile.lod === 0 && tile.z === 0 && tile.x < 2;
+        expect(file.dependencies).toEqual(textured ? [atlasHash] : []);
+        expect(tile.gpu).toBe(file.gpu + (textured ? parseKtx2(atlas).gpu : 0));
+      }
+      const tile = baked.props.tiles.find(row => row.lod === 0 && row.x === 0 && row.z === 0);
+      const bytes = tile === undefined ? undefined : baked.assets.get(tile.file);
+      if (bytes === undefined) throw new Error('Missing instanced tile');
+      const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, ''); let copies = 0;
+      loaded.scene.traverse(object => {
+        if (!(object instanceof Mesh)) return;
+        if (object instanceof InstancedMesh) { expect(object.count).toBe(2); copies += object.count; }
+        const material: unknown = object.material, loadedGeometry: unknown = object.geometry;
+        if (loadedGeometry instanceof BufferGeometry) loadedGeometry.dispose();
+        if (material instanceof Material) material.dispose();
+      });
+      expect(copies).toBe(2); expect(geometry.getAttribute('position').count).toBe(3);
+    } finally { catalogue.dispose(); geometry.dispose(); ground.dispose(); prop.dispose(); texture.dispose(); }
+  }, 120_000); // Offline real-ground packing is exercised under the same parallel gate as the full bake.
 
   it('refuses competing addresses and unclipped props before emitting an ambiguous product', () => {
     const source = nalatiGroundSource(native), geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 1], 3)).setIndex([0, 1, 2]);
