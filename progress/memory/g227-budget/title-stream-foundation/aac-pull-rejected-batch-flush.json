@@ -1,0 +1,49 @@
+{
+  "protocol": "Actual defining AacIndex / AacPull / nativeAacFactory, bounded half-second windows with guards. Full PCM exists only in the comparison reference. No playback / native saving claim.",
+  "genre": "piano",
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "result": {
+    "windows": [
+      [
+        0,
+        24064
+      ],
+      [
+        24000,
+        24064
+      ],
+      [
+        48000,
+        24064
+      ],
+      [
+        2808864,
+        24064
+      ],
+      [
+        1315144,
+        12064
+      ],
+      [
+        0,
+        24064
+      ]
+    ],
+    "maxAbs": 0.12811526749283075,
+    "rms": 0.006660492247885221,
+    "comparedSamples": 264768,
+    "exact": false,
+    "peakRetainedFrames": 8256,
+    "largestReturnedFrames": 24064,
+    "largestOutputFrames": 1024,
+    "created": 3,
+    "closed": 3,
+    "outputData": 4104,
+    "closedData": 4104,
+    "cleanupResidue": 0,
+    "retainedAfterDispose": 0
+  },
+  "failure": "Error: Bounded decoder proof failed",
+  "closed": true
+}

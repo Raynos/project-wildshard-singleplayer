@@ -1,0 +1,48 @@
+{
+  "protocol": "Actual defining AacIndex / AacPull / nativeAacFactory, bounded half-second windows with guards. Full PCM exists only in the comparison reference. No playback / native saving claim.",
+  "genre": "folk",
+  "sourceSha256": "e4a2970e875b93c0dc6a4f962bbe602c59be4f9204df90ca9124391d17f9f879",
+  "errors": [],
+  "result": {
+    "windows": [
+      [
+        0,
+        24064
+      ],
+      [
+        24000,
+        24064
+      ],
+      [
+        48000,
+        24064
+      ],
+      [
+        3029548,
+        24064
+      ],
+      [
+        752296,
+        12064
+      ],
+      [
+        0,
+        24064
+      ]
+    ],
+    "maxAbs": 0,
+    "rms": 0,
+    "comparedSamples": 264768,
+    "exact": true,
+    "peakRetainedFrames": 1088,
+    "largestReturnedFrames": 24064,
+    "largestOutputFrames": 1024,
+    "created": 3,
+    "closed": 3,
+    "outputData": 3757,
+    "closedData": 3757,
+    "cleanupResidue": 0,
+    "retainedAfterDispose": 0
+  },
+  "closed": true
+}

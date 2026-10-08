@@ -1,0 +1,48 @@
+{
+  "protocol": "Actual defining AacIndex / AacPull / nativeAacFactory, bounded half-second windows with guards. Full PCM exists only in the comparison reference. No playback / native saving claim.",
+  "genre": "piano",
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "result": {
+    "windows": [
+      [
+        0,
+        24064
+      ],
+      [
+        24000,
+        24064
+      ],
+      [
+        48000,
+        24064
+      ],
+      [
+        2808864,
+        24064
+      ],
+      [
+        1315144,
+        12064
+      ],
+      [
+        0,
+        24064
+      ]
+    ],
+    "maxAbs": 0,
+    "rms": 0,
+    "comparedSamples": 264768,
+    "exact": true,
+    "peakRetainedFrames": 1088,
+    "largestReturnedFrames": 24064,
+    "largestOutputFrames": 1024,
+    "created": 3,
+    "closed": 3,
+    "outputData": 4091,
+    "closedData": 4091,
+    "cleanupResidue": 0,
+    "retainedAfterDispose": 0
+  },
+  "closed": true
+}
