@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { installGpuLabels, labelledCreation } from './gpuLabels';
 import { installFrameCounter } from './frameCounter';
-import { installAllocationJournal } from './allocationJournal';
+import { installDiagnosticJournal } from './diagnosticJournal';
 
 /** the renderer every layer is handed (today three's WebGL renderer) */
 export type Renderer = THREE.WebGLRenderer;
@@ -24,7 +24,7 @@ export function isRenderer(value: object): boolean {
 
 /** Create the game's renderer on its recovered WebGL context. */
 export function createRenderer(canvas: HTMLCanvasElement, context: WebGL2RenderingContext): Renderer {
-  const stopJournal = installAllocationJournal(context);
+  const stopJournal = installDiagnosticJournal(context);
   const renderer = labelledCreation('engine/renderer', 'builtin/renderer-initialization', () => new THREE.WebGLRenderer({ canvas, context, antialias: false, stencil: false, depth: true }));
   installGpuLabels(renderer);
   const dispose = renderer.dispose.bind(renderer);
