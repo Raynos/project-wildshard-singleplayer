@@ -1,0 +1,256 @@
+{
+  "pin": "cdad59776201998220705ca0c6fc16a5e7dd38b5",
+  "pass": true,
+  "seconds": 217.417,
+  "titleBootSeconds": 15.047,
+  "routeCount": 6,
+  "fixedCommits": 12,
+  "routes": [
+    {
+      "name": "pine-interior",
+      "elapsedSeconds": 10.531099999904633,
+      "failures": []
+    },
+    {
+      "name": "nalati-interior",
+      "elapsedSeconds": 51.153599999904635,
+      "failures": []
+    },
+    {
+      "name": "driftwood-return",
+      "elapsedSeconds": 10.4725,
+      "failures": []
+    },
+    {
+      "name": "pine-interior",
+      "elapsedSeconds": 50.83619999980927,
+      "failures": []
+    },
+    {
+      "name": "nalati-interior",
+      "elapsedSeconds": 51.7505,
+      "failures": []
+    },
+    {
+      "name": "driftwood-return",
+      "elapsedSeconds": 10.916599999904632,
+      "failures": []
+    }
+  ],
+  "damage": [
+    {
+      "instance": "driftwood-isle",
+      "id": "creature:33",
+      "kind": "sailor",
+      "before": 60,
+      "after": 59
+    },
+    {
+      "instance": "pine-hollow",
+      "id": "creature:152",
+      "kind": "boar",
+      "before": 100,
+      "after": 99
+    },
+    {
+      "instance": "nalati-grasslands",
+      "id": "creature:4",
+      "kind": "wolf",
+      "before": 55,
+      "after": 54
+    }
+  ],
+  "homeRestoredHP": 59,
+  "stops": [
+    {
+      "name": "home-first",
+      "playing": 904921508,
+      "loading": 984921508
+    },
+    {
+      "name": "first:pine-hollow-entered",
+      "playing": 1126707670,
+      "loading": 1206707670
+    },
+    {
+      "name": "first:nalati-grasslands-entered",
+      "playing": 1113758435,
+      "loading": 1193758435
+    },
+    {
+      "name": "first:driftwood-isle-entered",
+      "playing": 905570245,
+      "loading": 985570245
+    },
+    {
+      "name": "second:pine-hollow-entered",
+      "playing": 1127387007,
+      "loading": 1207387007
+    },
+    {
+      "name": "second:nalati-grasslands-entered",
+      "playing": 1113758435,
+      "loading": 1193758435
+    },
+    {
+      "name": "second:driftwood-isle-entered",
+      "playing": 905570245,
+      "loading": 985570245
+    },
+    {
+      "name": "home-returned-durable",
+      "playing": 905570245,
+      "loading": 985570245
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "reconciliation": {
+    "composerIdentityMatches": true,
+    "rawGL": 29879424,
+    "rawComposer": 29879388,
+    "rawRendererInitialization": 36,
+    "chargedRendererInitialization": 36,
+    "rawCaches": 0,
+    "chargedComposer": 29879388,
+    "cachedGPU": 0,
+    "cachedCPU": 0,
+    "uncoveredGPU": 0,
+    "engineBase": 286859328,
+    "noRuntimeClaims": true,
+    "allCachesUncovered": true,
+    "rendererInitializationMatches": true,
+    "composerMatches": true,
+    "retainedGPUSafelyCharged": true
+  },
+  "leak": {
+    "before": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": []
+  },
+  "debugRoots": {
+    "probePresent": true,
+    "worldUndefined": true,
+    "physicsAbsent": true,
+    "heightfieldAbsent": true,
+    "perfHudAbsent": true,
+    "skyAbsent": true,
+    "bakeAbsent": true
+  },
+  "sealed": {
+    "assertions.json.gz": {
+      "sha256": "2cacbf47ecd1463a69f25046c0cc637ee7ff4377bac9f3e3e9872faffcf7b89e",
+      "bytes": 334279
+    },
+    "composer-source-red.json.gz": {
+      "sha256": "5dd0c8984d39674212492bfb663259771d2766b0d44b83f86f1d98739d3ac0c6",
+      "bytes": 425525
+    },
+    "native-composer-classifier-red.json.gz": {
+      "sha256": "43f20de802297123d9b732089e37b2ef58dddf158bc442c28019cc4715107891",
+      "bytes": 425522
+    }
+  },
+  "scope": "Chromium Metal iPhone portrait, Developer admissions; accounting/lifecycle only. Not Safari SF57, frame floor or public cap qualification."
+}
