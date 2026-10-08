@@ -1,12 +1,14 @@
 # sp-x2 handoff — SF68 data pipeline, 2026-10-08
 
-Active assigned Codex lane: SF68 / E462 data only; the coordinator owns pushes, the Opus lane owns the admin UI, and the coordinator creates the separate `wildshard-admin` Vercel project before any deployment. Never message wildshard-v.
+IDLE per coordinator pacing. SF68 / E462 data-only source landed as `7ea6e6cb70a43d18d28ebbecdcbfdec3b6fcb890` (CAS / subject / stat / ancestor verified), and the coordinator relayed it to the admin UI lane. No small UI follow-up is pending. Resume only for an assigned SF68 data follow-up; the coordinator owns pushes, the Opus lane owns the admin UI, and the coordinator creates the separate `wildshard-admin` Vercel project before any deployment. Never message wildshard-v.
 
 **This source slice:** `scripts/admin-data.mjs` + `scripts/admin-data/`: pinned committed-tree collector, portable JSON schemas, typed bundle, semantic validators, source SHA-256 provenance, content-hashed media, playtest/plan Markdown extraction, explicit clean-export adapter and atomic output. `test/admin-data.test.ts` uses synthetic reports and a temporary Git repo, not progress-dependent Vercel fixtures. CLI / contract: `scripts/admin-data/README.md` and `types.d.mts`.
 
 `node scripts/admin-data.mjs --rev=HEAD --out=NEW_DIR` produces bundle.json + schemas + media; no game build/browser/Simulator/live connection. The same pinned tree produces byte-identical JSON. Explicit `--snapshot-root=ARCHIVE --rev=FULL_SHA` is for deployment hosts without Git; its producer must guarantee clean-archive provenance and retain the report folders omitted from the game deploy. It never falls back to the shared working tree.
 
 Real committed inventory at validation: 2 memory reports, 2 playtests (10 findings each), 251 G decisions, 106 SF rows, 95 unique media files. Loading is honestly unavailable. State percentages (53 / 70 / 99 / 88 / 47) stay separate from the dated effort table. Memory native WC+GL, raw allocator totals, storage capacities, legacy confidence and missing poses remain distinct. Original report/build provenance is preserved; overlapping memory reports are never additive.
+
+**Validation:** 8 focused tests, own script/test strict type checks and scoped typed lint green. Two real committed-tree CLI outputs were byte-identical. No full suite, game build, browser or Simulator work for SF68.
 
 **Open / exact next step:** Opus UI consumes the bundle and media mapping; coordinator wires the separate project/build/deploy. SF67 benchmark remains unbuilt: the approved `loading-benchmark/1` contract + validator + synthetic fixture are in scripts/admin-data and linked from sp-x5's handoff. Unknown/invalid reports fail build; unavailable loading stays a reason, never zero. No report output artifacts need committing; deployment rebuilds from committed sources.
 
