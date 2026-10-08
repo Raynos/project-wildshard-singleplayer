@@ -153,6 +153,8 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     biome: manifest.biome, blurb: manifest.blurb, card: manifest.card,
     // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
     entries: shardEntries(manifest),
+    // G252b: so does its map (the baked image, SF66): the admitted source's empty minimap left Bag ▸ MAP with only the fog
+    ...(manifest.minimap === undefined ? {} : { minimap: manifest.minimap }),
   }, true);
 }
 

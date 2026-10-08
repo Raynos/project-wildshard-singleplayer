@@ -10,7 +10,8 @@ const bindings: ShardfileClientBindings = { instance: 'ignored-author-instance',
 function fixture() {
   const source = emptyShardfile({ slug: 'template', name: 'Author name', author: 'Fixture', revision: 1, seed: 357 });
   const selected: ShardManifest = { ...emptyShardfileSource(source), slug: '_template', name: 'Picker name', status: 'hidden',
-    shardfile: '/shardfiles/_template/shard.json', card: { thumb: 'thumb.jpg', portrait: 'portrait.jpg', landscape: 'landscape.jpg' } };
+    shardfile: '/shardfiles/_template/shard.json', card: { thumb: 'thumb.jpg', portrait: 'portrait.jpg', landscape: 'landscape.jpg' },
+    minimap: { image: '/assets/_template/map/top.webp' } };
   let visited: CachedProduct | null = null, requests = 0;
   const options: ProductOptions = { base: 'https://fixture.test/', firstParty: true, offline: false,
     fetch: (url) => { expect(url).toBe('https://fixture.test/shardfiles/_template/shard.json'); requests++; return Promise.resolve(Response.json(source)); },
@@ -25,6 +26,7 @@ function fixture() {
 it('hydrates through the normal data plugin while retaining canonical discovery identity and picker art', async () => {
   const f = fixture(), hydrated = await installManifestShardfile(f.selected, f.options, bindings);
   expect(hydrated.slug).toBe('_template'); expect(hydrated.name).toBe('Picker name'); expect(hydrated.card).toEqual(f.selected.card);
+  expect(hydrated.minimap).toEqual({ image: '/assets/_template/map/top.webp' }); // G252b: the baked map survives admission
   expect(shards()).toEqual([hydrated]); expect(hydrated.load).toBeTypeOf('function'); expect(f.requests()).toBe(1);
   const offline = await installManifestShardfile(f.selected, { ...f.options, offline: true, fetch: () => Promise.reject(new Error('Offline cannot fetch')) }, bindings);
   expect(offline.slug).toBe('_template'); expect(f.requests()).toBe(1);

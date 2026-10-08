@@ -1,0 +1,15 @@
+[
+ {
+  "slug": "grid",
+  "ok": true,
+  "steps": [
+   "home",
+   "road",
+   "map",
+   "template",
+   "template-map"
+  ],
+  "errors": [],
+  "minimap": null
+ }
+]

@@ -1,5 +1,5 @@
 {
-  "why": "Sky Reach's islands float over a painted cloud sea, cloud puffs and a storm that would cover them from straight above: the bake leaves the puffs, the storm and the sun glow out, keeps the painted sea only as the void's faint glow (never as ground in the height pass), and clips nothing below, so every island, the low keels and the sky isles all show (G252)",
+  "why": "Sky Reach's islands float over a painted cloud sea, cloud puffs and a storm that would cover them from straight above: the bake leaves the puffs, the storm and the sun glow out and clips nothing below, so every island, the low keels and the sky isles all show (G252); the void is transparent, islands and bridges only, so the map's own dark frame shows through and the warm cloud sea never reads as junk or lava (G252b, Jake)",
   "hide": [
     "far.storm",
     "far.sun-glow",
@@ -12,13 +12,13 @@
   ],
   "style": {
     "kind": "void",
-    "void": "#241f38",
-    "glow": 0.35,
+    "void": "transparent",
     "stone": ["#7d7466", "#a0937a", "#c2b08c"],
     "stoneBands": [40, 60],
     "grass": "#79a84f",
     "rim": "#1a1526",
     "bridge": "#f3dfae",
-    "bridgeEdge": "#1a1526"
+    "bridgeEdge": "#1a1526",
+    "shadow": 0.35
   }
 }

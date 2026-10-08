@@ -5,8 +5,10 @@ colour pass and height pass (scripts/bake-maps.mjs) into flat colours by ground 
 Three kinds of world:
   isle    an island in the sea (Driftwood): water by height (deep, shallow, a shore band), sand, grass bands by height,
           rock on steep slopes, tree crowns as dots with a shadow, paths and decks picked out with a dark edge
-  void    islands floating in a void (Sky Reach): the void flat with a faint glow of the colour pass, islands in stone
-          tones by height (grassy where green), a hillshade, a dark rim and a cast shadow, thin spans (bridges) cream
+  void    islands floating in a void (Sky Reach): islands in stone tones by height (grassy where green), a hillshade, a
+          dark rim and a cast shadow, thin spans (bridges) cream. The void is "transparent" (G252b, Jake: islands and
+          bridges only, never the cloud sea: the map's own frame shows through, the cast shadow a soft dark veil) or a flat
+          colour, with an optional faint glow of the colour pass ("glow", 0 = none)
   ground  any other ground: every pixel takes the flat fill of the table's class whose `match` colour is nearest the
           (smoothed) colour pass; raised things (trees, roofs) take a raised class with an edge and a cast shadow;
           optional water by height and rock by slope
@@ -74,6 +76,7 @@ sat = (mx - mn) / np.maximum(mx, 1e-3)
 slope = np.hypot(*np.gradient(ndi.gaussian_filter(H, 1.0))) * PPM  # metres per metre
 bump = H - ndi.median_filter(H, size=15)                             # what stands on the ground (trees, huts, decks)
 kind = S['kind']
+A = None  # the alpha: only a transparent void has one
 
 if kind == 'isle':
     water = H < S['waterBelow']
@@ -127,9 +130,13 @@ elif kind == 'void':
     thin = ndi.binary_closing(ndi.binary_dilation(thin, iterations=1), iterations=2) & ~isl
     thin = drop_small(thin, 12)
     C = np.zeros_like(P)
-    C[:] = hex3(S['void'])
-    lum = ndi.gaussian_filter(P.mean(-1), 6)  # a faint glow of what lies under the islands, so the void is not dead flat
-    C *= (1.0 - S['glow'] * 0.43 + S['glow'] * (lum - lum.min()) / (lum.max() - lum.min() + 1e-6))[..., None]
+    clear = S['void'] == 'transparent'
+    if not clear:
+        C[:] = hex3(S['void'])
+        glow = float(S.get('glow', 0))
+        if glow > 0:  # a faint glow of what lies under the islands, so the void is not dead flat
+            lum = ndi.gaussian_filter(P.mean(-1), 6)
+            C *= (1.0 - glow * 0.43 + glow * (lum - lum.min()) / (lum.max() - lum.min() + 1e-6))[..., None]
     grassy = ndi.gaussian_filter(((g > r * 0.98) & (g > b * 1.15)).astype(np.float32), 3) > 0.35
     band = np.digitize(H, S['stoneBands'])
     for i, col in enumerate(S['stone']):
@@ -138,10 +145,16 @@ elif kind == 'void':
     shade = hillshade(H, z=0.8)
     C[isl] *= (0.7 + 0.45 * shade[isl])[:, None]
     sh = ndi.shift(isl.astype(np.float32), (6, 6), order=0) > 0.5
-    C[sh & ~isl & ~thin] *= 0.6
+    cast = sh & ~isl & ~thin
+    C[cast] *= 0.6
     C[outline(isl, 2)] = hex3(S['rim'])
-    C[ndi.binary_dilation(thin, iterations=1) & ~isl] = hex3(S['bridgeEdge'])
+    span = ndi.binary_dilation(thin, iterations=1) & ~isl
+    C[span] = hex3(S['bridgeEdge'])
     C[thin] = hex3(S['bridge'])
+    if clear:  # islands and bridges opaque, the cast shadow a veil, the rest of the void see-through
+        A = np.zeros(C.shape[:2], np.float32)
+        A[cast] = float(S.get('shadow', 0.35))
+        A[isl | span] = 1.0
 else:  # ground
     smooth = int(S.get('smooth', 5))
     Q = np.stack([ndi.median_filter(P[..., k], size=smooth) for k in range(3)], -1)
@@ -197,6 +210,11 @@ else:  # ground
             C[reg] *= (0.78 + 0.3 * rshade[reg])[:, None]
             C[outline(reg)] = hex3(c['edge'])
 
-img = Image.fromarray((np.clip(C, 0, 1) * 255).astype(np.uint8))
-img.save(out_p, 'WEBP', quality=int(S.get('quality', 82)), method=6)
+rgb = (np.clip(C, 0, 1) * 255).astype(np.uint8)
+if A is not None:
+    img = Image.fromarray(np.dstack([rgb, (np.clip(A, 0, 1) * 255).astype(np.uint8)]), 'RGBA')
+    img.save(out_p, 'WEBP', quality=int(S.get('quality', 82)), alpha_quality=100, method=6, exact=False)
+else:
+    img = Image.fromarray(rgb)
+    img.save(out_p, 'WEBP', quality=int(S.get('quality', 82)), method=6)
 print('map-stylize:', kind, out_p)
