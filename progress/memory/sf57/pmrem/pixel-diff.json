@@ -1,0 +1,50 @@
+{
+ "before-vs-after c1 home-east": {
+  "meanAbs": 0.202,
+  "maxAbs": 231,
+  "pctOver8": 0.4538,
+  "pctOver0": 11.7262
+ },
+ "before-vs-after c4 home-east": {
+  "meanAbs": 0.1685,
+  "maxAbs": 231,
+  "pctOver8": 0.4829,
+  "pctOver0": 7.7132
+ },
+ "before c1-vs-c4 home-east": {
+  "meanAbs": 0.8149,
+  "maxAbs": 197,
+  "pctOver8": 4.3658,
+  "pctOver0": 15.3043
+ },
+ "after c1-vs-c4 home-east": {
+  "meanAbs": 0.8608,
+  "maxAbs": 197,
+  "pctOver8": 4.6056,
+  "pctOver0": 12.7366
+ },
+ "before-vs-after c1 home-north": {
+  "meanAbs": 0.234,
+  "maxAbs": 231,
+  "pctOver8": 0.7689,
+  "pctOver0": 8.5735
+ },
+ "before-vs-after c4 home-north": {
+  "meanAbs": 0.2774,
+  "maxAbs": 231,
+  "pctOver8": 0.5929,
+  "pctOver0": 25.0616
+ },
+ "before c1-vs-c4 home-north": {
+  "meanAbs": 3.5313,
+  "maxAbs": 206,
+  "pctOver8": 26.4277,
+  "pctOver0": 42.0767
+ },
+ "after c1-vs-c4 home-north": {
+  "meanAbs": 3.4477,
+  "maxAbs": 206,
+  "pctOver8": 26.4086,
+  "pctOver0": 42.3093
+ }
+}

@@ -1,0 +1,402 @@
+{
+  "base": "http://127.0.0.1:4404/",
+  "circuits": 4,
+  "samples": [
+    {
+      "cycle": 0,
+      "leg": "start",
+      "at": 1791483227.949,
+      "totalGL": 175198435,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:11",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:5",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:6"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791483256.622,
+      "totalGL": 231985022,
+      "pmremCount": 2,
+      "pmremBytes": 3145728,
+      "cubeUvCount": 2,
+      "cubeUvBytes": 3145728,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:1355",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:1358"
+      ],
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791483302.264,
+      "totalGL": 276830084,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791483345.018,
+      "totalGL": 95943278,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791483389.45,
+      "totalGL": 182790317,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:3217",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:3223",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:3218"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "settled",
+      "at": 1791483394.454,
+      "totalGL": 182790317,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:3217",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:3223",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:3218"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791483430.86,
+      "totalGL": 228923566,
+      "pmremCount": 2,
+      "pmremBytes": 3145728,
+      "cubeUvCount": 2,
+      "cubeUvBytes": 3145728,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:4222",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:4225"
+      ],
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791483476.037,
+      "totalGL": 277312776,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791483519.2,
+      "totalGL": 97803078,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791483563.632,
+      "totalGL": 184628273,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:6048",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:6054",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:6049"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "settled",
+      "at": 1791483568.636,
+      "totalGL": 184628273,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:6048",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:6054",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:6049"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791483596.259,
+      "totalGL": 233640526,
+      "pmremCount": 2,
+      "pmremBytes": 3145728,
+      "cubeUvCount": 2,
+      "cubeUvBytes": 3145728,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:7052",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:7055"
+      ],
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791483640.713,
+      "totalGL": 277313672,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791483683.979,
+      "totalGL": 97803974,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791483728.26,
+      "totalGL": 184629169,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:8866",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:8872",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:8867"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "settled",
+      "at": 1791483733.264,
+      "totalGL": 184629169,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:8866",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:8872",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:8867"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791483760.869,
+      "totalGL": 230146178,
+      "pmremCount": 2,
+      "pmremBytes": 3145728,
+      "cubeUvCount": 2,
+      "cubeUvBytes": 3145728,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:9867",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:1572864:texture:9870"
+      ],
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791483805.302,
+      "totalGL": 273819324,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791483849.011,
+      "totalGL": 97804870,
+      "pmremCount": 0,
+      "pmremBytes": 0,
+      "cubeUvCount": 0,
+      "cubeUvBytes": 0,
+      "pmrem": [],
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791483895.859,
+      "totalGL": 184630065,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:11684",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:11690",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:11685"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "settled",
+      "at": 1791483900.863,
+      "totalGL": 184630065,
+      "pmremCount": 3,
+      "pmremBytes": 1720320,
+      "cubeUvCount": 3,
+      "cubeUvBytes": 1720320,
+      "pmrem": [
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:11684",
+        "texture:PMREM.cubeUv/color/Texture:engine/render-target:688128:texture:11690",
+        "renderbuffer:PMREM.cubeUv/Depthbuffer:engine/render-target:344064:renderbuffer:11685"
+      ],
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    }
+  ],
+  "shots": [
+    {
+      "cycle": 1,
+      "name": "home-east",
+      "file": "/private/tmp/claude-501/sp-builders/pmrem/after/c1-home-east.png"
+    },
+    {
+      "cycle": 1,
+      "name": "home-north",
+      "file": "/private/tmp/claude-501/sp-builders/pmrem/after/c1-home-north.png"
+    },
+    {
+      "cycle": 4,
+      "name": "home-east",
+      "file": "/private/tmp/claude-501/sp-builders/pmrem/after/c4-home-east.png"
+    },
+    {
+      "cycle": 4,
+      "name": "home-north",
+      "file": "/private/tmp/claude-501/sp-builders/pmrem/after/c4-home-north.png"
+    }
+  ],
+  "errors": [],
+  "version": {
+    "build": "5d57690-muzusvkp",
+    "time": "2026-10-08T18:12:16.075Z"
+  },
+  "route": [
+    "driftwood-isle-to-pine-hollow",
+    "pine-hollow-to-nalati-grasslands",
+    "nalati-grasslands-to-template-2",
+    "template-2-to-driftwood-isle"
+  ]
+}
