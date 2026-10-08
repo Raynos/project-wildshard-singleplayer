@@ -9,6 +9,7 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
   const { style: creatureStyle, dev } = manifest; // opaque authored metadata, copied without a rendering decision
   return {
     id: manifest.slug,
+    seed: manifest.seed, treeCount: manifest.treeCount, label: manifest.label,
     ...(dev === undefined ? {} : { capturePoses: async () => Object.fromEntries(Object.entries(await dev.poses()).map(([name, pose]) => [name, { eye: pose.eye, yaw: pose.yaw, pitch: pose.pitch, ...(pose.feet === undefined ? {} : { feet: pose.feet }), ...(pose.probe === undefined ? {} : { probe: pose.probe }) }])) }),
     ...(manifest.horizonStrips === undefined ? {} : { horizonStrips: manifest.horizonStrips }),
     creatureStyle,
