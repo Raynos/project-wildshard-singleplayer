@@ -31,10 +31,12 @@ export interface RuntimeRenderPlan {
  * including completion after Scope cancellation. Visual coverage/shadows alone change; sim colliders stay whole-shard.
  */
 export interface RuntimeRenderPorts<T> {
-  readonly prepare: (chunk: RuntimeRenderChunk, scope: Scope, done: (result: T | Error) => void) => void;
+  readonly prepare: (chunk: RuntimeRenderChunk, scope: Scope, done: (result: T | Error) => void, dependencies: RuntimeRenderDependencyScopes) => void;
   readonly upload: (chunk: RuntimeRenderChunk, prepared: T, scope: Scope) => RingView;
   readonly discard: (chunk: RuntimeRenderChunk, prepared: T) => void;
 }
+/** Only this component's admitted dependencies. Allocate once by shared scope identity; cancelled work cannot read it. */
+export interface RuntimeRenderDependencyScopes { readonly scope: (dependencyId: string) => Scope }
 /** Selected components and their dependency union, with the residual retained until the region disposes. */
 export interface RuntimeRenderFootprint {
   readonly nonStreamingBytes: number; readonly chunkJsBytes: number; readonly chunkGpuBytes: number;
