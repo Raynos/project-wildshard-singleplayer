@@ -1,0 +1,159 @@
+{
+  "revision": {
+    "build": "9cfbdd0-muyuivjh",
+    "time": "2026-10-08T01:16:43.226Z"
+  },
+  "verdict": "FAIL: third-entry continuation restore",
+  "freshPageCompleted": false,
+  "errors": [],
+  "consoleErrors": [
+    {
+      "visit": 0,
+      "error": "Regional runtime entry failed Error: Missing stable runtime creature\n    at Object.restore (http://127.0.0.1:4403/assets/session-CnrVrkLf.js:909:6475)\n    at Object.afterPlay (http://127.0.0.1:4403/assets/session-CnrVrkLf.js:304:80978)\n    at http://127.0.0.1:4403/assets/hybrid-szuOwpJq.js:1:11796\n    at _ (http://127.0.0.1:4403/assets/runtime-BalY4r78.js:1:2082)\n    at j.enter (http://127.0.0.1:4403/assets/hybrid-szuOwpJq.js:1:11775)\n    at async http://127.0.0.1:4403/assets/session-CnrVrkLf.js:909:8971"
+    }
+  ],
+  "legs": [
+    {
+      "edge": "west",
+      "failure": null,
+      "legs": [
+        {
+          "entering": true,
+          "start": {
+            "x": 277.5000005417421,
+            "y": 0.020099997615034226,
+            "z": 0
+          },
+          "end": {
+            "x": 336.2534005308096,
+            "y": 0.020142537392530357,
+            "z": -0.00008745357648862369
+          },
+          "current": "nalati-grasslands",
+          "ready": true,
+          "grounded": true,
+          "depth": 31.253400530809586,
+          "elapsed": 14.226999999999991,
+          "wallMs": 16998.099999904633,
+          "stuck": [],
+          "failure": null
+        },
+        {
+          "entering": false,
+          "start": {
+            "x": 336.2534005308096,
+            "y": 0.020142537392530357,
+            "z": -0.00008745357648862369
+          },
+          "end": {
+            "x": 277.6557176341573,
+            "y": 0.019979517765023047,
+            "z": 0.00011427747247352675
+          },
+          "current": null,
+          "ready": true,
+          "grounded": true,
+          "depth": -27.344282365842673,
+          "elapsed": 13.90509999990463,
+          "wallMs": 14097.800000190735,
+          "stuck": [],
+          "failure": null
+        }
+      ]
+    },
+    {
+      "edge": "south",
+      "failure": null,
+      "legs": [
+        {
+          "entering": true,
+          "start": {
+            "x": 555,
+            "y": 0.5,
+            "z": -277.5
+          },
+          "end": {
+            "x": 555.000006840107,
+            "y": 0.020099424224049756,
+            "z": -218.64812935970986
+          },
+          "current": "nalati-grasslands",
+          "ready": true,
+          "grounded": true,
+          "depth": 31.351870640290144,
+          "elapsed": 14.01659999990463,
+          "wallMs": 14429,
+          "stuck": [],
+          "failure": null
+        },
+        {
+          "entering": false,
+          "start": {
+            "x": 555.000006840107,
+            "y": 0.020099424224049756,
+            "z": -218.64812935970986
+          },
+          "end": {
+            "x": 555.000058588556,
+            "y": 0.018938363382353884,
+            "z": -277.3924679276679
+          },
+          "current": null,
+          "ready": true,
+          "grounded": true,
+          "depth": -27.392467927667894,
+          "elapsed": 13.832600000381476,
+          "wallMs": 13830.800000190735,
+          "stuck": [],
+          "failure": null
+        }
+      ]
+    },
+    {
+      "edge": "east",
+      "failure": "Error: Error: Walk timeout\n    at eval (eval at evaluate (:311:30), <anonymous>:24:53)\n    at <anonymous>:30:83\n    at walk (eval at evaluate (:311:30), <anonymous>:43:30)\n    at async eval (eval at evaluate (:311:30), <anonymous>:47:15)\n    at async <anonymous>:337:30",
+      "legs": [
+        {
+          "entering": true,
+          "start": {
+            "x": 832.5,
+            "y": 0.5,
+            "z": 0
+          },
+          "end": {
+            "x": 804.9651090016196,
+            "y": 0.019999761312647024,
+            "z": 0.0017616189081073215
+          },
+          "current": "nalati-grasslands",
+          "ready": false,
+          "grounded": true,
+          "depth": 0.0348909983804333,
+          "elapsed": 6.778099999427799,
+          "wallMs": 180002.5,
+          "stuck": [],
+          "failure": "Error: Walk timeout\n    at eval (eval at evaluate (:311:30), <anonymous>:24:53)\n    at <anonymous>:30:83"
+        }
+      ]
+    }
+  ],
+  "nativeEqual": true,
+  "scope": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "disposalErrors": []
+}
