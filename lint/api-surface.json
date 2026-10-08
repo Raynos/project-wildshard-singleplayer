@@ -14946,6 +14946,12 @@
         "from": "@wildshard/game/shard/context"
       },
       {
+        "name": "buildProgress",
+        "kind": "function",
+        "doc": "Read the current counted world-step sink through the defining game context port.",
+        "from": "@wildshard/game/shard/context"
+      },
+      {
         "name": "GameRowMap",
         "kind": "interface",
         "doc": "",

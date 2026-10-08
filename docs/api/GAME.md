@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-666 members; 112 without a doc line (—).
+667 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -256,6 +256,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `saveSlug` | function | @wildshard/game/saves | Legacy actor APIs accept strings until their shard phase; normalize the old identifier at this boundary. |
 | `shardSave` | function | @wildshard/game/saves | The public game wrapper constrains saves to the generated registry's slug union. |
 | `BagVerbs` | interface | @wildshard/game/shard/context | — |
+| `buildProgress` | function | @wildshard/game/shard/context | Read the current counted world-step sink through the defining game context port. |
 | `GameRowMap` | interface | @wildshard/game/shard/context | — |
 | `GameRows` | type | @wildshard/game/shard/context | — |
 | `GameServices` | interface | @wildshard/game/shard/context | — |
