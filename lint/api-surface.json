@@ -15972,6 +15972,78 @@
         "from": "@wildshard/game/shardfile/plumbing"
       },
       {
+        "name": "parsePortalLink",
+        "kind": "function",
+        "doc": "Refuse executable author objects before reading or serialising their fields.",
+        "from": "@wildshard/game/shardfile/portalLink"
+      },
+      {
+        "name": "PortalLink",
+        "kind": "type",
+        "doc": "A road deck, admitted arrival floor and exit back to that deck, all in cell-local coordinates.",
+        "from": "@wildshard/game/shardfile/portalLink"
+      },
+      {
+        "name": "portalLinkEntries",
+        "kind": "function",
+        "doc": "Select only explicit portal entries; a missing link never becomes an executable fallback.",
+        "from": "@wildshard/game/shardfile/portalLink"
+      },
+      {
+        "name": "PortalLinkEntry",
+        "kind": "interface",
+        "doc": "One canonical edge and its fully bound data link.",
+        "from": "@wildshard/game/shardfile/portalLink"
+      },
+      {
+        "name": "portalLinkRules",
+        "kind": "function",
+        "doc": "Only permanently active authored colliders can bind a portal floor; moving/hidden panels and platform floors cannot.",
+        "from": "@wildshard/game/shardfile/portalLink"
+      },
+      {
+        "name": "PortalLinkSchema",
+        "kind": "const",
+        "doc": "Two explicit directed links and a walked static route; no URL, author callback or arbitrary teleport target.",
+        "from": "@wildshard/game/shardfile/portalLink"
+      },
+      {
+        "name": "PortalLinkProof",
+        "kind": "interface",
+        "doc": "Native road-lane and round-trip counts; only two declared links teleport, every other distance is walked.",
+        "from": "@wildshard/game/shardfile/portalLinkProof"
+      },
+      {
+        "name": "provePortalLinks",
+        "kind": "function",
+        "doc": "Prove each full-width static deck, bound arrival, walked route, exit link and return to the road with the real capsule.",
+        "from": "@wildshard/game/shardfile/portalLinkProof"
+      },
+      {
+        "name": "createPortalTraversal",
+        "kind": "function",
+        "doc": "A reusable normal-client and admission operation; static floor and capsule clearance are rechecked on every transfer.",
+        "from": "@wildshard/game/shardfile/portalTraversal"
+      },
+      {
+        "name": "PortalTransfer",
+        "kind": "interface",
+        "doc": "One synchronous, source-bound teleport, yielding the admitted heading for the normal camera/player owner.",
+        "from": "@wildshard/game/shardfile/portalTraversal"
+      },
+      {
+        "name": "portalTransitioning",
+        "kind": "function",
+        "doc": "Checkpoint owners refuse every write while a portal is validating or committing a transfer in this physics world.",
+        "from": "@wildshard/game/shardfile/portalTraversal"
+      },
+      {
+        "name": "PortalTraversalPorts",
+        "kind": "interface",
+        "doc": "Existing player/capsule ports; a transfer cannot allocate a second player or physics world.",
+        "from": "@wildshard/game/shardfile/portalTraversal"
+      },
+      {
         "name": "preflightShardfile",
         "kind": "function",
         "doc": "Check collection, JSON source and distinct declared wire bounds without reading any immutable asset.",
@@ -18350,6 +18422,24 @@
         "kind": "const",
         "doc": "Validate declared input contexts, tier knobs and Debug choices for an author project.",
         "from": "@wildshard/sdk/plumbing"
+      },
+      {
+        "name": "parsePortalLink",
+        "kind": "function",
+        "doc": "Validate data before assigning an entry's portal link; no author callbacks or arbitrary destinations.",
+        "from": "@wildshard/sdk/portalLink"
+      },
+      {
+        "name": "PortalLink",
+        "kind": "type",
+        "doc": "Renderer-neutral portal declaration in cell-local coordinates.",
+        "from": "@wildshard/sdk/portalLink"
+      },
+      {
+        "name": "PortalLinkSchema",
+        "kind": "const",
+        "doc": "Exact bounded directed entry links, static floor bindings and the walked arrival-to-exit route.",
+        "from": "@wildshard/sdk/portalLink"
       },
       {
         "name": "buildProject",

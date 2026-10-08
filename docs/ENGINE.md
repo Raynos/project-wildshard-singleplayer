@@ -2220,7 +2220,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-618 exports, grouped by the module to import them from.
+630 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2312,6 +2312,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/moverRuntime`: `createMoverHost`, `installDeclaredMovers`, `MoverBodyState`, `MoverInstallation`, `MoverPorts`, `moverQueries`, `MoverRuntime`, `MoverView`
 - `@wildshard/game/shardfile/movers`: `MOVER_FIELD_RANGES`, `MOVER_FIELDS`, `MoverData`, `moverScriptEntities`, `MoversSchema`, `parseMovers`
 - `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
+- `@wildshard/game/shardfile/portalLink`: `parsePortalLink`, `PortalLink`, `portalLinkEntries`, `PortalLinkEntry`, `portalLinkRules`, `PortalLinkSchema`
+- `@wildshard/game/shardfile/portalLinkProof`: `PortalLinkProof`, `provePortalLinks`
+- `@wildshard/game/shardfile/portalTraversal`: `createPortalTraversal`, `PortalTransfer`, `portalTransitioning`, `PortalTraversalPorts`
 - `@wildshard/game/shardfile/preflight`: `preflightShardfile`
 - `@wildshard/game/shardfile/product`: `admitProduct`, `AdmittedProduct`, `boundedResponse`, `browserContentHash`, `browserProductCache`, `CachedProduct`, `ProductCache`, `ProductOptions`, `ProductVersions`
 - `@wildshard/game/shardfile/props`: `propColliderDescriptors`, `PropsSchema`, `ShardProps`, `validatePropsReferences`
@@ -2385,7 +2388,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-186 exports, grouped by the module to import them from.
+189 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2416,6 +2419,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/migrations`: `DeclaredMigrations`, `MigrationsSchema`, `parseMigrations`
 - `@wildshard/sdk/movers`: `MoverData`, `movers`
 - `@wildshard/sdk/plumbing`: `parsePlumbing`, `PlumbingData`, `PlumbingSchema`
+- `@wildshard/sdk/portalLink`: `parsePortalLink`, `PortalLink`, `PortalLinkSchema`
 - `@wildshard/sdk/project`: `buildProject`, `canonicalJson`, `contentHash`, `newProject`, `projectAssets`, `readProject`, `validateProject`
 - `@wildshard/sdk/quests`: `parseQuestData`, `QuestData`, `QuestDataSchema`
 - `@wildshard/sdk/rows`: `isJsonData`, `parseRows`, `RowsSchema`, `ShardRows`, `simStrikes`, `speciesResolver`

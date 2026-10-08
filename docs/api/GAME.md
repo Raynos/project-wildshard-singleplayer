@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-618 members; 112 without a doc line (—).
+630 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -501,6 +501,18 @@ The game layer's public modules (src/game/package.json `exports`).
 | `PlumbingData` | type | @wildshard/game/shardfile/plumbing | Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks. |
 | `plumbingRules` | function | @wildshard/game/shardfile/plumbing | Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist. |
 | `PlumbingSchema` | const | @wildshard/game/shardfile/plumbing | Bound the declarations and reject non-owned, duplicate or dangling settings at admission. |
+| `parsePortalLink` | function | @wildshard/game/shardfile/portalLink | Refuse executable author objects before reading or serialising their fields. |
+| `PortalLink` | type | @wildshard/game/shardfile/portalLink | A road deck, admitted arrival floor and exit back to that deck, all in cell-local coordinates. |
+| `portalLinkEntries` | function | @wildshard/game/shardfile/portalLink | Select only explicit portal entries; a missing link never becomes an executable fallback. |
+| `PortalLinkEntry` | interface | @wildshard/game/shardfile/portalLink | One canonical edge and its fully bound data link. |
+| `portalLinkRules` | function | @wildshard/game/shardfile/portalLink | Only permanently active authored colliders can bind a portal floor; moving/hidden panels and platform floors cannot. |
+| `PortalLinkSchema` | const | @wildshard/game/shardfile/portalLink | Two explicit directed links and a walked static route; no URL, author callback or arbitrary teleport target. |
+| `PortalLinkProof` | interface | @wildshard/game/shardfile/portalLinkProof | Native road-lane and round-trip counts; only two declared links teleport, every other distance is walked. |
+| `provePortalLinks` | function | @wildshard/game/shardfile/portalLinkProof | Prove each full-width static deck, bound arrival, walked route, exit link and return to the road with the real capsule. |
+| `createPortalTraversal` | function | @wildshard/game/shardfile/portalTraversal | A reusable normal-client and admission operation; static floor and capsule clearance are rechecked on every transfer. |
+| `PortalTransfer` | interface | @wildshard/game/shardfile/portalTraversal | One synchronous, source-bound teleport, yielding the admitted heading for the normal camera/player owner. |
+| `portalTransitioning` | function | @wildshard/game/shardfile/portalTraversal | Checkpoint owners refuse every write while a portal is validating or committing a transfer in this physics world. |
+| `PortalTraversalPorts` | interface | @wildshard/game/shardfile/portalTraversal | Existing player/capsule ports; a transfer cannot allocate a second player or physics world. |
 | `preflightShardfile` | function | @wildshard/game/shardfile/preflight | Check collection, JSON source and distinct declared wire bounds without reading any immutable asset. |
 | `admitProduct` | function | @wildshard/game/shardfile/product | Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance. |
 | `AdmittedProduct` | interface | @wildshard/game/shardfile/product | Admitted owned wire bytes; callers release this map when decoded resources take over. |

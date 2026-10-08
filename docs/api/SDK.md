@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-192 members; 0 without a doc line (—).
+195 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -114,6 +114,9 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `parsePlumbing` | function | @wildshard/sdk/plumbing | Compile author plumbing after checking owned identities and hook references. |
 | `PlumbingData` | type | @wildshard/sdk/plumbing | The compiled, callback-free scoped plumbing contract. |
 | `PlumbingSchema` | const | @wildshard/sdk/plumbing | Validate declared input contexts, tier knobs and Debug choices for an author project. |
+| `parsePortalLink` | function | @wildshard/sdk/portalLink | Validate data before assigning an entry's portal link; no author callbacks or arbitrary destinations. |
+| `PortalLink` | type | @wildshard/sdk/portalLink | Renderer-neutral portal declaration in cell-local coordinates. |
+| `PortalLinkSchema` | const | @wildshard/sdk/portalLink | Exact bounded directed entry links, static floor bindings and the walked arrival-to-exit route. |
 | `buildProject` | function | @wildshard/sdk/project | Build a deterministic shard.json, immutable files and the distributed normal client when present. |
 | `canonicalJson` | function | @wildshard/sdk/project | Stable JSON encoding: sorted object keys, no timestamps or host paths. |
 | `contentHash` | function | @wildshard/sdk/project | Hash of immutable wire bytes; this is also their output filename. |
