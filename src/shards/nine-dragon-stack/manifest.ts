@@ -1,3 +1,4 @@
+import { NINE_DRAGON_RUNTIME_COST } from './data/runtimeCost';
 import { ND_SAMPLES } from './data/audioSamples';
 import { bootSources } from './boot/files';
 import exploreGrapple from './explore/playground-grapple.webp';
@@ -56,6 +57,7 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
 
 export const NINE_DRAGON_STACK: ShardManifest = {
   api: 1,
+  runtimeCost: NINE_DRAGON_RUNTIME_COST,
   kitLook: 'pbr',
   creatures: { lowPoly: false, waitForModels: false, furRim: false, tintRange: 0.2, oneMaterial: false },
   debugOptions: [],

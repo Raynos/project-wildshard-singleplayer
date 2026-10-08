@@ -1,3 +1,4 @@
+import { SKY_REACH_RUNTIME_COST } from './data/runtimeCost';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { parseSocketLift } from '@wildshard/sdk/socketLift';
@@ -18,7 +19,7 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const lifts = new Map(RISING_ISLETS.map((entry) => [entry.edge, parseSocketLift(isletLift(entry))]));
 const script = { hash: LIFT_MODULE.hash, kind: 'wasm', compressed: LIFT_MODULE.bytes, decoded: LIFT_MODULE.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts' }, audio: AUDIO,
+export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST }, audio: AUDIO,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
     return { edge, at, width, kind: 'socketLift' as const, lift };

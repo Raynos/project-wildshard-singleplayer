@@ -1,3 +1,4 @@
+import { SKY_REACH_RUNTIME_COST } from './data/runtimeCost';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './strings';
 import { BUDGETS } from './budgets';
@@ -8,6 +9,7 @@ import { bootFiles, bootSources, lateReads } from './boot/files';
 import { SKY_REACH_MINIMAP } from './look/minimap';
 
 export const SKY_REACH: ShardManifest = {
+  runtimeCost: SKY_REACH_RUNTIME_COST,
   budgets: BUDGETS, api: 1, slug: 'far-reach', order: 60, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: 6417,
   accent: 'pink', // G104: the HUD accent inside its grid cell
   biome: STRINGS.biome, blurb: STRINGS.blurb, 
