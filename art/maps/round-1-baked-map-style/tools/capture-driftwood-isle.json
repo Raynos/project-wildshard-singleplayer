@@ -1,0 +1,26 @@
+{
+ "shard": "driftwood-isle",
+ "at": [
+  0,
+  0,
+  6.5,
+  -135
+ ],
+ "shots": [
+  "shots/driftwood-isle-now-minimap.png",
+  "shots/driftwood-isle-now-mapscreen.png",
+  "shots/driftwood-isle-A-minimap.png",
+  "shots/driftwood-isle-A-mapscreen.png",
+  "shots/driftwood-isle-B-minimap.png",
+  "shots/driftwood-isle-B-mapscreen.png",
+  "shots/driftwood-isle-C-minimap.png",
+  "shots/driftwood-isle-C-mapscreen.png"
+ ],
+ "errors": [],
+ "dom": [
+  273.5625,
+  13.09375,
+  109.34375,
+  109.34375
+ ]
+}

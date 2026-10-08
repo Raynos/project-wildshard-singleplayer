@@ -1,0 +1,26 @@
+{
+ "shard": "far-reach",
+ "at": [
+  0,
+  0,
+  33,
+  20
+ ],
+ "shots": [
+  "shots/far-reach-now-minimap.png",
+  "shots/far-reach-now-mapscreen.png",
+  "shots/far-reach-A-minimap.png",
+  "shots/far-reach-A-mapscreen.png",
+  "shots/far-reach-B-minimap.png",
+  "shots/far-reach-B-mapscreen.png",
+  "shots/far-reach-C-minimap.png",
+  "shots/far-reach-C-mapscreen.png"
+ ],
+ "errors": [],
+ "dom": [
+  273.5625,
+  13.09375,
+  109.34375,
+  109.34375
+ ]
+}
