@@ -25,11 +25,12 @@ mkdirSync('public/shardfiles/_template',{recursive:true});
 writeFileSync('public/shardfiles/_template/shard.json',JSON.stringify({version:0}));`);
     const executable = (name: string, source: string) => { const path = join(bin, name); writeFileSync(path, source); chmodSync(path, 0o755); };
     executable('pgrep', '#!/bin/sh\nexit 1\n');
-    executable('ps', '#!/bin/sh\nexit 0\n');
+    executable('ps', '#!/bin/sh\nif [ "$1" = "-o" ] && [ "$2" = "pgid=" ]; then cat "$SF0_SERVE_FIXTURE/preview-pid"; fi\n');
+    executable('lsof', '#!/bin/sh\nif [ -f "$SF0_SERVE_FIXTURE/preview-pid" ]; then cat "$SF0_SERVE_FIXTURE/preview-pid"; else exit 1; fi\n');
     executable('curl', '#!/bin/sh\nexit 0\n');
     executable('pnpm', `#!${process.execPath}
 const fs=require('node:fs'),path=require('node:path'),dir=process.env.SF0_SERVE_FIXTURE;
-if(process.argv.includes('preview')) { setInterval(()=>{},1000); }
+if(process.argv.includes('preview')) { fs.writeFileSync(path.join(dir,'preview-pid'),String(process.pid)); setInterval(()=>{},1000); }
 else {
  if(!fs.existsSync(path.join(dir,'public/shardfiles/_template/shard.json'))) throw new Error('Vite started before shardfile products were built');
  const config=fs.readFileSync(process.argv[process.argv.indexOf('--config')+1],'utf8');

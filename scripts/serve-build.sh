@@ -109,6 +109,12 @@ while :; do
       a="$(age_min "$pid")"; if [ "$a" -gt "$other_age" ]; then other="$(basename "$f")"; other_age="$a"; fi
     fi
   done
+  # Explicit ports must respect the same live reservation/listener fence as automatic selection.
+  if [ -n "$PORT" ] && { [ -f "$REG/$PORT" ] || lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; }; then
+    unlock
+    echo "serve-build: port $PORT is reserved or already listening" >&2
+    exit 64
+  fi
   if [ "$n_live" -lt "$MAX_LIVE" ]; then
     if [ -z "$PORT" ]; then
       for p in $(seq 4400 4999); do
@@ -187,7 +193,27 @@ child.once('error', error => { closeSync(fd); console.error(error); process.exit
 child.once('spawn', () => { closeSync(fd); console.log(child.pid); child.unref(); });
 PREVIEW_NODE
 )" || exit 1
-for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:$PORT/" && break; sleep 0.5; done
+# An HTTP response from an older process is not readiness for this preview.
+preview_owns_port() {
+  local listener group
+  for listener in $(lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null); do
+    group="$(ps -o pgid= -p "$listener" 2>/dev/null | tr -d ' ')"
+    [ "$group" = "$pid" ] && return 0
+  done
+  return 1
+}
+ready=0
+for _ in $(seq 1 60); do
+  kill -0 "$pid" 2>/dev/null || break
+  if preview_owns_port && curl --fail --silent --output /dev/null "http://127.0.0.1:$PORT/"; then ready=1; break; fi
+  sleep 0.5
+done
+if [ "$ready" -ne 1 ]; then
+  echo "serve-build: preview failed to become ready on port $PORT" >&2
+  kill -TERM -- "-$pid" 2>/dev/null || true
+  tail -30 "$BASE/$stamp/preview.log" >&2
+  exit 1
+fi
 echo "$pid $(( $(date +%s) + HOURS * 3600 )) $BASE/$stamp $CALLER $NAME" > "$REG/$PORT"
 echo "http://127.0.0.1:$PORT/"
 echo "serve-build: pid $pid, reaped in ${HOURS} h; stop it with: scripts/serve-build.sh stop $PORT" >&2
