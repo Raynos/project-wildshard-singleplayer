@@ -1908,7 +1908,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2226 exports, grouped by the module to import them from.
+2229 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1942,7 +1942,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/app/app`: `App`, `SystemsByPhase`, `TrampleField`
 - `@wildshard/engine/app/cachedAssets`: `cacheUntilDisposed`, `retainCachedResources`
 - `@wildshard/engine/app/identity`: `appIdentity`, `AppIdentity`, `currentProbe`, `harnessPins`, `installAppIdentity`, `installedIdentity`, `setCurrentProbe`
-- `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enterOwner`, `onOwnerDispose`, `withOwner`
+- `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enterOwner`, `onOwnerDispose`, `ownedFacade`, `ownerCensus`, `ownerTask`, `withOwner`
 - `@wildshard/engine/app/resources`: `pageScope`, `resourceScope`
 - `@wildshard/engine/app/runtime`: `app`, `gameplayRandom`
 - `@wildshard/engine/app/sceneOwnership`: `containerResources`, `ownSceneResource`, `ownSceneTree`, `sceneObjectOwner`, `SceneOwnership`, `sceneResourceOwner`, `sceneResources`

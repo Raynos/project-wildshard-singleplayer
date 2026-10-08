@@ -879,6 +879,24 @@
         "from": "@wildshard/engine/app/ownership"
       },
       {
+        "name": "ownedFacade",
+        "kind": "function",
+        "doc": "SF57: an owner only lasts until the first `await` — `withOwner(scope, () => asyncBuild())` sets it for the synchronous",
+        "from": "@wildshard/engine/app/ownership"
+      },
+      {
+        "name": "ownerCensus",
+        "kind": "function",
+        "doc": "Owned async builds pending now and the ambient owner reads seen while any was pending (SF57).",
+        "from": "@wildshard/engine/app/ownership"
+      },
+      {
+        "name": "ownerTask",
+        "kind": "function",
+        "doc": "An asynchronous build owned by `scope` (a resident shard's world / kit / play hook): `withOwner`, returning exactly what",
+        "from": "@wildshard/engine/app/ownership"
+      },
+      {
         "name": "withOwner",
         "kind": "function",
         "doc": "",
