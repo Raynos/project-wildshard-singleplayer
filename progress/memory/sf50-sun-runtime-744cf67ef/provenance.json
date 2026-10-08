@@ -1,0 +1,37 @@
+{
+  "source": "744cf67ef347bd635ae8126cb80d5355a77fec85",
+  "harnessHead": "f8bfc4a41640749712a3b55a241cebf9e92e013c",
+  "files": {
+    "scripts/sim-memory.mjs": "ba96f7952f3236028fdaed45c4fe4da32fffbe24ede88365aa305b93c451d0a6",
+    "scripts/sim-mem-phases.py": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+    "scripts/gpu-perf/report.mjs": "3c7f17982bd4477facc6d05695cd19165e6491732132c8b58642c94a8f926e05",
+    "scripts/parity/glbytes.mjs": "7d9df125654bbccb62cd9d56b998c49f1b418933b4c84223cfb1370f0dd5392f",
+    "scripts/debug-settings.mjs": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e",
+    "progress/memory/sf22a-runtime-homes-535780474/gl.mjs": "c437561af2ea59bf88d592a2e8f077274f1840f182bb9e59c1a3a47acc2be83e",
+    "public/assets/baked/sunscar-dunes/terrain.bin": "2565ac9a803b9f828292d1d088a437fade6c7419bdf8c1d25db91cf8a645d6bd",
+    "public/assets/baked/sunscar-dunes/far.json": "86e638e19b31b07e67fa9e16eaf17647249146e60222ba9c75de4b649de0ae71"
+  },
+  "build": {
+    "build": "744cf67-muzj91re",
+    "time": "2026-10-08T12:48:54.809Z"
+  },
+  "bootstrap": {
+    "build": "744cf67ef347bd635ae8126cb80d5355a77fec85",
+    "injection": "<script>window.__wildshardHarness??={\"seed\":1,\"capture\":null,\"lane\":\"sf22a-memory-locations\",\"sha\":\"744cf67ef347bd635ae8126cb80d5355a77fec85\",\"browser\":\"simulator-safari\",\"errors\":[],\"saves\":{\"read\":[],\"written\":[]},\"audioRequests\":[]};</script>",
+    "originalHTMLSHA256": "c8277fe973ae792a022eb4718e52fb467a34899d0e5a9278f5745e8456bac11b",
+    "instrumentedHTMLSHA256": "708138711799fd05b69a18537c767d29a5cf9a8c85e36857951b8906bdd64ecd"
+  },
+  "nativeEndCensusFix": "69afe33b529c6da4704a4efe9f2e00cfc06e5e53",
+  "glCompleted": true,
+  "commands": {
+    "gl": "scripts/browser-lane.sh --max 12 node progress/memory/sf22a-runtime-homes-535780474/gl.mjs http://127.0.0.1:4450/ <scratch>/gl sunscar-dunes on",
+    "native": "scripts/browser-lane.sh --max 25 scripts/sim-lane.sh run --max 25 wildshard-iphone node scripts/sim-memory.mjs --url=http://127.0.0.1:4450/ --out=<scratch>/simulator/cohort1 --runs=3 --play=30 --fly=30 --shards=sunscar-dunes --setting=tex=auto --setting=memorySaver=on"
+  },
+  "completed": true,
+  "cleanup": {
+    "bootstrapRemovedOriginalHashVerified": true,
+    "simulatorReleased": true,
+    "attempts": 3,
+    "failures": 0
+  }
+}

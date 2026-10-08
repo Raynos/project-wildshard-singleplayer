@@ -1,0 +1,74 @@
+[
+  {
+    "slug": "sunscar-dunes",
+    "round": 1,
+    "version": {
+      "build": "744cf67-muzj91re",
+      "time": "2026-10-08T12:48:54.809Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 133399284,
+        "maxBytes": 133399284,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 133399284,
+        "maxBytes": 133399284,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "slug": "sunscar-dunes",
+    "round": 2,
+    "version": {
+      "build": "744cf67-muzj91re",
+      "time": "2026-10-08T12:48:54.809Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 133399284,
+        "maxBytes": 133399284,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 133399284,
+        "maxBytes": 133399284,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "slug": "sunscar-dunes",
+    "round": 3,
+    "version": {
+      "build": "744cf67-muzj91re",
+      "time": "2026-10-08T12:48:54.809Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 133399284,
+        "maxBytes": 133399284,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 133399284,
+        "maxBytes": 133399284,
+        "samples": 33
+      }
+    ]
+  }
+]

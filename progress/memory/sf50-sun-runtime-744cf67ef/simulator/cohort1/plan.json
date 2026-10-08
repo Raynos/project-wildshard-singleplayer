@@ -1,0 +1,37 @@
+{
+  "opts": {
+    "out": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-cost/simulator/cohort1",
+    "expectedBuild": "744cf67-muzj91re",
+    "play": 30,
+    "fly": 30,
+    "locations": false,
+    "settings": [
+      "tex=auto",
+      "memorySaver=on"
+    ],
+    "deviceSaves": {}
+  },
+  "runs": [
+    {
+      "label": "sunscar-dunes",
+      "shard": "sunscar-dunes",
+      "base": "http://127.0.0.1:4450/",
+      "round": 1,
+      "tag": "sunscar-dunes-r1"
+    },
+    {
+      "label": "sunscar-dunes",
+      "shard": "sunscar-dunes",
+      "base": "http://127.0.0.1:4450/",
+      "round": 2,
+      "tag": "sunscar-dunes-r2"
+    },
+    {
+      "label": "sunscar-dunes",
+      "shard": "sunscar-dunes",
+      "base": "http://127.0.0.1:4450/",
+      "round": 3,
+      "tag": "sunscar-dunes-r3"
+    }
+  ]
+}

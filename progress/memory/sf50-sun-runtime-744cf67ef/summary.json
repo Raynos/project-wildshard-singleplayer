@@ -1,0 +1,222 @@
+{
+  "sha": "744cf67ef347bd635ae8126cb80d5355a77fec85",
+  "settings": {
+    "tex": "auto",
+    "memorySaver": "on",
+    "developer": true
+  },
+  "coverage": {
+    "validColdRuns": 3,
+    "attempts": 3,
+    "failures": 0,
+    "playSeconds": 30,
+    "explorerSeconds": 30,
+    "enteredGrid": false
+  },
+  "calibration": {
+    "engineBaseMB": 299,
+    "evidence": "progress/memory/sf22a-2026-10-04.json",
+    "remeasured": false
+  },
+  "limitation": "Standalone Simulator regression ruler plus same-source Chromium phone-tier labelled GL proxy; no physical-iPhone or entered-grid cap claim.",
+  "attempts": [
+    {
+      "path": "simulator/cohort1/sunscar-dunes-r1.inspector.jsonl.gz",
+      "valid": true,
+      "errors": [],
+      "identity": {
+        "build": "744cf67-muzj91re",
+        "shard": "sunscar-dunes"
+      },
+      "explorerIdentity": {
+        "build": "744cf67-muzj91re",
+        "shard": "sunscar-dunes"
+      },
+      "phases": {
+        "loading": {
+          "nativeMB": 219.64700000000002,
+          "inspectorMB": 295.747072,
+          "nativePeakMB": 393,
+          "nativePeakUpperMB": 393.5,
+          "nativeSpreadMB": [
+            219.434008,
+            221.36732
+          ]
+        },
+        "play": {
+          "nativeMB": 210.930736,
+          "inspectorMB": 302.051584,
+          "nativePeakMB": 247,
+          "nativePeakUpperMB": 247.5,
+          "nativeSpreadMB": [
+            210.930736,
+            210.930736
+          ]
+        },
+        "explorer": {
+          "nativeMB": 221.596744,
+          "inspectorMB": 317.882624,
+          "nativePeakMB": 224,
+          "nativePeakUpperMB": 224.5,
+          "nativeSpreadMB": [
+            221.49844,
+            221.596744
+          ]
+        }
+      }
+    },
+    {
+      "path": "simulator/cohort1/sunscar-dunes-r2.inspector.jsonl.gz",
+      "valid": true,
+      "errors": [],
+      "identity": {
+        "build": "744cf67-muzj91re",
+        "shard": "sunscar-dunes"
+      },
+      "explorerIdentity": {
+        "build": "744cf67-muzj91re",
+        "shard": "sunscar-dunes"
+      },
+      "phases": {
+        "loading": {
+          "nativeMB": 232.655968,
+          "inspectorMB": 299.593984,
+          "nativePeakMB": 522,
+          "nativePeakUpperMB": 522.5,
+          "nativeSpreadMB": [
+            225.561696,
+            233.000008
+          ]
+        },
+        "play": {
+          "nativeMB": 222.44876,
+          "inspectorMB": 305.623296,
+          "nativePeakMB": 251,
+          "nativePeakUpperMB": 251.5,
+          "nativeSpreadMB": [
+            222.334072,
+            222.54706399999998
+          ]
+        },
+        "explorer": {
+          "nativeMB": 231.656592,
+          "inspectorMB": 311.623936,
+          "nativePeakMB": 235,
+          "nativePeakUpperMB": 235.5,
+          "nativeSpreadMB": [
+            231.656592,
+            231.656592
+          ]
+        }
+      }
+    },
+    {
+      "path": "simulator/cohort1/sunscar-dunes-r3.inspector.jsonl.gz",
+      "valid": true,
+      "errors": [],
+      "identity": {
+        "build": "744cf67-muzj91re",
+        "shard": "sunscar-dunes"
+      },
+      "explorerIdentity": {
+        "build": "744cf67-muzj91re",
+        "shard": "sunscar-dunes"
+      },
+      "phases": {
+        "loading": {
+          "nativeMB": 228.002816,
+          "inspectorMB": 292.02457599999997,
+          "nativePeakMB": 502,
+          "nativePeakUpperMB": 502.5,
+          "nativeSpreadMB": [
+            222.54696800000002,
+            230.4768
+          ]
+        },
+        "play": {
+          "nativeMB": 220.400664,
+          "inspectorMB": 309.70291199999997,
+          "nativePeakMB": 253,
+          "nativePeakUpperMB": 253.5,
+          "nativeSpreadMB": [
+            220.318744,
+            220.646424
+          ]
+        },
+        "explorer": {
+          "nativeMB": 226.544688,
+          "inspectorMB": 296.23936000000003,
+          "nativePeakMB": 233,
+          "nativePeakUpperMB": 233.5,
+          "nativeSpreadMB": [
+            226.544688,
+            226.642992
+          ]
+        }
+      }
+    }
+  ],
+  "phases": {
+    "loading": {
+      "nativeMB": {
+        "median": 228.002816,
+        "min": 219.64700000000002,
+        "max": 232.655968
+      },
+      "inspectorMB": {
+        "median": 295.747072,
+        "min": 292.02457599999997,
+        "max": 299.593984
+      },
+      "nativePeakMB": 522
+    },
+    "play": {
+      "nativeMB": {
+        "median": 220.400664,
+        "min": 210.930736,
+        "max": 222.44876
+      },
+      "inspectorMB": {
+        "median": 305.623296,
+        "min": 302.051584,
+        "max": 309.70291199999997
+      },
+      "nativePeakMB": 253,
+      "glMB": {
+        "median": 133.399284,
+        "min": 133.399284,
+        "max": 133.399284
+      },
+      "conservativePeakCombinedMB": 386.89928399999997
+    },
+    "explorer": {
+      "nativeMB": {
+        "median": 226.544688,
+        "min": 221.596744,
+        "max": 231.656592
+      },
+      "inspectorMB": {
+        "median": 311.623936,
+        "min": 296.23936000000003,
+        "max": 317.882624
+      },
+      "nativePeakMB": 235,
+      "glMB": {
+        "median": 133.399284,
+        "min": 133.399284,
+        "max": 133.399284
+      },
+      "conservativePeakCombinedMB": 368.89928399999997
+    }
+  },
+  "runtimeCost": {
+    "webContentMB": 220.400664,
+    "glMB": 133.399284,
+    "engineBaseMB": 299,
+    "rev": "744cf67ef347bd635ae8126cb80d5355a77fec85",
+    "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+    "evidence": "progress/memory/sf50-sun-runtime-744cf67ef/summary.json"
+  },
+  "accountedBytes": 49369323,
+  "playingAdmissionMB": 434.799949
+}

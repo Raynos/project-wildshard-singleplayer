@@ -1,0 +1,357 @@
+{
+  "verdict": "success",
+  "memoryProtocol": "cold-origin-build-verified-v1",
+  "memory": [
+    {
+      "shard": "sunscar-dunes",
+      "phase": "loading",
+      "nativeGB": 0.219647,
+      "inspectorGB": 0.295747072,
+      "nativePeakGB": 0.393,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.219647,
+        "inspectorGB": 0.295747072,
+        "minGB": 0.219434008,
+        "maxGB": 0.22136732,
+        "spreadGB": 0.0019333119999999926,
+        "spreadPercent": 0.8801904874639728,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.22136732,
+            "inspectorGB": 0.301940224
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.219434008,
+            "inspectorGB": 0.293797376
+          },
+          {
+            "seconds": 3.005,
+            "nativeGB": 0.219647,
+            "inspectorGB": 0.295747072
+          }
+        ],
+        "seconds": 3.005
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "play",
+      "nativeGB": 0.210930736,
+      "inspectorGB": 0.302051584,
+      "nativePeakGB": 0.247,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.210930736,
+        "inspectorGB": 0.302051584,
+        "minGB": 0.210930736,
+        "maxGB": 0.210930736,
+        "spreadGB": 0,
+        "spreadPercent": 0,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.210930736,
+            "inspectorGB": 0.302051584
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.210930736,
+            "inspectorGB": 0.301641984
+          },
+          {
+            "seconds": 3.007,
+            "nativeGB": 0.210930736,
+            "inspectorGB": 0.303886592
+          }
+        ],
+        "seconds": 3.007
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "explorer",
+      "nativeGB": 0.221596744,
+      "inspectorGB": 0.317882624,
+      "nativePeakGB": 0.224,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.221596744,
+        "inspectorGB": 0.317882624,
+        "minGB": 0.22149844,
+        "maxGB": 0.221596744,
+        "spreadGB": 0.00009830400000002126,
+        "spreadPercent": 0.04436166264248958,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.221596744,
+            "inspectorGB": 0.317522176
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.221596744,
+            "inspectorGB": 0.320307456
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.22149844,
+            "inspectorGB": 0.317882624
+          }
+        ],
+        "seconds": 3.008
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "loading",
+      "nativeGB": 0.232655968,
+      "inspectorGB": 0.299593984,
+      "nativePeakGB": 0.522,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.232655968,
+        "inspectorGB": 0.299593984,
+        "minGB": 0.225561696,
+        "maxGB": 0.233000008,
+        "spreadGB": 0.0074383120000000025,
+        "spreadPercent": 3.197129247937454,
+        "samples": [
+          {
+            "seconds": 1.001,
+            "nativeGB": 0.233000008,
+            "inspectorGB": 0.29815552
+          },
+          {
+            "seconds": 2.002,
+            "nativeGB": 0.232655968,
+            "inspectorGB": 0.300678656
+          },
+          {
+            "seconds": 3.002,
+            "nativeGB": 0.225561696,
+            "inspectorGB": 0.299593984
+          }
+        ],
+        "seconds": 3.002
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "play",
+      "nativeGB": 0.22244876,
+      "inspectorGB": 0.305623296,
+      "nativePeakGB": 0.251,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.22244876,
+        "inspectorGB": 0.305623296,
+        "minGB": 0.222334072,
+        "maxGB": 0.222547064,
+        "spreadGB": 0.00021299199999999519,
+        "spreadPercent": 0.09574879176669503,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.222334072,
+            "inspectorGB": 0.305623296
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.222547064,
+            "inspectorGB": 0.309195008
+          },
+          {
+            "seconds": 3.006,
+            "nativeGB": 0.22244876,
+            "inspectorGB": 0.305115392
+          }
+        ],
+        "seconds": 3.006
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "explorer",
+      "nativeGB": 0.231656592,
+      "inspectorGB": 0.311623936,
+      "nativePeakGB": 0.235,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.231656592,
+        "inspectorGB": 0.311623936,
+        "minGB": 0.231656592,
+        "maxGB": 0.231656592,
+        "spreadGB": 0,
+        "spreadPercent": 0,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.231656592,
+            "inspectorGB": 0.309936384
+          },
+          {
+            "seconds": 2.005,
+            "nativeGB": 0.231656592,
+            "inspectorGB": 0.311623936
+          },
+          {
+            "seconds": 3.008,
+            "nativeGB": 0.231656592,
+            "inspectorGB": 0.316162304
+          }
+        ],
+        "seconds": 3.008
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "loading",
+      "nativeGB": 0.228002816,
+      "inspectorGB": 0.292024576,
+      "nativePeakGB": 0.502,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.228002816,
+        "inspectorGB": 0.292024576,
+        "minGB": 0.222546968,
+        "maxGB": 0.2304768,
+        "spreadGB": 0.007929831999999998,
+        "spreadPercent": 3.47795353545107,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.2304768,
+            "inspectorGB": 0.359284224
+          },
+          {
+            "seconds": 2.004,
+            "nativeGB": 0.228002816,
+            "inspectorGB": 0.279444992
+          },
+          {
+            "seconds": 3.005,
+            "nativeGB": 0.222546968,
+            "inspectorGB": 0.292024576
+          }
+        ],
+        "seconds": 3.005
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1.8,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "play",
+      "nativeGB": 0.220400664,
+      "inspectorGB": 0.309702912,
+      "nativePeakGB": 0.253,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.220400664,
+        "inspectorGB": 0.309702912,
+        "minGB": 0.220318744,
+        "maxGB": 0.220646424,
+        "spreadGB": 0.00032767999999999686,
+        "spreadPercent": 0.1486746882032973,
+        "samples": [
+          {
+            "seconds": 1.002,
+            "nativeGB": 0.220318744,
+            "inspectorGB": 0.312078592
+          },
+          {
+            "seconds": 2.003,
+            "nativeGB": 0.220646424,
+            "inspectorGB": 0.309702912
+          },
+          {
+            "seconds": 3.005,
+            "nativeGB": 0.220400664,
+            "inspectorGB": 0.3085888
+          }
+        ],
+        "seconds": 3.005
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    },
+    {
+      "shard": "sunscar-dunes",
+      "phase": "explorer",
+      "nativeGB": 0.226544688,
+      "inspectorGB": 0.29623936,
+      "nativePeakGB": 0.233,
+      "previousGB": null,
+      "measurement": "settled-median-3",
+      "settling": {
+        "nativeGB": 0.226544688,
+        "inspectorGB": 0.29623936,
+        "minGB": 0.226544688,
+        "maxGB": 0.226642992,
+        "spreadGB": 0.00009830399999999351,
+        "spreadPercent": 0.043392763197340346,
+        "samples": [
+          {
+            "seconds": 1.003,
+            "nativeGB": 0.226642992,
+            "inspectorGB": 0.29943424
+          },
+          {
+            "seconds": 2.006,
+            "nativeGB": 0.226544688,
+            "inspectorGB": 0.29623936
+          },
+          {
+            "seconds": 3.009,
+            "nativeGB": 0.226544688,
+            "inspectorGB": 0.294158592
+          }
+        ],
+        "seconds": 3.009
+      },
+      "verdict": "success",
+      "reason": "first reading",
+      "limitGB": 1,
+      "growth": null
+    }
+  ]
+}
