@@ -1,4 +1,4 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- reads the committed G208 Pine census plan (progress/memory/g208-pine-rings/).
+// oxlint-disable-next-line import/no-nodejs-modules -- reads the G208 Pine census plan (a copy of progress/memory/g208-pine-rings/plan.json under test/fixtures, which the Vercel tree keeps).
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { BoxGeometry, type BufferGeometry, DataTexture, Group, InstancedMesh, Mesh, MeshBasicMaterial, PlaneGeometry } from 'three';
@@ -55,7 +55,7 @@ it('hands a classification to the checked plan with every unclassified byte in t
   expect(inventory.footprint(['chunk.l1.3.3']).totalBytes).toBe(whole - a.jsBytes - a.gpuBytes);
 });
 
-const census = JSON.parse(readFileSync('progress/memory/g208-pine-rings/plan.json', 'utf8')) as { build: { build: string }; plan: PreflightPlan };
+const census = JSON.parse(readFileSync('test/fixtures/g208/pine-plan.json', 'utf8')) as { build: { build: string }; plan: PreflightPlan };
 // the served HEAD (scripts/serve-build.sh --head) of build be4c277-muytjp7n
 const pin = { rev: 'be4c27711', evidence: 'progress/memory/g208-pine-rings/plan.json' };
 
