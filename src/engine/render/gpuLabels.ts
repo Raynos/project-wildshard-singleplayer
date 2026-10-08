@@ -12,9 +12,9 @@ const isObject = (value: unknown): value is Object3D => value instanceof Object3
 const isTarget = (value: unknown): value is WebGLRenderTarget => value instanceof WebGLRenderTarget;
 function hook(name: string): unknown { return typeof window === 'undefined' ? undefined : Reflect.get(window, name); }
 function enabled(): boolean { return typeof hook('__sc_label_gl') === 'function'; }
-function emit(name: string, resource: object, label: Label): void {
+function emit(name: string, resource: object, label: Label, identity?: object): void {
   const fn = hook(name);
-  if (typeof fn === 'function') Reflect.apply(fn, window, [resource, label.owner, label.asset]);
+  if (typeof fn === 'function') Reflect.apply(fn, window, [resource, label.owner, label.asset, identity]);
 }
 function remember(resource: object, label: Label): Label {
   const previous = labels.get(resource);
@@ -39,8 +39,8 @@ export function labelledCreation<T>(owner: string, asset: string, create: () => 
   const fn = hook('__sc_gl_scope');
   return typeof fn === 'function' ? Reflect.apply(fn, window, [owner, asset, create]) as T : create();
 }
-function data(source: unknown, label: Label): void {
-  if (source !== null && typeof source === 'object') emit('__sc_label_source', source, remember(source, label));
+function data(source: unknown, label: Label, identity?: object): void {
+  if (source !== null && typeof source === 'object') emit('__sc_label_source', source, remember(source, label), identity);
 }
 function markTexture(texture: Texture, fallback: Label): Label {
   const image: unknown = texture.image;
@@ -71,7 +71,7 @@ function markGeometry(geometry: BufferGeometry, fallback: Label): void {
   const attribute = (value: BufferAttribute | InterleavedBufferAttribute, role: string): void => {
     if (arrayReleased(value)) return; // the Memory saver let its CPU copy go: touching `array` would read it back (SF22d)
     const array = value instanceof InterleavedBufferAttribute ? value.data.array : value.array;
-    data(array, { ...label, asset: `${label.asset}/${role}` });
+    data(array, { ...label, asset: `${label.asset}/${role}` }, value instanceof InterleavedBufferAttribute ? value.data : value);
   };
   if (geometry.index) attribute(geometry.index, 'index');
   for (const [role, value] of Object.entries(geometry.attributes)) attribute(value, role);

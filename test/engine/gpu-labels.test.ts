@@ -5,10 +5,10 @@ import { labelAsset, labelClone, labelledCreation, labelObjectTree } from '../..
 const originalWindow: unknown = Reflect.get(globalThis, 'window');
 afterEach(() => { Reflect.set(globalThis, 'window', originalWindow); });
 it('labels actual geometry, instance and texture upload sources with their file or registered piece identity', () => {
-  const sources = new Map<object, { owner: string; asset: string }>();
+  const sources = new Map<object, { owner: string; asset: string }>(), identities = new Map<object, object>();
   Reflect.set(globalThis, 'window', {
     __sc_label_gl: () => undefined,
-    __sc_label_source: (source: object, owner: string, asset: string) => { sources.set(source, { owner, asset }); },
+    __sc_label_source: (source: object, owner: string, asset: string, identity?: object) => { sources.set(source, { owner, asset }); if (identity !== undefined) identities.set(source, identity); },
   });
   const positions = new Float32Array(9), pixels = new Uint8Array(16);
   const geometry = labelAsset(new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3)), 'file-loader', '/assets/tree.glb#trunk');
@@ -17,6 +17,7 @@ it('labels actual geometry, instance and texture upload sources with their file 
   mesh.name = 'trees';
   const root = new Group(); root.add(mesh);
   labelObjectTree(root, 'pine/tree-stand', 'forest.ts#Tree stand');
+  expect(identities.get(positions)).toBe(geometry.getAttribute('position'));
   expect(sources.get(positions)).toEqual({ owner: 'file-loader', asset: '/assets/tree.glb#trunk/position' });
   expect(sources.get(pixels)).toEqual({ owner: 'texture-loader', asset: '/assets/bark.ktx2' });
   expect(sources.get(mesh.instanceMatrix.array)).toEqual({ owner: 'pine/tree-stand', asset: 'forest.ts#Tree stand/trees/instanceMatrix' });

@@ -1,15 +1,15 @@
 // SF22b: WebGL allocation census installed before page scripts. Engine creation/upload labels are optional hooks.
 export const GL_INIT = String.raw`(() => { const W = window;
   if (W.__sc_gl) return;
-  const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap(), uploads = new WeakMap();
+  const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap(), uploads = new WeakMap(), storage = new WeakMap();
   let scope = null, sequence = 0;
   const object = (v) => v !== null && (typeof v === 'object' || typeof v === 'function');
   const label = (resource, owner, asset) => { if (object(resource) && owner && asset) { labels.set(resource, { owner, asset }); W.__sc_gl_change?.({at:Date.now()/1000,op:'label',id:identity(resource,'resource'),owner,asset}); } };
   W.__sc_label_gl = label;
-  W.__sc_label_source = (source, owner, asset) => { if (object(source) && owner && asset) sources.set(source, { owner, asset }); };
+  W.__sc_label_source = (source, owner, asset, identity) => { if (object(source) && owner && asset) sources.set(source, { owner, asset, identity: object(identity) ? new WeakRef(identity) : undefined }); };
   W.__sc_gl_scope = (owner, asset, fn) => { const previous = scope; scope = { owner, asset }; try { return fn(); } finally { scope = previous; } };
   const identity = (resource, kind) => { if (!ids.has(resource)) ids.set(resource, kind + ':' + (++sequence)); return ids.get(resource); };
-  const fromSource = (resource, source) => { if (object(source)) uploads.set(resource, new WeakRef(source)); const tag = object(source) && sources.get(source); if (tag) label(resource, tag.owner, tag.asset); };
+  const fromSource = (resource, source) => { if (object(source)) uploads.set(resource, new WeakRef(source)); const tag = object(source) && sources.get(source); if (tag) { label(resource, tag.owner, tag.asset); const identity=tag.identity?.deref(); if(identity) storage.set(resource,new WeakRef(identity)); } };
   // Three may upload an internal geometry before its first draw supplies its source label.
   // Keep only a weak reference: census instrumentation must not retain released CPU arrays.
   const entry = (resource, kind, bytes) => {
@@ -18,7 +18,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
   };
   // Scalar-only identity bridge: never return or retain source/GPU objects in a receipt.
   W.__sc_gl_id = (resource) => object(resource) ? ids.get(resource) ?? null : null;
-  W.__sc_gl_source_ids = (source) => !object(source) ? [] : recs.flatMap(r => [...r.buf.keys()].filter(resource => uploads.get(resource)?.deref() === source).map(resource => identity(resource, 'buffer')));
+  W.__sc_gl_source_ids = (source) => !object(source) ? [] : recs.flatMap(r => [...r.buf.keys()].filter(resource => (uploads.get(resource)?.deref() === source || storage.get(resource)?.deref() === source)).map(resource => identity(resource, 'buffer')));
   // Optional loading journal contains scalar identities only; it never retains GPU/source objects.
   const changed = (gl, resource, kind, bytes) => { if (W.__sc_gl_change) {const row=entry(resource,kind,bytes);W.__sc_gl_change({at:Date.now()/1000,op:'allocation',context:identity(gl,'context'),...row,bytes});} };
   const changedTexture = (gl, resource) => { if (!W.__sc_gl_change) return; let bytes=0; for(const level of rec(gl).tex.get(resource)?.values() ?? []) bytes+=level.bytes; changed(gl,resource,'texture',bytes); };

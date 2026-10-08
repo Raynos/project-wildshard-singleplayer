@@ -1,6 +1,6 @@
 import { app } from '../app/runtime';
 import { Scope } from '../app/scope';
-import { SceneOwnership } from '../app/sceneOwnership';
+import { SceneOwnership, sceneResourceOwner } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
 import { composerAllocations, cachedResourceAllocations, type ResourceAllocation } from '../render/textureBytes';
 import { ViewmodelRoot } from '../render/viewmodel';
@@ -215,7 +215,9 @@ export class Game {
       retained: this.retainedGpuCounts(), resources: [...live].map((resource) => {
         const props: unknown = this.renderer.properties.get(resource);
         const compiled = read(props, 'programs'), source = read(resource, 'source'), image = read(source, 'data');
+        const owner = sceneResourceOwner(resource);
         return { type: resource.constructor.name, uuid: read(resource, 'uuid'), name: read(resource, 'name'),
+          owner: owner === null ? null : { name: owner.name, disposed: owner.disposed, level: owner.belongsTo(this.levelScope) },
           retained: retained.has(resource), texture: read(props, '__webglTexture') !== undefined,
           programs: compiled instanceof Map ? [...compiled.values()].map((p: unknown) => read(p, 'id')) : [],
           source: read(source, 'uuid'), image: { width: read(image, 'width'), height: read(image, 'height'), src: read(image, 'src') },
