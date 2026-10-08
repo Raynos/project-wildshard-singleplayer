@@ -20,7 +20,7 @@ export function gridPageShell(source: ShardManifest): ShardManifest {
       bgIntensity: sky.bgIntensity, fogSunColor: sky.fogSunColor, cloudSunColor: sky.cloudSunColor,
       hemiSky: sky.hemiSky, hemiGround: sky.hemiGround, hemiIntensity: sky.hemiIntensity },
     atmosphere, grade, audio: { ambience: 'legacy', score: 'legacy' },
-    boot: { files: () => [], precache: [] },
+    boot: { files: () => [], precache: [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }) },
     loadout: { weapons: [], tools, start: tools.filter(id => source.loadout?.start.includes(id)) },
     ...(source.tiers === undefined ? {} : { tiers: source.tiers }),
     ...(source.camera === undefined ? {} : { camera: source.camera }),

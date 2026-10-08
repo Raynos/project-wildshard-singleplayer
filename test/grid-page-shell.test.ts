@@ -3,6 +3,7 @@ import { gridPageShell, gridPageShellLevel } from '../src/game/grid/pageShell';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { needsTerrainCollider } from '../src/engine/level/spec';
 import { navmeshUrl } from '../src/engine/physics/navmeshUrl';
+import { chunkFiles } from '../src/engine/boot/manifest';
 import { terrainFor } from '../src/game/shard/manifest';
 
 it('keeps catalogue identity while excluding every resident home asset and authored hook', () => {
@@ -19,6 +20,7 @@ it('keeps catalogue identity while excluding every resident home asset and autho
   }
   expect(shell.treeCount).toBe(0); expect(shell.trees.factory).toBe('none'); expect(shell.spawns).toEqual([]);
   expect(shell.species).toEqual([]); expect(shell.sky.planet).toBeUndefined(); expect(shell.sky.hdri).toBeUndefined();
+  expect(Object.values(chunkFiles(shell)).flat()).toEqual([]);
   expect(shell.boot?.files('phone')).toEqual([]); expect(shell.audio?.preload).toBeUndefined();
   expect(shell.loadout?.weapons).toEqual([]); expect(shell.loadout?.start).toEqual(['tool.hoverboard']);
   expect(level.id).toBe('platform.grid'); expect(needsTerrainCollider(level)).toBe(false);
