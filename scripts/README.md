@@ -91,6 +91,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bench-load.mjs](./bench-load.mjs)
 - [gpu-texmem.mjs](./gpu-texmem.mjs)
 - [ios-memory-watchdog.py](./ios-memory-watchdog.py)
+- [memory-report-blocks.d.mts](./memory-report-blocks.d.mts)
+- [memory-report-blocks.mjs](./memory-report-blocks.mjs)
 - [nine-dragon-gpu.mjs](./nine-dragon-gpu.mjs)
 - [nine-sim-memory.mjs](./nine-sim-memory.mjs)
 - [pine-hollow-gpu.mjs](./pine-hollow-gpu.mjs)
