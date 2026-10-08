@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import binaryen from 'binaryen';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { contentHash } from '@wildshard/sdk/project';
@@ -108,4 +108,55 @@ it('upgrades legacy visited geometry online using strict state lineage, while of
   f.cache.products.set(base, { source: corrupt, firstParty: true });
   await expect(admitProduct(next, f.options)).rejects.toThrow('state declaration');
   expect(f.cache.products.get(base)?.source).toEqual(corrupt);
+});
+
+function parallelFixture() {
+  const shard = empty(), cache = cacheFixture(), payloads = new Map<string, Uint8Array>();
+  for (let value = 0; value < 9; value++) {
+    const bytes = new TextEncoder().encode(JSON.stringify({ value })), hash = contentHash(bytes);
+    payloads.set(hash, bytes);
+    shard.files.push({ hash, kind: 'json', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: false });
+    shard.library.push(hash); shard.budgets.library.compressed += bytes.length; shard.budgets.library.resident += bytes.length;
+  }
+  const pending = new Map<string, (response: Response) => void>(); let active = 0, peak = 0, reserved = false;
+  const options: ProductOptions = { base, cache, offline: false, firstParty: true,
+    reserve: () => { reserved = true; }, hash: (bytes) => Promise.resolve(contentHash(bytes)),
+    fetch: (url) => { expect(reserved).toBe(true); active++; peak = Math.max(peak, active);
+      return new Promise<Response>((resolve) => { pending.set(url.slice(base.length), (response) => { active--; resolve(response); }); }); },
+  };
+  const release = (corrupt = false) => {
+    const wave = [...pending].reverse(); pending.clear();
+    for (const [hash, resolve] of wave) {
+      const bytes = payloads.get(hash); if (bytes === undefined) throw new Error('Missing payload');
+      resolve(new Response(corrupt ? new Uint8Array(bytes.length) : Uint8Array.from(bytes)));
+    }
+  };
+  return { shard, cache, options, pending, release, peak: () => peak };
+}
+it('overlaps four bounded asset reads per wave, retaining authored order and offline byte identity', async () => {
+  const f = parallelFixture(), run = admitProduct(f.shard, f.options);
+  await vi.waitFor(() => expect(f.pending.size).toBe(4)); f.release();
+  await vi.waitFor(() => expect(f.pending.size).toBe(4)); f.release();
+  await vi.waitFor(() => expect(f.pending.size).toBe(1)); f.release();
+  const product = await run;
+  expect(f.peak()).toBe(4); expect([...product.assets.keys()]).toEqual(f.shard.library);
+  const offline = await admitProduct(f.shard, { ...f.options, offline: true, fetch: () => Promise.reject(new Error('No network')) });
+  expect([...offline.assets]).toEqual([...product.assets]); expect(f.cache.products.size).toBe(1);
+});
+it('settles a failed transport wave without starting later waves or publishing cache', async () => {
+  const f = parallelFixture(), run = admitProduct(f.shard, f.options);
+  const rejection = expect(run).rejects.toThrow('hash mismatch');
+  await vi.waitFor(() => expect(f.pending.size).toBe(4)); f.release(true); await rejection;
+  expect(f.peak()).toBe(4); expect(f.pending.size).toBe(0);
+  expect(f.cache.bytes.size).toBe(0); expect(f.cache.products.size).toBe(0);
+});
+
+it('shares one transport for identical file and commons addresses', async () => {
+  const f = fixture();
+  f.shard.requires.commons.push(f.hash); f.shard.requires.commonsWire[f.hash] = f.bytes.length;
+  f.shard.requires.commonsCosts[f.hash] = { decoded: f.bytes.length, gpu: 0, triangles: 0, draws: 0 };
+  f.shard.library.push(`commons:${f.hash}`);
+  f.shard.budgets.library.compressed *= 2; f.shard.budgets.library.resident *= 2;
+  const product = await admitProduct(f.shard, f.options);
+  expect(f.fetches()).toBe(1); expect(product.assets.get(f.hash)).toBe(product.assets.get(`commons:${f.hash}`));
 });

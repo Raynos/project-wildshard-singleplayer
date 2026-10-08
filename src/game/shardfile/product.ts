@@ -95,11 +95,17 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   if (!options.offline && visited !== null && visited !== undefined && [versions.current, versions.previous].includes(version(visited.source))) assertStateCompatibility(parseStateLineage(visited.source), source);
   options.reserve?.(source);
   const refs = [...source.files.map((file) => ({ ref: file.hash, cap: file.compressed })), ...source.requires.commons.map((hash) => ({ ref: `commons:${hash}`, cap: source.requires.commonsWire[hash] ?? 0 }))];
-  const transport = new Map<string, Uint8Array>();
+  // Reserve the complete product first, then overlap at most four immutable transports. Validation and
+  // publication retain authored order; a failed wave settles fully before admission returns or writes cache.
+  const unique = new Map<string, number>();
   for (const { ref, cap } of refs) {
     const hash = ref.replace(/^commons:/u, ''); if (!HASH.test(hash)) throw new Error('Invalid asset address');
-    const admitted = transport.get(hash);
-    if (admitted !== undefined) { assets.set(ref, admitted); continue; }
+    const previous = unique.get(hash);
+    if (previous !== undefined && previous !== cap) throw new Error('Conflicting asset wire declarations');
+    unique.set(hash, cap);
+  }
+  const transport = new Map<string, Uint8Array>(), addresses = [...unique];
+  const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     let bytes = await options.cache?.asset(base, hash);
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
@@ -108,7 +114,20 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     if (bytes.length !== cap) throw new Error('Shardfile asset wire size differs from declaration');
     const owned = Uint8Array.from(bytes), actual = await options.hash(owned);
     if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
-    assets.set(ref, owned); hashes.set(owned, actual); transport.set(hash, owned);
+    return owned;
+  };
+  for (let at = 0; at < addresses.length; at += 4) {
+    const wave = addresses.slice(at, at + 4), results = await Promise.allSettled(wave.map(load));
+    for (const [index, result] of results.entries()) {
+      if (result.status === 'rejected') throw result.reason;
+      const address = wave[index]; if (address === undefined) throw new Error('Missing asset address');
+      transport.set(address[0], result.value); hashes.set(result.value, address[0]);
+    }
+  }
+  for (const { ref } of refs) {
+    const bytes = transport.get(ref.replace(/^commons:/u, ''));
+    if (bytes === undefined) throw new Error('Asset was not admitted');
+    assets.set(ref, bytes);
   }
   validateShardfileAssets(source, assets, (bytes) => {
     const hash = hashes.get(bytes); if (hash === undefined) throw new Error('Asset was not hashed'); return hash;
