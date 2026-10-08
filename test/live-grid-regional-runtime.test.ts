@@ -42,7 +42,7 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
     Object.defineProperty(globalThis, name, { configurable: true, value: new EventTarget() });
     return () => { if (prior === undefined) Reflect.deleteProperty(globalThis, name); else Object.defineProperty(globalThis, name, prior); };
   });
-  const initial = pageHost.physics.world.colliders.len(), assembly = new GridAssembly({ developer: false, devserver: false });
+  const initial = pageHost.physics.world.colliders.len(), assembly = new GridAssembly({ developer: true, devserver: false });
   const home = assembly.cell('driftwood-isle'), target = assembly.cell('pine-hollow');
   const allocator = new ResidencyAllocator({ memory: new MemoryAdmission(() => true) }), owner = new PageResidency(allocator);
   const residency = owner.admitHome(home.instance, 1_000_000); scope.onDispose(() => { owner.dispose(); });

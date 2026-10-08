@@ -29,7 +29,7 @@ const noop = (): void => undefined;
 it('admits a hybrid at the strip before hooks run, then freezes its real regional sim until entered play is ready', async () => {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const app = new App(); app.registryValue = new WorldRegistry();
-  const assembly = new GridAssembly({ developer: false, devserver: false }), cells = new GridCellEvents();
+  const assembly = new GridAssembly({ developer: true, devserver: false }), cells = new GridCellEvents();
   const homePhysics = new Physics(rapier), position = new Vector3(0, 0, 299), owner = {};
   const health = new PlayerHealth(new Events(), { now: () => 0, position: () => position, dodging: () => false, dodgeGuard: () => false });
   const player = { position, yaw: 0, health, owner,

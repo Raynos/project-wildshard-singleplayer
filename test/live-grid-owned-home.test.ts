@@ -14,7 +14,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 const noop = (): void => undefined;
 async function open(admit?: (instance: string, fallback: () => LiveGridAdmission) => Promise<LiveGridAdmission>, pause?: () => Promise<void>) {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
-  const assembly = new GridAssembly({ developer: false, devserver: false });
+  const assembly = new GridAssembly({ developer: true, devserver: false });
   const shell = createSimHost({ ...SIM_LEVEL, id: 'neutral.shell', entities: [], quests: [], ground: { size: 2400, height: 0 } }, { rapier });
   const player = { position: shell.player.position, yaw: 0, health: shell.player.health, owner: {}, motor: shell.releasePlayerMotor() };
   const platform = new Scope('neutral.platform'), owner = new PageResidency(), home = owner.admitHome('driftwood-isle', 20_000_000);

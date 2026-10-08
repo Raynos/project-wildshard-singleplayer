@@ -22,7 +22,7 @@ import itemSource from './fixtures/shardfile/items/template.json';
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer); });
 function fixture() {
-  const assembly = new GridAssembly({ developer: false, devserver: false }), scope = new Scope('grid.crossing.integration');
+  const assembly = new GridAssembly({ developer: true, devserver: false }), scope = new Scope('grid.crossing.integration');
   const store = new SaveStore({ local: new MemoryStorage(), session: null });
   const worlds = new Map<string, SimHost>(), wallets = new Map<string, GridWallet>(), loadouts = new Map<string, GridLoadout>();
   const saved = new Map<string, SimSnapshot>(), changes: (string | null)[] = [], stowed = new Set<string>();

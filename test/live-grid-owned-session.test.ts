@@ -45,7 +45,7 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     Object.defineProperty(globalThis, name, { configurable: true, value: new EventTarget() });
     return () => { if (prior === undefined) Reflect.deleteProperty(globalThis, name); else Object.defineProperty(globalThis, name, prior); };
   });
-  const initial = pageHost.physics.world.colliders.len(), assembly = new GridAssembly({ developer: false, devserver: false });
+  const initial = pageHost.physics.world.colliders.len(), assembly = new GridAssembly({ developer: true, devserver: false });
   const home = assembly.cell('pine-hollow'), target = assembly.cell('nalati-grasslands');
   const allocator = new ResidencyAllocator({ memory: new MemoryAdmission(() => true) }), owner = new PageResidency(allocator);
   const residency = owner.admitHome(home.instance, regionalRuntimeAccountedBytes({ source }, PINE_HOLLOW)); scope.onDispose(() => { owner.dispose(); });
