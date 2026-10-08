@@ -5,6 +5,7 @@ import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { linkNodeModules } from '../link-node-modules.mjs';
 import { createServer } from 'node:net';
+import { get } from 'node:http';
 import { fileURLToPath } from 'node:url';
 
 /** @param {string} root @param {string} sha */
@@ -23,6 +24,15 @@ export function exportTree(root, sha) {
 }
 /** @returns {Promise<number>} */
 async function freePort() { const s=createServer();await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(0,'127.0.0.1',()=>resolve(undefined));}); const a=s.address();if(!a || typeof a==='string') throw new Error('no preview port'); await new Promise((resolve,reject)=>{s.close((e)=>{if(e)reject(e);else resolve(undefined);});});return a.port; }
+/** A bounded native HTTP readiness probe. Avoid undici's macOS socket QoS failure before browser capture.
+ * @param {string} url @param {number} [timeoutMs] @returns {Promise<boolean>} */
+export function previewReady(url, timeoutMs=1000) {
+  return new Promise(resolve=>{
+    const request=get(url,response=>{response.resume();resolve(response.statusCode!==undefined&&response.statusCode>=200&&response.statusCode<300);});
+    request.on('error',()=>resolve(false));
+    request.setTimeout(timeoutMs,()=>{request.destroy(new Error('Preview readiness timed out'));});
+  });
+}
 /** @param {string} tree @param {string} sha @param {boolean} [built] */
 export async function serve(tree,sha,built=false) {
   if(!built)buildTree(tree,sha);
@@ -30,7 +40,8 @@ export async function serve(tree,sha,built=false) {
   let startup='';child.stdout.on('data',(chunk)=>{startup+=String(chunk);});child.stderr.on('data',(chunk)=>{startup+=String(chunk);});
   const url=`http://127.0.0.1:${port}`;
   const close=()=> {if(child.pid) {try {process.kill(-child.pid,'SIGTERM');} catch { /* already stopped */ }} };
-  try {for(let i=0;i<300;i++){if(child.exitCode!==null) throw new Error(`preview exited: ${startup}`);try {if((await fetch(`${url}/version.json`)).ok) return {url,close};}catch {/* preview starting */} await new Promise((resolve)=>{setTimeout(resolve,100);});} throw new Error(`preview never served: ${startup}`);}catch(e){close();throw e;}
+  const deadline=Date.now()+30000;
+  try {while(Date.now()<deadline){if(child.exitCode!==null) throw new Error(`preview exited: ${startup}`);if(await previewReady(`${url}/version.json`,Math.min(1000,Math.max(1,deadline-Date.now())))) return {url,close};await new Promise((resolve)=>{setTimeout(resolve,100);});} throw new Error(`preview never served: ${startup}`);}catch(e){close();throw e;}
 }
 /** @param {string} path @returns {unknown} */
 export function readJson(path) {return existsSync(path) ? JSON.parse(readFileSync(path,'utf8')) : undefined;}
