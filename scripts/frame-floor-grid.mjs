@@ -32,10 +32,54 @@ export function gridFloorPlans(state, scenario) {
   return plans;
 }
 
+/** Keep one diagnostic ledger in the browser and mirror it to the harness before a document/process can disappear. */
+export function installFloorGridProgress() {
+  let last = null, sampled = -Infinity;
+  window.__frameFloorGridProgress = () => {
+    const stop = window.__frameFloorGridStop;
+    if (!stop) return null;
+    if (performance.now() - sampled < 1000 && last?.stop.leg === stop.leg && last.stop.phase === stop.phase) return last;
+    try {
+      const grid = window.__wildshard?.shard?.grid;
+      if (!grid) return last;
+      if (window.__wildshard?.world?.game?.renderer.getContext().isContextLost()) return last;
+      const state = grid.state(), residency = grid.residency(), live = state.live?.live;
+      const contexts = window.__sc_gl?.();
+      last = { documentOrigin: performance.timeOrigin, sampledAt: Date.now(), seconds: performance.now() / 1000,
+        stop: { ...stop }, current: live?.current, inside: state.inside, feet: live?.worldFeet, gameplayReady: live?.gameplayReady,
+        memory: { modelledMB: state.playingMB ?? null, accountedBytes: state.accountedBytes ?? null,
+          glMB: contexts ? contexts.reduce((sum, row) => sum + row.totalBytes, 0) / 1e6 : null,
+          glReconciled: contexts ? contexts.every(row => row.reconciled) : null, claims: residency.claims, cost: residency.cost } };
+      sampled = performance.now(); return last;
+    } catch { return last; } // Diagnostic reads must not replace the original route/renderer failure.
+  };
+}
+
+/** A lost travel document is a measured runtime failure, even when its earlier cadence rows passed. */
+export function gridFloorRuntimeFailure(last, diagnostic) {
+  if (!last || !diagnostic || diagnostic.documentOrigin === last.documentOrigin || !Number.isFinite(diagnostic.documentOrigin)) return null;
+  const reason = diagnostic.lastEnd?.at >= last.documentOrigin ? diagnostic.lastEnd.reason
+    : diagnostic.lastUnload?.t >= last.documentOrigin ? diagnostic.lastUnload.reason : 'Document navigated during grid travel; recovery reason unavailable';
+  return { kind: /GPU|graphics recovery|canvas.*wiped/iu.test(reason) ? 'gpu-recovery' : 'navigation',
+    stop: last.stop, lastSample: last, recoveryReason: reason, nextDocumentOrigin: diagnostic.documentOrigin };
+}
+
 /** Restore only the first source pose after standing probes; let the owned shell enter its region through real fixed steps. */
-export async function stageFloorGrid(plan) {
-  const api = window.__wildshard, world = api.world, player = world.player, input = world.game.app.input;
+export async function stageFloorGrid(plan, documentOrigin) {
+  window.__frameFloorGridStop = { leg: plan.name, phase: 'source-admission', waypoint: null, target: plan.start ?? null };
+  const deadline = performance.now() + 120000;
+  const readApi = () => {
+    if (performance.timeOrigin !== documentOrigin) throw new Error('Grid floor document changed (navigation or graphics recovery)');
+    return window.__wildshard;
+  };
+  let api = readApi();
+  while (!api?.world?.game || !api.shard?.grid) {
+    if (performance.now() >= deadline) throw new Error('Grid floor API did not become ready in its original document');
+    await new Promise(resolve => { setTimeout(resolve, 100); }); api = readApi();
+  }
+  const world = api.world, player = world.player, input = world.game.app.input;
   const read = () => {
+    if (readApi() !== api) throw new Error('Grid floor API was replaced during source admission');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
     return { ...state, claims: api.shard.grid.residency().claims };
   };
@@ -46,7 +90,6 @@ export async function stageFloorGrid(plan) {
     const origin = { x: live.worldFeet.x - player.position.x, z: live.worldFeet.z - player.position.z };
     await api.pose({ x: plan.start.x - origin.x, y: 0.55, z: plan.start.z - origin.z, yaw: 0, pitch: -0.08 });
   }
-  const deadline = performance.now() + 120000;
   while (performance.now() < deadline) {
     const state = read(), active = state.live.live;
     if (active.current === plan.from && state.inside === plan.from && active.gameplayReady && active.residents.includes(plan.from)) return state;
@@ -58,9 +101,13 @@ export async function stageFloorGrid(plan) {
 }
 
 /** This self-contained function is serialized into Chromium or Safari, without changing the game's fixed step. */
-export async function driveFloorGrid(plan) {
-  const api = window.__wildshard, world = api.world, player = world.player, input = world.game.app.input;
+export async function driveFloorGrid(plan, documentOrigin) {
+  window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint: 0, target: plan.waypoints[0] ?? null };
+  const api = window.__wildshard;
+  if (performance.timeOrigin !== documentOrigin || !api?.world?.game || !api.shard?.grid) throw new Error('Grid floor lost its ready document before travel (navigation or graphics recovery)');
+  const world = api.world, player = world.player, input = world.game.app.input;
   const read = () => {
+    if (performance.timeOrigin !== documentOrigin || window.__wildshard !== api) throw new Error('Grid floor document or API changed during travel (navigation or graphics recovery)');
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
     return { ...state, claims: api.shard.grid.residency().claims };
   };
@@ -81,6 +128,7 @@ export async function driveFloorGrid(plan) {
       stop = world.game.watchFrames(() => {
         try {
           const state = read(), active = state.live.live, feet = active.worldFeet, seconds = (performance.now() - started) / 1000;
+          window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: plan.waypoints[waypoint] ?? null };
           if (seconds - lastSample >= 0.25) { trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady }); lastSample = seconds; }
           if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
           const target = plan.waypoints[waypoint];
@@ -97,6 +145,7 @@ export async function driveFloorGrid(plan) {
         } catch (error) { finish(error); }
       });
     });
+    window.__frameFloorGridStop = { leg: plan.name, phase: 'destination-standing', waypoint: plan.waypoints.length, target: null };
     return { plan, before, after: read(), trace, elapsedSeconds: (performance.now() - started) / 1000 };
   } finally { input.clear(); player.hoverSpeedLimit = oldLimit; player.setHover(oldHover); }
 }

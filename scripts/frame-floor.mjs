@@ -11,7 +11,8 @@ import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures } from './frame-floor-grid.mjs';
+import { gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure } from './frame-floor-grid.mjs';
+import { GL_INIT } from './parity/glbytes.mjs';
 
 const ROOT = resolvePath(import.meta.dirname, '..');
 const SCRIPT = import.meta.filename;
@@ -24,6 +25,8 @@ const frames = Number(flag('frames', '120'));
 const settleMs = Number(flag('settle', '2')) * 1000;
 const device = flag('device', 'frame-floor-iphone-17-pro');
 const gridScenario = flag('grid-scenario', 'baseline');
+// Allocation hooks only for diagnostic travel runs; ordinary standing baselines remain uninstrumented.
+const travelGl = gridScenario === 'baseline' ? '' : GL_INIT;
 if (!['baseline', 'template', 'runtime-travel', 'all'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
 if (args.includes('--help')) {
   console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--grid-scenario=baseline|template|runtime-travel|all]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
@@ -82,7 +85,7 @@ function grade(record) {
   record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded' };
   for (const result of record.results) for (const shard of result.rows) {
     for (const row of shard.rows ?? []) Object.assign(row, assess(row, result.surface));
-    if (shard.complete) shard.pass = shard.rows.every((row) => row.pass) && shard.errors.length === 0;
+    if (shard.complete) shard.pass = !shard.runtimeFailure && (shard.rows ?? []).every((row) => row.pass) && shard.errors.length === 0;
   }
   record.complete = record.results.every((result) => result.rows.every((shard) => shard.complete));
   record.pass = record.complete && record.underTenMinutes && record.results.every((result) => result.rows.every((shard) => shard.pass));
@@ -163,17 +166,20 @@ function sample(n) {
 }
 
 // Runtime.evaluate on Safari does not await JavaScript promises. Poll an explicit result envelope;
-// this also survives Target.* multiplexing and WebContent process swaps.
+// Target.* multiplexing is supported; a new document invalidates the measurement rather than replaying it.
 let evalSequence = 0;
-function evaluator(raw) {
+function evaluator(raw, observe = () => undefined) {
   return async (expression, timeout = 35000) => {
     const key = `__frameFloorEval${++evalSequence}`;
-    await raw(`globalThis[${JSON.stringify(key)}] = {done:false}; Promise.resolve().then(() => (${expression})).then(value => {globalThis[${JSON.stringify(key)}] = {done:true,value};}, error => {globalThis[${JSON.stringify(key)}] = {done:true,error:String(error)};}); true`);
+    const origin = await raw(`globalThis[${JSON.stringify(key)}] = {done:false}; Promise.resolve().then(() => (${expression})).then(value => {globalThis[${JSON.stringify(key)}] = {done:true,value};}, error => {globalThis[${JSON.stringify(key)}] = {done:true,error:String(error)};}); performance.timeOrigin`);
     const start = Date.now();
     try {
       while (Date.now() - start < timeout) {
-        const value = await raw(`JSON.stringify(globalThis[${JSON.stringify(key)}] ?? null)`);
-        const state = typeof value === 'string' ? JSON.parse(value) : null;
+        const value = await raw(`JSON.stringify({origin:performance.timeOrigin,state:globalThis[${JSON.stringify(key)}] ?? null,progress:window.__frameFloorGridProgress?.() ?? null})`);
+        const envelope = typeof value === 'string' ? JSON.parse(value) : null;
+        if (envelope?.origin !== origin) throw Object.assign(new Error('Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue'), { documentOrigin: envelope?.origin });
+        if (envelope.progress) observe(envelope.progress);
+        const state = envelope.state;
         if (state?.done) { if (state.error) throw new Error(state.error); return state.value; }
         await sleep(100);
       }
@@ -211,10 +217,13 @@ async function enterGrid(driver) {
 }
 async function measureShard(driver, shard, deadline) {
   const start = Date.now(), floorMs = surface === 'sim' ? 33.3 : 16.7;
+  const rows = [], scenarios = [];
   try {
     await driver.load(shard);
     if (shard === 'grid') await enterGrid(driver);
     await waitReady(driver.evaluate);
+    const documentOrigin = await driver.evaluate('performance.timeOrigin');
+    if (shard === 'grid' && gridScenario !== 'baseline') await driver.evaluate(`(${installFloorGridProgress.toString()})()`);
     await sleep(settleMs);
     const meta = await driver.evaluate(`(${metadata.toString()})()`);
     if (meta.clock !== 'live' || meta.renderScale !== 2 || meta.settings.tier !== (surface === 'sim' ? 'phone' : 'desktop') || meta.settings.fps !== 'auto' || Object.entries(picks).some(([key, value]) => meta.settings[key] !== value) || Object.entries(deviceSaves).some(([key, value]) => meta.deviceSaves[key] !== value)) throw new Error(`Invalid measurement configuration: ${JSON.stringify(meta)}`);
@@ -233,7 +242,6 @@ async function measureShard(driver, shard, deadline) {
     }
     // Rank authored standing parity cameras on the surface itself; no shard-name camera table to go stale.
     const heaviest = [...scan].sort((a, b) => b.p95Ms - a.p95Ms || b.workP95Ms - a.workP95Ms || b.triangles - a.triangles).slice(0, 2);
-    const rows = [];
     for (const pose of [meta.spawn, ...heaviest.map((r) => r.pose)]) {
       if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
       await driver.evaluate(`window.__wildshard.pose(${JSON.stringify(pose)})`);
@@ -242,16 +250,15 @@ async function measureShard(driver, shard, deadline) {
       rows.push({ pose, ...result, ...assess(result, surface) });
       console.log(`${surface} ${shard} ${pose.name}: ${result.medianFps} fps, p95 ${result.p95Ms} ms, p99 ${result.p99Ms} ms — ${rows.at(-1).pass ? 'PASS' : 'FAIL'}`);
     }
-    const scenarios = [];
     if (shard === 'grid' && gridScenario !== 'baseline') {
       // Standing camera probes did not cross: reset only the initial source pose, then use real input at every seam.
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
       for (const plan of gridFloorPlans(state, gridScenario)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
         // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
-        await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)})`, 130000);
+        await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`, 130000);
         const moving = (async () => {
-          try { return { value: await driver.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)})`, 160000) }; }
+          try { return { value: await driver.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`, 160000) }; }
           catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }
         })();
         await sleep(1000);
@@ -269,11 +276,13 @@ async function measureShard(driver, shard, deadline) {
     }
     const errors = await driver.errors();
     return { shard, complete: true, pass: rows.every((r) => r.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
-      floorMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, errors };
+      floorMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, lastRoute: driver.progress(), errors };
   } catch (error) {
     console.error(`${surface} ${shard}: ${errorText(error)}`);
-    const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);
-    return { shard, complete: false, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error), errors: await driver.errors(), diagnostic };
+    const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { documentOrigin: performance.timeOrigin, lastEnd: saved.keys?.['life.lastEnd']?.data, lastUnload: saved.keys?.['life.lastUnload']?.data, url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);
+    const lastRoute = driver.progress(), runtimeFailure = gridFloorRuntimeFailure(lastRoute, diagnostic ?? { documentOrigin: error?.documentOrigin });
+    return { shard, complete: runtimeFailure !== null, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error),
+      errors: await driver.errors().catch(() => []), rows, scenarios, lastRoute, runtimeFailure, diagnostic };
   } finally { await driver.unload(); }
 }
 
@@ -322,17 +331,19 @@ async function safariPage(base) {
 async function worker() {
   const base = flag('base', ''), deadline = Number(flag('deadline', '0')), rows = [];
   let browser, context, page, proxy, inspector;
+  let lastRoute = null;
+  const observe = progress => { lastRoute = progress; };
   try {
     let driver;
     if (surface === 'desktop') {
       const { chromium } = await import('playwright');
       browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
       context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, serviceWorkers: 'block' });
-      await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}` });
+      await context.addInitScript({ content: `${fixture('desktop')};window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${travelGl}` });
       let errors = [];
       driver = {
         load: async (shard) => { errors = []; page = await context.newPage(); page.on('pageerror', (e) => errors.push(e.message.slice(0, 240))); page.on('console', (message) => { if (message.type() === 'error' && message.text().includes('[faults]')) errors.push(message.text().slice(0, 1000)); }); await page.goto(`${base}${query(shard)}`, { waitUntil: 'domcontentloaded' }); },
-        evaluate: evaluator((expr) => page.evaluate(expr)), errors: () => errors, followed: () => page.waitForURL((u) => !u.search.includes('mute=1') || u.search.includes('chunk='), { timeout: 60000 }).catch(() => undefined),
+        evaluate: evaluator((expr) => page.evaluate(expr), observe), errors: () => Promise.resolve(errors), progress: () => lastRoute, followed: () => page.waitForURL((u) => !u.search.includes('mute=1') || u.search.includes('chunk='), { timeout: 60000 }).catch(() => undefined),
         unload: async () => { await page?.close(); },
       };
     } else {
@@ -348,17 +359,18 @@ async function worker() {
         inspector?.close(); inspector = undefined;
         currentUrl = url;
         inspector = webkit(await safariPage(url)); await inspector.opened; await sleep(500);
-        evaluate = evaluator(inspector.raw);
+        evaluate = evaluator(inspector.raw, observe);
       };
-      // Safari can announce a page before the old inspector target finishes its process swap. Reconnect once;
-      // these harness evaluations are observations or idempotent pose/settings writes, never gameplay commands.
+      // A timed-out evaluation may already have started movement or an async admission. Reconnect for diagnostics,
+      // but never replay it: losing the document/target invalidates that route's witnesses.
       const retryEvaluate = async (expr, timeout) => {
         try { return await evaluate(expr, timeout); }
         catch (error) {
           if (!errorText(error).includes('Web Inspector timed out: Runtime.evaluate')) throw error;
           console.log('Safari inspector target swapped; reconnecting');
           await connect(currentUrl);
-          return evaluate(expr, timeout);
+          const documentOrigin = await inspector.raw('performance.timeOrigin').catch(() => undefined);
+          throw Object.assign(new Error('Safari inspector lost the active evaluation; refusing to replay the measurement', { cause: error }), { documentOrigin });
         }
       };
       driver = {
@@ -375,12 +387,12 @@ async function worker() {
           xcrun(['openurl', udid, gameUrl]);
           await connect(gameUrl);
         },
-        evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), unload: () => { inspector?.close(); inspector = undefined; },
+        evaluate: retryEvaluate, errors: () => retryEvaluate('window.__frameFloorErrors ?? []'), progress: () => lastRoute, unload: () => { inspector?.close(); inspector = undefined; },
         // the tap's fresh document (same helper page, so the pins stay): reconnect to whatever page the helper path now holds
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
       };
     }
-    for (const shard of shards) rows.push(await measureShard(driver, shard, deadline));
+    for (const shard of shards) { lastRoute = null; rows.push(await measureShard(driver, shard, deadline)); }
   } catch (error) {
     for (const shard of shards.filter((s) => !rows.some((r) => r.shard === s))) rows.push({ shard, complete: false, pass: false, error: errorText(error) });
   } finally {
@@ -423,7 +435,7 @@ async function main() {
     const registry = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
     const dist = join(registry[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
     const helper = join(dist, 'frame-floor-safari.html');
-    writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}</script>`));
+    writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}${travelGl}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
       const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
@@ -435,10 +447,10 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, settings, deviceSaves, expectedSystems, gridScenario, harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, settings, deviceSaves, expectedSystems, gridScenario, travelGlCensus: travelGl !== '', harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
-      limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules.'], results });
+      limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim.'], results });
     const directory = join(ROOT, 'progress/frame-floor'); mkdirSync(directory, { recursive: true });
     const output = join(directory, `${sha.slice(0, 9)}-${runId}.json`);
     writeFileSync(output, `${JSON.stringify(record, null, 2)}\n`);

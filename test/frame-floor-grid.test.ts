@@ -79,7 +79,7 @@ it('stages the owned home from the neutral shell and waits for resident, interio
     pose, shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } });
   try {
     let complete = false;
-    const staged = stageFloorGrid(plan).then(value => { complete = true; return value; });
+    const staged = stageFloorGrid(plan, performance.timeOrigin).then(value => { complete = true; return value; });
     await vi.advanceTimersByTimeAsync(100);
     expect(pose).toHaveBeenCalledExactlyOnceWith({ x: 0, y: 0.55, z: 230, yaw: 0, pitch: -0.08 });
     expect(complete).toBe(false);
@@ -104,9 +104,30 @@ it('never seeds a later leg to hide a missing source or bypasses failed durabili
   vi.stubGlobal('window', { __wildshard: { world: { player: { position: { x: 0, z: 277.5 } }, game: { app: { input: { clear: vi.fn() } } } },
     pose, shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } } });
   try {
-    await expect(stageFloorGrid(next)).rejects.toThrow('expected pine');
+    await expect(stageFloorGrid(next, performance.timeOrigin)).rejects.toThrow('expected pine');
     expect(pose).not.toHaveBeenCalled();
     current.live.crossing.phase = 'save-failed'; current.live.crossing.issue = 'quota';
-    await expect(stageFloorGrid(first)).rejects.toThrow('source blocked: quota');
+    await expect(stageFloorGrid(first, performance.timeOrigin)).rejects.toThrow('source blocked: quota');
   } finally { restoreGlobals(); }
+});
+
+it('waits for a late Safari API in the original document and refuses a changed document before touching its world', async () => {
+  const plan = gridFloorPlans({ home: 'home', cells }, 'runtime-travel')[0];
+  if (!plan) throw new Error('Missing route fixture');
+  const pose = vi.fn(), current = state('home', 0, 230);
+  const window: { __wildshard?: object } = {};
+  vi.useFakeTimers(); vi.stubGlobal('window', window);
+  try {
+    let complete = false;
+    const staged = stageFloorGrid(plan, performance.timeOrigin).then(value => { complete = true; return value; });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(complete).toBe(false);
+    window.__wildshard = { world: { player: { position: { x: 0, z: 230 } }, game: { app: { input: { clear: vi.fn() } } } },
+      pose, shard: { grid: { state: () => current, residency: () => ({ claims: [] }) } } };
+    await vi.advanceTimersByTimeAsync(100);
+    expect((await staged).inside).toBe('home');
+    expect(pose).toHaveBeenCalledOnce(); pose.mockClear();
+    await expect(stageFloorGrid(plan, performance.timeOrigin - 1)).rejects.toThrow('document changed');
+    expect(pose).not.toHaveBeenCalled();
+  } finally { restoreGlobals(); vi.useRealTimers(); }
 });
