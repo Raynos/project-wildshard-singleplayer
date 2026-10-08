@@ -230,6 +230,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [load-mem-probe.mjs](./load-mem-probe.mjs)
 - [map-hash.d.mts](./map-hash.d.mts)
 - [map-hash.mjs](./map-hash.mjs)
+- [map-stylize.py](./map-stylize.py)
 - [model-spin.mjs](./model-spin.mjs)
 - [nalati-camp9.mjs](./nalati-camp9.mjs)
 - [nalati-chunk-views.mjs](./nalati-chunk-views.mjs)
