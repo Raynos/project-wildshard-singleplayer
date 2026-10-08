@@ -66,10 +66,18 @@ const _N = new THREE.Vector3(), _T = new THREE.Vector3(), _B = new THREE.Vector3
 // builds, and `voxelAO` returns the recorded values for a geometry whose inputs hash the same, marching only on a miss.
 // A miss is always safe (the code path runs); a stale table is caught by the bake's `--check` (bake-check.mjs).
 //
+// The key is built to be the same in Node and in every browser, and cheap (SF67 part 3): the hemisphere directions enter
+// quantised to 1e-9 and the normals to 2^-16 (both come from Math.cos / Math.sin, whose last bit differs between Node's V8,
+// Chromium's and Safari's: one direction's last bit made every Driftwood kit miss in the page), and the ground enters as a coarse probe (at most
+// 33 × 33 of the grid's columns, the same values the march reads there) instead of every column. The full column cache
+// (1.07 M terrain lookups for Driftwood's ground cover) is computed only when the call marches. A hit returns the Node
+// bake's values: bit-identical to what Chromium marches with the same directions; on an engine whose Math differs in the
+// last bit, the bake's (Node's) values, which is the one answer every platform now shows.
+//
 // Format (little-endian): 'WSAO' · u32 version · u32 entries · per entry: u32 hashA · u32 hashB · u32 count ·
 // u32 palette · u8 width (1 | 2) · f64[palette] (the distinct values, NaN included) · u8|u16[count] (each vertex's palette index).
 
-const BAKE_MAGIC = 0x4f415357, BAKE_VERSION = 1;
+const BAKE_MAGIC = 0x4f415357, BAKE_VERSION = 2;
 const baked = new Map<string, Float64Array>();
 const bakeStats = { hits: 0, misses: 0 };
 let recording: Map<string, Float64Array> | null = null;
@@ -95,6 +103,18 @@ function hashVec3(h: InputHash, a: THREE.BufferAttribute | THREE.InterleavedBuff
   for (let i = 0; i < a.count; i++) { h.num(a.getX(i)); h.num(a.getY(i)); h.num(a.getZ(i)); }
 }
 
+/** the normals into the hash quantised to 2^-16: a normal built through Math.cos / Math.sin can carry a different trig
+ *  residual (≈ 1e-16 in place of 0) in Node and in a browser (3 of Nalati's 61 geometries did), which moves no ray */
+function hashNormals(h: InputHash, a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): void {
+  h.word(0x4e513136);
+  if (a instanceof THREE.BufferAttribute && a.array instanceof Float32Array && a.itemSize === 3 && !a.normalized) {
+    const v = a.array;
+    for (let i = 0, n = a.count * 3; i < n; i++) h.word(Math.round((v[i] ?? 0) * 65536));
+    return;
+  }
+  for (let i = 0; i < a.count; i++) { h.word(Math.round(a.getX(i) * 65536)); h.word(Math.round(a.getY(i) * 65536)); h.word(Math.round(a.getZ(i) * 65536)); }
+}
+
 /** Add a baked table (scripts/bake-voxel-ao.mjs's bytes) for the builds that follow; the returned function drops it again.
  *  Bytes that do not parse add nothing (every geometry then marches, as it would with no bake). One table serves every
  *  tier: the keys are the inputs, so the phone's and the desktop's geometries sit side by side. */
@@ -104,6 +124,14 @@ export function addVoxelAOBake(bytes: ArrayBuffer | null): () => void {
   const added: string[] = [];
   for (const [key, k] of table) if (!baked.has(key)) { baked.set(key, k); added.push(key); }
   return () => { for (const key of added) baked.delete(key); };
+}
+
+/** Run a world build with the baked table at `url` added (fetched first; a missing or unreadable file adds nothing, so every
+ *  geometry marches as before), and drop the table once the build is done. */
+export async function withVoxelAOBake<T>(url: string, build: () => Promise<T>): Promise<T> {
+  const bytes = await fetch(url).then((r) => (r.ok ? r.arrayBuffer() : null), () => null);
+  const drop = addVoxelAOBake(bytes);
+  try { return await build(); } finally { drop(); }
 }
 
 /** A baked table's entries, or null when the bytes are not one (the bake's tier merge reads it too). */
@@ -179,30 +207,37 @@ export function voxelAO(geo: THREE.BufferGeometry, p: VoxelAOParams): Float64Arr
   const ext = new THREE.Vector3().subVectors(bb.max, bb.min);
   const ox = bb.min.x - pad * cell, oy = bb.min.y - pad * cell, oz = bb.min.z - pad * cell;
   const nx = Math.ceil(ext.x / cell) + pad * 2 + 1, ny = Math.ceil(ext.y / cell) + pad * 2 + 1, nz = Math.ceil(ext.z / cell) + pad * 2 + 1;
-  // the ground: a column cache of the cell under the terrain, or a plane (before the grid: the bake's key reads it)
+  // the ground: a column cache of the cell under the terrain (filled only when the call marches), or a plane
   const g = p.ground;
-  let columns: Int32Array | null = null;
+  const ground = g !== undefined && 'columns' in g ? g.columns : null;
   const below = g !== undefined && 'below' in g ? g.below : null;
-  if (g !== undefined && 'columns' in g) {
-    columns = new Int32Array(nx * nz);
-    for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) columns[iz * nx + ix] = Math.floor((g.columns(ox + (ix + 0.5) * cell, oz + (iz + 0.5) * cell) - oy) / cell);
-  }
+  const column = (fn: (x: number, z: number) => number, ix: number, iz: number): number => Math.floor((fn(ox + (ix + 0.5) * cell, oz + (iz + 0.5) * cell) - oy) / cell);
   const index = p.indexed ? geo.getIndex() : null;
   let bakeKey: string | null = null;
   if (baked.size > 0 || recording !== null) {
     const h = new InputHash();
     h.word(pos.count); h.word(index ? index.count : 0);
-    hashVec3(h, pos); hashVec3(h, nrm);
+    hashVec3(h, pos); hashNormals(h, nrm);
     if (index) { const ix = index.array; for (let i = 0; i < index.count; i++) h.word(ix[i] ?? 0); }
     for (const x of [bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z, cell, pad, p.spacing, p.maxSamples, p.indexed ? 1 : 0, p.sample === 'face' ? 0 : p.sample === 'weld' ? 1 : 2,
       p.offset, p.steps, p.stepLen, p.falloff, p.strength, p.downDark, below ?? Number.NaN, p.hemi.length]) h.num(x);
-    for (const [hx, hy, hz] of p.hemi) { h.num(hx); h.num(hy); h.num(hz); }
-    if (columns) for (const c of columns) h.word(c);
+    for (const [hx, hy, hz] of p.hemi) { h.word(Math.round(hx * 1e9)); h.word(Math.round(hy * 1e9)); h.word(Math.round(hz * 1e9)); }
+    if (ground !== null) {
+      // the coarse ground probe: every `sx`-th / `sz`-th column and the last row and column
+      const sx = Math.max(1, Math.ceil((nx - 1) / 32)), sz = Math.max(1, Math.ceil((nz - 1) / 32));
+      h.word(nx); h.word(nz);
+      for (let iz = 0; iz < nz; iz = iz === nz - 1 ? nz : Math.min(nz - 1, iz + sz)) for (let ix = 0; ix < nx; ix = ix === nx - 1 ? nx : Math.min(nx - 1, ix + sx)) h.word(column(ground, ix, iz));
+    }
     bakeKey = h.key();
     // the recorder always marches (the bake is the code's own output, never a copy of an older table)
     const hit = recording === null ? baked.get(bakeKey) : undefined;
     if (hit !== undefined && hit.length === pos.count) { bakeStats.hits++; return hit.slice(); }
     if (recording === null) bakeStats.misses++;
+  }
+  let columns: Int32Array | null = null;
+  if (ground !== null) {
+    columns = new Int32Array(nx * nz);
+    for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) columns[iz * nx + ix] = column(ground, ix, iz);
   }
   const grid = new Uint8Array(nx * ny * nz);
 

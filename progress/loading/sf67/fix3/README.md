@@ -1,9 +1,9 @@
-# SF67 fix 3: Driftwood's cove cover splat and Nalati's voxel AO baked at build (E461)
+# SF67 fix 3: Driftwood's cove cover splat and both worlds' voxel AO baked at build (E461)
 
-**Partial.** Two bakes have landed: Driftwood's Blender-cove cover splat (slice 1) and Nalati's world voxel AO
-(slice 2, below). Still built at load: Driftwood's rockKit boulders and small rocks, hibiscus bushes, palms, voxel AO
-(baked but not yet matched in the page, see slice 2), colliders and the procedural cove; Nalati's geometry, paint and
-colliders. They remain open SF67 work.
+**Partial.** Three bakes have landed: Driftwood's Blender-cove cover splat (slice 1), Nalati's world voxel AO
+(slice 2) and Driftwood's voxel AO with the page answered 100 % on both shards (slice 3, below). Still built at load:
+Driftwood's rockKit boulders and small rocks, hibiscus bushes, palms, colliders and the procedural cove; Nalati's
+geometry, paint and colliders. They remain open SF67 work.
 
 The cover bake now sits beside island.glb in `public/assets/models/driftwood-blender/` (slice 1 put it under
 `public/assets/baked/driftwood-isle/`, an asset folder the shard does not own: +2 shard-sandbox debt, now 0).
@@ -83,3 +83,59 @@ Parity: a hit returns the exact Float64 values the code computes in V8 (`--check
 test pins the round trip), so colours are bit-identical in Chromium; no collider or placement changes (no physics or
 pixel diff needed for this slice). Safari may compute the AO's last bits differently (`Math` differences), so on
 WebKit the baked values are V8's, not its own: not proven bit-identical there.
+
+## Slice 3: the page answers every AO call on both shards; Driftwood's table ships
+
+**Why the page missed.** A trace of every AO call's inputs (positions, normals, ground columns, params), recorded in Node
+and in the served page, showed the geometry and the ground identical on every Driftwood kit (so not the G164 drop:
+the Node host installs terrain.bin through the same datum-shifted binding the page uses). The key still differed
+because one hemisphere direction (`hemisphere()`'s `Math.cos` / `Math.sin`) differed in the last bit of its double
+between Node's V8 and Chromium's. Nalati's 3 remaining misses (the three biggest painted batches) were normals carrying
+a different trig residual (about 1e-16 in place of 0).
+
+**The fix** (`src/engine/world/voxelAO.ts`, table format version 2):
+- The key quantises the hemisphere directions to 1e-9 and the normals to 2^-16. Positions, index and params stay exact.
+- The ground enters the key as a coarse probe (at most 33 × 33 columns, the same values the march reads there).
+  A shifted ground (the −0.8 m drop) is still a different key; the test pins it.
+- The full column cache is built only when a call marches. Driftwood's ground cover alone was 1.07 M terrain lookups
+  per load, even on a hit.
+- `withVoxelAOBake(url, build)` is now an engine helper. Nalati's `boot/voxelAOBake.ts` is gone. Driftwood's hybrid
+  runtime wraps its world build with `/assets/models/driftwood-blender/voxel-ao.bin` (751 KB, 311 KB brotli,
+  7 geometries; one table serves both tiers).
+
+**Hit rate (stats read from a diagnostic build of the candidate, `?chunk=` boot):**
+
+| | phone | desktop |
+|---|---|---|
+| Driftwood, Chromium | 7 / 7 | 7 / 7 |
+| Nalati, Chromium | 61 / 61 (was 58 / 61) | 61 / 61 |
+| Driftwood, Playwright WebKit | 7 / 7 | |
+| Nalati, Playwright WebKit | 61 / 61 | |
+
+`--verify` in Node gives the same counts.
+
+**Parity.**
+- A hit returns the Node bake's exact values.
+- Node with every hemisphere direction nudged by one ulp gives 0 differing values out of 1 480 997 (Driftwood
+  213 789, Nalati 1 267 208). So the march Chromium or Safari would run yields the same AO the bake returns.
+- No placement or collider changes in this slice, so no physics or pixel diff is needed.
+
+**Matched captures** (4× CPU, iPhone 16 Pro emulation, muted, SHARD SELECT → ENTER WORLD; before `5b86b0eb8` (HEAD),
+after = HEAD + this change; order: Driftwood before, after; Nalati after, before; summaries in `slice3/`, traces not
+kept). AO = `voxelAO.ts` inclusive time in long tasks (analyze.mjs, source-mapped).
+
+| Arm (1-min load) | Shard | cold play / AO ms | warm play / AO ms |
+|---|---|---:|---:|
+| before (28) | Driftwood | 9 263 / 82 | 9 960 / 87 |
+| after (43) | Driftwood | 10 082 / 14 | 9 427 / 14 |
+| after (32) | Nalati | 15 609 / 10 | 15 431 / 11 |
+| before (33) | Nalati | 16 514 / 64 | 15 504 / 26 |
+
+- **Play times:** inside the noise (load 28 to 43, with other agents' suites running).
+- **AO time:** falls about 6× on both shards. What is left is the probe and the position hash.
+- **Heap and GL program counts:** unchanged.
+
+**Still open:**
+- Driftwood's rocks, bushes and shrine geometry, and Nalati's outcrops, camps, dressing and Kurgan geometry. They
+  dominate the props step: about 3.7 to 4.2 s and 5.3 to 6.0 s of long tasks.
+- Nalati's `paint.ts` `shade` (about 40 to 50 ms).

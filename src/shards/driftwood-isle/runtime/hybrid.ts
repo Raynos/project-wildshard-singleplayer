@@ -1,6 +1,7 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installDeclaredMovers } from '@wildshard/game/shardfile/moverRuntime';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
+import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import RuntimePlugin from './index';
 import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { driftwoodMoverViews } from './movers';
@@ -18,8 +19,9 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
     super(async (world, viewer, progress) => {
       const context = binding.context;
       if (context === undefined) throw new Error('Declared Driftwood movers require their scoped world hook');
-      // SF46 (G164): the resident's world is built lowered as one, the sea at road level
-      const built = await residentWorld.load(context, () => buildDriftwoodWorld(world, viewer, progress));
+      // SF46 (G164): the resident's world is built lowered as one, the sea at road level; its kits' voxel AO is read from
+      // the build-time bake (SF67, scripts/bake-voxel-ao.mjs), marching only on a miss
+      const built = await residentWorld.load(context, () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress)));
       const options = driftwoodMoverViews(built);
       if (options === null) throw new Error('Declared Driftwood movers require the bridge and moored boat');
       await installDeclaredMovers(context, world, options);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bake-voxel-ao.mjs — the voxel AO of a code-built world (Nalati's), at build time (SF67 fix 3, E461).
+// bake-voxel-ao.mjs — the voxel AO of the code-built worlds (Nalati's, Driftwood's), at build time (SF67 fix 3, E461).
 //
 // Both worlds marched voxel AO for every painted model on the main thread at load (the audit's voxelAO.ts:62 owner, in
 // Driftwood's lowpolyKit models and Nalati's camps, outcrops, dressing and Kurgan). The AO is a pure function of each
@@ -26,8 +26,9 @@ const TIERS = ['phone', 'desktop'];
  *  assetGlobs; the shard sandbox) */
 const OUTPUT = {
   'nalati-grasslands': 'public/assets/nalati/baked/voxel-ao.bin',
-  // Driftwood is not baked yet: its page build (the G164 hybrid boot) gives its kits other AO inputs than this host
-  // does (every kit missed the table in the 2026-10-08 matched capture), so a table would only cost the download
+  // beside the Blender island's other build outputs; the page's G164 boot hits every kit (the key drops the trig last bits
+  // that differ between Node and the browsers, SF67 part 3)
+  'driftwood-isle': 'public/assets/models/driftwood-blender/voxel-ao.bin',
 };
 const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 const tierArg = arg('tier'), slugArg = arg('slug'), recordTo = arg('record-to');
