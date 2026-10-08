@@ -76,6 +76,7 @@
  * several shards are `shared/…` models in src/models/creatures/ (the deer, the boar, the bear); gear is category `gear`
  * (a weapon's viewmodel keeps its own queue and depth clear: the model is its catalog specimen and its source of truth).
  */
+import { cacheUntilDisposed } from '../app/cachedAssets';
 import type * as THREE from 'three';
 import type { ColliderDesc, ModelCategory, Pipeline } from '../world/registry';
 import type { Material } from '../physics/surface';
@@ -144,7 +145,7 @@ export function modelContext(sky: Sky | null, renderer: Renderer | null = null, 
       if (memo.has(key)) return memo.get(key) as T;
       const v = make();
       memo.set(key, v);
-      return v;
+      return cacheUntilDisposed(v, () => { if (memo.get(key) === v) memo.delete(key); });
     },
   };
 }

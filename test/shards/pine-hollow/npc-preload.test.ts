@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial, SkinnedMesh } from 'three';
+import { BoxGeometry, Group, Mesh, MeshStandardMaterial, SkinnedMesh, Texture } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { NpcModels, NPC_KINDS } from '../../../src/shards/pine-hollow/quest/npcModels';
 import { makeNpcFigure } from '../../../src/shards/pine-hollow/models/people';
@@ -39,6 +39,30 @@ describe('Pine people boot barrier (E357 R9)', { timeout: 30_000 }, () => {
       for (const resolve of pending) resolve(person()); await done;
     }
 
+  });
+
+  it('reloads retired source maps and materials instead of reusing a disposed regional NPC', async () => {
+    const load = vi.fn(() => {
+      const gltf = person();
+      gltf.scene.traverse(object => {
+        if (object instanceof Mesh && object.material instanceof MeshStandardMaterial) object.material.map = new Texture();
+      });
+      return Promise.resolve(gltf);
+    });
+    const models = new NpcModels(load), sky = fakeWorld().sky;
+    let previous: Texture | null = null;
+    for (let entry = 0; entry < 3; entry++) {
+      const source = await models.load('miller');
+      if (source?.map === null || source === null) throw new Error('Missing NPC source map');
+      const rig = models.rig('miller', sky);
+      if (rig === null || !(rig.mesh.material instanceof MeshStandardMaterial)) throw new Error('Missing NPC rig');
+      expect(rig.mesh.material.map).toBe(source.map);
+      expect(source.map).not.toBe(previous);
+      previous = source.map;
+      source.map.dispose(); rig.mesh.material.dispose(); rig.mesh.geometry.dispose();
+      expect(models.rig('miller', sky)).toBeNull();
+      expect(load).toHaveBeenCalledTimes(entry + 1);
+    }
   });
 
   it('waits at quest installation and proceeds with a stand-in only after NPC loading fails', async () => {

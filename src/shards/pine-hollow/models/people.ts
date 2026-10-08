@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 /**
  * The hamlet's people, stand-ins (PINE-HOLLOW-REMASTER PH-C1 / C6): Hale the ranger, Brandt the miller, Mott the trader
  * as simple standing figures until PH-M4's generated, rigged humans land. ONE factory — `makeNpcFigure(kind, sky)` —
@@ -52,12 +53,13 @@ export function npcMaterial(sky: Sky): THREE.MeshStandardMaterial {
     sharedMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.86, metalness: 0 });
     sharedMat.name = 'ph-npc';
     sky.setupMaterial(sharedMat);
+    cacheUntilDisposed(sharedMat, () => { sharedMat = null; });
   }
   return sharedMat;
 }
 /** unlit glow (lantern glass): the interactables kit's glow program (vertex colours on MeshBasicMaterial) */
 export function npcGlowMaterial(): THREE.MeshBasicMaterial {
-  sharedGlow ??= new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true });
+  sharedGlow ??= cacheUntilDisposed(new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true }), () => { sharedGlow = null; });
   return sharedGlow;
 }
 

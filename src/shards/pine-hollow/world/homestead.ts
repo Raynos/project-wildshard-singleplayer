@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -64,7 +65,8 @@ const matsCache = new WeakMap<Sky, Promise<Mats>>();
 /** the cabins' PBR materials, loaded once per sky and shared (PH-B3: the landmarks build with the same set — no new programs) */
 export function cabinMats(sky: Sky): Promise<Mats> {
   let p = matsCache.get(sky);
-  if (p === undefined) { p = loadMats(sky); matsCache.set(sky, p); }
+  if (p === undefined) { p = loadMats(sky); matsCache.set(sky, p);
+    const cached = p; void cacheUntilDisposed(cached, () => { if (matsCache.get(sky) === cached) matsCache.delete(sky); }); }
   return p;
 }
 
@@ -178,7 +180,7 @@ const SHARED_CABIN_LIGHTS = 2;
 
 /** Billboard particle material driven entirely by uTime (no per-frame CPU work). */
 function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
-  noiseTex ??= makeNoiseTexture();
+  noiseTex ??= cacheUntilDisposed(makeNoiseTexture(), () => { noiseTex = undefined; });
   const cfg = {
     smoke: { life: 11.0, rise: 12.0, spread: 0.25, size: [0.7, 4.6], wind: [1.6, 0.0, 0.45], blend: THREE.NormalBlending, fog: true },
     flame: { life: 0.85, rise: 0.95, spread: 0.36, size: [0.95, 0.3], wind: [0, 0, 0], blend: THREE.AdditiveBlending, fog: false },

@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -97,7 +98,13 @@ export class NpcModels {
           found.push({ geometry: g, map: std?.map ?? null, normalMap: std?.normalMap ?? null });
         });
         const hit = found[0] ?? null;
-        if (hit !== null) this.sources.set(kind, hit);
+        if (hit !== null) {
+          this.sources.set(kind, hit);
+          cacheUntilDisposed(hit, () => {
+            if (this.sources.get(kind) !== hit) return;
+            this.sources.delete(kind); this.loading.delete(kind); this.sharedMats.delete(kind);
+          });
+        }
         if (hit !== null) legRigOf(kind, hit.geometry);   // E322 F-M3: the rig now, one person a frame, not all three on their first update
         return hit;
       }).catch((e: unknown) => { console.warn(`[pine-hollow] npc model ${kind} failed`, e); return null; });
@@ -119,6 +126,7 @@ export class NpcModels {
       if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
       sky.setupMaterial(mat);
       this.sharedMats.set(kind, mat);
+      const cached = mat; cacheUntilDisposed(cached, () => { if (this.sharedMats.get(kind) === cached) this.sharedMats.delete(kind); });
     }
     // E322 F-M3: legs, a clavicle and a twist bone, the walk clip (npcRig.ts)
     const lb = legRigOf(kind, src.geometry), lbones = legBones(lb), pose = legPose(lbones, lb);
