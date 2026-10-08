@@ -24,20 +24,27 @@ export interface LiveGridAdmission {
   prepareRuntime?: () => Promise<void>;
   /** Trusted factory reads its durable exact/logical continuation after preparing the immutable physics basis. */
   reloadsCheckpoint?: boolean;
+  /** Opaque world foundations are mutually exclusive; prefetch admits only their product/module until the road departure. */
+  exclusiveRuntime?: boolean;
 }
 /** The page owns its initial world and continuation. The registry never replaces or disposes that borrowed world. */
 export interface LiveGridHome {
+  mode?: 'borrowed';
   instance: string; physics: Physics; bytes: number; checkpoint: () => boolean;
   /** The page's pre-allocation claim. The registry acquires its own reference on the same owner and exact cost. */
   residency?: HomeResidencyClaim;
   afterPlayerStep?: () => void; walls?: ReadinessWalls;
 }
+/** G226: the initial home is an ordinary owned region; the neutral page constructs none of its opaque content. */
+export interface LiveGridOwnedHome { mode: 'owned'; instance: string; bytes: number; residency: HomeResidencyClaim }
+/** Neutral shell physics and its one traveller remain page-owned; disposal removes only platform installations. */
+export interface LiveGridHighway { physics: Physics; dispose: () => void; walls?: ReadinessWalls; afterPlayerStep?: () => void }
 /** An infallible prepared assignment rebinds the existing page world/player and the renderer's local origin. */
 export interface LiveGridFrame { instance: string | null; physics: Physics; motor: FrameMember['motor']; origin: Readonly<{ x: number; z: number }>; host?: SimHost }
 /** One live fixed-step owner supplies movement; region clocks/systems run only after that move. */
 export interface LiveGridPorts {
-  home: LiveGridHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
-  highway: { bytes: number; create: () => LiveGridRegion };
+  home: LiveGridHome | LiveGridOwnedHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
+  highway: { bytes: number; create: () => LiveGridRegion | LiveGridHighway };
   admit: (cell: GridCell) => Promise<LiveGridAdmission>;
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
    *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
@@ -60,15 +67,18 @@ export interface LiveGridState {
   gameplayReady: boolean;
   continuations: { entries: number; storedChars: number; capacityChars: number; claimedBytes: number };
 }
-interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; reservations: number; evicting: boolean }
+interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; exclusiveRuntime: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean }
 
-/** Live counterpart of GridSimulation: borrowed home, independent frozen regions, and exactly one page traveller. */
+/** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
+ * owned homes begin on neutral page physics and transfer the sole preallocation claim to their first runtime. */
 export class LiveGridHost {
   readonly readiness = new TraversalReadiness();
   private readonly residents = new Map<string, Resident>();
   private readonly saved = new GridContinuationCache();
   private readonly cacheLease: ResidencyLease | undefined;
   private readonly requests = new Map<string, Promise<void>>();
+  private readonly products = new Map<string, LiveGridAdmission>();
+  private readonly productRequests = new Map<string, Promise<LiveGridAdmission>>();
   private readonly issues = new Map<string, string>();
   private readonly refusals = new Map<string, unknown>();
   /** One failed cold unload per excursion; quota failures retain their full claim until retry or re-approach. */
@@ -76,21 +86,23 @@ export class LiveGridHost {
   private readonly frames = new Set<() => void>();
   private readonly transitions: { from: string | null; to: string | null }[] = [];
   private crossings = 0;
-  private readonly homeLease: ResidencyLease;
+  private readonly homeLease: ResidencyLease | undefined;
+  private initialHomeLease: ResidencyLease | undefined;
   private readonly highwayLease: ResidencyLease;
-  private readonly highway: LiveGridRegion;
+  private readonly highway: LiveGridRegion | LiveGridHighway;
   private readonly limit: number;
   private sequence: Promise<void> = Promise.resolve();
   private active: string | null;
   private unbind: (() => void) | undefined;
   private disposed = false;
+  private highwayDisposed = false;
   readonly assembly: GridAssembly;
   private readonly ports: LiveGridPorts;
 
   constructor(assembly: GridAssembly, ports: LiveGridPorts) {
     this.assembly = assembly; this.ports = ports;
     const home = assembly.cell(ports.home.instance), homeEstimate = readinessModel(ports.readiness.bundle(home), ports.readiness.link);
-    this.active = ports.home.instance; this.limit = ports.maxResidents ?? 4;
+    this.active = ports.home.mode === 'owned' ? null : ports.home.instance; this.limit = ports.maxResidents ?? 4;
     if (!Number.isInteger(this.limit) || this.limit < 1 || this.limit > 8) throw new RangeError('Invalid live grid resident limit');
     if (ports.continuations !== 'durable') {
       const cacheId = `sim-continuations:live:${ports.home.instance}`;
@@ -100,25 +112,42 @@ export class LiveGridHost {
       this.cacheLease = cacheLease;
     }
     try {
-      this.homeLease = this.retainHome();
+      if (ports.home.mode === 'owned') {
+        this.validateHomeClaim(ports.home.residency);
+        this.initialHomeLease = ports.home.residency.handoff();
+      } else this.homeLease = this.retainHome();
       try {
         this.highwayLease = this.claim('platform.highway', ports.highway.bytes, true);
-        try { this.highway = ports.highway.create(); try { this.checkRegion(this.highway); } catch (error) { this.highway.dispose(); throw error; } }
+        try { this.highway = ports.highway.create(); try {
+          if (ports.home.mode === 'owned') {
+            if ('host' in this.highway) throw new Error('Owned home requires neutral page highway physics');
+            if (this.highway.physics.world.getCollider(ports.player.motor.collider.handle) !== ports.player.motor.collider) throw new Error('Neutral highway must contain the existing page traveller');
+          } else {
+            if (!('host' in this.highway)) throw new Error('Borrowed home requires its owned highway host');
+            this.checkRegion(this.highway);
+          }
+        } catch (error) { this.highway.dispose(); throw error; } }
         catch (error) { this.highwayLease.release(); throw error; }
-      } catch (error) { this.homeLease.release(); throw error; }
+      } catch (error) { this.homeLease?.release(); this.initialHomeLease?.release(); throw error; }
     } catch (error) { this.cacheLease?.release(); throw error; }
-    const ticket = this.readiness.request(ports.home.instance, 0, homeEstimate, false);
-    if (ticket !== null) for (const part of ['colliders', 'sim', 'runtime'] as const) this.readiness.complete(ticket, part);
+    if (ports.home.mode !== 'owned') {
+      const ticket = this.readiness.request(ports.home.instance, 0, homeEstimate, false);
+      if (ticket !== null) for (const part of ['colliders', 'sim', 'runtime'] as const) this.readiness.complete(ticket, part);
+    }
+  }
+  private validateHomeClaim(claim: HomeResidencyClaim): void {
+    const home = this.ports.home;
+    if (claim.instance !== home.instance || claim.bytes !== home.bytes || claim.allocator !== this.ports.allocator) throw new Error('Live home residency differs from its admitted page claim');
   }
   private retainHome(): ResidencyLease {
     const home = this.ports.home, claim = home.residency;
     if (claim === undefined) return this.claim(home.instance, home.bytes, true);
-    if (claim.instance !== home.instance || claim.bytes !== home.bytes || claim.allocator !== this.ports.allocator) throw new Error('Live home residency differs from its admitted page claim');
+    this.validateHomeClaim(claim);
     return claim.retain();
   }
   private claim(instance: string, bytes: number, needed: boolean): ResidencyLease {
     const lease = this.ports.allocator.reserve({ id: `sim:${instance}`, category: 'sim', owner: instance, bytes, distance: 0, needed,
-      ...(instance === this.ports.home.instance || instance === 'platform.highway' ? {} : { prepareEvict: () => this.prepareUnload(instance) }) });
+      ...(this.ports.home.mode === 'owned' || this.borrowedHome(instance) || instance === 'platform.highway' ? {} : { prepareEvict: () => this.prepareUnload(instance) }) });
     if (lease === null) throw new Error('Live sim admission deferred by the shared budget');
     return lease;
   }
@@ -127,10 +156,12 @@ export class LiveGridHost {
   }
   /** Null identifies the permanent highway/strip world; home is the already-running page world. */
   current(): string | null { return this.active; }
+  private borrowedHome(instance: string | null): boolean { return this.ports.home.mode !== 'owned' && instance === this.ports.home.instance; }
   private origin(instance: string | null): { x: number; z: number } { return instance === null ? { x: 0, z: 0 } : this.assembly.cell(instance).origin; }
-  private region(instance: string | null): LiveGridRegion | undefined { return instance === null ? this.highway : this.residents.get(instance)?.region; }
+  private region(instance: string | null): LiveGridRegion | undefined { return instance === null ? 'host' in this.highway ? this.highway : undefined : this.residents.get(instance)?.region; }
   private physics(instance: string | null): Physics {
-    if (instance === this.ports.home.instance) return this.ports.home.physics;
+    if (instance === null) return 'host' in this.highway ? this.highway.host.physics : this.highway.physics;
+    if (this.ports.home.mode !== 'owned' && instance === this.ports.home.instance) return this.ports.home.physics;
     const region = this.region(instance); if (region === undefined) throw new Error('Live grid region is not admitted'); return region.host.physics;
   }
   /** Render/global coordinates are derived, never written into an authored regional host. */
@@ -144,14 +175,37 @@ export class LiveGridHost {
   }
   /** Admission includes colliders, initialized sim and parsed runtime module; entered hooks are a separate gameplay fence. */
   ready(instance: string | null): boolean {
-    return !this.disposed && (instance === null || instance === this.ports.home.instance || (this.residents.has(instance) && !this.residents.get(instance)?.evicting && this.readiness.status(instance).ready));
+    return !this.disposed && (instance === null || this.borrowedHome(instance) || (this.residents.has(instance) && !this.residents.get(instance)?.evicting && !this.residents.get(instance)?.disposalFailed && this.readiness.status(instance).ready));
   }
   /** Submit whole-shard requests in stable order. Failed attempts remain closed until an explicit retry. */
-  prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.ensure(id))).then(() => undefined); }
+  prefetch(instances: readonly string[]): Promise<void> { return Promise.all([...new Set(instances)].sort().map((id) => this.ports.home.mode === 'owned' ? this.residents.has(id) ? Promise.resolve() : this.prefetchProduct(id) : this.ensure(id))).then(() => undefined); }
+  private prefetchProduct(instance: string): Promise<LiveGridAdmission> {
+    this.assertAlive(); const cell = this.assembly.cell(instance);
+    const product = this.products.get(instance); if (product !== undefined) return Promise.resolve(product);
+    const pending = this.productRequests.get(instance); if (pending !== undefined) return pending;
+    const issue = this.issues.get(instance); if (issue !== undefined) return Promise.reject(new Error(issue));
+    const request = (async (): Promise<LiveGridAdmission> => {
+      let admission: LiveGridAdmission | undefined;
+      try {
+        await Promise.resolve(); this.assertAlive();
+        admission = await this.ports.admit(cell); this.assertAlive();
+        const bundle = this.ports.readiness.bundle(cell);
+        if ((bundle.hybridWireBytes > 0 || admission.exclusiveRuntime === true) && admission.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
+        await admission.prepareRuntime?.(); this.assertAlive();
+        this.products.set(instance, admission); return admission;
+      } catch (error) {
+        this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
+        try { admission?.cancel?.(); }
+        catch (cleanup) { throw new AggregateError([error, cleanup], 'Live product admission and cancellation failed', { cause: cleanup }); }
+        throw error;
+      } finally { this.productRequests.delete(instance); }
+    })();
+    this.productRequests.set(instance, request); return request;
+  }
   private ensure(instance: string): Promise<void> {
     if (this.disposed) return Promise.reject(new Error('Live grid is disposed'));
     const cell = this.assembly.cell(instance);
-    if (instance === this.ports.home.instance || this.residents.has(instance)) return Promise.resolve();
+    if (this.borrowedHome(instance) || this.residents.has(instance)) return Promise.resolve();
     const pending = this.requests.get(instance); if (pending !== undefined) return pending;
     const issue = this.issues.get(instance); if (issue !== undefined) return Promise.reject(new Error(issue));
     const bundle = this.ports.readiness.bundle(cell), estimate = readinessModel(bundle, this.ports.readiness.link);
@@ -167,32 +221,53 @@ export class LiveGridHost {
     let admission: LiveGridAdmission | undefined;
     try {
       await previous; this.assertAlive(); this.retireColdRegions();
-      const admitted = await this.ports.admit(cell);
+      const admitted = this.ports.home.mode === 'owned' ? await this.prefetchProduct(instance) : await this.ports.admit(cell);
       admission = admitted;
       this.assertAlive();
+      if (this.ports.home.mode === 'owned') {
+        if (this.active !== null || [...this.residents.values()].some((row) => row.exclusiveRuntime || row.disposalFailed)
+          || (admitted.exclusiveRuntime === true && this.residents.size > 0)) throw new Error('Exclusive runtime awaits source departure and successful disposal');
+        this.products.delete(instance);
+      }
       if (this.ports.continuations === 'durable' && admitted.reloadsCheckpoint !== true && this.ports.read === undefined) throw new Error('Durable-only live regions require a checkpoint reader before allocation');
       // The borrowed home is a resident too; the permanent highway is outside the per-shard count.
-      while (this.residents.size + 1 >= this.limit) {
+      while (this.residents.size + (this.ports.home.mode === 'owned' ? 0 : 1) >= this.limit) {
         const candidate = [...this.residents].filter(([id, value]) => id !== this.active && value.reservations === 0 && !value.evicting)
           .sort(([a], [b]) => this.distance(this.assembly.cell(b)) - this.distance(this.assembly.cell(a)) || a.localeCompare(b))[0];
         if (candidate === undefined || !this.unload(candidate[0])) throw new Error('No durable frozen live region can be evicted');
       }
-      const lease = this.claim(instance, admitted.bytes, true); let region: LiveGridRegion | undefined;
+      let lease: ResidencyLease;
+      if (instance === this.ports.home.instance && this.initialHomeLease !== undefined) {
+        if (admitted.bytes !== this.ports.home.bytes) throw new Error('Owned initial home differs from its preallocation claim');
+        lease = this.initialHomeLease; this.initialHomeLease = undefined;
+      } else lease = this.claim(instance, admitted.bytes, true);
+      let region: LiveGridRegion | undefined;
       try {
         const prior = this.saved.read(instance) ?? this.ports.read?.(instance);
         const packed = prior === undefined || this.ports.continuations === 'durable' ? undefined : this.saved.pack(instance, prior);
         if (packed === null) throw new Error('Live continuation cache capacity exceeded');
         if (bundle.hybridWireBytes > 0 && admitted.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
-        await admitted.prepareRuntime?.(); this.assertAlive(); this.readiness.complete(ticket, 'runtime');
+        if (this.ports.home.mode !== 'owned') await admitted.prepareRuntime?.();
+        this.assertAlive(); this.readiness.complete(ticket, 'runtime');
         region = await admitted.create(prior, lease); this.checkRegion(region);
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
-        this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, reservations: 0, evicting: false });
+        this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, exclusiveRuntime: admitted.exclusiveRuntime === true, reservations: 0, evicting: false });
         this.readiness.complete(ticket, 'colliders'); this.readiness.complete(ticket, 'sim');
         lease.update({ needed: false, distance: this.distance(cell) });
-      } catch (error) { try { region?.dispose(); } finally { lease.release(); } throw error; }
+      } catch (error) {
+        try { region?.dispose(); }
+        catch (cleanup) {
+          if (region !== undefined) this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true,
+            exclusiveRuntime: true, reservations: 0, evicting: false, disposalFailed: true });
+          admission = undefined; // The retained world still owns its product and its full claim.
+          throw new AggregateError([error, cleanup], 'Live region creation and disposal failed', { cause: cleanup });
+        }
+        lease.release(); throw error;
+      }
     } catch (error) {
       this.readiness.invalidate(instance); this.issues.set(instance, error instanceof Error ? error.message : String(error)); this.refusals.set(instance, error);
+      if (this.ports.home.mode === 'owned') this.products.delete(instance);
       try { admission?.cancel?.(); }
       catch (cleanup) { throw new AggregateError([error, cleanup], 'Live admission and product cancellation failed', { cause: cleanup }); }
       throw error;
@@ -203,9 +278,9 @@ export class LiveGridHost {
   /** Dispose cold frozen worlds before a new product/sim claim, with a ten-metre release band at the readiness bound. */
   private retireColdRegions(): void {
     for (const cell of this.assembly.cells) {
-      if (cell.instance === this.ports.home.instance) continue;
+      if (this.borrowedHome(cell.instance)) continue;
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
-      const resident = this.residents.get(cell.instance); resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 });
+      const resident = this.residents.get(cell.instance); resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 || resident.disposalFailed === true });
       if (distance <= estimate.distance + 10) this.coldUnloadRefused.delete(cell.instance);
       else if (resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
         && !this.coldUnloadRefused.has(cell.instance) && !this.unload(cell.instance)) this.coldUnloadRefused.add(cell.instance);
@@ -213,7 +288,7 @@ export class LiveGridHost {
   }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
   retry(instance: string): void {
-    if (this.requests.has(instance)) throw new Error('Live admission is still pending');
+    if (this.requests.has(instance) || this.productRequests.has(instance)) throw new Error('Live admission is still pending');
     this.coldUnloadRefused.delete(instance);
     // A quota-refused unload kept a complete native region: retry must not invalidate its valid readiness ticket.
     if (this.residents.has(instance)) return;
@@ -227,27 +302,30 @@ export class LiveGridHost {
     // Request the closest cells that fit the shard count. Requesting all eight within a wide cold bound
     // would repeatedly evict and rebuild earlier admissions even while the traveller stands still.
     // Unsupported far proxies do not consume the count before enterable cells inside the cold readiness bound.
-    const nearby = this.assembly.cells.filter((cell) => cell.instance !== this.ports.home.instance && (this.ports.prefetchable?.(cell) ?? true))
-      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, this.limit - 1);
+    const nearby = this.assembly.cells.filter((cell) => !this.borrowedHome(cell.instance) && cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true))
+      .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, this.limit - (this.ports.home.mode === 'owned' ? 0 : 1));
     // Retire cold, frozen worlds before requesting another one. The ten-metre release band avoids rebuilding at the
     // cold-request threshold; active/prepared frames remain protected by prepareUnload, without changing motor bands.
     this.retireColdRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
-      if (distance <= estimate.distance && !this.issues.has(cell.instance)) void this.ensure(cell.instance).catch(() => undefined);
+      if (distance <= estimate.distance && !this.issues.has(cell.instance)) void this.prefetch([cell.instance]).catch(() => undefined);
     }
-    const walls = this.active === this.ports.home.instance ? this.ports.home.walls : this.region(this.active)?.walls;
+    const walls = this.ports.home.mode !== 'owned' && this.active === this.ports.home.instance ? this.ports.home.walls
+      : this.active === null ? this.highway.walls : this.region(this.active)?.walls;
     walls?.sync(this.readiness);
   }
   /** Once after the existing player move; paused hook installation does not advance the region's simulation. */
   afterPlayerStep(): void {
     if (this.disposed || (this.active !== null && !this.ports.gameplayReady(this.active))) return;
-    if (this.active === this.ports.home.instance) this.ports.home.afterPlayerStep?.(); else this.region(this.active)?.host.stepExternal();
+    if (this.ports.home.mode !== 'owned' && this.active === this.ports.home.instance) this.ports.home.afterPlayerStep?.();
+    else if (this.active === null && !('host' in this.highway)) this.highway.afterPlayerStep?.();
+    else this.region(this.active)?.host.stepExternal();
   }
   /** Borrowed home uses its logical save owner; owned regions capture the current traveller without acquiring its motor. */
   checkpoint(instance: string): boolean {
     if (this.disposed) return false;
-    if (instance === this.ports.home.instance) return this.ports.home.checkpoint();
+    if (this.ports.home.mode !== 'owned' && instance === this.ports.home.instance) return this.ports.home.checkpoint();
     const resident = this.residents.get(instance); if (resident === undefined) return false;
     if (resident.region.checkpoint !== undefined) return resident.region.checkpoint();
     let snapshot = this.saved.read(instance);
@@ -265,19 +343,26 @@ export class LiveGridHost {
   prepareUnload(instance: string): ResidencyEviction | null {
     const resident = this.residents.get(instance);
     if (resident === undefined || this.disposed || instance === this.active || resident.reservations > 0 || resident.evicting) return null;
-    try { if (!this.checkpoint(instance)) return null; } catch { return null; }
+    try { if (!resident.disposalFailed && !this.checkpoint(instance)) return null; } catch { return null; }
     resident.evicting = true; let closed = false;
     return { abort: () => { if (closed) return; closed = true; resident.evicting = false; }, commit: () => {
-      if (closed) return; closed = true; this.residents.delete(instance); this.readiness.invalidate(instance);
+      if (closed) return; closed = true;
+      try { resident.region.dispose(); }
+      catch (error) {
+        resident.evicting = false; resident.disposalFailed = true; resident.lease.update({ needed: true });
+        this.readiness.invalidate(instance); this.issues.set(`cleanup:${instance}`, error instanceof Error ? error.message : String(error)); return;
+      }
+      this.residents.delete(instance); this.readiness.invalidate(instance);
       if (resident.reloadsCheckpoint) this.saved.drop(instance);
-      for (const dispose of [resident.region.dispose, () => { resident.lease.release(); }]) try { dispose(); } catch (error) { this.issues.set(`cleanup:${instance}`, error instanceof Error ? error.message : String(error)); }
+      resident.lease.release();
     } };
   }
   /** Leave active/home/highway worlds intact; unload only a durably checkpointed frozen region. */
-  unload(instance: string): boolean { if (instance === this.ports.home.instance) return false; if (!this.residents.has(instance)) return true; const prepared = this.prepareUnload(instance); if (prepared === null) return false; prepared.commit(); return true; }
+  unload(instance: string): boolean { if (this.borrowedHome(instance)) return false; if (!this.residents.has(instance)) return true; const prepared = this.prepareUnload(instance); if (prepared === null) return false; prepared.commit(); return !this.residents.has(instance); }
   /** Prepare disabled replacement controllers while the existing page stays authoritative; no entered runtime hooks run here. */
   async prepare(from: string | null, to: string | null): Promise<PreparedGridCrossing> {
     if (this.disposed || this.active !== from || from === to) throw new Error('Stale live frame preparation');
+    if (this.ports.home.mode === 'owned' && from !== null && to !== null) throw new Error('Owned runtime crossing must commit onto the neutral road first');
     if (to !== null) await this.ensure(to);
     if (this.active !== from || !this.ready(to)) throw new Error('Unready live frame preparation');
     const destination = this.region(to)?.host;
@@ -304,22 +389,36 @@ export class LiveGridHost {
     } };
   }
   /** Read-only crossing evidence and failures for the real grid physics harness. */
-  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...this.requests.keys()].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
-  /** Dispose owned regions/controllers only; the page retains its traveller and borrowed home physics. */
+  state(): LiveGridState { return { current: this.active, worldFeet: this.worldFeet(), crossings: this.crossings, transitions: this.transitions.map((row) => ({ ...row })), residents: [...this.residents.keys()].sort(), pending: [...new Set([...this.requests.keys(), ...this.productRequests.keys()])].sort(), issues: Object.fromEntries(this.issues), gameplayReady: this.active === null || this.ports.gameplayReady(this.active), continuations: this.ports.continuations === 'durable' ? { entries: 0, storedChars: 0, capacityChars: 0, claimedBytes: 0 } : { ...this.saved.state(), claimedBytes: this.disposed ? 0 : GRID_CONTINUATION_CACHE_BYTES } }; }
+  /** Return the traveller to its page world before retiring regions. Failed disposals keep their full claims
+   * and can be retried; the neutral highway disposer never owns the page physics or latest traveller motor. */
   dispose(): void {
-    if (this.disposed) return; this.disposed = true;
+    this.disposed = true;
     for (const cancel of this.frames) cancel(); this.unbind?.(); this.unbind = undefined;
     // Return the still-live page traveller before freeing a world that contains its current controller.
-    if (this.active !== this.ports.home.instance) {
-      const source = this.origin(this.active), origin = this.origin(this.ports.home.instance), rider = { position: this.ports.player.position, motor: this.ports.player.motor }, mount = this.ports.mount?.();
-      prepareFrameMotors(mount === undefined ? [rider] : [rider, mount], this.ports.home.physics, { x: source.x - origin.x, z: source.z - origin.z }).commit();
-      this.ports.player.motor = rider.motor; this.active = this.ports.home.instance;
-      this.ports.bindFrame({ instance: this.active, physics: this.ports.home.physics, motor: rider.motor, origin });
+    const page = this.ports.home.mode === 'owned' ? null : this.ports.home.instance;
+    if (this.active !== page) {
+      const source = this.origin(this.active), origin = this.origin(page), physics = this.physics(page);
+      const rider = { position: this.ports.player.position, motor: this.ports.player.motor }, mount = this.ports.mount?.();
+      prepareFrameMotors(mount === undefined ? [rider] : [rider, mount], physics, { x: source.x - origin.x, z: source.z - origin.z }).commit();
+      this.ports.player.motor = rider.motor; this.active = page;
+      this.ports.bindFrame({ instance: page, physics, motor: rider.motor, origin });
     }
-    const cleanups = [...this.residents.values()].flatMap((resident) => [resident.region.dispose, () => { resident.lease.release(); }]);
-    cleanups.push(this.highway.dispose, () => { this.highwayLease.release(); }, () => { this.homeLease.release(); }, () => { this.cacheLease?.release(); });
-    this.residents.clear(); this.saved.clear(); const failures: unknown[] = [];
-    for (const cleanup of cleanups) try { cleanup(); } catch (error) { failures.push(error); }
+    const failures: unknown[] = [];
+    for (const [instance, resident] of this.residents) {
+      try { resident.region.dispose(); }
+      catch (error) { resident.disposalFailed = true; resident.lease.update({ needed: true }); failures.push(error); continue; }
+      this.residents.delete(instance); resident.lease.release();
+    }
+    for (const [instance, product] of this.products) {
+      try { product.cancel?.(); this.products.delete(instance); } catch (error) { failures.push(error); }
+    }
+    if (!this.highwayDisposed) {
+      try { this.highway.dispose(); this.highwayDisposed = true; this.highwayLease.release(); }
+      catch (error) { failures.push(error); }
+    }
+    this.homeLease?.release(); this.initialHomeLease?.release(); this.initialHomeLease = undefined;
+    this.saved.clear(); this.cacheLease?.release();
     if (failures.length > 0) throw new AggregateError(failures, 'Live grid disposal failed');
   }
 }
