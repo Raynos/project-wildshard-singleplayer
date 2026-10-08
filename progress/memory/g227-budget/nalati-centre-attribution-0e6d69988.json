@@ -1,0 +1,2569 @@
+{
+  "pin": "0e6d69988",
+  "build": {
+    "build": "0e6d699-muz9mvsb",
+    "time": "2026-10-08T08:19:46.750Z"
+  },
+  "scope": "Mac Playwright WebKit iPhone 16 Pro phone tier, Auto/KTX2, Developer, Memory saver ON; retainer attribution only, not Simulator WC.",
+  "closed": true,
+  "errors": [],
+  "warnings": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "The resource http://127.0.0.1:4403/assets/Settings-BvngLLKn.js was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing."
+  ],
+  "routes": [
+    {
+      "name": "nalati-direct",
+      "result": null,
+      "to": "nalati-grasslands"
+    },
+    {
+      "name": "nalati-grasslands-centre",
+      "result": null,
+      "to": "nalati-grasslands"
+    }
+  ],
+  "classes": [
+    {
+      "className": "WebGL2RenderingContext",
+      "size": 305387277,
+      "retainedSize": 305409001,
+      "count": 3,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "ArrayBuffer",
+      "size": 140811329,
+      "retainedSize": 140812183,
+      "count": 1492,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "AudioBuffer",
+      "size": 68354945,
+      "retainedSize": 68355788,
+      "count": 37,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "ImageBitmap",
+      "size": 56033576,
+      "retainedSize": 56033870,
+      "count": 49,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "Float32Array",
+      "size": 38275704,
+      "retainedSize": 38275704,
+      "count": 11109,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "FunctionCodeBlock",
+      "size": 31341872,
+      "retainedSize": 31703671,
+      "count": 6375,
+      "internalCount": 6375,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "Object",
+      "size": 24441885,
+      "retainedSize": 157666480,
+      "count": 375517,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 375517,
+      "elementCount": 0
+    },
+    {
+      "className": "CanvasRenderingContext2D",
+      "size": 19776930,
+      "retainedSize": 19781994,
+      "count": 43,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "string",
+      "size": 9747177,
+      "retainedSize": 30595520,
+      "count": 104044,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "UnlinkedFunctionCodeBlock",
+      "size": 7464620,
+      "retainedSize": 10981808,
+      "count": 11967,
+      "internalCount": 11967,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "Uint32Array",
+      "size": 4814508,
+      "retainedSize": 4814508,
+      "count": 353,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "Structure",
+      "size": 4752608,
+      "retainedSize": 62436130,
+      "count": 42434,
+      "internalCount": 42434,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "Array",
+      "size": 2872709,
+      "retainedSize": 54914428,
+      "count": 179538,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "Cell Butterfly",
+      "size": 2796176,
+      "retainedSize": 2796176,
+      "count": 7545,
+      "internalCount": 7545,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "FunctionExecutable",
+      "size": 2729344,
+      "retainedSize": 9137865,
+      "count": 21323,
+      "internalCount": 21323,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "UnlinkedFunctionExecutable",
+      "size": 2472960,
+      "retainedSize": 11456596,
+      "count": 25760,
+      "internalCount": 25760,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "JSLexicalEnvironment",
+      "size": 2251648,
+      "retainedSize": 41474528,
+      "count": 43486,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "Function",
+      "size": 2211517,
+      "retainedSize": 21809767,
+      "count": 67888,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    },
+    {
+      "className": "e",
+      "size": 1983801,
+      "retainedSize": 19330608,
+      "count": 45165,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 45165,
+      "elementCount": 0
+    },
+    {
+      "className": "Float64Array",
+      "size": 1328968,
+      "retainedSize": 1328968,
+      "count": 389,
+      "internalCount": 0,
+      "deadCount": 0,
+      "objectCount": 0,
+      "elementCount": 0
+    }
+  ],
+  "exactOwners": [
+    {
+      "id": 324168,
+      "className": "ArrayBuffer",
+      "bytes": 51904640,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 51904512,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "WASM:instantiateStreaming:memory",
+            "role": "memory",
+            "viewBytes": 51904512
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 883266,
+      "className": "AudioBuffer",
+      "bytes": 23920672,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 2990080,
+        "width": null,
+        "height": null,
+        "duration": 62.29333333333334,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 400511,
+      "className": "AudioBuffer",
+      "bytes": 17727280,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 2215906,
+        "width": null,
+        "height": null,
+        "duration": 46.16470833333333,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 491465,
+      "className": "ImageBitmap",
+      "bytes": 12516128,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 4128,
+        "height": 758,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2",
+            "role": "texture-image:c065b5e8-5e7e-467b-9732-98b6557f956a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2",
+            "role": "texture-source:c065b5e8-5e7e-467b-9732-98b6557f956a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 400492,
+      "className": "AudioBuffer",
+      "bytes": 8863656,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 2215906,
+        "width": null,
+        "height": null,
+        "duration": 46.16470833333333,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 998629,
+      "className": "ArrayBuffer",
+      "bytes": 5926880,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 5926752,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+            "role": "position",
+            "viewBytes": 5926752
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 545980,
+      "className": "ImageBitmap",
+      "bytes": 4194336,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 1024,
+        "height": 1024,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1001036,
+      "className": "ArrayBuffer",
+      "bytes": 4007504,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 4007376,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+            "role": "position",
+            "viewBytes": 4007376
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1001039,
+      "className": "ArrayBuffer",
+      "bytes": 4007504,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 4007376,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+            "role": "normal",
+            "viewBytes": 4007376
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1001040,
+      "className": "ArrayBuffer",
+      "bytes": 4007504,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 4007376,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+            "role": "color",
+            "viewBytes": 4007376
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 998852,
+      "className": "ArrayBuffer",
+      "bytes": 3380312,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 3380184,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/grid-deck",
+            "role": "index",
+            "viewBytes": 3380184
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 998636,
+      "className": "ArrayBuffer",
+      "bytes": 1891712,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1891584,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+            "role": "position",
+            "viewBytes": 1891584
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 883202,
+      "className": "AudioBuffer",
+      "bytes": 1728536,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 216063,
+        "width": null,
+        "height": null,
+        "duration": 4.5013125,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 764801,
+      "className": "AudioBuffer",
+      "bytes": 1728536,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 216063,
+        "width": null,
+        "height": null,
+        "duration": 4.5013125,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 998757,
+      "className": "ArrayBuffer",
+      "bytes": 1560728,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1560600,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh",
+            "role": "index",
+            "viewBytes": 1560600
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 883193,
+      "className": "AudioBuffer",
+      "bytes": 1351704,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 168959,
+        "width": null,
+        "height": null,
+        "duration": 3.519979166666667,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 764753,
+      "className": "AudioBuffer",
+      "bytes": 1351704,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 168959,
+        "width": null,
+        "height": null,
+        "duration": 3.519979166666667,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 631302,
+      "className": "ArrayBuffer",
+      "bytes": 1310848,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1310720,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "WASM:instantiate:memory",
+            "role": "memory",
+            "viewBytes": 1310720
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 790663,
+      "className": "Float32Array",
+      "bytes": 1293180,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1293132,
+        "length": 323283,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 790659,
+      "className": "Float32Array",
+      "bytes": 1293180,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1293132,
+        "length": 323283,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1001294,
+      "className": "ArrayBuffer",
+      "bytes": 1266752,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1266624,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone",
+            "role": "instances",
+            "viewBytes": 1266624
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 632598,
+      "className": "Float32Array",
+      "bytes": 1266672,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1266624,
+        "length": 316656,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 863736,
+      "className": "AudioBuffer",
+      "bytes": 1207712,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 150960,
+        "width": null,
+        "height": null,
+        "duration": 3.145,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1001385,
+      "className": "ArrayBuffer",
+      "bytes": 1143344,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1143216,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+            "role": "position",
+            "viewBytes": 1143216
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1044070,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:c2c602b4-4325-4629-bccf-6d1474646e0a",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1044072,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:85a7de34-b2ef-4205-9aaa-b2fc80107b1b",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1044075,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:f9df02f5-d548-4477-ba14-7b77882fe683",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:f9df02f5-d548-4477-ba14-7b77882fe683",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:f9df02f5-d548-4477-ba14-7b77882fe683",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1044147,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:03980984-b6d6-4b0f-a154-028ba5506129",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:03980984-b6d6-4b0f-a154-028ba5506129",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:03980984-b6d6-4b0f-a154-028ba5506129",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:03980984-b6d6-4b0f-a154-028ba5506129",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:03980984-b6d6-4b0f-a154-028ba5506129",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:03980984-b6d6-4b0f-a154-028ba5506129",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1044054,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:ad598a96-136a-40b0-89ba-1dc3e9e57402",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:ad598a96-136a-40b0-89ba-1dc3e9e57402",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:ad598a96-136a-40b0-89ba-1dc3e9e57402",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:ad598a96-136a-40b0-89ba-1dc3e9e57402",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:ad598a96-136a-40b0-89ba-1dc3e9e57402",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:ad598a96-136a-40b0-89ba-1dc3e9e57402",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1044044,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+            "role": "texture-data:d139f0f0-d8fc-4990-b22c-70da3986f4fd",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 998682,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring0",
+            "role": "texture-data:5fe05ea1-4c99-4ab9-864f-0e6901544e4e",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring1",
+            "role": "texture-data:5fe05ea1-4c99-4ab9-864f-0e6901544e4e",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring2",
+            "role": "texture-data:5fe05ea1-4c99-4ab9-864f-0e6901544e4e",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-flowers",
+            "role": "texture-data:5fe05ea1-4c99-4ab9-864f-0e6901544e4e",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-cards",
+            "role": "texture-data:5fe05ea1-4c99-4ab9-864f-0e6901544e4e",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 192802,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-eagle",
+            "role": "texture-image:452ab116-2227-47ca-a3a3-3297b3e71c69"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-eagle",
+            "role": "texture-source:452ab116-2227-47ca-a3a3-3297b3e71c69"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 183821,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-cauldron",
+            "role": "texture-image:ed91c58f-9d66-4944-817f-73ad2eb549b3"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-cauldron",
+            "role": "texture-source:ed91c58f-9d66-4944-817f-73ad2eb549b3"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/nalati-model-cauldron",
+            "role": "texture-image:ed91c58f-9d66-4944-817f-73ad2eb549b3"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/nalati-model-cauldron",
+            "role": "texture-source:ed91c58f-9d66-4944-817f-73ad2eb549b3"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 184111,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-firewood",
+            "role": "texture-image:389334dc-f9e4-4055-8c42-9a9a1fe0b9c7"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-firewood",
+            "role": "texture-source:389334dc-f9e4-4055-8c42-9a9a1fe0b9c7"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 181421,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-kumis-churn",
+            "role": "texture-image:daf882f5-eb64-4ec4-b9b6-c25c7a1d111c"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-kumis-churn",
+            "role": "texture-source:daf882f5-eb64-4ec4-b9b6-c25c7a1d111c"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 182436,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-chest",
+            "role": "texture-image:759bea25-b9d2-4033-b4c6-46c699398ae4"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-chest",
+            "role": "texture-source:759bea25-b9d2-4033-b4c6-46c699398ae4"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/nalati-model-chest",
+            "role": "texture-image:759bea25-b9d2-4033-b4c6-46c699398ae4"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/nalati-model-chest",
+            "role": "texture-source:759bea25-b9d2-4033-b4c6-46c699398ae4"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 180374,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-saddle",
+            "role": "texture-image:36e92d00-e96a-4df1-b9e7-b494b687311d"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/nalati-model-saddle",
+            "role": "texture-source:36e92d00-e96a-4df1-b9e7-b494b687311d"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 179277,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-watchtower/nalati-model-watchtower",
+            "role": "texture-image:6c6327f2-f906-45ee-9871-182a693161b9"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-watchtower/nalati-model-watchtower",
+            "role": "texture-source:6c6327f2-f906-45ee-9871-182a693161b9"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 177263,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kokpar/nalati-model-horse-saddled",
+            "role": "texture-image:3009afc1-29af-4aae-a85b-92849d67fa49"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kokpar/nalati-model-horse-saddled",
+            "role": "texture-source:3009afc1-29af-4aae-a85b-92849d67fa49"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 176255,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-snow-lotus/nalati-model-snow-lotus",
+            "role": "texture-image:77a1f05f-ef00-4561-a93e-9dc562e3c9ed"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-snow-lotus/nalati-model-snow-lotus",
+            "role": "texture-source:77a1f05f-ef00-4561-a93e-9dc562e3c9ed"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 176556,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-balbals/nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0",
+            "role": "texture-image:326ab1f4-a67e-46fa-a6e5-56f0b7bd3040"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-balbals/nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0",
+            "role": "texture-source:326ab1f4-a67e-46fa-a6e5-56f0b7bd3040"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-balbals/nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0",
+            "role": "texture-image:326ab1f4-a67e-46fa-a6e5-56f0b7bd3040"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-balbals/nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0",
+            "role": "texture-source:326ab1f4-a67e-46fa-a6e5-56f0b7bd3040"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 175042,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-boulder",
+            "role": "texture-image:2cd0b70a-ee2b-48b7-9e68-2cd516e40628"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-boulder",
+            "role": "texture-source:2cd0b70a-ee2b-48b7-9e68-2cd516e40628"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 176438,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-boulder-tall",
+            "role": "texture-image:c5c73c0a-48fd-4c20-bc96-76f4af45dd26"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-boulder-tall",
+            "role": "texture-source:c5c73c0a-48fd-4c20-bc96-76f4af45dd26"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 174408,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-slab",
+            "role": "texture-image:83e8cce8-5ab6-4452-a3d0-fca4fcc01402"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-slab",
+            "role": "texture-source:83e8cce8-5ab6-4452-a3d0-fca4fcc01402"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 100299,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:bc7e074f-b8b5-4a90-8f6a-900547ec01d0"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:bc7e074f-b8b5-4a90-8f6a-900547ec01d0"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:bc7e074f-b8b5-4a90-8f6a-900547ec01d0"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:bc7e074f-b8b5-4a90-8f6a-900547ec01d0"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:bc7e074f-b8b5-4a90-8f6a-900547ec01d0"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:bc7e074f-b8b5-4a90-8f6a-900547ec01d0"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 225110,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:daefa3ec-c53f-412e-978b-d2353c7cbafa"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:daefa3ec-c53f-412e-978b-d2353c7cbafa"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:daefa3ec-c53f-412e-978b-d2353c7cbafa"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:daefa3ec-c53f-412e-978b-d2353c7cbafa"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 701358,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 144126,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:f33fe795-7fd0-4317-8885-387ad60a182e"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:f33fe795-7fd0-4317-8885-387ad60a182e"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:f33fe795-7fd0-4317-8885-387ad60a182e"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:f33fe795-7fd0-4317-8885-387ad60a182e"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 127325,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:8fa1b721-9066-4087-b8e5-c8200bab8fcf"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:8fa1b721-9066-4087-b8e5-c8200bab8fcf"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 170764,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:718c7312-252d-4522-8129-23d89fde7b91"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:718c7312-252d-4522-8129-23d89fde7b91"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 692383,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 136471,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 123706,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:6d067f6e-8736-45c6-927a-318f60203c83"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:6d067f6e-8736-45c6-927a-318f60203c83"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 120252,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:2ff6bef6-f6de-434b-a9e5-b2623b03125a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:2ff6bef6-f6de-434b-a9e5-b2623b03125a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:2ff6bef6-f6de-434b-a9e5-b2623b03125a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:2ff6bef6-f6de-434b-a9e5-b2623b03125a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 117794,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:ea3f31ae-7fee-4c5c-a246-3e75e81434d6"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:ea3f31ae-7fee-4c5c-a246-3e75e81434d6"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:ea3f31ae-7fee-4c5c-a246-3e75e81434d6"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:ea3f31ae-7fee-4c5c-a246-3e75e81434d6"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:ea3f31ae-7fee-4c5c-a246-3e75e81434d6"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:ea3f31ae-7fee-4c5c-a246-3e75e81434d6"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 200147,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:109a36a0-41bd-43c9-baa9-f3416bc3b5d6"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:109a36a0-41bd-43c9-baa9-f3416bc3b5d6"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 121066,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:e83d7f51-7c17-4ea8-80ac-9d644540e87a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 122217,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:21826edb-9a9e-491c-90c0-ed520372c087"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:21826edb-9a9e-491c-90c0-ed520372c087"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:21826edb-9a9e-491c-90c0-ed520372c087"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:21826edb-9a9e-491c-90c0-ed520372c087"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 183137,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:250f6bea-ecf3-4b26-a575-14ee179d29b5"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:250f6bea-ecf3-4b26-a575-14ee179d29b5"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 89862,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:3ba14b46-9622-4286-a944-92abceeb1ff4"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:3ba14b46-9622-4286-a944-92abceeb1ff4"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 234325,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:51220d00-710c-4764-8f03-5cbfdbb5a411"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:51220d00-710c-4764-8f03-5cbfdbb5a411"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 683591,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 224597,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:d329a4af-a2ce-429c-b1f6-1cd7d5f86b89"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:d329a4af-a2ce-429c-b1f6-1cd7d5f86b89"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 237590,
+      "className": "ImageBitmap",
+      "bytes": 1048608,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 512,
+        "height": 512,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-image:34df0693-f6a9-4d31-bfb5-4afcc483ecc3"
+          },
+          {
+            "owner": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/animals/SkinnedMesh",
+            "role": "texture-source:34df0693-f6a9-4d31-bfb5-4afcc483ecc3"
+          }
+        ]
+      },
+      "thrown": false
+    }
+  ],
+  "colourBackups": {
+    "objects": 19,
+    "uniquePlainReportedBytes": 411336,
+    "uniqueAoReportedBytes": 432864,
+    "note": "Exact paired property names, not a source-symbol identity. Small Float32Arrays report inline bytes; no addition of an equal-sized ArrayBuffer."
+  },
+  "platform": {
+    "claims": [
+      {
+        "id": "platform:render:cell-screens",
+        "category": "l0",
+        "bytes": 280,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 280
+      },
+      {
+        "id": "platform:render:cell-screens.slot-0",
+        "category": "l0",
+        "bytes": 6116694,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 6116694
+      },
+      {
+        "id": "platform:render:cell-screens.slot-2",
+        "category": "l0",
+        "bytes": 6116694,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 6116694
+      },
+      {
+        "id": "platform:render:grid.open-plots",
+        "category": "l0",
+        "bytes": 33789972,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 33789972
+      },
+      {
+        "id": "platform:render:road.asphalt",
+        "category": "l0",
+        "bytes": 2845264,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 2845264
+      },
+      {
+        "id": "platform:render:road.curtain",
+        "category": "l0",
+        "bytes": 33120,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 33120
+      },
+      {
+        "id": "platform:render:road.deck",
+        "category": "l0",
+        "bytes": 22512656,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 22512656
+      },
+      {
+        "id": "platform:render:road.junctions",
+        "category": "l0",
+        "bytes": 5629880,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 5629880
+      },
+      {
+        "id": "platform:render:road.signs",
+        "category": "l0",
+        "bytes": 22732832,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 22732832
+      },
+      {
+        "id": "platform:render:road.void",
+        "category": "l0",
+        "bytes": 288,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 288
+      }
+    ],
+    "camera": {
+      "position": [
+        554.4199673539077,
+        27.398453249426783,
+        0.13363181203851326
+      ],
+      "quaternion": [
+        -0.028421525485980734,
+        -0.7029045772363656,
+        -0.028131187990420744,
+        0.7101591430457426
+      ],
+      "fov": 86.79865242363684
+    },
+    "roadView": {
+      "draws": 5,
+      "triangles": 10737,
+      "shadowDraws": 0,
+      "byMesh": {
+        "grid-deck": {
+          "draws": 1,
+          "triangles": 10179
+        },
+        "grid-seam-curtain": {
+          "draws": 1,
+          "triangles": 138
+        },
+        "grid-asphalt": {
+          "draws": 1,
+          "triangles": 32
+        },
+        "grid-signs": {
+          "draws": 1,
+          "triangles": 380
+        },
+        "grid-void-floor": {
+          "draws": 1,
+          "triangles": 8
+        }
+      }
+    },
+    "roots": [
+      {
+        "uuid": "4560035b-fec0-4d19-8eb8-bdd7cb5bd13e",
+        "name": "grid-asphalt",
+        "owner": "Scene/grid-boulevard/grid-asphalt",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 0,
+          "y": 0.019999999552965164,
+          "z": 0,
+          "radius": 1163.4539097016263
+        },
+        "vertices": 912,
+        "indices": 1656
+      },
+      {
+        "uuid": "b7017ee2-ff9e-48a8-b74c-bb2807e4b7fd",
+        "name": "grid-junctions",
+        "owner": "Scene/grid-boulevard/grid-junctions",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 0,
+          "y": 0.019999999552965164,
+          "z": 0,
+          "radius": 1187.9393923933999
+        },
+        "vertices": 640,
+        "indices": 1416
+      },
+      {
+        "uuid": "55c86842-075f-46c8-9f53-dab3bcb3526d",
+        "name": "grid-signs",
+        "owner": "Scene/grid-boulevard/grid-signs",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 0,
+          "y": 1.9600000381469727,
+          "z": 0,
+          "radius": 1132.499065691244
+        },
+        "vertices": 7264,
+        "indices": 10896
+      },
+      {
+        "uuid": "cb0858d3-0ce4-4620-82e0-d6e81d908ff1",
+        "name": "grid-void-floor",
+        "owner": "Scene/grid-void/grid-void-floor",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 0,
+          "y": 0.03999999910593033,
+          "z": 0,
+          "radius": 9675.34208697553
+        },
+        "vertices": 8,
+        "indices": 24
+      },
+      {
+        "uuid": "123537c1-c0bd-4754-b2eb-f00cfa509cd6",
+        "name": "grid-deck",
+        "owner": "Scene/grid-deck",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 0,
+          "y": 44.557557582855225,
+          "z": 0,
+          "radius": 1217.0395950575107
+        },
+        "vertices": 204317,
+        "indices": 845046
+      },
+      {
+        "uuid": "3185a22e-c871-4615-8ecd-6f604bdeec23",
+        "name": "grid-seam-curtain",
+        "owner": "Scene/grid-seam-curtain",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 277.5,
+          "y": 0.925000011920929,
+          "z": 0,
+          "radius": 984.752949348222
+        },
+        "vertices": 960,
+        "indices": 1800
+      },
+      {
+        "uuid": "49ca8477-ef3c-4ab2-8865-f775326d7c4b",
+        "name": "grid-soft-wall",
+        "owner": "Scene/grid-soft-walls/grid-soft-wall",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 0,
+          "y": 3.5,
+          "z": 0,
+          "radius": 1146.9325394285402
+        },
+        "vertices": 96,
+        "indices": 144
+      },
+      {
+        "uuid": "661eadc3-3d70-4390-8fff-7c77858fd5c7",
+        "name": "grid-cell-screen",
+        "owner": "Scene/grid-cell-screens/grid-cell-screen",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 232,
+          "y": 3.65,
+          "z": 0.000456250356746528,
+          "radius": 6.132087574093953
+        },
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "fa4cd9b7-a1f8-4a1c-ab42-98e221faad1a",
+        "name": "grid-cell-screen",
+        "owner": "Scene/grid-cell-screens/grid-cell-screen",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 553.7067347039957,
+          "y": 3.65,
+          "z": 323,
+          "radius": 6.132087574093953
+        },
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "21b5f153-b6f3-4754-876b-189270c9d19e",
+        "name": "grid-border-shimmer-line",
+        "owner": "Scene/grid-border-shimmer/grid-border-shimmer-line",
+        "visible": true,
+        "inFrustum": true,
+        "bound": {
+          "x": 0,
+          "y": 48.05497741699219,
+          "z": 0,
+          "radius": 1139.4662657767697
+        },
+        "vertices": 3120,
+        "indices": 9216
+      },
+      {
+        "uuid": "7c7b9fc7-2e90-4a27-a5a5-14a51be387a3",
+        "name": "grid-border-save",
+        "owner": "Scene/grid-border-shimmer/grid-border-save",
+        "visible": false,
+        "inFrustum": null,
+        "bound": null,
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "8a89eecb-7ec3-4120-889f-cd0a339569aa",
+        "name": "grid-open-plot-floor",
+        "owner": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-floor",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 0.029999999329447746,
+          "z": 555,
+          "radius": 353.5533905932738
+        },
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "c0354491-a03c-4c3f-b2e2-9bcbe81b011c",
+        "name": "grid-open-plot-solid",
+        "owner": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 11.675000190734863,
+          "z": 555,
+          "radius": 353.18073520961434
+        },
+        "vertices": 26372,
+        "indices": 38292
+      },
+      {
+        "uuid": "9d7d9261-4b19-4b84-9d48-64533e4faeb4",
+        "name": "grid-open-plot-billboards",
+        "owner": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-billboards",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 15.25,
+          "z": 555,
+          "radius": 208.8881878323166
+        },
+        "vertices": 32,
+        "indices": 48
+      },
+      {
+        "uuid": "4e15e4f6-71d5-4753-8814-fff5d587b5cb",
+        "name": "grid-open-plot-signs",
+        "owner": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-signs",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 3.4774999022483826,
+          "z": 555,
+          "radius": 236.12578111178524
+        },
+        "vertices": 48,
+        "indices": 72
+      },
+      {
+        "uuid": "4672a4c3-3dcb-4029-9ed4-1801c68e8737",
+        "name": "grid-open-plot-holo-cards",
+        "owner": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-cards",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 46,
+          "z": 555,
+          "radius": 62.16158379578178
+        },
+        "vertices": 64,
+        "indices": 96
+      },
+      {
+        "uuid": "463822a8-9113-46cd-9960-6d887edcd801",
+        "name": "grid-open-plot-holo-glass",
+        "owner": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-glass",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 50,
+          "z": 555,
+          "radius": 51.09549882328188
+        },
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "uuid": "2f58a307-e4d2-40c6-86db-77b5fe4f489f",
+        "name": "grid-open-plot-scan",
+        "owner": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-scan",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 21.25961485556794,
+          "z": 555,
+          "radius": 41.15361466505706
+        },
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "4d124063-f6c5-4222-a642-91d6b9f0bcb6",
+        "name": "grid-open-plot-floor",
+        "owner": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-floor",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 0.029999999329447746,
+          "z": -555,
+          "radius": 353.5533905932738
+        },
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "25d29103-bf5b-4d15-a71b-9edfacebd030",
+        "name": "grid-open-plot-solid",
+        "owner": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 15.199999809265137,
+          "z": -555,
+          "radius": 353.3148257403752
+        },
+        "vertices": 26754,
+        "indices": 38880
+      },
+      {
+        "uuid": "2ea0a23b-72bf-4922-a72c-200cb8f71821",
+        "name": "grid-open-plot-billboards",
+        "owner": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-billboards",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 15.25,
+          "z": -555,
+          "radius": 208.8881878323166
+        },
+        "vertices": 32,
+        "indices": 48
+      },
+      {
+        "uuid": "0343bdc3-15cb-4f52-af3e-6212235dbf4c",
+        "name": "grid-open-plot-signs",
+        "owner": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-signs",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 3.4774999022483826,
+          "z": -555,
+          "radius": 236.12578111178524
+        },
+        "vertices": 48,
+        "indices": 72
+      },
+      {
+        "uuid": "3c9ca208-171e-4c75-b02d-a38931a22623",
+        "name": "grid-open-plot-holo-cards",
+        "owner": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-cards",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 46,
+          "z": -555,
+          "radius": 62.16158379578178
+        },
+        "vertices": 64,
+        "indices": 96
+      },
+      {
+        "uuid": "3e41b092-b8e3-4d75-a138-457e9dc5102d",
+        "name": "grid-open-plot-holo-glass",
+        "owner": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-glass",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 50,
+          "z": -555,
+          "radius": 51.09549882328188
+        },
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "uuid": "415b5eb9-346f-443c-a237-fe613e120fcd",
+        "name": "grid-open-plot-scan",
+        "owner": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-scan",
+        "visible": false,
+        "inFrustum": false,
+        "bound": {
+          "x": -555,
+          "y": 21.28268877979417,
+          "z": -555,
+          "radius": 41.15361466505706
+        },
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "a3834817-95ab-4f87-9f94-ed9fdc0fa44b",
+        "name": "grid-open-plot-floor",
+        "owner": "Scene/grid-open-plot:open-plot-se/grid-open-plot-floor",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 555,
+          "y": 0.029999999329447746,
+          "z": -555,
+          "radius": 353.5533905932738
+        },
+        "vertices": 4,
+        "indices": 6
+      },
+      {
+        "uuid": "78044c13-fd14-491b-ba13-85e442959855",
+        "name": "grid-open-plot-solid",
+        "owner": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 555,
+          "y": 14.699999809265137,
+          "z": -555,
+          "radius": 353.29366833859683
+        },
+        "vertices": 26696,
+        "indices": 38904
+      },
+      {
+        "uuid": "3bc913bf-d68b-4aca-add3-256ba60031f0",
+        "name": "grid-open-plot-billboards",
+        "owner": "Scene/grid-open-plot:open-plot-se/grid-open-plot-billboards",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 555,
+          "y": 15.25,
+          "z": -555,
+          "radius": 208.8881878323166
+        },
+        "vertices": 32,
+        "indices": 48
+      },
+      {
+        "uuid": "abbcabf4-79c0-45dd-af3d-df5460695dc9",
+        "name": "grid-open-plot-signs",
+        "owner": "Scene/grid-open-plot:open-plot-se/grid-open-plot-signs",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 555,
+          "y": 3.4774999022483826,
+          "z": -555,
+          "radius": 236.12578111178524
+        },
+        "vertices": 48,
+        "indices": 72
+      },
+      {
+        "uuid": "af407bca-7c74-4181-a472-9f5c9ba0851e",
+        "name": "grid-open-plot-holo-cards",
+        "owner": "Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-cards",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 555,
+          "y": 46,
+          "z": -555,
+          "radius": 62.16158379578178
+        },
+        "vertices": 64,
+        "indices": 96
+      },
+      {
+        "uuid": "25e0456f-46a0-4c21-95f5-b2a4b358689d",
+        "name": "grid-open-plot-holo-glass",
+        "owner": "Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-glass",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 555,
+          "y": 50,
+          "z": -555,
+          "radius": 51.09549882328188
+        },
+        "vertices": 24,
+        "indices": 36
+      },
+      {
+        "uuid": "c39da00c-89ec-4e1a-acde-c62c9359a958",
+        "name": "grid-open-plot-scan",
+        "owner": "Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-scan",
+        "visible": true,
+        "inFrustum": false,
+        "bound": {
+          "x": 555,
+          "y": 78.97235646268459,
+          "z": -555,
+          "radius": 41.15361466505706
+        },
+        "vertices": 4,
+        "indices": 6
+      }
+    ],
+    "plotDirectCpuBytes": {
+      "open-plot-nw": 498120,
+      "open-plot-nw + open-plot-se + open-plot-sw": 420,
+      "open-plot-sw": 507288,
+      "open-plot-se": 507912
+    },
+    "note": "One current view, not proof of invisibility after a turn/hover. Shared texture bytes listed once. Buffer mesh-name associations are explicitly weaker than texture object identity. No off-view bytes are claimed released."
+  },
+  "GLlistedBytes": 292245264,
+  "model": {
+    "playing": 1124005587,
+    "loading": 1204005587,
+    "accounted": 685074710,
+    "input": {
+      "l0": 99777680,
+      "l1": 731292,
+      "far": 9600000,
+      "libraries": 0,
+      "sims": 496654102,
+      "commons": 39271820,
+      "products": 9160452,
+      "overlap": 80000000,
+      "page": 29879364,
+      "engineBase": 286859388
+    }
+  },
+  "notes": [
+    "WebKit heap reports native GL payload too; do not add heap total to GL or use as WebContent footprint.",
+    "AB native-root-only paths are not attributed by size; exact remote object identity is the owner evidence.",
+    "Nested dominators overlap. No saving credited until actual disposal and paired native sample."
+  ]
+}
