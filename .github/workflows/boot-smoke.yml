@@ -57,8 +57,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/Library/Caches/ms-playwright
-          key: boot-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-      - run: pnpm exec playwright install chromium
+          key: boot-touch-browsers-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium webkit
       - name: Build the exact commit's real products and dist
         env:
           VERCEL_GIT_COMMIT_SHA: ${{ steps.tested.outputs.sha }}
@@ -66,6 +66,10 @@ jobs:
           python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && node scripts/build-shardfiles.mjs && pnpm exec vite build'
       - name: Real title, Driftwood gameplay and Developer grid home
         run: node scripts/parity/boot-smoke.mjs
+      - name: Touch HOVER mounts in the template and on the grid road
+        run: |
+          node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium
+          scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit
       - name: Record smoke queue and run timings
         if: always()
         env:

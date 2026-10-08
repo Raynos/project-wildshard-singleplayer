@@ -147,9 +147,10 @@ function homeLoadout(equipment: EquipmentService, scope: Scope, checkpoint: () =
       if (scope.disposed) return;
       stowMount();
       if (before !== undefined) return;
-      before = { stowed: equipment.stowed, tools: equipment.tools.map((tool) => ({ tool, enabled: tool.enabled })) };
+      // The carried board belongs to the traveller; only cell-owned tools stow at the border.
+      before = { stowed: equipment.stowed, tools: equipment.tools.filter(tool => !tool.actions.includes('hover')).map((tool) => ({ tool, enabled: tool.enabled })) };
       equipment.stowed = true; equipment.adsHeld = false; equipment.altHeld = false;
-      for (const tool of equipment.tools) tool.enabled = false;
+      for (const { tool } of before.tools) tool.enabled = false;
     },
     interior: () => {
       if (scope.disposed || before === undefined) return;

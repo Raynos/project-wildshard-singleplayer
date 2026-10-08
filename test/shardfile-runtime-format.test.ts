@@ -39,6 +39,7 @@ it('requires explicit hybrid composition while exposing the admitted first-party
   expect(() => emptyShardfileSource(source)).toThrow('trusted hybrid composition');
   await expect(installShardfileProduct(source, options, bindings)).rejects.toThrow('trusted hybrid composition');
   const data = await shardfileSource(source, options, bindings);
+  expect(data.loadout).toEqual({ weapons: [], tools: ['tool.hoverboard'], start: ['tool.hoverboard'] });
   expect(typeof (await data.load?.())?.default).toBe('function');
 });
 
