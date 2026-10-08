@@ -128,119 +128,24 @@ const BOREAL_MAP = /* glsl */`
           vec3 splatNormal = dot(nrm, nrm) > 1e-8 ? normalize(nrm) : vec3(0.0, 0.0, 1.0);
           vec3 splatArm = arm;`;
 
-/** what a level look's terrain painter samples: the live heightfield (its bindings swap when the bake lands) */
-function painterField(binding: HeightfieldBinding): PainterField {
-  return {
-    ready: () => loadBakedTerrain(binding),
-    heightAt: (x, z) => binding.field.heightAt(x, z),
-    normalAt: (x, z, eps) => binding.field.normalAt(x, z, eps),
-    trails: () => binding.field.trails,
-    trailDistance: (x, z) => binding.field.trailDistance(x, z),
-  };
-}
+/** The three splat texture arrays (layer i = splat channel i): a DataArrayTexture, or a CompressedArrayTexture from KTX2 (E157). */
+export interface SplatLayers { readonly map: THREE.Texture; readonly normalMap: THREE.Texture; readonly armMap: THREE.Texture }
+/** What the splat material reads of a ground set (`groundSet`): the four layer tints and the boreal extras (null: the plain shader). */
+export interface SplatGround { readonly tints: readonly (readonly [number, number, number])[]; readonly boreal: { readonly normalK: readonly number[]; readonly trailDust: readonly number[] } | null }
+/** The splat / canopy vertex attributes the splat material reads, with their component counts. */
+export const SPLAT_ATTRIBUTES = { splat: 4, canopy: 1 } as const;
 
-export class Terrain {
-  group = new THREE.Group();
-  private builtMesh: THREE.Mesh | undefined;
-  get mesh(): THREE.Mesh {
-    if (this.builtMesh === undefined) throw new Error('Terrain: this world has no terrain mesh');
-    return this.builtMesh;
-  }
-  set mesh(mesh: THREE.Mesh) { this.builtMesh = mesh; }
-  material!: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
-  /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
-  applyCanopy(tex: THREE.DataTexture): void {
-    if (this.builtMesh === undefined) return;
-    const { width: N, data } = tex.image as { width: number; data: Float32Array };
-    const pos = this.mesh.geometry.getAttribute('position');
-    const canopy = new Float32Array(pos.count);
-    for (let i = 0; i < pos.count; i++) {
-      const u = (pos.getX(i) + CHUNK_HALF) / CHUNK_SIZE, v = (pos.getZ(i) + CHUNK_HALF) / CHUNK_SIZE;
-      const x = Math.min(N - 1, Math.max(0, Math.round(u * N))), z = Math.min(N - 1, Math.max(0, Math.round(v * N)));
-      canopy[i] = data[z * N + x] ?? 0;
-    }
-    this.mesh.geometry.setAttribute('canopy', new THREE.BufferAttribute(canopy, 1));
-  }
-
-  /**
-   * Drop the drawn triangles `hole` says reach into a walk-in space (PH-B2: the bear cave's passage, where the slope runs
-   * through it; the cave's own hood covers the gap). The heights stay: `heightAt` and the physics are the caller's.
-   * Returns the triangles dropped.
-   */
-  punch(hole: (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean): number {
-    if (this.builtMesh === undefined) return 0;
-    const geo = this.mesh.geometry, idx = geo.getIndex();
-    if (!idx) return 0;
-    const pos = geo.getAttribute('position');
-    const keep: number[] = [];
-    let dropped = 0;
-    for (let t = 0; t < idx.count; t += 3) {
-      const a = idx.getX(t), b = idx.getX(t + 1), c = idx.getX(t + 2);
-      if (hole(pos.getX(a), pos.getY(a), pos.getZ(a), pos.getX(b), pos.getY(b), pos.getZ(b), pos.getX(c), pos.getY(c), pos.getZ(c))) { dropped++; continue; }
-      keep.push(a, b, c);
-    }
-    if (dropped > 0) geo.setIndex(keep);
-    return dropped;
-  }
-
-  /** `painter`: the level look's own ground; an explicit binding supplies regional assets/terrain across awaits. */
-  async build(ground: LevelSpec['ground'], painter?: TerrainPainter, scope?: Scope, binding?: HeightfieldBinding): Promise<this> {
-    const captured = binding ?? captureHeightfield();
-    if (ground.structures === true && ground.terrain === undefined) return this;
-    if (ground.structures === true) return this.buildNone();
-    if (painter !== undefined) {
-      if (scope === undefined || scope.disposed) throw new Error('TerrainPainter.build requires a live owning level scope');
-      await painter.build(this, painterField(captured), scope);
-      return this;
-    }
-    const { assets } = binding === undefined ? activeLevel() : binding.level;
-    const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain(captured)]); // baked heights/splat → captured frame
-    await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
-    this.mesh = new THREE.Mesh(this.buildGeometry(captured.field), this.buildMaterial(layers, assets));
-    this.mesh.receiveShadow = true;
-    this.mesh.castShadow = false;
-    this.group.add(this.mesh);
-    this.group.add(await this.buildSlab(assets, captured.field));
-    return this;
-  }
-
-  /**
-   * A structure-first shard (ShardManifest.ground.structures, Nine Dragon Stack): its floors are built, so no ground is drawn — an
-   * empty mesh keeps the canopy / punch calls working, nothing is downloaded or drawn.
-   */
-  private buildNone(): this {
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute([], 3));
-    this.material = new THREE.MeshLambertMaterial();
-    this.mesh = new THREE.Mesh(geo, this.material);
-    this.mesh.visible = false;
-    this.group.add(this.mesh);
-    return this;
-  }
-
-  private buildGeometry(field: TerrainField) {
-    const res = TERRAIN_RES;
-    const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, res - 1, res - 1);
-    geo.rotateX(-Math.PI / 2);
-    const pos = geo.getAttribute('position');
-    const splat = new Float32Array(pos.count * 4);
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i), z = pos.getZ(i);
-      pos.setY(i, field.heightAt(x, z));
-      const s = field.splatAt(x, z);
-      splat.set(s, i * 4);
-    }
-    geo.setAttribute('splat', new THREE.BufferAttribute(splat, 4));
-    geo.computeVertexNormals();
-    geo.computeBoundingSphere();
-    return geo;
-  }
-
-  private buildMaterial(layers: { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }, assets: LevelAssets | undefined) { // texture arrays: DataArrayTexture, or CompressedArrayTexture from KTX2 (E157)
+/**
+ * The PBR splat ground material (PH-L8): four layers from three texture arrays blended by the per-vertex `splat` (vec4)
+ * attribute, darkened by `canopy` (float), with the boreal extras when the ground set has them. One program per variant
+ * ('terrain-splat' / 'terrain-splat-boreal'). The terrain chunk draws with it; so does any mesh carrying the two attributes
+ * (SHARD-PLATFORM G227: shardfile terrain tiles cut from a native splat terrain), sharing the chunk's program.
+ */
+export function splatTerrainMaterial(layers: SplatLayers, ground: SplatGround): THREE.MeshStandardMaterial {
+  { // (a block: the shader text below stays byte-identical to the chunk's own former method)
     // a dummy 1×1 normal map keeps three's USE_NORMALMAP path (tbn) alive; the real layers are the arrays
     const dummy = new THREE.DataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1); dummy.needsUpdate = true;
     const mat = new THREE.MeshStandardMaterial({ normalMap: dummy, metalness: 0, roughness: 1, normalScale: new THREE.Vector2(1, 1) });
-    const ground = groundSet({ assets });
     const u = {
       tDiff: { value: layers.map },
       tNorm: { value: layers.normalMap },
@@ -322,8 +227,136 @@ export class Terrain {
           float ambientOcclusion = ( splatArm.r - 1.0 ) * 0.9 + 1.0;
           reflectedLight.indirectDiffuse *= ambientOcclusion;`);
     }, { mode: 'replace', key: (boreal ? 'terrain-splat-boreal' : 'terrain-splat') });
-    this.material = mat;
     return mat;
+  }
+}
+
+/**
+ * The chunk's drawn ground (pure, no GPU): a TERRAIN_RES² grid over the chunk (three's PlaneGeometry laid flat: row 0 at
+ * z = −half, each cell split on its (i + 1, i + res) diagonal), heights and normalised `splat` weights from the field at
+ * the float32 vertex positions, normals computed over the whole grid. A bake that cuts the ground into tiles slices this
+ * (SHARD-PLATFORM G227), so every tile vertex carries the chunk's own position, normal and weights.
+ */
+export function terrainChunkGeometry(field: Pick<TerrainField, 'heightAt' | 'splatAt'>): THREE.BufferGeometry {
+  const res = TERRAIN_RES;
+  const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, res - 1, res - 1);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.getAttribute('position');
+  const splat = new Float32Array(pos.count * 4);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    pos.setY(i, field.heightAt(x, z));
+    const s = field.splatAt(x, z);
+    splat.set(s, i * 4);
+  }
+  geo.setAttribute('splat', new THREE.BufferAttribute(splat, 4));
+  geo.computeVertexNormals();
+  geo.computeBoundingSphere();
+  return geo;
+}
+
+/**
+ * The per-vertex canopy density the chunk draws with (`Terrain.applyCanopy`): the forest's N² canopy map (`Forest.canopyMap`,
+ * row-major over the chunk) read at each vertex's nearest cell. Pure: a tile bake computes its `_CANOPY` channel with it.
+ */
+export function canopyChannel(positions: { readonly count: number; readonly getX: (i: number) => number; readonly getZ: (i: number) => number }, data: ArrayLike<number>, N: number): Float32Array {
+  const canopy = new Float32Array(positions.count);
+  for (let i = 0; i < positions.count; i++) {
+    const u = (positions.getX(i) + CHUNK_HALF) / CHUNK_SIZE, v = (positions.getZ(i) + CHUNK_HALF) / CHUNK_SIZE;
+    const x = Math.min(N - 1, Math.max(0, Math.round(u * N))), z = Math.min(N - 1, Math.max(0, Math.round(v * N)));
+    canopy[i] = data[z * N + x] ?? 0;
+  }
+  return canopy;
+}
+
+/** what a level look's terrain painter samples: the live heightfield (its bindings swap when the bake lands) */
+function painterField(binding: HeightfieldBinding): PainterField {
+  return {
+    ready: () => loadBakedTerrain(binding),
+    heightAt: (x, z) => binding.field.heightAt(x, z),
+    normalAt: (x, z, eps) => binding.field.normalAt(x, z, eps),
+    trails: () => binding.field.trails,
+    trailDistance: (x, z) => binding.field.trailDistance(x, z),
+  };
+}
+
+export class Terrain {
+  group = new THREE.Group();
+  private builtMesh: THREE.Mesh | undefined;
+  get mesh(): THREE.Mesh {
+    if (this.builtMesh === undefined) throw new Error('Terrain: this world has no terrain mesh');
+    return this.builtMesh;
+  }
+  set mesh(mesh: THREE.Mesh) { this.builtMesh = mesh; }
+  material!: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
+  /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
+  applyCanopy(tex: THREE.DataTexture): void {
+    if (this.builtMesh === undefined) return;
+    const { width: N, data } = tex.image as { width: number; data: Float32Array };
+    this.mesh.geometry.setAttribute('canopy', new THREE.BufferAttribute(canopyChannel(this.mesh.geometry.getAttribute('position'), data, N), 1));
+  }
+
+  /**
+   * Drop the drawn triangles `hole` says reach into a walk-in space (PH-B2: the bear cave's passage, where the slope runs
+   * through it; the cave's own hood covers the gap). The heights stay: `heightAt` and the physics are the caller's.
+   * Returns the triangles dropped.
+   */
+  punch(hole: (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean): number {
+    if (this.builtMesh === undefined) return 0;
+    const geo = this.mesh.geometry, idx = geo.getIndex();
+    if (!idx) return 0;
+    const pos = geo.getAttribute('position');
+    const keep: number[] = [];
+    let dropped = 0;
+    for (let t = 0; t < idx.count; t += 3) {
+      const a = idx.getX(t), b = idx.getX(t + 1), c = idx.getX(t + 2);
+      if (hole(pos.getX(a), pos.getY(a), pos.getZ(a), pos.getX(b), pos.getY(b), pos.getZ(b), pos.getX(c), pos.getY(c), pos.getZ(c))) { dropped++; continue; }
+      keep.push(a, b, c);
+    }
+    if (dropped > 0) geo.setIndex(keep);
+    return dropped;
+  }
+
+  /** `painter`: the level look's own ground; an explicit binding supplies regional assets/terrain across awaits. */
+  async build(ground: LevelSpec['ground'], painter?: TerrainPainter, scope?: Scope, binding?: HeightfieldBinding): Promise<this> {
+    const captured = binding ?? captureHeightfield();
+    if (ground.structures === true && ground.terrain === undefined) return this;
+    if (ground.structures === true) return this.buildNone();
+    if (painter !== undefined) {
+      if (scope === undefined || scope.disposed) throw new Error('TerrainPainter.build requires a live owning level scope');
+      await painter.build(this, painterField(captured), scope);
+      return this;
+    }
+    const { assets } = binding === undefined ? activeLevel() : binding.level;
+    const [layers] = await Promise.all([loadPBRArray([...groundSet({ assets }).layers], 1024), loadBakedTerrain(captured)]); // baked heights/splat → captured frame
+    await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
+    this.mesh = new THREE.Mesh(this.buildGeometry(captured.field), this.buildMaterial(layers, assets));
+    this.mesh.receiveShadow = true;
+    this.mesh.castShadow = false;
+    this.group.add(this.mesh);
+    this.group.add(await this.buildSlab(assets, captured.field));
+    return this;
+  }
+
+  /**
+   * A structure-first shard (ShardManifest.ground.structures, Nine Dragon Stack): its floors are built, so no ground is drawn — an
+   * empty mesh keeps the canopy / punch calls working, nothing is downloaded or drawn.
+   */
+  private buildNone(): this {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute([], 3));
+    this.material = new THREE.MeshLambertMaterial();
+    this.mesh = new THREE.Mesh(geo, this.material);
+    this.mesh.visible = false;
+    this.group.add(this.mesh);
+    return this;
+  }
+
+  private buildGeometry(field: TerrainField) { return terrainChunkGeometry(field); }
+
+  private buildMaterial(layers: SplatLayers, assets: LevelAssets | undefined) {
+    this.material = splatTerrainMaterial(layers, groundSet({ assets }));
+    return this.material;
   }
 
   /** The chunk is a floating shard: rock walls from the surface down to -CHUNK_DEPTH. */

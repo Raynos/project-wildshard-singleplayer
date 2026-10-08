@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { ColliderDesc } from '../registry';
 import { CHUNK_HALF, CHUNK_SIZE } from '../../core/config';
-import { placeForest, TreeGrid, type TreeInstance } from './placement';
+import { placeForest, TreeGrid, treeGridOf, type TreeInstance } from './placement';
 import { type TreeFactory, forestFade } from '../TreeFactory';
 import { updateWind } from '../wind';
 import type { SkyRig as Sky } from '../skyRig';
@@ -101,9 +101,14 @@ export class Forest {
   /** its own meshes are built (`drawItself`) */
   private drawing = false;
 
-  build(o: { readonly drawnBy?: 'self' | 'model' } = {}): this {
+  /**
+   * `instances` (SHARD-PLATFORM G227): the trees as baked records (`decodeTreeRecords`) instead of placed from the level's
+   * forest spec; everything after placement (bands, canopy map, colliders, the model's culler) is the same.
+   */
+  build(o: { readonly drawnBy?: 'self' | 'model'; readonly instances?: readonly TreeInstance[] } = {}): this {
     this.drawnBy = o.drawnBy ?? 'self';
-    this.place();
+    if (o.instances === undefined) this.place();
+    else { this.trees = [...o.instances]; this.grid = treeGridOf(this.trees); }
     const F = this.factory.fade;
     F.cards.value.set(this.farDist - FAR_FADE, this.farDist, 1); F.trunk.value.set(this.farDist - FAR_FADE, this.farDist, 1);
     F.far.value.set(this.farDist - FAR_FADE, this.farDist, -1); F.twigs.value.set(this.twigDist - TWIG_FADE, this.twigDist, 1);

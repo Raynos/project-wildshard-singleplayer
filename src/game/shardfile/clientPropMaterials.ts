@@ -33,6 +33,7 @@ export function applyPropSampler(texture: Texture, slot: PropTextureSlot): Textu
   texture.wrapS = WRAPS[slot.wrapS] ?? RepeatWrapping; texture.wrapT = WRAPS[slot.wrapT] ?? RepeatWrapping;
   texture.magFilter = slot.magFilter === null ? LinearFilter : MAG[slot.magFilter] ?? LinearFilter;
   texture.minFilter = slot.minFilter === null ? LinearMipmapLinearFilter : MIN[slot.minFilter] ?? LinearMipmapLinearFilter;
+  texture.anisotropy = slot.anisotropy;
   texture.needsUpdate = true;
   return texture;
 }

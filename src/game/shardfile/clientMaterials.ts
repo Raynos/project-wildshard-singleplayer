@@ -22,6 +22,8 @@ import { SKIN_LOOK_RECIPE, parseSkinFile, skinLookParameters } from './skins';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
 import { propMaterialTextureRefs, propMaterialsOf } from './propMaterials';
 import { propSurfaces } from './clientPropMaterials';
+import { splatSurface, withSplatSurface } from './clientSplatTerrain';
+import { splatTerrainOf, splatTextureRefs } from './splatTerrain';
 
 /** Does the shard carry a graph material, in its catalogue or in an admitted skin binding? */
 function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): boolean {
@@ -50,7 +52,9 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
 }> {
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
-  const refs = new Set([...materialTextureRefs(shard.look.materials), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named)]);
+  const splat = shard.props === null ? undefined : splatTerrainOf(shard.props);
+  const refs = new Set([...materialTextureRefs(shard.look.materials), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat)]);
+  const splatRefs = new Set(splatTextureRefs(splat));
   if (refs.size > 0) {
     const loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
     scope.onDispose(() => { loader.dispose(); });
@@ -58,7 +62,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
       const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing admitted material texture');
       const texture = await new Promise<Texture>((resolve, reject) => { loader.parse(Uint8Array.from(bytes).buffer, resolve, reject); });
       if (scope.disposed) { texture.dispose(); throw new Error('Material scope unloaded during transcode'); }
-      texture.flipY = false; texture.name = `shardfile:${ref}`; if (texture instanceof CompressedTexture) releaseAfterUpload(texture);
+      // a splat layer is copied into its array, never uploaded itself (clientSplatTerrain)
+      texture.flipY = false; texture.name = `shardfile:${ref}`; if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture);
       scope.own(texture); textures.set(ref, texture);
     }
   }
@@ -86,7 +91,10 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     return scope.own(material);
   };
   for (const [id, entry] of Object.entries(shard.look.materials)) materials.set(id, compile(entry));
-  const surfaces = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture });
+  const propNamed = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture });
+  // G227: the splat terrain's tile primitives draw with the live terrain's splat material, every other name as before
+  const splatDrawn = splat === undefined ? null : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
+  const surfaces = splat === undefined || splatDrawn === null ? propNamed : withSplatSurface({ name: splat.material, binding: splatDrawn.binding }, propNamed);
   // a further entry (an exported skin's binding, SF16) compiles on the same looks, compiler and admitted textures, scope-owned
   return { materials, textures, compile, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); }, graphs: { bind: graphs.bind, readout: graphs.readout }, surfaces };
 }

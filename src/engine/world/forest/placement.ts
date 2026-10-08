@@ -306,3 +306,56 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
   }
   return { ferns, shrubs, litter, stones, moss, reeds };
 }
+
+/**
+ * Baked forest instance records (SHARD-PLATFORM G227: a world's forest declared by its shardfile instead of placed at boot).
+ * Little-endian: a 16-byte header (`WSFI`, version 1, the tree count, the variant count) then per tree eleven float64s:
+ * x, y (the foot, as placed: ground − 0.25), z, r (the trunk's collision radius), variant (an index into the forest's
+ * variants, in their order), scale, rot (yaw, radians), height, tint r, g, b (linear). Float64 keeps every placed value
+ * exact, so the forest drawn from records is the placed one, matrix for matrix (~88 B a tree: Pine's ~2 k trees ~180 KB).
+ */
+export const TREE_RECORD_MAGIC = 0x49465357; // 'WSFI'
+const TREE_RECORD_FLOATS = 11, TREE_RECORD_HEADER = 16;
+
+/** Encode placed trees as records; `variants` is the count of the forest's variants (each record's index is checked against it). */
+export function encodeTreeRecords(trees: readonly TreeInstance[], variants: number): Uint8Array {
+  const bytes = new Uint8Array(TREE_RECORD_HEADER + trees.length * TREE_RECORD_FLOATS * 8), view = new DataView(bytes.buffer);
+  view.setUint32(0, TREE_RECORD_MAGIC, true); view.setUint32(4, 1, true); view.setUint32(8, trees.length, true); view.setUint32(12, variants, true);
+  for (const [i, t] of trees.entries()) {
+    if (!Number.isInteger(t.variant) || t.variant < 0 || t.variant >= variants) throw new Error(`tree ${i}: variant ${t.variant} outside the forest's ${variants}`);
+    const row = [t.x, t.y, t.z, t.r, t.variant, t.scale, t.rot, t.height, t.tint.r, t.tint.g, t.tint.b];
+    for (const [k, value] of row.entries()) view.setFloat64(TREE_RECORD_HEADER + (i * TREE_RECORD_FLOATS + k) * 8, value, true);
+  }
+  return bytes;
+}
+
+/**
+ * Decode tree records against the forest's variants (their species come from the variant, as placement picks them);
+ * refuses a foreign or truncated file, a variant count other than the forest's, an out-of-range variant or a non-finite value.
+ */
+export function decodeTreeRecords(bytes: Uint8Array, variants: readonly PlantSpec[]): TreeInstance[] {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (bytes.byteLength < TREE_RECORD_HEADER || view.getUint32(0, true) !== TREE_RECORD_MAGIC || view.getUint32(4, true) !== 1) throw new Error('not a version-1 tree record file');
+  const count = view.getUint32(8, true);
+  if (view.getUint32(12, true) !== variants.length) throw new Error(`tree records name ${view.getUint32(12, true)} variants, the forest has ${variants.length}`);
+  if (bytes.byteLength !== TREE_RECORD_HEADER + count * TREE_RECORD_FLOATS * 8) throw new Error('tree record file length does not match its count');
+  const trees: TreeInstance[] = [];
+  for (let i = 0; i < count; i++) {
+    const f = (k: number): number => {
+      const value = view.getFloat64(TREE_RECORD_HEADER + (i * TREE_RECORD_FLOATS + k) * 8, true);
+      if (!Number.isFinite(value)) throw new Error(`tree ${i}: non-finite record value`);
+      return value;
+    };
+    const variant = f(4), spec = variants[variant];
+    if (!Number.isInteger(variant) || spec === undefined) throw new Error(`tree ${i}: variant ${variant} outside the forest's ${variants.length}`);
+    trees.push({ x: f(0), y: f(1), z: f(2), r: f(3), variant, scale: f(5), rot: f(6), height: f(7), tint: new THREE.Color(f(8), f(9), f(10)), species: spec.species });
+  }
+  return trees;
+}
+
+/** The 16 m lookup grid over given trees (what `placeForest` returns beside them). */
+export function treeGridOf(trees: readonly TreeInstance[]): TreeGrid {
+  const grid = new TreeGrid();
+  for (const t of trees) grid.add(t);
+  return grid;
+}

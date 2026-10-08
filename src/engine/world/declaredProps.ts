@@ -21,6 +21,28 @@ export interface PropSurfaceBinding {
     readonly colour: Texture | null; readonly normal: Texture | null; readonly normalScale: number; readonly metallicRoughness: Texture | null;
     readonly occlusion: Texture | null; readonly occlusionStrength: number; readonly emissive: Texture | null;
   };
+  /**
+   * Draw `material` as compiled (shared by every mesh that names it, never a family variant): a material whose own program
+   * reads its own uniforms and vertex channels (SHARD-PLATFORM G227: a splat terrain tile). `maps` are then unused.
+   */
+  readonly compiled?: boolean;
+  /**
+   * Vertex channels the material reads, as GLB application channel (GLTFLoader's lowercased `_NAME`, e.g. `_splat`) →
+   * the attribute name its program declares (`splat`) and its components. Every listed channel must be on the mesh: a
+   * missing or malformed channel refuses the install (no guessed default weights).
+   */
+  readonly channels?: Readonly<Record<string, { readonly attribute: string; readonly itemSize: number }>>;
+}
+
+/** Rename a mesh's GLB application channels to the attributes its surface reads; throws for a missing or malformed one. */
+export function adoptChannels(geometry: BufferGeometry, channels: NonNullable<PropSurfaceBinding['channels']>, name: string): void {
+  const label = name === '' ? '(unnamed)' : name;
+  for (const [source, { attribute, itemSize }] of Object.entries(channels)) {
+    const at = geometry.hasAttribute(source) ? geometry.getAttribute(source) : geometry.hasAttribute(attribute) ? geometry.getAttribute(attribute) : undefined;
+    if (at === undefined) throw new Error(`props GLB material "${label}" needs vertex channel ${source}`);
+    if (at.itemSize !== itemSize || at.count !== geometry.getAttribute('position').count) throw new Error(`props GLB material "${label}": channel ${source} must carry ${itemSize} components per vertex`);
+    if (geometry.hasAttribute(source)) { geometry.deleteAttribute(source); geometry.setAttribute(attribute, at); }
+  }
 }
 type SurfaceMaps = PropSurfaceBinding['maps'];
 /** What a prop mesh takes from its GLB material onto the family's: one shared family variant per distinct set. */
@@ -95,7 +117,8 @@ export interface InstalledProps { tiles: ReadonlyMap<string, Object3D>; panels: 
  * `surfaces` (SF55, named prop materials) replaces the one family: each GLB material's exact name resolves to its own base
  * material and texture slots (the port throws for a name it does not carry, so an unmapped material refuses the install,
  * never draws a guess). A family base draws as a shared variant carrying the GLB's factors and the slots; a graph's node
- * material is shared as compiled. Without `surfaces` nothing changes.
+ * material, and a `compiled` surface (a splat terrain tile's, its `channels` renamed onto the mesh first), are shared as
+ * compiled. Without `surfaces` nothing changes.
  */
 export async function installDeclaredProps(props: DeclaredProps, ports: {
   scene: Object3D; scope: Scope; assets: ReadonlyMap<string, Uint8Array>; materials: ReadonlyMap<string, Material>;
@@ -127,7 +150,8 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
         source?.dispose(); held.push(m); return m;
       } : (source: Material | undefined): Material => {
         const binding = named(source?.name ?? '');
-        if (isNodeMaterial(binding.material)) { source?.dispose(); return binding.material; }
+        if (binding.channels !== undefined) adoptChannels(o.geometry, binding.channels, source?.name ?? '');
+        if (binding.compiled === true || isNodeMaterial(binding.material)) { source?.dispose(); return binding.material; }
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null, base = binding.material;
         const m = acquireVariant(base, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: undefined, vertexColours,
           side: source?.side ?? base.side, transparent: source?.transparent ?? base.transparent, opacity: source?.opacity ?? base.opacity,

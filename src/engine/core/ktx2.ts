@@ -138,6 +138,16 @@ export async function ktx2Layers(served: readonly string[], size: number): Promi
   const urls = served.map((s) => gpuFile(`${s}#layer`)); // the unflipped twins: an array layer keeps the file's orientation
   if (urls.some((u) => u === undefined)) return null;
   const layers = await Promise.all(urls.map((u) => (u === undefined ? Promise.resolve(null) : load(u, false))));
+  return layerArrayMips(layers, size);
+}
+
+/**
+ * Concatenate same-format compressed layers into one array texture's mip chain (E157): each layer's chain from its level
+ * of edge `min(size, the largest layer)` down, as deep as the shallowest chain. Null when a layer is missing, has another
+ * format or lacks that level. Pure: the terrain arrays above and the shardfile client's transcoded splat layers
+ * (SHARD-PLATFORM G227) both build their `CompressedArrayTexture` from it.
+ */
+export function layerArrayMips(layers: readonly ({ readonly format: THREE.CompressedPixelFormat; readonly mipmaps: readonly THREE.CompressedTextureMipmap[]; readonly image: { readonly width: number } } | null)[], size: number): { n: number; format: THREE.CompressedPixelFormat; mipmaps: THREE.CompressedTextureMipmap[] } | null {
   const first = layers[0];
   if (!first) return null;
   const n = Math.min(size, Math.max(...layers.map((l) => l?.image.width ?? 0)));

@@ -28,7 +28,8 @@ const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
 const glbName = v.pipe(v.string(), v.minLength(1), v.maxLength(128), v.regex(/^\P{Cc}+$/u, 'no control characters'), v.check((name) => name.trim() === name, 'no edge whitespace'), v.check((name) => !['__proto__', 'prototype', 'constructor'].includes(name), 'reserved name'));
 /** glTF sampler enums (WebGL constants), as the world normalizer admits them. */
 const wrap = v.picklist([33071, 33648, 10497]);
-const sampler = { file: ref, wrapS: v.optional(wrap, 10497), wrapT: v.optional(wrap, 10497), minFilter: v.optional(v.nullable(v.picklist([9728, 9729, 9984, 9985, 9986, 9987])), null), magFilter: v.optional(v.nullable(v.picklist([9728, 9729])), null) };
+/** `anisotropy` (G227): the texture's anisotropic filtering samples, 1 (off) to 16, capped by the device (a hero prop's 4) */
+const sampler = { file: ref, wrapS: v.optional(wrap, 10497), wrapT: v.optional(wrap, 10497), minFilter: v.optional(v.nullable(v.picklist([9728, 9729, 9984, 9985, 9986, 9987])), null), magFilter: v.optional(v.nullable(v.picklist([9728, 9729])), null), anisotropy: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16)), 1) };
 const slot = v.strictObject(sampler);
 const finite = v.pipe(v.number(), v.finite());
 /** The texture slots a named prop material may bind. */
@@ -79,7 +80,7 @@ export function propSlotUse(name: PropMaterialSlot): 'colour' | 'data' { return 
 const FAMILY_SLOTS: Readonly<Record<string, readonly PropMaterialSlot[]>> = {
   pbr: PROP_MATERIAL_SLOTS, toon: PROP_MATERIAL_SLOTS, painterly: ['colour', 'normal', 'occlusion', 'emissive'], emissive: ['colour'],
 };
-const samplerKey = (s: PropTextureSlot): string => `${s.wrapS}/${s.wrapT}/${s.minFilter ?? '-'}/${s.magFilter ?? '-'}`;
+const samplerKey = (s: PropTextureSlot): string => `${s.wrapS}/${s.wrapT}/${s.minFilter ?? '-'}/${s.magFilter ?? '-'}/${s.anisotropy}`;
 
 /**
  * Check named prop materials against the look catalogue and the admitted files: each ID resolves (an authored entry or a
