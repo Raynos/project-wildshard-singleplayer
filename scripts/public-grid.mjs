@@ -26,8 +26,10 @@ export function readPublicGridWitness() {
   const grid = window.__wildshard.shard.grid;
   const device = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}');
   const session = JSON.parse(sessionStorage.getItem('wildshard.save.v2.session') ?? '{}');
+  const state = grid.state();
   return {developer:Object.hasOwn(document.documentElement.dataset,'dev'),savedDeveloper:device.keys?.devMode?.data,
-    state:grid.state(),refusals:session.keys?.shardRefusals?.data ?? {},homeResidency:grid.residency().home,
+    state,refusals:session.keys?.shardRefusals?.data ?? {},homeResidency:grid.residency().home,
+    cellScreens:state.screens.shown.map(row => ({instance:row.instance,status:row.status,issue:state.live.live.issues[row.instance] ?? null})),
     runtimeLevel:window.__wildshard.world.game.level.id};
 }
 
@@ -40,6 +42,11 @@ export function publicGridWitnessFailures(witness, requireRefusals) {
   if (witness.homeResidency?.instance !== state.home || !Number.isSafeInteger(witness.homeResidency.bytes) || witness.homeResidency.bytes <= 0) failures.push('Borrowed home has no positive admitted residency claim');
   if (state.cells.some(row => !['driftwood-isle','_template','pine-hollow','nalati-grasslands'].includes(row.slug))) failures.push('Developer-only catalogue override installed');
   if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && ['driftwood-isle','_template'].includes(row.slug)))) failures.push('A refused native shard became a runtime resident');
-  if (requireRefusals && ['pine-hollow','nalati-grasslands'].some(slug => !['upgrade','too-big','safety','load'].includes(witness.refusals[slug] ?? ''))) failures.push('Pine/Nalati hard-admission refusal was not witnessed');
+  if (requireRefusals && ['pine-hollow','nalati-grasslands'].some(slug => {
+    if (['upgrade','too-big','safety','load'].includes(witness.refusals[slug] ?? '')) return false;
+    // Live-sim refusal is owned by the grid, while the session cache records product/load refusals.
+    return !(witness.cellScreens ?? []).some(row => row.status === 'refused' && typeof row.issue === 'string' && row.issue.length > 0
+      && state.cells.some(cell => cell.instance === row.instance && cell.slug === slug));
+  })) failures.push('Pine/Nalati hard-admission refusal was not witnessed');
   return failures;
 }

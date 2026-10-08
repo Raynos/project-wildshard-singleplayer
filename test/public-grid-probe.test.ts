@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercises the exact serialized browser fixture in an isolated context.
 import { runInNewContext } from 'node:vm';
-import { publicGridIntentCode, publicGridPlans, publicGridWitnessFailures, type PublicGridWitness } from '../scripts/public-grid.mjs';
+import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures, type PublicGridWitness } from '../scripts/public-grid.mjs';
 
 const cells = [{instance:'driftwood-isle',slug:'driftwood-isle',cell:[0,0] as const},
   {instance:'template-2',slug:'_template',cell:[1,1] as const},
@@ -45,4 +45,25 @@ it('requires effective public mode, real refusals and no refused runtime residen
   const notRequested=witness();notRequested.refusals={};
   expect(publicGridWitnessFailures(notRequested,false)).toEqual([]);
   expect(publicGridWitnessFailures(notRequested,true)).toHaveLength(1);
+});
+
+
+it('reads live grid refusal screens and their original issues without writing a refusal cache', () => {
+  const initial = witness();
+  const state = { ...initial.state, screens: { shown: [{instance:'pine-hollow',status:'refused'}, {instance:'nalati-grasslands',status:'refused'}] },
+    live: { ...initial.state.live, live: { ...initial.state.live.live, issues: {'pine-hollow':'Live sim admission deferred by the shared budget','nalati-grasslands':'Live sim admission deferred by the shared budget'} } } };
+  const result: unknown = runInNewContext(`(${readPublicGridWitness.toString()})()`, {
+    window: { __wildshard: { shard: { grid: { state: () => state, residency: () => ({home:initial.homeResidency}) } }, world: {game:{level:{id:'driftwood-isle'}}} } },
+    document: {documentElement:{dataset:{}}}, localStorage: {getItem:()=>JSON.stringify({keys:{devMode:{data:false}}})}, sessionStorage: {getItem:()=>null},
+  });
+  const cellScreens=[{instance:'pine-hollow',status:'refused',issue:'Live sim admission deferred by the shared budget'},
+    {instance:'nalati-grasslands',status:'refused',issue:'Live sim admission deferred by the shared budget'}];
+  expect(result).toMatchObject({refusals:{},cellScreens});
+  const observed={...initial,refusals:{},cellScreens};
+  expect(publicGridWitnessFailures(observed,true)).toEqual([]);
+  const changes: ((row:PublicGridWitness)=>void)[] = [row=>{row.cellScreens=[];},
+    row=>{row.cellScreens=[{instance:'pine-hollow',status:'waiting',issue:'M3 wait'},{instance:'nalati-grasslands',status:'refused',issue:'budget'}];},
+    row=>{row.cellScreens=[{instance:'pine-hollow',status:'refused',issue:null},{instance:'nalati-grasslands',status:'refused',issue:'budget'}];},
+    row=>{row.cellScreens=[{instance:'unknown',status:'refused',issue:'budget'},{instance:'nalati-grasslands',status:'refused',issue:'budget'}];}];
+  for(const change of changes) {const row={...observed};change(row);expect(publicGridWitnessFailures(row,true)).toContain('Pine/Nalati hard-admission refusal was not witnessed');}
 });
