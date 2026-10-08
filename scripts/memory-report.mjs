@@ -42,6 +42,10 @@ export function memoryReportFromManifest(value,directory){
   const poses=required.map(name=>{
     const row=inputs.find(pose=>pose.name===name);
     if(!row)return {name,measured:null,accounted:emptyMemoryAttribution(),missing:['No native source supplied for this required pose']};
+    if(row.unavailable!==undefined){
+      if(row.native!==undefined||row.attribution!==undefined||row.itemized!==undefined)throw new Error('Unavailable pose cannot hide supplied evidence');
+      return {name,measured:null,accounted:emptyMemoryAttribution(),missing:[string(row.unavailable)]};
+    }
     const native=record(row.native), file=string(native.file), label=string(native.label);
     const attribution=row.attribution===undefined?null:load(string(row.attribution));
     const pose=nativeMemoryPose(load(file),label,name,`${file}#${label}`,attribution);

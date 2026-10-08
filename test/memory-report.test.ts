@@ -89,6 +89,9 @@ it('writes missing centre and peak pages, preserves null on old probes and escap
   expect(memoryOwnerColour('unattributed')).toBe('url(#unknown)');
   expect(() => readMemoryReport({ ...report, cap: { bytes: 2e9 } })).toThrow('1000 MB');
   expect(() => readMemoryReport({ ...report, poses: [{ ...pose, missing: [] }] })).toThrow('state why');
+  const unavailable = { schema: 'memory-report-input/1', pin: 'abc', device: 'phone', settings: {}, centres: ['nine-dragon-stack'], poses: [{ name: 'nine-dragon-stack-centre', unavailable: 'Not in the grid catalogue' }] };
+  expect(memoryReportFromManifest(unavailable, '.').poses.at(1)?.missing).toEqual(['Not in the grid catalogue']);
+  expect(() => memoryReportFromManifest({ ...unavailable, poses: [{ ...unavailable.poses[0], native: { file: 'hidden', label: 'hidden' } }] }, '.')).toThrow('cannot hide supplied evidence');
 });
 
 it('runs offline on bounded compressed sources and refuses to overwrite previous evidence', () => {

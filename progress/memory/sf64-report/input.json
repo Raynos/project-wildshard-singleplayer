@@ -9,6 +9,7 @@
   },
   "centres": ["driftwood-isle", "pine-hollow", "nalati-grasslands", "_template", "sunscar-dunes", "far-reach", "nine-dragon-stack"],
   "poses": [
+    {"name": "nine-dragon-stack-centre", "unavailable": "Nine Dragon is not in the grid catalogue; no grid centre capture exists"},
     {
       "name": "road", "pin": "65106ea87",
       "native": {"file": "../g227-budget/native-nalati-saver-on-verified-65106ea87.json.gz", "label": "neutral-road"},
