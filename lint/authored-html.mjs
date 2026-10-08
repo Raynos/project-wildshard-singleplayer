@@ -24,15 +24,30 @@ function property(node, checker) {
   }
   return null;
 }
+// E454: every file the rule's AST pass can send here (a sink word, or a call named write / writeln / assign), so one
+// program serves the whole lint run. A file outside it used to rebuild the program from scratch: 24 of the ratchet's
+// 50 s. Extra root files never change another file's types (src files are modules; the merge files are always in).
+const CANDIDATE = /innerHTML|outerHTML|srcdoc|__html|insertAdjacentHTML|createContextualFragment|\bwrite(?:ln)?\b|\bassign\b/u;
 function checkerFor(root, filename) {
   const key = resolve(root), file = resolve(filename), text = readFileSync(file, 'utf8');
   const cached = cache.get(key);
   if (cached?.program.getSourceFile(file)?.text === text) return cached;
   const config = ts.findConfigFile(key, existsSync);
   const parsed = config ? ts.parseJsonConfigFileContent(ts.readConfigFile(config, (path) => ts.sys.readFile(path)).config, ts.sys, key) : null;
-  const names = globSync('src/**/*.{ts,tsx}', { cwd: key }).map((path) => resolve(key, path)).filter((path) => path.endsWith('.merge.d.ts') ? true : /innerHTML|outerHTML|srcdoc|insertAdjacentHTML|createContextualFragment|document\.write/u.test(readFileSync(path, 'utf8')));
-  const program = ts.createProgram([...new Set([...names, file])], { ...parsed?.options, noEmit: true, strict: true, skipLibCheck: true });
-  const entry = { program, checker: program.getTypeChecker() }; cache.set(key, entry); return entry;
+  const names = cached?.names ?? new Set(globSync('src/**/*.{ts,tsx}', { cwd: key }).map((path) => resolve(key, path)).filter((path) => path.endsWith('.merge.d.ts') ? true : CANDIDATE.test(readFileSync(path, 'utf8'))));
+  names.add(file);
+  const options = { ...parsed?.options, noEmit: true, strict: true, skipLibCheck: true };
+  // A rebuild (an edited file in a long-lived process) reparses only what changed.
+  const parsedFiles = cached?.parsedFiles ?? new Map(), base = ts.createCompilerHost(options);
+  const host = { ...base, getSourceFile: (name, language, onError, fresh) => {
+    const hit = parsedFiles.get(name);
+    if (hit !== undefined && !fresh && ts.sys.readFile(name) === hit.text) return hit;
+    const parsedFile = base.getSourceFile(name, language, onError, fresh);
+    if (parsedFile !== undefined) parsedFiles.set(name, parsedFile);
+    return parsedFile;
+  } };
+  const program = ts.createProgram([...names], options, host);
+  const entry = { program, checker: program.getTypeChecker(), names, parsedFiles }; cache.set(key, entry); return entry;
 }
 
 /** Conservative HTML-sink analysis; diagnostics point at the unsafe caller for a local markup helper. */

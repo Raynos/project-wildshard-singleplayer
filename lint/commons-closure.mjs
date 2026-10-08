@@ -1,12 +1,15 @@
 // G143: authored build-time packs must never enter a runtime's transitive import closure.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import { parseSync } from 'vite';
 
-const cache = new Map();
+const cache = new Map(), manifests = new Map();
+// E454: a file's stamp (size + mtime) validates its cached parse without reading it again; this walk runs per import.
+const stamp = (file) => { const info = statSync(file, { throwIfNoEntry: false }); return info === undefined ? null : `${info.size}:${info.mtimeMs}`; };
 function imports(file) {
-  const source = readFileSync(file, 'utf8'), cached = cache.get(file);
-  if (cached?.source === source) return cached.specifiers;
+  const at = stamp(file), cached = cache.get(file);
+  if (at !== null && cached?.at === at) return cached.specifiers;
+  const source = readFileSync(file, 'utf8');
   const parsed = parseSync(file, source), specifiers = new Set(parsed.module.staticImports.map(row => row.moduleRequest.value));
   for (const row of parsed.module.staticExports) for (const entry of row.entries) if (entry.moduleRequest) specifiers.add(entry.moduleRequest.value);
   for (const row of parsed.module.dynamicImports) {
@@ -15,16 +18,18 @@ function imports(file) {
     const prefix = literal ?? /^(['"])([^'"]+)\1\s*\+/u.exec(expression) ?? /^(`)([^`$]+)\$\{/u.exec(expression);
     if (prefix !== null) specifiers.add(prefix[2]);
   }
-  const result = [...specifiers]; cache.set(file, { source, specifiers: result }); return result;
+  const result = [...specifiers]; cache.set(file, { at, specifiers: result }); return result;
 }
 function target(root, from, specifier) {
   let base;
   const pkg = /^@wildshard\/(engine|game|kit|sdk|commons)(?:\/(.+))?$/u.exec(specifier);
   if (pkg !== null) {
     const manifest = resolve(root, 'src', pkg[1], 'package.json');
-    if (!existsSync(manifest)) return null;
+    const at = stamp(manifest);
+    if (at === null) return null;
+    if (manifests.get(manifest)?.at !== at) manifests.set(manifest, { at, exports: JSON.parse(readFileSync(manifest, 'utf8')).exports });
     const subpath = specifier.slice(`@wildshard/${pkg[1]}/`.length);
-    const entry = JSON.parse(readFileSync(manifest, 'utf8')).exports?.[subpath === '' ? '.' : `./${subpath}`];
+    const entry = manifests.get(manifest)?.exports?.[subpath === '' ? '.' : `./${subpath}`];
     if (typeof entry !== 'string') return null;
     base = resolve(root, 'src', pkg[1], entry);
   } else if (specifier.startsWith('.')) base = resolve(dirname(from), specifier);
