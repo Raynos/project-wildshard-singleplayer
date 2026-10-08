@@ -40,6 +40,8 @@ export interface RingPorts<D> {
   fetch: (tile: RingTile, done: (result: D | Error) => void) => void;
   upload: (tile: RingTile, data: D) => RingView;
   discard?: (tile: RingTile, data: D) => void;
+  /** Cancel the tile's construction scope before releasing its claim. Idempotent; late results still go to discard. */
+  cancel?: (tile: RingTile) => void;
 }
 /** Camera pose in world metres and its velocity in m/s. */
 export interface RingCamera { readonly x: number; readonly z: number; readonly vx: number; readonly vz: number }
@@ -74,6 +76,7 @@ export function levelPorts<F, T>(far: RingPorts<F>, tiles: RingPorts<T>): RingPo
       throw new Error('ring ports: an untagged prepared tile');
     },
     discard: (tile, data) => { if (data.far !== undefined) far.discard?.(tile, data.far); else if (data.tile !== undefined) tiles.discard?.(tile, data.tile); },
+    cancel: (tile) => { if (tile.level === 'far') far.cancel?.(tile); else tiles.cancel?.(tile); },
   };
 }
 
@@ -270,10 +273,12 @@ export class RenderRings<D> {
       if (lease === null) { this.refused++; this.retryAt.set(tile.key, this.frame + 15); continue; }
       const slot: Slot<D> = { tile, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };
       this.slots.set(tile.key, slot); inFlight++;
-      this.ports.fetch(tile, (result) => {
-        if (this.disposed) { if (!(result instanceof Error)) this.ports.discard?.(tile, result); return; }
-        this.completed.push({ tile, lease, result });
-      });
+      try {
+        this.ports.fetch(tile, (result) => {
+          if (this.disposed) { if (!(result instanceof Error)) this.ports.discard?.(tile, result); return; }
+          this.completed.push({ tile, lease, result });
+        });
+      } catch (error) { this.drop(slot); throw error; }
     }
   }
 
@@ -290,7 +295,9 @@ export class RenderRings<D> {
     for (const slot of queue) {
       if (count >= this.options.uploadsPerFrame || (count > 0 && bytes + slot.bytes > this.options.uploadBytesPerFrame)) break;
       const data = slot.data; if (data === null) continue;
-      slot.view = this.ports.upload(slot.tile, data); slot.data = null; slot.state = 'uploaded';
+      try { slot.view = this.ports.upload(slot.tile, data); }
+      catch (error) { this.drop(slot); throw error; }
+      slot.data = null; slot.state = 'uploaded';
       count++; bytes += slot.bytes; this.uploads++;
       const parent = parentOf(slot.tile); if (parent !== null) this.remask(parent);
     }
@@ -303,13 +310,17 @@ export class RenderRings<D> {
   private drop(slot: Slot<D>): void {
     if (this.slots.get(slot.tile.key) !== slot) return;
     this.slots.delete(slot.tile.key);
-    slot.view?.dispose(); slot.view = null;
-    if (slot.data !== null) { this.ports.discard?.(slot.tile, slot.data); slot.data = null; }
-    slot.unholdParent();
-    slot.lease.release();
+    const errors: unknown[] = [];
+    const clean = (run: () => void): void => { try { run(); } catch (error) { errors.push(error); } };
+    const view = slot.view, data = slot.data; slot.view = null; slot.data = null;
+    if (view !== null) clean(() => view.dispose());
+    if (data !== null) clean(() => this.ports.discard?.(slot.tile, data));
+    clean(() => this.ports.cancel?.(slot.tile));
+    clean(slot.unholdParent);
+    clean(() => slot.lease.release());
     // tearing down re-masks nothing: the session's scope may already have uninstalled the parent's mesh
-    if (this.disposed) return;
-    const parent = parentOf(slot.tile); if (parent !== null) this.remask(parent);
+    if (!this.disposed) { const parent = parentOf(slot.tile); if (parent !== null) clean(() => this.remask(parent)); }
+    if (errors.length > 0) throw new AggregateError(errors, 'Ring tile cleanup failed');
   }
 
   /** A parent hides exactly the regions whose child is uploaded. */
