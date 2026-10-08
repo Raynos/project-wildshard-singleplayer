@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2225 members; 830 without a doc line (—).
+2226 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -741,6 +741,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ktx2Layers` | function | @wildshard/engine/core/ktx2 | The files of one texture array as KTX2 textures of one format (their `#layer` twins, baked unflipped), their mip chains trimmed so level 0 is `size` (the |
 | `ktx2Texture` | function | @wildshard/engine/core/ktx2 | The KTX2 texture standing in for `served`, or null: load the image instead. Memory saver keeps a bounded weak |
 | `layerArrayMips` | function | @wildshard/engine/core/ktx2 | Concatenate same-format compressed layers into one array texture's mip chain (E157): each layer's chain from its level |
+| `prepareCompressedTexture` | function | @wildshard/engine/core/ktx2 | Fence a finalized compressed texture before publishing it to a material or doing a readback. |
 | `readTexturePixels` | function | @wildshard/engine/core/ktx2 | Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h |
 | `releaseAfterUpload` | function | @wildshard/engine/core/ktx2 | Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the |
 | `DEFAULT_GRAPH_BUDGET` | const | @wildshard/engine/core/materialGraph | the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions) |

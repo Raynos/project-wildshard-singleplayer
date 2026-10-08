@@ -4409,6 +4409,12 @@
         "from": "@wildshard/engine/core/ktx2"
       },
       {
+        "name": "prepareCompressedTexture",
+        "kind": "function",
+        "doc": "Fence a finalized compressed texture before publishing it to a material or doing a readback.",
+        "from": "@wildshard/engine/core/ktx2"
+      },
+      {
         "name": "readTexturePixels",
         "kind": "function",
         "doc": "Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h",
