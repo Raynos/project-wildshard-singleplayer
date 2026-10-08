@@ -9,9 +9,14 @@ const local = v.pipe(v.number(), v.finite(), v.minValue(-250), v.maxValue(250));
 const mark = v.strictObject({ x: local, y: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(250)), z: local, yaw: v.pipe(v.number(), v.finite()), size: v.pipe(v.number(), v.minValue(0.5), v.maxValue(12)) });
 /**
  * Playtest 1 (SF52 / G220): a shared product's copy identity, data only. Its HUD accent inside the cell and where its
- * number stands (copyIdentity.ts); the copies keep sharing one product's bytes.
+ * number stands (copyIdentity.ts), and optionally its layout: a seed and the plots it fills with its own landmarks
+ * (copyLayout.ts); the copies keep sharing one product's bytes.
  */
-const identity = v.strictObject({ accent: AccentSchema, marks: v.pipe(v.array(mark), v.maxLength(8)) });
+/** one copy plot: a clear, level square its product leaves (centre and half-size, metres), filled by the copy's layout */
+const copyPlot = v.strictObject({ x: local, z: local, half: v.pipe(v.number(), v.finite(), v.minValue(16), v.maxValue(40)) });
+/** G220 pass 2: the copy's layout, a seed and its plots; the seed picks each plot's landmark (copyLayout.ts) */
+const layout = v.strictObject({ seed: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(2 ** 31 - 1)), plots: v.pipe(v.array(copyPlot), v.maxLength(8)) });
+const identity = v.strictObject({ accent: AccentSchema, marks: v.pipe(v.array(mark), v.maxLength(8)), layout: v.optional(layout) });
 const placement = v.strictObject({ instance: id, slug: id, cell: v.tuple([signed, signed]), identity: v.optional(identity) });
 /** G198 / G219: an open plot, a platform cell with no shard (the void floor, four entry showrooms and a centrepiece). */
 const plot = v.strictObject({ instance: id, cell: v.tuple([signed, signed]) });

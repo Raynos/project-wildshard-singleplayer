@@ -12,7 +12,10 @@ state-field IDs and item handles preserve the script ABI across declaration reor
 `generators/` and `layout.ts` are build-time source metadata, never client runtime. `generators/cell.ts` fills the
 500 m cell (G220): a road from each entry socket to a square loop around the yard, a set piece just inside each entry
 (north gate, south container yard, east signal mast, west covered drive), four hub corners outside the loop and lamp
-posts, all dev-map boxes on ground the terrain levels to y = 0.
+posts, all dev-map boxes on ground the terrain levels to y = 0. `generators/districts.ts` (pass 2) fills the plane between
+the roads: a hover test course, a block district, a ziggurat and an overpass in the corners, a scaffold yard, billboard
+row, hangars and crate yard in the side strips, a second set piece at each entry, and four 40 m copy plots that a grid
+copy fills with its own seeded landmarks (`src/game/grid/copyLayout.ts`).
 
 The first-party manifest keeps the canonical `_template` slug, grey picker art and
 `template-solo` save identity, and points at `/shardfiles/_template/shard.json`.

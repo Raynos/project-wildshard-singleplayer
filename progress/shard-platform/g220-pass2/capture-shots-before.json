@@ -1,0 +1,32 @@
+{
+  "url": "http://127.0.0.1:4404",
+  "legs": [
+    {
+      "leg": "template-2:road-west-spoke",
+      "inside": "template-2",
+      "feet": {
+        "x": 555,
+        "z": 555
+      },
+      "x": 0,
+      "z": 0,
+      "speed": 0,
+      "residentMB": 1773.35,
+      "playingMB": 2348.42
+    },
+    {
+      "leg": "template-5:road-west-spoke",
+      "inside": "template-2",
+      "feet": {
+        "x": 555,
+        "z": 555
+      },
+      "x": 0,
+      "z": 0,
+      "speed": 0,
+      "residentMB": 1772.28,
+      "playingMB": 2347.23
+    }
+  ],
+  "errors": []
+}

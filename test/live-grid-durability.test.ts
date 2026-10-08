@@ -28,6 +28,7 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { parseMigrations } from '../src/game/shardfile/migrations';
 import source from '../src/shards/_template/shard.config';
+import { withCopyLayout } from '../src/game/grid/copyLayout';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { MemoryStorage } from './setup';
 
@@ -175,7 +176,8 @@ it('holds a real live crossing on home or region save refusal and reloads the ea
     local.fail = false; first.session.retrySave(); first.tick(); expect(first.session.frame()).toBeNull();
     expect(first.session.live.state().continuations.storedChars).toBe(0); // The durable record below carries this continuation.
     const reload = new GridRegionDurability(new SaveStore({ local, session: null }), { id: target.instance, shard: target.slug }, source, []);
-    const freshBasis = create(source, assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });
+    // the live session's region basis: the copy's source with its layout colliders (copyLayout.ts)
+    const freshBasis = create(withCopyLayout(source, target.identity), assets, { rapier, playerBody: false, groundResolution: 257, quest: reload.quest });
     installEntrySockets(freshBasis.host.physics, freshBasis.host.scope, [{ x: 0, z: 0 }], 'backstop');
     const basisWithoutBorders = freshBasis.host.physics.snapshot().byteLength;
     installGridBorders(freshBasis.host.physics, freshBasis.host.scope);

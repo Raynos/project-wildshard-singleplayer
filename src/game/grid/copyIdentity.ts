@@ -6,12 +6,14 @@
  * the cell-local spots where its number stands as a panel on its own structures (the tower landmark, each entry's set
  * piece). The panels are seven-segment digits in the copy's accent on a dark plate, built here as two merged meshes per
  * copy (≈ 2 draws, a few KB of vertices), unlit so they read through the haze, no collider (flush with or above the
- * structure they name). A placement without `identity` (every ordinary shard, the solo template) gets nothing.
+ * structure they name). A declared `layout` adds the copy's own landmarks on its plots (copyLayout.ts). A placement without
+ * `identity` (every ordinary shard, the solo template) gets nothing.
  */
 import { BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import catalogue from './singleplayer.json' with { type: 'json' };
 import { ACCENTS } from '../shardfile/accent';
 import { parseGridCatalogue, type CopyIdentity } from './catalogue';
+import { copyLayoutMesh } from './copyLayout';
 
 /** a copy's number from its stable instance id (`template-2` → 2), as G222's title card reads it; null when it has none */
 export function copyNumber(instance: string): number | null {
@@ -77,6 +79,8 @@ function pushQuad(out: number[], m: Matrix4, r: readonly [number, number, number
 export function copyMarks(instance: string, identity: CopyIdentity | undefined): { object: Group; dispose: () => void } | null {
   const n = copyNumber(instance);
   if (identity === undefined || n === null || identity.marks.length === 0) return null;
+  // G220 pass 2: the copy's own landmarks on its plots (copyLayout.ts), under the same root and disposed with the panels
+  const layout = copyLayoutMesh(identity);
   const digits: number[] = [], plates: number[] = [], quads = numberQuads(n), m = new Matrix4();
   for (const mark of identity.marks) {
     m.makeRotationY(mark.yaw).setPosition(mark.x, mark.y, mark.z);
@@ -89,6 +93,6 @@ export function copyMarks(instance: string, identity: CopyIdentity | undefined):
   const object = new Group(); object.name = `copy-identity:${instance}`;
   const plate = new Mesh(plateGeometry, plateMaterial), number = new Mesh(digitGeometry, digitMaterial);
   plate.name = 'copy-identity-plate'; number.name = 'copy-identity-number'; number.renderOrder = 1;
-  object.add(plate, number);
-  return { object, dispose: () => { digitGeometry.dispose(); plateGeometry.dispose(); digitMaterial.dispose(); plateMaterial.dispose(); object.removeFromParent(); } };
+  object.add(plate, number); if (layout !== null) object.add(layout.mesh);
+  return { object, dispose: () => { digitGeometry.dispose(); plateGeometry.dispose(); digitMaterial.dispose(); plateMaterial.dispose(); layout?.dispose(); object.removeFromParent(); } };
 }

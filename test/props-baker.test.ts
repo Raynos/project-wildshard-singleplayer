@@ -22,8 +22,8 @@ import { templateProps } from '../scripts/bake/templatePropsSource';
 const cleanups: (() => void)[] = [];
 afterEach(() => { for (const cleanup of cleanups.splice(0)) cleanup(); });
 const source = () => { const fixture = templateProps(); cleanups.push(fixture.dispose); return fixture; };
-/** the yard's 20 (hut 5, door 1, ramp 11, practice pads 3) and G220's cell fill: 94 set-piece and hub boxes, 56 lamp posts */
-const COLLIDERS = 20 + 94 + 56;
+/** the yard's 20 (hut 5, door 1, ramp 11, practice pads 3) and G220's cell fill: 94 set-piece and hub boxes, 56 lamp posts, and pass 2's 269 district, entry-extra and plot shapes */
+const COLLIDERS = 20 + 94 + 56 + 269;
 const terrain = () => bakeTerrain({ heightAt: () => 0, colourAt: () => [0.2, 0.2, 0.2] });
 
 describe('declared prop baker', () => {

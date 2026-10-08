@@ -55,6 +55,7 @@ import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './r
 import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
+import { withCopyLayout } from './copyLayout';
 import { loadNavmesh } from '@wildshard/engine/physics/navmesh';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
@@ -440,13 +441,15 @@ export class LiveGridSession {
       retained.release();
     };
     const groundResolution = source.edge.north.heights.length === 256 ? 256 : 257;
+    // G220 pass 2: a shared product's copy collides with its own landmarks (copyLayout.ts); every other cell gets its source unchanged
+    const copySource = withCopyLayout(source, cell.identity);
     const generatedGroundBytes = source.terrain === null ? 2 * groundResolution ** 2 * Float32Array.BYTES_PER_ELEMENT : 0;
     const rapier = this.ports.physics.R, duplicates = this.ports.strips.flatMap((strip) => strip.duplicates.filter((row) => row.instance === cell.instance).map((row) => row.mesh));
     const notices = this.page.scriptNotices;
     const scriptPorts = notices === undefined ? {} : { scriptDisabled: scriptDisabledNotice(notices) };
     // Four native creature-only walls and their shape/query adapters belong to this regional claim.
     return { bytes: source.budgets.sim.resident + generatedGroundBytes + 4096 + TRANSFER_WALL_BYTES, reloadsCheckpoint: true, cancel: releaseProduct, create: (saved) => {
-      let sim: ShardfileSimulation = createShardfileSim(source, assets, { rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
+      let sim: ShardfileSimulation = createShardfileSim(copySource, assets, { rapier, playerBody: false, quest, groundResolution, ...scriptPorts });
       let releaseBasis: () => void = () => undefined;
       let transfer: TransferWalls;
       try {
@@ -466,7 +469,7 @@ export class LiveGridSession {
         if (prior !== undefined) {
           const authored = sim.host.level; sim.dispose();
           const host = restoreSimHost(authored, { rapier }, prior, (restored) => {
-            sim = bindShardfileSim(restored, source, assets, { rapier, restoring: true, quest, ...scriptPorts }); savedRegion.bind(restored, sim.colliders);
+            sim = bindShardfileSim(restored, copySource, assets, { rapier, restoring: true, quest, ...scriptPorts }); savedRegion.bind(restored, sim.colliders);
             transfer = regionTransferWalls(restored, this.page.traveller.motor.opts.radius, true);
           });
           host.detachPlayerMotor(); // the restored world carries its strip duplicates already

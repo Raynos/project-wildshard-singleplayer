@@ -28,7 +28,8 @@ describe('template copies read distinct without a second product (playtest 1, SF
       const marks = copyMarks(cell.instance, cell.identity);
       expect(marks).not.toBeNull();
       if (marks === null) continue;
-      const meshes = marks.object.children as Mesh[];
+      // the number's two meshes (the copy's layout landmarks are the third child, grid-copy-layout.test.ts)
+      const meshes = (marks.object.children as Mesh[]).filter((mesh) => mesh.name.startsWith('copy-identity'));
       expect(meshes).toHaveLength(2);
       const bytes = meshes.reduce((sum, mesh) => sum + (mesh.geometry.getAttribute('position').array.byteLength), 0);
       expect(bytes).toBeLessThan(8 * 1024);

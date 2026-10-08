@@ -1,10 +1,9 @@
-import { Group, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { Box3, Group, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
 import { measureBox, type TemplateWorldPorts } from './world';
+import { Kit, framed, type ColliderDesc, type MeasureRole } from './kit';
+import { billboardRow, blockDistrict, copyPlots, crateYard, entryExtras, hangars, overpass, scaffoldYard, stripFill, testCourse, ziggurat } from './districts';
 
-// the engine types this generator speaks, through world.ts's ports (no new engine edges for one build-time module)
 type Piece = Parameters<TemplateWorldPorts['piece']>[0];
-type ColliderDesc = NonNullable<Piece['colliders']>[number];
-type MeasureRole = Parameters<typeof measureBox>[3];
 
 /**
  * Build-time only (SHARD-PLATFORM SF52, G220): Template 1 fills its 500 m cell, so arriving from any entry is never a long
@@ -13,7 +12,8 @@ type MeasureRole = Parameters<typeof measureBox>[3];
  * socket, and the hub's four corners outside the loop carry a cluster each (the tower landmark, a block, the yard sheds,
  * the market arcade). Everything is dev-map boxes (`measureBox`: structures orange, trim grey) on ground the terrain
  * flattens to y = 0 (`cellGround`), so the hoverboard rides the terrain under the roads and the visual road is a 5 cm
- * slab; the sockets themselves stay clear (validate's SF8c footprint check).
+ * slab; the sockets themselves stay clear (validate's SF8c footprint check). Pass 2 (districts.ts) fills the plane between the
+ * roads: four corner districts, four side-strip districts, a second set piece at each entry and four copy plots.
  */
 
 /** the loop road's centreline half-size (m): a square around the yard, clear of the hut, the cubes and the pool */
@@ -24,64 +24,18 @@ const ASPHALT = 8, STRIPE = 0.5, HALF = ASPHALT / 2 + STRIPE;
 const TOP = 0.05, SLAB = 0.3;
 /** where a spoke road ends: just short of the 15 m socket */
 const SPOKE_END = 234.5;
-/** each entry set piece's centre, metres in from its edge, and the hub clusters' centres */
-const ENTRY_IN = 30;
+/** the hub clusters' centres */
 const QUADRANTS: readonly (readonly [number, number])[] = [[-88, -88], [88, -88], [88, 88], [-88, 88]];
 
 const smooth = (edge0: number, edge1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0))); return t * t * (3 - 2 * t); };
 
 /**
- * The terrain finish (generators/terrain.ts and the props bake share it): roads, the loop, the entry plazas and the hub
- * pads are levelled to y = 0, blending back to the authored noise over a few metres. The yard inside the loop is
- * untouched.
+ * The terrain finish (generators/terrain.ts and the props bake share it): everything outside the yard (the loop, the
+ * roads, the entry plazas, the hub corners and pass 2's districts) is levelled to y = 0, blending back to the authored
+ * noise over a few metres just inside the loop. The yard inside the loop is untouched.
  */
 export function cellGround(x: number, z: number, h: number): number {
-  const ax = Math.abs(x), az = Math.abs(z);
-  let w = 0;
-  // the spokes: along both axes from the loop to the edge
-  if (az >= LOOP - 2) w = Math.max(w, smooth(HALF + 9, HALF + 2, ax));
-  if (ax >= LOOP - 2) w = Math.max(w, smooth(HALF + 9, HALF + 2, az));
-  // the loop: a square band at ±LOOP
-  const band = Math.max(ax, az) <= LOOP + HALF + 9 ? Math.abs(Math.max(ax, az) - LOOP) : Infinity;
-  w = Math.max(w, smooth(HALF + 9, HALF + 2, band));
-  // the entry plazas and the hub pads
-  for (const [cx, cz] of [[0, 250 - ENTRY_IN], [0, -250 + ENTRY_IN], [250 - ENTRY_IN, 0], [-250 + ENTRY_IN, 0]] as const) w = Math.max(w, smooth(44, 30, Math.hypot(x - cx, z - cz)));
-  for (const [cx, cz] of QUADRANTS) w = Math.max(w, smooth(36, 26, Math.max(Math.abs(x - cx), Math.abs(z - cz))));
-  return h * (1 - w);
-}
-
-/** A collider-bearing set of dev-map boxes, built as one registry piece. */
-class Kit {
-  readonly root = new Group();
-  readonly colliders: ColliderDesc[] = [];
-  /** every buffer and material the kit made, for the caller's scope */
-  readonly owned: { dispose: () => void }[] = [];
-  /** while set, boxes are named `detail`: drawn near, left out of the coarse tiles and the far proxy (`cellCoarse`) */
-  detail = false;
-  /** a w (x) × h × d (z) box standing on `y0` at (x, z); `solid` adds its box collider */
-  box(x: number, y0: number, z: number, w: number, h: number, d: number, role: MeasureRole, solid: boolean, surface: 'stone' | 'metal' | 'wood' = 'stone', color = 0x888888): void {
-    const geometry = measureBox(w, h, d, role), material = new MeshStandardMaterial({ color, flatShading: true }), mesh = new Mesh(geometry, material);
-    this.owned.push(geometry, material);
-    mesh.position.set(x, y0 + h / 2, z); if (this.detail) mesh.name = 'detail'; this.root.add(mesh);
-    if (solid) this.colliders.push({ kind: 'box', x, y: y0 + h / 2, z, hx: w / 2, hy: h / 2, hz: d / 2, surface });
-  }
-}
-
-/**
- * One entry's local frame: `across` is metres to the right of the road as you drive in, `inward` metres in from the edge,
- * `w` across and `d` along. North is +z.
- */
-type Edge = 'north' | 'south' | 'east' | 'west';
-function framed(kit: Kit, edge: Edge): (across: number, y0: number, inward: number, w: number, h: number, d: number, role: MeasureRole, solid: boolean, surface?: 'stone' | 'metal' | 'wood') => void {
-  return (across, y0, inward, w, h, d, role, solid, surface) => {
-    switch (edge) {
-      case 'north': kit.box(-across, y0, 250 - inward, w, h, d, role, solid, surface); return;
-      case 'south': kit.box(across, y0, -250 + inward, w, h, d, role, solid, surface); return;
-      case 'east': kit.box(250 - inward, y0, across, d, h, w, role, solid, surface); return;
-      case 'west': kit.box(-250 + inward, y0, -across, d, h, w, role, solid, surface); return;
-      default: throw new Error('cell: unknown edge');
-    }
-  };
+  return h * (1 - smooth(LOOP - HALF - 9, LOOP - HALF - 2, Math.max(Math.abs(x), Math.abs(z))));
 }
 
 /** The roads: four spokes from the sockets to the loop and the square loop around the yard (visual slabs, no colliders). */
@@ -233,6 +187,34 @@ export function cellCoarse(object: Object3D): Object3D {
   return copy;
 }
 
+/** G220 pass 2's districts, entry extras and copy plots (districts.ts): id, name, builder */
+const DISTRICTS: readonly (readonly [string, string, () => Kit])[] = [
+  ['template.district.course', 'Hover test course', testCourse], ['template.district.blocks', 'Block district', blockDistrict],
+  ['template.district.ziggurat', 'Ziggurat', ziggurat], ['template.district.overpass', 'Overpass', overpass],
+  ['template.district.scaffold', 'Scaffold yard', scaffoldYard], ['template.district.billboards', 'Billboard row', billboardRow],
+  ['template.district.hangars', 'Hangars', hangars], ['template.district.crates', 'Crate yard', crateYard],
+  ['template.district.strips', 'Strip fill', stripFill], ['template.district.plots', 'Copy plots', copyPlots],
+  ['template.entry.extras', 'Entry extras', entryExtras],
+];
+/** every cell-fill piece the bake draws whole near and coarse far (templatePropsSource.ts) */
+export const CELL_PIECES: readonly string[] = ['template.roads', 'template.hub', 'template.entry.north', 'template.entry.south', 'template.entry.east', 'template.entry.west', ...DISTRICTS.map(([id]) => id)];
+
+/**
+ * The far proxy's version of `object` (8,000 triangles for the whole cell): the coarse copy without the small boxes, so
+ * only what reads from the next cell stays (blocks, towers, decks, the big pads; no crates, posts or trim strips).
+ */
+export function cellFar(object: Object3D): Object3D {
+  const copy = cellCoarse(object), drop: Object3D[] = [];
+  copy.traverse((node) => {
+    if (!(node instanceof Mesh)) return;
+    const box = new Box3().setFromObject(node);
+    const w = box.max.x - box.min.x, h = box.max.y - box.min.y, d = box.max.z - box.min.z;
+    if (Math.max(w, d) < 10 && h < 6) drop.push(node);
+  });
+  for (const node of drop) node.removeFromParent();
+  return copy;
+}
+
 /** Register the cell's roads, entry set pieces, hub and posts under `root`, each a registry piece. */
 export function buildCellFill(ctx: Pick<TemplateWorldPorts, 'root' | 'scope' | 'piece'>): { posts: { model: Group; transforms: Matrix4[] } } {
   const file = 'src/shards/_template/generators/cell.ts';
@@ -246,6 +228,7 @@ export function buildCellFill(ctx: Pick<TemplateWorldPorts, 'root' | 'scope' | '
   add('template.entry.south', 'South container yard', 'buildings', southYard());
   add('template.entry.east', 'East signal mast', 'buildings', eastMast());
   add('template.entry.west', 'West covered drive', 'buildings', westHall());
+  for (const [id, name, kit] of DISTRICTS) add(id, name, 'buildings', kit());
   const posts = cellPosts(), shown = new Group();
   for (const matrix of posts.transforms) { const lamp = posts.model.clone(); lamp.applyMatrix4(matrix); shown.add(lamp); }
   ctx.root.add(shown); for (const resource of posts.owned) ctx.scope.own(resource); ctx.piece({ id: 'template.posts', name: 'Lamp posts', category: 'props', file, object: shown, colliders: posts.colliders, surface: 'metal' });

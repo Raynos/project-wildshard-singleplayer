@@ -1,0 +1,123 @@
+{
+  "url": "http://127.0.0.1:4402",
+  "legs": [
+    {
+      "leg": "template-2:road-west-spoke",
+      "inside": "template-2",
+      "feet": {
+        "x": 385,
+        "z": 555
+      },
+      "x": -170,
+      "z": 0,
+      "speed": 0,
+      "residentMB": 1773.89,
+      "playingMB": 2349.02
+    },
+    {
+      "leg": "template-2:air-south",
+      "inside": "template-2",
+      "feet": {
+        "x": 555,
+        "z": 495
+      },
+      "x": 0,
+      "z": -60,
+      "speed": 0,
+      "residentMB": 1777.31,
+      "playingMB": 2352.81
+    },
+    {
+      "leg": "template-2:air-north-west",
+      "inside": "template-2",
+      "feet": {
+        "x": 435,
+        "z": 675
+      },
+      "x": -120,
+      "z": 120,
+      "speed": 0,
+      "residentMB": 1775.34,
+      "playingMB": 2350.63
+    },
+    {
+      "leg": "template-2:entry-north",
+      "inside": "template-2",
+      "feet": {
+        "x": 555,
+        "z": 755
+      },
+      "x": 0,
+      "z": 200,
+      "speed": 0,
+      "residentMB": 1775.2,
+      "playingMB": 2350.47
+    },
+    {
+      "leg": "template-2:entry-south",
+      "inside": "template-2",
+      "feet": {
+        "x": 555,
+        "z": 355
+      },
+      "x": 0,
+      "z": -200,
+      "speed": 0,
+      "residentMB": 1773.42,
+      "playingMB": 2348.49
+    },
+    {
+      "leg": "template-2:entry-east",
+      "inside": "template-2",
+      "feet": {
+        "x": 755,
+        "z": 555
+      },
+      "x": 200,
+      "z": 0,
+      "speed": 0,
+      "residentMB": 1774.64,
+      "playingMB": 2349.85
+    },
+    {
+      "leg": "template-2:entry-west",
+      "inside": "template-2",
+      "feet": {
+        "x": 355,
+        "z": 555
+      },
+      "x": -200,
+      "z": 0,
+      "speed": 0,
+      "residentMB": 1773.48,
+      "playingMB": 2348.56
+    },
+    {
+      "leg": "template-2:plot-ne",
+      "inside": "template-2",
+      "feet": {
+        "x": 621,
+        "z": 695
+      },
+      "x": 66,
+      "z": 140,
+      "speed": 0,
+      "residentMB": 1775.79,
+      "playingMB": 2351.13
+    },
+    {
+      "leg": "template-2:plot-se",
+      "inside": "template-2",
+      "feet": {
+        "x": 705,
+        "z": 489
+      },
+      "x": 150,
+      "z": -66,
+      "speed": 0,
+      "residentMB": 1775.68,
+      "playingMB": 2351
+    }
+  ],
+  "errors": []
+}
