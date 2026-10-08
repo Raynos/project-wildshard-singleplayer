@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { BoxGeometry, BufferGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial } from 'three';
+import { BoxGeometry, BufferAttribute, BufferGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
 import { bakeProps } from '../src/sdk/bake/props';
@@ -88,7 +88,9 @@ describe('declared prop baker', () => {
     scene.traverse((o) => { if (o instanceof InstancedMesh) for (let i = 0; i < o.count; i++) {
       const matrix = new Matrix4(); o.getMatrixAt(i, matrix); matrices.push(matrix.elements);
       if (!(o.geometry instanceof BufferGeometry)) throw new Error('Missing loaded instance geometry');
-      expect(o.geometry.getAttribute('position').count).toBe(geometry.index?.count ?? geometry.getAttribute('position').count);
+      const position: unknown = o.geometry.getAttribute('position');
+      if (!(position instanceof BufferAttribute)) throw new Error('Missing loaded positions');
+      expect(position.count).toBe(geometry.index?.count ?? geometry.getAttribute('position').count);
     } });
     expect(matrices).toEqual(transforms.map(matrix => matrix.elements));
     const panel = installed.panels.get('template.door'); expect(panel).toBeDefined(); if (panel === undefined) throw new Error('Missing panel'); panel.visible = false; expect(panel.visible).toBe(false);
