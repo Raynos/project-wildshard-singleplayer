@@ -1,0 +1,78 @@
+{
+  "why": "Pine Hollow's map in flat autumn tones (G252, Jake's pick B): the dry and green grass, the dark trails picked out with an edge, the grey crags, the pond; trees and cabins raised with an edge and a shadow, steep ground as rock",
+  "style": {
+    "kind": "ground",
+    "smooth": 7,
+    "shade": 0.55,
+    "classes": [
+      {
+        "match": "#847553",
+        "fill": "#c2ad78"
+      },
+      {
+        "match": "#706448",
+        "fill": "#ad9a64"
+      },
+      {
+        "match": "#5a5643",
+        "fill": "#939059"
+      },
+      {
+        "match": "#46603a",
+        "fill": "#6f9150"
+      },
+      {
+        "match": "#504640",
+        "fill": "#7a6247",
+        "edge": "#3b2c1f"
+      },
+      {
+        "match": "#5c5047",
+        "fill": "#7a6247",
+        "edge": "#3b2c1f"
+      },
+      {
+        "match": "#948a7c",
+        "fill": "#b4ad9f"
+      },
+      {
+        "match": "#b3ab9e",
+        "fill": "#c9c2b4"
+      },
+      {
+        "match": "#75706a",
+        "fill": "#a09a8e"
+      },
+      {
+        "match": "#1c2022",
+        "fill": "#4a7d96",
+        "edge": "#2d4a5a",
+        "min": 400
+      }
+    ],
+    "steep": {
+      "slope": 1.3,
+      "fill": "#a39c8f"
+    },
+    "raised": {
+      "bump": 2.5,
+      "classes": [
+        {
+          "match": "#3f5530",
+          "fill": "#4f7a3e",
+          "edge": "#2a4422"
+        },
+        {
+          "match": "#4a4038",
+          "fill": "#8c6f52",
+          "edge": "#3a2a1c"
+        },
+        {
+          "match": "#808080",
+          "fill": "#9a948a",
+          "edge": "#4a463f"
+        }
+      ]
+    }
+  }
+}

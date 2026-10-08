@@ -15,12 +15,14 @@ export const MAP_METRES = 500;
  * A shard's own map settings, src/shards/<slug>/look/map.json (optional): "inputs" (paths that place its world, in place of
  * DEFAULT_MAP_INPUTS) and "hide" (mesh name patterns the bake leaves out, a trailing * a prefix: a cloud sea over the
  * world, a backdrop), and "clipBelow" (metres: nothing under this height is drawn, a cloud sea under floating islands),
- * with a "why".
- * @param {string} shardDir @returns {{inputs: string[], hide: string[], clipBelow: number | null}}
+ * "heightHide" (names left out of the height pass only: a painted layer that may colour the void but is not ground) and
+ * "style" (G252: the stylizer's colour table and rules, scripts/map-stylize.py; a palette change rebakes, since this file is
+ * part of the hash), with a "why".
+ * @param {string} shardDir @returns {{inputs: string[], hide: string[], heightHide: string[], clipBelow: number | null, style: ({kind: string} & Record<string, unknown>) | null}}
  */
 export function mapSettings(shardDir) {
   const own = join(shardDir, 'look', 'map.json');
-  if (!existsSync(own)) return { inputs: DEFAULT_MAP_INPUTS, hide: [], clipBelow: null };
+  if (!existsSync(own)) return { inputs: DEFAULT_MAP_INPUTS, hide: [], heightHide: [], clipBelow: null, style: null };
   const parsed = JSON.parse(readFileSync(own, 'utf8'));
   const list = (key) => {
     const value = parsed[key];
@@ -30,7 +32,9 @@ export function mapSettings(shardDir) {
   };
   if (typeof parsed.why !== 'string' || parsed.why.length === 0) throw new Error(`${own}: say why ("why")`);
   if (parsed.clipBelow !== undefined && typeof parsed.clipBelow !== 'number') throw new Error(`${own}: clipBelow must be metres`);
-  return { inputs: list('inputs') ?? DEFAULT_MAP_INPUTS, hide: list('hide') ?? [], clipBelow: parsed.clipBelow ?? null };
+  const style = parsed.style ?? null;
+  if (style !== null && (typeof style !== 'object' || !['isle', 'void', 'ground'].includes(style.kind))) throw new Error(`${own}: style.kind must be isle, void or ground`);
+  return { inputs: list('inputs') ?? DEFAULT_MAP_INPUTS, hide: list('hide') ?? [], heightHide: list('heightHide') ?? [], clipBelow: parsed.clipBelow ?? null, style };
 }
 /** @param {string} shardDir */
 export const mapInputs = (shardDir) => mapSettings(shardDir).inputs;

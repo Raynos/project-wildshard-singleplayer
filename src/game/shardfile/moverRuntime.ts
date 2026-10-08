@@ -55,6 +55,8 @@ export class MoverRuntime {
   readonly data: MoverData;
   readonly chains = new Map<string, RopeChain>();
   private readonly sinks = new Map<string, (pose: MoverPose) => void>();
+  /** the presentation-only views (adopted rows), for {@link showRest} */
+  private readonly views = new Map<string, (pose: MoverPose) => void>();
   private readonly host: ScriptHost;
   private readonly physics: () => Physics;
   private readonly bodies = new Map<string, KinematicMover>();
@@ -70,6 +72,7 @@ export class MoverRuntime {
       if (adopted !== undefined) {
         const chain = adopted.chain; let enabled = m.enabled;
         this.sinks.set(m.id, (pose) => { if (chain !== undefined && enabled !== pose.enabled) { enabled = pose.enabled; chain.setEnabled(enabled); } adopted.pose(pose, this.host.world.entity(m.entity)?.fields ?? {}); });
+        this.views.set(m.id, (pose) => { adopted.pose(pose, this.host.world.entity(m.entity)?.fields ?? {}); });
         if (chain !== undefined) this.chains.set(m.id, chain); continue;
       }
       if (m.kind === 'chain') { if (m.chain === undefined) throw new Error('Missing chain'); const chain = new RopeChain(this.physics(), m.chain); this.chains.set(m.id, chain); let enabled = m.enabled; chain.setEnabled(enabled); this.sinks.set(m.id, (pose) => { if (enabled !== pose.enabled) { enabled = pose.enabled; chain.setEnabled(enabled); } }); ports.scope.onDispose(() => { chain.dispose(); }); }
@@ -106,6 +109,14 @@ export class MoverRuntime {
   pose(id: string): MoverPose {
     const m = this.data.find((row) => row.id === id), e = m === undefined ? undefined : this.host.world.entity(m.entity); if (e === undefined) throw new Error('Unknown mover');
     return { position: { x: e.position[0], y: e.position[1], z: e.position[2] }, euler: { x: e.fields[1] ?? 0, y: e.fields[2] ?? 0, z: e.fields[3] ?? 0 }, enabled: !e.frozen && e.fields[4] === 1 };
+  }
+  /**
+   * Draw every adopted view at its declared rest pose (the row's `at` and `euler`), presentation only: no script memory, no
+   * body, no tick. The next fixed step publishes the live poses again. The map bake (scripts/bake-maps.mjs, SF66 / G252)
+   * calls it, through the level's debug exposure, in the same task as its render, so a moving deck is drawn where it rests.
+   */
+  showRest(): void {
+    for (const m of this.data) this.views.get(m.id)?.({ position: { x: m.at.x, y: m.at.y, z: m.at.z }, euler: { x: m.euler.x, y: m.euler.y, z: m.euler.z }, enabled: m.enabled });
   }
   /** After a logical checkpoint load, bring fresh native bodies to the restored published poses without a physics step. */
   resetPublishedPoses(): void { for (const [id, body] of this.bodies) body.resetPose(this.pose(id)); }
@@ -160,5 +171,6 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
     runtime.step(current, options.permissions?.());
   } });
   if (options.onDispose !== undefined) ctx.scope.onDispose(options.onDispose);
+  ctx.debug.expose(`movers.${options.systemId}`, { showRest: () => { runtime.showRest(); } }); // the map bake poses movers at rest
   return runtime;
 }

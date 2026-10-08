@@ -1,0 +1,24 @@
+{
+  "why": "Driftwood's map in its toon palette (G252, Jake's pick B): flat blues for the sea, the shallows and the shore, sand, four grass bands by height, rock on steep ground, palm crowns as dots, sand paths cream with the old map's PATH brown edge, piers and decks as planks",
+  "style": {
+    "kind": "isle",
+    "waterBelow": 0.15,
+    "deepBelow": -2.0,
+    "pathAbove": 2.2,
+    "sea": "#2f7fb8",
+    "shallow": "#58a9d6",
+    "shore": "#8cc9e6",
+    "grass": ["#7fb35a", "#6aa24d", "#5c9444", "#4f853d"],
+    "grassBands": [6, 16, 28],
+    "sand": "#ead9a2",
+    "rock": "#9a958a",
+    "seaRock": "#8f8a7e",
+    "crown": "#3d7a3c",
+    "crownEdge": "#24502a",
+    "path": "#f1dca6",
+    "pathEdge": "#8a6e46",
+    "deck": "#c9a46c",
+    "deckEdge": "#4a3220",
+    "coast": "#3a2e1e"
+  }
+}

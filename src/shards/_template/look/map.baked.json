@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "tilesHash": "b451c3cf82126639a91314e21157fe7aa66e5b541764016d2ce41613e42bfddf",
+  "tilesHash": "1411ef11b0b503b4b78dff9fbb99bd40407a347737de7b6b2fa2137097146f8c",
   "image": "/assets/_template/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
-  "style": "placeholder",
-  "bytes": 16608
+  "style": "stylized:ground",
+  "bytes": 26976
 }

@@ -1,0 +1,22 @@
+{
+  "why": "Signal Dunes' map as flat dune sand in its dusk oranges (G252, Jake's pick B): the sand in three tones with a strong hillshade from the height pass so the dunes read, the long shadows folded into a darker sand; the signal posts raised with an edge and a shadow",
+  "style": {
+    "kind": "ground",
+    "smooth": 9,
+    "shade": 0.85,
+    "classes": [
+      { "match": "#472511", "fill": "#d8915a" },
+      { "match": "#532813", "fill": "#e3a06a" },
+      { "match": "#7a2f15", "fill": "#eaa772" },
+      { "match": "#3d241c", "fill": "#cc8754" },
+      { "match": "#2a2227", "fill": "#bf7c4f" }
+    ],
+    "raised": {
+      "bump": 1.5,
+      "min": 6,
+      "classes": [
+        { "match": "#3a2a20", "fill": "#6a4430", "edge": "#2a1a10" }
+      ]
+    }
+  }
+}
