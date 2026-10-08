@@ -1,4 +1,5 @@
 import { SkyBackdropView } from './skyBackdrop';
+import { BackdropLayer } from './backdropLayer';
 import { resourceScope } from '../app/resources';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
@@ -14,7 +15,8 @@ import { registerCascades } from './cascadeLights';
 import { patchCSMShaderChunk } from './csmLightBlock';
 import type { DayCycleClock } from './dayCycle';
 import { ShadowMaps } from './shadowVariants';
-import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropPost, SkyDressing } from '../render/look';
+import type { LookStrategy, SkyBackdrop, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets, SkyDressing } from '../render/look';
+import { setting } from '../ui/Settings';
 import { PATCH_ORDER, hasProgramKey, patchShader, takeForeignHook } from '../render/shaderPatches';
 import { horizonLight } from './Horizon';
 import type { LookupTexture } from 'postprocessing';
@@ -155,24 +157,64 @@ export class SkyRig {
     if (backdrop?.clouds) this.visual.attachClouds(backdrop.clouds); // its own sky layer (a dome): Game.ts keeps `clouds` on the camera
     else this.visual.buildClouds();
     // the backdrop's clock turns every knob above from here on
-    if (backdrop && fog instanceof THREE.Fog) {
+    if (fog instanceof THREE.Fog) {
       // `fog` is read live: a look that replaces scene.fog after this bind (in its compose) would otherwise leave the
       // backdrop turning a fog nobody draws (E399 council round 21: a dusk fade that never reached the screen)
       const scene = this.scene;
       const liveFog = (): THREE.Fog => (scene.fog instanceof THREE.Fog ? scene.fog : fog);
-      backdrop.bind({
+      this.targets = {
         sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi,
         get fog() { return liveFog(); },
         fogU: fogUniforms, underwater: isUnderwater, disc: this.sunDisc, halo: halo instanceof THREE.Sprite ? halo : null,
         cloud: this.cloudUniforms, far: horizonLight, planet: this.giantUniforms,
         shadowBusy: () => this.shadowFade?.busy ?? false,
-      });
-      this.dayNight = backdrop.clock;
+      };
+      if (backdrop) {
+        backdrop.bind(this.targets);
+        this.dayNight = backdrop.clock;
+      }
     }
     return this;
   }
 
   backdrop: SkyBackdrop | null = null;
+  /** what a backdrop's clock turns (the lights, fog, disc, clouds, haze): bound to the level's backdrop, mirrored by every layer */
+  private targets: SkyBackdropTargets | null = null;
+  /** SHARD-PLATFORM G223: the backdrops laid over the level's own (a grid region's sky inside its cell; backdropLayer.ts) */
+  private readonly layers = new Set<BackdropLayer>();
+  /** the values the layers moved last frame, put back first thing each update */
+  private readonly layerUndo: (() => void)[] = [];
+
+  /**
+   * SHARD-PLATFORM G223: lay a second backdrop over this sky by a weight (`backdropLayer.ts`). Build the backdrop against the
+   * layer's `holder` scene and `targets`, then `attach` it; set its `weight` each frame (a grid region's frame weight: 1
+   * inside its cell, blended across the edge band); `dispose` frees it and gives every shared value back. `air`: the
+   * owner's own fog object its clock colours (a grid region's: the one frame blends it as the owner's air). Null before
+   * the sky is built.
+   */
+  layerBackdrop(options: { readonly air?: () => THREE.Fog | null } = {}): BackdropLayer | null {
+    const targets = this.targets;
+    if (targets === null) return null;
+    const layer = new BackdropLayer({ targets, scene: this.scene }, { ...options, onDispose: () => { this.layers.delete(layer); } });
+    this.layers.add(layer);
+    return layer;
+  }
+
+  /**
+   * G223: build a level's backdrop as a layer over this sky (`layerBackdrop`), only while Settings ▸ Debug ▸ Region sky is
+   * B (the region's own): null with the row on A (the default, nothing built) or before the sky is built. The caller
+   * attaches the backdrop to the layer (`layer.attach`) once its memory is admitted, or disposes both.
+   */
+  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly air?: () => THREE.Fog | null }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
+    if (setting('regionSky') !== 'own') return null;
+    const layer = this.layerBackdrop(options.air === undefined ? {} : { air: options.air });
+    if (layer === null) return null;
+    try {
+      const backdrop = await factory({ sky: this, scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });
+      return { layer, backdrop };
+    } catch (error) { layer.dispose(); throw error; }
+  }
+
   attachPost(post: SkyBackdropPost): void { this.backdrop?.attachPost(post); }
   /** 0 = day … 1 = full night; a fixed sky stays at 0 */
   get night(): number { return this.dayNight?.night ?? 0; }
@@ -190,6 +232,7 @@ export class SkyRig {
    */
   rebuildEnvironment(): void {
     this.shadowMaps?.apply(true); // E174: the restored context gave the maps back uninitialised
+    for (const layer of this.layers) layer.rebuild();
     if (this.backdrop) { this.backdrop.rebuild(); return; }
     this.visual.rebuildEnvironment();
   }
@@ -283,6 +326,9 @@ export class SkyRig {
   }
 
   update(dt = 0): void {
+    // G223: what a layered backdrop moved last frame goes back before the level's own backdrop runs
+    for (let i = this.layerUndo.length - 1; i >= 0; i--) this.layerUndo[i]?.();
+    this.layerUndo.length = 0;
     const B = this.backdrop;
     if (B !== null && B.updateAt !== 'late') B.update(dt, this.camera); // before the CSM: the clock turns its light
     if (B !== null && B.fadesPlanet !== false) this.visual.fadePlanet(this.night);
@@ -299,7 +345,16 @@ export class SkyRig {
     this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (B?.updateAt === 'late') B.update(dt, this.camera); // a clock that steps its own shadow light: after the cascades
     this.dressing?.update?.(dt);
+    if (this.layers.size > 0) this.applyLayers(dt);
     this.visual.updateSunHalo(this.camera);
+  }
+
+  /** G223: every layer over the level's own state, then the cascades again so the shadows follow the blended key light */
+  private applyLayers(dt: number): void {
+    for (const layer of this.layers) { const undo = layer.apply(dt, this.camera); if (undo !== null) this.layerUndo.push(undo); }
+    if (this.layerUndo.length === 0) return;
+    this.csm.update();
+    if (this.texelBias) this.fitNormalBias();
   }
 
   // ── runtime setters (a level's day/night sky rig + weather; nothing calls them on a fixed-time level) ──

@@ -219,6 +219,12 @@ export interface SkyBackdrop {
   fadesPlanet?: boolean;
   /** the dome's live palette uniforms a horizon painting blends with (HorizonMatte); `middayLit` its noon cloud colour */
   palette?: { uHorizon: { value: Color }; uCloudLit: { value: Color }; uSunGlow: { value: Color }; uSunDir: { value: Vector3 }; middayLit: Color };
+  /** free its textures, render targets and dome (a layered backdrop, `SkyRig.layerBackdrop`, leaves with its region; G223) */
+  dispose?: () => void;
+  /** the GPU bytes its textures and render targets hold now (the census a layered backdrop is charged by; G223) */
+  gpuBytes?: () => number;
+  /** the most GPU bytes it can hold (its resident key cap, environment and PMREM targets): what a layer reserves (G223) */
+  gpuCeiling?: () => number;
 }
 export interface SkyBackdropContext { sky: Sky; scene: Scene; renderer: WebGLRenderer; level: LevelSpec; tier: Tier; look: { vol: number; fogDist: number; sat: number; ambient: number; sky: number } | null }
 export type SkyBackdropFactory = (c: SkyBackdropContext) => Promise<SkyBackdrop>;

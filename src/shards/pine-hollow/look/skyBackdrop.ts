@@ -70,7 +70,9 @@ const SKY_GLSL = /* glsl */`
 const tmpC = new THREE.Color();
 
 /** one decoded key: its GPU texture (CPU copy dropped after upload) and its horizon colour */
-interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number }
+interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number; /** GPU bytes (RGBA16F 8 a texel, RGB9_E5 4) */ bytes: number }
+/** a half-float colour target's GPU bytes (8 a texel) */
+const targetBytes = (t: { readonly width: number; readonly height: number }): number => t.width * t.height * 8;
 
 /** the knobs the clock turns — Sky hands them over (no Sky import: Sky imports this) */
 /**
@@ -125,6 +127,7 @@ export class PineSkyBackdrop {
   // the environment: the blend rendered to an equirect, PMREM'd into a cube-UV target reused in place
   private envEquirect: THREE.WebGLRenderTarget;
   private envScene = new THREE.Scene();
+  private readonly envQuad: THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>;
   private envCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   private pmrem: THREE.PMREMGenerator;
   private envCube: THREE.WebGLRenderTarget | null = null;
@@ -140,6 +143,9 @@ export class PineSkyBackdrop {
    * -1 = idle, 0 = the top level, i = GGX level i.
    */
   private envStep = -1;
+  /** the environment texture it last set on its scene (dispose clears it only if still its own) */
+  private envTexture: THREE.Texture | null = null;
+  private disposed = false;
 
   private constructor(private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly envSteps: boolean, private readonly packKeys: boolean, smallEnv: boolean) {
     this.clock = new DayCycle({ ...PINE_DAY, start: phase, curves: { night: pineNightAt, dusk: PINE_DAY.curves?.dusk ?? (() => 0), dawn: PINE_DAY.curves?.dawn ?? (() => 0), lamps: (p) => Math.max(PINE_DAY.curves?.lamps(p) ?? 0, .35 * this.mod.overcast) } });
@@ -182,6 +188,7 @@ export class PineSkyBackdrop {
     }));
     quad.frustumCulled = false;
     this.envScene.add(quad);
+    this.envQuad = quad;
     this.pmrem = new THREE.PMREMGenerator(renderer);
   }
 
@@ -265,6 +272,43 @@ export class PineSkyBackdrop {
     void this.setPhase(this.phase);
   }
 
+  /**
+   * Free every GPU resource it holds (SHARD-PLATFORM G223: a grid region's layered sky leaves with its region): the keys,
+   * the environment equirect, PMREM's targets and passes, the dome and the environment pass. Decodes still in flight drop
+   * their texture on arrival.
+   */
+  dispose(): void {
+    this.disposed = true;
+    for (const r of this.resident.values()) r.tex.dispose();
+    this.resident.clear(); this.blobs.clear();
+    this.u.tA.value = null; this.u.tB.value = null;
+    this.envEquirect.dispose();
+    this.envCube?.dispose(); this.envCube = null;
+    this.pmrem.dispose();
+    if (this.scene.environment !== null && this.scene.environment === this.envTexture) this.scene.environment = null;
+    this.envTexture = null;
+    this.dome.removeFromParent();
+    this.dome.geometry.dispose();
+    if (this.dome.material instanceof THREE.Material) this.dome.material.dispose();
+    this.envQuad.geometry.dispose(); this.envQuad.material.dispose();
+  }
+
+  /** The GPU bytes held now (G223's census): the resident keys, the environment equirect and PMREM's cube-UV targets. */
+  gpuBytes(): number {
+    let bytes = targetBytes(this.envEquirect) + (this.envCube === null ? 0 : targetBytes(this.envCube));
+    const ping: unknown = Reflect.get(this.pmrem, '_pingPongRenderTarget');
+    if (ping instanceof THREE.WebGLRenderTarget) bytes += targetBytes(ping);
+    for (const r of this.resident.values()) bytes += r.bytes;
+    return bytes;
+  }
+
+  /** The most it can hold (G223's claim): three resident keys at the decoded size, the equirect and PMREM's two cube-UV targets. */
+  gpuCeiling(): number {
+    const key = Math.max(0, ...[...this.resident.values()].map((r) => r.bytes));
+    const cube = this.envEquirect.width / 4, cubeW = 3 * Math.max(cube, 16 * 7), cubeH = 4 * cube;
+    return 3 * key + targetBytes(this.envEquirect) + 2 * cubeW * cubeH * 8;
+  }
+
   /** the keyframes around phase p: [a, b] and the blend t */
   private segment(p: number): [readonly [number, Preset], readonly [number, Preset], number] {
     return this.clock.segment(p);
@@ -298,7 +342,8 @@ export class PineSkyBackdrop {
           if (this.packKeys) packSkyKeyRgb9e5(tex); // Pine memory trim (SF47-g): half the key's GPU bytes
           this.renderer.initTexture(tex); // upload now, not on the frame that first draws it
           tex.image.data = null;          // the GPU has it: drop the 16 MB (packed: 12 MB) CPU copy (rebuild() decodes again after a context loss)
-          const r: Resident = { tex, horizon, used: this.frame };
+          if (this.disposed) { tex.dispose(); return null; }
+          const r: Resident = { tex, horizon, used: this.frame, bytes: tex.image.width * tex.image.height * (this.packKeys ? 4 : 8) };
           this.resident.set(k, r);
           this.evict();
           return r;
@@ -327,6 +372,7 @@ export class PineSkyBackdrop {
   }
 
   refreshEnvironment(): void {
+    if (this.disposed) return;
     this.envTimer = 0;
     this.envStep = -1; // a stepped refresh in flight is superseded
     if (this.u.tA.value === null) return;
@@ -338,6 +384,7 @@ export class PineSkyBackdrop {
     // scene.environment keeps its identity (and every program its envmap define)
     this.envCube = this.envCube === null ? this.pmrem.fromEquirectangular(this.envEquirect.texture) : this.pmrem.fromEquirectangular(this.envEquirect.texture, this.envCube);
     this.scene.environment = this.envCube.texture;
+    this.envTexture = this.envCube.texture;
   }
 
   /** `snap`: move the shadow light to the exact phase now (boot, a Time of day pick), not in SHADOW_STEP steps */
@@ -472,3 +519,5 @@ function weatherOver(C: Preset, mod: PineSkyMod): number {
 const backdrops = new WeakMap<Sky, PineSkyBackdrop>();
 export function pineBackdrop(sky: Sky): PineSkyBackdrop | null { return backdrops.get(sky) ?? null; }
 export function registerPineBackdrop(sky: Sky, backdrop: PineSkyBackdrop): void { backdrops.set(sky, backdrop); }
+/** a disposed backdrop leaves the sky it was registered on (only if it is still the one there) */
+export function unregisterPineBackdrop(sky: Sky, backdrop: PineSkyBackdrop): void { if (backdrops.get(sky) === backdrop) backdrops.delete(sky); }

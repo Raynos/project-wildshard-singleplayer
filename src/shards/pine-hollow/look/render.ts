@@ -1,7 +1,7 @@
 import { preloadBakedTextures, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { LookStrategy, SkyBackdropFactory } from '@wildshard/engine/render/look';
 import * as THREE from 'three';
-import { PineSkyBackdrop, registerPineBackdrop } from './skyBackdrop';
+import { PineSkyBackdrop, registerPineBackdrop, unregisterPineBackdrop } from './skyBackdrop';
 import { pineSunAt } from './dayKeys';
 import { pineMemoryTrim } from '../debug/options';
 
@@ -18,6 +18,9 @@ const backdrop: SkyBackdropFactory = async ({ sky, scene, renderer, level, tier,
     update: (dt, camera) => { pine.update(dt, camera); },
     rebuild: () => { pine.rebuild(); },
     attachPost: (post) => { pine.attachPost(post); },
+    dispose: () => { unregisterPineBackdrop(sky, pine); pine.dispose(); },
+    gpuBytes: () => pine.gpuBytes(),
+    gpuCeiling: () => pine.gpuCeiling(),
   };
 };
 

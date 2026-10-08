@@ -27,7 +27,7 @@ import { BlendFunction, Effect, EffectPass, LUT3DEffect, type EffectComposer } f
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { FarProxyView } from './farView';
 import { RoadSky } from './roadSky';
-import { bindFrameLook, type FrameLookContribution } from './frameLook';
+import { bindFrameLook, type FrameLookContribution, type FrameSkyLayer } from './frameLook';
 import { NEUTRAL_GRADE, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
 /** What the frame reads from the page: the scene and camera, the engine's composer and its grade effects (late-bound). */
@@ -54,6 +54,8 @@ export interface GridFrameState {
   readonly grade: readonly [number, number, number, number, number, number];
   /** the road sky's drawn opacity (G165: 1 on the road, 0 inside a cell) */
   readonly roadSky: number;
+  /** G223: the regions' own skies laid over the one sky (instance → its readout); empty with the Debug row on A */
+  readonly skies: Readonly<Record<string, ReturnType<FrameSkyLayer['state']>>>;
 }
 
 /**
@@ -137,6 +139,8 @@ export class GridFrame {
   private readonly owned = new Map<string, RegionGrade>();
   private readonly airs = new Map<string, readonly [number, number, number]>();
   private readonly proxies = new Set<FarProxyView>();
+  /** G223: live regions' own skies (instance → its layer) */
+  private readonly skies = new Map<string, FrameSkyLayer>();
   /** owner (an instance, or null for the road) → its stacks */
   private readonly stacks = new Map<string | null, Set<FrameStack>>();
   private readonly effect = new FrameGradeEffect();
@@ -161,9 +165,9 @@ export class GridFrame {
     // G165: the road's own sky, its opacity the road's weight
     const detachSky = this.roadSky.attach(host.scene);
     this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
-    const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look) });
+    const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer) });
     scope.onDispose(() => {
-      unbind(); this.live.clear();
+      unbind(); this.live.clear(); this.skies.clear();
       host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); detachSky(); this.roadSky.dispose();
       for (const set of this.stacks.values()) for (const stack of set) stack.dispose?.();
       this.stacks.clear();
@@ -188,6 +192,18 @@ export class GridFrame {
     const declared = this.hazes.get(instance);
     if (declared !== undefined) look.fog?.color.setRGB(...declared); // start from the base (else its own colour until the first draw)
     return () => { if (this.live.get(instance) === look) this.live.delete(instance); };
+  }
+
+  /**
+   * A live region's own sky (`regionSky.ts`, G223): told its cell's owner weight each frame (1 inside, blended across the
+   * edge band, 0 on the road). Returns the release.
+   */
+  sky(instance: string, layer: FrameSkyLayer): () => void {
+    if (instance === this.homeInstance) throw new Error('The home look owns the one sky; only a neighbour region lays its own over it');
+    if (this.skies.has(instance)) throw new Error(`Grid frame already has a sky for ${instance}`);
+    this.skies.set(instance, layer);
+    const unstack = this.stack(instance, { weight: (w) => { layer.weight(w); } });
+    return () => { if (this.skies.get(instance) === layer) this.skies.delete(instance); unstack(); layer.weight(0); };
   }
 
   /** A drawn far proxy: its haze follows the owner's air. Returns the release. */
@@ -286,6 +302,7 @@ export class GridFrame {
       air: [round(this.air.r), round(this.air.g), round(this.air.b)],
       grade: [round(g.exposure), round(g.saturation), round(g.contrast), round(g.tint[0]), round(g.tint[1]), round(g.tint[2])],
       roadSky: round(this.roadSky.drawn),
+      skies: Object.fromEntries([...this.skies].map(([k, layer]) => [k, layer.state()])),
     };
   }
 }

@@ -23,8 +23,18 @@ export interface FrameLookContribution {
   /** the owner's grade (absent: the declared one) */
   readonly grade?: RegionGrade;
 }
-/** The one frame's port for live regions; `contribute` returns the release. */
-export interface FrameLookPort { readonly contribute: (instance: string, look: FrameLookContribution) => () => void }
+/** A live region's own sky laid over the frame's one sky (`regionSky.ts`, G223): told its owner's weight each frame. */
+export interface FrameSkyLayer {
+  readonly weight: (w: number) => void;
+  /** the readout: its drawn weight, whether it draws, and the GPU bytes it holds against the bytes it reserved */
+  readonly state: () => { readonly weight: number; readonly drawn: boolean; readonly bytes: number; readonly reserved: number };
+}
+/** The one frame's port for live regions; `contribute` and `sky` return the release. */
+export interface FrameLookPort {
+  readonly contribute: (instance: string, look: FrameLookContribution) => () => void;
+  /** hang a region's own sky on its cell's owner weight (absent on a port with no frame weights) */
+  readonly sky?: (instance: string, layer: FrameSkyLayer) => () => void;
+}
 
 const ports = new WeakMap<object, FrameLookPort>();
 /** Bind the frame's port to the scene it draws (the page's root scene); returns the unbind. One frame per scene. */

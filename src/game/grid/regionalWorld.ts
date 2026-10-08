@@ -19,13 +19,16 @@
  *   and blend across the edge band; it builds no sky dome or sun of its own.
  * - its light on the page's one sky (`regionLight.ts`, G223): whatever its runtime lights (the key light, fill, sun disc,
  *   shadow maps, painterly / fog uniforms, volumetric light, engine grade) is held on each entry and put back on leave.
+ * - its own sky (`regionSky.ts`, G223, default-off behind Settings ▸ Debug ▸ Region sky): its level's sky backdrop laid
+ *   over the page's one sky by its owner weight, charged under its own `sim-sky:` claim beside the runtime's.
  *
  * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
  * (the resident scope): the host's Physics frees every body and collider, the subtree leaves the page scene and frees the
  * GPU resources the asset cache does not share. Memory: everything here is inside the whole-runtime claim the caller
- * reserved (`regionalRuntimeAccountedBytes`); this module reserves nothing beside it. Generic game code (E405).
+ * reserved (`regionalRuntimeAccountedBytes`); this module reserves nothing beside it but the optional region sky's claim
+ * (`regionSky.ts`). Generic game code (E405).
  */
-import { Group, Material, Mesh, Scene, type Object3D } from 'three';
+import { Fog, Group, Material, Mesh, Scene, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
@@ -49,6 +52,7 @@ import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
 import { frameLookOf, regionGrade, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
+import { buildRegionSky } from './regionSky';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -157,6 +161,15 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           // ... which is the owner's air in the one frame, with its level's grade, while the region is resident
           const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
           if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level) }));
+          // G223, default-off (Settings ▸ Debug ▸ Region sky): its level's own sky backdrop laid over the one sky by its owner weight
+          if (look !== null && sky instanceof SkyRig) void (async () => {
+            try {
+              await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
+                const make = level.look === undefined ? undefined : (await level.look()).backdrop;
+                return make === undefined ? null : sky.layeredBackdrop(make, { level, air: () => (scene.fog instanceof Fog ? scene.fog : null) });
+              } });
+            } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
+          })();
           view.root.add(scene); scene.updateMatrixWorld(true);
           if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(view.scope, () => view.registry.add({ id: `forest:${cell.instance}`, name: 'Forest', category: 'nature',
             file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));
