@@ -116,6 +116,7 @@ export const snapshotExpression = `(() => {
           [key, JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.[key]?.data ?? null])),
         gridPage: Boolean(api.shard.grid),
         runtime: { texture: api.world.game.level.assets?.texture, level: api.world.game.level.id },
+        audioDecodes: (window.__g227Audio ?? []).map(({source,buffer})=>{const live=buffer.deref();return {source,live:Boolean(live),frames:live?.length ?? null,channels:live?.numberOfChannels ?? null,pcmBytes:live ? live.length*live.numberOfChannels*4 : null};}),
         audioContexts: (window.__g227AudioContexts ?? []).flatMap(({kind,context})=>{const live=context.deref();return live ? [{kind,state:live.state,currentTime:live.currentTime,sampleRate:live.sampleRate}] : [];}),
         wasm: (window.__g227Wasm ?? []).map(({source,name,memory})=>({source,name,bytes:memory.deref()?.buffer.byteLength ?? 0})), reveal: window.__wsReveal, originDrift: window.__frameFloorGridOriginDrift };
 })()`;

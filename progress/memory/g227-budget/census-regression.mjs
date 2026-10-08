@@ -18,7 +18,16 @@ const grid = { state: () => ({}), residency: () => [], roadResident: () => ({}) 
 const context = { ArrayBuffer, Float32Array, localStorage: { getItem: () => JSON.stringify({ keys: { settings: { data: { memorySaver: 'on' } } } }) }, window: {
   __sc_gl: () => [], __wildshard: { shard: { grid }, world: { game: { rootScene: { traverse: fn => fn(object) }, level: { id: 'fixture' } } } },
 } };
+context.window.__g227Audio = [
+  { source: '/title.m4a', buffer: new WeakRef({length: 100, numberOfChannels: 2}) },
+  { source: '/retired.m4a', buffer: {deref: () => undefined} },
+];
 const result = vm.runInNewContext(expression, context);
+assert.equal(result.audioDecodes[0].source, '/title.m4a');
+assert.equal(result.audioDecodes[0].pcmBytes, 800);
+assert.equal(result.audioDecodes[1].source, '/retired.m4a', 'Historical decode provenance survives buffer retirement');
+assert.equal(result.audioDecodes[1].live, false);
+assert.equal(result.audioDecodes[1].pcmBytes, null, 'A retired buffer does not become zero-byte saving credit');
 assert.equal(reads, 0);
 assert.equal(result.census.releasedAttributes.length, 2);
 assert.equal(result.census.cpuAllocations.length, 2);
