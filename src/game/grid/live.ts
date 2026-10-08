@@ -87,7 +87,7 @@ export class LiveGridHost {
   private readonly transitions: { from: string | null; to: string | null }[] = [];
   private crossings = 0;
   private readonly homeLease: ResidencyLease | undefined;
-  private initialHomeLease: ResidencyLease | undefined;
+  private initialHomePending: boolean;
   private readonly highwayLease: ResidencyLease;
   private readonly highway: LiveGridRegion | LiveGridHighway;
   private readonly limit: number;
@@ -103,6 +103,7 @@ export class LiveGridHost {
     this.assembly = assembly; this.ports = ports;
     const home = assembly.cell(ports.home.instance), homeEstimate = readinessModel(ports.readiness.bundle(home), ports.readiness.link);
     this.active = ports.home.mode === 'owned' ? null : ports.home.instance; this.limit = ports.maxResidents ?? 4;
+    this.initialHomePending = ports.home.mode === 'owned';
     if (!Number.isInteger(this.limit) || this.limit < 1 || this.limit > 8) throw new RangeError('Invalid live grid resident limit');
     if (ports.continuations !== 'durable') {
       const cacheId = `sim-continuations:live:${ports.home.instance}`;
@@ -114,7 +115,6 @@ export class LiveGridHost {
     try {
       if (ports.home.mode === 'owned') {
         this.validateHomeClaim(ports.home.residency);
-        this.initialHomeLease = ports.home.residency.handoff();
       } else this.homeLease = this.retainHome();
       try {
         this.highwayLease = this.claim('platform.highway', ports.highway.bytes, true);
@@ -128,7 +128,7 @@ export class LiveGridHost {
           }
         } catch (error) { this.highway.dispose(); throw error; } }
         catch (error) { this.highwayLease.release(); throw error; }
-      } catch (error) { this.homeLease?.release(); this.initialHomeLease?.release(); throw error; }
+      } catch (error) { this.homeLease?.release(); throw error; }
     } catch (error) { this.cacheLease?.release(); throw error; }
     if (ports.home.mode !== 'owned') {
       const ticket = this.readiness.request(ports.home.instance, 0, homeEstimate, false);
@@ -237,9 +237,10 @@ export class LiveGridHost {
         if (candidate === undefined || !this.unload(candidate[0])) throw new Error('No durable frozen live region can be evicted');
       }
       let lease: ResidencyLease;
-      if (instance === this.ports.home.instance && this.initialHomeLease !== undefined) {
-        if (admitted.bytes !== this.ports.home.bytes) throw new Error('Owned initial home differs from its preallocation claim');
-        lease = this.initialHomeLease; this.initialHomeLease = undefined;
+      if (instance === this.ports.home.instance && this.initialHomePending && this.ports.home.mode === 'owned') {
+        // Runtime admission has checked the same measured source and manifest. Transfer only that exact whole cost;
+        // until then the boot owner retains its sole reference and can abort without any regional world existing.
+        lease = this.ports.home.residency.handoff(admitted.bytes); this.initialHomePending = false;
       } else lease = this.claim(instance, admitted.bytes, true);
       let region: LiveGridRegion | undefined;
       try {
@@ -417,7 +418,7 @@ export class LiveGridHost {
       try { this.highway.dispose(); this.highwayDisposed = true; this.highwayLease.release(); }
       catch (error) { failures.push(error); }
     }
-    this.homeLease?.release(); this.initialHomeLease?.release(); this.initialHomeLease = undefined;
+    this.homeLease?.release();
     this.saved.clear(); this.cacheLease?.release();
     if (failures.length > 0) throw new AggregateError(failures, 'Live grid disposal failed');
   }

@@ -61,31 +61,41 @@ describe('early page residency', () => {
 
   it('hands the exact sole boot claim to an owned runtime without a release or cost change', () => {
     const owner = new PageResidency(), home = owner.admitHome('home', 20_000_000);
-    const before = owner.allocator.cost(), runtime = home.handoff();
+    const before = owner.allocator.cost(), runtime = home.handoff(home.bytes);
     expect(runtime.id).toBe('sim:home');
     expect(owner.allocator.cost()).toEqual(before);
     expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:home', refs: 1, bytes: home.bytes }]);
     expect(owner.home()).toBe(home);
-    expect(() => home.handoff()).toThrow('already been handed off');
+    expect(() => home.handoff(home.bytes)).toThrow('already been handed off');
     expect(() => home.retain()).toThrow('handed off');
     owner.dispose();
     expect(owner.allocator.cost()).toEqual(before);
     runtime.release();
     expect(owner.allocator.entries()).toEqual([]);
     expect(() => home.retain()).toThrow();
-    expect(() => home.handoff()).toThrow('disposed');
+    expect(() => home.handoff(home.bytes)).toThrow('disposed');
   });
 
   it('refuses handoff while an allocated borrowed consumer still owns a reference', () => {
     const owner = new PageResidency(), home = owner.admitHome('home', 20_000_000), borrowed = home.retain();
-    expect(() => home.handoff()).toThrow('sole boot reference');
+    expect(() => home.handoff(home.bytes)).toThrow('sole boot reference');
     expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:home', refs: 2 }]);
     borrowed.release();
-    const runtime = home.handoff();
+    const runtime = home.handoff(home.bytes);
     runtime.release();
     expect(() => home.retain()).toThrow('handed off');
     expect(owner.admitHome('home', home.bytes)).toBe(home);
     expect(owner.allocator.entries()).toEqual([]);
     owner.dispose();
+  });
+
+  it('refuses a different whole-runtime cost before transferring the boot reference', () => {
+    const owner = new PageResidency(), home = owner.admitHome('home', 20_000_000), before = owner.allocator.cost();
+    for (const bytes of [0, home.bytes - 1, home.bytes + 1, Number.NaN]) expect(() => home.handoff(bytes)).toThrow('whole-runtime cost');
+    expect(owner.allocator.cost()).toEqual(before);
+    expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:home', bytes: home.bytes, refs: 1 }]);
+    const borrowed = home.retain(); borrowed.release(); // Refusal has not consumed the boot reference.
+    const runtime = home.handoff(home.bytes); runtime.release(); owner.dispose();
+    expect(owner.allocator.entries()).toEqual([]);
   });
 });

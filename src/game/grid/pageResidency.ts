@@ -7,8 +7,9 @@ export interface HomeResidencyClaim {
   readonly allocator: ResidencyAllocator;
   /** Acquire the registry's own lifetime reference. Release it when that registry disposes. */
   readonly retain: () => ResidencyLease;
-  /** Transfer the sole boot reference to an owned initial runtime, once, without releasing its accounted bytes. */
-  readonly handoff: () => ResidencyLease;
+  /** Transfer the sole boot reference once, after verifying the admitted whole runtime's exact cost.
+   * Runtime callers supply regionalRuntimeAccountedBytes from the matching source and manifest; platform extras stay separate. */
+  readonly handoff: (wholeRuntimeBytes: number) => ResidencyLease;
 }
 
 /**
@@ -51,10 +52,11 @@ export class PageResidency {
       if (handedOff) throw new Error('Home residency has been handed off');
       return reserve();
     };
-    const handoff = (): ResidencyLease => {
+    const handoff = (wholeRuntimeBytes: number): ResidencyLease => {
       if (this.closed) throw new Error('Page residency is disposed');
       const lease = this.bootLease;
       if (handedOff || lease === undefined) throw new Error('Home residency has already been handed off');
+      if (wholeRuntimeBytes !== bytes) throw new Error('Home residency differs from the admitted whole-runtime cost');
       const entry = this.allocator.entries().find((row) => row.id === id);
       if (entry?.refs !== 1) throw new Error('Home residency handoff requires its sole boot reference');
       handedOff = true; this.bootLease = undefined;

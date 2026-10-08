@@ -66,13 +66,13 @@ it('enters its owned home from the neutral shell and disposes it before allocati
     const shellCount = f.shell.physics.world.colliders.len();
     expect(registry.current()).toBeNull(); expect(registry.ready('driftwood-isle')).toBe(false);
     expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:driftwood-isle', bytes: 20_000_000, refs: 1 }, { id: 'sim:platform.highway' }]);
-    expect(() => owner.home().retain()).toThrow('handed off');
     await registry.prefetch(['pine-hollow', 'driftwood-isle', 'pine-hollow']);
     expect(f.modules).toEqual(['driftwood-isle', 'pine-hollow']); expect(f.creates).toEqual([]);
     expect(registry.ready('pine-hollow')).toBe(false);
     for (let tick = 0; tick < 30; tick++) registry.afterPlayerStep();
     expect(f.shellSteps()).toBe(30); expect(f.shell.state.tick).toBe(0);
     crossing.request('driftwood-isle'); await settle(); expect(crossing.step(false)).toBe(true);
+    expect(() => owner.home().retain()).toThrow('handed off');
     const first = f.hosts.get('driftwood-isle'); if (first === undefined) throw new Error('Missing initial owned region');
     expect(first.hasPlayerMotor).toBe(false); expect(first.physics.world.colliders.len()).toBe((f.counts.get('driftwood-isle') ?? 0) + 1);
     expect(f.shell.physics.world.colliders.len()).toBe(shellCount - 1);
@@ -139,5 +139,18 @@ it('retains a failed final runtime disposal claim and retries cleanup after retu
     expect(f.hosts.size).toBe(1);
     f.failDispose.clear(); f.registry.dispose();
     expect(f.hosts.size).toBe(0); expect(f.owner.allocator.entries()).toEqual([]);
+  } finally { f.finish(); }
+});
+
+it('checks the admitted whole-runtime bytes before the home claim handoff or world creation', async () => {
+  const f = await open((_id, fallback) => Promise.resolve({ ...fallback(), bytes: 20_000_001 }));
+  try {
+    await expect(f.registry.prepare(null, 'driftwood-isle')).rejects.toThrow('whole-runtime cost');
+    expect(f.creates).toEqual([]); expect(f.cancelled()).toBe(1);
+    expect(f.owner.allocator.entries().find(row => row.id === 'sim:driftwood-isle')).toMatchObject({ bytes: 20_000_000, refs: 1 });
+    const borrowed = f.owner.home().retain(); borrowed.release(); // Still held by boot; no premature transfer occurred.
+    f.registry.dispose();
+    expect(f.owner.allocator.has('sim:driftwood-isle')).toBe(true);
+    f.owner.dispose(); expect(f.owner.allocator.entries()).toEqual([]);
   } finally { f.finish(); }
 });
