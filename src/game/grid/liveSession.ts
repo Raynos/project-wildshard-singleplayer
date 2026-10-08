@@ -127,8 +127,6 @@ export interface LiveGridSessionState {
   readonly runtimeTiming: ReturnType<HybridRuntimeSession['timings']>;
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
   readonly hoverCap: number | null; readonly homeActive: boolean | null;
-  /** the initial home spawn's feet and the first collider within 3 m above them (null: open sky; E463 caught a deck) */
-  readonly spawnClearance: { readonly feetY: number; readonly overhead: number | null } | null;
 }
 /** The highway's own surfaces: the deck and strips at road level, no water (G72: the outer ring is land). */
 const HIGHWAY_QUERIES: PlayerFrameQueries = { heightAt: () => 0, waterSurfaceAt: () => null, platforms: [] };
@@ -177,7 +175,6 @@ export class LiveGridSession {
   private readonly transferWalls = new Map<string | null, TransferWalls>();
   private readonly offset = new Vector3();
   private framePhysics: Physics;
-  private spawnClearance: LiveGridSessionState['spawnClearance'] = null;
   private readonly applied = new Vector3();
   private readonly loadout: GridLoadout;
   private readonly roadWallet: GridWallet;
@@ -465,8 +462,6 @@ export class LiveGridSession {
     // its deck at water level (E463).
     const at = this.page.traveller.position;
     this.page.traveller.position.y = spawn.y ?? this.standingHeight(runtime.queries, at.x, at.z, spawn.x, spawn.z) + 0.5;
-    const feetY = this.page.traveller.position.y, above = castRay(this.framePhysics, { x: at.x, y: feetY + 0.1, z: at.z }, { x: 0, y: 1, z: 0 }, 3);
-    this.spawnClearance = { feetY, overhead: above === null ? null : feetY + 0.1 + above.distance };
     runtime.loadout.interior();
   }
 
@@ -736,6 +731,6 @@ export class LiveGridSession {
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
     return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(),
-      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance, spawnClearance: this.spawnClearance };
+      hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }

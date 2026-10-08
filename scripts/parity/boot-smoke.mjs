@@ -52,6 +52,15 @@ export function bootLifecycleDiagnostic(report, observedGridNavigation) {
     /^boot after the last page ended on "hide" \(nav navigate\): \d+ frames \/ 6s$/u.test(report.message);
 }
 
+/** Browser-side: the first world collider within 3 m above the player's head in the live physics (null: open sky). */
+export function spawnOverhead() {
+  const probe = window.__wildshard;
+  const physics = probe.requireWorld().physics, feet = probe.state().player.pos;
+  // from just above the 1.8 m capsule (its own body is not overhead), solid, sensors (water volumes) skipped
+  const from = feet.y + 1.9, hit = physics.world.castRay(new physics.R.Ray({ x: feet.x, y: from, z: feet.z }, { x: 0, y: 1, z: 0 }), 3, true, physics.R.QueryFilterFlags.EXCLUDE_SENSORS);
+  return hit === null ? null : { feet, overheadY: from + hit.timeOfImpact };
+}
+
 /** @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out @param {string} [shard] */
 export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle') {
   // CI's macOS runner renders the phone tier at ~0.3 fps, so a case needs more than a minute of wall clock.
@@ -137,11 +146,9 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     }, `${mode} gameplay`, deadline);
     phases.gameplayMs = Date.now() - started;
     const initial = await page.evaluate(bootObservation);
-    if (mode === 'grid') { // E463: the home spawn stands on its deck / ground, never under a collider (Driftwood's pier)
-      const grid = initial.grid, session = typeof grid === 'object' && grid !== null && 'live' in grid ? grid.live : null;
-      const clearance = typeof session === 'object' && session !== null && 'spawnClearance' in session ? session.spawnClearance : undefined;
-      if (typeof clearance !== 'object' || clearance === null) throw new Error(`grid spawn clearance missing: ${JSON.stringify(clearance)}`);
-      if ('overhead' in clearance && clearance.overhead !== null) throw new Error(`grid spawn is under a collider: ${JSON.stringify(clearance)}`);
+    if (mode === 'grid') { // E463: the settled home spawn stands on its deck / ground, never under a collider (Driftwood's pier)
+      const overhead = await page.evaluate(spawnOverhead);
+      if (overhead !== null) throw new Error(`grid spawn is under a collider: ${JSON.stringify(overhead)}`);
     }
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
     const result = { mode, phases, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };

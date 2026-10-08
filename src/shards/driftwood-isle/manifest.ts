@@ -102,7 +102,9 @@ export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 /** E308 (Jake's pick B, art/onboarding/round-1-first-minutes/board-3-start-length.jpg): half way down the pier (it runs
  *  ~100 m, sea end z −250 → the landing on the sand z ≈ −152), facing north up it, so the first frame is still the island
  *  from the sea: 38 s walking / 22 s sprinting to Wendell, was 49 / 27 from 15 m in */
-const SPAWN = { x: 0, z: -194, yaw: Math.PI };
+// y: the deck's top after G164's 0.8 m drop (as shard.config.ts); without it the grid stood the player on the seabed under the
+// pier at water level (E463, Jake's iPhone)
+const SPAWN = { x: 0, y: 1.2, z: -194, yaw: Math.PI };
 /** the sailboat you arrived in, moored alongside the pier's west side by the spawn (it was at the sea end, 9 m behind the
  *  old spawn; E308, Jake: "move the boat to halfway down the pier too") — bow out to sea, its bow line on the pennant's piling */
 export const BOAT_MOOR = { x: -4.2, z: SPAWN.z - 9 };
