@@ -169,10 +169,10 @@ export class Game {
     this.ownership = new SceneOwnership(this.rootScene, this.levelScope, this.app.assets);
     this.ownership.retain(this.rootScene);
   }
-  captureLevelResources(): void { this.ownership?.retainContainer(this._composer); this.ownership?.capture(); }
+  captureLevelResources(): void { this.ownership?.retainContainer(this._composer, this.engineScope); this.ownership?.capture(); }
   retainKitResources(): void {
     this.ownership?.retain(this.camera);
-    this.ownership?.retainContainer(this._composer);
+    this.ownership?.retainContainer(this._composer, this.engineScope);
     this.ownership?.retainContainer(this._sky);
   }
   retainedSceneObjects(): number { return this.ownership?.retainedNodeCount() ?? 0; }

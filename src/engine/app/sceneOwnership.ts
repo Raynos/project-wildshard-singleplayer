@@ -108,27 +108,28 @@ export function sceneResources(root: Object3D, owner?: Scope): Set<Disposable3> 
 
 export class SceneOwnership {
   private readonly engineNodes = new Set<Object3D>();
+  private readonly nodeOwners = new WeakMap<Object3D, Scope>();
   private readonly acquired = new Set<Disposable3>();
   private readonly roots = new Set<Object3D>();
   private readonly scene: Object3D;
   private readonly level: Scope;
   private readonly assets: AssetService;
   constructor(scene: Object3D, level: Scope, assets: AssetService) { this.scene = scene; this.level = level; this.assets = assets; }
-  retain(root: Object3D): void {
-    root.traverse((node) => { this.engineNodes.add(node); });
-    for (const resource of sceneResources(root)) this.acquire(resource);
+  retain(root: Object3D, scope = this.level): void {
+    root.traverse((node) => { this.engineNodes.add(node); this.nodeOwners.set(node, scope); });
+    for (const resource of sceneResources(root)) this.acquire(resource, scope);
   }
-  retainContainer(container: unknown): void {
-    for (const resource of containerResources(container, this.engineNodes)) this.acquire(resource);
+  retainContainer(container: unknown, scope = this.level): void {
+    for (const resource of containerResources(container, this.engineNodes)) this.acquire(resource, scope);
     // Shadow targets and bone textures are allocated lazily after the engine nodes were first retained.
     for (const node of this.engineNodes) for (const key of ['geometry', 'material', 'customDepthMaterial', 'customDistanceMaterial', 'shadow', 'environment', 'background', 'skeleton']) {
-      for (const resource of containerResources(Reflect.get(node, key))) this.acquire(resource);
+      for (const resource of containerResources(Reflect.get(node, key))) this.acquire(resource, this.nodeOwners.get(node) ?? this.level);
     }
   }
   retainedNodeCount(): number {
     let count = 0; this.scene.traverse((node) => { if (this.engineNodes.has(node)) count++; }); return count;
   }
-  private acquire(resource: Disposable3): void {
+  private acquire(resource: Disposable3, scope = this.level): void {
     const owner = sceneResourceOwner(resource);
     if (this.acquired.has(resource) || (owner !== null && !owner.disposed)) return;
     let release = this.assets.acquireResource(resource);
@@ -139,7 +140,7 @@ export class SceneOwnership {
       release = () => { this.assets.release(key); };
     }
     this.acquired.add(resource);
-    this.level.onDispose(release);
+    scope.onDispose(release);
   }
   capture(): void {
     if (this.level.disposed) return;

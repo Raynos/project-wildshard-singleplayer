@@ -24,10 +24,10 @@ describe('level unload keeps the engine usable', () => {
     physics.world.createCollider(R.ColliderDesc.ball(0.2), player);
     const scene = new Scene(), rig = new Mesh(new BoxGeometry(), new MeshBasicMaterial()); scene.add(rig);
     const assets = new AssetService(), ownership = new SceneOwnership(scene, level, assets);
-    ownership.retain(scene);
+    ownership.retain(scene, app.engineScope);
     const quadGeometry = new BoxGeometry(), quadMaterial = new MeshBasicMaterial(), quad = new Mesh(quadGeometry, quadMaterial);
     const quadDispose = vi.fn<() => void>(); quadGeometry.addEventListener('dispose', quadDispose);
-    ownership.retainContainer({ screen: quad, scene });
+    ownership.retainContainer({ screen: quad, scene }, app.engineScope);
     const geometry = new BoxGeometry(), shared = new Texture(), dispose = vi.fn<() => void>();
     shared.addEventListener('dispose', dispose); assets.register(`scene:${shared.uuid}`, shared, { retain: true });
     const root = new Group(), mesh = new Mesh(geometry, new MeshBasicMaterial({ map: shared })); root.add(mesh); scene.add(root);
@@ -89,10 +89,10 @@ describe('level unload keeps the engine usable', () => {
   });
 
   it('retains shadow targets allocated after engine bootstrap and frees level skeleton textures', () => {
-    const scene = new Scene(), light = new DirectionalLight(), level = new Scope('level'), assets = new AssetService();
+    const scene = new Scene(), light = new DirectionalLight(), engine = new Scope('engine'), level = new Scope('level'), assets = new AssetService();
     scene.add(light);
     const ownership = new SceneOwnership(scene, level, assets);
-    ownership.retain(scene);
+    ownership.retain(scene, engine);
     light.shadow.map = new WebGLRenderTarget();
     const engineDispose = vi.fn<() => void>(); light.shadow.map.addEventListener('dispose', engineDispose);
     const skeleton = new Skeleton([new Bone()]); skeleton.computeBoneTexture();
@@ -101,5 +101,6 @@ describe('level unload keeps the engine usable', () => {
     ownership.retainContainer(null); ownership.capture(); level.dispose();
     expect(assets.isAcquired(light.shadow.map)).toBe(true); expect(engineDispose).not.toHaveBeenCalled();
     expect(boneDispose).toHaveBeenCalledOnce(); expect(scene.children).toEqual([light]);
+    engine.dispose(); expect(engineDispose).toHaveBeenCalledOnce(); expect(assets.retained()).toEqual([]);
   });
 });
