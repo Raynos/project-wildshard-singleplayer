@@ -1,0 +1,265 @@
+{
+  "pin": "82f724fc9f54b41cb5bc433571cd113f0fec7491",
+  "build": "82f724f-muzibj2c",
+  "prepared": false,
+  "remaining": [
+    "Native entered cost: three valid cold Simulator entries, every failure retained; relative Simulator evidence only.",
+    "Standalone parent/candidate phone and desktop parity.",
+    "Desktop/Simulator frame floor.",
+    "SF49-p mechanical runtime relocation and its 19 SF62 findings remain a separate port."
+  ],
+  "entries": [
+    {
+      "edge": "north",
+      "seconds": 90.957,
+      "pass": true,
+      "onIsland": true,
+      "gateOpenAtRest": true,
+      "gateShutAway": true,
+      "recoveries": 0,
+      "extraDocuments": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "edgeFallbacks": [],
+      "routes": [
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        }
+      ],
+      "enteredIslandModelMB": 773.64,
+      "finalNative": {
+        "bodies": 0,
+        "colliders": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": [],
+      "raw": {
+        "path": "north-assertions.json.gz",
+        "sha256": "3473a0df71fad87d9369710c92c12efa4904c6e87f2d4a8d2d853a33644f4471",
+        "gzipSha256": "1d5cadc47305063b3e7e428059d5b08a03a18b400b8dbd83b3729a467ea32f60"
+      }
+    },
+    {
+      "edge": "east",
+      "seconds": 89.04,
+      "pass": true,
+      "onIsland": true,
+      "gateOpenAtRest": true,
+      "gateShutAway": true,
+      "recoveries": 0,
+      "extraDocuments": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "edgeFallbacks": [],
+      "routes": [
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        }
+      ],
+      "enteredIslandModelMB": 784.5,
+      "finalNative": {
+        "bodies": 0,
+        "colliders": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": [],
+      "raw": {
+        "path": "east-assertions.json.gz",
+        "sha256": "00705f18c28f17b08a8a1dc23e35f29748f3749f40527491454484a1d18eb8d9",
+        "gzipSha256": "345c93b889ead2ed0ac686471be458e7c543b2c46c8dc9ee541bcff3f9f72065"
+      }
+    },
+    {
+      "edge": "south",
+      "seconds": 77.473,
+      "pass": true,
+      "onIsland": true,
+      "gateOpenAtRest": true,
+      "gateShutAway": true,
+      "recoveries": 0,
+      "extraDocuments": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "edgeFallbacks": [],
+      "routes": [
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        }
+      ],
+      "enteredIslandModelMB": 766.85,
+      "finalNative": {
+        "bodies": 0,
+        "colliders": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": [],
+      "raw": {
+        "path": "south-assertions.json.gz",
+        "sha256": "b8983266c5eb1f2942c142cc814112ec2095782f2f057f812b5c8b654334fdd2",
+        "gzipSha256": "d66c21f0642748a72fd81a6fe21342ba247f740a43b20162b2c04adc7a0ffa01"
+      }
+    },
+    {
+      "edge": "west",
+      "seconds": 74.804,
+      "pass": true,
+      "onIsland": true,
+      "gateOpenAtRest": true,
+      "gateShutAway": true,
+      "recoveries": 0,
+      "extraDocuments": 0,
+      "errors": [],
+      "consoleErrors": [],
+      "edgeFallbacks": [],
+      "routes": [
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        },
+        {
+          "name": null,
+          "result": null
+        }
+      ],
+      "enteredIslandModelMB": 817.09,
+      "finalNative": {
+        "bodies": 0,
+        "colliders": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": [],
+      "raw": {
+        "path": "west-assertions.json.gz",
+        "sha256": "476293e0b6815587cd429217e24a2b40a6298726b3c5db9ec02c21fc8bce0d55",
+        "gzipSha256": "8e2f772ce778741d7e7f4ae8d48e62302dbe9656cf04190efc2d20755537fe20"
+      }
+    }
+  ],
+  "rejected": [
+    {
+      "pass": false,
+      "version": {
+        "build": "d12c57d-muzhonox",
+        "time": "2026-10-08T12:05:05.077Z"
+      },
+      "seconds": 167.023,
+      "failure": "page.evaluate: Error: Grid floor route north-road-to-lip timed out\n    at eval (eval at evaluate (:311:30), <anonymous>:31:70)\n    at <anonymous>:31:83\n    at runFloorGridRoute (/Users/raynos/projects/games/wildshard-singleplayer/scripts/frame-floor-grid.mjs:44:15)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/sf49/grid/capture.mjs:64:23",
+      "cause": "Captured async AnimalManager build erased the custom legacy thinker rate: Unknown tick rate: legacy.",
+      "raw": {
+        "path": "d12-custom-cadence-rejected.json.gz",
+        "sha256": "b5d548947a2caafea5cb73b97f2f1c776a8cd7e0921b917aefe134d3e4c38b31",
+        "gzipSha256": "1a2ecc5bb65b9b94a2403bc515a25cb2ec16337c8a96947184c9cc19a552e0c0"
+      }
+    },
+    {
+      "pass": false,
+      "version": {
+        "build": "95c869d-muzi42e1",
+        "time": "2026-10-08T12:17:03.321Z"
+      },
+      "seconds": 168.891,
+      "failure": "page.evaluate: Error: Grid floor route north-road-to-lip timed out\n    at eval (eval at evaluate (:311:30), <anonymous>:31:70)\n    at <anonymous>:31:83\n    at runFloorGridRoute (/Users/raynos/projects/games/wildshard-singleplayer/scripts/frame-floor-grid.mjs:44:15)\n    at async drive (/Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/sf49/grid/capture.mjs:78:22)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/sf49/grid/capture.mjs:81:23",
+      "cause": "An async entered world had not installed floor -8 yet; the standalone floor +12 queued a fall at the y0 socket and respawned inland.",
+      "raw": {
+        "path": "95-positive-floor-rejected.json.gz",
+        "sha256": "a02511c3dbf35ea9d6da4a6444a69f7154bdf12d1d7792b8955f08d76104110d",
+        "gzipSha256": "b0d16ec271f9ce5ebfea1cca6b493d497da52c128541720eed76646fb8fd7204"
+      }
+    }
+  ]
+}
