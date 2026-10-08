@@ -1885,9 +1885,9 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.rows.weather[].states[].numbers.rain | number | required | min_value 0; max_value 1 |
 | $.rows.weather[].states[].numbers.wet | number | required | min_value 0; max_value 1 |
 | $.rows.weather[].states[].numbers.wind | number | required | min_value 0; max_value 1 |
-| $.runtime | strict_object | optional; default null; nullable; default undefined |  |
-| $.runtime.binds | array | optional; default undefined | max_length 3; check [function; not executed] "unique runtime-bound sections" |
-| $.runtime.binds[] | picklist "quests", "ledger", "items" | required |  |
+| $.runtime | strict_object | optional; default null; nullable; default undefined | check [function; not executed] "runtime spawns are declared exactly when runtime.binds names spawns" |
+| $.runtime.binds | array | optional; default undefined | max_length 4; check [function; not executed] "unique runtime-bound sections" |
+| $.runtime.binds[] | picklist "quests", "ledger", "items", "spawns" | required |  |
 | $.runtime.cost | strict_object | optional; default undefined | check [function; not executed] "Runtime cost must contain a positive safe measured content bound" |
 | $.runtime.cost.device | string | required | min_length 1; max_length 200 |
 | $.runtime.cost.engineBaseMB | number | required | finite [function; not executed]; min_value 0 |
@@ -1903,6 +1903,26 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.runtime.cost.rev | string | required | regex /^[a-f0-9]{9,40}$/u |
 | $.runtime.cost.webContentMB | number | required | finite [function; not executed]; min_value 0 |
 | $.runtime.entry | string | required | max_length 160; regex /^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u |
+| $.runtime.spawns | strict_object | optional; default undefined | check [function; not executed] "unique runtime spawn identities" |
+| $.runtime.spawns.bosses | array | required | max_length 16 |
+| $.runtime.spawns.bosses[] | strict_object | required |  |
+| $.runtime.spawns.bosses[].at | tuple | required |  |
+| $.runtime.spawns.bosses[].at[0] | number | required | min_value -250; max_value 250 |
+| $.runtime.spawns.bosses[].at[1] | number | required | min_value -250; max_value 250 |
+| $.runtime.spawns.bosses[].id | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
+| $.runtime.spawns.bosses[].kind | string | required | regex /^[a-z][a-zA-Z0-9]*$/u; max_length 64 |
+| $.runtime.spawns.bosses[].look | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
+| $.runtime.spawns.bosses[].yaw | number | required | finite [function; not executed] |
+| $.runtime.spawns.homes | array | required | max_length 256 |
+| $.runtime.spawns.homes[] | strict_object | required |  |
+| $.runtime.spawns.homes[].at | tuple | required |  |
+| $.runtime.spawns.homes[].at[0] | number | required | min_value -250; max_value 250 |
+| $.runtime.spawns.homes[].at[1] | number | required | min_value -250; max_value 250 |
+| $.runtime.spawns.homes[].id | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
+| $.runtime.spawns.homes[].kind | string | required | regex /^[a-z][a-zA-Z0-9]*$/u; max_length 64 |
+| $.runtime.spawns.homes[].look | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
+| $.runtime.spawns.homes[].respawn | number | required | min_value 1; max_value 3600 |
+| $.runtime.spawns.homes[].yaw | number | required | finite [function; not executed] |
 | $.serverBudget | strict_object | required |  |
 | $.serverBudget.commandsPerTick | number | required | max_value 1024 |
 | $.serverBudget.entities | number | required | max_value 10000 |

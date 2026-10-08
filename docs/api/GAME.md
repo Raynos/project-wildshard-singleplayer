@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-684 members; 112 without a doc line (—).
+693 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -463,15 +463,24 @@ The game layer's public modules (src/game/package.json `exports`).
 | `HybridShardPlugin` | class | @wildshard/game/shardfile/hybrid | Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path. |
 | `installHybridRuntime` | function | @wildshard/game/shardfile/hybrid | Consume the grid client's interior events; a late subscriber installs the current cell, never its neighbours. |
 | `prepareHybridShard` | function | @wildshard/game/shardfile/hybrid | Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. |
+| `bindRuntimeBoss` | function | @wildshard/game/shardfile/hybridRows | Bind one declared boss row to the runtime's animals; `spawned` dresses each fresh body. |
+| `bindRuntimeCoins` | function | @wildshard/game/shardfile/hybridRows | Bind the coins a runtime pays (a quest's `onComplete.coins`, a boss's reward burst) to the platform purse: the level's |
+| `bindRuntimeHomes` | function | @wildshard/game/shardfile/hybridRows | Keep the declared homes (`runtime.spawns.homes`) in the runtime's play scope: one creature of the row's runtime species |
 | `bindRuntimeItemContexts` | function | @wildshard/game/shardfile/hybridRows | Register the declared item input contexts in the runtime's play stage: while its cell is entered for a retained home |
 | `bindRuntimeItems` | function | @wildshard/game/shardfile/hybridRows | Install the declared item rows inside a runtime's `buildEquipment`. A runtime-bound row carries no script hook (no |
 | `bindRuntimeLedger` | function | @wildshard/game/shardfile/hybridRows | Bind the declared ledger rules for a runtime that has no simulation host: each fact is stamped tick 0 and told apart by |
 | `bindRuntimeQuest` | function | @wildshard/game/shardfile/hybridRows | Build one declared quest's state over the runtime's flags, scoped to its play scope. The `onComplete` fact is emitted |
 | `runtimeBinds` | function | @wildshard/game/shardfile/hybridRows | The sections `source` declares its runtime binds; empty for a pure-data shard. |
+| `RuntimeBoss` | interface | @wildshard/game/shardfile/hybridRows | A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. |
+| `RuntimeCoins` | type | @wildshard/game/shardfile/hybridRows | A runtime's coin port: what a declared quest or an encounter pays, in whole coins. |
 | `RuntimeFacts` | type | @wildshard/game/shardfile/hybridRows | Emit one declared fact for an entity; the platform ledger decides the grant. |
+| `RuntimeHome` | interface | @wildshard/game/shardfile/hybridRows | One kept home: its declared row's place, the creature living there now and the seconds left before it refills. |
+| `RuntimeHomePorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends its declared homes. |
+| `RuntimeHomes` | interface | @wildshard/game/shardfile/hybridRows | The declared homes as kept: every home, and every creature alive in one. |
 | `RuntimeItemPorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. |
 | `RuntimeQuest` | interface | @wildshard/game/shardfile/hybridRows | A declared quest bound into the runtime's play scope. Coins are the runtime's to pay (its purse and its beat). |
 | `RuntimeQuestPorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends a declared quest: its flags, built marker positions and an optional trusted presentation override. |
+| `runtimeSpawnRows` | function | @wildshard/game/shardfile/hybridRows | The declared runtime spawn rows, refused unless the runtime binds `spawns`. |
 | `withoutRuntimeRows` | function | @wildshard/game/shardfile/hybridRows | The source as the data client installs it: every runtime-bound section emptied, so neither installs it twice. |
 | `DeclaredItemPorts` | interface | @wildshard/game/shardfile/items | Trusted loader dependencies; factories and icons are resolved below the game layer. |
 | `DeclaredItems` | interface | @wildshard/game/shardfile/items | Normal equipment factory result plus authoritative fixed-step runtimes, scoped to the one session. |

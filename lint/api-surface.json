@@ -16266,6 +16266,24 @@
         "from": "@wildshard/game/shardfile/hybrid"
       },
       {
+        "name": "bindRuntimeBoss",
+        "kind": "function",
+        "doc": "Bind one declared boss row to the runtime's animals; `spawned` dresses each fresh body.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "bindRuntimeCoins",
+        "kind": "function",
+        "doc": "Bind the coins a runtime pays (a quest's `onComplete.coins`, a boss's reward burst) to the platform purse: the level's",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "bindRuntimeHomes",
+        "kind": "function",
+        "doc": "Keep the declared homes (`runtime.spawns.homes`) in the runtime's play scope: one creature of the row's runtime species",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
         "name": "bindRuntimeItemContexts",
         "kind": "function",
         "doc": "Register the declared item input contexts in the runtime's play stage: while its cell is entered for a retained home",
@@ -16296,9 +16314,39 @@
         "from": "@wildshard/game/shardfile/hybridRows"
       },
       {
+        "name": "RuntimeBoss",
+        "kind": "interface",
+        "doc": "A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeCoins",
+        "kind": "type",
+        "doc": "A runtime's coin port: what a declared quest or an encounter pays, in whole coins.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
         "name": "RuntimeFacts",
         "kind": "type",
         "doc": "Emit one declared fact for an entity; the platform ledger decides the grant.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeHome",
+        "kind": "interface",
+        "doc": "One kept home: its declared row's place, the creature living there now and the seconds left before it refills.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeHomePorts",
+        "kind": "interface",
+        "doc": "What a runtime lends its declared homes.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeHomes",
+        "kind": "interface",
+        "doc": "The declared homes as kept: every home, and every creature alive in one.",
         "from": "@wildshard/game/shardfile/hybridRows"
       },
       {
@@ -16317,6 +16365,12 @@
         "name": "RuntimeQuestPorts",
         "kind": "interface",
         "doc": "What a runtime lends a declared quest: its flags, built marker positions and an optional trusted presentation override.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "runtimeSpawnRows",
+        "kind": "function",
+        "doc": "The declared runtime spawn rows, refused unless the runtime binds `spawns`.",
         "from": "@wildshard/game/shardfile/hybridRows"
       },
       {
