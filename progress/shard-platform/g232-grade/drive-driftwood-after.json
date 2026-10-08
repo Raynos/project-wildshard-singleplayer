@@ -1,0 +1,615 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "tag": "after",
+  "scene": "driftwood",
+  "stops": [
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 5.867800000190734,
+        "feet": {
+          "x": 231.31538458045497,
+          "y": 0.9162097545589193,
+          "z": 0.001313393817325599
+        },
+        "current": "driftwood-isle",
+        "inside": "driftwood-isle"
+      },
+      "shots": [
+        "driftwood-entry-w"
+      ],
+      "probe": {
+        "player": [
+          229.93788527032984,
+          1.1249493942484672,
+          -0.0000620207260921199
+        ],
+        "camera": [
+          229.93788527032984,
+          2.804949393492743,
+          -0.0000620207260921199
+        ],
+        "programs": 171,
+        "lookPrograms": {
+          "driftwood-isle": 31
+        },
+        "memory": {
+          "geometries": 248,
+          "textures": 85
+        },
+        "glMB": 213.23,
+        "skies": {
+          "driftwood-isle": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 0,
+            "reserved": 0
+          }
+        }
+      },
+      "look": [
+        {
+          "root": "region:driftwood-isle",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              0,
+              0,
+              0
+            ],
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
+            ],
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
+            ],
+            "uCloudTime": 20.1267,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
+          }
+        },
+        {
+          "root": "region:driftwood-isle",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              0,
+              0,
+              0
+            ],
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
+            ],
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
+            ],
+            "uCloudTime": 21.1267,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
+          }
+        }
+      ],
+      "chain": {
+        "owner": "driftwood-isle",
+        "weight": 1,
+        "lut": true,
+        "values": [
+          0.3,
+          0,
+          0.2,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "drive": {
+        "why": "timeout",
+        "seconds": 120.00909999990463,
+        "feet": {
+          "x": 159.59933963026515,
+          "y": 0.24425694973613213,
+          "z": -0.0002654089630331133
+        },
+        "current": "driftwood-isle",
+        "inside": "driftwood-isle"
+      },
+      "shots": [
+        "driftwood-inside-w",
+        "driftwood-inside-n"
+      ],
+      "probe": {
+        "player": [
+          159.59934611912422,
+          0.24417808449696773,
+          -0.00024754526988440134
+        ],
+        "camera": [
+          159.59934611912422,
+          1.924178084832162,
+          -0.00024754526988440134
+        ],
+        "programs": 171,
+        "lookPrograms": {
+          "driftwood-isle": 31
+        },
+        "memory": {
+          "geometries": 250,
+          "textures": 88
+        },
+        "glMB": 213.33,
+        "skies": {
+          "driftwood-isle": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 0,
+            "reserved": 0
+          }
+        }
+      },
+      "look": [
+        {
+          "root": "region:driftwood-isle",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              0,
+              0,
+              0
+            ],
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
+            ],
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
+            ],
+            "uCloudTime": 152.2549,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
+          }
+        },
+        {
+          "root": "region:driftwood-isle",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              0,
+              0,
+              0
+            ],
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
+            ],
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
+            ],
+            "uCloudTime": 153.2881,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
+          }
+        }
+      ],
+      "chain": {
+        "owner": "driftwood-isle",
+        "weight": 1,
+        "lut": true,
+        "values": [
+          0.3,
+          0,
+          0.2,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "console": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+  ],
+  "look": [
+    "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog",
+    "[region look] driftwood-isle: 90 materials on driftwood-isle's light and fog",
+    "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog",
+    "[region look] driftwood-isle: 83 materials on driftwood-isle's light and fog"
+  ],
+  "shaderErrors": 0,
+  "poses": [
+    [
+      "driftwood-entry-w",
+      229.94,
+      0,
+      1.5707963267948966,
+      0.05,
+      1.12
+    ],
+    [
+      "driftwood-inside-w",
+      159.6,
+      0,
+      1.5707963267948966,
+      0.08,
+      0.24
+    ],
+    [
+      "driftwood-inside-n",
+      159.6,
+      0,
+      3.141592653589793,
+      0.08,
+      0.24
+    ]
+  ],
+  "version": {
+    "build": "35af69c-muz60s2m",
+    "time": "2026-10-08T06:38:34.361Z"
+  },
+  "road": {
+    "before": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          0.9,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.686685,
+            0.391572,
+            0.187821
+          ]
+        ]
+      ],
+      "fog": [
+        0.362108,
+        0.389097,
+        0.424088
+      ],
+      "environmentIntensity": 1,
+      "road": {
+        "uuid": "52817c4b-e8ba-440e-8748-f93caff042a0",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            1,
+            1,
+            1
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "reflectivity": 1,
+          "ior": 1.5,
+          "refractionRatio": 0.98,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 2000,
+          "fogColor": [
+            1,
+            1,
+            1
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 1,
+          "metalness": 0,
+          "envMapIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            0.384111,
+            0.768221,
+            0.512148
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 80
+    },
+    "glMB": 127.01,
+    "chain": {
+      "owner": null,
+      "weight": 0,
+      "lut": false,
+      "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+      ]
+    },
+    "after": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          1.15,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.806952,
+            0.47932,
+            0.278894
+          ]
+        ]
+      ],
+      "fog": [
+        0.36,
+        0.7,
+        1
+      ],
+      "environmentIntensity": 0.7,
+      "road": {
+        "uuid": "52817c4b-e8ba-440e-8748-f93caff042a0",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            0.01033,
+            0.012286,
+            0.017642
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 1000000,
+          "fogColor": [
+            0.36,
+            0.7,
+            1
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 0.55,
+          "metalness": 0.35,
+          "envMapIntensity": 0.7,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            -0.345174,
+            0.783302,
+            -0.517004
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 171
+    },
+    "back": {
+      "why": "timeout",
+      "seconds": 120.00039999961854,
+      "feet": {
+        "x": 177.39989916895092,
+        "y": -0.25994407206849757,
+        "z": 0.0013540322105954974
+      },
+      "current": "driftwood-isle",
+      "inside": "driftwood-isle"
+    },
+    "glMBAfter": 213.33,
+    "chainAfter": {
+      "owner": "driftwood-isle",
+      "weight": 1,
+      "lut": true,
+      "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+      ]
+    },
+    "readBackExact": false
+  }
+}

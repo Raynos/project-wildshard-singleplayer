@@ -82,3 +82,28 @@ export class GradeEffect extends Effect {
     return () => { for (const [uniform, value] of vectors) uniform.value.copy(value); u.gamma.value = gamma; };
   }
 }
+
+/**
+ * The look layer alone (SHARD-PLATFORM G232): the S-curve and vibrance `GradeEffect` runs after its split tone when built
+ * with a look, as an effect of its own with live uniforms, for a chain whose `GradeEffect` was built without one (a grid
+ * page's neutral shell carrying a region's grade inside its cell). Placed right after that `GradeEffect`, with the same
+ * curve and vibrance, the pair computes what one `GradeEffect` with the look computes; at curve 0 and vibrance 0 (or
+ * opacity 0) it changes nothing.
+ */
+export class GradeLookEffect extends Effect {
+  private readonly curve: Uniform<number>;
+  private readonly vibrance: Uniform<number>;
+  constructor() {
+    const curve = new Uniform(0), vibrance = new Uniform(0);
+    super('GradeLookEffect', /* glsl */`${LOOK_PARS}
+      void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+        vec3 c = inputColor.rgb;${LOOK_MAIN}
+        outputColor = vec4(c, inputColor.a);
+      }`, { blendFunction: BlendFunction.SRC, uniforms: new Map<string, Uniform>([['uCurve', curve], ['uVibrance', vibrance]]) });
+    this.curve = curve; this.vibrance = vibrance;
+  }
+
+  /** the curve and vibrance (a level's `GradeLook`; 0 and 0 change nothing) */
+  set(look: { readonly curve: number; readonly vibrance: number }): void { this.curve.value = look.curve; this.vibrance.value = look.vibrance; }
+  get values(): { readonly curve: number; readonly vibrance: number } { return { curve: this.curve.value, vibrance: this.vibrance.value }; }
+}

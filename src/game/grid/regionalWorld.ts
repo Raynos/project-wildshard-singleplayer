@@ -32,7 +32,7 @@
  * reserved (`regionalRuntimeAccountedBytes`); this module reserves nothing beside it but the optional region sky's claim
  * (`regionSky.ts`). Generic game code (E405).
  */
-import { Fog, Group, Material, Mesh, Scene, type Object3D } from 'three';
+import { Fog, Group, Material, Mesh, Scene, type Object3D, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { TexturePolicyBinding, registerGpuFiles } from '@wildshard/engine/boot/gpuFiles';
@@ -46,6 +46,7 @@ import { addTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
 import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
 import { SkyRig } from '@wildshard/engine/world/skyRig';
+import { loadLUT } from '@wildshard/engine/boot/bakedApi';
 import { Terrain } from '@wildshard/engine/world/Terrain';
 import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
@@ -57,7 +58,7 @@ import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
-import { frameLookOf, regionGrade, type FrameLookPort } from './frameLook';
+import { frameLookOf, regionChain, regionGrade, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
 import { imagesFirstPlayingBytes } from './runtimeCost';
@@ -105,6 +106,10 @@ const census = new WeakMap<RegionalRuntimeFoundation, () => RegionalWorldCensus>
 export function regionalWorldCensus(foundation: RegionalRuntimeFoundation): RegionalWorldCensus | null { return census.get(foundation)?.() ?? null; }
 
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
+/** a level's sky backdrop as the page's sky layers it (G223) */
+type LayeredBackdrop = NonNullable<Awaited<ReturnType<SkyRig['layeredBackdrop']>>>['backdrop'];
+/** a layered sky's volumetric light stays the page's (G232 hands a region's clock only the page's saturation) */
+const NO_VOL: Parameters<LayeredBackdrop['attachPost']>[0]['vol'] = { setSun: () => undefined, setFogColor: () => undefined, setStrength: () => undefined };
 
 function simLevel(level: LevelSpec): SimLevel {
   const { spawn } = level;
@@ -179,14 +184,30 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           scene.fog = game.rootScene.fog?.clone() ?? null;
           // ... which is the owner's air in the one frame, with its level's grade, while the region is resident
           const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
-          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level) }));
+          // G232: on a neutral page shell its whole grade chain (grade, look layer, learned LUT) is carried exactly
+          let lut: Texture | null = null;
+          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain: regionChain(level, () => lut) }));
           // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
           if (look !== null && sky instanceof SkyRig) void (async () => {
             try {
-              await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
+              const made: { backdrop: LayeredBackdrop | null } = { backdrop: null };
+              const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
                 const make = level.look === undefined ? undefined : (await level.look()).backdrop;
-                return make === undefined ? null : sky.layeredBackdrop(make, { level, air: () => (scene.fog instanceof Fog ? scene.fog : null) });
+                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, air: () => (scene.fog instanceof Fog ? scene.fog : null) });
+                if (layered === null) return null;
+                made.backdrop = layered.backdrop;
+                // its clock turns the page's saturation with its hour as standalone, where the page carries its chain
+                const post = look.post?.() ?? null;
+                if (post !== null) layered.backdrop.attachPost({ vol: NO_VOL, rays: null, hueSat: post.hueSat });
+                return layered;
               } });
+              // its LUT: the drawn backdrop's (it loaded the level's), else the level's own file when it has no backdrop
+              if (outcome === 'drawn') lut = made.backdrop?.lut ?? null;
+              else if (outcome === 'off' && !left() && (look.post?.() ?? null) !== null) {
+                const own = await loadLUT(level.id);
+                if (own !== null && left()) own.dispose();
+                else if (own !== null) { lut = own; resident.onDispose(() => { lut = null; own.dispose(); }); }
+              }
             } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
           })();
           view.root.add(scene); scene.updateMatrixWorld(true);

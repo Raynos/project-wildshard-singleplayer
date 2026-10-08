@@ -1,0 +1,536 @@
+{
+  "base": "http://127.0.0.1:4402",
+  "tag": "before",
+  "scene": "pine",
+  "stops": [
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 7.305200000286102,
+        "feet": {
+          "x": 0.0004889365790024906,
+          "y": 0.4500003729505705,
+          "z": 328.6125377776475
+        },
+        "current": "pine-hollow",
+        "inside": "pine-hollow"
+      },
+      "shots": [
+        "pine-entry-n"
+      ],
+      "probe": {
+        "player": [
+          0.0000035106830428115188,
+          0.45,
+          -225.00996230372448
+        ],
+        "camera": [
+          0.0000035106830428115188,
+          2.13,
+          329.9900376962755
+        ],
+        "programs": 201,
+        "lookPrograms": {},
+        "memory": {
+          "geometries": 236,
+          "textures": 352
+        },
+        "glMB": 263.53,
+        "skies": {
+          "pine-hollow": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 20971520,
+            "reserved": 29360128
+          }
+        }
+      },
+      "look": [
+        null,
+        null
+      ],
+      "chain": null
+    },
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 19.608800000190733,
+        "feet": {
+          "x": 59.24162258732504,
+          "y": -0.9252922332821456,
+          "z": 553.9160688373518
+        },
+        "current": "pine-hollow",
+        "inside": "pine-hollow"
+      },
+      "shots": [
+        "pine-forest-e"
+      ],
+      "probe": {
+        "player": [
+          60.03130530269955,
+          -0.9386186169832139,
+          0.04474393052760206
+        ],
+        "camera": [
+          60.03130530269955,
+          0.7413813833854191,
+          555.0447439305276
+        ],
+        "programs": 201,
+        "lookPrograms": {},
+        "memory": {
+          "geometries": 257,
+          "textures": 354
+        },
+        "glMB": 261.49,
+        "skies": {
+          "pine-hollow": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 20971520,
+            "reserved": 29360128
+          }
+        }
+      },
+      "look": [
+        null,
+        null
+      ],
+      "chain": null
+    },
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 5.882,
+        "feet": {
+          "x": 118.7256345269936,
+          "y": 0.8616268522029759,
+          "z": 554.6041058198059
+        },
+        "current": "pine-hollow",
+        "inside": "pine-hollow"
+      },
+      "shots": [
+        "pine-forest-120-e",
+        "pine-forest-120-n"
+      ],
+      "probe": {
+        "player": [
+          120.0411180121675,
+          0.9551679507620565,
+          0.012773717320442302
+        ],
+        "camera": [
+          120.0411180121675,
+          2.63516795179921,
+          555.0127737173204
+        ],
+        "programs": 203,
+        "lookPrograms": {},
+        "memory": {
+          "geometries": 260,
+          "textures": 363
+        },
+        "glMB": 261.61,
+        "skies": {
+          "pine-hollow": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 20971520,
+            "reserved": 29360128
+          }
+        }
+      },
+      "look": [
+        null,
+        null
+      ],
+      "chain": null
+    }
+  ],
+  "errors": [],
+  "console": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined."
+  ],
+  "look": [
+    "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog",
+    "[region look] driftwood-isle: 90 materials on driftwood-isle's light and fog"
+  ],
+  "shaderErrors": 0,
+  "poses": [
+    [
+      "pine-entry-n",
+      0,
+      -225.01,
+      3.141592653589793,
+      0.05,
+      0.45
+    ],
+    [
+      "pine-forest-e",
+      60.03,
+      0.04,
+      -1.5707963267948966,
+      0.05,
+      -0.94
+    ],
+    [
+      "pine-forest-120-e",
+      120.04,
+      0.01,
+      -1.5707963267948966,
+      0.05,
+      0.96
+    ],
+    [
+      "pine-forest-120-n",
+      120.04,
+      0.01,
+      3.141592653589793,
+      0.05,
+      0.96
+    ]
+  ],
+  "version": {
+    "build": "d739e31-muz627bt",
+    "time": "2026-10-08T06:39:41.007Z"
+  },
+  "road": {
+    "before": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          0.9,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.686685,
+            0.391572,
+            0.187821
+          ]
+        ]
+      ],
+      "fog": [
+        0.362108,
+        0.389097,
+        0.424088
+      ],
+      "environmentIntensity": 1,
+      "road": {
+        "uuid": "134fc7b6-8271-40d6-b0c6-23c541dad9ad",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            1,
+            1,
+            1
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "reflectivity": 1,
+          "ior": 1.5,
+          "refractionRatio": 0.98,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 2000,
+          "fogColor": [
+            1,
+            1,
+            1
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 1,
+          "metalness": 0,
+          "envMapIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            0.384111,
+            0.768221,
+            0.512148
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 78
+    },
+    "glMB": 126.72,
+    "chain": null,
+    "after": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          0.9,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.686685,
+            0.391572,
+            0.187821
+          ]
+        ]
+      ],
+      "fog": [
+        0.362108,
+        0.389097,
+        0.424088
+      ],
+      "environmentIntensity": 1,
+      "road": {
+        "uuid": "134fc7b6-8271-40d6-b0c6-23c541dad9ad",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            0.01033,
+            0.012286,
+            0.017642
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "reflectivity": 1,
+          "ior": 1.5,
+          "refractionRatio": 0.98,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 1000000,
+          "fogColor": [
+            0.362108,
+            0.389097,
+            0.424088
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 0.55,
+          "metalness": 0.35,
+          "envMapIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            0.384111,
+            0.768221,
+            0.512148
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 139
+    },
+    "back": {
+      "why": "arrived",
+      "seconds": 30.0205,
+      "feet": {
+        "x": 0.00005737969782160235,
+        "y": 0.45000001839414244,
+        "z": 278.8653367020703
+      },
+      "current": null,
+      "inside": null
+    },
+    "glMBAfter": 140.16,
+    "chainAfter": null,
+    "readBackExact": true
+  }
+}

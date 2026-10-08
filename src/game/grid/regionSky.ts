@@ -13,8 +13,8 @@
  * the region's resident scope: the frame weight, the layer (its dome leaves the page scene, the rig puts every shared
  * value back), the backdrop's textures and targets (`SkyBackdrop.dispose`), then the claim.
  *
- * The level's LUT, curve and vibrance are not carried: they need an effect in the engine's colour pass (a recompile, and a
- * per-pixel 3D lookup at weight 0 too); the region's grade stays the frame's uniform `regionGrade`. Generic game code
+ * The level's grade chain (its LUT, curve and vibrance with the rest) is the frame's (`frame.ts`, G232): the drawn backdrop's
+ * LUT is the one the region hands it, and its clock's saturation drives the page's where the page carries it. Generic game code
  * (E405): no shard is named here; the regional world closes over the page sky, renderer and level (`regionalWorld.ts`).
  */
 import type { ResidencyAllocator } from './allocator';

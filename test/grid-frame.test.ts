@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Color, Fog, PerspectiveCamera, Scene, type Uniform } from 'three';
-import { BlendFunction, Effect, EffectPass, type EffectComposer } from 'postprocessing';
+import { BlendFunction, BrightnessContrastEffect, Effect, EffectPass, HueSaturationEffect, LookupTexture, LUT3DEffect, type EffectComposer } from 'postprocessing';
+import { GradeEffect, GradeLookEffect } from '../src/engine/core/Grade';
 import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
-import { FrameGradeEffect, GridFrame, opacityFade, passEffects } from '../src/game/grid/frame';
+import { FrameGradeEffect, GridFrame, neutralLut, opacityFade, passEffects, swappableLut } from '../src/game/grid/frame';
 import { ROAD_SKY_ORDER } from '../src/game/grid/roadSky';
-import { frameLookOf, regionGrade } from '../src/game/grid/frameLook';
+import { frameLookOf, regionChain, regionGrade } from '../src/game/grid/frameLook';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { Scope } from '../src/engine/app/scope';
@@ -162,9 +163,8 @@ it.each([true, false])('G226: catalogue home stays page-owned only when homeIsFr
   scene.fog = new Fog(new Color(0.4, 0.5, 0.6), 10, 100);
   const home = cells[4]; if (home === undefined) throw new Error('Missing home');
   const feet = { x: 0, z: 0 };
-  const effects = ['grade', 'saturation', 'contrast'].map(id => new Effect(id, 'void mainImage(const in vec4 i, const in vec2 uv, out vec4 o) { o = i; }'));
-  const [gradeEffect, saturation, contrast] = effects;
-  if (gradeEffect === undefined || saturation === undefined || contrast === undefined) throw new Error('Missing effects');
+  const gradeEffect = new GradeEffect(), saturation = new HueSaturationEffect(), contrast = new BrightnessContrastEffect();
+  const effects: Effect[] = [gradeEffect, saturation, contrast];
   const pass = new EffectPass(camera, ...effects); vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
   const frame = new GridFrame({ host: { scene, camera, composer: () => legacyDouble<EffectComposer>({ passes: [pass] }),
     post: () => ({ grade: gradeEffect, saturation, contrast }) }, scope, cells, home, homeIsFrame, half, feet: () => feet });
@@ -193,4 +193,76 @@ it.each([true, false])('G226: catalogue home stays page-owned only when homeIsFr
   release(); scope.dispose();
   expect(effects.map(effect => Number(effect.blendMode.opacity.value))).toEqual([1, 1, 1]);
   expect(passEffects(pass)).toEqual(effects); pass.dispose();
+});
+
+describe('G232: a region\'s whole grade chain on a neutral page shell', () => {
+  const pine = toLevelSpec(PINE_HOLLOW);
+  it('reads a level\'s grade with its look layer over it, and its curve and vibrance', () => {
+    const chain = regionChain(pine, () => null);
+    expect(chain.grade.saturation).toBe(pine.lookLayer?.grade.saturation ?? pine.grade.saturation);
+    expect(chain.grade.contrast).toBe(pine.lookLayer?.grade.contrast ?? pine.grade.contrast);
+    expect(chain.look).toEqual({ curve: pine.lookLayer?.curve, vibrance: pine.lookLayer?.vibrance });
+    expect(regionChain({ grade: pine.grade }, () => null).look).toEqual({ curve: 0, vibrance: 0 });
+  });
+  it('the neutral LUT is the learned LUTs\' kind (a uniform swap, never new defines); another kind is refused', () => {
+    const lut = neutralLut();
+    expect(swappableLut(lut)).toBe(true);
+    expect(swappableLut(LookupTexture.createNeutral(33))).toBe(false); // float: other defines
+    expect(swappableLut(LookupTexture.createNeutral(16))).toBe(false);
+    const effect = new LUT3DEffect(lut, { tetrahedralInterpolation: true });
+    const defines = [...effect.defines];
+    const other = neutralLut(), u = effect.uniforms.get('lut');
+    if (u !== undefined) u.value = other;
+    expect([...effect.defines]).toEqual(defines);
+    lut.dispose(); other.dispose(); effect.dispose();
+  });
+  it('inside its cell the page\'s grade effects carry its chain; on the road the page\'s values are back, nothing recompiles', () => {
+    const scope = new Scope('g232-chain'), scene = new Scene(), camera = new PerspectiveCamera();
+    scene.fog = new Fog(new Color(0.4, 0.5, 0.6), 10, 100);
+    const home = cells[4]; if (home === undefined) throw new Error('Missing home');
+    const feet = { x: 0, z: 0 };
+    const gradeEffect = new GradeEffect(), saturation = new HueSaturationEffect({ saturation: 0.05 }), contrast = new BrightnessContrastEffect({ brightness: 0.01, contrast: 0.02 });
+    const grain = new Effect('grain', 'void mainImage(const in vec4 i, const in vec2 uv, out vec4 o) { o = i; }');
+    const pass = new EffectPass(camera, saturation, contrast, gradeEffect, grain), recompile = vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
+    const frame = new GridFrame({ host: { scene, camera, composer: () => legacyDouble<EffectComposer>({ passes: [pass] }),
+      post: () => ({ grade: gradeEffect, saturation, contrast }) }, scope, cells, home, homeIsFrame: false, half, feet: () => feet });
+    const port = frameLookOf(scene); if (port === null) throw new Error('no port');
+    expect(port.post?.()).toBeNull(); // before install: nothing carried
+    frame.frame(); // install
+    const list = passEffects(pass); if (list === null) throw new Error('no list');
+    const look = list.find((e) => e instanceof GradeLookEffect), lutFx = list.find((e) => e instanceof LUT3DEffect);
+    if (look === undefined || lutFx === undefined) throw new Error('the look layer and the LUT are compiled in at install');
+    expect(list.indexOf(look)).toBe(list.indexOf(gradeEffect) + 1); expect(list.indexOf(lutFx)).toBe(list.indexOf(gradeEffect) + 2);
+    expect(list[list.length - 1]).toBeInstanceOf(FrameGradeEffect);
+    expect(recompile).toHaveBeenCalledTimes(1);
+    expect(port.post?.()?.hueSat).toBe(saturation);
+    const regionLut = neutralLut(); let loaded: typeof regionLut | null = null;
+    const chain = regionChain(pine, () => loaded);
+    const release = port.contribute('1,0', { fog: new Fog(new Color(1, 1, 1), 1, 2), grade: regionGrade(pine), chain });
+    const opacities = (): number[] => [saturation, contrast, gradeEffect, look, lutFx].map((e) => Number(e.blendMode.opacity.value));
+    feet.x = pitch; frame.frame();
+    const s = frame.state();
+    expect(s.chain.owner).toBe('1,0'); expect(s.chain.weight).toBe(1); expect(s.chain.lut).toBe(false);
+    expect(s.grade).toEqual([0, 1, 1, 1, 1, 1]); // its uniform grade is neutral: the chain grades it
+    expect(s.chain.values).toEqual([chain.grade.saturation, chain.grade.brightness, chain.grade.contrast, chain.look.curve, chain.look.vibrance].map((n) => Math.round(n * 1e4) / 1e4));
+    expect(opacities()).toEqual([1, 1, 1, 1, 0]); // no LUT loaded yet
+    loaded = regionLut; frame.frame();
+    expect(frame.state().chain.lut).toBe(true); expect(lutFx.uniforms.get('lut')?.value).toBe(regionLut); expect(opacities()).toEqual([1, 1, 1, 1, 1]);
+    saturation.saturation = 0.3; // its sky clock turns the saturation with the hour
+    feet.x = pitch - half; frame.frame(); // on its edge line: half
+    expect(opacities()).toEqual([0.5, 0.5, 0.5, 0.5, 0.5]); expect(saturation.saturation).toBe(0.3);
+    feet.x = half + 27.5; frame.frame(); // on the road: the page's values back, all off
+    expect(frame.state().chain.owner).toBeNull();
+    expect(opacities()).toEqual([0, 0, 0, 0, 0]);
+    expect([saturation.saturation, contrast.brightness, contrast.contrast]).toEqual([0.05, 0.01, 0.02]);
+    expect(lutFx.uniforms.get('lut')?.value).not.toBe(regionLut); expect(look.values).toEqual({ curve: 0, vibrance: 0 });
+    feet.x = pitch; frame.frame(); expect(frame.state().chain.owner).toBe('1,0');
+    release(); // left while inside: dropped at once (its LUT may be freed next)
+    expect(frame.state().chain.owner).toBeNull(); expect(saturation.saturation).toBe(0.05); expect(lutFx.uniforms.get('lut')?.value).not.toBe(regionLut);
+    expect(recompile).toHaveBeenCalledTimes(1); // swaps are uniforms
+    scope.dispose();
+    expect(passEffects(pass)).toEqual([saturation, contrast, gradeEffect, grain]);
+    expect([saturation, contrast, gradeEffect].map((e) => Number(e.blendMode.opacity.value))).toEqual([1, 1, 1]);
+    regionLut.dispose(); pass.dispose();
+  });
 });

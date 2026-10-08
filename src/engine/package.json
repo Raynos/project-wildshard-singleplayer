@@ -103,6 +103,7 @@
     "./contentApi": "./contentApi.ts",
     "./core/Game": "./core/Game.ts",
     "./core/GpuRecovery": "./core/GpuRecovery.ts",
+    "./core/Grade": "./core/Grade.ts",
     "./core/KeepAlive": "./core/KeepAlive.ts",
     "./core/assets": "./core/assets.ts",
     "./core/bootstrap": "./core/bootstrap.ts",

@@ -18,16 +18,24 @@
  * - **Live regions** (`frameLook.ts`, E452): an admitted neighbour runtime contributes its own fog object and grade while
  *   resident; what its weather writes into that fog is its air (then the base goes back), its level's grade replaces the
  *   declared one. Still one fog, one dome, one sun.
+ * - **A region's whole grade chain** (G232): on a neutral page shell (G226's owned home) the page's own grade effects carry
+ *   the live owner region's grade instead of fading to nothing: inside its cell they hold its level's saturation,
+ *   brightness, contrast and split tone (its runtime and its sky clock then drive them as standalone), and two effects
+ *   compiled once at install, right after the page's split tone, add its look layer's S-curve and vibrance and its learned
+ *   LUT (a neutral LUT until a region brings one; a LUT swap is a uniform, never a recompile). All of it fades with the
+ *   owner's weight across the edge band, and the page's values go back when the region leaves the frame.
  * - **Owner stacks** (`FrameStack`): each owner may hang a stack on the frame that is told its weight every frame. The
  *   home's grade fade is the first; SF59's per-shard post stacks (catalogue effects as data) hang here the same way.
  * Select a shard never builds this (grid page mode only).
  */
-import { Color, Uniform, Vector3, type Camera, type Scene } from 'three';
-import { BlendFunction, Effect, EffectPass, LUT3DEffect, type EffectComposer } from 'postprocessing';
+import { Color, Data3DTexture, NoColorSpace, SRGBColorSpace, Uniform, UnsignedByteType, Vector3, type Camera, type Scene, type Texture } from 'three';
+import { BlendFunction, Effect, EffectPass, LookupTexture, LUT3DEffect, type EffectComposer } from 'postprocessing';
 import type { Scope } from '@wildshard/engine/app/scope';
+import { GradeLookEffect, type GradeEffect } from '@wildshard/engine/core/Grade';
+import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import type { FarProxyView } from './farView';
 import { RoadSky } from './roadSky';
-import { bindFrameLook, type FrameLookContribution, type FrameSkyLayer } from './frameLook';
+import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain } from './frameLook';
 import { NEUTRAL_GRADE, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
 /** What the frame reads from the page: the scene and camera, the engine's composer and its grade effects (late-bound). */
@@ -37,7 +45,13 @@ export interface GridFrameHost {
   /** the engine's composer (throws before it is built: the frame then retries next frame) */
   readonly composer: () => EffectComposer;
   /** the engine chain's grade effects (null for a level whose look builds its own chain) */
-  readonly post: () => { readonly grade: Effect; readonly saturation: Effect; readonly contrast: Effect } | null;
+  readonly post: () => FramePostEffects | null;
+}
+/** The engine chain's grade effects the frame fades, and on a neutral shell writes a region's grade into (G232). */
+export interface FramePostEffects {
+  readonly grade: Effect & Pick<GradeEffect, 'set' | 'hold'>;
+  readonly saturation: Effect & { saturation: number };
+  readonly contrast: Effect & { brightness: number; contrast: number };
 }
 
 /** The frame's readout (tests, the harness, the board). */
@@ -56,6 +70,11 @@ export interface GridFrameState {
   readonly roadSky: number;
   /** G223: the regions' own skies laid over the one sky (instance → its readout); empty with the Debug row on A */
   readonly skies: Readonly<Record<string, ReturnType<FrameSkyLayer['state']>>>;
+  /**
+   * G232: the region whose whole grade chain the page's grade carries (null: none), its weight, whether its LUT is drawn,
+   * and the page's grade values as drawn: saturation, brightness, contrast, curve, vibrance
+   */
+  readonly chain: { readonly owner: string | null; readonly weight: number; readonly lut: boolean; readonly values: readonly [number, number, number, number, number] };
 }
 
 /**
@@ -110,6 +129,25 @@ export function opacityFade(effects: readonly Effect[]): FrameStack & { readonly
   };
 }
 
+/** A 33³ RGBA8 identity LUT, the texture type every learned LUT has (`world/lut.ts`), so a swap never changes the defines. */
+export function neutralLut(): LookupTexture {
+  const n = LUT_SIZE, data = new Uint8Array(n * n * n * 4);
+  for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) {
+    const i = ((b * n + g) * n + r) * 4;
+    data[i] = Math.round((r / (n - 1)) * 255); data[i + 1] = Math.round((g / (n - 1)) * 255); data[i + 2] = Math.round((b / (n - 1)) * 255); data[i + 3] = 255;
+  }
+  const lut = new LookupTexture(data, n);
+  lut.type = UnsignedByteType; lut.colorSpace = NoColorSpace; lut.name = 'grid-frame-neutral-lut'; lut.needsUpdate = true;
+  return lut;
+}
+/** A LUT the frame's compiled LUT effect can sample by a uniform swap: the same size, type and domain as the neutral one. */
+export function swappableLut(lut: Texture): boolean {
+  if (!(lut instanceof Data3DTexture) || lut.type !== UnsignedByteType) return false;
+  const { width, height, depth } = lut.image;
+  if (width !== LUT_SIZE || height !== LUT_SIZE || depth !== LUT_SIZE) return false;
+  return !(lut instanceof LookupTexture) || (lut.domainMin.x === 0 && lut.domainMin.y === 0 && lut.domainMin.z === 0 && lut.domainMax.x === 1 && lut.domainMax.y === 1 && lut.domainMax.z === 1);
+}
+
 /** Every entry an Effect: the narrowing keeps the array itself, never a copy. */
 function isEffectList(list: unknown): list is Effect[] {
   return Array.isArray(list) && list.every((e) => e instanceof Effect);
@@ -144,6 +182,16 @@ export class GridFrame {
   /** owner (an instance, or null for the road) → its stacks */
   private readonly stacks = new Map<string | null, Set<FrameStack>>();
   private readonly effect = new FrameGradeEffect();
+  /** G232: a carried region's look layer and learned LUT, after the page's split tone (shell pages only) */
+  private readonly lookEffect = new GradeLookEffect();
+  private readonly neutral = neutralLut();
+  private readonly lutEffect = new LUT3DEffect(this.neutral, { inputColorSpace: SRGBColorSpace, tetrahedralInterpolation: true });
+  /** the page's grade effects (set at install on a shell page: chains are carried) and their fade by the carried weight */
+  private chainPost: FramePostEffects | null = null;
+  private chainFade: FrameStack | null = null;
+  private carrier: { readonly instance: string; readonly chain: RegionChain; readonly restore: () => void } | null = null;
+  private chainWeight = 0;
+  private chainLut = false;
   private readonly roadSky = new RoadSky();
   private readonly restore: (() => void)[] = [];
   private faded = 0;
@@ -165,10 +213,13 @@ export class GridFrame {
     // G165: the road's own sky, its opacity the road's weight
     const detachSky = this.roadSky.attach(host.scene);
     this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
-    const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer) });
+    this.lookEffect.blendMode.opacity.value = 0; this.lutEffect.blendMode.opacity.value = 0;
+    const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer),
+      post: (): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation }) });
     scope.onDispose(() => {
       unbind(); this.live.clear(); this.skies.clear();
-      host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); detachSky(); this.roadSky.dispose();
+      host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); this.lookEffect.dispose(); this.lutEffect.dispose(); this.neutral.dispose();
+      detachSky(); this.roadSky.dispose();
       for (const set of this.stacks.values()) for (const stack of set) stack.dispose?.();
       this.stacks.clear();
     });
@@ -191,7 +242,11 @@ export class GridFrame {
     this.live.set(instance, look);
     const declared = this.hazes.get(instance);
     if (declared !== undefined) look.fog?.color.setRGB(...declared); // start from the base (else its own colour until the first draw)
-    return () => { if (this.live.get(instance) === look) this.live.delete(instance); };
+    return () => {
+      if (this.live.get(instance) !== look) return;
+      this.live.delete(instance);
+      if (this.carrier?.instance === instance) this.drop(); // at once: its LUT may be freed right after
+    };
   }
 
   /**
@@ -224,6 +279,7 @@ export class GridFrame {
   frame(): void {
     const at = this.feet();
     this.weights = frameOwners(this.cells, at.x, at.z, this.half, this.band);
+    if (this.chainPost !== null) this.carry();
     this.graded = frameGrade(this.weights, this.homeInstance, this.ownerGrades());
     this.effect.set(this.graded);
     for (const [owner, set] of this.stacks) {
@@ -245,10 +301,24 @@ export class GridFrame {
       if (effects === null || !effects.includes(post.saturation)) continue;
       const home = effects.filter((effect) => effect === post.saturation || effect === post.contrast || effect === post.grade || effect instanceof LUT3DEffect);
       this.faded = home.length;
-      const fade = opacityFade(home);
       let unstack: () => void;
-      if (this.homeInstance === null) { fade.weight(0); unstack = fade.dispose; } // neutral shell: every cell supplies its own grade
-      else unstack = this.stack(this.homeInstance, fade);
+      if (this.homeInstance === null) {
+        // neutral shell: every cell supplies its own grade. Its grade effects carry a live owner region's (G232), by its
+        // weight; the shell's own LUT stays out; the region's look layer and LUT go right after the split tone
+        const own: Effect[] = [post.saturation, post.contrast, post.grade];
+        const carried = opacityFade(home.filter((effect) => own.includes(effect))), rest = opacityFade(home.filter((effect) => !own.includes(effect)));
+        carried.weight(0); rest.weight(0);
+        this.chainFade = carried; this.chainPost = post;
+        const at = Math.max(...own.map((effect) => effects.indexOf(effect))) + 1;
+        effects.splice(at, 0, this.lookEffect, this.lutEffect);
+        unstack = () => {
+          this.drop(); this.chainPost = null; this.chainFade = null; carried.dispose(); rest.dispose();
+          for (const effect of [this.lookEffect, this.lutEffect]) { const i = effects.indexOf(effect); if (i !== -1) effects.splice(i, 1); }
+        };
+      } else {
+        const fade = opacityFade(home);
+        unstack = this.stack(this.homeInstance, fade);
+      }
       effects.push(this.effect);
       this.restore.push(() => { unstack(); const i = effects.indexOf(this.effect); if (i !== -1) effects.splice(i, 1); pass.recompile(); });
       pass.recompile();
@@ -256,13 +326,65 @@ export class GridFrame {
     }
   }
 
-  /** the owners' grades: a live region's own over its declared one */
+  /** the owners' grades: a live region's own over its declared one; neutral for one whose whole chain is carried */
   private ownerGrades(): ReadonlyMap<string, RegionGrade> {
     if (this.live.size === 0) return this.grades;
     this.owned.clear();
     for (const [instance, grade] of this.grades) this.owned.set(instance, grade);
-    for (const [instance, look] of this.live) if (look.grade !== undefined) this.owned.set(instance, look.grade);
+    for (const [instance, look] of this.live) {
+      if (this.chainPost !== null && look.chain !== undefined) this.owned.set(instance, NEUTRAL_GRADE);
+      else if (look.grade !== undefined) this.owned.set(instance, look.grade);
+    }
     return this.owned;
+  }
+
+  /** G232: the live region with the most weight that brings a chain carries the page's grade, faded by its weight. */
+  private carry(): void {
+    let best: string | null = null, top = 0, chain: RegionChain | null = null;
+    for (const [instance, look] of this.live) {
+      const w = look.chain === undefined ? 0 : this.weights.cells.get(instance) ?? 0;
+      if (w > top && look.chain !== undefined) { best = instance; top = w; chain = look.chain; }
+    }
+    if (this.carrier !== null && this.carrier.instance !== best) this.drop();
+    if (best !== null && chain !== null && this.carrier === null) this.take(best, chain);
+    this.chainWeight = top;
+    this.chainFade?.weight(top);
+    this.lookEffect.blendMode.opacity.value = top;
+    const lut = this.carrier?.chain.lut() ?? null, drawn = lut !== null && swappableLut(lut);
+    this.lutUniform(drawn ? lut : this.neutral);
+    this.lutEffect.blendMode.opacity.value = drawn ? top : 0;
+    this.chainLut = drawn;
+  }
+
+  /** the compiled LUT effect samples another LUT of the same kind: a uniform, so the pass never recompiles */
+  private lutUniform(lut: Texture): void {
+    const u = this.lutEffect.uniforms.get('lut');
+    if (u !== undefined && u.value !== lut) u.value = lut;
+  }
+
+  /** a region takes the page's grade: the page's values are held, its level's chain written (its clocks drive them on) */
+  private take(instance: string, chain: RegionChain): void {
+    const post = this.chainPost;
+    if (post === null) return;
+    const saturation = post.saturation.saturation, brightness = post.contrast.brightness, contrast = post.contrast.contrast, undoGrade = post.grade.hold();
+    const g = chain.grade, rgb = (c: readonly [number, number, number]): [number, number, number] => [c[0], c[1], c[2]];
+    post.saturation.saturation = g.saturation; post.contrast.brightness = g.brightness; post.contrast.contrast = g.contrast;
+    post.grade.set({ shadowTint: rgb(g.shadowTint), highTint: rgb(g.highTint), lift: rgb(g.lift), gain: rgb(g.gain), gamma: g.gamma });
+    this.lookEffect.set(chain.look);
+    this.carrier = { instance, chain, restore: () => {
+      post.saturation.saturation = saturation; post.contrast.brightness = brightness; post.contrast.contrast = contrast; undoGrade();
+    } };
+  }
+
+  /** the carrying region leaves the frame: the page's grade values back, its look layer and LUT neutral and off */
+  private drop(): void {
+    const carrier = this.carrier;
+    if (carrier === null) return;
+    this.carrier = null;
+    carrier.restore();
+    this.lookEffect.set({ curve: 0, vibrance: 0 }); this.lookEffect.blendMode.opacity.value = 0;
+    this.lutUniform(this.neutral); this.lutEffect.blendMode.opacity.value = 0;
+    this.chainFade?.weight(0); this.chainWeight = 0; this.chainLut = false;
   }
 
   private uninstall(): void { for (const undo of this.restore.splice(0).reverse()) undo(); this.faded = 0; }
@@ -293,6 +415,12 @@ export class GridFrame {
     this.roadSky.frame(this.host.camera.getWorldPosition(this.eye), this.air);
   }
 
+  /** the page's grade values as drawn (saturation, brightness, contrast, curve, vibrance; zeros before install) */
+  private chainValues(): readonly [number, number, number, number, number] {
+    const post = this.chainPost, look = this.lookEffect.values, r = (n: number): number => Math.round(n * 1e4) / 1e4;
+    return post === null ? [0, 0, 0, 0, 0] : [r(post.saturation.saturation), r(post.contrast.brightness), r(post.contrast.contrast), r(look.curve), r(look.vibrance)];
+  }
+
   /** The readout. */
   state(): GridFrameState {
     const round = (n: number): number => Math.round(n * 1000) / 1000, g = this.graded;
@@ -303,6 +431,7 @@ export class GridFrame {
       grade: [round(g.exposure), round(g.saturation), round(g.contrast), round(g.tint[0]), round(g.tint[1]), round(g.tint[2])],
       roadSky: round(this.roadSky.drawn),
       skies: Object.fromEntries([...this.skies].map(([k, layer]) => [k, layer.state()])),
+      chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues() },
     };
   }
 }
