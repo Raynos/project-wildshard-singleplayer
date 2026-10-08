@@ -800,6 +800,12 @@
         "from": "@wildshard/engine/app/app"
       },
       {
+        "name": "cacheUntilDisposed",
+        "kind": "function",
+        "doc": "A memo may outlive a scene: forget its value when any owned resource retires instead of returning freed GPU data.",
+        "from": "@wildshard/engine/app/cachedAssets"
+      },
+      {
         "name": "retainCachedResources",
         "kind": "function",
         "doc": "A module cache keeps source meshes alive across loads; consumers acquire their shared GPU resources.",
@@ -909,9 +915,21 @@
         "from": "@wildshard/engine/app/sceneOwnership"
       },
       {
+        "name": "ownSceneResource",
+        "kind": "function",
+        "doc": "Adopt an otherwise unowned resource. Existing owners (including batch-private allocations) stay authoritative.",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
         "name": "ownSceneTree",
         "kind": "function",
         "doc": "Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
+        "name": "sceneObjectOwner",
+        "kind": "function",
+        "doc": "Nearest explicitly owned scene subtree, including meshes drawn through a shared page renderer.",
         "from": "@wildshard/engine/app/sceneOwnership"
       },
       {
@@ -9033,6 +9051,12 @@
         "name": "shadowJobs",
         "kind": "function",
         "doc": "The shadow pass's depth materials: WebGLShadowMap.getDepthMaterial picks the caster's",
+        "from": "@wildshard/engine/render/precompile"
+      },
+      {
+        "name": "warmComposerFrame",
+        "kind": "function",
+        "doc": "Resolve an entered world's programs, then warm the actual depth/post pass targets without advancing simulation.",
         "from": "@wildshard/engine/render/precompile"
       },
       {

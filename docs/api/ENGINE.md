@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2203 members; 830 without a doc line (—).
+2207 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -141,6 +141,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `App` | class | @wildshard/engine/app/app | — |
 | `SystemsByPhase` | type | @wildshard/engine/app/app | — |
 | `TrampleField` | interface | @wildshard/engine/app/app | — |
+| `cacheUntilDisposed` | function | @wildshard/engine/app/cachedAssets | A memo may outlive a scene: forget its value when any owned resource retires instead of returning freed GPU data. |
 | `retainCachedResources` | function | @wildshard/engine/app/cachedAssets | A module cache keeps source meshes alive across loads; consumers acquire their shared GPU resources. |
 | `appIdentity` | function | @wildshard/engine/app/identity | — |
 | `AppIdentity` | interface | @wildshard/engine/app/identity | — |
@@ -159,7 +160,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `app` | const | @wildshard/engine/app/runtime | The page app; legacy active-service entry points delegate here during the migration. |
 | `gameplayRandom` | function | @wildshard/engine/app/runtime | One gameplay draw from the seeded `gameplay` stream (01 §2): aim spread and other rolls that change a hit. |
 | `containerResources` | function | @wildshard/engine/app/sceneOwnership | Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. |
+| `ownSceneResource` | function | @wildshard/engine/app/sceneOwnership | Adopt an otherwise unowned resource. Existing owners (including batch-private allocations) stay authoritative. |
 | `ownSceneTree` | function | @wildshard/engine/app/sceneOwnership | Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never |
+| `sceneObjectOwner` | function | @wildshard/engine/app/sceneOwnership | Nearest explicitly owned scene subtree, including meshes drawn through a shared page renderer. |
 | `SceneOwnership` | class | @wildshard/engine/app/sceneOwnership | — |
 | `sceneResourceOwner` | function | @wildshard/engine/app/sceneOwnership | Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. |
 | `sceneResources` | function | @wildshard/engine/app/sceneOwnership | Resources a caller may own; explicit subtree owners are respected even when passed as the root. |
@@ -1511,6 +1514,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `runPrecompile` | function | @wildshard/engine/render/precompile | Issue every job, then wait for the driver: reports (done, total, detail) monotonically — |
 | `sceneJobs` | function | @wildshard/engine/render/precompile | One detached clone per distinct (material, object-flags) pair, grouped `per` clones a job. |
 | `shadowJobs` | function | @wildshard/engine/render/precompile | The shadow pass's depth materials: WebGLShadowMap.getDepthMaterial picks the caster's |
+| `warmComposerFrame` | function | @wildshard/engine/render/precompile | Resolve an entered world's programs, then warm the actual depth/post pass targets without advancing simulation. |
 | `createRenderer` | function | @wildshard/engine/render/renderer | Create the game's renderer on its recovered WebGL context. |
 | `isRenderer` | function | @wildshard/engine/render/renderer | a value is the renderer (the scene-ownership walk skips it) |
 | `probeRenderer` | function | @wildshard/engine/render/renderer | a throw-away renderer on its own canvas, to probe the GPU's formats before the game's exists (KTX2 support) |

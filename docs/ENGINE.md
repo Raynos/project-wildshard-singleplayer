@@ -1849,7 +1849,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2186 exports, grouped by the module to import them from.
+2190 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1881,12 +1881,12 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/anim/machine`: `AnimMachine`, `AnimMachineDef`, `AnimService`, `AnimState`
 - `@wildshard/engine/anim/rig`: `bindRig`, `ClipName`, `loadRig`, `loadRigFile`, `RigBake`, `RigContract`, `RigInstance`, `RigRef`, `SocketName`
 - `@wildshard/engine/app/app`: `App`, `SystemsByPhase`, `TrampleField`
-- `@wildshard/engine/app/cachedAssets`: `retainCachedResources`
+- `@wildshard/engine/app/cachedAssets`: `cacheUntilDisposed`, `retainCachedResources`
 - `@wildshard/engine/app/identity`: `appIdentity`, `AppIdentity`, `currentProbe`, `harnessPins`, `installAppIdentity`, `installedIdentity`, `setCurrentProbe`
 - `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enterOwner`, `onOwnerDispose`, `withOwner`
 - `@wildshard/engine/app/resources`: `pageScope`, `resourceScope`
 - `@wildshard/engine/app/runtime`: `app`, `gameplayRandom`
-- `@wildshard/engine/app/sceneOwnership`: `containerResources`, `ownSceneTree`, `SceneOwnership`, `sceneResourceOwner`, `sceneResources`
+- `@wildshard/engine/app/sceneOwnership`: `containerResources`, `ownSceneResource`, `ownSceneTree`, `sceneObjectOwner`, `SceneOwnership`, `sceneResourceOwner`, `sceneResources`
 - `@wildshard/engine/app/scheduler`: `InterruptReason`, `TickActor`, `TickBand`, `TickPoint`, `TickRate`, `TickScheduler`
 - `@wildshard/engine/app/scope`: `Disposable3`, `disposalErrorMessages`, `NativeCensus`, `nodeOwner`, `PhysicsHandle`, `registrationTimerIds`, `Scope`, `ScopeCensus`, `scopeRegistrations`, `SoundHandle`
 - `@wildshard/engine/app/systems`: `AppState`, `inState`, `Phase`, `PHASES`, `RunCondition`, `sortSystems`, `SystemSpec`, `TickRateId`
@@ -2108,7 +2108,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/nodes/engineFog`: `engineFog`
 - `@wildshard/engine/render/nodes/engineNodesHandler`: `EngineNodesHandler`, `EpilogueContext`, `EpilogueStage`, `outputTransform`, `targetTexture`
 - `@wildshard/engine/render/nodes/tentShadowFilter`: `tentShadowFilter`
-- `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`
+- `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`, `warmComposerFrame`
 - `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
 - `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `OwnUniform`, `ownUniforms`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
 - `@wildshard/engine/render/textureBytes`: `textureBytes`
