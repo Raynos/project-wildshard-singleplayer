@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { chromium, devices } from 'playwright';
 import { installResources } from '../../../scripts/parity/resources.mjs';
+import { captureCaughtRestore } from './caught-restore.mjs';
 import { saveFixture } from '../../../scripts/debug-settings.mjs';
 const flag = (key, fallback) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
 const base = flag('url', ''), out = flag('out', '.');
@@ -22,6 +23,7 @@ try {
     page.on('pageerror', e => { report.errors.push({ visit, error: e.message }); console.log('pageerror', e.message.slice(0, 180)); });
     page.on('console', m => { if (m.type() === 'error') report.consoleErrors.push({ visit, error: m.text() }); });
     const receipt = { visit, freshPage: visit === 1, legs: [] }; report.pages.push(receipt);
+    const detachCaught = flag('caught', 'off') === 'on' ? await captureCaughtRestore(context, page, receipt) : async () => undefined;
     await page.goto(`${base}/?tier=phone&mute=1&nolock=1&sw=0`, { waitUntil: 'commit', timeout: 300_000 });
     receipt.version = await page.evaluate(async () => (await fetch('/version.json')).json());
     receipt.storageBefore = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('wildshard.save.')).map(k => [k, localStorage.getItem(k)])));
@@ -60,7 +62,8 @@ try {
           try { await new Promise((resolve, reject) => {
             let unwatch = () => undefined;
             const timer = setTimeout(() => { finish(new Error('Walk timeout')); }, 180_000);
-            function finish(e) { input.clear(); unwatch(); clearTimeout(timer); if (e) reject(e); else resolve(); }
+            const caught = setInterval(() => { if (window.__sf48RestoreException) finish(new Error(window.__sf48RestoreException)); }, 100);
+            function finish(e) { input.clear(); unwatch(); clearTimeout(timer); clearInterval(caught); if (e) reject(e); else resolve(); }
             unwatch = world.game.watchFrames(dt => {
               try {
                 elapsed += dt; const state = live(), feet = state.worldFeet;
@@ -94,6 +97,7 @@ try {
     // Normal unload flushes the regional continuation. A NEW page below reads the same origin's persisted document.
     receipt.leak = await page.evaluate(() => window.__wildshard.leak());
     receipt.storageAfter = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('wildshard.save.')).map(k => [k, localStorage.getItem(k)])));
+    await detachCaught();
     await page.close();
     if (receipt.failure) break;
   }
