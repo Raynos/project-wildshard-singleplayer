@@ -32,6 +32,31 @@ export function gridFloorPlans(state, scenario) {
   return plans;
 }
 
+/** Restore only the first source pose after standing probes; let the owned shell enter its region through real fixed steps. */
+export async function stageFloorGrid(plan) {
+  const api = window.__wildshard, world = api.world, player = world.player, input = world.game.app.input;
+  const read = () => {
+    const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
+    return { ...state, claims: api.shard.grid.residency().claims };
+  };
+  const initial = read(), live = initial.live.live;
+  if (live.current !== plan.from && !(plan.start && live.current === null)) throw new Error(`Grid floor starts in ${live.current}, expected ${plan.from}`);
+  input.clear();
+  if (plan.start) {
+    const origin = { x: live.worldFeet.x - player.position.x, z: live.worldFeet.z - player.position.z };
+    await api.pose({ x: plan.start.x - origin.x, y: 0.55, z: plan.start.z - origin.z, yaw: 0, pitch: -0.08 });
+  }
+  const deadline = performance.now() + 120000;
+  while (performance.now() < deadline) {
+    const state = read(), active = state.live.live;
+    if (active.current === plan.from && state.inside === plan.from && active.gameplayReady && active.residents.includes(plan.from)) return state;
+    if (!plan.start) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
+    if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor source blocked: ${state.live.crossing.issue}`);
+    await new Promise(resolve => { setTimeout(resolve, 100); });
+  }
+  throw new Error(`Grid floor source ${plan.from} did not become an entered ready resident`);
+}
+
 /** This self-contained function is serialized into Chromium or Safari, without changing the game's fixed step. */
 export async function driveFloorGrid(plan) {
   const api = window.__wildshard, world = api.world, player = world.player, input = world.game.app.input;
@@ -39,15 +64,11 @@ export async function driveFloorGrid(plan) {
     const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
     return { ...state, claims: api.shard.grid.residency().claims };
   };
-  const initial = read(), live = initial.live.live;
-  if (live.current !== plan.from) throw new Error(`Grid floor starts in ${live.current}, expected ${plan.from}`);
+  const source = read(), live = source.live.live;
+  if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || !live.residents.includes(plan.from)) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
   const oldHover = player.hover, oldLimit = player.hoverSpeedLimit;
   if (typeof oldLimit !== 'function') throw new Error('Grid hover-speed rule missing');
   input.clear();
-  if (plan.start) {
-    const origin = { x: live.worldFeet.x - player.position.x, z: live.worldFeet.z - player.position.z };
-    await api.pose({ x: plan.start.x - origin.x, y: 0.55, z: plan.start.z - origin.z, yaw: 0, pitch: -0.08 });
-  }
   player.setHover(true);
   let distance = 100;
   player.hoverSpeedLimit = () => Math.min(15, oldLimit(), Math.max(3, distance * 1.5));
@@ -83,6 +104,7 @@ export async function driveFloorGrid(plan) {
 /** A visible destination without real frame commits or complete runtime residency never counts as this scenario. */
 export function gridFloorWitnessFailures(result) {
   const { plan, before, after } = result, previous = before.live.live, active = after.live.live, failures = [];
+  if (previous.current !== plan.from || before.inside !== plan.from || !previous.gameplayReady || !previous.residents.includes(plan.from)) failures.push('Source interior gameplay or runtime residency was not ready');
   const count = active.crossings - previous.crossings;
   const transitions = active.transitions.slice(-count);
   if (count !== 2 || JSON.stringify(transitions) !== JSON.stringify([{ from: plan.from, to: null }, { from: null, to: plan.to }])) failures.push('Expected source/road/destination frame commits');

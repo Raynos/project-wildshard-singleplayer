@@ -11,7 +11,7 @@ import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { gridFloorPlans, driveFloorGrid, gridFloorWitnessFailures } from './frame-floor-grid.mjs';
+import { gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures } from './frame-floor-grid.mjs';
 
 const ROOT = resolvePath(import.meta.dirname, '..');
 const SCRIPT = import.meta.filename;
@@ -248,6 +248,8 @@ async function measureShard(driver, shard, deadline) {
       const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
       for (const plan of gridFloorPlans(state, gridScenario)) {
         if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
+        // Camera probes can leave the owned shell on the road. Finish source admission before measuring motion.
+        await driver.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)})`, 130000);
         const moving = (async () => {
           try { return { value: await driver.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)})`, 160000) }; }
           catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }

@@ -10,4 +10,5 @@ export interface FloorGridWitness { plan: FloorGridPlan; before: FloorGridState;
   trace: { seconds: number; x: number; y: number; z: number; current: string | null; gameplayReady: boolean }[]; elapsedSeconds: number }
 export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'all'): FloorGridPlan[];
 export function driveFloorGrid(plan: FloorGridPlan): Promise<FloorGridWitness>;
+export function stageFloorGrid(plan: FloorGridPlan): Promise<FloorGridState>;
 export function gridFloorWitnessFailures(result: FloorGridWitness): string[];
