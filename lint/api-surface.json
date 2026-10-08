@@ -9228,6 +9228,12 @@
         "from": "@wildshard/engine/render/shaderPatches"
       },
       {
+        "name": "shaderPatchTextures",
+        "kind": "function",
+        "doc": "Borrowed textures declared by active shader patches, deduplicated in patch order.",
+        "from": "@wildshard/engine/render/shaderPatches"
+      },
+      {
         "name": "ShaderSource",
         "kind": "type",
         "doc": "",

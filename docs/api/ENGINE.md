@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2224 members; 830 without a doc line (—).
+2225 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1543,6 +1543,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ShaderPatchFn` | type | @wildshard/engine/render/shaderPatches | — |
 | `ShaderPatchKey` | type | @wildshard/engine/render/shaderPatches | a fixed key, or one built on the key the material had before this patch (`(k) => \`${k}\|csm\``) |
 | `ShaderPatchOptions` | interface | @wildshard/engine/render/shaderPatches | — |
+| `shaderPatchTextures` | function | @wildshard/engine/render/shaderPatches | Borrowed textures declared by active shader patches, deduplicated in patch order. |
 | `ShaderSource` | type | @wildshard/engine/render/shaderPatches | — |
 | `takeForeignHook` | function | @wildshard/engine/render/shaderPatches | Run `install` (a foreign addon that assigns `onBeforeCompile` itself: three's CSM) and hand back the hook it |
 | `usedPatchIds` | function | @wildshard/engine/render/shaderPatches | Every patch id used so far, with how many materials took it (Debug, the inventory). |

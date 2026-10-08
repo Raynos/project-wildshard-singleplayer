@@ -1858,7 +1858,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2207 exports, grouped by the module to import them from.
+2208 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2121,7 +2121,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/render/nodes/tentShadowFilter`: `tentShadowFilter`
 - `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`, `warmComposerFrame`
 - `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
-- `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `OwnUniform`, `ownUniforms`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
+- `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `OwnUniform`, `ownUniforms`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `shaderPatchTextures`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
 - `@wildshard/engine/render/textureBytes`: `cachedResourceAllocations`, `composerAllocationBytes`, `composerAllocations`, `ResourceAllocation`, `textureBytes`
 - `@wildshard/engine/render/viewmodelFeel`: `DrawingBuffer`, `LookLag`, `LookSpring`, `viewmodel`
 - `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
