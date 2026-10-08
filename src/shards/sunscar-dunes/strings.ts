@@ -18,7 +18,7 @@ export const STRINGS = {
   needOil: 'An empty waymark brazier', needOilHint: 'It needs oil: the logbook says the old well', pourOil: 'Pour oil into the brazier',
   crackToLight: 'Crack the whip at the bowl to light it', waymarkLit: 'Waymark lit', allLit: 'All three waymarks burn: now the tower',
   scoutName: 'Sefa, the caravan scout', talkScout: 'Talk to Sefa', scoutPin: 'Sefa', shortScout: 'SEFA',
-  stepScout: 'Talk to Sefa on the crest', chipScout: 'Light the signal fire', hintScout: 'An old scout waits on the spawn crest. She knows where the caravan went.',
+  stepScout: 'Talk to Sefa on the crest', chipScout: 'Light signal fire', hintScout: 'An old scout waits on the spawn crest. She knows where the caravan went.',
   scoutHello: "You came over the crest at last light. Good. I'm Sefa: I scout for the caravan.",
   scoutAsk: 'Our riders rode out three days ago and never came back. The wagon broke down in the dunes, west of here.',
   scoutHow: "Read the logbook on its tailboard: it knows where the oil is. Light the waymarks, then the signal fire on the tower. They'll see it and come home.",

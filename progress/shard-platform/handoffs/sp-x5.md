@@ -42,16 +42,17 @@ FINAL RELEASE 2026-10-08T21:01Z: both owned devices deleted, sim0/1, no owned
 Safari/Inspector/proxy/browser remains. Exact original HTML hashes restored;
 owned :4406 and :4400 previews stopped through serve-build. `safari/release.json`
 is the cleanup receipt. No new Simulator/browser/build/full-suite work queued.
-Coordinator wildshard-new currently reports blocked in Herdr; do not prompt or
-press keys into its question. Release and SHAs must be relayed when it is working.
+Coordinator was blocked during cleanup, so no prompt/keys were sent into its
+question. It resumed and received release + Safari SHA. No resource hold remains.
 
 ## Exact next step
 
-Finish the separate Signal Dunes format correction requested after this cohort:
-keep the18-character chip cap; shorten `STRINGS.chipScout` to “Light signal fire”,
-put it in declared scout quest data, remove the runtime over-cap workaround, run
-focused quest/contract checks and land alone. Then send both receipt/fix SHAs to
-wildshard-new for the serialized push. SF67 remains OPEN: the desktop ruler still
+Safari receipt a430e9ae470112973e8be7a06243eccf40dfbbeb landed and was relayed
+with the explicit final Simulator release to the working coordinator. Separate
+Signal Dunes correction: keep18-character cap, declare the17-character “Light
+signal fire” scout chip and remove the runtime override from e9c0c5945 hybridRows.
+Actual QuestState chip is checked in the existing contract; 2files/12tests and
+scoped typed lint green. Coordinator owns the serialized push of both commits. SF67 remains OPEN: the desktop ruler still
 has >100ms tasks (Driftwood733ms/Nalati1207ms/Pine263ms); bake/worker/time-slice
 follow-ups and physical-phone evidence remain. Fix3 is not assigned to this lane.
 

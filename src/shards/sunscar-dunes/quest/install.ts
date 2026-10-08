@@ -59,10 +59,8 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     ...Object.fromEntries(world.braziers.map((b, i) => [`waymark.${String(i)}`, at(b.spot.position, 0.8)])),
   };
   // The declared quest (shard.config.ts, bound by this runtime): the platform builds its state over the world's flags and
-  // emits its fact (on completion, and on load for a save that finished it before facts existed). The format caps a chip at
-  // 18 characters; the scout step's chip names the quest's goal (21), so this runtime supplies it (an SF50-p format gap).
-  const bound = bindRuntimeQuest(ctx, source, 'sunscar.signal', { flags, facts, place: (marker) => placed[marker.id],
-    chip: (step) => (step.id === 'scout' ? STRINGS.chipScout : undefined) });
+  // emits its fact on completion, and on load for a save that finished it before facts existed.
+  const bound = bindRuntimeQuest(ctx, source, 'sunscar.signal', { flags, facts, place: (marker) => placed[marker.id] });
   const quest = bound.state, reward = bound.reward.coins;
   const purse = shardSave(purseSave, slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);

@@ -24,8 +24,7 @@ export const LATER_FLAGS = [FLAG.logbook, FLAG.oil, ...waymarks, FLAG.lit, MATRI
 export const SIGNAL_QUESTS = parseQuestData({
   flags: [SCOUT_FLAG, ...LATER_FLAGS, COMPLETE_FLAG, PAID_FLAG],
   quests: [{ id: 'sunscar.signal', title: STRINGS.quest, completeFlag: COMPLETE_FLAG, onComplete: { fact: FACT.signal, coins: 5 }, steps: [
-    // the scout step's chip ("Light the signal fire", 21 characters) is over the format's 18: quest/install.ts adds it (SF50-p gap)
-    { id: 'scout', objective: STRINGS.stepScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...LATER_FLAGS] },
+    { id: 'scout', objective: STRINGS.stepScout, chip: STRINGS.chipScout, hint: STRINGS.hintScout, done: { any: [SCOUT_FLAG, ...LATER_FLAGS] },
       markers: [{ id: 'scout', label: STRINGS.scoutPin, short: STRINGS.shortScout, at: { poi: 'world', x: SCOUT_AT.x, z: SCOUT_AT.z } }] },
     { id: 'logbook', objective: STRINGS.stepLog, chip: STRINGS.chipLog, hint: STRINGS.hintLog, done: { all: [FLAG.logbook] },
       markers: [{ id: 'logbook', label: STRINGS.readLog, short: STRINGS.shortLog, at: { poi: 'world', x: CARAVAN.x, z: CARAVAN.z } }] },

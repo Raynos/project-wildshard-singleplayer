@@ -95,6 +95,7 @@ describe('Signal Dunes plugin contract', () => {
     expect(app.registry.pieces.map((p) => p.id)).toEqual(['sunscar.tower', 'sunscar.caravan', 'sunscar.well', 'sunscar.rocks', 'sunscar.dressing', 'sunscar.brazier.0', 'sunscar.brazier.1', 'sunscar.brazier.2']);
     expect(app.levelRegistrations.list('species')).toHaveLength(4);
     expect(app.levelRegistrations.text('step')).toBe('Light the signal fire'); expect(app.debug.scopedSnapshot()['sunscar']).toBe(plugin);
+    expect(plugin.quest?.chip().label).toBe('Light signal fire');
     const scope = app.levelScope; if (scope === null) throw new Error('No scope');
     expect(scope.census.disposers).toBeGreaterThan(0);
     await app.unloadLevel(); expect(active.size).toBe(0); expect(app.registry.pieces).toEqual([]);
