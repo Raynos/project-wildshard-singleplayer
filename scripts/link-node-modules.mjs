@@ -6,7 +6,7 @@
 //
 //   node scripts/link-node-modules.mjs <repo> <tree>          (the shell scripts)
 //   import { linkNodeModules } from './link-node-modules.mjs'  (the node ones)
-import { existsSync, lstatSync, mkdirSync, readdirSync, readlinkSync, realpathSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, symlinkSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -71,6 +71,29 @@ function linkPackageNodeModules(repo, tree) {
       }
     };
     mirror(from, to);
+    linkMissingDependencies(repo, resolve(tree, 'src', pkg), to);
+  }
+}
+
+/**
+ * the tree's manifest can name a dependency the checkout's package folder lacks (an install made from a different working
+ * manifest, e.g. another agent's uncommitted package.json): link pnpm's stored copy of exactly that version when it is
+ * installed (`node_modules/.pnpm/<name>@<version>…/node_modules/<name>`), so a clean export resolves what its commit declares
+ */
+function linkMissingDependencies(repo, pkgDir, to) {
+  const manifest = join(pkgDir, 'package.json'), store = resolve(repo, 'node_modules', '.pnpm');
+  if (!existsSync(manifest) || !existsSync(store)) return;
+  const json = JSON.parse(readFileSync(manifest, 'utf8'));
+  const deps = { ...json.dependencies, ...json.devDependencies, ...json.optionalDependencies };
+  const entries = readdirSync(store);
+  for (const [name, range] of Object.entries(deps)) {
+    if (typeof range !== 'string' || range.startsWith('workspace:') || existsSync(join(to, name))) continue;
+    const prefix = `${name.replace('/', '+')}@${range.replace(/^[\^~=]/u, '')}`;
+    const hit = entries.find((entry) => entry === prefix || entry.startsWith(`${prefix}_`));
+    const target = hit === undefined ? undefined : join(store, hit, 'node_modules', name);
+    if (target === undefined || !existsSync(target)) continue;
+    mkdirSync(dirname(join(to, name)), { recursive: true });
+    symlinkSync(target, join(to, name));
   }
 }
 
