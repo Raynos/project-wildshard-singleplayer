@@ -10,7 +10,7 @@ import { castSegment, sweepBall, type Hit } from '../../physics/query';
 import { attachFogUniforms } from '../../world/Atmosphere';
 import type { Material } from '../../physics/surface';
 import { makePixels, clamp01, CLASSIC_SETS, MODERN_SETS, viewmodelBakeUrl, type Pixels, type SetName, type Ctx2D } from '../../player/viewmodelTextures';
-import { ktx2Texture } from '../../core/ktx2';
+import { ktx2Texture, prepareCompressedTexture } from '../../core/ktx2';
 import { activeLevel } from '../../level/selection';
 import { PATCH_ORDER, patchShader } from '../../render/shaderPatches';
 import { ParticlePool, pointScale } from '../../fx/ParticlePool';
@@ -97,7 +97,9 @@ async function adoptBakedSets(sets: readonly SetName[]): Promise<SetName[]> {
   await Promise.all(sets.map(async (name) => {
     const [map, normalMap, armMap] = await Promise.all(planes.map((plane) => ktx2Texture(viewmodelBakeUrl(slug, name, plane)).catch(() => null)));
     if (!map || !normalMap || !armMap) return;
-    bakedSets.set(name, { map: viewmodelSampling(map, true), normalMap: viewmodelSampling(normalMap, false), armMap: viewmodelSampling(armMap, false) });
+    const maps = { map: viewmodelSampling(map, true), normalMap: viewmodelSampling(normalMap, false), armMap: viewmodelSampling(armMap, false) };
+    await Promise.all(Object.values(maps).map(texture => prepareCompressedTexture(texture)));
+    bakedSets.set(name, maps);
   }));
   return sets.filter((name) => !bakedSets.has(name));
 }

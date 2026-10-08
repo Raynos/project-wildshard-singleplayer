@@ -26,7 +26,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import * as THREE from 'three';
 import { releaseOnUpload } from '@wildshard/engine/render/memorySaver';
 import { fetchImage } from '@wildshard/engine/boot/bytes';
-import { ktx2Texture, readTexturePixels } from '@wildshard/engine/core/ktx2';
+import { ktx2Texture, readTexturePixels, prepareCompressedTexture } from '@wildshard/engine/core/ktx2';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { nalatiUrl } from './nalatiTextures';
 import { V2_GRADE_GLSL, gradeUniforms } from './grade';
@@ -185,6 +185,7 @@ export class SkyDomeV2 {
     tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     tex.name = 'nalati-panorama';
     tex.needsUpdate = true;
+    await prepareCompressedTexture(tex, renderer, () => !cancelled(scope));
     // the zenith: the strip's top rows averaged all the way round (linear), for the pole every azimuth converges on
     const zenith = new THREE.Color(0.1, 0.25, 0.62);
     try {
@@ -230,6 +231,7 @@ export class SkyDomeV2 {
     tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     tex.name = 'nalati-panorama';
     tex.needsUpdate = true;
+    await prepareCompressedTexture(tex, renderer, () => !cancelled(scope));
     const zenith = new THREE.Color(0.1, 0.25, 0.62);
     try {
       const rows = readTexturePixels(tex, 64, 12, renderer)?.subarray(0, 64 * 2 * 4) ?? new Uint8Array(0); // the painting's top two rows

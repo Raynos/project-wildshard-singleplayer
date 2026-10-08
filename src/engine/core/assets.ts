@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
-import { initKtx2, ktx2Layers, ktx2Texture, releaseAfterUpload } from './ktx2';
+import { initKtx2, ktx2Layers, ktx2Texture, prepareCompressedTexture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
 import type { Renderer } from '../render/renderer';
 import { labelAsset, labelObjectTree } from '../render/gpuLabels';
@@ -69,7 +69,7 @@ export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize
     k.anisotropy = maxAniso;
     k.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     k.needsUpdate = true;
-    return labelAsset(k, 'engine/loadTexture', url);
+    return prepareCompressedTexture(labelAsset(k, 'engine/loadTexture', url));
   }
   const key = imageKey(url, maxSize);
   const shared = memorySaverOn() ? sharedSources.get(sourceKey(key, srgb)) : undefined;
@@ -204,7 +204,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     t.generateMipmaps = false; t.anisotropy = maxAniso; t.flipY = false;
     t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     t.needsUpdate = true;
-    return labelAsset(t, 'engine/loadPBRArray', arrayLabel(kind));
+    return prepareCompressedTexture(labelAsset(t, 'engine/loadPBRArray', arrayLabel(kind)));
   };
   const build = async (kind: (typeof kinds)[number], srgb: boolean): Promise<THREE.DataArrayTexture | THREE.CompressedArrayTexture> =>
     (await buildKtx2(kind, srgb)) ?? (gpu ? buildGPU(kind, srgb, gpu) : buildCPU(kind, srgb));

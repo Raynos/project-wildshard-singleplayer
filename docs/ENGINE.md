@@ -637,6 +637,13 @@ manifest's creature and loot tables, the node-safe modules are `boot/filePolicy`
 `ROAD_LENGTH`, `ROAD_WIDTH`, `SEED`), `core/noise` (`Noise2D`), `core/rng` (`Rng`), `ai/species` (`deriveSpecies`) and
 `ai/weighted` (`WeightedTable`); `lint/manifest-closure-budget.json` keeps a manifest on them.
 
+Compressed textures use one renderer-wide upload queue during warm-up and asynchronous loading. Set the final
+colour space and sampler before awaiting `prepareCompressedTexture(texture, renderer?, current?)` from
+`@wildshard/engine/core/ktx2`; publish the material only after it resolves. Each compressed 2D or array texture
+gets a painted slice and graphics-error fence before any consumer draw. Raw KTX2 layers remain CPU inputs until
+array assembly. Shader patches declare borrowed textures and also record actual sampler uniforms at compilation;
+warm-up re-collects those uniforms before uploading. Cancellation and upload errors refuse readiness.
+
 ## 9. Saves
 
 All persistent state goes through `SaveStore` (`app.saves`, also exported as `saves`). Raw `localStorage` /

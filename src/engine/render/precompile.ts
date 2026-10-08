@@ -4,13 +4,14 @@ import { engineString } from '../strings';
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
 import { newProgramsSince, snapshotPrograms, type ProgramLike } from '../boot/perflog';
-import { recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
+import { bootTraceActive } from '../boot/bootTrace';
 import type { Renderer } from './renderer';
 import type { Game } from '../core/Game';
 import { chunkShadowCasters } from '../world/shadowChunks';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
+import { uploadCompressedTexture } from './compressedUpload';
 
 /**
  * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
@@ -348,23 +349,12 @@ export async function runPrecompile(
   const base = jobs.length + units;
   for (const [i, tex] of uploadTextures.entries()) {
     checkCurrent();
-    // Both ANGLE compressed upload paths need an isolated painted slice and a
-    // GPU-process round trip before any composer draw, independent of JS upload time.
     const compressed = tex instanceof THREE.CompressedTexture;
-    if (compressed) { await frame(); checkCurrent(); tSlice = performance.now(); }
-    if (compressed) recordBootCheckpoint('texture:upload', { index: i, total: uploadTextures.length, name: tex.name, format: tex.format,
-      mips: tex.mipmaps.length, width: tex.mipmaps[0]?.width ?? 0, height: tex.mipmaps[0]?.height ?? 0 });
-    renderer.initTexture(tex);
-    if (compressed) {
-      // E257: iOS WebKit crashes in ANGLE UploadTextureContents when compressed uploads
-      // accumulate without a GPU-process round trip. flush/finish alone do not prevent it.
-      // Validate once per texture during boot, before queuing the next chain of mip levels.
-      const gl = renderer.getContext();
-      const error = gl.getError();
-      if (error !== gl.NO_ERROR) throw new Error(`Graphics error ${error} after compressed texture ${i + 1}/${uploadTextures.length} (${tex.name || tex.format})`);
-    }
+    if (compressed) await uploadCompressedTexture(renderer, tex, current);
+    else renderer.initTexture(tex);
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
-    if (compressed || performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
+    if (compressed) { checkCurrent(); tSlice = performance.now(); }
+    else if (performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
   }
   checkCurrent();
   return { materials, jobs: jobs.length, programs: n, parallel };

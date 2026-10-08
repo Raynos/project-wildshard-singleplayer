@@ -27,6 +27,7 @@ import { labelAsset } from '../render/gpuLabels';
 import { ScopedWorkerPool } from './scopedWorkerPool';
 import { memorySaverOn } from '../render/memorySaver';
 import { Ktx2Sources } from './ktx2Sources';
+import { uploadCompressedTexture } from '../render/compressedUpload';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -61,6 +62,15 @@ function ktx2Loader(): KTX2Loader {
   } finally { probe.dispose(); probe.forceContextLoss(); }
 }
 
+/** Fence a finalized compressed texture before publishing it to a material or doing a readback.
+ * Set its colour space, sampler and version first. Raw KTX2 layer inputs stay unuploaded until assembled.
+ * Node/bake callers without a game renderer retain their existing renderer-free path. */
+export async function prepareCompressedTexture<T extends THREE.Texture>(texture: T, renderer = gameRenderer,
+  current: () => boolean = () => true): Promise<T> {
+  if (renderer !== null) await uploadCompressedTexture(renderer, texture, current);
+  return texture;
+}
+
 /**
  * Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the
  * GPU copy: +85–130 MB on Pine Hollow's phone boot before this): drop the texture's own reference after its upload.
@@ -85,12 +95,22 @@ export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
         if (this.ktx2Loader === null) this.setKTX2Loader(ktx2Loader());
         const [data, path, onLoad, onError] = args;
         const release = (gltf: Parameters<typeof onLoad>[0]): void => {
+          const textures = new Set<THREE.Texture>();
           gltf.scene.traverse((o) => {
             if (!(o instanceof THREE.Mesh)) return;
             const mats: unknown[] = Array.isArray(o.material) ? o.material : [o.material];
-            for (const m of mats) if (m instanceof THREE.Material) for (const v of Object.values(m)) if (v instanceof THREE.CompressedTexture) releaseAfterUpload(v);
+            for (const m of mats) if (m instanceof THREE.Material) for (const v of Object.values(m)) if (v instanceof THREE.CompressedTexture) { releaseAfterUpload(v); textures.add(v); }
           });
-          onLoad(gltf);
+          const publish = async (): Promise<void> => {
+            try {
+              await Promise.all([...textures].map(texture => prepareCompressedTexture(texture)));
+              onLoad(gltf);
+            } catch (error) {
+              if (onError !== undefined) onError(new ErrorEvent('error', { error, message: String(error) }));
+              else queueMicrotask(() => { throw error; });
+            }
+          };
+          void publish();
         };
         Reflect.apply(parse, this, [data, path, release, onError]);
       },
