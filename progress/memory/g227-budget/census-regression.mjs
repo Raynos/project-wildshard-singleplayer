@@ -2,9 +2,10 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { snapshotExpression } from './inspect.mjs';
 
 const source = readFileSync(new URL('./native.mjs', import.meta.url), 'utf8');
-const expression = /const snapshotExpression = `([\s\S]*?)`;/u.exec(source)?.[1];
+const expression = snapshotExpression;
 assert.ok(expression, 'The native census expression must exist');
 let reads = 0;
 const released = { count: 3, itemSize: 3, get array() { reads++; throw new Error('Census restored a released array'); } };
