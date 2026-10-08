@@ -21,17 +21,17 @@ export async function touch(page,selector,opts={}) {
 }
 /** @param {import('playwright').Page} page */
 export async function touchLeg(page) {
-  await poseAt(page,await page.evaluate(()=>window.__wildshard.world.game.level.spawn));
+  await poseAt(page,await page.evaluate(()=>window.__wildshard.requireWorld().game.level.spawn));
   const before=await page.evaluate(()=>window.__wildshard.state().player);
   await touch(page,TOUCH.move,{dy:-80,hold:2000});
-  const moved=await page.evaluate((b)=>{const p=window.__wildshard.world.player.position;return Math.hypot(p.x-b.pos.x,p.z-b.pos.z);},before);
+  const moved=await page.evaluate((b)=>{const p=window.__wildshard.requireWorld().player.position;return Math.hypot(p.x-b.pos.x,p.z-b.pos.z);},before);
   await touch(page,TOUCH.look,{dx:120});
-  const yawDelta=await page.evaluate((yaw)=>window.__wildshard.world.player.yaw-yaw,before.yaw);
+  const yawDelta=await page.evaluate((yaw)=>window.__wildshard.requireWorld().player.yaw-yaw,before.yaw);
   await touch(page,TOUCH.dodge);
-  const dodged=await page.evaluate(()=>window.__wildshard.world.player.dodgeCooldown>0);
+  const dodged=await page.evaluate(()=>window.__wildshard.requireWorld().player.dodgeCooldown>0);
   // The runtime handle exposes the prompt list today; F8's app keeps this through the probe.
   const nearest=await page.evaluate(()=> {
-    const w=window.__wildshard.world;
+    const w=window.__wildshard.requireWorld();
     const list=/** @type {readonly {label:string,position:{x:number,y:number,z:number}}[]} */ (w.interactables);
     const spawn=w.game.level.spawn;
     const sorted=[...list].sort((a,b)=>Math.hypot(a.position.x-spawn.x,a.position.z-spawn.z)-Math.hypot(b.position.x-spawn.x,b.position.z-spawn.z));
@@ -56,7 +56,7 @@ export async function touchLeg(page) {
 /** @param {import('playwright').Page} page @param {import('../types/wildshard-probe.d.ts').WalkLeg} route */
 function walkRoute(page,route) {
   return page.evaluate(async(leg)=>{
-    const g=window.__wildshard.world.game,watch=g.watchFrames.bind(g);
+    const g=window.__wildshard.requireWorld().game,watch=g.watchFrames.bind(g);
     // pose() awaits a raw rAF. Keep simulation held until the autopilot observer is actually registered.
     g.watchFrames=(fn)=>{const stop=watch(fn);window.__parity.free=true;return stop;};
     try{return await window.__wildshard.walkLeg(leg);}finally{window.__parity.free=false;g.watchFrames=watch;}

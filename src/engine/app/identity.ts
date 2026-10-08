@@ -42,6 +42,6 @@ export function appIdentity(): AppIdentity {
 let probe: EngineProbe | undefined;
 /** the live probe (installProbe sets it; the page also exposes it through the identity) */
 export function currentProbe(): EngineProbe | undefined { return probe; }
-export function setCurrentProbe(value: EngineProbe): void { probe = value; read()?.exposeProbe(value); }
+export function setCurrentProbe(value: EngineProbe | undefined): void { probe = value; if (value !== undefined) read()?.exposeProbe(value); }
 /** the harness pins, or undefined before an identity is installed (a bare engine test) */
 export function harnessPins(): HarnessPins | undefined { return read()?.harness(); }

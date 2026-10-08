@@ -97,7 +97,7 @@ export async function capture(browser,url,opts) {
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
     boot.hud=await within(page.evaluate(waitForToastIdle,opts.tier==='desktop'?60:30),11_000,'startup toast idle');
     const clockWitness=await page.evaluate(()=>{
-      const clock=window.__wildshard.world.game.sky.dayNight;
+      const clock=window.__wildshard.requireWorld().game.sky.dayNight;
       return {developer:Object.hasOwn(document.documentElement.dataset,'dev'),overlayStyle:Boolean(document.getElementById('parity-developer-overlays')),fpsBadges:[...document.querySelectorAll('.ws-perf,.ws-perf-panel')].map((node)=>getComputedStyle(node).visibility),clock:clock?{paused:clock.paused,phase:clock.phase}:null,developerAlerts:[...document.querySelectorAll('.ws-game-dev-alert')].filter((node)=>node instanceof HTMLElement&&!node.hidden).map((node)=>node.textContent||'Developer script failure')};
     });
     if(clockWitness.developerAlerts.length>0){object(result.boot).errors=[...new Set([...boot.errors,...clockWitness.developerAlerts])];return result;}
@@ -112,7 +112,7 @@ export async function capture(browser,url,opts) {
       result.debugSettings=Object.fromEntries(Object.keys(opts.settings).map((key)=>[key,observed[key]]));
     }
     mark('bootMs');
-    if(opts.offline){offlineStep='explore';await page.evaluate(()=>window.__wildshard.world.hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};object(result.boot).errors=[...new Set([...boot.errors,...errors])];return result;}
+    if(opts.offline){offlineStep='explore';await page.evaluate(()=>window.__wildshard.requireWorld().hud.startExplore());await page.locator('.ws-x').waitFor({state:'visible'});result.offline={title:true,play:true,explore:true};object(result.boot).errors=[...new Set([...boot.errors,...errors])];return result;}
     if(opts.only!=='walk+combat+leak'){console.error(`parity: ${opts.shard}.${opts.tier} poses`);result.poses=await within(poses(page,opts),opts.timeout*1000,'poses');mark('posesMs');}
     const hasBudgets=await page.evaluate(()=>Object.hasOwn(window.__wildshard,'budgets'));
     const extra=opts.only==='walk+combat+leak'||!hasBudgets?{}:await budgetViews(page, Array.isArray(result.poses) && result.poses.length === 0);

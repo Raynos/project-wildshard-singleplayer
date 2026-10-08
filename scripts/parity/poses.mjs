@@ -11,7 +11,7 @@ export function declaredProbePoses(cameras) {
 /** @param {import('playwright').Page} page @param {{shard:string,tier:string,out:string,fast?:boolean}} opts */
 export async function poses(page,opts) {
   const result=[];
-  const cameras = await page.evaluate(async () => await window.__wildshard.world.game.level.capturePoses?.() ?? {});
+  const cameras = await page.evaluate(async () => await window.__wildshard.requireWorld().game.level.capturePoses?.() ?? {});
   const authored = declaredProbePoses(cameras);
   for(const [index,pose] of (authored.length > 0 ? authored : [{ name: 'current' }]).entries()) {
     await poseAt(page,pose);
@@ -20,7 +20,7 @@ export async function poses(page,opts) {
     if(opts.fast&&index>0){await advance(page,150);continue;}
     // scorecard's sampler: only frames whose game.frameNo moved are drawn frames.
     const sampled=await page.evaluate(async()=> {
-      const g=window.__wildshard.world.game,iv=/** @type {number[]} */ ([]),cpu=/** @type {number[]} */ ([]),calls=/** @type {number[]} */ ([]),tris=/** @type {number[]} */ ([]);
+      const g=window.__wildshard.requireWorld().game,iv=/** @type {number[]} */ ([]),cpu=/** @type {number[]} */ ([]),calls=/** @type {number[]} */ ([]),tris=/** @type {number[]} */ ([]);
       const instrument=window.__parity; instrument.cpu=0;instrument.on=true;
       const drawnNo=()=>Number(Reflect.get(g,'frameNo'));
       const wallNow=instrument.now??performance.now.bind(performance);
@@ -29,7 +29,7 @@ export async function poses(page,opts) {
       if(instrument.observe){const stop=instrument.observe(sample);try{await instrument.advance(150);}finally{stop();}}
       else {const end=drawnNo()+150;instrument.remaining=150;await new Promise((resolve)=>{const tick=()=>{sample();if(drawnNo()>=end)resolve(undefined);else instrument.rawRAF(tick);};instrument.rawRAF(tick);});}
       instrument.on=false;
-      const p=window.__wildshard.world.player.position;
+      const p=window.__wildshard.requireWorld().player.position;
       return {iv,cpu,calls,tris,pos:[p.x,p.y,p.z]};
     });
     const boxes=await creatureBoxes(page);
@@ -44,7 +44,7 @@ export async function poses(page,opts) {
  * @param {import('playwright').Page} page */
 function creatureBoxes(page) {
   return page.evaluate(()=> {
-    const w=window.__wildshard.world,cam=w.game.camera,W=innerWidth,H=innerHeight,out=/** @type {number[][]} */ ([]);
+    const w=window.__wildshard.requireWorld(),cam=w.game.camera,W=innerWidth,H=innerHeight,out=/** @type {number[][]} */ ([]);
     cam.updateMatrixWorld();
     const right=w.player.position.clone().setFromMatrixColumn(cam.matrixWorld,0).normalize();
     for(const a of w.animals.animals){const m=a.mesh;if(!m.geometry.boundingSphere)m.geometry.computeBoundingSphere();const bs=m.geometry.boundingSphere;if(!bs)continue;

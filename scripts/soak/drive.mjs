@@ -5,7 +5,7 @@ export function installSoakDrive(route, duration) {
   let index = 0, cycle = 0, stepAt = started, holdAt = null, lastResidents = [], entered = false, stopped = false;
   let stop = () => undefined;
   const report = (type, data = {}) => events.push({ type, seconds: (performance.now() - started) / 1000, cycle, ...data });
-  window.__sf57 = { started, done: false, events, cycles: 0, index: 0, elapsed: 0, state: null, stop: () => { stopped = true; stop(); game.app.input.clear(); player.setHover(false); } };
+  window.__sf57 = { started, done: false, events, cycles: 0, index: 0, elapsed: 0, state: null, stop: () => { stopped = true; stop(); game.app.input.clear(); player.setHover(false); window.__sf57.stop = () => undefined; window.__sf57.state = null; stop = () => undefined; } };
   const advance = () => { index++; stepAt = performance.now(); holdAt = null; entered = false; game.app.input.clear(); };
   stop = game.watchFrames(() => {
     if (stopped) return;

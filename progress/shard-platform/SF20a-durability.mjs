@@ -43,7 +43,9 @@ try {
   };
   const state = () => page.evaluate(() => window.__wildshard.shard.grid.state());
   const physicsCensus = () => page.evaluate(() => {
-    const world = window.__wildshard.world, physics = world.physics, scope = world.game.levelScope.census, remaining = [];
+    const world = window.__wildshard.world;
+    if (world === undefined) return { retired: true }; // Native counts are the leak() result after retirement.
+    const physics = world.physics, scope = world.game.levelScope.census, remaining = [];
     physics.world.forEachCollider((collider) => { if (remaining.length < 12) remaining.push({ handle: collider.handle, at: collider.translation(), groups: collider.collisionGroups() }); });
     return { bodies: physics.world.bodies.len(), colliders: physics.world.colliders.len(), scopeBodies: scope.bodies, scopeColliders: scope.colliders, remaining };
   });
@@ -116,7 +118,7 @@ try {
   result.storage = await page.evaluate(() => ({ failures: window.__durabilityWriteFailures,
     documents: Object.keys(localStorage).map((key) => ({ key, characters: localStorage.getItem(key)?.length ?? 0 })) }));
   result.leak = await page.evaluate(() => window.__wildshard.leak());
-  result.physicsAfterUnload = await physicsCensus();
+  result.physicsAfterUnload = { ...(await physicsCensus()), ...result.leak.after, scopeBodies: result.leak.scope.bodies, scopeColliders: result.leak.scope.colliders };
   result.pass = result.restored.complete === true && result.restored.questComplete === true && result.restored.blobAlive === false
     && result.afterReload.coins === 5 && result.afterReturn.coins === 5 && result.afterReturn.facts === 1 && result.sibling.coins === 0
     && result.beforeReload.characters <= 512 * 1024 && result.afterReturn.characters <= 512 * 1024 && result.storage.failures.length === 0

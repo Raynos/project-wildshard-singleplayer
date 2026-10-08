@@ -33,14 +33,15 @@ export async function installInit(context, meta) {
     Reflect.set(w.__wildshardHarness,'resources',()=>w.__parityResources());
     const rawRAF=window.requestAnimationFrame.bind(window); w.__parity={cpu:0,on:false,rawRAF,free:false,remaining:0,advance:()=>Promise.reject(new Error('frame control not installed'))};
     document.addEventListener('ws:ready',()=>{
-      const g=w.__wildshard.world.game,control=w.__parity,original=g.frameGate.bind(g);
+      const g=w.__wildshard.requireWorld().game,control=w.__parity,original=g.frameGate.bind(g);
       g.frameGate=()=>{if(!original() || (!control.free && control.remaining===0))return false;if(!control.free)control.remaining--;return true;};
       control.advance=async(frames)=>{
         if(!Number.isInteger(frames)||frames<0||control.remaining>0)throw new Error('invalid concurrent frame advance');
         const drawn=()=>Number(Reflect.get(g,'frameNo'));const end=drawn()+frames;control.remaining=frames;
         await new Promise((resolve)=>{const check=()=>{if(drawn()>=end)resolve(undefined);else rawRAF(check);};rawRAF(check);});
       };
-      for(const animal of w.__wildshard.world.animals.animals)animal.harnessHold=true;
+      for(const animal of w.__wildshard.requireWorld().animals.animals)animal.harnessHold=true;
+      g.levelScope.onDispose(()=>{control.advance=()=>Promise.reject(new Error('Parity level retired'));});
     },{once:true});
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- requestAnimationFrame is a browser callback API; this wrapper measures synchronous frame work.
     window.requestAnimationFrame=(cb)=>rawRAF((time)=>{ const start=performance.now(); try {cb(time);} finally {if(w.__parity.on) w.__parity.cpu+=performance.now()-start;} });

@@ -193,7 +193,7 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Developer tools ──
   action('budgetReadout', 'perf', engineString('s_2461f265574b'), engineString('s_eff6d457bfb5'), (say) => {
     const probe = currentProbe();
-    if (probe === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
+    if (probe?.world === undefined) { say('READ BUDGETS', 'Enter a level to read its budgets.'); return; }
     const rows = probe.budgets(['current']);
     const measured = probe.world.game.lastFrame;
     say('READ BUDGETS', `${tierPickLine()}\nMeasured ${measured.calls} draws / ${measured.triangles} tris\n${Object.entries(rows).map(([pose, row]) => `${pose}: derived ${JSON.stringify(row.derived)} / ceiling ${JSON.stringify(row.ceiling)} · ${row.formula.assumption}`).join('\n')}`);

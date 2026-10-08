@@ -1,4 +1,4 @@
-import { harnessPins, setCurrentProbe } from '../app/identity';
+import { currentProbe, harnessPins, setCurrentProbe } from '../app/identity';
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
 import type { Animal } from '../entities/AnimalView';
@@ -17,7 +17,7 @@ import { TIER } from '../core/tier';
 import { tap } from '../core/harnessTap';
 import { ExternalTimerBaseline } from './timerBaseline';
 import { poseBudgets } from '../render/budgetReport';
-import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus } from '../app/scope';
+import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus, type Scope } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 
 declare const __BUILD_ID__: string;
@@ -115,7 +115,9 @@ export interface ProbeApp {
   readonly census: Readonly<{ engine: Readonly<ScopeCensus>; level: Readonly<ScopeCensus> }>;
 }
 export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
-  version: 1; world: W; shard: { slug: string } & Record<string, unknown>; boot: Fingerprint;
+  version: 1; world: W | undefined; shard: { slug: string } & Record<string, unknown>; boot: Fingerprint;
+  /** Active-level access for controls; throws once the world has retired. */
+  requireWorld: () => W;
   fingerprint: () => Fingerprint;
   pose: (p: ProbePose) => Promise<void>;
   walkLeg: (leg: WalkLeg) => Promise<WalkResult>;
@@ -273,6 +275,15 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
   }
   const requireHarness = (): void => { if (!pins) throw new Error('Probe control requires the harness pins'); };
   const { game } = world, app = game.app;
+  const ownedTap = { hit: tap.hit, kill: tap.kill, use: tap.use, sound: tap.sound, resumed: tap.resumed };
+  game.levelScope.onDispose(() => {
+    if (tap.hit === ownedTap.hit) tap.hit = null;
+    if (tap.kill === ownedTap.kill) tap.kill = null;
+    if (tap.use === ownedTap.use) tap.use = null;
+    if (tap.sound === ownedTap.sound) tap.sound = null;
+    if (tap.resumed === ownedTap.resumed) tap.resumed = null;
+    resume = null;
+  });
   const raw = pins?.resources?.(), owned = scopeRegistrations((scope) => scope.belongsTo(game.levelScope)), retainedAtBoot = scopeRegistrations((scope) => !scope.belongsTo(game.levelScope));
   const retainedListeners = { window: 0, document: 0, canvas: 0, other: 0 }, retainedTimers = { timeouts: 0, intervals: 0, raf: 0 };
   const externalTimers = raw?.timerIds ? new ExternalTimerBaseline(raw.timerIds, registrationTimerIds()) : null;
@@ -346,7 +357,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get rngSeed() { return app.rng.seedValue; },
       get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
     }),
-    version: 1, world, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
+    version: 1, world, requireWorld: () => world, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
@@ -416,6 +427,43 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
     sounds: () => { const log = { event: events, ambient: [...ambient].sort() }; events = {}; ambient.clear(); return log; },
     used: () => labels.splice(0),
   };
-  setCurrentProbe(probe);
-  return probe;
+  const published = scopedProbe(probe, game.levelScope);
+  setCurrentProbe(published);
+  game.levelScope.onDispose(() => { if (currentProbe() === published) setCurrentProbe(undefined); });
+  return published;
+}
+
+/** Stable browser handle, with no strong path to the retired level after its captured scope closes. */
+function scopedProbe<W extends ProbeWorld>(source: EngineProbe<W>, scope: Scope): EngineProbe<W> {
+  let live: EngineProbe<W> | undefined = source;
+  let lastLeak: LeakResult | undefined;
+  const slug = source.shard.slug, boot = structuredClone(source.boot);
+  scope.onDispose(() => { live = undefined; });
+  const read = (): EngineProbe<W> => {
+    if (live === undefined) throw new Error('Debug level has retired');
+    return live;
+  };
+  return {
+    version: 1, boot,
+    get world() { return live?.world; },
+    requireWorld: () => read().requireWorld(),
+    get shard() { return live?.shard ?? { slug }; },
+    get combat() { return read().combat; },
+    get saves() { return read().saves; },
+    get nav() { return live?.nav ?? null; },
+    get app() { return read().app; },
+    fingerprint: () => read().fingerprint(), pose: (value) => read().pose(value),
+    walkLeg: (leg) => read().walkLeg(leg), arena: () => { read().arena(); },
+    state: () => read().state(), onResume: (fn) => { read().onResume(fn); },
+    sounds: () => read().sounds(), used: () => read().used(), budgets: (poses) => read().budgets(poses),
+    leak: async () => {
+      if (live === undefined) {
+        if (lastLeak === undefined) throw new Error('Retired debug level has no completed leak census');
+        return lastLeak;
+      }
+      const result = await live.leak();
+      lastLeak = result;
+      return result;
+    },
+  };
 }

@@ -31,18 +31,18 @@ try {
   await page.goto(`${url}/?chunk=${encodeURIComponent(shard)}&mute=1&skipintro=1&nolock=1&sw=0`);
   await page.waitForFunction('Boolean(window.__wildshard?.world?.game) && !document.querySelector(".ws-load")', undefined, { timeout: 120000 });
   const poses = await page.evaluate(async () => {
-    const cameras = await window.__wildshard.world.game.level.capturePoses?.() ?? {};
+    const cameras = await window.__wildshard.requireWorld().game.level.capturePoses?.() ?? {};
     return Object.entries(cameras).flatMap(([name, camera]) => camera.probe ? [{ ...camera.probe, name }] : camera.feet ? [{ name, x: camera.feet[0], y: camera.feet[1], z: camera.feet[2], yaw: -camera.yaw * Math.PI / 180, pitch: camera.pitch * Math.PI / 180 }] : []);
   });
   for (const pose of [{ name: 'spawn' }, ...poses]) {
     await page.evaluate((p) => window.__wildshard.pose(p), pose);
     await page.evaluate(async () => {
-      const end = window.__wildshard.world.game.frameCount + 60;
-      await new Promise((resolve) => { const tick = () => { if (window.__wildshard.world.game.frameCount >= end) resolve(undefined); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); });
+      const end = window.__wildshard.requireWorld().game.frameCount + 60;
+      await new Promise((resolve) => { const tick = () => { if (window.__wildshard.requireWorld().game.frameCount >= end) resolve(undefined); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); });
     });
   }
   const observed = /** @type {import('./glbytes.mjs').CensusObservation} */ (await page.evaluate(`(() => {
-    const g = window.__wildshard.world.game;
+    const g = window.__wildshard.requireWorld().game;
     const contexts = window.__sc_gl().map(({gl,...record}) => record);
     const groups = new Map();
     for (const context of contexts) for (const row of context.resources) {

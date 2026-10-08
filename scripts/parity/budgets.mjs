@@ -29,7 +29,7 @@ export function budgetChecks(current) {
  * @param {boolean} [captureCurrent] Whether the shard has no standing parity poses. */
 export function budgetViews(page, captureCurrent = false) {
   return page.evaluate(async (current) => {
-    const w = window.__wildshard.world, g = w.game, cameras = await g.level.capturePoses?.();
+    const w = window.__wildshard.requireWorld(), g = w.game, cameras = await g.level.capturePoses?.();
     /** @type {Record<string, { draws: number, tris: number, programs: number, gpuMB: number }>} */ const result = {};
     const position = g.camera.position.clone(), quaternion = g.camera.quaternion.clone();
     try {

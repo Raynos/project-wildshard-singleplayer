@@ -93,7 +93,9 @@ describe('probe contract', () => {
     expect(flags).toEqual(['second', 'first']);
     expect(inactive).not.toHaveBeenCalled();
     scope.dispose();
-    expect(probe.state().quest).toEqual({ adventure: deps.quest(), level: [] });
+    expect(probe.world).toBeUndefined();
+    expect(probe.shard).toEqual({ slug });
+    expect(() => probe.state()).toThrow('Debug level has retired');
     expect(debug.snapshot()).not.toHaveProperty(`harness.shard.${slug}`);
   });
   it('returns every disposal failure alongside the post-unload census instead of rejecting the leak probe', async () => {
@@ -106,9 +108,12 @@ describe('probe contract', () => {
     Object.assign(world.game, { retainedGpuCounts: () => ({ geometries: 1, textures: 2, programs: 0 }),
       retainedHudCount: () => 0, retainedSceneObjects: () => 4, gpuResourceDiagnostics: () => ({}) });
     Object.assign(world.audio, { census: () => ({ activeVoices: 0, beds: 0, buses: 0 }) });
-    vi.spyOn(world.game.app, 'unloadLevel').mockRejectedValue(new AggregateError([
+    vi.spyOn(world.game.app, 'unloadLevel').mockImplementation(() => {
+      world.game.levelScope.dispose();
+      return Promise.reject(new AggregateError([
       new Error('first disposer'), new AggregateError([new Error('child disposer')], 'child scope'),
-    ], 'level scope'));
+      ], 'level scope'));
+    });
     vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
     try {
       const pending = installProbe(world, deps).leak();
@@ -150,13 +155,14 @@ describe('probe contract', () => {
     vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame'] });
     try {
       const probe = installProbe(world, { ...deps, leakPhysics: page });
-      expect(probe.world.physics).toBe(temporary);
+      expect(probe.world?.physics).toBe(temporary);
       expect(world.game.levelScope.census.colliders).toBe(4);
       expect(page.scopedCensus(world.game.levelScope)).toEqual({ bodies: 1, colliders: 1 });
       expect(temporary.scopedCensus(world.game.levelScope)).toEqual({ bodies: 1, colliders: 3 });
       const pending = probe.leak(); await vi.runAllTimersAsync();
       const result = await pending;
-      expect(probe.world.physics).toBe(page); expect(() => temporary.world.bodies.len()).toThrow();
+      expect(probe.world).toBeUndefined(); expect(() => temporary.world.bodies.len()).toThrow();
+      expect(await probe.leak()).toBe(result);
       expect(result.disposalErrors).toEqual([]); expect(result.after.bodies).toBe(0); expect(result.after.colliders).toBe(0);
       expect(page.world.colliders.len()).toBe(1); // Actual retained engine collider, excluded by its own baseline.
     } finally { vi.useRealTimers(); world.game.app.engineScope.dispose(); page.dispose(); }
@@ -194,7 +200,7 @@ describe('probe contract', () => {
     // the shard exposes its own handles (E405 AG25: the engine's probe has no per-shard key table)
     world.game.levelScope.onDispose(world.game.app.debug.scopedExpose(`harness.shard.${world.game.level.id}`, { ocean: world['ocean'] }));
     const probe = installProbe(world, deps);
-    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app', 'budgets'].sort());
+    expect(Object.keys(probe).sort()).toEqual(['version', 'world', 'requireWorld', 'shard', 'boot', 'fingerprint', 'pose', 'walkLeg', 'combat', 'arena', 'state', 'onResume', 'saves', 'sounds', 'used', 'nav', 'leak', 'app', 'budgets'].sort());
     expect(window.__wildshard).toBe(probe);
     expect(Reflect.has(window, '__world')).toBe(false);
     expect(probe.shard).toMatchObject({ slug: 'driftwood-isle', ocean: 'ocean-handle' });

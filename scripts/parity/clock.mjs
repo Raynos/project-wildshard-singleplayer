@@ -41,7 +41,7 @@ export function installFrameDriver(opts) {
     posted = false; nativeId = 0;
     if (active()) virtualNow += timerStep;
     timestamp = Math.max(timestamp + 1000 / 30, realNow());
-    const drawn=()=>ready?Number(Reflect.get(window.__wildshard.world.game,'frameNo')):0, before=drawn();
+    const drawn=()=>ready?Number(Reflect.get(window.__wildshard.requireWorld().game,'frameNo')):0, before=drawn();
     const batch = [...callbacks]; callbacks.clear();
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- rAF callbacks are the browser API being driven, not promise continuations.
     for (const [, callback] of batch) { const start=realNow(); callback(timestamp); if(control.on)control.cpu+=realNow()-start; }
@@ -72,7 +72,7 @@ export function installFrameDriver(opts) {
     control.advance = async (frames) => {
       if (!Number.isInteger(frames) || frames < 0 || control.remaining > 0 || control.free) throw new Error('invalid concurrent frame advance');
       if (frames === 0) return;
-      const game = window.__wildshard.world.game, end = Number(Reflect.get(game, 'frameNo')) + frames;
+      const game = window.__wildshard.requireWorld().game, end = Number(Reflect.get(game, 'frameNo')) + frames;
       control.remaining = frames;
       await new Promise((resolve) => {
         const check = () => { if (Number(Reflect.get(game, 'frameNo')) >= end) { observers.delete(check); resolve(undefined); } };
