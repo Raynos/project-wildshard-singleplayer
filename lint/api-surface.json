@@ -6185,11 +6185,23 @@
         "from": "@wildshard/engine/level/selection"
       },
       {
+        "name": "boundLevelLook",
+        "kind": "function",
+        "doc": "The look parts of the bound frame's level: undefined when no frame is bound (the page's own look applies), null when",
+        "from": "@wildshard/engine/level/selection"
+      },
+      {
         "name": "configureLevel",
         "kind": "function",
         "doc": "The composition root supplies engine data before constructing the renderer or world.",
         "from": "@wildshard/engine/level/selection",
         "gameOnly": true
+      },
+      {
+        "name": "LevelLookParts",
+        "kind": "interface",
+        "doc": "The parts of a level's resolved look that its own content builds from while its frame is bound (SF63): today the",
+        "from": "@wildshard/engine/level/selection"
       },
       {
         "name": "onLevelChange",
@@ -11203,6 +11215,12 @@
         "name": "attachFogUniforms",
         "kind": "function",
         "doc": "",
+        "from": "@wildshard/engine/world/Atmosphere"
+      },
+      {
+        "name": "captureFogUniforms",
+        "kind": "function",
+        "doc": "Run `install` (a level look's light / fog install, sandboxed by `captureLookChunks`) and hand back the uniform sets it",
         "from": "@wildshard/engine/world/Atmosphere"
       },
       {

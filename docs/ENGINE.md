@@ -1849,7 +1849,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2190 exports, grouped by the module to import them from.
+2193 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2021,7 +2021,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/level/frame`: `LevelFrameBinding`, `LevelFrameHost`, `LevelFrameOptions`
 - `@wildshard/engine/level/installation`: `createLevelInstallation`, `LevelInstallation`
 - `@wildshard/engine/level/load`: `LevelDriver`, `LevelLoader`, `LevelLoadError`, `LevelStage`
-- `@wildshard/engine/level/selection`: `activeLevel`, `bindLevelSelection`, `configureLevel`, `onLevelChange`, `selectedLevel`
+- `@wildshard/engine/level/selection`: `activeLevel`, `bindLevelSelection`, `boundLevelLook`, `configureLevel`, `LevelLookParts`, `onLevelChange`, `selectedLevel`
 - `@wildshard/engine/level/spec`: `AudioSpec`, `BootSpec`, `Bounds`, `CreatureRenderSpec`, `EngineMechanism`, `FightRules`, `LevelSpec`, `LoadoutSpec`, `needsTerrainCollider`, `resolveTierKnobs`, `TierKnobMap`, `TierKnobs`, `TierOverrides`
 - `@wildshard/engine/math/color`: `lin`
 - `@wildshard/engine/models/colliders`: `drawnHullOwn`, `drawnHullWorld`, `placeCollider`, `Pose`, `poseGeometry`, `poseOf`
@@ -2171,7 +2171,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/ui/tabs`: `TabFragment`, `TabId`, `TabRegistry`, `TabSpec`
 - `@wildshard/engine/ui/WeaponStrip`: `WeaponStrip`
 - `@wildshard/engine/ui/WindupWarn`: `Warned`, `WindupWarn`
-- `@wildshard/engine/world/Atmosphere`: `addFogUniforms`, `atmosphereTerms`, `attachFogUniforms`, `fogUniforms`, `installAtmosphere`, `isUnderwater`, `setUnderwater`, `updateUnderwater`, `volumetricFog`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `weatherFogUniforms`, `weatherUniforms`
+- `@wildshard/engine/world/Atmosphere`: `addFogUniforms`, `atmosphereTerms`, `attachFogUniforms`, `captureFogUniforms`, `fogUniforms`, `installAtmosphere`, `isUnderwater`, `setUnderwater`, `updateUnderwater`, `volumetricFog`, `weatherFog`, `WeatherFog`, `WeatherFogSpec`, `weatherFogUniforms`, `weatherUniforms`
 - `@wildshard/engine/world/BakedCards`: `bakedCardUrls`, `CardTextures`, `exportCardTextures`, `loadBakedCards`
 - `@wildshard/engine/world/BakedTerrain`: `BakedGrid`, `BakedPlacement`, `bakedSamplers`, `bakedTerrainUrl`, `bakedUndergrowth`, `installBakedGrid`, `loadBakedTerrain`, `parseBakedTerrain`
 - `@wildshard/engine/world/blenderArea`: `BlenderArea`, `blenderAreaFor`, `blenderModelsBase`, `CELL`, `STEP`

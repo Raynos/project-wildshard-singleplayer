@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2207 members; 830 without a doc line (—).
+2210 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1036,7 +1036,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `LevelStage` | type | @wildshard/engine/level/load | — |
 | `activeLevel` | function | @wildshard/engine/level/selection | — |
 | `bindLevelSelection` | function | @wildshard/engine/level/selection | Frame-local selection without changing the configured page or notifying page-load listeners. |
+| `boundLevelLook` | function | @wildshard/engine/level/selection | The look parts of the bound frame's level: undefined when no frame is bound (the page's own look applies), null when |
 | `configureLevel` | function · game only | @wildshard/engine/level/selection | The composition root supplies engine data before constructing the renderer or world. |
+| `LevelLookParts` | interface | @wildshard/engine/level/selection | The parts of a level's resolved look that its own content builds from while its frame is bound (SF63): today the |
 | `onLevelChange` | function | @wildshard/engine/level/selection | — |
 | `selectedLevel` | function | @wildshard/engine/level/selection | Early error reporting and the renderer-free page can inspect selection without requiring a world. |
 | `AudioSpec` | interface | @wildshard/engine/level/spec | — |
@@ -1872,6 +1874,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `addFogUniforms` | function | @wildshard/engine/world/Atmosphere | — |
 | `atmosphereTerms` | function | @wildshard/engine/world/Atmosphere | which optional terms the installed fog chunk compiled in (the TSL back-end's fog, render/nodes/engineFog.ts, follows) |
 | `attachFogUniforms` | function | @wildshard/engine/world/Atmosphere | — |
+| `captureFogUniforms` | function | @wildshard/engine/world/Atmosphere | Run `install` (a level look's light / fog install, sandboxed by `captureLookChunks`) and hand back the uniform sets it |
 | `fogUniforms` | const | @wildshard/engine/world/Atmosphere | — |
 | `installAtmosphere` | function | @wildshard/engine/world/Atmosphere | the engine's fog chunks (slot 100, once a page: render/fogPatches.ts); a level's own fog (`LookStrategy.fog`) is installed after it (Game.buildSky) |
 | `isUnderwater` | function | @wildshard/engine/world/Atmosphere | is the eye under? (Pine Hollow's clock reads it: PineDayNight keeps the underwater fog while diving) |
