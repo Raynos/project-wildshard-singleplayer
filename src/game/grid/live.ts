@@ -1,5 +1,5 @@
 import type { SimExternalPlayer, SimHost } from '@wildshard/engine/sim';
-import { snapshotSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { snapshotSimHost, finishSimSteps, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { prepareFrameMotors, type FrameMember } from '@wildshard/engine/physics/frame';
 import type { Physics } from '@wildshard/engine/physics/Physics';
 import { TraversalReadiness, readinessModel, type ReadinessBundle, type ReadinessLink, type ReadinessTicket } from '@wildshard/engine/sim/readiness';
@@ -52,6 +52,8 @@ export interface LiveGridPorts {
    *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
   prefetchable?: (cell: GridCell) => boolean;
   save: (instance: string, snapshot: SimSnapshot) => boolean;
+  /** The same save in stages (each `yield` may wait a frame) for {@link LiveGridHost.checkpointSteps}; absent saves in one stage. */
+  saveSteps?: (instance: string, snapshot: SimSnapshot) => Generator<undefined, boolean>;
   read?: (instance: string) => SimSnapshot | undefined;
   bindFrame: (frame: LiveGridFrame) => void;
   gameplayReady: (instance: string) => boolean;
@@ -102,6 +104,8 @@ export class LiveGridHost {
   private active: string | null;
   private unbind: (() => void) | undefined;
   private disposed = false;
+  /** Each checkpoint of an instance takes a generation; a staged one still waiting is superseded by any later one. */
+  private readonly checkpointGenerations = new Map<string, number>();
   private highwayDisposed = false;
   readonly assembly: GridAssembly;
   private readonly ports: LiveGridPorts;
@@ -359,20 +363,35 @@ export class LiveGridHost {
     else this.region(this.active)?.host.stepExternal();
   }
   /** Borrowed home uses its logical save owner; owned regions capture the current traveller without acquiring its motor. */
-  checkpoint(instance: string): boolean {
+  checkpoint(instance: string): boolean { return finishSimSteps(this.checkpointSteps(instance)); }
+  /** The same checkpoint in stages, for a periodic autosave spread over frames (rt3-freeze): the first `next()` captures
+   *  at the caller's fixed-step boundary; later stages encode and write. A later checkpoint, a crossing or an unload
+   *  supersedes it: it then returns false without writing, so an older capture never replaces a newer save. */
+  *checkpointSteps(instance: string): Generator<undefined, boolean> {
     if (this.disposed) return false;
+    const generation = (this.checkpointGenerations.get(instance) ?? 0) + 1; this.checkpointGenerations.set(instance, generation);
     if (this.ports.home.mode !== 'owned' && instance === this.ports.home.instance) return this.ports.home.checkpoint();
     const resident = this.residents.get(instance); if (resident === undefined) return false;
     if (resident.region.checkpoint !== undefined) return resident.region.checkpoint();
     let snapshot = this.saved.read(instance);
-    if (instance === this.active) {
+    const active = instance === this.active;
+    if (active) {
       const host = resident.region.host; host.player.position.copy(this.ports.player.position); host.player.yaw = this.ports.player.yaw;
       host.attachPlayerMotor(this.ports.player.motor);
       try { snapshot = snapshotSimHost(host); } finally { host.releasePlayerMotor(); }
     }
     if (snapshot === undefined) return true; // Never-entered bodyless content is reconstructed from immutable admission.
     const packed = this.ports.continuations === 'durable' ? undefined : this.saved.pack(instance, snapshot); if (packed === null) return false;
-    if (!this.ports.save(instance, snapshot)) return false;
+    const stale = (): boolean => this.disposed || generation !== this.checkpointGenerations.get(instance) || this.residents.get(instance) !== resident || (instance === this.active) !== active;
+    const steps = this.ports.saveSteps?.(instance, snapshot);
+    let saved: boolean;
+    if (steps === undefined) saved = this.ports.save(instance, snapshot);
+    else for (;;) {
+      yield;
+      if (stale()) { steps.return(false); return false; }
+      const step = steps.next(); if (step.done === true) { saved = step.value; break; }
+    }
+    if (!saved) return false;
     if (packed !== undefined) this.saved.store(instance, packed); return true;
   }
   /** Prepare durability before allocator eviction; commit only disposes an already-frozen world. */

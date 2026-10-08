@@ -14,6 +14,18 @@ function hash(bytes: Uint8Array, at: number): number {
   }
   return (value >>> 0) & 0xfffff;
 }
+// rt3-freeze: a regional autosave once hashed every basis position and every byte inside each match (~1 M 16-byte
+// hashes for a 440 KB template world). The basis is indexed every 16 bytes (a 64-byte match always spans an indexed
+// start, so at most 15 more literal bytes begin it), and bytes copied from the basis are not re-indexed (the basis
+// holds them already). Compression ratio may move slightly; decoding and the exact bytes never change.
+const basisStride = 16;
+/** Native bytes as the snapshot's plain JSON array: an indexed copy, ~10x faster than Array.from's iterator on a phone (rt3-freeze). */
+export function byteArray(bytes: Uint8Array): number[] {
+  const array: number[] = [];
+  array.length = bytes.length; // sized once: push or Array.from regrow or iterate
+  for (let index = 0; index < bytes.length; index++) array[index] = bytes[index] ?? 0;
+  return array;
+}
 /** Lossless literal/copy framing with bounded dictionaries; a basis is immutable, freshly admitted world data. */
 export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): Uint8Array {
   if (bytes.length === 0 || bytes.length > MAX_PHYSICS_BYTES) throw new RangeError('Snapshot physics exceeds byte bounds');
@@ -21,7 +33,7 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
   const encoded = new Uint8Array(bytes.length + Math.ceil(bytes.length / matchMinimum) * 3 + 16), view = new DataView(encoded.buffer);
   const dictionary = new Int32Array(0x100000).fill(-1);
   const basisDictionary = basis === undefined ? undefined : new Int32Array(0x100000).fill(-1);
-  if (basis !== undefined && basisDictionary !== undefined) for (let i = 0; i + matchMinimum <= basis.length; i++) basisDictionary[hash(basis, i)] = i;
+  if (basis !== undefined && basisDictionary !== undefined) for (let i = 0; i + matchMinimum <= basis.length; i += basisStride) basisDictionary[hash(basis, i)] = i;
   let written = 0, literal = 0, at = 0;
   const flush = (end: number): void => {
     while (literal < end) {
@@ -42,7 +54,7 @@ export function encodePhysicsReferences(bytes: Uint8Array, basis?: Uint8Array): 
     if (length < matchMinimum) { at++; continue; }
     flush(at);
     encoded[written++] = external ? 2 : 1; view.setUint32(written, external ? basisAt : at - previous, true); written += 4; view.setUint32(written, length, true); written += 4;
-    for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i++) dictionary[hash(bytes, i)] = i;
+    if (!external) for (let i = at + 1; i < at + length && i + 16 <= bytes.length; i++) dictionary[hash(bytes, i)] = i;
     at += length; literal = at;
   }
   flush(bytes.length);

@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type { SaveStore, InstanceSaveSlot } from '@wildshard/engine/saves/store';
 import type { SimHost } from '@wildshard/engine/sim';
 import { fnv1a32 } from '@wildshard/engine/core/rng';
-import { serializeSimSnapshot, decodeSimSnapshot, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { serializeSimSnapshotSteps, finishSimSteps, decodeSimSnapshot, SnapshotBasisMismatchError, SIM_REGION_SNAPSHOT_CHAR_BUDGET, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import { instanceSave, type LocalSaveInstance } from '../instanceSaves';
 import { Ledger, installLedgerEmitter, type LedgerCatalogueItem, type LedgerEmitter } from '../ledger';
 import type { QuestDataPorts } from '../quest/declared';
@@ -117,12 +117,18 @@ export class GridRegionDurability {
   }
 
   /** Persist the complete region only after its money and facts are durable; failed writes retain a retryable copy. */
-  checkpoint(snapshot: SimSnapshot): boolean {
+  checkpoint(snapshot: SimSnapshot): boolean { return finishSimSteps(this.checkpointSteps(snapshot)); }
+  /** The same checkpoint in stages for a periodic autosave: each `yield` may wait a frame; the snapshot, basis and
+   *  prop states are read before the first pause, and the save is written only in the last stage. */
+  *checkpointSteps(snapshot: SimSnapshot): Generator<undefined, boolean> {
     if (snapshot.levelId !== this.identity.shard) throw new Error('Regional checkpoint belongs to another shard');
     if (!this.flush()) return false;
     const logical = clientStateFromRegion(this.source, snapshot, this.identity.revision, this.source.state.version,
       Object.fromEntries([...this.colliders].map(([id, port]) => [id, port.active()])));
-    let value: SavedRegion = { revision: this.identity.revision, snapshot: serializeSimSnapshot(snapshot, this.physicsBasis), logical, mode: 'exact' };
+    const wire = yield* serializeSimSnapshotSteps(snapshot, this.physicsBasis);
+    yield;
+    if (!this.flush()) return false; // facts emitted while the stages waited are durable before the region is
+    let value: SavedRegion = { revision: this.identity.revision, snapshot: wire, logical, mode: 'exact' };
     value.integrity = regionIntegrity(value);
     if (storedCharacters(value) > SIM_REGION_SNAPSHOT_CHAR_BUDGET) {
       value = { ...value, snapshot: null, mode: 'logical' };

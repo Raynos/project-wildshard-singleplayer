@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { deflateSync, inflateSync } from 'fflate';
-import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
+import { MAX_PHYSICS_BYTES, MAX_REFERENCE_BYTES, byteArray, encodePhysicsReferences, decodePhysicsReferences, validatePhysicsReferences } from './snapshotPhysics';
 import type { SimValue } from '../sim';
 import type { SimSnapshot } from './snapshot';
 
@@ -107,10 +107,29 @@ function jsonTree(input: unknown, parents = new Set<object>(), depth = 0): void 
   }
   parents.delete(input);
 }
-function checksum(bytes: Iterable<number>): number {
+function checksum(bytes: ArrayLike<number>): number {
   let value = 2166136261;
-  for (const byte of bytes) value = Math.imul(value ^ byte, 16777619);
+  for (let index = 0; index < bytes.length; index++) value = Math.imul(value ^ (bytes[index] ?? 0), 16777619);
   return value >>> 0;
+}
+// A physics basis is immutable admitted world data: its checksum is computed once per buffer, not per autosave.
+const basisChecksums = new WeakMap<Uint8Array, number>();
+function basisChecksum(basis: Uint8Array): number {
+  const known = basisChecksums.get(basis);
+  if (known !== undefined) return known;
+  const value = checksum(basis); basisChecksums.set(basis, value); return value;
+}
+/** One flat pass over the native byte array: a per-element schema pipe and JSON-tree walk cost ~100 ms an autosave (rt3-freeze). */
+function physicsArray(input: unknown): Uint8Array {
+  if (!Array.isArray(input) || Object.getPrototypeOf(input) !== Array.prototype) throw new TypeError('Snapshot physics must be a plain byte array');
+  if (input.length === 0 || input.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds byte bounds');
+  const bytes = new Uint8Array(input.length);
+  for (let index = 0; index < input.length; index++) {
+    const byte: unknown = input[index];
+    if (typeof byte !== 'number' || !Number.isInteger(byte) || byte < 0 || byte > 255) throw new RangeError('Snapshot physics contains a non-byte value');
+    bytes[index] = byte;
+  }
+  return bytes;
 }
 function pack(bytes: ArrayLike<number>): string {
   const chunks: string[] = [];
@@ -139,14 +158,15 @@ function unpack(data: string): number[] {
   if (pack(bytes) !== data) throw new RangeError('Noncanonical snapshot base64');
   return bytes;
 }
-function packedPhysics(bytes: readonly number[], basis?: Uint8Array): v.InferOutput<typeof packedSnapshot>['physics'] {
-  const raw = Uint8Array.from(bytes), references = encodePhysicsReferences(raw, basis), chunks: string[] = [];
+function* packedPhysics(raw: Uint8Array, basis?: Uint8Array): Generator<undefined, v.InferOutput<typeof packedSnapshot>['physics']> {
+  const references = encodePhysicsReferences(raw, basis), chunks: string[] = [];
+  yield;
   for (let offset = 0; offset < references.length; offset += physicsBlockBytes) chunks.push(pack(deflateSync(references.subarray(offset, offset + physicsBlockBytes), { level: 6 })));
   const hash = checksum(raw);
   // Tiny or incompressible continuations retain the original canonical encoding.
-  if (chunks.reduce((size, chunk) => size + chunk.length + 3, 64) >= Math.ceil(bytes.length / 3) * 4) return { encoding: 'base64', data: pack(raw), checksum: hash };
+  if (chunks.reduce((size, chunk) => size + chunk.length + 3, 64) >= Math.ceil(raw.length / 3) * 4) return { encoding: 'base64', data: pack(raw), checksum: hash };
   return { encoding: 'deflate-lz-base64-v1', length: raw.length, packedLength: references.length, chunks, checksum: hash,
-    ...(basis === undefined ? {} : { basis: { length: basis.length, checksum: checksum(basis) } }) };
+    ...(basis === undefined ? {} : { basis: { length: basis.length, checksum: basisChecksum(basis) } }) };
 }
 function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], basis: Uint8Array | undefined, mismatch: () => Error): number[] {
   if (packed.encoding === 'base64') {
@@ -166,10 +186,10 @@ function physicsBytes(packed: v.InferOutput<typeof packedSnapshot>['physics'], b
     references.set(decoded, offset);
   }
   validatePhysicsReferences(references, packed.length, packed.basis?.length);
-  if (packed.basis !== undefined && basis !== undefined && (basis.length !== packed.basis.length || checksum(basis) !== packed.basis.checksum)) throw mismatch();
+  if (packed.basis !== undefined && basis !== undefined && (basis.length !== packed.basis.length || basisChecksum(basis) !== packed.basis.checksum)) throw mismatch();
   const bytes = decodePhysicsReferences(references, packed.length, packed.basis === undefined ? undefined : basis);
   if (checksum(bytes) !== packed.checksum) throw new RangeError('Snapshot physics checksum mismatch');
-  return Array.from(bytes);
+  return byteArray(bytes);
 }
 const health = v.strictObject({ version, attributes: v.pipe(v.record(v.string(), v.union([v.number(), v.undefined()])),
   v.check((attributes) => Number.isFinite(attributes['health']) && Number.isFinite(attributes['maxHealth']))),
@@ -209,13 +229,27 @@ function stringify(value: unknown): string {
   throw new TypeError('Snapshot contains a non-JSON value');
 }
 
+/** Run a staged job to completion in one call (the synchronous form of every `*Steps` writer). */
+export function finishSteps<T>(steps: Generator<undefined, T>): T {
+  for (;;) { const step = steps.next(); if (step.done === true) return step.value; }
+}
+/** Internal packed wire writer, in stages a caller may spread over frames (rt3-freeze: one regional autosave was a
+ *  1–2.7 s main-thread task). Each `yield` is a safe pause: the input is read in the first stage only, so later stages
+ *  touch nothing the live simulation can change. */
+export function* serializeSnapshotDataSteps(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): Generator<undefined, string> {
+  if (!Array.isArray(input.physics) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
+  // The byte array is checked in one flat pass; every other field keeps the strict JSON-tree and schema validation.
+  const raw = physicsArray(input.physics), metadata = { ...input, physics: [0] };
+  jsonTree(metadata);
+  const saved = identities(v.parse(snapshot, metadata), apiVersion);
+  yield;
+  const physics = yield* packedPhysics(raw, physicsBasis);
+  yield;
+  return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved, physics } });
+}
 /** Internal packed wire writer; the defining public entry supplies its current engine version. */
 export function serializeSnapshotData(input: SimSnapshot, apiVersion: number, physicsBasis?: Uint8Array): string {
-  if (!Array.isArray(input.physics) || input.physics.length > maxPhysicsBytes) throw new RangeError('Snapshot physics exceeds 32 MB');
-  jsonTree(input);
-  const saved = identities(v.parse(snapshot, input), apiVersion);
-  return stringify({ format: 'sim.snapshot', version: 1, snapshot: { ...saved,
-    physics: packedPhysics(saved.physics, physicsBasis) } });
+  return finishSteps(serializeSnapshotDataSteps(input, apiVersion, physicsBasis));
 }
 /** Internal strict wire parser; unknown static fields are refused at every nesting level. */
 export function decodeSnapshotData(input: unknown, apiVersion: number, physicsBasis?: Uint8Array, mismatch?: (levelId: string, tick: number) => Error): SimSnapshot {

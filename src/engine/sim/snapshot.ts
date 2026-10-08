@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
-import { serializeSnapshotData, decodeSnapshotData } from './snapshotData';
+import { serializeSnapshotData, serializeSnapshotDataSteps, decodeSnapshotData, finishSteps } from './snapshotData';
+import { byteArray } from './snapshotPhysics';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel, type SimSlots, type SimValue } from '../sim';
 import type { AnimalSim } from '../entities/AnimalSim';
 import type { StrikeRunner, StrikeSpec } from '../ai/strikes';
@@ -58,6 +59,13 @@ export interface SimSnapshot {
 export function serializeSimSnapshot(saved: SimSnapshot, physicsBasis?: Uint8Array): string {
   return serializeSnapshotData(saved, SIM_API_VERSION, physicsBasis);
 }
+/** The same wire in stages: each `yield` is a pause a caller may spread across frames (a periodic autosave), and
+ *  {@link finishSimSteps} runs it whole. The snapshot is read only before the first pause. */
+export function serializeSimSnapshotSteps(saved: SimSnapshot, physicsBasis?: Uint8Array): Generator<undefined, string> {
+  return serializeSnapshotDataSteps(saved, SIM_API_VERSION, physicsBasis);
+}
+/** Run a staged snapshot job to completion now. */
+export function finishSimSteps<T>(steps: Generator<undefined, T>): T { return finishSteps(steps); }
 /** Decode compressed/legacy JSON; a basis-referencing wire requires its exact checked basis. Never drops native geometry/state. */
 export function decodeSimSnapshot(input: unknown, physicsBasis?: Uint8Array): SimSnapshot {
   return decodeSnapshotData(input, SIM_API_VERSION, physicsBasis, (levelId, tick) => new SnapshotBasisMismatchError(levelId, tick));
@@ -158,7 +166,7 @@ export function snapshotSimHost(host: SimHost): SimSnapshot {
     entities: [...host.entities].map(([id, entity]) => ({ id, state: entity.snapshot(), motor: entityMotor(entity)?.snapshot() ?? null })),
     player: { id: host.player.id, position: host.player.position.toArray(), yaw: host.player.yaw, health: encode(host.player.health.snapshot(), host), motor: host.player.motor.snapshot() },
     strikes: [...host.strikes].map(([id, runner]) => ({ id, state: runner.snapshot() })), targets: host.attackTargets(),
-    events: host.events.snapshot((value) => encode(value, host)), physics: Array.from(host.physics.snapshot()), colliderTags,
+    events: host.events.snapshot((value) => encode(value, host)), physics: byteArray(host.physics.snapshot()), colliderTags,
     flags: host.flags.all, quests: host.quests.map((quest) => quest.snapshot()), slots: cloneSlots(host.slots),
     adapters: [...host.adapters].map(([id, adapter]) => ({ id, state: cloneValue(adapter.snapshot()) })) };
 }
@@ -209,7 +217,7 @@ export function restoreSimHost(level: SimLevel, ports: { rapier: Rapier }, saved
       || saved.targets.some(([id, target]) => !host.strikes.has(id) || !actors.has(target))) throw new RangeError('Snapshot strike target does not exist');
     host.restoreAttackTargets(saved.targets);
     host.events.restore(saved.events, (value) => decode(value, host));
-    replacement = new Physics(ports.rapier, Uint8Array.from(saved.physics));
+    replacement = new Physics(ports.rapier, new Uint8Array(saved.physics));
     const playerMotor = new CharacterMotor(replacement, host.player.motor.opts, saved.player.motor);
     const motors = new Map<string, CharacterMotor>();
     for (const entry of saved.entities) {

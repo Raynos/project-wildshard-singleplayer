@@ -1,0 +1,30 @@
+busy stretches >= 500 ms: 6.02s:2287ms 11.72s:647ms 13.22s:2777ms 20.84s:2329ms 28.04s:2478ms
+total busy ms 10518
+--- inclusive
+ 10522 ms  (root) :0:0
+  9956 ms  (anon) runtime-nxGJ495O.js:3:5505
+  9955 ms  s session-BO_QiOcO.js:2040:20620
+  9302 ms  runPhase session-BO_QiOcO.js:2040:16348
+  9281 ms  run runtime-kcWW2PEY.js:1:52121
+  9249 ms  runFixed session-BO_QiOcO.js:2040:16988
+  9030 ms  (anon) session-BO_QiOcO.js:779:26410
+  8991 ms  checkpoint session-BO_QiOcO.js:779:28797
+  8969 ms  checkpoint session-BO_QiOcO.js:333:43973
+  8578 ms  checkpoint session-BO_QiOcO.js:333:56136
+  8578 ms  save session-BO_QiOcO.js:779:25032
+  8501 ms  Xg session-BO_QiOcO.js:333:19774
+  8501 ms  $g session-BO_QiOcO.js:333:20435
+  4643 ms  Bg session-BO_QiOcO.js:333:15336
+  2917 ms  ~run runtime-nxGJ495O.js:3:18924
+  2899 ms  ~run runtime-nxGJ495O.js:3:15302
+  2892 ms  dt runtime-nxGJ495O.js:3:18785
+  2699 ms  ~run runtime-nxGJ495O.js:3:11040
+   954 ms  Wg session-BO_QiOcO.js:333:16832
+   644 ms  render build-DkW1oHmj.js:45:10684
+   637 ms  (anon) gpuLabels-B8R8wCpI.js:1:10180
+   636 ms  Yg.render three.module-0SoK2Fk7.js:4220:32605
+   623 ms  render build-DkW1oHmj.js:115:3037
+   623 ms  render session-BO_QiOcO.js:2040:880
+   391 ms  o_ session-BO_QiOcO.js:333:23327
+   381 ms  mg session-BO_QiOcO.js:333:9512
+   354 ms  (garbage collector) :0:0

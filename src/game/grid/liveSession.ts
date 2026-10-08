@@ -30,7 +30,7 @@ import type { PlayerHealth } from '@wildshard/engine/combat/health';
 import type { SaveStore } from '@wildshard/engine/saves/store';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
-import { restoreSimHost } from '@wildshard/engine/sim/snapshot';
+import { restoreSimHost, finishSimSteps } from '@wildshard/engine/sim/snapshot';
 import { installStripCollider, PLATFORM_COLLIDER_OWNER } from '@wildshard/engine/physics/stripColliders';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { gridCreatureConstraint, installGridBorders } from '@wildshard/engine/physics/gridBorders';
@@ -189,6 +189,9 @@ export class LiveGridSession {
   private readonly startedRuntimes = new Set<string>();
   private activation: Promise<boolean> | undefined;
   private checkpointsSuppressed = false;
+  /** The periodic autosave in flight: one stage a frame, superseded by any direct checkpoint (rt3-freeze). */
+  private autosave: Generator<undefined, boolean> | null = null;
+  private autosaveCaptured = false;
   /** G101: the last road point, where a fall that began from the road recovers */
   private readonly road: RoadRecovery;
   private readonly respawnCells = new Map<string, RoadRecoveryCell>();
@@ -264,6 +267,7 @@ export class LiveGridSession {
       pause: () => yieldGridAdmission(scope),
       prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
+      saveSteps: (instance, snapshot) => this.regionSave(instance).checkpointSteps(snapshot),
       bindFrame: (frame) => { this.bind(frame); },
       gameplayReady: () => this.gameplayReady(),
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
@@ -323,10 +327,18 @@ export class LiveGridSession {
       }) === true;
       const shardGround = grounded && cell?.instance === this.live.current() && (hit.owner !== PLATFORM_COLLIDER_OWNER || entry);
       this.road.observe(feet, traveller.yaw, grounded, recoveryCell, shardGround);
-      if (++saveTicks >= 300) { saveTicks = 0; this.checkpoint(); }
+      // rt3-freeze: the 5 s autosave captures here, at the fixed boundary, and encodes / writes a stage a frame below;
+      // done in one go it froze a template cell 1.0–1.6 s every ~6.2 s on the phone.
+      if (++saveTicks >= 300) { saveTicks = 0; this.autosave?.return(false); this.autosave = this.checkpointSteps(); this.stepAutosave(); this.autosaveCaptured = true; }
     });
     page.onInput(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
-    page.onUpdate(() => { if (this.offset.lengthSq() === 0) return; traveller.camera.position.add(this.offset); this.applied.copy(this.offset); });
+    scope.onDispose(() => { this.autosave?.return(false); this.autosave = null; });
+    page.onUpdate(() => { // the page has one update slot (game.grid.origin): the camera offset, then one autosave stage
+      if (this.offset.lengthSq() !== 0) { traveller.camera.position.add(this.offset); this.applied.copy(this.offset); }
+      // The capture's own frame encodes nothing more: the next stage waits for the next frame's update.
+      if (scope.disposed) return;
+      if (this.autosaveCaptured) this.autosaveCaptured = false; else this.stepAutosave();
+    });
     scope.onDispose(() => { traveller.camera.position.sub(this.applied); this.applied.set(0, 0, 0); });
     scope.listen(window, 'pagehide', () => { this.checkpoint(); });
     scope.listen(document, 'visibilitychange', () => { if (document.visibilityState === 'hidden') this.checkpoint(); });
@@ -376,10 +388,22 @@ export class LiveGridSession {
 
   /** Save the active region and retry its pending profile/local rewards before a reload or page exit. */
   checkpoint(): boolean {
+    this.autosave?.return(false); this.autosave = null; // a direct save supersedes a staged one still in flight
+    return finishSimSteps(this.checkpointSteps());
+  }
+  /** Advance the periodic autosave by one stage; it finishes (or is superseded) within a few frames. */
+  private stepAutosave(): void {
+    const autosave = this.autosave;
+    if (autosave === null) return;
+    try { if (autosave.next().done === true && this.autosave === autosave) this.autosave = null; }
+    catch (error) { if (this.autosave === autosave) this.autosave = null; throw error; }
+  }
+  /** {@link checkpoint} in stages: the first `next()` captures the region; each later one may run a frame later. */
+  private *checkpointSteps(): Generator<undefined, boolean> {
     if (this.checkpointsSuppressed) return false;
     const current = this.live.current();
-    const durable = current === null ? this.checkpointHome() : this.live.checkpoint(current);
-    if (!durable) return false;
+    const durable = current === null ? this.checkpointHome() : yield* this.live.checkpointSteps(current);
+    if (!durable || this.live.current() !== current) return false; // suppression cancels a staged save outright
     const cell = current === null ? this.ports.home : this.ports.assembly.cell(current);
     const feet = this.worldFeet();
     const inside = this.ports.assembly.at(feet.x, feet.z)?.instance === current;
@@ -399,7 +423,7 @@ export class LiveGridSession {
     if (this.ports.scope.disposed || !this.checkpoint()) return false;
     if (!gridRecovery(this.page.saves).write(this.ports.assembly, this.ports.home, this.recoveryRoad(), reason)) return false;
     // The intent names exactly this checkpoint; a later pagehide/timer must not replace its location or continuation.
-    this.checkpointsSuppressed = true;
+    this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
     this.homeSim?.suppressCheckpoint?.();
     return true;
   }
@@ -411,7 +435,7 @@ export class LiveGridSession {
     const current = this.live.current();
     const home = current === null ? this.ports.home : this.ports.assembly.cell(current);
     return () => {
-      this.checkpointsSuppressed = true;
+      this.checkpointsSuppressed = true; this.autosave?.return(false); this.autosave = null;
       this.homeSim?.suppressCheckpoint?.();
       const recovery = gridRecovery(this.page.saves);
       if (recovery.save(this.ports.assembly, home, road, { kind: 'road' })) recovery.write(this.ports.assembly, home, road, 'new-game');
