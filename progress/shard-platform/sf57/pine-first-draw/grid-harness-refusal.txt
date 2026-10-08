@@ -1,0 +1,10 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.evaluate: Error: Probe control requires the harness pins
+    at /private/tmp/claude-501/sp-builders/sp-x4/pine-grid-webkit-draw.mjs:15:13 {
+  log: []
+}
+
+Node.js v24.18.1

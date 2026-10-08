@@ -1,0 +1,31 @@
+{
+  "cleanSource": "d77c83b8490a8dfeb170fd6bf05b28479b635e58",
+  "fixtureForward": "09d9bc6ab976d4ecb546038dace82965ce9ae354",
+  "cleanExportPreparation": [
+    "git archive d77c83b84 (excluding art/progress/sources)",
+    "node scripts/link-node-modules.mjs",
+    "pnpm gen",
+    "node scripts/check-graph.mjs --update (clean export only, matching centralized regeneration)",
+    "replace only the rifle lifetime fixture with committed09d9bc6ab"
+  ],
+  "fullCommand": "python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --maxWorkers=4",
+  "attempts": [
+    {
+      "result": "5253 passed, 1 stale rifle onUpdate expectation, 14 skipped",
+      "fix": "09d9bc6ab"
+    },
+    {
+      "result": "5254 passed, 14 skipped, exit1 due one Sun contract worker onUserConsoleLog teardown RPC error",
+      "focusedSunRerun": "6/6 pass, exit0"
+    },
+    {
+      "result": "5254 passed, 14 skipped, 910/910 files, no unhandled errors",
+      "exitCode": 0,
+      "seconds": 171.73
+    }
+  ],
+  "strict": "root + scripts green on d77 candidate",
+  "focused": "35 upload/factory/boot green; f9e scalar hot-path/lifetime25 green",
+  "lintAndGuards": "typed lint and private candidate precommit guards green",
+  "remainingGate": "coordinator serialized clean push gate and exact-SHA official boot smoke"
+}

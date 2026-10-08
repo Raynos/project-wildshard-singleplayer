@@ -1,0 +1,28 @@
+{
+  "pin": "d77c83b8490a8dfeb170fd6bf05b28479b635e58",
+  "build": {
+    "build": "d77c83b-muzq86wz",
+    "time": "2026-10-08T16:04:12.809Z"
+  },
+  "browser": "Playwright WebKit headless",
+  "viewport": {
+    "width": 390,
+    "height": 844,
+    "deviceScaleFactor": 2,
+    "mobile": true,
+    "touch": true
+  },
+  "muted": true,
+  "standaloneDeveloper": false,
+  "gridDeveloper": true,
+  "gridHarnessPins": {
+    "seed": 357,
+    "capture": null
+  },
+  "limitations": [
+    "Mac WebKit functional regression; no native memory, GPU crash-rate, fps or pixel-parity claim.",
+    "Grid source pose staged through the existing harness, then real fixed-step held movement crossed both seams.",
+    "The first grid driver refused because it lacked harness pins; no product failure was scored from that attempt.",
+    "Original a1c4 texture195 is not directly mapped by these traces; standalone bolt40 and tree73 are identified from actual texture asset labels."
+  ]
+}

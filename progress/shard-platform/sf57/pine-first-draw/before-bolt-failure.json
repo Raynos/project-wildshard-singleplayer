@@ -1,0 +1,40 @@
+{
+  "mode": "standalone",
+  "phases": {},
+  "elapsedMs": 6306,
+  "faults": [
+    "Game error report: {\"system\":\"shard-load\",\"message\":\"Error: Compressed texture 40 has no mipmaps and is not resident on this renderer {\\\"id\\\":40,\\\"name\\\":\\\"\\\",\\\"version\\\":2,\\\"signature\\\":\\\"1001,1001,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\\\",\\\"properties\\\":{\\\"__webglInit\\\":true,\\\"__cacheKey\\\":\\\"1000,1000,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\\\",\\\"__webglTexture\\\":{},\\\"__currentAnisotropy\\\":8,\\\"__version\\\":2},\\\"sourceVersion\\\":3,\\\"source\\\":{\\\"__version\\\":3},\\\"label\\\":{\\\"owner\\\":\\\"engine/ktx2Texture\\\",\\\"asset\\\":\\\"/assets/gpu/baked/pine-hollow/viewmodel/bolt.col-81cbdd\",\"stack\":\"@http://127.0.0.1:4407/assets/compressedUpload-Bo9JYLgW.js:1:1865\",\"count\":1,\"fatal\":true,\"disabled\":false,\"sinceBootMs\":6024,\"context\":{\"kind\":\"shard-load\",\"shard\":\"pine-hollow\",\"build\":\"d5ac76c-muzpihxk\",\"stage\":\"shaders\"}}",
+    "console: BOOT_FATAL: Pine Hollow could not loadBUILD d5ac76c-muzpihxk · STAGE shadersCompressed texture 40 has no mipmaps and is not resident on this renderer {\"id\":40,\"name\":\"\",\"version\":2,\"signature\":\"1001,1001,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"properties\":{\"__webglInit\":true,\"__cacheKey\":\"1000,1000,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"__webglTexture\":{},\"__currentAnisotropy\":8,\"__version\":2},\"sourceVersion\":3,\"source\":{\"__version\":3},\"label\":{\"owner\":\"engine/ktx2Texture\",\"asset\":\"/assets/gpu/baked/pine-hollow/viewmodel/bolt.col-81cbdd17.ktx2\"}}@http://127.0.0.1:4407/assets/compressedUpload-Bo9JYLgW.js:1:1865RELOAD {\"url\":\"web-inspector://bootstrap.js\",\"line\":46,\"column\":60,\"lineNumber\":46,\"columnNumber\":60}",
+    "HTTP 404: http://127.0.0.1:4407/api/errors",
+    "console: Failed to load resource: the server responded with a status of 404 (Not Found) {\"url\":\"http://127.0.0.1:4407/api/errors\",\"line\":0,\"column\":0,\"lineNumber\":0,\"columnNumber\":0}"
+  ],
+  "reports": [
+    {
+      "system": "shard-load",
+      "message": "Error: Compressed texture 40 has no mipmaps and is not resident on this renderer {\"id\":40,\"name\":\"\",\"version\":2,\"signature\":\"1001,1001,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"properties\":{\"__webglInit\":true,\"__cacheKey\":\"1000,1000,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"__webglTexture\":{},\"__currentAnisotropy\":8,\"__version\":2},\"sourceVersion\":3,\"source\":{\"__version\":3},\"label\":{\"owner\":\"engine/ktx2Texture\",\"asset\":\"/assets/gpu/baked/pine-hollow/viewmodel/bolt.col-81cbdd",
+      "stack": "@http://127.0.0.1:4407/assets/compressedUpload-Bo9JYLgW.js:1:1865",
+      "count": 1,
+      "fatal": true,
+      "disabled": false,
+      "sinceBootMs": 6024,
+      "context": {
+        "kind": "shard-load",
+        "shard": "pine-hollow",
+        "build": "d5ac76c-muzpihxk",
+        "stage": "shaders"
+      }
+    }
+  ],
+  "lifecycleReports": 0,
+  "gridNavigationObserved": false,
+  "error": "Error: Fatal boot: Pine Hollow could not loadBUILD d5ac76c-muzpihxk · STAGE shadersCompressed texture 40 has no mipmaps and is not resident on this renderer {\"id\":40,\"name\":\"\",\"version\":2,\"signature\":\"1001,1001,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"properties\":{\"__webglInit\":true,\"__cacheKey\":\"1000,1000,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"__webglTexture\":{},\"__currentAnisotropy\":8,\"__version\":2},\"sourceVersion\":3,\"source\":{\"__version\":3},\"label\":{\"owner\":\"engine/ktx2Texture\",\"asset\":\"/assets/gpu/baked/pine-hollow/viewmodel/bolt.col-81cbdd17.ktx2\"}}@http://127.0.0.1:4407/assets/compressedUpload-Bo9JYLgW.js:1:1865RELOAD",
+  "observation": {
+    "fatal": [
+      "Pine Hollow could not loadBUILD d5ac76c-muzpihxk · STAGE shadersCompressed texture 40 has no mipmaps and is not resident on this renderer {\"id\":40,\"name\":\"\",\"version\":2,\"signature\":\"1001,1001,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"properties\":{\"__webglInit\":true,\"__cacheKey\":\"1000,1000,0,1006,1008,8,,37808,1009,false,false,false,4,srgb\",\"__webglTexture\":{},\"__currentAnisotropy\":8,\"__version\":2},\"sourceVersion\":3,\"source\":{\"__version\":3},\"label\":{\"owner\":\"engine/ktx2Texture\",\"asset\":\"/assets/gpu/baked/pine-hollow/viewmodel/bolt.col-81cbdd17.ktx2\"}}@http://127.0.0.1:4407/assets/compressedUpload-Bo9JYLgW.js:1:1865RELOAD"
+    ],
+    "ready": false,
+    "frame": -1,
+    "shard": "",
+    "grid": null
+  }
+}
