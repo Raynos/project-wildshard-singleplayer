@@ -2,11 +2,13 @@
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { loadavg } from 'node:os';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { soakInspector } from '../soak/inspector.mjs';
 import { installSafariFixture } from './safari-fixture.mjs';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+const repeat = Number(arg('repeat') ?? 1);
 const udid = process.env.SIM_UDID, shard = arg('shard'), out = arg('out'), timeout = Number(arg('timeout') ?? 180) * 1000;
 if (!udid || !shard || !out) throw new Error('Requires SIM_UDID (sim-lane), --shard and --out');
 const names = { 'driftwood-isle': 'Driftwood Isle', 'nalati-grasslands': 'Nalati', 'pine-hollow': 'Pine Hollow', _template: 'Template shard', 'far-reach': 'Sky Reach', 'sunscar-dunes': 'Signal Dunes', 'nine-dragon-stack': 'Nine Dragon' };
@@ -57,8 +59,8 @@ for (const arm of arms) {
   const fixture = installSafariFixture(arm.dist); fixture.start(shard === '_template');
   try {
   for (const cache of ['cold', 'warm']) {
-    const result = { pin: arm.pin, shard, cache, status: 'failed', capturedAt: new Date().toISOString(), fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 }, protocolErrors: [], timeline: [], profiles: [], console: [] };
-    const file = resolvePath(out, `${arm.name}-${shard}-${cache}.json`);
+    const result = { pin: arm.pin, shard, cache, repeat, loadStart: loadavg(), status: 'failed', capturedAt: new Date().toISOString(), fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 }, protocolErrors: [], timeline: [], profiles: [], console: [] };
+    const file = resolvePath(out, `r${repeat}-${arm.name}-${shard}-${cache}.json`);
     try {
       if (cache === 'cold') {
         execFileSync('xcrun', ['simctl', 'openurl', udid, new URL('/version.json', arm.base).href]);
@@ -103,7 +105,7 @@ for (const arm of arms) {
       result.failure = String(error); console.error(result.failure);
       try { result.partial = JSON.parse(await inspector.evaluate(`JSON.stringify({ data: window.__sf67, href: location.href, diagnostics: document.querySelector('.ws-load')?.textContent ?? '' })`)); } catch { /* retain the original failure if its document is gone */ }
     }
-    finally { writeFileSync(file, JSON.stringify(result)); }
+    finally { result.loadEnd = loadavg(); writeFileSync(file, JSON.stringify(result)); }
     if (result.status !== 'ok') break; // preserve failed cold; do not call its retry warm
   }
   } finally {
@@ -117,5 +119,5 @@ for (const arm of arms) {
   closeInspector();
   proxy.kill('SIGTERM');
   try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* already closed */ }
-  writeFileSync(resolvePath(out, `${shard}-proxy.log`), proxyErrors.join(''));
+  writeFileSync(resolvePath(out, `r${repeat}-${shard}-proxy.log`), proxyErrors.join(''));
 }

@@ -2,6 +2,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
+import { loadavg } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { safariReport } from './safari-data.mjs';
 
@@ -20,14 +21,19 @@ const device = execFileSync('xcrun', ['simctl', 'create', `x5-sf67-${process.pid
 writeFileSync(resolvePath(out, 'device.json'), JSON.stringify({ device, runtime, createdBy: process.pid, createdAt: new Date().toISOString(), policy: 'one owned device, erased while shut down before each shard pair' }, null, 2));
 try {
   const shards = (arg('shards') ?? 'driftwood-isle,nalati-grasslands,_template,pine-hollow,far-reach,sunscar-dunes,nine-dragon-stack').split(',');
-  for (const [index, shard] of shards.entries()) {
+  const repeats = Number(arg('repeats') ?? 2);
+  if (!Number.isInteger(repeats) || repeats < 2 || repeats > 4) throw new Error('Requires two to four interleaved AB/BA pairs per shard');
+  const pairs = shards.flatMap(shard => Array.from({ length: repeats }, (_, repeat) => ({ shard, repeat: repeat + 1 })));
+  for (const [index, { shard, repeat }] of pairs.entries()) {
     if (index > 0) execFileSync('xcrun', ['simctl', 'erase', device]); // this exact UDID was created above, never a shared device
+    const startedAt = new Date().toISOString(), loadStart = loadavg();
     await new Promise((resolve, reject) => {
-      const child = spawn(`${root}/scripts/sim-lane.sh`, ['run', '--max', '15', device, process.execPath, `${root}/scripts/loading-benchmark/safari.mjs`, ...args, `--shard=${shard}`, `--order=${index % 2 ? 'after' : 'before'}`, `--out=${out}`], { stdio: 'inherit' });
+      const child = spawn(`${root}/scripts/sim-lane.sh`, ['run', '--max', '15', device, process.execPath, `${root}/scripts/loading-benchmark/safari.mjs`, ...args, `--shard=${shard}`, `--repeat=${repeat}`, `--order=${repeat % 2 === 0 ? 'after' : 'before'}`, `--out=${out}`], { stdio: 'inherit' });
       child.once('error', reject); child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Simulator pair exited ${code}`)));
     });
+    writeFileSync(resolvePath(out, `r${repeat}-${shard}-load.json`), JSON.stringify({ shard, repeat, order: repeat % 2 === 0 ? 'BA' : 'AB', startedAt, endedAt: new Date().toISOString(), loadStart, loadEnd: loadavg(), note: 'Load above 30 is flagged, not treated as a quiet or isolated pair.' }, null, 2));
   }
-  const captures = readdirSync(out).filter(name => /^(before|after)-.*-(cold|warm)\.json$/u.test(name)).map(name => { const capture = JSON.parse(readFileSync(resolvePath(out, name), 'utf8')); capture.arm = name.startsWith('before-') ? 'before' : 'after'; return capture; });
+  const captures = readdirSync(out).filter(name => /^r[1-4]-(before|after)-.*-(cold|warm)\.json$/u.test(name)).map(name => { const capture = JSON.parse(readFileSync(resolvePath(out, name), 'utf8')); capture.arm = name.includes('-before-') ? 'before' : 'after'; return capture; });
   for (const arm of ['before', 'after']) writeFileSync(resolvePath(out, `${arm}-report.json`), `${JSON.stringify(safariReport(arg(`${arm}-pin`), captures.filter(row => row.arm === arm)), null, 2)}\n`);
 } finally {
   // sim-lane completed/shut down this owned device. No shared Simulator or preview is stopped here.
