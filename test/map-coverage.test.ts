@@ -9,6 +9,13 @@ import { SHARDS } from '../src/shards.generated';
 import { toLevelSpec } from '../src/game/shard/spec';
 
 const root = `${import.meta.dirname}/..`;
+/** each shardfile project's parsed document (its shard.config.ts default export), keyed by slug */
+const CONFIGS = new Map<string, unknown>();
+for (const m of SHARDS) {
+  if (!existsSync(`${root}/src/shards/${m.slug}/shard.config.ts`)) continue;
+  const mod: unknown = await import(`../src/shards/${m.slug}/shard.config.ts`);
+  CONFIGS.set(m.slug, typeof mod === 'object' && mod !== null && 'default' in mod ? mod.default : undefined);
+}
 interface Listed { kind: 'place' | 'entry' | 'portal' | 'quest'; id: string; label: string; x: number; z: number }
 interface Stamp { image: string; metres: number }
 
@@ -16,10 +23,10 @@ interface Stamp { image: string; metres: number }
  *  portal) and its quest markers (region triggers) */
 function listed(slug: string, pois: readonly { id: string; name: string; x: number; z: number }[]): Listed[] {
   const out: Listed[] = pois.map((p) => ({ kind: 'place', id: p.id, label: p.name, x: p.x, z: p.z }));
-  const file = `${root}/public/shardfiles/${slug}/shard.json`;
-  if (!existsSync(file)) return out;
-  const shard: unknown = JSON.parse(readFileSync(file, 'utf8'));
-  if (typeof shard !== 'object' || shard === null) throw new Error(`${file}: not a shardfile`);
+  // the shard's own source document, not public/shardfiles (git-ignored build output the gate writes in parallel with vitest)
+  const shard: unknown = CONFIGS.get(slug);
+  if (shard === undefined) return out;
+  if (typeof shard !== 'object' || shard === null) throw new Error(`${slug}/shard.config.ts: not a shardfile`);
   const entryways: unknown = 'entryways' in shard ? shard.entryways : [];
   for (const e of Array.isArray(entryways) ? entryways : []) {
     const { at, edge } = e as { at: readonly number[]; edge: string; lift?: unknown; portal?: unknown };
