@@ -11,10 +11,12 @@
   sim-lane0/1 confirmed. Ownpreview4401/PID10061 stopped; load logger72038
   stopped. No browser/build/native remains owned. Scratch retained:
   /private/tmp/claude-501/sp-builders/sp-x3/sf57-e632fe913-retry.
-- Next authorized job: raw-only attribution of settled growth loop2→6: split
-  WebContent/labelledGL, linear-vs-plateau, per-leg contributions, SF64 owners
-  where recorded. No new run without coordinator approval. Renderer/texture
-  fix routes to Opus; JS retention fix may be owned with test after evidence.
+- Offline attribution complete: WC+197.150MB, GL+6.902MB; PMREM+6.881MB
+  routed coordinator/Opus, ~50.2MB/circuit total/no observed plateau. Raw has no
+  heap/SF64 CPU-owner census; JS-vs-native and exact large-growth leg remain
+  unproved. attribution/README.md +reproducer/JSON under same evidence dir.
+  Next: await approval for focused heap/owner/native-category discrimination;
+  do not start another run or patch renderer/texture lifetimes.
 - Sun floor2ed39b862 shipped:20/22 cadence rows pass/aggregateRED; exactreceipt
   progress/shard-platform/sf50-sun-floor-e632fe913.md. HOVER8f1918525+c932ce846
   shipped/touch4of4; Pine P0d77+f9e in e632. No source WIP or plan edits.

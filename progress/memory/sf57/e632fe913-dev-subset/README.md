@@ -96,3 +96,7 @@ All Safari/Inspector/native sampler lifetimes closed; sim-lane reported 0/1.
 Owned preview :4401 was stopped after capture, and the load logger was stopped.
 The coordinator received the explicit Simulator release. Next: attribute the
 settled growth offline from this raw evidence before requesting any new run.
+
+Offline follow-up: [settled-growth attribution](attribution/README.md) splits the
+204.052 MB rise into WC197.150 +labelled GL6.902 MB, identifies PMREM target
+accumulation, and states the unmeasured heap/native distinction explicitly.
