@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StrikeRunner } from '../../../src/engine/ai/strikes';
 import { App } from '../../../src/engine/app/app';
 import type { Actor } from '../../../src/engine/combat/pipeline';
@@ -51,7 +51,10 @@ const target = (health = 70): Actor => { const actor: Actor = { id: 'sunscar.tar
   applyDamage: (req) => { actor.attributes.health -= req.amount; return false; } }; return actor; };
 
 describe('Signal Dunes plugin contract', () => {
-  beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  // No asset server exists in Node: refuse network fetches at once, so a failed optional load settles inside its test instead of
+  // retrying localhost and logging after the worker has torn down (the EnvironmentTeardownError the push gate saw).
+  beforeEach(() => { localStorage.clear(); sessionStorage.clear(); vi.stubGlobal('fetch', () => Promise.reject(new TypeError('offline contract test: no asset server'))); });
+  afterEach(() => { vi.unstubAllGlobals(); });
   it('retains authored quest state while parked input and dusk callbacks disappear through two re-entries', async () => {
     const { app, plugin, fake, hooks } = await boot(true);
     if (hooks === null || plugin.places === null || app.levelScope === null) throw new Error('Missing retained Dunes context');
