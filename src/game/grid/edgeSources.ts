@@ -72,7 +72,12 @@ export async function readGridEdges(cell: GridCell, reader: GridEdgeReaderPorts)
   const product = reader.product(cell.slug);
   if (product !== null) {
     const lease = await product;
-    try { const source = lease.admitted.source; return { kind: 'declared', profiles: structuredClone(source.edge), observations: observe(source.entryways, water) }; }
+    try {
+      const source = lease.admitted.source;
+      // Admitting a product opens only its declared entries; it does not invent ground around a structures-only world.
+      const geometry = manifest?.ground.structures === true && manifest.ground.terrain === undefined ? 'void' : 'ground';
+      return { kind: 'declared', profiles: structuredClone(source.edge), observations: observe(source.entryways, water, geometry) };
+    }
     finally { lease.release?.(); }
   }
   const palette = manifest?.minimap?.palette?.ground;

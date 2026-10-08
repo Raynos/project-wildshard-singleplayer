@@ -2,7 +2,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node test resolves the public/ bake paths.
 import { join } from 'node:path';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
+import skySource from '../src/shards/far-reach/shard.config';
 import { generatePlatform } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { loadGridEdgeProfiles } from '../src/game/grid/edgeProfiles';
@@ -54,3 +55,16 @@ it('reads Sky Reach (islands over the void, no terrain) as void edges at road le
   if (source.kind !== 'declared') throw new Error('Sky Reach reads as declared rows');
   for (const row of Object.values(source.profiles)) { expect(row.heights).toHaveLength(256); expect(new Set(row.heights)).toEqual(new Set([0])); }
 }, 90_000); // the one 3 × 3 platform generation takes ~5 s alone and ~20 s under the full parallel suite
+
+it('keeps the declared Rising Islet product void outside its exact eight-metre midpoint entries', async () => {
+  const cell = new GridAssembly({ developer: true, devserver: false }).cells.find(row => row.slug === 'far-reach');
+  if (cell === undefined) throw new Error('Missing Sky Reach catalogue cell');
+  const release = vi.fn(), fetch = vi.fn(() => Promise.reject(new Error('A declared product has no terrain transport')));
+  const source = await readGridEdges(cell, { product: () => Promise.resolve({ admitted: { source: skySource }, release }), fetch });
+  expect(source.kind).toBe('declared');
+  expect(Object.values(source.observations).map(row => [row.geometry, row.entryWidth])).toEqual(Array.from({ length: 4 }, () => ['void', 8]));
+  if (source.kind !== 'declared') throw new Error('Declared product was not admitted');
+  expect(source.profiles).toEqual(skySource.edge);
+  expect(source.profiles).not.toBe(skySource.edge);
+  expect(release).toHaveBeenCalledOnce(); expect(fetch).not.toHaveBeenCalled();
+});
