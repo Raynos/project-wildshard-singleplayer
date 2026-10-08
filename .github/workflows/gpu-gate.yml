@@ -89,7 +89,7 @@ jobs:
           for i in $(seq 1 60); do curl -fsS http://127.0.0.1:4400/version.json && break; sleep 1; done
       - name: Parity (${{ matrix.shard }}, phone, ${{ matrix.mode }} ${{ matrix.part }})   # exactly one mode per job (R1-35)
         run: |
-          common="--lane=gh-macos15 --shards=${{ matrix.shard }} --tiers=phone --angle=${{ inputs.plant == 'metal-off' && 'swiftshader' || inputs.angle || 'metal' }} --out=parity-out"
+          common="--jobs=1 --lane=gh-macos15 --shards=${{ matrix.shard }} --tiers=phone --angle=${{ inputs.plant == 'metal-off' && 'swiftshader' || inputs.angle || 'metal' }} --out=parity-out"
           case "${{ matrix.mode }}" in
             prove)            node scripts/parity.mjs --prove --only=${{ matrix.part }} --export="$SHA" $common ;;   # one part per job (R2-32)
             record|bootstrap) node scripts/parity.mjs --url=http://127.0.0.1:4400 --record --runs=3 $common ;;   # writes test/parity/baselines/gh-macos15/<slug>.* (R2-33)
