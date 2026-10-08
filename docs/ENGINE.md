@@ -2303,7 +2303,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-696 exports, grouped by the module to import them from.
+697 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2387,7 +2387,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/groupBrains`: `groupBrainRules`, `GroupBrainSchema`, `HerdGroupSchema`, `PackGroupSchema`, `parseGroupBrain`, `ShardGroupBrain`, `ShardHerdGroup`, `ShardPackGroup`
 - `@wildshard/game/shardfile/groupRuntime`: `DeclaredGroupPolicy`, `DeclaredGroupPorts`, `DeclaredHerdRecipe`, `DeclaredPackRecipe`, `prepareDeclaredGroupBrains`, `PreparedGroupBrains`
 - `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `HybridHookTiming`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeOptions`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
-- `@wildshard/game/shardfile/hybridRows`: `bindRuntimeBoss`, `bindRuntimeCoins`, `bindRuntimeHomes`, `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `runtimeBinds`, `RuntimeBoss`, `RuntimeBossOptions`, `RuntimeCoins`, `RuntimeFacts`, `RuntimeHome`, `RuntimeHomePorts`, `RuntimeHomes`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `runtimeSpawnRows`, `withoutRuntimeRows`
+- `@wildshard/game/shardfile/hybridRows`: `bindRuntimeBoss`, `bindRuntimeCoins`, `bindRuntimeHomes`, `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `bindRuntimeState`, `runtimeBinds`, `RuntimeBoss`, `RuntimeBossOptions`, `RuntimeCoins`, `RuntimeFacts`, `RuntimeHome`, `RuntimeHomePorts`, `RuntimeHomes`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `runtimeSpawnRows`, `withoutRuntimeRows`
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `shardItemFamilies`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`

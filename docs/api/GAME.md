@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-696 members; 112 without a doc line (—).
+697 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -472,6 +472,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `bindRuntimeItems` | function | @wildshard/game/shardfile/hybridRows | Install the declared item rows inside a runtime's `buildEquipment`. A runtime-bound row carries no script hook (no |
 | `bindRuntimeLedger` | function | @wildshard/game/shardfile/hybridRows | Bind the declared ledger rules for a runtime that has no simulation host: each fact is stamped tick 0 and told apart by |
 | `bindRuntimeQuest` | function | @wildshard/game/shardfile/hybridRows | Build one declared quest's state over the runtime's flags, scoped to its play scope. The `onComplete` fact is emitted |
+| `bindRuntimeState` | function | @wildshard/game/shardfile/hybridRows | Bind one declared host state field; legacy scalar/JSON-string data migrates once, never written by the shard again. |
 | `runtimeBinds` | function | @wildshard/game/shardfile/hybridRows | The sections `source` declares its runtime binds; empty for a pure-data shard. |
 | `RuntimeBoss` | interface | @wildshard/game/shardfile/hybridRows | A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. |
 | `RuntimeBossOptions` | interface | @wildshard/game/shardfile/hybridRows | Boss identity policy for a runtime adopting spawn data without changing its existing save identities. |

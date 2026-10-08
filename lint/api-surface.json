@@ -16326,6 +16326,12 @@
         "from": "@wildshard/game/shardfile/hybridRows"
       },
       {
+        "name": "bindRuntimeState",
+        "kind": "function",
+        "doc": "Bind one declared host state field; legacy scalar/JSON-string data migrates once, never written by the shard again.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
         "name": "runtimeBinds",
         "kind": "function",
         "doc": "The sections `source` declares its runtime binds; empty for a pure-data shard.",
