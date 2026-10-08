@@ -133,7 +133,7 @@ it('waits for a late Safari API in the original document and refuses a changed d
 });
 
 
-it('accepts at most one millisecond of Safari origin quantization only with the original random document token', async () => {
+it('records Safari origin drift while requiring the original random document token', async () => {
   const plan = gridFloorPlans({ home: 'home', cells }, 'runtime-travel')[0];
   if (!plan) throw new Error('Missing route fixture');
   const current = state('home', 0, 230), pose = vi.fn();
@@ -145,8 +145,8 @@ it('accepts at most one millisecond of Safari origin quantization only with the 
     const identity = gridFloorDocumentIdentity();
     expect(identity.token.length).toBeGreaterThan(20);
     expect(gridFloorDocumentIdentity().token).toBe(identity.token);
-    for (const drift of [-1, 0, 1]) await expect(stageFloorGrid(plan, { ...identity, timeOrigin: performance.timeOrigin + drift })).resolves.toMatchObject({ inside: 'home' });
-    await expect(stageFloorGrid(plan, { ...identity, timeOrigin: performance.timeOrigin + 2 })).rejects.toThrow('document changed');
+    for (const drift of [-1000, -2, -1, 0, 1, 2, 1000]) await expect(stageFloorGrid(plan, { ...identity, timeOrigin: performance.timeOrigin + drift })).resolves.toMatchObject({ inside: 'home' });
+    expect(Reflect.get(page, '__frameFloorGridOriginDrift')).toMatchObject({ deltaMs: -1000, maximumAbsoluteMs: 1000 });
     page.__frameFloorGridDocumentToken = crypto.randomUUID();
     await expect(stageFloorGrid(plan, identity)).rejects.toThrow('document changed');
     page.__frameFloorGridDocumentToken = undefined;

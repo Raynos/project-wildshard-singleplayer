@@ -32,7 +32,7 @@ export function gridFloorPlans(state, scenario) {
   return plans;
 }
 
-/** Capture a document identity alongside Safari's millisecond-quantized time origin. */
+/** Capture a stable document identity; Safari time-origin drift is recorded, never mistaken for navigation. */
 export function gridFloorDocumentIdentity() {
   window.__frameFloorGridDocumentToken ??= crypto.randomUUID();
   return { timeOrigin: performance.timeOrigin, token: window.__frameFloorGridDocumentToken };
@@ -81,8 +81,12 @@ export function gridFloorRuntimeFailure(last, diagnostic) {
 export async function stageFloorGrid(plan, documentOrigin) {
   window.__frameFloorGridStop = { leg: plan.name, phase: 'source-admission', waypoint: null, target: plan.start ?? null };
   const deadline = performance.now() + 120000;
-  const sameDocument = () => typeof documentOrigin === 'number' ? performance.timeOrigin === documentOrigin
-    : window.__frameFloorGridDocumentToken === documentOrigin.token && Math.abs(performance.timeOrigin - documentOrigin.timeOrigin) <= 1;
+  const sameDocument = () => {
+    if (typeof documentOrigin === 'number') return performance.timeOrigin === documentOrigin;
+    const drift = performance.timeOrigin - documentOrigin.timeOrigin;
+    window.__frameFloorGridOriginDrift = { deltaMs: drift, maximumAbsoluteMs: Math.max(Math.abs(drift), window.__frameFloorGridOriginDrift?.maximumAbsoluteMs ?? 0) };
+    return window.__frameFloorGridDocumentToken === documentOrigin.token;
+  };
   const readApi = () => {
     if (!sameDocument()) throw new Error('Grid floor document changed (navigation or graphics recovery)');
     return window.__wildshard;
@@ -119,8 +123,12 @@ export async function stageFloorGrid(plan, documentOrigin) {
 export async function driveFloorGrid(plan, documentOrigin) {
   window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint: 0, target: plan.waypoints[0] ?? null };
   const api = window.__wildshard;
-  const sameDocument = () => typeof documentOrigin === 'number' ? performance.timeOrigin === documentOrigin
-    : window.__frameFloorGridDocumentToken === documentOrigin.token && Math.abs(performance.timeOrigin - documentOrigin.timeOrigin) <= 1;
+  const sameDocument = () => {
+    if (typeof documentOrigin === 'number') return performance.timeOrigin === documentOrigin;
+    const drift = performance.timeOrigin - documentOrigin.timeOrigin;
+    window.__frameFloorGridOriginDrift = { deltaMs: drift, maximumAbsoluteMs: Math.max(Math.abs(drift), window.__frameFloorGridOriginDrift?.maximumAbsoluteMs ?? 0) };
+    return window.__frameFloorGridDocumentToken === documentOrigin.token;
+  };
   if (!sameDocument() || !api?.world?.game || !api.shard?.grid) throw new Error('Grid floor lost its ready document before travel (navigation or graphics recovery)');
   const world = api.world, player = world.player, input = world.game.app.input;
   const read = () => {
