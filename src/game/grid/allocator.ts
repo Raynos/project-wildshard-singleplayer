@@ -16,7 +16,7 @@ import { contentCost, type ContentCostInput } from '@wildshard/engine/core/conte
 import { MemoryAdmission } from './memoryAdmission';
 
 /** The cost model's categories; `library` and `sim` map onto its plural fields. */
-export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'library' | 'sim' | 'commons' | 'product';
+export type ResidencyCategory = 'l0' | 'l1' | 'far' | 'library' | 'sim' | 'commons' | 'product' | 'page';
 /** One resident thing. `bytes` are its decoded + GPU resident bytes (MB = 10^6). */
 export interface ResidencyClaim {
   readonly id: string; readonly category: ResidencyCategory; readonly bytes: number;
@@ -26,6 +26,8 @@ export interface ResidencyClaim {
   readonly distance: number;
   /** the readiness model needs it now: never evicted */
   readonly needed: boolean;
+  /** Shared bytes already included in this live whole-runtime claim. Retirement makes them independently charged. */
+  readonly coveredBy?: string;
   /**
    * Two-phase eviction for claims with durability (sims): prepare does the fallible part and returns null when the claim
    * cannot go now; `commit` disposes it and must not fail; `abort` undoes the prepare and keeps it resident.
@@ -40,23 +42,23 @@ export interface ResidencyEviction { commit: () => void; abort: () => void }
 export interface ResidencyLease {
   readonly id: string;
   /** refresh the eviction inputs; the first holder's eviction callbacks stay */
-  update: (patch: { distance?: number; needed?: boolean }) => void;
+  update: (patch: { distance?: number; needed?: boolean; coveredBy?: string | null }) => void;
   /** protect the claim from eviction while a dependant (a fine child, an in-flight request) uses it; returns the unhold */
   hold: () => () => void;
   release: () => void;
 }
 /** A frozen row of the allocator's table, for traces and readouts. */
-export interface ResidencyEntry { readonly id: string; readonly category: ResidencyCategory; readonly bytes: number; readonly owner: string; readonly distance: number; readonly needed: boolean; readonly refs: number; readonly holds: number }
-interface Entry { id: string; category: ResidencyCategory; bytes: number; owner: string; distance: number; needed: boolean; prepare: (() => ResidencyEviction | null) | undefined; refs: number; holds: number; generation: number }
+export interface ResidencyEntry { readonly id: string; readonly category: ResidencyCategory; readonly bytes: number; readonly owner: string; readonly distance: number; readonly needed: boolean; readonly refs: number; readonly holds: number; readonly accountedBytes: number; readonly coveredBy?: string }
+interface Entry { id: string; category: ResidencyCategory; bytes: number; owner: string; distance: number; needed: boolean; prepare: (() => ResidencyEviction | null) | undefined; refs: number; holds: number; generation: number; coveredBy: string | undefined; baseCredit: number }
 
-const field = { l0: 'l0', l1: 'l1', far: 'far', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products' } as const;
+const field = { l0: 'l0', l1: 'l1', far: 'far', library: 'libraries', sim: 'sims', commons: 'commons', product: 'products', page: 'page' } as const;
 
 /** One allocator per grid session. `playing` defaults to the §3.2 envelope (1.0 GB, G65). */
 export class ResidencyAllocator {
   /** G216: the page's trusted Developer policy; omitted callers retain strict admission. */
   readonly memory: MemoryAdmission;
   private readonly entries_ = new Map<string, Entry>();
-  private readonly totals: Record<ResidencyCategory, number> = { l0: 0, l1: 0, far: 0, library: 0, sim: 0, commons: 0, product: 0 };
+  
   private readonly playing: number;
   private generation = 0;
   private evicting = false;
@@ -67,21 +69,32 @@ export class ResidencyAllocator {
   }
 
   /** Admit a claim, or share one already held under the same id; null when it cannot fit even after eviction. */
-  reserve(claim: ResidencyClaim): ResidencyLease | null {
+  reserve(claim: ResidencyClaim): ResidencyLease | null { return this.reserveClaim(claim, 0); }
+
+  /** Split an evidenced renderer component out of the fixed engine baseline. Only the calibrated credit is removed;
+   * larger current allocations increase the envelope, and the component remains a visible page-owned claim. */
+  reservePageComponent(id: string, bytes: number, calibratedCredit: number): ResidencyLease | null {
+    if (!Number.isSafeInteger(calibratedCredit) || calibratedCredit < 0 || calibratedCredit > CONTENT_CAPS.engineBase) throw new RangeError('Invalid engine calibration');
+    return this.reserveClaim({ id, category: 'page', bytes, owner: 'platform', needed: true, distance: 0 }, Math.min(bytes, calibratedCredit));
+  }
+
+  private reserveClaim(claim: ResidencyClaim, baseCredit: number): ResidencyLease | null {
     if (claim.id.length === 0 || claim.owner.length === 0 || !Number.isSafeInteger(claim.bytes) || claim.bytes < 0 || !Number.isFinite(claim.distance) || claim.distance < 0) throw new RangeError('Invalid residency claim');
     if (claim.prepareEvict !== undefined && claim.evictSync !== undefined) throw new Error('A residency claim evicts in one phase or two, not both');
     if (this.evicting) throw new Error('Residency claims cannot be made from an evict callback');
+    this.validateCoverage(claim.id, claim.category, claim.bytes, claim.coveredBy);
     const existing = this.entries_.get(claim.id);
     if (existing !== undefined) {
-      if (existing.category !== claim.category || existing.bytes !== claim.bytes) throw new Error(`Residency claim ${claim.id} changed shape`);
+      if (existing.category !== claim.category || existing.bytes !== claim.bytes || existing.baseCredit !== baseCredit) throw new Error(`Residency claim ${claim.id} changed shape`);
       existing.refs++; existing.needed ||= claim.needed; existing.distance = Math.min(existing.distance, claim.distance);
       return this.lease(existing);
     }
-    if (!this.fits(claim.category, claim.bytes)) {
+    const extra = { ...claim, baseCredit };
+    if (!this.fits(extra)) {
       this.evicting = true;
       try {
-        if (!this.evictFor(claim.category, claim.bytes)) {
-          const input = this.input(claim), cost = contentCost(input);
+        if (!this.evictFor(extra)) {
+          const input = this.input(extra), cost = contentCost(input);
           if (!this.memory.accept({ stage: 'resident', owner: claim.owner, id: claim.id, claimedBytes: claim.bytes,
             accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
             playingCap: this.playing, categories: input })) return null;
@@ -90,8 +103,8 @@ export class ResidencyAllocator {
     }
     const sync = claim.evictSync;
     const prepare = claim.prepareEvict ?? (sync === undefined ? undefined : (): ResidencyEviction => ({ commit: sync, abort: () => undefined }));
-    const entry: Entry = { id: claim.id, category: claim.category, bytes: claim.bytes, owner: claim.owner, distance: claim.distance, needed: claim.needed, prepare, refs: 1, holds: 0, generation: ++this.generation };
-    this.entries_.set(entry.id, entry); this.totals[entry.category] += entry.bytes;
+    const entry: Entry = { id: claim.id, category: claim.category, bytes: claim.bytes, owner: claim.owner, distance: claim.distance, needed: claim.needed, prepare, refs: 1, holds: 0, generation: ++this.generation, coveredBy: claim.coveredBy, baseCredit };
+    this.entries_.set(entry.id, entry);
     return this.lease(entry);
   }
 
@@ -102,38 +115,58 @@ export class ResidencyAllocator {
 
   /** The table in id order (deterministic traces). */
   entries(): readonly ResidencyEntry[] {
-    return [...this.entries_.values()].sort((a, b) => a.id.localeCompare(b.id)).map((e) => Object.freeze({ id: e.id, category: e.category, bytes: e.bytes, owner: e.owner, distance: e.distance, needed: e.needed, refs: e.refs, holds: e.holds }));
+    return [...this.entries_.values()].sort((a, b) => a.id.localeCompare(b.id)).map((e) => Object.freeze({ id: e.id, category: e.category, bytes: e.bytes, owner: e.owner, distance: e.distance, needed: e.needed, refs: e.refs, holds: e.holds, accountedBytes: this.effectiveBytes(e), ...(e.coveredBy === undefined ? {} : { coveredBy: e.coveredBy }) }));
   }
 
   /** True while the id is resident (held by at least one lease). */
   has(id: string): boolean { return this.entries_.has(id); }
 
-  private input(extra?: { category: ResidencyCategory; bytes: number }): ContentCostInput {
-    const t = { ...this.totals }; if (extra !== undefined) t[extra.category] += extra.bytes;
-    const input: ContentCostInput = { l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, overlap: CONTENT_CAPS.overlap };
-    for (const category of Object.keys(field) as ResidencyCategory[]) input[field[category]] = t[category];
+  private effectiveBytes(entry: { bytes: number; coveredBy?: string | undefined }, omitted: ReadonlySet<string> = new Set()): number {
+    return entry.coveredBy !== undefined && !omitted.has(entry.coveredBy) && this.entries_.has(entry.coveredBy) ? 0 : entry.bytes;
+  }
+  private validateCoverage(id: string, category: ResidencyCategory, bytes: number, covering: string | undefined): void {
+    if (covering === undefined) return;
+    const parent = this.entries_.get(covering);
+    if (category !== 'commons' || parent?.category !== 'sim' || parent.coveredBy !== undefined || id === covering) throw new Error('Invalid runtime cache coverage');
+    const others = [...this.entries_.values()].filter(e => e.id !== id && e.coveredBy === covering).reduce((sum, e) => sum + e.bytes, 0);
+    if (others + bytes > parent.bytes) throw new Error('Runtime cache coverage exceeds its measured bytes');
+  }
+  private input(extra?: ResidencyClaim & { baseCredit: number }, omitted: ReadonlySet<string> = new Set()): ContentCostInput {
+    const input: ContentCostInput = { l0: 0, l1: 0, far: 0, libraries: 0, sims: 0, commons: 0, products: 0, overlap: CONTENT_CAPS.overlap };
+    let credit = 0, page = 0;
+    for (const e of this.entries_.values()) {
+      if (omitted.has(e.id)) continue;
+      if (e.category === 'page') { page += e.bytes; credit += e.baseCredit; }
+      else { const key = field[e.category]; input[key] = (input[key] ?? 0) + this.effectiveBytes(e, omitted); }
+    }
+    if (extra !== undefined) {
+      if (extra.category === 'page') { page += extra.bytes; credit += extra.baseCredit; }
+      else { const key = field[extra.category]; input[key] = (input[key] ?? 0) + this.effectiveBytes(extra, omitted); }
+    }
+    if (credit > CONTENT_CAPS.engineBase) throw new Error('Page calibration exceeds the engine baseline');
+    if (page > 0) { input.page = page; input.engineBase = CONTENT_CAPS.engineBase - credit; }
     return input;
   }
-  private fits(category: ResidencyCategory, bytes: number): boolean { return contentCost(this.input({ category, bytes })).playing <= this.playing; }
+  private fits(extra: ResidencyClaim & { baseCredit: number }): boolean { return contentCost(this.input(extra)).playing <= this.playing; }
   /**
    * Prepare unneeded, unheld claims farthest-first until the prepared bytes make room; commit them all, or abort them all
    * and evict nothing. Returns whether the claim now fits.
    */
-  private evictFor(category: ResidencyCategory, bytes: number): boolean {
+  private evictFor(extra: ResidencyClaim & { baseCredit: number }): boolean {
     const candidates = [...this.entries_.values()].filter((e) => !e.needed && e.holds === 0 && e.prepare !== undefined).sort((a, b) => b.distance - a.distance || a.id.localeCompare(b.id));
-    const prepared: { entry: Entry; eviction: ResidencyEviction }[] = []; let freed = 0, enough = false;
+    const prepared: { entry: Entry; eviction: ResidencyEviction }[] = []; const omitted = new Set<string>(); let enough = false;
     for (const entry of candidates) {
       const eviction = entry.prepare?.() ?? null; if (eviction === null) continue;
-      prepared.push({ entry, eviction }); freed += entry.bytes;
-      if (contentCost(this.input({ category, bytes: bytes - freed })).playing <= this.playing) { enough = true; break; }
+      prepared.push({ entry, eviction }); omitted.add(entry.id);
+      if (contentCost(this.input(extra, omitted)).playing <= this.playing) { enough = true; break; }
     }
     if (!enough) { for (const { eviction } of prepared.reverse()) eviction.abort(); return false; }
     for (const { entry, eviction } of prepared) { this.drop(entry); eviction.commit(); }
-    return this.fits(category, bytes);
+    return this.fits(extra);
   }
   private drop(entry: Entry): void {
     if (this.entries_.get(entry.id) !== entry) return;
-    this.entries_.delete(entry.id); this.totals[entry.category] -= entry.bytes;
+    this.entries_.delete(entry.id);
     this.memory.syncResidents(new Set(this.entries_.keys()), this.cost());
   }
   private lease(entry: Entry): ResidencyLease {
@@ -141,9 +174,14 @@ export class ResidencyAllocator {
     const live = (): boolean => !released && this.entries_.get(entry.id) === entry;
     return Object.freeze({
       id: entry.id,
-      update: (patch: { distance?: number; needed?: boolean }): void => {
+      update: (patch: { distance?: number; needed?: boolean; coveredBy?: string | null }): void => {
         if (!live()) return;
         if (patch.distance !== undefined) { if (!Number.isFinite(patch.distance) || patch.distance < 0) throw new RangeError('Invalid residency distance'); entry.distance = patch.distance; }
+        if (patch.coveredBy !== undefined) {
+          const covering = patch.coveredBy ?? undefined;
+          this.validateCoverage(entry.id, entry.category, entry.bytes, covering);
+          entry.coveredBy = covering;
+        }
         if (patch.needed !== undefined) entry.needed = patch.needed;
       },
       hold: (): (() => void) => {

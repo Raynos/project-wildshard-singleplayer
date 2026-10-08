@@ -78,6 +78,7 @@ export const SHARD_BUDGET = CONTENT_CAPS.library.resident + CONTENT_CAPS.sim.res
 
 const zero = (): Record<BudgetCategory, number> => ({ library: 0, l0: 0, l1: 0, sim: 0, road: 0, far: 0, commons: 0, product: 0 });
 function categoryOf(entry: ResidencyEntry): BudgetCategory {
+  if (entry.category === 'page') return 'commons';
   return entry.owner === PLATFORM_OWNER && (entry.category === 'l0' || entry.category === 'l1') ? 'road' : entry.category;
 }
 
@@ -89,7 +90,7 @@ export function budgetPoints(input: BudgetPointsInput): BudgetPoints {
     const category = categoryOf(entry);
     let owned = byOwner.get(entry.owner);
     if (owned === undefined) { owned = zero(); byOwner.set(entry.owner, owned); }
-    owned[category] += entry.bytes; crossroads[category] += entry.bytes;
+    owned[category] += entry.accountedBytes; crossroads[category] += entry.accountedBytes;
     if (category === 'l0' || category === 'l1' || category === 'far') {
       const budget = TILE_CAP[category], score = points(entry.bytes, budget);
       tiles.push({ id: entry.id, owner: entry.owner, level: category, bytes: entry.bytes, budget, points: score, tone: tone(score) });
@@ -109,7 +110,7 @@ export function budgetPoints(input: BudgetPointsInput): BudgetPoints {
   const { playing, loading, accounted } = input.cost;
   const score = points(playing, CONTENT_CAPS.playing), loadingScore = points(loading, CONTENT_CAPS.loading);
   return {
-    crossroads: { bytes: Object.freeze(crossroads), accounted, engineBase: CONTENT_CAPS.engineBase, overlap: input.cost.input.overlap,
+    crossroads: { bytes: Object.freeze(crossroads), accounted, engineBase: input.cost.input.engineBase ?? CONTENT_CAPS.engineBase, overlap: input.cost.input.overlap,
       residentFactor: CONTENT_CAPS.residentFactor, playing, playingCap: CONTENT_CAPS.playing, points: score, tone: tone(score),
       loading, loadingCap: CONTENT_CAPS.loading, loadingPoints: loadingScore, loadingTone: tone(loadingScore) },
     shards, tiles,
