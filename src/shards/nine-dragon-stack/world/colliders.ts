@@ -45,6 +45,16 @@ export function northStreetFloor(x: number, z: number): number | undefined {
   return x >= STREET.x0 && x <= STREET.x1 && z >= STREET.z0 && z < STREET_END - 1 ? Y0 : undefined;
 }
 
+/**
+ * SF8c: the north street's floor and its drawn end beside and over the lift's door, exactly as fragmentColliders installs
+ * them with the entries on (shard.config.ts declares them as the lift's onward ground at the top)
+ */
+export function northStreetEnd(north: NorthStreet): { floor: ColliderDesc; end: ColliderDesc[] } {
+  const top = Y0 + WALL_H, end = [span(north.door[1], Y0, STREET.z0 - 1, STREET.x1, top, STREET.z0), span(STREET.x0, Y0 + 3.4, STREET.z0 - 1, north.door[1], top, STREET.z0)];
+  if (north.door[0] > STREET.x0) end.push(span(STREET.x0, Y0, STREET.z0 - 1, north.door[0], top, STREET.z0));
+  return { floor: span(STREET.x0, Y0 - SLAB, STREET.z0, STREET.x1, Y0, PLAZA.z0), end };
+}
+
 export function fragmentColliders(north?: NorthStreet): FragmentColliders {
   const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [];
   let out = floors;
@@ -52,7 +62,7 @@ export function fragmentColliders(north?: NorthStreet): FragmentColliders {
   out.push(span(PLAZA.x0, Y0 - SLAB, PLAZA.z0, PLAZA.x1 + 0.6, Y0, PLAZA.z1 + 0.6));                  // the square
   // (carried on, the street's slab ends at its drawn end, 5 cm short of the docked cage's floor, flush with it)
   const streetEnd = north === undefined ? STREET_END - 1 : STREET.z0;
-  out.push(span(STREET.x0, Y0 - SLAB, streetEnd, STREET.x1, Y0, PLAZA.z0));                            // the street north
+  out.push(north === undefined ? span(STREET.x0, Y0 - SLAB, streetEnd, STREET.x1, Y0, PLAZA.z0) : northStreetEnd(north).floor); // the street north
   // the stair starts at the square's east edge (STAIR.x0 = PLAZA.x1): its first tread sits on the square's slab
   // dome D's stair-street (stairstreet.ts): 3 flights × 20 treads, two landings (the paifang's post bases on landing 2
   // are the paifang model's, E346)
@@ -73,9 +83,7 @@ export function fragmentColliders(north?: NorthStreet): FragmentColliders {
   if (north === undefined) out.push(span(STREET.x0, Y0, STREET_END - 2, STREET.x1, top, STREET_END - 1)); // the fragment's end
   else {
     // the street's drawn end, beside and over the lift's door (SF51-p)
-    out.push(span(north.door[1], Y0, STREET.z0 - 1, STREET.x1, top, STREET.z0));
-    out.push(span(STREET.x0, Y0 + 3.4, STREET.z0 - 1, north.door[1], top, STREET.z0));
-    if (north.door[0] > STREET.x0) out.push(span(STREET.x0, Y0, STREET.z0 - 1, north.door[0], top, STREET.z0));
+    out.push(...northStreetEnd(north).end);
   }
   // ── the stair-street's walls and its top ──
   out.push(span(PLAZA.x1 + 0.6, Y0 - 1, STAIR.z0 - DEEP, STAIR_TOP.x1, STAIR_TOP.y + WALL_H, STAIR.z0));

@@ -4,7 +4,7 @@
 // asphalt socket lies on it flat, clear and dry. Low stone parapets stand just outside the 8 m opening (the canonical side
 // walls the footprint admits), and a stone end wall with a cinnabar band closes each deck: the climb to Lantern Square is
 // SF51-p content. Default off behind pause ▸ Settings ▸ Debug ▸ Nine Dragon entries (`nineDragonEntries`, debug.ts).
-import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
+import { ENTRY_ASPHALT, ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { ShardCube } from '@wildshard/game/shard/context';
 import { SURF } from '../look/paint';
@@ -98,6 +98,19 @@ const box = (b: ReturnType<typeof inFrame>): ColliderDesc => ({ kind: 'box', x: 
 export function entryDeckColliders(caps = false): ColliderDesc[] {
   const cap = (f: Frame): ColliderDesc[] => { if (!caps || !capped(f)) return []; const c = capParts(f); return [box(c.rail), box(c.pedestal), ...c.pillars.map(box)]; };
   return [...FRAMES.flatMap((f) => { const p = parts(f); return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box), ...cap(f)]; }), ...LIFTS.flatMap(liftColliders)];
+}
+
+/**
+ * SF8c: the collision of the deck a lift starts from, from a metre inside the socket's inner line to its end wall (the
+ * slab, the parapets, the end wall with the door's flush threshold), the same boxes entryDeckColliders installs cut short
+ * there: shard.config.ts declares them as the lift's static approach (the platform's socket covers the rest of the deck,
+ * and a shardfile collider stays clear of the cell's edge).
+ */
+export function liftDeckColliders(l: Lift): ColliderDesc[] {
+  const f = FRAMES.find((row) => liftOf(row) === l); if (f === undefined) throw new Error(`No landing deck under ${l.id}`);
+  const h = ENTRY_WIDTH / 2, a0 = ENTRY_ASPHALT - 1, p = parts(f);
+  return [box(inFrame(f, a0, DECK_DEPTH, -h - RAIL_T, h + RAIL_T, -SLAB, 0)), box(inFrame(f, a0, DECK_DEPTH, -h - RAIL_T, -h, 0, RAIL_H)),
+    box(inFrame(f, a0, DECK_DEPTH, h, h + RAIL_T, 0, RAIL_H)), ...p.walls.map(box)];
 }
 
 /** the floor on a deck (placement, footsteps), else undefined */

@@ -3,11 +3,16 @@
 // - in the resting cage: "Ride the lift up / down" (action 1, to the other end);
 // - on the deck before the door while the cage is up: "Call the lift" (action 2);
 // - in the street before the door while the cage is down: "Call the lift" (action 3).
-// A lift's four rows (cage, gates, deck door, street door) always get the same command, so they move as one.
+// A lift's five rows (cage, gates, deck door, street door, road gate) always get the same command, so they move as one:
+// SF8c, the cage and its road gate (the shardfile's socketLift rows) through the platform's commandSocketLift, the other
+// three (the trusted runtime's) alongside. The road gate is drawn while it collides (the cage is away from the deck).
 import { Vector3 } from 'three';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
+import { commandSocketLift } from '@wildshard/game/shardfile/socketLiftProof';
+import type { SocketLift } from '@wildshard/game/shardfile/socketLift';
+import source from '../shard.config';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { liftMoverViews } from '../runtime/movers';
 import type { NineDragonWorld } from './build';
@@ -16,8 +21,10 @@ import { ALONG, CAGE, LIFTS, frameXZ, liftBottom, liftTop } from './liftPlan';
 
 /** a prompt's reach (m), from the eye */
 const REACH = 2.6, CALL_REACH = 3.2;
-/** the four rows a lift's command goes to */
-const rows = (id: string): string[] => [id, `${id}.gates`, `${id}.deck-door`, `${id}.street-door`];
+/** the trusted rows a lift's command goes to beside its socketLift pair (the cage and its road gate) */
+const rows = (id: string): string[] => [`${id}.gates`, `${id}.deck-door`, `${id}.street-door`];
+/** SF8c: each lift's declared socketLift link by its cage's mover id (shard.config.ts) */
+const links = new Map<string, SocketLift>(source.entryways.flatMap((row) => (row.kind === 'socketLift' && row.lift !== undefined ? [[row.lift.mover, row.lift] as const] : [])));
 
 /** a lift's published state: the cage's progress 0..1 and whether it is moving */
 export interface LiftState { readonly s: number; readonly moving: boolean; readonly at: { x: number; y: number; z: number } }
@@ -27,7 +34,7 @@ export interface Lifts { readonly movers: MoverRuntime; state: (id: string) => L
 
 /** install the lifts' movers, prompts and cage poses for this session (only with Debug ▸ Nine Dragon entries on) */
 export async function installLifts(ctx: ShardContext, world: World, interactables: Interactable[], built: NonNullable<NineDragonWorld['lifts']>): Promise<Lifts> {
-  const cages = built.cages;
+  const cages = built.cages, gates = built.gates;
   let alive = true;
   const prompts: Interactable[] = [];
   // the platform disposes the movers with the session's scope; the prompts leave the session's list with them
@@ -35,7 +42,12 @@ export async function installLifts(ctx: ShardContext, world: World, interactable
     alive = false; built.view = null;
     for (const p of prompts) { const i = interactables.indexOf(p); if (i !== -1) interactables.splice(i, 1); }
   }));
-  const command = (id: string, action: 1 | 2 | 3): void => { if (alive) for (const row of rows(id)) movers.command(row, action); };
+  const command = (id: string, action: 1 | 2 | 3): void => {
+    if (!alive) return;
+    const link = links.get(id); if (link === undefined) throw new Error(`Lantern lift ${id} has no socketLift entry`);
+    commandSocketLift(movers, link, action);
+    for (const row of rows(id)) movers.command(row, action);
+  };
   const state = (id: string): LiftState => {
     const pose = movers.pose(id);
     return { s: liftProgress(pose.position.y, id), moving: movingOf(movers, id), at: pose.position };
@@ -47,7 +59,7 @@ export async function installLifts(ctx: ShardContext, world: World, interactable
     const callDown: Interactable = { label: STRINGS['lift.call'], position: new Vector3(dx, liftBottom(l).y + 1.4, dz), radius: 0, onInteract: () => { command(l.id, 2); } };
     const callUp: Interactable = { label: STRINGS['lift.call'], position: new Vector3(sx, liftTop(l).y + 1.4, sz), radius: 0, onInteract: () => { command(l.id, 3); } };
     prompts.push(ride, callDown, callUp);
-    return [{ id: l.id, cage, ride, callDown, callUp }];
+    return [{ id: l.id, cage, gate: gates.get(l.id), gateId: links.get(l.id)?.gate, ride, callDown, callUp }];
   });
   interactables.push(...prompts);
   // the world's own per-frame update runs the view (world/build.ts `update`)
@@ -56,6 +68,7 @@ export async function installLifts(ctx: ShardContext, world: World, interactable
     for (const v of views) {
       const p = movers.pose(v.id).position, st = state(v.id), up = !st.moving && st.s >= 1, down = !st.moving && st.s <= 0;
       v.cage.position.set(p.x, p.y, p.z);
+      if (v.gate !== undefined && v.gateId !== undefined) v.gate.visible = movers.pose(v.gateId).enabled;
       v.ride.position.set(p.x, p.y + 1.3, p.z); v.ride.radius = st.moving ? 0 : REACH; v.ride.label = up ? STRINGS['lift.down'] : STRINGS['lift.up'];
       v.callDown.radius = up ? CALL_REACH : 0; v.callUp.radius = down ? CALL_REACH : 0;
     }

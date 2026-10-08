@@ -5,7 +5,7 @@ export const MOVERS: MoverData = [
   {
     "id": "nd.lift.n",
     "entity": 9001,
-    "module": "2d64743636ae029714cc6aacb8874029e76dd38850c444b4e3a409c4908ff147",
+    "module": "734a577c8466d8bac0530cdef2929cc00e9ddd9120a453d0b0b4576e336b5cda",
     "kind": "platform",
     "at": {
       "x": 2.4,
@@ -84,13 +84,14 @@ export const MOVERS: MoverData = [
       125,
       -231.6,
       16,
-      0
+      0,
+      6
     ]
   },
   {
     "id": "nd.lift.n.gates",
     "entity": 9002,
-    "module": "2d64743636ae029714cc6aacb8874029e76dd38850c444b4e3a409c4908ff147",
+    "module": "734a577c8466d8bac0530cdef2929cc00e9ddd9120a453d0b0b4576e336b5cda",
     "kind": "platform",
     "at": {
       "x": 2.4,
@@ -141,13 +142,14 @@ export const MOVERS: MoverData = [
       125,
       -231.6,
       16,
-      1
+      1,
+      6
     ]
   },
   {
     "id": "nd.lift.n.deck-door",
     "entity": 9003,
-    "module": "2d64743636ae029714cc6aacb8874029e76dd38850c444b4e3a409c4908ff147",
+    "module": "734a577c8466d8bac0530cdef2929cc00e9ddd9120a453d0b0b4576e336b5cda",
     "kind": "static",
     "at": {
       "x": 2.4,
@@ -184,13 +186,14 @@ export const MOVERS: MoverData = [
       0,
       -231.6,
       16,
-      2
+      2,
+      6
     ]
   },
   {
     "id": "nd.lift.n.street-door",
     "entity": 9004,
-    "module": "2d64743636ae029714cc6aacb8874029e76dd38850c444b4e3a409c4908ff147",
+    "module": "734a577c8466d8bac0530cdef2929cc00e9ddd9120a453d0b0b4576e336b5cda",
     "kind": "static",
     "at": {
       "x": 2.4,
@@ -227,7 +230,52 @@ export const MOVERS: MoverData = [
       125,
       -231.6,
       16,
-      3
+      3,
+      6
+    ]
+  },
+  {
+    "id": "nd.lift.n.road-gate",
+    "entity": 9005,
+    "module": "734a577c8466d8bac0530cdef2929cc00e9ddd9120a453d0b0b4576e336b5cda",
+    "kind": "static",
+    "at": {
+      "x": 0,
+      "y": 1.1,
+      "z": -234.9
+    },
+    "euler": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "enabled": false,
+    "boxes": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "hx": 4.3,
+        "hy": 1.1,
+        "hz": 0.1,
+        "rot": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 1
+        }
+      }
+    ],
+    "input": [
+      0,
+      1.1,
+      -234.9,
+      0,
+      1.1,
+      -234.9,
+      16,
+      2,
+      6
     ]
   }
 ];

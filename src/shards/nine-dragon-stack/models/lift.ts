@@ -6,7 +6,7 @@
  */
 import type { BufferGeometry } from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { cageKit, chainLinkKit, frameKit } from '../world/lifts';
+import { cageKit, chainLinkKit, frameKit, roadGateKit } from '../world/lifts';
 import { ndLook, need } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/lift.ts';
@@ -30,4 +30,10 @@ export const liftFrame = defineModel({
 export const liftChain = defineModel({
   id: 'nine-dragon-stack/lift-chain', name: 'Lantern lift chain link', category: 'props', pipeline: 'code', file: FILE, defaults: {},
   build: (ctx) => set(ctx, 'lift-chain', () => chainLinkKit().build()),
+});
+
+/** SF8c: the stationary road gate (one object per lift, shown while its mover collides: the cage is away from the deck) */
+export const liftRoadGate = defineModel({
+  id: 'nine-dragon-stack/lift-road-gate', name: 'Lantern lift road gate', category: 'props', pipeline: 'code', file: FILE, defaults: {},
+  build: (ctx) => [{ geometry: ctx.once('nds:lift:road-gate', () => roadGateKit().build()), material: need(ndLook(ctx).mat, 'the Jiehua program') }],
 });

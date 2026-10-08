@@ -11,7 +11,7 @@ import type { Ctx } from './ctx';
 import { K, Kit, type Look } from './kit';
 import { placeSet } from './props3d';
 import { hipRoof } from './square';
-import { ALONG, CAGE, CAGE_H, CHAIN_X, FRAME_STEP, LIFTS, LINK, POST, frameXZ, liftBottom, liftYaw } from './liftPlan';
+import { ALONG, CAGE, CAGE_H, CHAIN_X, FRAME_STEP, LIFTS, LINK, POST, ROAD_GATE, frameXZ, liftBottom, liftYaw } from './liftPlan';
 
 // ── the look: the shard's lacquered timber, bronze, stone and green glazed tiles ──
 const LACQUER: Look = { wash: 0x7e2419, line: 1, accent: true, gloss: true, surf: SURF.lacquer };
@@ -46,6 +46,20 @@ export function cageKit(): Kit {
   for (const sz of [-1, 1]) { k.box(0, CAGE_H - 0.18, sz * w, 2 * w, 0.18, 0.08, GOLD); k.box(0, 0, sz * w, 2 * w, 0.04, 0.1, GOLD); }
   k.box(0, CAGE_H - 0.12, 0, 0.6, 0.12, 0.6, LAMP);
   for (const sx of [-1, 1]) { k.box(sx * CHAIN_X, CAGE_H - 0.1, 0, 0.3, 0.5, 0.16, BRONZE_DK); k.box(sx * (CHAIN_X - 0.1), CAGE_H + 0.1, 0, 0.3, 0.12, 0.3, BRONZE_DK); }
+  return k;
+}
+
+/**
+ * SF8c: the stationary road gate in its own frame (feet at y = 0, across x, its road face toward −z): a lacquered
+ * lattice gate across the socket's inner line, end posts on the parapets, three rails and bronze bars, a gold top band.
+ * Shown only while its mover collides (the cage is away from the deck).
+ */
+export function roadGateKit(): Kit {
+  const k = new Kit(), w = ROAD_GATE.width / 2, d = ROAD_GATE.depth, h = ROAD_GATE.height;
+  for (const sx of [-1, 1]) k.box(sx * (w - 0.15), 0, 0, 0.3, h + 0.2, d + 0.1, LACQUER);
+  for (const y of [0.1, 1.05, h - 0.2]) k.box(0, y, 0, 2 * w - 0.3, y === 0.1 ? 0.14 : 0.18, d, y === 1.05 ? LACQUER : LACQUER_DK);
+  for (let i = 1; i < 16; i++) k.box(-w + 0.15 + ((2 * w - 0.3) * i) / 16, 0.24, 0, 0.05, h - 0.44, 0.05, BRONZE_DK);
+  k.box(0, h - 0.02, 0, 2 * w - 0.3, 0.06, d + 0.04, GOLD);
   return k;
 }
 

@@ -12,12 +12,12 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { MOVER_FIELD_RANGES, moverScriptEntities, parseMovers } from '../../../src/game/shardfile/movers';
 import { MoverRuntime, moverQueries } from '../../../src/game/shardfile/moverRuntime';
 import { MOVERS } from '../../../src/shards/nine-dragon-stack/data/movers';
-import { LIFTS, NORTH_DOOR, RIDE, liftBottom, liftTop } from '../../../src/shards/nine-dragon-stack/world/liftPlan';
+import { DWELL, LIFTS, NORTH_DOOR, RIDE, liftBottom, liftTop } from '../../../src/shards/nine-dragon-stack/world/liftPlan';
 import { entryDeckColliders } from '../../../src/shards/nine-dragon-stack/world/entries';
 import { fragmentColliders } from '../../../src/shards/nine-dragon-stack/world/colliders';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
-const ROWS = (id: string): string[] => [id, `${id}.gates`, `${id}.deck-door`, `${id}.street-door`];
+const ROWS = (id: string): string[] => [id, `${id}.gates`, `${id}.deck-door`, `${id}.street-door`, `${id}.road-gate`];
 
 async function rig() {
   const physics = new Physics(await loadRapier(await (await fetch(wasmInline)).arrayBuffer()));
@@ -37,9 +37,9 @@ async function rig() {
 }
 
 describe('SF51-p: Nine Dragon lantern lifts', () => {
-  it('declares four rows a lift, one admitted module, inside the mover limits', () => {
+  it('declares five rows a lift, one admitted module, inside the mover limits', () => {
     expect(parseMovers(MOVERS)).toEqual(MOVERS);
-    expect(MOVERS).toHaveLength(LIFTS.length * 4);
+    expect(MOVERS).toHaveLength(LIFTS.length * 5);
     expect(new Set(MOVERS.map((m) => m.module)).size).toBe(1);
   });
 
@@ -77,6 +77,35 @@ describe('SF51-p: Nine Dragon lantern lifts', () => {
       for (const row of ROWS(lift.id)) r.runtime.command(row, 1);
       for (let i = 0; i < (RIDE + 1) * 60; i++) { tick++; r.step(tick); }
       expect(r.runtime.pose(lift.id).position.y).toBe(b.y); expect(r.runtime.pose(`${lift.id}.street-door`).enabled).toBe(true);
+      expect(r.runtime.pose(`${lift.id}.road-gate`).enabled).toBe(false);
     } finally { motor.dispose(); r.dispose(); }
   });
+
+  it('SF8c: comes back down on its own after the dwell at the top, the road gate shut the whole time it is away', async () => {
+    const r = await rig(), lift = LIFTS[0]; if (lift === undefined) throw new Error('no lift');
+    let tick = 0;
+    const gate = (): boolean => r.runtime.pose(`${lift.id}.road-gate`).enabled, y = (): number => r.runtime.pose(lift.id).position.y;
+    try {
+      for (let i = 0; i < 10; i++) { tick++; r.step(tick); }
+      expect(gate()).toBe(false); expect(y()).toBe(liftBottom(lift).y);
+      // a call from the street (action 3) sends it up; a deck call (2) at the bottom is ignored
+      for (const row of ROWS(lift.id)) r.runtime.command(row, 2);
+      for (let i = 0; i < 30; i++) { tick++; r.step(tick); }
+      expect(y()).toBe(liftBottom(lift).y); expect(gate()).toBe(false);
+      for (const row of ROWS(lift.id)) r.runtime.command(row, 3);
+      let top = -1, back = -1, shutAway = true;
+      for (let i = 0; i < (2 * RIDE + DWELL + 2) * 60; i++) {
+        tick++; r.step(tick);
+        if (y() !== liftBottom(lift).y && !gate()) shutAway = false;
+        if (top < 0 && y() === liftTop(lift).y) top = i;
+        if (top >= 0 && back < 0 && y() === liftBottom(lift).y) back = i;
+      }
+      expect(shutAway).toBe(true);
+      expect(top).toBeGreaterThan(0); expect(back).toBeGreaterThan(top);
+      // it rests at the top for the dwell, then rides down: the whole return a dwell plus a ride (± a second)
+      expect((back - top) / 60).toBeGreaterThan(DWELL + RIDE - 1); expect((back - top) / 60).toBeLessThan(DWELL + RIDE + 1);
+      expect(gate()).toBe(false);
+    } finally { r.dispose(); }
+  });
 });
+

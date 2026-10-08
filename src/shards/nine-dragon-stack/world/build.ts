@@ -60,8 +60,8 @@ import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';
 import { cableGondola, drone, monorailTrain } from '../models/movers';
-import { liftCage } from '../models/lift';
-import { LIFTS, liftBottom, liftYaw } from './liftPlan';
+import { liftCage, liftRoadGate } from '../models/lift';
+import { LIFTS, liftBottom, liftYaw, roadGateAt } from './liftPlan';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { buildWell } from './well';
@@ -157,10 +157,10 @@ export interface NineDragonWorld {
   /** the per-instance culling (its `stats` for the budget ruler) */
   readonly culler: InstanceCuller;
   /**
-   * SF51-p: the lantern lifts' cages by mover id (world/lifts.ts; only with the entries on) and the view the plugin sets
-   * to pose them each frame (world/liftRide.ts), run by `update`
+   * SF51-p: the lantern lifts' cages by mover id (world/lifts.ts; only with the entries on), their stationary road gates
+   * (SF8c, shown while they collide) and the view the plugin sets to pose them each frame (world/liftRide.ts), run by `update`
    */
-  readonly lifts?: { readonly cages: ReadonlyMap<string, Object3D>; view: (() => void) | null };
+  readonly lifts?: { readonly cages: ReadonlyMap<string, Object3D>; readonly gates: ReadonlyMap<string, Object3D>; view: (() => void) | null };
   /** G200: whether the lift decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
   readonly entryCaps?: boolean;
 }
@@ -423,7 +423,11 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const drones = droneAt.flatMap((d, i) => { const body = bodies[i]; return body === undefined ? [] : [{ body, ...d }]; });
   // SF51-p: the lantern lifts' cages at the decks (the plugin moves them to their movers' poses)
   const cageObjects = opts.entries === true ? movers(liftCage, LIFTS.map((l) => ({ ...liftBottom(l), yaw: liftYaw(l) })), 'nds-lift-cages') : [];
-  const lifts = { cages: new Map(LIFTS.flatMap((l, i) => { const o = cageObjects[i]; return o === undefined ? [] : [[l.id, o] as const]; })), view: null as (() => void) | null };
+  // SF8c: each lift's stationary road gate across its socket's inner line, hidden until its mover collides
+  const gateObjects = opts.entries === true ? movers(liftRoadGate, LIFTS.map((l) => ({ ...roadGateAt(l), y: 0, yaw: liftYaw(l) })), 'nds-lift-gates') : [];
+  for (const o of gateObjects) o.visible = false;
+  const byLift = (list: readonly Object3D[]): Map<string, Object3D> => new Map(LIFTS.flatMap((l, i) => { const o = list[i]; return o === undefined ? [] : [[l.id, o] as const]; }));
+  const lifts = { cages: byLift(cageObjects), gates: byLift(gateObjects), view: null as (() => void) | null };
   const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
   root.add(signsMesh);
   // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
