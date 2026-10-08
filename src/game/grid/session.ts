@@ -95,6 +95,8 @@ export function gridLevel(spec: LevelSpec): LevelSpec {
 
 /** What the session reads from the page: the player's feet in the home frame, the scene, the world, the fixed step. */
 export interface GridSessionHost {
+  /** The root world is neutral highway physics; the initial home is admitted as an owned regional runtime. */
+  readonly ownedHome?: boolean;
   /** The owner's allocator already includes the home before this late play-stage session constructs the platform. */
   readonly residency?: PageResidency;
   readonly scene: Object3D;
@@ -258,7 +260,7 @@ export class GridSession {
     if (instance === null) throw new Error('A grid session needs a grid page');
     this.home = this.assembly.cell(instance);
     const home = this.home, empty = this.assembly.emptyNeighbour.edge;
-    this.neighbours = this.assembly.cells.filter((cell) => cell.instance !== home.instance);
+    this.neighbours = this.assembly.cells.filter((cell) => host.ownedHome === true || cell.instance !== home.instance);
     for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); this.shardfiles.set(cell.slug, manifest?.shardfile !== undefined); }
     // the deck: one generator run, one draw, the same vertices as the platform colliders
     // the shards' real edge rows and observations (loaded once by `create`, before this one generation); a platform the
@@ -313,9 +315,11 @@ export class GridSession {
       ports: { feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; },
         status: () => { if (++polled % 4 === 0) status = crossingSaveStatus(this.live?.state().crossing); return status; },
         text: (shown) => (shown === 'saving' ? GAME_STRINGS.grid.saving : GAME_STRINGS.grid.saveFailed) } });
-    for (const { mesh } of this.strips) installStripCollider(host.physics, this.rebased(mesh), host.scope);
+    const nativeOrigin = host.ownedHome === true ? { origin: { x: 0, z: 0 } } : home;
+    const nativeMesh = (mesh: StripMesh): StripMesh => host.ownedHome === true ? mesh : this.rebased(mesh);
+    for (const { mesh } of this.strips) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     // G219: the open plots' floors, showrooms and centrepieces collide as platform ground (the highway gets the same, `attach`)
-    for (const mesh of openPlotColliders(this.assembly.plots)) installStripCollider(host.physics, this.rebased(mesh), host.scope);
+    for (const mesh of openPlotColliders(this.assembly.plots)) installStripCollider(host.physics, nativeMesh(mesh), host.scope);
     try {
       this.plots = installOpenPlots({ plots: this.assembly.plots, home, scene: host.scene, scope: host.scope, admission,
         feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } });
@@ -325,9 +329,9 @@ export class GridSession {
       this.plots = { step: () => undefined, state: () => ({ plots: [], pictures: 0, draws: 0, triangles: 0 }) };
     }
     // The normal world stage owns the home's sockets; this scope adds only rebased neighbours.
-    installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z })));
-    this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, home)), ...rimEdges(this.assembly, home)], host.scope); // synced open by the live host once a neighbour is ready
-    installGridBorders(host.physics, host.scope); // the home cell's creatures stay home (SF20d)
+    installEntrySockets(host.physics, host.scope, this.neighbours.map((cell) => ({ x: cell.origin.x - nativeOrigin.origin.x, z: cell.origin.z - nativeOrigin.origin.z })));
+    this.walls = new ReadinessWalls(host.physics, [...this.neighbours.flatMap((cell) => neighbourEdges(cell, nativeOrigin)), ...rimEdges(this.assembly, nativeOrigin)], host.scope);
+    if (host.ownedHome !== true) installGridBorders(host.physics, host.scope); // owned regions install their own creature borders
     // G72, one landmass: the home level's open water stays inside its own cell (its sea surface and its swell body)
     waterExtent.uWaterHalf.value = CHUNK_HALF;
     host.scope.onDispose(() => { waterExtent.uWaterHalf.value = WATER_UNBOUNDED; });

@@ -98,6 +98,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   await macrotask();
   // SF21a / the grid client: EXPERIMENTAL Wildshard's 3 × 3 around this home cell (deck, soft walls, neighbours' far proxies)
   const grid = pageMode() === 'grid' ? await GridSession.create({ scene: game.rootScene, physics: world.physics, scope: game.levelScope, feet: () => player.position, renderer: game.renderer,
+    ownedHome: session.ownedGridHome === true,
     ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
     frame: { scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
@@ -143,6 +144,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // the grid client step 2: the live crossing (LiveGridHost + GridCrossing in the page's one fixed step; G68's safe zone)
   // The installed play owner confirms its progress and pack writes; source clients supply their own durable handoff.
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
+    ownedHome: session.ownedGridHome === true,
     runtimePage: () => boot.context === undefined || boot.runtime.play === null ? null : { world, play: boot.runtime.play, context: boot.context },
     onSafeZone: () => { app.effects?.clearHarmful(playerHealth); },
     scriptNotices: { toast: (text) => { hud.toast(text, 'warn'); }, devAlert: (text) => { hud.devAlert(text); } },
@@ -188,7 +190,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     } }),
     here: () => { const cell = gridCells.cell; return grid === null ? { id: homeInstance, shard: manifest.slug } : cell === null ? null : { id: cell.instance, shard: cell.slug }; } });
   describeKeyBindings(game.levelScope); // pause ▸ Settings ▸ Key bindings: the plain-named table (E357 J10)
-  game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }, 'main.6'); // E132: this shard's time played (the complete card shows it), in the world only
+  game.onUpdate((dt) => { if (session.ownedGridHome !== true && hud.entered && !menu.isOpen) progress.addPlay(dt); }, 'main.6'); // owned regional progress has its own entered clock
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); }); // in a practice room: its own map (E321)
   // E124: the BAG button squaring out the minimap's top-right corner (src/game/bag/BagButton.ts) — opens on GEAR (E314)
   new BagButton(minimap.root, () => { if (hud.entered) menu.openBag(); });

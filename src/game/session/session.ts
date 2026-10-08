@@ -39,6 +39,7 @@ import { installGridDebug } from '../grid/debug';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '../grid/memoryAdmission';
+import { gridPageShell, gridPageShellLevel, GridPageShellPlugin } from '../grid/pageShell';
 
 declare const __BUILD_ID__: string;
 
@@ -58,6 +59,8 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     session.arrival = consumeTitleArrival(selected);
     // SF21a: the one-shot EXPERIMENTAL Wildshard intent, consumed by every boot; grid mode drops the URL to the title's
     const mode = options.mode ?? bootPageMode(selected);
+    session.ownedGridHome = mode === 'grid' && manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined;
+    const pageManifest = session.ownedGridHome ? gridPageShell(manifest) : manifest;
     if (mode === 'grid' && options.residency === undefined) throw new Error('Grid boot requires residency admission before hydration');
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: '', mode }));
     installGridDebug();
@@ -74,7 +77,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     if (options.memory !== undefined) scope.onDispose(() => { options.memory?.dispose(); });
     enterOwner(scope);
     const world = await runShardLoad(manifest, (stage) => withShardHooks(manifest, stage,
-      () => buildSession(manifest, stage, kit, session)), {
+      () => buildSession(pageManifest, stage, kit, session)), {
       build: __BUILD_ID__, dispose: () => {
         if (app.render !== null) app.render.hold = true;
         scope.dispose();
@@ -102,7 +105,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
     runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => new THREE.Vector3(), horizonVeil: null },
     progress: { set: () => undefined, detail: () => undefined }, worldHook: (work) => work() };
   const sequence = sessionStages({ kit, manifest, slug: manifest.slug, stage, session, boot });
-  const loadPlugin = manifest.load;
+  const loadPlugin = session.ownedGridHome ? () => Promise.resolve({ default: GridPageShellPlugin }) : manifest.load;
   if (loadPlugin === undefined) {
     let next = await sequence.next();
     while (!next.done) next = await sequence.next();
@@ -126,7 +129,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
   app.levelAdapters.playground = (spec) => registerPlayground(manifest.slug, spec);
   installTemplateDebug(app, app.engineScope);
   try {
-    return await bootLevel(gridLevel(toLevelSpec(manifest)), {
+    return await bootLevel(session.ownedGridHome ? gridPageShellLevel(manifest) : gridLevel(toLevelSpec(manifest)), {
       sequence, scope, progress: () => boot.progress,
       afterData: (spec) => { if (boot.handoff?.arrive) spec.spawn = boot.handoff.arrive; },
       dispose: () => {

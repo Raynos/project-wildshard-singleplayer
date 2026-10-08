@@ -22,6 +22,10 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
 
   // The staged loader invokes the trusted play hook after buildPlay. Only a fully installed runtime can leave:
   // leaving during buildPlay disposes its kit scope before that hook runs and makes recovery fall back to title.
+  if (ctx.session.ownedGridHome === true) {
+    if (ctx.gridLive === null) throw new Error('Owned grid home requires its admitted live session');
+    if (ctx.session.recovery?.saved?.location.kind === 'cell' || ctx.session.recovery === undefined) await ctx.gridLive.enterInitialHome();
+  }
   if (ctx.session.recovery !== undefined) {
     if (ctx.gridLive === null) throw new Error('Recovery requires the admitted live grid');
     const pose = await ctx.gridLive.resumeRecovery(ctx.session.recovery);
