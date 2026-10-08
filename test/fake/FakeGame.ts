@@ -10,7 +10,8 @@ type Update = (dt: number, t: number) => void;
 
 /** Manual, renderer-free counterpart of Game.start. F8 replaces the phase driver with the engine scheduler. */
 export class FakeGame {
-  readonly scene = new THREE.Scene();
+  readonly rootScene = new THREE.Scene();
+  readonly scene = this.rootScene;
   readonly camera = new THREE.PerspectiveCamera(72, 16 / 9, 0.08, 2600);
   readonly viewmodel = new ViewmodelRoot();
   readonly clock = { elapsedTime: 0 };
@@ -33,7 +34,7 @@ export class FakeGame {
   asGame(): Game {
     this.camera.add(this.viewmodel); this.scene.add(this.camera);
     return legacyDouble<Game>({
-      scene: this.scene, camera: this.camera, viewmodel: this.viewmodel,
+      scene: this.scene, rootScene: this.rootScene, camera: this.camera, viewmodel: this.viewmodel,
       renderer: legacyDouble<THREE.WebGLRenderer>({
         getDrawingBufferSize: this.renderer.getDrawingBufferSize,
         info: legacyDouble<THREE.WebGLInfo>(this.renderer.info),

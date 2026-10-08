@@ -130,7 +130,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       if (host.embedded || host.hasPlayerMotor || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
       const app = request.page.context.app, parent = request.page.context.game.runtime;
       if (parent === undefined) throw new Error('Regional factory requires the page runtime');
-      const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.scene,
+      const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.rootScene,
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
         scope, ground: foundation.ground });
       const world = foundation.world(view);

@@ -5,7 +5,7 @@ import { Group, Scene, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
-import type { Game } from '../src/engine/core/Game';
+import { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { Physics } from '../src/engine/physics/Physics';
@@ -38,7 +38,10 @@ function fixture() {
   const homeRegistry = new WorldRegistry(); app.registryValue = homeRegistry; app.levelScope = scope;
   // Renderer, controls and unbuilt scene fields are explicit test doubles. Only composition/lifecycle is claimed here;
   // the native destination, registry, equipment, saves, scopes and entered systems below are real implementations.
-  const game = { scene, renderer: {}, levelScope: scope } as Game;
+  const candidate: unknown = Object.create(Game.prototype);
+  if (!(candidate instanceof Game)) throw new Error('Invalid fixture Game prototype');
+  for (const [key, value] of Object.entries({ rootScene: scene, sceneFrames: [], renderer: {}, levelScope: scope })) Reflect.defineProperty(candidate, key, { value, writable: true });
+  const game = candidate;
   const player = { position: new Vector3() } as Player;
   const world = { game, player, physics: home, registry: homeRegistry, chunk: PINE_HOLLOW } as ShardWorld;
   const play = withOwner(scope, () => ({ nolock: true, progress: new Progress('driftwood-isle'), inventory: new Inventory('driftwood-isle') })) as ShardPlayHost;
@@ -155,4 +158,23 @@ it('disposes a real destination admitted after its owner leaves without running 
   await expect(pending).rejects.toThrow('left during foundation admission');
   expect(disposed).toBe(1); expect(f.world.game.scene.children).toHaveLength(0);
   f.home.dispose(); f.claim.release(); expect(f.allocator.entries()).toEqual([]);
+});
+
+it('parents a newly admitted neighbour at the page root while another region is entered', async () => {
+  const f = fixture(), entered = f.scope.child('entered-other-region'), other = new Scene();
+  f.world.game.rootScene.add(other);
+  f.world.game.bindScene(other, entered);
+  expect(f.world.game.scene).toBe(other);
+  try {
+    const prepared = await f.regional(f.request);
+    const root = f.world.game.rootScene.children.find(child => child !== other);
+    expect(root).toBeInstanceOf(Group);
+    expect(other.children).toEqual([]);
+    entered.dispose(); other.visible = false; f.world.game.rootScene.remove(other);
+    expect(f.world.game.scene).toBe(f.world.game.rootScene);
+    expect(root?.parent).toBe(f.world.game.rootScene);
+    prepared.region.dispose();
+  } finally { f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+  expect(f.world.game.rootScene.children).toEqual([]);
+  expect(f.allocator.entries()).toEqual([]);
 });

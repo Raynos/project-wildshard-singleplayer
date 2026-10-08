@@ -28,7 +28,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
 
 
   const animals = await step('animals', async (p) => {
-    const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
+    const a = await new AnimalManager(game.rootScene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
     p.detail(`${a.animals.length} animals`);
     return a;
   });

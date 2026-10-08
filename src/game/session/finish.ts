@@ -54,7 +54,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
     if (fragileBoot && /WebGLShader|WebGL context lost|shaderSource/i.test(message)) failGpuBoot(message.slice(0, 120), error instanceof Error ? error.stack ?? '' : '');
     throw error;
   }
-  loading.setTextureBytes(textureBytes(game.scene));
+  loading.setTextureBytes(textureBytes(game.rootScene));
   // Nine Dragon phone counts and caches the same files, then decodes selected audio after the loader's peak.
   if (deferredAudio) {
     await step('audio', (p) => deferredAudio.wait(p));
@@ -119,7 +119,7 @@ export async function finishStage(ctx: Awaited<ReturnType<typeof playStage>>): P
   asShell(() => { startShardPrefetch(manifest); });
 
 
-  const levelWorld: BuiltWorld = { scene: game.scene, dispose: () => {
+  const levelWorld: BuiltWorld = { scene: game.rootScene, dispose: () => {
     weapons.setEnabled(false); perf.setActive(false); audio.unloadLevel();
   } };
   game.levelScope.onDispose(levelWorld.dispose);

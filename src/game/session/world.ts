@@ -28,7 +28,7 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   installEntrySockets(world.physics, game.levelScope, [{ x: 0, z: 0 }]);
   app.params = params;
   boot.runtime.world = world; boot.runtime.step = step;
-  if (level !== undefined) game.scene.add(level.root);
+  if (level !== undefined) game.rootScene.add(level.root);
   // Fragile phone builds need a GPU guard before normal in-game recovery is installed.
   const fragileBoot = TIER === 'phone' && manifest.boot?.phone?.fragile === true;
   let bootGpuGuardActive = fragileBoot;
@@ -58,20 +58,20 @@ async function buildWorld(ctx: Awaited<ReturnType<typeof dataStage>>, level: Lev
   // ── world dressing ──
   const edgeDressing = await step('edge', async () => {
     const boundary = new Boundary(sky, game.level.boundary).build();
-    game.scene.add(boundary.group);
+    game.rootScene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
     const water = hasPond() ? new (await import('@wildshard/engine/world/pond')).Water(sky, forest.trees, { ...(chunk.pondClip === undefined ? {} : { clip: chunk.pondClip }), ...(chunk.pondLilyExclusions === undefined ? {} : { lilyExclusions: chunk.pondLilyExclusions }) }).build() : null;
-    if (water) game.scene.add(water.group);
+    if (water) game.rootScene.add(water.group);
     // PH-L9: Pine Hollow's creek, waterfall, plunge foam and spray (two draws; they run on the wind clock)
     const streams = null;
     await macrotask();
     const horizon = new Horizon(sky).build(game.level); // the booted spec: in the grid its own horizon yields to the cube (gridLevel, G99)
-    game.scene.add(horizon.group);
+    game.rootScene.add(horizon.group);
     // the painted 360° horizon (X4): far sea stacks, islands and cloud banks on the sea, day + night; the paintings load after boot
     const seaBody = app.world.water.sea; // registered at level.data, before the edge step
     const matte = seaBody !== null ? new HorizonMatte(sky, seaBody.level).build() : null;
     if (matte?.mesh) {
-      game.scene.add(matte.mesh);
+      game.rootScene.add(matte.mesh);
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); }, 'main.2');
       game.levelScope.listen(document, 'ws:ready', () => { game.levelScope.timeout(250, () => { void matte.load(horizon.group); }); }, { once: true });
     }

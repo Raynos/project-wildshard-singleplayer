@@ -33,7 +33,7 @@ export interface BodyPlayer {
   carried: boolean; ride: object | null;
 }
 export interface BodyHost {
-  game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
+  game: { rootScene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
   player: BodyPlayer;
   /** extra reasons to hide it (a practice room, the title screen) */
   hidden?: () => boolean;
@@ -137,7 +137,7 @@ export class BodyShadow {
 /** the body shadow in the running game: added to the scene, posed after the player moves each frame */
 export function installBodyShadow(h: BodyHost): BodyShadow {
   const body = new BodyShadow();
-  h.game.scene.add(body.wardrobe.root);
+  h.game.rootScene.add(body.wardrobe.root);
   const p = h.player;
   h.game.onUpdate((dt) => {
     const show = !p.swimming && !p.submerged && !p.hover && !p.carried && p.ride === null && h.hidden?.() !== true;
