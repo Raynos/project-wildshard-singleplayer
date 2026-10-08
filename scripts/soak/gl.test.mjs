@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { installSoakGl } from './gl.mjs';
+import { installSoakGl, installSoakWasm } from './gl.mjs';
 
 void test('SF57 preserves labelled GL allocations, reconciliation and allocator telemetry each second', () => {
   const oldWindow = globalThis.window, oldInterval = globalThis.setInterval;
@@ -21,4 +21,19 @@ void test('SF57 preserves labelled GL allocations, reconciliation and allocator 
     contexts[0].totalBytes = 0; tick(); assert.equal(window.__sf57GL[2].totalBytes, 0);
     lost(); assert.deepEqual(window.__sf57Errors, ['WebGL context lost']);
   } finally { globalThis.window = oldWindow; globalThis.setInterval = oldInterval; }
+});
+
+
+void test('SF57 WASM telemetry is weak, deduplicated and never added to GL allocations', async () => {
+  const oldWindow = globalThis.window;
+  class Memory { buffer = new ArrayBuffer(64); }
+  const memory = new Memory(), instance = { exports: { memory } };
+  const wasm = { Memory, instantiate: () => Promise.resolve({ instance }), instantiateStreaming: () => Promise.resolve(instance),
+    Instance: class { exports = { memory }; } };
+  try {
+    globalThis.window = { WebAssembly: wasm };
+    installSoakWasm(); await wasm.instantiate(); await wasm.instantiateStreaming(); new wasm.Instance();
+    assert.equal(window.__sf57Wasm.length, 1); assert.ok(window.__sf57Wasm[0].memory instanceof WeakRef);
+    assert.equal(window.__sf57Wasm[0].memory.deref().buffer.byteLength, 64);
+  } finally { globalThis.window = oldWindow; }
 });

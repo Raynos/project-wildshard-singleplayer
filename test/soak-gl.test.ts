@@ -11,7 +11,7 @@ it('reports the exact raw allocator sum and refuses unsettled or missing regiona
     __wildshard: { shard: { grid: { state: () => typeof grid | undefined } } }; addEventListener: () => void } = {
     __sc_gl: () => [], __wildshard: { shard: { grid: { state: () => grid } } }, addEventListener: () => undefined,
   };
-  const source = readFileSync('scripts/soak/gl.mjs', 'utf8').replace('export function', 'function');
+  const source = readFileSync('scripts/soak/gl.mjs', 'utf8').replaceAll('export function', 'function');
   runInNewContext(`${source};installSoakGl()`, { window: target, setInterval: () => 1 });
   const read = target.__sf57ReadGL;
   if (read === undefined) throw new Error('GL reader was not installed');

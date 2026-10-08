@@ -2,6 +2,7 @@
 // SF57: each production layout has cell and road-only drives (30 minutes; 60 after a picked content cut).
 // --content-cut=<JSON receipt with receipt/sourceRevision/approvedBy=Jake> selects G186; invisible savings never do.
 // --qualifying is supplied only after the layout conversions are prepared; all route/refusal gates still apply.
+// --dry-run runs five minutes and never qualifies; --legs=cells selects just the cell leg.
 // --layouts=shipped runs the M2 layout; the default shipped,dev also prepares the M3 Developer evidence.
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
@@ -12,11 +13,12 @@ import { mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync } fr
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GL_INIT } from '../parity/glbytes.mjs';
-import { installSoakGl } from './gl.mjs';
+import { installSoakGl, installSoakWasm } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
-import { soakRoute, soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut, soakDuration } from './route.ts';
-import { installSoakDrive } from './drive.mjs';
+import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory } from './owned.mjs';
+import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
 const flag = (name, fallback = '') => process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) ?? fallback;
@@ -41,7 +43,7 @@ function inspector(url) {
     else if (message.method === 'Target.dispatchMessageFromTarget') receive(JSON.parse(message.params.message));
     else receive(message);
   });
-  return { opened, close: () => ws.close(), evaluate: async (expression) => {
+  return { opened, close: () => { for (const waiter of pending.values()) { clearTimeout(waiter.timer); waiter.reject(new Error('Inspector closed')); } pending.clear(); ws.close(); }, evaluate: async (expression) => {
     const result = await new Promise((resolve, reject) => {
       const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error('Safari inspector timeout')); }, 10000);
       pending.set(id, { resolve, reject, timer });
@@ -77,19 +79,26 @@ async function worker() {
   if (leg !== 'cells' && leg !== 'road') throw new Error('Unknown soak leg');
   const name = `${layout}-${leg}`;
   const contentCut = flag('content-cut-data') === '' ? null : parseSoakContentCut(JSON.parse(flag('content-cut-data')));
-  const rehearsal = !process.argv.includes('--qualifying');
-  const duration = soakDuration(contentCut);
+  const policy = soakRunPolicy(process.argv.includes('--dry-run'), contentCut);
+  const rehearsal = policy.dryRun || !process.argv.includes('--qualifying');
+  const duration = policy.seconds;
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
   const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
   const glFile = join(out, `${name}-gl.jsonl`), glRows = [];
   writeFileSync(glFile, '');
-  const result = { schema: 2, purpose: rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', contentCut, engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, leg, device: udid, surface: 'iPhone 17 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], leak: null };
+  const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, leg, device: udid, surface: 'iPhone 16 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
+  let lastResidents = [];
   const collectGl = async () => {
     if (!driver) return;
     const rows = await driver.evaluate('window.__sf57GL?.splice(0) ?? []');
-    for (const row of rows) { glRows.push(row); appendFileSync(glFile, `${JSON.stringify(row)}\n`); }
+    for (const row of rows) {
+      for (const instance of lastResidents) if (!row.residents.includes(instance)) result.evictions.push({ at: row.at, cycle: row.cycle, instance, residents: row.residents });
+      lastResidents = row.residents;
+      glRows.push(row); appendFileSync(glFile, `${JSON.stringify(row)}\n`);
+    }
+    result.errors = [...new Set([...result.errors, ...await driver.evaluate('window.__sf57Errors ?? []')])];
   };
   const measuredWait = async (seconds) => { for (let second = 0; second < seconds; second++) { await sleep(1000); await collectGl(); } };
   try {
@@ -100,54 +109,74 @@ async function worker() {
     await driver.evaluate(`${GL_INIT};window.__sf57Errors=[];(${installSoakGl.toString()})();localStorage.clear();sessionStorage.clear();window.__sf57GL.push(window.__sf57ReadGL());true`);
     await collectGl();
     phase('loading');
-    sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--max', String(duration + 700)], { stdio: ['ignore', 'inherit', 'inherit'] });
+    sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
     /** @type {{ error: string | null }} */ const samplerResult = { error: null };
     const samplerClosed = new Promise((resolve) => { sampler.on('error', (error) => { samplerResult.error = String(error); resolve(); }); sampler.on('close', (code) => { if (code !== 0) samplerResult.error = `Native sampler exited ${code}`; resolve(); }); });
-    const gameUrl = `${base}sf57-safari.html?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0`;
+    const gameUrl = `${base}sf57-safari.html?mute=1&nolock=1&sw=0`;
     // Replace the cold inspection tab before measurement; do not leave an extra version tab resident.
     await driver.evaluate(`setTimeout(()=>location.replace(${JSON.stringify(gameUrl)}),100);true`);
     driver.close(); driver = null;
     driver = await connect(`${base}sf57-safari.html`);
-    await until(driver, `Boolean(window.__wildshard?.shard?.grid?.simulation && !document.querySelector('.ws-load'))`, 240000, collectGl);
-    result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;w.hud.enterNow();return {href:location.href,clock:w.game.app.clock.mode,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state()};})()`);
-    if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2) throw new Error('Soak must use live clock and 2x render scale');
+    await until(driver, `Boolean(document.querySelector('.ws-main-grid'))`, 240000, collectGl);
+    await driver.evaluate(`setTimeout(()=>document.querySelector('.ws-main-grid').click(),100);true`);
+    await until(driver, `Boolean(!document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live)`, 240000, collectGl);
+    await driver.evaluate('(window.__wildshard.world.hud.enterNow(),true)');
+    await until(driver, 'window.__wsReveal?.endedMs != null', 45000, collectGl);
+    result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;return {href:location.href,clock:w.game.app.clock.mode,level:w.game.level.id,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state(),settings:JSON.parse(localStorage.getItem('wildshard.save.v2.global')).keys.settings.data,developer:JSON.parse(localStorage.getItem('wildshard.save.v2.device')).keys.devMode.data};})()`);
+    if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2 || result.metadata.level !== 'platform.grid') throw new Error('Soak requires the owned shell, live clock and 2x render scale');
+    if (result.metadata.developer !== (layout === 'dev')) throw new Error('Wrong Developer setting');
     const cells = result.metadata.state.cells;
-    result.catalogue = cells.map((cell) => cell.instance);
+    result.catalogue = cells.map(cell => cell.instance);
     result.expected = leg === 'road' ? [] : result.catalogue;
     const catalogue = JSON.parse(execFileSync('git', ['show', `${sha}:src/game/grid/singleplayer.json`], { cwd: root, encoding: 'utf8' })).grid;
     if (layout !== 'shipped' && layout !== 'dev') throw new Error('Unknown soak layout');
-    const wanted = soakCatalogue(catalogue, layout);
-    if (!validateSoakCatalogue(cells, wanted)) throw new Error(`Wrong ${layout} catalogue: ${result.catalogue}`);
-    result.route = soakRoute(cells, 555, leg);
-    await driver.evaluate(`window.__wildshard.pose({name:'sf57.initial-road',x:277.5,y:2,z:0,yaw:0});true`);
+    if (!validateSoakCatalogue(cells, soakCatalogue(catalogue, layout))) throw new Error(`Wrong ${layout} catalogue: ${result.catalogue}`);
+    result.route = ownedSoakPlans(result.metadata.state, leg);
+    result.documentOrigin = await driver.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
+    result.documentId = await driver.evaluate('window.__sf57DocumentId');
+    const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
+    const first = result.route.plans[0];
+    await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)})`);
+    await driver.evaluate('window.__sf57={cycles:0};true');
     phase('baseline-0'); await measuredWait(10);
     const initialStart = Date.now() / 1000; await measuredWait(10);
     result.windows.push({ cycle: 0, start: initialStart, end: Date.now() / 1000 });
+    const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString(); result.circuits = 0;
     phase('drive');
-    const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString();
-    await driver.evaluate(`(${installSoakDrive.toString()})(${JSON.stringify(result.route)},${duration})`);
-    let windowStart = null;
-    for (;;) {
-      await sleep(1000); await collectGl();
-      const state = await driver.evaluate(`(() => {const s=window.__sf57;return {done:s.done,elapsed:s.elapsed,cycles:s.cycles,index:s.index,state:s.state,events:s.events.splice(0),errors:window.__sf57Errors,documentId:window.__sf57DocumentId};})()`);
-      if (state.documentId !== result.documentId && result.documentId !== undefined) throw new Error('Document changed during the soak');
-      result.documentId = state.documentId; result.seconds = state.elapsed; result.circuits = state.cycles; result.lastState = state.state;
-      for (const event of state.events) {
-        result.events.push(event);
-        if (event.type === 'entry') result.entries.push(event);
-        if (event.type === 'eviction') result.evictions.push(event);
-        if (event.type === 'crossroads') result.crossroads.push(event.id);
-        if (event.type === 'failure') result.errors.push(event.error);
-        if (event.type === 'settle-start') { windowStart = { cycle: event.cycle + 1, start: driveStart / 1000 + event.seconds + 10 }; phase(`settle-${event.cycle + 1}`); }
-        if (event.type === 'settle-end' && windowStart) { result.windows.push({ ...windowStart, end: driveStart / 1000 + event.seconds }); windowStart = null; phase('drive'); }
+    let complete = false;
+    while (!complete) {
+      const cycle = result.circuits;
+      await driver.evaluate(`window.__sf57.cycles=${cycle};true`);
+      // The first warm-up lap also drives every one of the sixteen crossroads; later laps repeat the exact cell loop.
+      const plans = [...result.route.plans, ...(cycle === 0 ? result.route.coveragePlans ?? [] : [])];
+      for (const plan of plans) {
+        result.stage = plan.name;
+        console.log(JSON.stringify({ layout, cycle, route: plan.name, seconds: (Date.now() - driveStart) / 1000 }));
+        const witness = await runFloorGridRoute(page, plan, result.documentOrigin);
+        const failures = gridFloorWitnessFailures(witness);
+        result.routes.push({ cycle, ...witness, failures });
+        if (plan.crossroads) result.crossroads.push(plan.crossroads);
+        if (plan.to !== null && plan.to !== plan.from) result.entries.push({ cycle, instance: plan.to, admitted: failures.length === 0, feet: witness.after.live.live.worldFeet });
+        if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
+        result.seconds = (Date.now() - driveStart) / 1000;
+        writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
+        // Finish the current fenced leg instead of silently abandoning movement at the deadline.
+        if (result.seconds >= duration) { complete = true; break; }
       }
-      result.errors = [...new Set([...result.errors, ...state.errors])];
-      if (Math.floor(state.elapsed) % 60 === 0) console.log(JSON.stringify({ layout, seconds: state.elapsed, cycle: state.cycles, waypoint: state.index, current: state.state?.live?.live?.current, evictions: result.evictions.length }));
-      if (state.done) break;
-      if (Date.now() - driveStart > duration * 1000 + 50_000) throw new Error('Drive exceeded real-time deadline');
+      if (!complete) {
+        result.circuits++;
+        phase(`settle-${result.circuits}`); await measuredWait(10);
+        const start = Date.now() / 1000; await measuredWait(10);
+        result.windows.push({ cycle: result.circuits, start, end: Date.now() / 1000 });
+        result.seconds = (Date.now() - driveStart) / 1000;
+        if (result.seconds >= duration) complete = true;
+        else phase('drive');
+      }
     }
+    result.seconds = (Date.now() - driveStart) / 1000;
+    result.lastState = await driver.evaluate('window.__wildshard.shard.grid.state()');
     phase('unloaded');
-    await driver.evaluate(`window.__sf57.stop();window.__wildshard.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true`);
+    await driver.evaluate(`window.__wildshard.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true`);
     await until(driver, 'Boolean(window.__sf57Leak)', 60000, collectGl);
     result.leak = await driver.evaluate('window.__sf57Leak'); await measuredWait(20);
     await driver.evaluate('clearInterval(window.__sf57GLTimer);true');
@@ -156,23 +185,33 @@ async function worker() {
     if (samplerResult.error) throw new Error(samplerResult.error);
   } catch (error) {
     result.failure = String(error.stack ?? error); result.errors.push(result.failure);
-    if (driver) await driver.evaluate('window.__sf57?.stop();true').catch(() => undefined);
+    if (driver) {
+      result.diagnostic = await driver.evaluate('JSON.stringify({url:location.href,documentId:window.__sf57DocumentId,stop:window.__frameFloorGridStop,state:window.__wildshard?.shard?.grid?.state(),errors:window.__sf57Errors,body:document.body.innerText.slice(-4000)})').catch(() => null);
+      await driver.evaluate('window.__wildshard?.world?.game.app.input.clear();true').catch(() => undefined);
+      if (!(await driver.evaluate('Boolean(window.__sf57Leak)'))) {
+        phase('unloaded');
+        try {
+          await driver.evaluate('window.__wildshard?.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true');
+          await until(driver, 'Boolean(window.__sf57Leak)', 60000, collectGl);
+          result.leak = await driver.evaluate('window.__sf57Leak'); await measuredWait(5);
+        } catch (cleanupError) { result.cleanupError = String(cleanupError); }
+      }
+    }
   } finally {
     phase('done');
     if (sampler) { await sleep(1500); sampler.kill('SIGTERM'); }
     driver?.close(); proxy?.kill('SIGTERM');
+    try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Already closed. */ }
   }
   const native = existsSync(nativeFile) ? readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line)) : [];
-  const samples = native.filter((row) => row.type === 'sample').map((row) => {
-    const elapsed = Date.parse(row.t) / 1000;
-    const gl = glRows.reduce((nearest, candidate) => !nearest || Math.abs(candidate.at - elapsed) < Math.abs(nearest.at - elapsed) ? candidate : nearest, null);
-    row.elapsed = elapsed;
-    if (gl && Math.abs(gl.at - elapsed) <= 1.5) row.gl = gl;
-    return row;
-  });
+  const samples = joinSoakSamples(native, glRows);
   result.grade = gradeSoak({ samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal, leg, contentCut });
+  result.perLap = soakLapMemory(samples, result.circuits ?? 0);
+  result.functionalPass = result.failure === undefined && result.errors.length === 0 && (result.seconds ?? 0) >= duration
+    && result.routes.length > 0 && result.routes.every(route => route.failures.length === 0) && result.grade.sampling && result.grade.leakZero;
+  if (!result.functionalPass) process.exitCode = 1;
   result.nativeSummary = native.find((row) => row.type === 'summary');
   result.glFile = glFile; result.glSamples = glRows.length; result.nativeFile = nativeFile; result.sampleCount = samples.length;
   writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
@@ -182,10 +221,11 @@ async function drivePrepared(manifest) {
   const { sha, out, bases } = manifest;
   const contentCut = manifest.contentCut === null || manifest.contentCut === undefined ? null : parseSoakContentCut(manifest.contentCut);
   while (!existsSync(join(out, 'GO'))) await sleep(1000);
+  const policy = soakRunPolicy(manifest.dryRun === true, contentCut);
   for (const { layout, base } of bases) {
-    for (const leg of ['cells', 'road']) {
-      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', contentCut === null ? '45' : '75', `sf57-sp-x1-${layout}-${process.pid}`, process.execPath, import.meta.filename,
-        '--worker', `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
+    for (const leg of manifest.legs ?? ['cells', 'road']) {
+      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), `sf57-sp-x3-${layout}-${process.pid}`, process.execPath, import.meta.filename,
+        '--worker', ...(policy.dryRun ? ['--dry-run'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
     }
   }
   console.log(`SF57 DONE ${out}`);
@@ -196,15 +236,15 @@ async function closePreviews(bases) {
 function writeHelper(base, layout) {
   const record = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
   const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8');
-  const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto' } }),
+  const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
-  const pins = `${GL_INIT};(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};${saveFixtureCode({ scope: 'device', key: 'gridIntent.once', data: { instance: 'driftwood-isle', slug: 'driftwood-isle', at: 0 } })};(() => {const key='wildshard.save.v2.device',doc=JSON.parse(localStorage.getItem(key));doc.keys['gridIntent.once'].data.at=Date.now();doc.keys['titleArrival.once']={v:1,data:{slug:'driftwood-isle',mode:'enter',at:Date.now()}};localStorage.setItem(key,JSON.stringify(doc));})();`;
+  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};`;
   writeFileSync(join(dist, 'sf57-safari.html'), html.replace('<head>', `<head><script>${pins}</script>`));
 }
 async function prepare() {
   const sha = execFileSync('git', ['rev-parse', flag('rev', 'origin/main')], { cwd: root, encoding: 'utf8' }).trim();
-  const out = resolvePath(flag('out', `/private/tmp/claude-501/sp-builders/sp-x1/sf57-${process.pid}`)); mkdirSync(out, { recursive: true });
+  const out = resolvePath(flag('out', `/private/tmp/claude-501/sp-builders/sp-x3/sf57-${process.pid}`)); mkdirSync(out, { recursive: true });
   const cutPath = flag('content-cut');
   const contentCut = cutPath === '' ? null : parseSoakContentCut(JSON.parse(readFileSync(resolvePath(cutPath), 'utf8')));
   if (contentCut !== null) {
@@ -212,8 +252,9 @@ async function prepare() {
     execFileSync('git', ['cat-file', '-e', `${sha}:${contentCut.receipt}`], { cwd: root });
     execFileSync('git', ['merge-base', '--is-ancestor', contentCut.sourceRevision, sha], { cwd: root });
   }
-  const bases = [], manifest = { sha, out, bases, contentCut, rehearsal: !process.argv.includes('--qualifying') };
-  const layouts = flag('layouts', 'shipped,dev').split(',');
+  const bases = [], manifest = { sha, out, bases, contentCut, dryRun: process.argv.includes('--dry-run'), legs: flag('legs', 'cells,road').split(','), rehearsal: process.argv.includes('--dry-run') ? true : !process.argv.includes('--qualifying') };
+  if (manifest.legs.length === 0 || new Set(manifest.legs).size !== manifest.legs.length || manifest.legs.some(leg => leg !== 'cells' && leg !== 'road')) throw new Error('Select cells and/or road legs');
+  const layouts = flag('layouts', 'dev,shipped').split(',');
   if (layouts.length === 0 || new Set(layouts).size !== layouts.length || layouts.some((layout) => layout !== 'shipped' && layout !== 'dev')) throw new Error('Select shipped and/or dev layouts');
   try {
     for (const layout of layouts) {

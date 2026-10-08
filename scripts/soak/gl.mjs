@@ -13,10 +13,31 @@ export function installSoakGl() {
       unlabelled: contexts.reduce((sum, context) => sum + context.unlabelled, 0), reconciled: contexts.every((context) => context.reconciled),
       assets: [...groups.values()].sort((a, b) => b.bytes - a.bytes || a.asset.localeCompare(b.asset)),
       accountedBytes: grid?.accountedBytes ?? null,
+      current: grid?.live?.live?.current ?? null, inside: grid?.inside ?? null,
+      residents: grid?.live?.live?.residents ?? [],
+      wasm: (window.__sf57Wasm ?? []).map(({ name, source, memory }) => ({ name, source, bytes: memory.deref()?.buffer.byteLength ?? 0 })),
       settled: grid !== undefined && grid.rings?.inFlight === 0 && grid.rings.queued === 0
         && grid.live?.live?.pending?.length === 0 && grid.live.live.gameplayReady === true,
       cycle: window.__sf57?.cycles ?? null };
   };
   window.__sf57GLTimer = setInterval(() => { window.__sf57GL.push(window.__sf57ReadGL()); if (window.__sf57GL.length > 120) window.__sf57GL.shift(); }, 1000);
   window.addEventListener('webglcontextlost', () => { window.__sf57Errors.push('WebGL context lost'); }, true);
+}
+
+/** Observe weak WASM capacities before boot; never add them to the WC+GL ruler. */
+export function installSoakWasm() {
+  // Weak telemetry records WASM capacity without keeping retired instances alive or counting it twice.
+  const wasm = window.WebAssembly;
+  window.__sf57Wasm = [];
+  const record = (instance, source) => {
+    for (const [name, memory] of Object.entries(instance.exports)) if (memory instanceof wasm.Memory
+      && !window.__sf57Wasm.some(row => row.memory.deref() === memory)) window.__sf57Wasm.push({ name, source, memory: new WeakRef(memory) });
+  };
+  for (const name of ['instantiate', 'instantiateStreaming']) {
+    const original = wasm[name];
+    wasm[name] = function observeWasm(...args) { return original.apply(this, args).then(result => { record(result.instance ?? result, name); return result; }); };
+  }
+  wasm.Instance = new Proxy(wasm.Instance, { construct(target, args, newTarget) {
+    const instance = Reflect.construct(target, args, newTarget); record(instance, 'Instance'); return instance;
+  } });
 }
