@@ -7,6 +7,7 @@ import { AUDIO_INIT, WASM_INIT, snapshotExpression, heapOwners } from './inspect
 import { closeSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
+import { soakBootPoll } from '../../../scripts/soak/owned.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute } from '../../../scripts/frame-floor-grid.mjs';
 
@@ -33,7 +34,7 @@ const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
 const phaseFile = out + '.phase', nativeFile = out + '.native.jsonl';
 writeFileSync(phaseFile, 'loading');
 const simctl = args => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-let inspector, sampler, proxy, gamePID;
+let inspector, sampler, proxy, gamePID, beforeMeasurement = true;
 const samplerState = { pid: null, exitCode: null, signal: null, error: null, log: out + '.sampler.log' };
 report.sampler = samplerState;
 const nativeDetail = process.env.G227_NATIVE_DETAIL === '1';
@@ -73,9 +74,13 @@ try {
   evaluate = await connect(helper);
   const until = async (expression, ms = 180000) => {
     for (const started = Date.now(); Date.now() - started < ms;) {
-      const status = await evaluate(`({ready:Boolean(${expression}),fatal:document.getElementById('wserr')?.innerText ?? null})`);
-      if (status.fatal !== null) throw new Error('Native boot failed: ' + status.fatal);
-      if (status.ready) return;
+      // Title navigation may replace WebKit's process target before the measurement document exists.
+      // Reuse the shared exact-error handshake; once fenced, every protocol/game error is fatal.
+      const status = await soakBootPoll(() => evaluate(`({ready:Boolean(${expression}),fatal:document.getElementById('wserr')?.innerText ?? null})`), beforeMeasurement);
+      if (status !== false) {
+        if (status.fatal !== null) throw new Error('Native boot failed: ' + status.fatal);
+        if (status.ready) return;
+      }
       await sleep(500);
     }
     throw new Error('Readiness timed out: ' + expression);
@@ -89,7 +94,7 @@ try {
   await until("!document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live)", 240000);
   await evaluate('(window.__wildshard.world.hud.enterNow(),true)');
   await until('window.__wsReveal?.endedMs != null', 45000);
-  const documentOrigin = await evaluate(`(${gridFloorDocumentIdentity.toString()})()`); report.documentOrigin = documentOrigin;
+  const documentOrigin = await evaluate(`(${gridFloorDocumentIdentity.toString()})()`); report.documentOrigin = documentOrigin; beforeMeasurement = false;
   const snapshot = async label => {
     report.stage = label; writeFileSync(phaseFile, label); save(); await sleep(5000);
     const samples = [];
