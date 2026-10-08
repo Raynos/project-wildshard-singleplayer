@@ -1,0 +1,21 @@
+{
+  "protocol": "Actual native AAC short-window source versus whole-file source captured concurrently by a silent worklet under a deliberate 2s main-thread stall. Diagnostic only; no native saving credit.",
+  "genre": "piano",
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "result": {
+    "comparison": {
+      "samples": 302400,
+      "maxAbs": 0.4220079481601715,
+      "rms": 0.047548645972966944,
+      "firstDifferenceFrame": 89440
+    },
+    "failures": [
+      "Error: AAC source missed its exact scheduling deadline"
+    ],
+    "blockedContextSeconds": 2,
+    "peakWindows": 3,
+    "rate": 48000
+  },
+  "closed": true
+}

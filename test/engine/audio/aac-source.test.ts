@@ -5,6 +5,7 @@ import { Scope } from '../../../src/engine/app/scope';
 import { AacTrack } from '../../../src/engine/audio/aacTrack';
 import { AacSource } from '../../../src/engine/audio/aacSource';
 import type { AacCodecFactory } from '../../../src/engine/audio/aacPull';
+import { pcmBuffer } from './pcm-buffer';
 
 class Source extends EventTarget {
   buffer: AudioBuffer | null = null;
@@ -47,7 +48,7 @@ const factory: AacCodecFactory = output => ({ decode: () => {
 }, flush: () => Promise.resolve(), close: () => undefined });
 async function track(): Promise<AacTrack> {
   const bytes = readFileSync(new URL('../../../public/assets/music/piano/title-3d1f713a.m4a', import.meta.url));
-  const result = await AacTrack.prepare(bytes, 27.3995, 59.118, () => Promise.reject(new Error('No whole decode expected')), factory);
+  const result = await AacTrack.prepare(bytes, 27.3995, 59.118, () => Promise.reject(new Error('No whole decode expected')), factory, undefined, pcmBuffer);
   if (!result) throw new Error('Track not prepared'); return result;
 }
 async function settle(): Promise<void> { for (let i = 0; i < 100; i++) await Promise.resolve(); }
@@ -59,14 +60,14 @@ describe('bounded live native-source lifecycle', () => {
       failed: () => { failed++; }, ended: () => { ended++; } }, .05);
     try {
       const pending = source.pump(); expect(source.pump()).toBe(pending); await pending;
-      await settle(); expect(source.residentWindows).toBeLessThanOrEqual(6);
+      await settle(); expect(source.residentWindows).toBeLessThanOrEqual(48);
       for (let step = 1; step <= 280; step++) {
         world.advance(step * .25); await source.pump();
-        expect(source.residentWindows).toBeLessThanOrEqual(6);
+        expect(source.residentWindows).toBeLessThanOrEqual(48);
         for (const retired of world.sources.filter(value => value.ended)) expect(retired.buffer).toBeNull();
       }
       expect(failed).toBe(0); expect(world.sources.some(value => value.loop)).toBe(true);
-      expect(source.peakWindows).toBeLessThanOrEqual(6);
+      expect(source.peakWindows).toBeLessThanOrEqual(48);
       source.stop(70.3); world.advance(70.4); await settle();
       expect(ended).toBe(1); expect(source.residentWindows).toBe(0);
       expect(world.sources.every(value => value.buffer === null)).toBe(true);
@@ -78,9 +79,9 @@ describe('bounded live native-source lifecycle', () => {
     const prepared = await track(), owner = new Scope('late.aac'), world = fakeContext(), failures: unknown[] = [];
     const source = new AacSource(prepared, { context: world.ctx, output: {} as AudioNode, scope: owner,
       failed: error => { failures.push(error); }, ended: () => undefined }, .05);
-    world.advance(4); await settle();
+    await source.pump(); world.advance(14); await source.pump(); await settle();
     expect(failures).toHaveLength(1); expect(String(failures[0])).toContain('exact scheduling deadline');
-    expect(source.residentWindows).toBe(0); expect(world.sources).toHaveLength(1);
+    expect(source.residentWindows).toBe(0); expect(world.sources).toHaveLength(20);
     expect(world.sources[0]?.buffer).toBeNull(); owner.dispose();
   });
 

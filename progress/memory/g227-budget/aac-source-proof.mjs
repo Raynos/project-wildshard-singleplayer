@@ -46,6 +46,7 @@ try {
           const source = ctx.createBufferSource(); source.buffer = reference; source.loop = true;
           source.loopStart = spec.loopStart; source.loopEnd = spec.loopEnd; source.connect(gain); source.start(t0, 0);
         } else {
+          await prepared.prime();
           const scope = new Scope('AAC.offline'), failures = [];
           const source = new AacSource(prepared, { context: ctx, output: gain, scope,
             failed: error => failures.push(String(error)), ended: () => undefined }, t0);
@@ -65,7 +66,7 @@ try {
             }
             const buffer = await rendering;
             scope.dispose(); residue = scope.census;
-            if (failures.length || peakWindows > 6 || Object.values(residue).some(value => value !== 0)) throw new Error('Bounded source lifecycle failed');
+            if (failures.length || peakWindows > 48 || Object.values(residue).some(value => value !== 0)) throw new Error('Bounded source lifecycle failed');
             return { buffer, peakWindows, residue };
           } finally { scope.dispose(); }
         }

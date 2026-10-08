@@ -1,4 +1,4 @@
-import type { AacTrack } from './aacTrack';
+import { AAC_PREFILL_FRAMES, type AacTrack } from './aacTrack';
 import { AacWindows, type AacWindow } from './aacWindows';
 import { AacPull } from './aacPull';
 import type { Scope } from '../app/scope';
@@ -14,7 +14,7 @@ export interface AacSourcePorts {
   readonly failed: (error: unknown) => void;
   readonly ended: () => void;
 }
-const RATE = 48000, LOOKAHEAD = 1.25, MAX_WINDOWS = 6;
+const RATE = 48000, LOOKAHEAD = AAC_PREFILL_FRAMES / RATE, MAX_WINDOWS = 48;
 /** Schedules short native sources ahead on the existing context clock; never opens an audio device.
  * The first prepared window starts synchronously. Further work is serialized and scoped; each ended
  * window drops its AudioBuffer and listeners. Suspension cannot grow the source set. A missed deadline
@@ -40,9 +40,12 @@ export class AacSource {
     this.plans = new AacWindows(track.loopStart, track.loopEnd, track.frames);
     this.pull = new AacPull(track.bytes, track.index, track.factory, this.scope);
     this.scope.onDispose(() => { this.windows.clear(); });
-    const first = this.plans.next(); this.next = this.plans.next();
+    this.next = this.plans.next();
     try {
-      this.schedule(first, track.pcm);
+      for (const prepared of track.take()) {
+        const plan = this.next; this.next = this.plans.next();
+        this.schedule(plan, prepared.buffer);
+      }
       this.scope.interval(50, () => { void this.pump(); });
       void this.pump();
     } catch (error) { this.scope.dispose(); throw error; }
@@ -63,14 +66,12 @@ export class AacSource {
     if (this.retired) return;
     this.retired = true; this.dispose(); this.ports.ended();
   }
-  private schedule(plan: AacWindow, channels: readonly [Float32Array, Float32Array]): void {
+  private schedule(plan: AacWindow, buffer: AudioBuffer): void {
     const ctx = this.ports.context, start = this.t0 + plan.timeline / RATE;
     if (this.scope.disposed || start >= this.stopAt) return;
     if (this.windows.size >= MAX_WINDOWS) throw new Error('AAC source window admission exceeded');
     const owner = this.scope.child('AAC.window');
     try {
-      const buffer = ctx.createBuffer(2, plan.frames, RATE);
-      buffer.getChannelData(0).set(channels[0]); buffer.getChannelData(1).set(channels[1]);
       const source = ctx.createBufferSource();
       owner.onDispose(() => { source.buffer = null; });
       withOwner(owner, () => ownAudioSource(source));
@@ -106,7 +107,9 @@ export class AacSource {
           channels[0].set(pcm[0], part.destination); channels[1].set(pcm[1], part.destination);
         }
         if (start < this.ports.context.currentTime) throw new Error('AAC source missed its exact scheduling deadline');
-        this.next = this.plans.next(); this.schedule(plan, channels);
+        const buffer = this.ports.context.createBuffer(2, plan.frames, RATE);
+        buffer.getChannelData(0).set(channels[0]); buffer.getChannelData(1).set(channels[1]);
+        this.next = this.plans.next(); this.schedule(plan, buffer);
       }
     } catch (error) {
       if (this.active()) { this.dispose(); this.ports.failed(error); }
