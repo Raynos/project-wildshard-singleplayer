@@ -81,7 +81,7 @@ export async function releaseSoakPreviews(/** @type {readonly {base:string}[]} *
 export function joinSoakSamples(native, gl, gamePid = /** @type {number | null} */ (null), loadingEvents = []) {
   let cursor = 0;
   const samples = [];
-  const loading = loadingGlSamples(loadingEvents, native.filter(row => row.type === 'sample' && row.phase === 'loading').map(row => Date.parse(row.t) / 1000));
+  const loading = loadingGlSamples(loadingEvents, native.filter(row => row.type === 'sample' && row.phase === 'loading').map(row => Date.parse(row.t) / 1000), gl);
   for (const row of native) {
     if (row.type !== 'sample') continue;
     const elapsed = Date.parse(row.t) / 1000;
@@ -105,7 +105,7 @@ export function joinSoakSamples(native, gl, gamePid = /** @type {number | null} 
 }
 
 /** Replay every loading allocation/label mutation; never infer state outside explicit begin/stop coverage. */
-export function loadingGlSamples(events, timestamps) {
+export function loadingGlSamples(events, timestamps, observed = []) {
   const sorted = [...events].sort((a, b) => a.at - b.at), result = new Map();
   const first = sorted.find(row => row.op === 'begin'), last = sorted.findLast(row => row.op === 'stop');
   if (!first || !last) return result;
@@ -118,7 +118,7 @@ export function loadingGlSamples(events, timestamps) {
   }
   if ([...endings.values()].some(op => op !== 'end' && op !== 'stop') || sorted.filter(row => row.op === 'stop').length !== 1) return result;
   const resources = new Map(), labels = new Map(); let cursor = 0;
-  for (const at of [...timestamps].sort((a, b) => a - b)) {
+  for (const at of [...new Set([...timestamps, ...observed.map(row => row.at)])].sort((a, b) => a - b)) {
     if (at < first.at || at > last.at) continue;
     while (cursor < sorted.length && sorted[cursor].at <= at) {
       const event = sorted[cursor++], key = `${event.document}:${event.id}`;
@@ -143,6 +143,10 @@ export function loadingGlSamples(events, timestamps) {
     result.set(at, { at, totalBytes, textures, renderbuffers, buffers, unlabelled,
       reconciled: totalBytes === textures + renderbuffers + buffers, accountedBytes: null, cycle: null,
       source: 'complete loading allocation journal', journalFrom: first.at, journalThrough: last.at });
+  }
+  for (const snapshot of observed) {
+    const replay = result.get(snapshot.at);
+    if (replay && (replay.totalBytes !== snapshot.totalBytes || replay.unlabelled !== snapshot.unlabelled || replay.reconciled !== snapshot.reconciled)) return new Map();
   }
   return result;
 }

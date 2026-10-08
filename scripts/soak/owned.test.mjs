@@ -23,6 +23,8 @@ void test('SF57 loading mutation replay covers blocked timers, resizes, labels a
   assert.equal(loadingGlSamples(events.slice(0, -1), [5]).size, 0);
   assert.equal(loadingGlSamples(events.filter(row => row.op !== 'end'), [5]).size, 0, 'Navigation must retire the previous document explicitly');
   assert.equal(loadingGlSamples(events.filter(row => row.at !== 2), [5]).size, 0, 'A lost mutation is missing evidence, never a guessed state');
+  assert.equal(loadingGlSamples(events, [5], [{ at: 5, totalBytes: 999, unlabelled: 0, reconciled: true }]).size, 0,
+    'Replay must also reconcile with the actual observed census');
   const native = [{ type: 'sample', phase: 'loading', t: new Date(5000).toISOString(), footprint: 500 }];
   assert.equal(joinSoakSamples(native, [], null, events)[0].gl.totalBytes, 128);
   assert.equal(joinSoakSamples([{ ...native[0], phase: 'drive' }], [], null, events)[0].gl, undefined, 'Playing still needs the actual one-second census');
