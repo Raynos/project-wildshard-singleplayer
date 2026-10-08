@@ -24,13 +24,21 @@ function rendererRecorder(commands: Record<string, unknown>): THREE.WebGLRendere
 it('discovers all six real terrain/bark injected arrays before compiling either material', async () => {
   const ground = { map: arrayTexture(1024, 4), normalMap: arrayTexture(1024, 4), armMap: arrayTexture(512, 4) };
   const bark = { map: arrayTexture(512, 5), normalMap: arrayTexture(512, 5), armMap: arrayTexture(512, 5) };
-  vi.spyOn(assets, 'loadTexture').mockImplementation(() => Promise.resolve(new THREE.Texture()));
+  const loaded: THREE.Texture[] = [];
+  vi.spyOn(assets, 'loadTexture').mockImplementation((_url, _srgb, _repeat, _maxSize, configure) => {
+    const texture = new THREE.Texture();
+    expect(configure).toBeTypeOf('function'); configure?.(texture);
+    // Observe the sampler before the loader's publication/upload boundary.
+    expect(texture.wrapS).toBe(THREE.ClampToEdgeWrapping); expect(texture.wrapT).toBe(THREE.ClampToEdgeWrapping);
+    loaded.push(texture); return Promise.resolve(texture);
+  });
   vi.spyOn(assets, 'loadPBRArray').mockResolvedValue(bark);
   vi.spyOn(treeSet, 'loadTreeSetGeometry').mockResolvedValue(new Map(PINE_TREE_SET.map(spec => [spec.name, {
     trunk: new THREE.BufferGeometry(), trunkLo: new THREE.BufferGeometry(), hi: new THREE.BufferGeometry(),
     lo: new THREE.BufferGeometry(), twigs: new THREE.BufferGeometry(), far: new THREE.BufferGeometry(),
   }])));
   const factory = await new PineTreeFactory(rendererRecorder({ extensions: { has: () => false } }), { set: 'fixture' }).build();
+  expect(loaded.map(texture => texture.anisotropy)).toEqual([8, 8, 8, 4, 4]);
   const terrain = splatTerrainMaterial(ground, { tints: [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]], boreal: null });
   const scene = new THREE.Scene(), geometry = new THREE.BufferGeometry();
   scene.add(new THREE.Mesh(geometry, terrain), new THREE.Mesh(geometry, factory.barkMaterial));

@@ -301,14 +301,15 @@ export class PineTreeFactory extends TreeFactory {
    */
   private async buildSet(set: string): Promise<this> {
     const U = treeSetUrls(set);
+    // The loader fences compressed maps before returning; choose the final sampler while mips exist.
+    const cards = (texture: THREE.Texture): void => { texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; texture.anisotropy = 8; };
+    const far = (texture: THREE.Texture): void => { texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; texture.anisotropy = 4; };
     const [geo, cardAlbedo, cardNormal, cardArm, farAlbedo, farNormal, bark] = await Promise.all([
       loadTreeSetGeometry(U.glb, TREE_SPECS_V2),
-      loadTexture(U.cardsAlbedo, true), loadTexture(U.cardsNormal), loadTexture(U.cardsArm),
-      loadTexture(U.farAlbedo, true), loadTexture(U.farNormal),
+      loadTexture(U.cardsAlbedo, true, 1, undefined, cards), loadTexture(U.cardsNormal, false, 1, undefined, cards), loadTexture(U.cardsArm, false, 1, undefined, cards),
+      loadTexture(U.farAlbedo, true, 1, undefined, far), loadTexture(U.farNormal, false, 1, undefined, far),
       loadPBRArray([...BARK_LAYERS], TIER_CONFIG.layerSize),
     ]);
-    for (const t of [cardAlbedo, cardNormal, cardArm]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; }
-    for (const t of [farAlbedo, farNormal]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4; }
     this.tintBark = false;
 
     const white = standIn([255, 255, 255, 255]);
