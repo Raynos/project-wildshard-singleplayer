@@ -1,0 +1,96 @@
+{
+  "purpose": "Local Mac WebKit first-crossing instrumentation bisection; never a Simulator/cap/soak pass",
+  "runtime": {
+    "build": "cdad597-muzcgb1q",
+    "time": "2026-10-08T09:38:37.194Z"
+  },
+  "harnessAtStart": "c132d0f9a222175c277b033523631a34da7f1d26",
+  "scriptCommit": "75bde87ef",
+  "candidateGlCommit": "c132d0f9a",
+  "cases": [
+    {
+      "name": "historical-census",
+      "pass": true,
+      "closed": true,
+      "errors": [],
+      "consoleErrors": [],
+      "bootDocuments": 3,
+      "documents": 3,
+      "current": "pine-hollow",
+      "journalEvents": 0
+    },
+    {
+      "name": "historical-journal",
+      "pass": true,
+      "closed": true,
+      "errors": [],
+      "consoleErrors": [],
+      "bootDocuments": 3,
+      "documents": 3,
+      "current": "pine-hollow",
+      "journalEvents": 13070
+    },
+    {
+      "name": "light-journal",
+      "pass": true,
+      "closed": true,
+      "errors": [],
+      "consoleErrors": [],
+      "bootDocuments": 3,
+      "documents": 3,
+      "current": "pine-hollow",
+      "journalEvents": 13070
+    },
+    {
+      "name": "light-diagnostics",
+      "pass": true,
+      "closed": true,
+      "errors": [],
+      "consoleErrors": [],
+      "bootDocuments": 3,
+      "documents": 3,
+      "current": "pine-hollow",
+      "journalEvents": 13070
+    }
+  ],
+  "callbacks": {
+    "purpose": "Deterministic callback-count isolation; CPU time advisory only, no GPU/cap claim",
+    "result": [
+      {
+        "name": "historical-census",
+        "labels": 1000001,
+        "calls": 0,
+        "events": 0,
+        "advisoryMilliseconds": 12.311125000000004
+      },
+      {
+        "name": "historical-journal",
+        "labels": 1000001,
+        "calls": 1000001,
+        "events": 3,
+        "advisoryMilliseconds": 142.888917
+      },
+      {
+        "name": "light-journal",
+        "labels": 1000001,
+        "calls": 2,
+        "events": 3,
+        "advisoryMilliseconds": 10.147375000000011
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "file": "mac.json",
+      "rawBytes": 1109461,
+      "rawSha256": "1e3346e286395098619d29d28cf580089cccbe497633555e2bdc761931f08c91",
+      "compressedBytes": 21696
+    },
+    {
+      "file": "callbacks.json",
+      "rawBytes": 590,
+      "rawSha256": "6257d23b5ee61c0c6bd919e81dd8fcf530170a949b6934aa77a8814380a83d28",
+      "compressedBytes": 215
+    }
+  ]
+}
