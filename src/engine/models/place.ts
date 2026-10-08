@@ -25,6 +25,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Rng } from '../core/rng';
 import { currentOwner } from '../app/ownership';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
+import { FrameCamera } from '../world/frameCamera';
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
@@ -159,7 +160,8 @@ interface Drawn {
   colliders: ColliderDesc[];
   /** world boxes, 6 floats per copy (min xyz, max xyz) */
   boxes: Float32Array;
-  cull: ((camera: THREE.Camera) => void) | null;
+  /** `camera`: the view in the copies' own frame (SF63: `FrameCamera`); `world`: the camera itself, for three's LODs, which measure world matrices */
+  cull: ((camera: THREE.Camera, world?: THREE.Camera) => void) | null;
   /** the same with a view handed in (`CullOptions.view`) */
   cullWith?: ((frustum: THREE.Frustum, eye: THREE.Vector3) => void) | null;
 }
@@ -167,30 +169,33 @@ interface Drawn {
 // ── the shard's placed models (E155: every resident shard has its own) ──
 
 interface ModelRecord { readonly groups: Placed[] }
-type Culler = (camera: THREE.Camera) => void;
+type Culler = (camera: THREE.Camera, world: THREE.Camera) => void;
 /**
  * What one resident world placed (SF57): its model records and the cullers its calls started. A life is its registry's (a
  * grid region's view, a standalone level's), or for a build-only call (`registry: null`) its owner scope's, else the page's.
  * When the registry retires or the owner disposes, its records and cullers go: `cullPlaced` runs only live worlds' cullers,
  * `placedGroups` returns only live groups, and nothing keeps their copies, boxes or culler arrays alive.
  */
-interface Life { readonly records: Map<string, ModelRecord>; readonly cullers: Culler[]; retired: boolean }
+interface Life { readonly records: Map<string, ModelRecord>; readonly cullers: Culler[]; retired: boolean; readonly frame: FrameCamera | null }
 const lives = new Map<object, Life>();
-const pageLife: Life = { records: new Map(), cullers: [], retired: false };
-/** every live culler, flat, in the order they started (cullPlaced allocates nothing per frame) */
+const pageLife: Life = { records: new Map(), cullers: [], retired: false, frame: null };
+/** every live culler, flat, in the order they started (cullPlaced allocates nothing per frame), and the life each belongs to */
 const cullers: Culler[] = [];
+const cullerLives: Life[] = [];
+/** cullPlaced's frame count: a framed life's camera is posed once per call */
+let cullStamp = 0;
 /** the life each weld's place calls belong to (its band culler starts at `finishWeld`) */
 const weldLives = new WeakMap<Weld, Life>();
 
-function livedBy(key: object, retireOn: (end: () => void) => void): Life {
+function livedBy(key: object, retireOn: (end: () => void) => void, frame: THREE.Object3D | null = null): Life {
   const known = lives.get(key);
   if (known !== undefined) return known;
-  const life: Life = { records: new Map(), cullers: [], retired: false };
+  const life: Life = { records: new Map(), cullers: [], retired: false, frame: frame === null ? null : new FrameCamera(frame) };
   lives.set(key, life);
   retireOn(() => {
     life.retired = true;
     if (lives.get(key) === life) lives.delete(key);
-    for (const c of life.cullers) { const i = cullers.indexOf(c); if (i !== -1) cullers.splice(i, 1); }
+    for (const c of life.cullers) { const i = cullers.indexOf(c); if (i !== -1) { cullers.splice(i, 1); cullerLives.splice(i, 1); } }
     life.cullers.length = 0;
     life.records.clear();
   });
@@ -199,14 +204,14 @@ function livedBy(key: object, retireOn: (end: () => void) => void): Life {
 
 /** the life a `place` call into `registry` belongs to */
 function lifeOf(registry: WorldRegistry | null): Life {
-  if (registry !== null) return livedBy(registry, (end) => { registry.onRetire(end); });
+  if (registry !== null) return livedBy(registry, (end) => { registry.onRetire(end); }, registry.frame);
   const owner = currentOwner();
   return owner === null ? pageLife : livedBy(owner, (end) => { owner.onDispose(end); });
 }
 
 function startCuller(life: Life, c: Culler): void {
   if (life.retired) return;
-  life.cullers.push(c); cullers.push(c);
+  life.cullers.push(c); cullers.push(c); cullerLives.push(life);
 }
 
 function eachLife(fn: (life: Life) => void): void {
@@ -214,9 +219,16 @@ function eachLife(fn: (life: Life) => void): void {
   for (const life of lives.values()) fn(life);
 }
 
-/** Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed. */
+/**
+ * Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed. A world whose
+ * registry stands in a frame of its own (a grid region's root, SF63) culls against the camera seen from that frame.
+ */
 export function cullPlaced(camera: THREE.Camera): void {
-  for (let i = 0; i < cullers.length; i++) cullers[i]?.(camera);
+  cullStamp = (cullStamp + 1) % 0x40000000;
+  for (let i = 0; i < cullers.length; i++) {
+    const frame = cullerLives[i]?.frame ?? null;
+    cullers[i]?.(frame === null ? camera : frame.of(camera, cullStamp), camera);
+  }
 }
 
 /** how many copies of a model the live shards have placed (0 when none) */
@@ -757,7 +769,7 @@ function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<
   let cull: ((camera: THREE.Camera) => void) | null = null;
   if (parts.length > 0 || lods.length > 0) {
     const c = parts.length > 0 ? new UntilCull(parts, Float32Array.from(until), Uint32Array.from(copyOf), Float32Array.from(poses.flatMap((p) => [p.x, p.y, p.z]))) : null;
-    cull = (camera) => { c?.update(camera); for (const l of lods) l.update(camera); };
+    cull = (camera, world = camera) => { c?.update(camera); for (const l of lods) l.update(world); };
   }
   return { object: wrap(copies, def.id), drawnAs: skinned ? 'skinned' : 'single', colliders, boxes, cull };
 }

@@ -28,6 +28,7 @@ import { Owned } from '../loot/Owned';
 import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';
 import { coverRuntimeAssets } from './assetResidency';
+import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 
 function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
@@ -152,6 +153,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
         scope, ground: foundation.ground });
       const foundationWorld = foundation.world(view);
+      // SF63: the herd's far cull reads the camera from the region's frame, where its animals stand (FrameCamera)
+      const viewFromRoot = new FrameCamera(view.root);
       let enteredContext: ShardContext | null = null, anonymous = 0;
       const onUpdate: ShardWorld['game']['onUpdate'] = (run, label, core) => {
         if (enteredContext === null) throw new Error('Regional callback registered before its interior context');
@@ -245,7 +248,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 installEnteredRuntimeService(entered, entry => {
                   app.addContentSystem({ id: `grid.runtime.${request.cell.instance}.animals`, phase: 'update', run: (dt, t) => {
                     // Native hitboxes/controllers are lazy, but belong to the parked resident rather than this entry.
-                    withOwner(owner, () => regional.animals.update(dt, t, world.player.position, world.player.sprinting, world.player.position, world.game.camera));
+                    withOwner(owner, () => regional.animals.update(dt, t, world.player.position, world.player.sprinting, world.player.position, viewFromRoot.of(world.game.camera)));
                     localPlay?.progress.addPlay(dt);
                     weapons.update(dt, t);
                   } }, entry);

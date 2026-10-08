@@ -95,6 +95,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   root.visible = false;
   root.position.set(cell.origin.x - request.home.x, 0, cell.origin.z - request.home.z);
   const registry = new WorldRegistry();
+  registry.frame = root; // SF63: what this region places culls against the camera seen from its root (FrameCamera)
   const movers = new Set<() => void>(), platforms: Floor[] = [];
   const objects = new Map<Object3D, { scope: Scope; refs: number }>();
   let bindings = 0, held = false;

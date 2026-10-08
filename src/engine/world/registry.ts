@@ -216,6 +216,11 @@ export class WorldRegistry {
   private readonly listeners: ((p: Piece) => void)[] = [];
   private readonly retirers = new Set<() => void>();
   private retiredAt = false;
+  /**
+   * The object whose space this world's content stands in (SF63): a grid region's view root, at the cell's render offset.
+   * `place`'s cullers measure the camera from it (`FrameCamera`), as its copies' boxes are in that space. null: the scene's.
+   */
+  frame: THREE.Object3D | null = null;
 
   /** true once `retire` ran: the world this registry describes has left */
   get retired(): boolean { return this.retiredAt; }

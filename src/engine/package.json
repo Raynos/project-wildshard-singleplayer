@@ -290,6 +290,7 @@
     "./world/forest/treeSet": "./world/forest/treeSet.ts",
     "./world/forest/treeSpec": "./world/forest/treeSpec.ts",
     "./world/forest/treeSpecies": "./world/forest/treeSpecies.ts",
+    "./world/frameCamera": "./world/frameCamera.ts",
     "./world/geometryKit": "./world/geometryKit.ts",
     "./world/groundField": "./world/groundField.ts",
     "./world/interact/Interactables": "./world/interact/Interactables.ts",
