@@ -171,15 +171,15 @@ export class Perf {
       const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
       void copy();
     });
-    Object.assign(window, { __perfLapRun: this.lap });
+    this.scope.expose(window, '__perfLapRun', this.lap);
     // a toggle (E142, Jake: "detail mode on, move around a lot and keep looking at it — it shouldn't just fade away"): only a
     // tap on the pill closes the panel; moving, looking and shooting leave it up
     const param = new URLSearchParams(location.search).get('perf');
     const hide = (): boolean => (param === '0' ? true : param === '1' ? false : !isDev());
     this.userHidden = hide(); this.root.hidden = this.userHidden;
-    onDev(() => { this.userHidden = hide(); if (this.active) this.setActive(true); });
-    if (this.budgetOn) Object.assign(window, { __perfBudget: this.budget });
-    Object.assign(window, { __perfHud: this.hud });
+    this.scope.onDispose(onDev(() => { this.userHidden = hide(); if (this.active) this.setActive(true); }));
+    if (this.budgetOn) this.scope.expose(window, '__perfBudget', this.budget);
+    this.scope.expose(window, '__perfHud', this.hud);
     game.onUpdate(() => this.update(performance.now()), 'hud.perf');
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
     this.scope.interval(500, () => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = engineString('s_bda050585a00'); (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = engineString('s_ebe595da4637'); (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = engineString('s_a7a9dc5bcf71'); this.root.classList.remove('slow', 'bad'); this.mirror(); } });
@@ -196,14 +196,14 @@ export class Perf {
     this.panel.classList.add('probed');
     const header = this.probeHeader(); // before the rows switch things off: the frame as played
     const rows = await runPerfProbe(g, (line) => { out.textContent = line; });
-    if (rows.length === 0) return;
+    if (this.scope.disposed || rows.length === 0) return;
     const head = `${g.renderer.domElement.width}×${g.renderer.domElement.height} · ${TIER} · ${Math.round(devicePixelRatio)}× screen`;
     const lines = probeLines(rows, head);
     out.textContent = lines.join('\n');
     console.info(`[probe]\n${lines.join('\n')}`);
     this.probeText = probeReport(rows, probeSamples, header);
     try { savedStorage.setItem(PROBE_KEY, this.probeText); } catch { /* not kept past this load */ }
-    Object.assign(window, { __perfProbe: rows });
+    this.scope.expose(window, '__perfProbe', rows);
     this.open(true);
   }
   /** the report's header: what ran, on what, where (E189) */

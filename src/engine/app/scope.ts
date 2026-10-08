@@ -1,5 +1,6 @@
 import { withOwner } from './ownership';
 import { scopeEnvironment } from './scopeEnvironment';
+import { scopedProperty } from './scopedProperty';
 
 export interface Disposable3 { dispose: () => void }
 export interface PhysicsHandle { remove: () => void }
@@ -96,6 +97,16 @@ export class Scope {
     return counts;
   }
   child(name: string): Scope { return new Scope(name, this); }
+
+  /** Publish a borrowed property until this owner retires. Nested/out-of-order owners never resurrect retired values. */
+  expose(target: object, key: PropertyKey, value: unknown): () => void {
+    if (this.closed) return () => undefined;
+    const release = scopedProperty(target, key, value);
+    let forget = () => { /* Assigned after the cleanup is registered. */ };
+    const remove = (): void => { release(); forget(); };
+    forget = this.track('disposers', remove);
+    return remove;
+  }
 
   private track(kind: Kind, run: () => void): () => void {
     if (this.closed) { run(); return () => { /* Already released. */ }; }

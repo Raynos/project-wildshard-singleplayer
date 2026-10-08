@@ -128,7 +128,7 @@ export class PerfHud {
     this.out = out;
     this.spark = spark;
     this.dom = new DomWrites(own);
-    this.scope.onDispose(() => { this.dom.set(false); });
+    this.scope.onDispose(() => { this.dom.set(false); this.counters.length = 0; this.onRecDone = null; this.rec = null; });
     try { const s = savedStorage.getItem(STORE); if (s !== null) this.lastRecText = s; } catch { this.lastRecText = ''; }
   }
 

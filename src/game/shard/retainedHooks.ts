@@ -60,12 +60,7 @@ export function installEnteredRuntimeAttachment(context: ShardContext, root: HTM
 export function installEnteredRuntimeObserver(context: ShardContext, name: string, observer: object): void {
   installEnteredRuntimeService(context, (scope) => {
     if (typeof window === 'undefined') throw new Error('Browser debug observer needs a window');
-    const previous = Object.getOwnPropertyDescriptor(window, name);
-    Object.defineProperty(window, name, { configurable: true, enumerable: previous?.enumerable ?? true, value: observer, writable: true });
-    scope.onDispose(() => {
-      if (previous === undefined) Reflect.deleteProperty(window, name);
-      else Object.defineProperty(window, name, previous);
-    });
+    scope.expose(window, name, observer);
   });
 }
 
