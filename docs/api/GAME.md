@@ -471,7 +471,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `RuntimeFacts` | type | @wildshard/game/shardfile/hybridRows | Emit one declared fact for an entity; the platform ledger decides the grant. |
 | `RuntimeItemPorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. |
 | `RuntimeQuest` | interface | @wildshard/game/shardfile/hybridRows | A declared quest bound into the runtime's play scope. Coins are the runtime's to pay (its purse and its beat). |
-| `RuntimeQuestPorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends a declared quest: its flags, the built place of a world-piece marker, a chip the format cannot carry yet. |
+| `RuntimeQuestPorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends a declared quest: its flags, built marker positions and an optional trusted presentation override. |
 | `withoutRuntimeRows` | function | @wildshard/game/shardfile/hybridRows | The source as the data client installs it: every runtime-bound section emptied, so neither installs it twice. |
 | `DeclaredItemPorts` | interface | @wildshard/game/shardfile/items | Trusted loader dependencies; factories and icons are resolved below the game layer. |
 | `DeclaredItems` | interface | @wildshard/game/shardfile/items | Normal equipment factory result plus authoritative fixed-step runtimes, scoped to the one session. |
