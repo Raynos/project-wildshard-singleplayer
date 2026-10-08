@@ -1,0 +1,507 @@
+{
+  "sha": "a1c4f02b3ecd66ba255822ecdb4b8cd22edf6ef0",
+  "stage": "driftwood-isle-to-pine-hollow",
+  "driveStarted": "2026-10-08T15:16:15.374Z",
+  "routeFailure": "Error: Error: Grid floor route driftwood-isle-to-pine-hollow timed out\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:201:59)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:194:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:342:40",
+  "runtimeError": {
+    "at": 1791472601.218,
+    "document": "1791472517180:0.8377283541062824",
+    "sequence": 14,
+    "kind": "console",
+    "method": "error",
+    "text": "Regional runtime entry failed TypeError: undefined is not an object (evaluating 'y[0].width')"
+  },
+  "state": {
+    "url": "http://127.0.0.1:4402/sf57-safari.html",
+    "documentId": "1791472517180:0.8377283541062824",
+    "stop": {
+      "leg": "driftwood-isle-to-pine-hollow",
+      "phase": "travel",
+      "waypoint": 1,
+      "target": {
+        "x": 0,
+        "z": 325
+      }
+    },
+    "state": {
+      "home": "driftwood-isle",
+      "inside": "pine-hollow",
+      "feet": {
+        "x": 0.01,
+        "z": 305.01
+      },
+      "cells": [
+        {
+          "instance": "pine-hollow",
+          "slug": "pine-hollow",
+          "cell": [
+            0,
+            1
+          ],
+          "shows": "playing"
+        },
+        {
+          "instance": "template-2",
+          "slug": "_template",
+          "cell": [
+            1,
+            1
+          ],
+          "shows": "far proxy"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "slug": "sunscar-dunes",
+          "cell": [
+            -1,
+            0
+          ],
+          "shows": "far proxy"
+        },
+        {
+          "instance": "driftwood-isle",
+          "slug": "driftwood-isle",
+          "cell": [
+            0,
+            0
+          ],
+          "shows": "frozen"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "slug": "nalati-grasslands",
+          "cell": [
+            1,
+            0
+          ],
+          "shows": "far proxy"
+        },
+        {
+          "instance": "far-reach",
+          "slug": "far-reach",
+          "cell": [
+            0,
+            -1
+          ],
+          "shows": "far proxy"
+        }
+      ],
+      "strips": 40,
+      "road": {
+        "segments": 24,
+        "junctions": 16,
+        "roundabouts": 4,
+        "signs": 124,
+        "lights": 364,
+        "draws": 3
+      },
+      "seams": {
+        "triangles": 95576,
+        "draws": 5,
+        "buckets": {
+          "ground": 79702,
+          "stone": 8438,
+          "rock": 6428,
+          "rail": 504,
+          "curtain": 504
+        }
+      },
+      "softWalls": {
+        "closed": 20
+      },
+      "shimmer": {
+        "borders": 24,
+        "status": null
+      },
+      "screens": {
+        "shown": [
+          {
+            "instance": "driftwood-isle",
+            "status": "loading"
+          },
+          {
+            "instance": "template-2",
+            "status": "loading"
+          },
+          {
+            "instance": "nalati-grasslands",
+            "status": "loading"
+          }
+        ],
+        "draws": 152
+      },
+      "plots": {
+        "plots": [
+          {
+            "instance": "open-plot-nw",
+            "visible": true,
+            "entries": {
+              "north": {
+                "billboard": "sky-race",
+                "demo": "alien-plain"
+              },
+              "east": {
+                "billboard": "night-market",
+                "demo": "desert-ruin"
+              },
+              "south": {
+                "billboard": "frozen-lighthouse",
+                "demo": "ink-valley"
+              },
+              "west": {
+                "billboard": "canyon-railway",
+                "demo": "sky-race"
+              }
+            }
+          },
+          {
+            "instance": "open-plot-sw",
+            "visible": true,
+            "entries": {
+              "north": {
+                "billboard": "coral-reef",
+                "demo": "night-market"
+              },
+              "east": {
+                "billboard": "alien-plain",
+                "demo": "frozen-lighthouse"
+              },
+              "south": {
+                "billboard": "desert-ruin",
+                "demo": "canyon-railway"
+              },
+              "west": {
+                "billboard": "ink-valley",
+                "demo": "coral-reef"
+              }
+            }
+          },
+          {
+            "instance": "open-plot-se",
+            "visible": true,
+            "entries": {
+              "north": {
+                "billboard": "frozen-lighthouse",
+                "demo": "ink-valley"
+              },
+              "east": {
+                "billboard": "canyon-railway",
+                "demo": "sky-race"
+              },
+              "south": {
+                "billboard": "coral-reef",
+                "demo": "night-market"
+              },
+              "west": {
+                "billboard": "alien-plain",
+                "demo": "frozen-lighthouse"
+              }
+            }
+          }
+        ],
+        "pictures": 8,
+        "draws": 27,
+        "triangles": 38914
+      },
+      "ringsReady": true,
+      "residentMB": 705.06,
+      "playingMB": 1146.03,
+      "accountedBytes": 705062745,
+      "rings": {
+        "far": 6,
+        "l1": 2,
+        "l0": 0,
+        "refused": 0,
+        "inFlight": 0,
+        "queued": 0
+      },
+      "frame": {
+        "installed": true,
+        "faded": 3,
+        "owner": "pine-hollow",
+        "highway": 0.499,
+        "weights": {
+          "pine-hollow": 0.501
+        },
+        "air": [
+          0.552,
+          0.603,
+          0.643
+        ],
+        "grade": [
+          0,
+          0.9,
+          1,
+          0.975,
+          0.995,
+          1.035
+        ],
+        "roadSky": 0.499,
+        "skies": {
+          "pine-hollow": {
+            "weight": 0.501,
+            "drawn": true,
+            "bytes": 20971520,
+            "reserved": 29360128
+          }
+        },
+        "chain": {
+          "owner": "pine-hollow",
+          "weight": 0.501,
+          "lut": true,
+          "values": [
+            0.2389,
+            -0.015,
+            0.2,
+            0.2,
+            0.2
+          ],
+          "post": [
+            0.4752,
+            0.9248,
+            0.1903,
+            0.4503,
+            -1
+          ]
+        }
+      },
+      "live": {
+        "live": {
+          "current": "pine-hollow",
+          "worldFeet": {
+            "x": 0.012453272055706732,
+            "y": 0.020795864985689194,
+            "z": 305.0149129287456
+          },
+          "crossings": 3,
+          "transitions": [
+            {
+              "from": null,
+              "to": "driftwood-isle"
+            },
+            {
+              "from": "driftwood-isle",
+              "to": null
+            },
+            {
+              "from": null,
+              "to": "pine-hollow"
+            }
+          ],
+          "residents": [
+            "pine-hollow"
+          ],
+          "pending": [],
+          "issues": {},
+          "gameplayReady": false,
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "crossing": {
+          "current": "pine-hollow",
+          "target": "pine-hollow",
+          "phase": "settled",
+          "issue": null
+        },
+        "stowed": false,
+        "renderOrigin": {
+          "x": 0,
+          "z": 555
+        },
+        "runtimeTiming": {
+          "current": null,
+          "completed": [
+            {
+              "instance": "driftwood-isle",
+              "hook": "beforeWorld",
+              "start": 15859,
+              "end": 15860.000000000002,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "constructor",
+              "start": 15863,
+              "end": 15863,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "world",
+              "start": 15893,
+              "end": 17364,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "afterWorld",
+              "start": 17368.000000000004,
+              "end": 17369,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "kit",
+              "start": 17372,
+              "end": 17372,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "afterKit",
+              "start": 17380,
+              "end": 17484,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "play",
+              "start": 17486,
+              "end": 17552,
+              "outcome": "done"
+            },
+            {
+              "instance": "driftwood-isle",
+              "hook": "afterPlay",
+              "start": 17571,
+              "end": 17572,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "beforeWorld",
+              "start": 72812,
+              "end": 72812,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "constructor",
+              "start": 72857,
+              "end": 72857,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "world",
+              "start": 72863,
+              "end": 76053,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "afterWorld",
+              "start": 76054,
+              "end": 76054,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "kit",
+              "start": 76059,
+              "end": 76267,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "afterKit",
+              "start": 76280,
+              "end": 77900,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "play",
+              "start": 77902,
+              "end": 78395,
+              "outcome": "done"
+            },
+            {
+              "instance": "pine-hollow",
+              "hook": "afterPlay",
+              "start": 78398,
+              "end": 84049,
+              "outcome": "failed"
+            }
+          ]
+        },
+        "hoverCap": 14,
+        "homeActive": null
+      },
+      "life": [
+        {
+          "instance": "template-2",
+          "creatures": 3,
+          "frozen": true,
+          "views": {
+            "targets": 3,
+            "posed": 3,
+            "particles": 2,
+            "capacity": 6,
+            "tick": 2408
+          },
+          "failed": null
+        }
+      ]
+    },
+    "errors": [
+      "Regional runtime entry failed TypeError: undefined is not an object (evaluating 'y[0].width')"
+    ],
+    "body": "\nDODGE\n\nJUMP\nPAUSE\nMOVE\nSPRINT\nLOOK\n\nHOVER\nCHUNK BOUNDARY\nNO-MAN'S LAND BEYOND · NOTHING HAS BEEN GENERATED HERE\n‹\n›\nNTAP TO JUMP\nMEMORY\nALL LOADED 1146 / 1000 MB (115%)\nPINE HOLLOW 494% OF BUDGET\n5 SHARDS OK\nSHARED 164.2 MB\nMEMORY LIMIT · +146.0 MB\n\n—\npaused\nRESUME\nPAUSED\nDRIFTWOOD ISLE\nEXIT TO MAIN\nSETTINGS\nSAVES\nGAMEPLAY\n\nAIM ASSIST\nCONTROLS\nLOOK SPEED\n1.00×\n\nAUDIO\nMASTER VOLUME\n\nMUSIC\n\nMUSIC STYLE\nPiano\nOrchestral\nFolk\nSynth\nMusic: MiniMax-Music3\nSound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI\nLOCK-ON\nLOCK-ON CAMERA\nFollow\nGentle\nOff\n\nAUTO RE-LOCK\nLOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.\nREVIEW\nUNLOCK\nPlaytesters: the password turns on in-game notes (F8 / ✎) with a screenshot.\nDEVELOPER\n\nDEVELOPER MODE\nShows the frame meter, the build id, the loading details and the Debug settings.\n\nDEVELOPER TOOLS\nDIAGNOSTICS AND UNFINISHED WORK\n\nDEBUG\nFOR PLAYTESTS — GOES AWAY WHEN THE GAME SHIPS\nSAVE\nExport your progress as a file, or import a saved file.\nEXPORT\nIMPORT\nRELOAD TO APPLY\nTAP OUTSIDE OR ESC TO RESUME"
+  },
+  "functionalPass": false,
+  "grade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 717327338,
+    "loadingPeakBytes": 1357464156,
+    "phoneEstimateBytes": 1004258273.1999999,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791472565.302,
+        "end": 1791472575.374,
+        "samples": 10,
+        "bytes": 553283971
+      }
+    ],
+    "baselineDeltaBytes": [
+      null
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": false,
+        "peakBytes": 717327338,
+        "troughBytes": 433737232
+      }
+    ],
+    "recovery": false,
+    "calibration": true,
+    "ratios": [],
+    "missingGlSamples": 0,
+    "sampling": true,
+    "leakZero": true,
+    "admitted": [],
+    "refused": [
+      "pine-hollow",
+      "template-2",
+      "sunscar-dunes",
+      "driftwood-isle",
+      "nalati-grasslands",
+      "far-reach"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 0,
+    "rehearsal": true,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+  },
+  "contextLosses": 0,
+  "longRunStarted": false
+}

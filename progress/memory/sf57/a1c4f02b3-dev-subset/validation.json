@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-08T14:53:58.409Z",
+  "sourceEdited": false,
+  "runnerSyntax": "node --check /private/tmp/claude-501/sp-builders/sp-x3/run-a1c4-soak.mjs passed",
+  "sameObserverAsPrevious": true,
+  "priorFocusedChecks": {
+    "command": "node --test scripts/soak/owned.test.mjs scripts/soak/gl.test.mjs",
+    "passed": 22,
+    "failed": 0,
+    "sourceFingerprintsUnchanged": true
+  },
+  "harnessDeltaReviewed": "c4679547d adds unused sun-entry planning only; shared owned route unaffected",
+  "buildIdentity": "HTTP and disk a1c4f02-muznkv1v at 2026-10-08T14:50:04.350Z; fixes ancestors verified"
+}

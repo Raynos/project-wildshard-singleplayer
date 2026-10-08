@@ -1,0 +1,78 @@
+{
+  "caveat": "No JS call stack was captured by the light scalar console observer. These are source-mapped expression candidates, not an actual failure stack or exact texture identification.",
+  "sha": "a1c4f02b3ecd66ba255822ecdb4b8cd22edf6ef0",
+  "bundle": "assets/three.module-0SoK2Fk7.js",
+  "bundleSha256": "46790af9ba406ba6cdb953e951d7af353cba8f65678493dbf92f8ec6ff9c4e3a",
+  "sourceMapSha256": "c373e49e0295f3aa95d3c23ff68d8dffaaa94e2561640a0e688551e2ca0f7035",
+  "queries": [
+    {
+      "offset": 657729,
+      "line": 4195,
+      "column": 28949,
+      "context": "rage2D(e.TEXTURE_2D,1,m,t.width,t.height):n.texImage2D(e.TEXTURE_2D,0,m,t.width,t.height,0,r,p,null));else if(o.isDataTexture){if(y.length>0){C&&w&&n.texStorage2D(e.TEXTURE_2D,E,m,y[0].width,y[0].height);for(let t=0,i=y.length;t<i;t++)h=y[t],C?T&&n.texSubImage2D(e.TEXTURE_2D,t,0,0,h.width,h.height,r,p,h.data)",
+      "mapping": {
+        "source": "../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "line": 12000,
+        "column": 68,
+        "name": null,
+        "excerpt": "\n\t\t\t\t\tif ( useTexStorage && allocateMemory ) {\n\n\t\t\t\t\t\tstate.texStorage2D( _gl.TEXTURE_2D, levels, glInternalFormat, mipmaps[ 0 ].width, mipmaps[ 0 ].height );\n\n\t\t\t\t\t}\n"
+      }
+    },
+    {
+      "offset": 658186,
+      "line": 4195,
+      "column": 29406,
+      "context": "pe(o,t,r,p)):n.texImage2D(e.TEXTURE_2D,0,m,t.width,t.height,0,r,p,t.data)}else if(o.isCompressedTexture){if(o.isCompressedArrayTexture){C&&w&&n.texStorage3D(e.TEXTURE_2D_ARRAY,E,m,y[0].width,y[0].height,t.depth);for(let i=0,a=y.length;i<a;i++)if(h=y[i],o.format!==1023){if(r!==null){if(C){if(T){if(o.layerUpdat",
+      "mapping": {
+        "source": "../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "line": 12056,
+        "column": 74,
+        "name": null,
+        "excerpt": "\n\t\t\t\t\tif ( useTexStorage && allocateMemory ) {\n\n\t\t\t\t\t\tstate.texStorage3D( _gl.TEXTURE_2D_ARRAY, levels, glInternalFormat, mipmaps[ 0 ].width, mipmaps[ 0 ].height, image.depth );\n\n\t\t\t\t\t}\n"
+      }
+    },
+    {
+      "offset": 659098,
+      "line": 4195,
+      "column": 30318,
+      "context": "epth,r,p,h.data):n.texImage3D(e.TEXTURE_2D_ARRAY,i,m,h.width,h.height,t.depth,0,r,p,h.data);o.layerUpdates.size>0&&o.clearLayerUpdates()}else{C&&w&&n.texStorage2D(e.TEXTURE_2D,E,m,y[0].width,y[0].height);for(let t=0,i=y.length;t<i;t++)h=y[t],o.format===1023?C?T&&n.texSubImage2D(e.TEXTURE_2D,t,0,0,h.width,h.he",
+      "mapping": {
+        "source": "../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js",
+        "line": 12132,
+        "column": 68,
+        "name": null,
+        "excerpt": "\n\t\t\t\t\tif ( useTexStorage && allocateMemory ) {\n\n\t\t\t\t\t\tstate.texStorage2D( _gl.TEXTURE_2D, levels, glInternalFormat, mipmaps[ 0 ].width, mipmaps[ 0 ].height );\n\n\t\t\t\t\t}\n"
+      }
+    }
+  ],
+  "lastCreatedTextureCandidate": {
+    "caveat": "Last newly-created texture before the runtime error; no exact JS stack identifies it as the failing Three texture.",
+    "events": [
+      {
+        "at": 1791472601.214,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1507",
+        "kind": "texture",
+        "bytes": 0,
+        "owner": "unlabelled",
+        "asset": "unlabelled",
+        "labelled": false,
+        "operation": "createTexture",
+        "canvas": "game",
+        "stage": "travel",
+        "document": "1791472517180:0.8377283541062824",
+        "sequence": 6895
+      },
+      {
+        "at": 1791472601.214,
+        "op": "label",
+        "id": "texture:1507",
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[3]/map/Texture",
+        "document": "1791472517180:0.8377283541062824",
+        "sequence": 6897
+      }
+    ]
+  }
+}

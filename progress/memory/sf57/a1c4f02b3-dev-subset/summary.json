@@ -1,0 +1,242 @@
+{
+  "protocol": {
+    "sha": "a1c4f02b3ecd66ba255822ecdb4b8cd22edf6ef0",
+    "base": "http://127.0.0.1:4402/",
+    "dist": "/private/tmp/wildshard-serve/20261008-094932-4402/dist",
+    "version": {
+      "build": "a1c4f02-muznkv1v",
+      "time": "2026-10-08T14:50:04.350Z"
+    },
+    "observer": "c132 light observer plus coalesced exact-state journal; raw uploads/call-site stacks OFF; no additional GPU probes",
+    "layout": "dev",
+    "subset": [
+      "driftwood-isle",
+      "pine-hollow",
+      "nalati-grasslands",
+      "_template"
+    ],
+    "coverage": "Previously approved Developer subset only; full catalogue/other layouts/road-only remain open. No public-grid or cap clearance; G232/G233 need real picks.",
+    "fixes": [
+      "aaed58103019ddd208115f0580e5dad7cacb7232",
+      "6a7e0c278f3c97d1c791be8bef46b2df5db39057",
+      "c11843d1e"
+    ],
+    "sourceFingerprints": {
+      "scripts/soak/soak.mjs": "f94dff4174cb247151eac66e1831f30ad43725c861f34d67fe40a9881890de33",
+      "scripts/soak/gl.mjs": "6f3af091620853225f75a7548d640ec4a6c2fff187bfad1d09df4213bff0ea5f",
+      "scripts/soak/owned.mjs": "d10167c0963804da085b9b7191146029bda64982122f54b663443e628322eec7",
+      "scripts/soak/route.ts": "a763dc7964cea154a72a77c2dd99d436fad173fc532a895d6d94c12450173ed7",
+      "scripts/parity/glbytes.mjs": "7d9df125654bbccb62cd9d56b998c49f1b418933b4c84223cfb1370f0dd5392f",
+      "scripts/parity/resources.mjs": "fb333a3f8c2fcad4b3d3d9a7dfe92f8484acb1b334e40ce1a8395ac23cd227ed",
+      "scripts/frame-floor-grid.mjs": "978bc3946b2f5d2b3706f50e299136cc856d128c57f89b9c1012806085f6e331",
+      "scripts/debug-settings.mjs": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e",
+      "scripts/sim-mem-phases.py": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+      "scripts/ios-memory-watchdog.py": "f66122e1c3e07dc230d2ef17e3340a2fc5be44753b3a2cac294857ed67c6c7bc"
+    },
+    "harnessHead": "a1c4f02b3ecd66ba255822ecdb4b8cd22edf6ef0",
+    "priorHarnessFingerprintMatch": false,
+    "selectedAt": "2026-10-08T14:51:34.811Z",
+    "harnessUpdates": [
+      {
+        "file": "scripts/frame-floor-grid.mjs",
+        "revision": "c4679547dff6ffcaec810508056c67b242c69c97",
+        "reason": "Adds only explicit sun-entry scenario planning; SF57 ownedSoakPlans/runFloorGridRoute and existing scenarios unchanged. Source clean against HEAD, unused by frozen subset.",
+        "previousSha256": "d00cd4882e2be3c15e2ac56acb3f8acbdec97cf059ff97038956160e07810982",
+        "sha256": "978bc3946b2f5d2b3706f50e299136cc856d128c57f89b9c1012806085f6e331"
+      }
+    ],
+    "decisionCorrection": {
+      "at": "2026-10-08T15:18:47.429Z",
+      "revision": "826b96c0c",
+      "message": "G232 and G233 are needs pick again: prior selections were accidental herdr Enters, not Jake picks. Already-approved Developer D/P/N/template diagnostic subset remains the purpose; no public-grid opening, visual choice, or clearance depends on those selections. Runtime pin/manifest/harness unchanged."
+    }
+  },
+  "runs": [
+    {
+      "name": "rehearsal",
+      "sha": "a1c4f02b3ecd66ba255822ecdb4b8cd22edf6ef0",
+      "purpose": "DRY RUN: never qualifies as a thirty-minute soak",
+      "device": "0DC5F152-3E60-4FE3-8426-6E2F24DB7BE1",
+      "driveStarted": "2026-10-08T15:16:15.374Z",
+      "circuits": 0,
+      "stage": "driftwood-isle-to-pine-hollow",
+      "failure": "Error: Error: Grid floor route driftwood-isle-to-pine-hollow timed out\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:201:59)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:194:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:342:40",
+      "errors": [
+        "Regional runtime entry failed TypeError: undefined is not an object (evaluating 'y[0].width')",
+        "Error: Error: Grid floor route driftwood-isle-to-pine-hollow timed out\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:201:59)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:194:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:342:40"
+      ],
+      "entries": [],
+      "evictions": [
+        {
+          "at": 1791472584.141,
+          "cycle": 0,
+          "instance": "driftwood-isle",
+          "residents": []
+        },
+        {
+          "at": 1791472725.585,
+          "cycle": 0,
+          "instance": "pine-hollow",
+          "residents": []
+        }
+      ],
+      "crossroads": [],
+      "openCoverage": [
+        "sunscar-dunes",
+        "far-reach"
+      ],
+      "glSampling": {
+        "journal": 41,
+        "observed": 176,
+        "missing": 0,
+        "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+      },
+      "uploadOverflow": 0,
+      "grade": {
+        "contentCut": null,
+        "requiredSeconds": 1800,
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 717327338,
+        "loadingPeakBytes": 1357464156,
+        "phoneEstimateBytes": 1004258273.1999999,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791472565.302,
+            "end": 1791472575.374,
+            "samples": 10,
+            "bytes": 553283971
+          }
+        ],
+        "baselineDeltaBytes": [
+          null
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "complete": false,
+            "peakBytes": 717327338,
+            "troughBytes": 433737232
+          }
+        ],
+        "recovery": false,
+        "calibration": true,
+        "ratios": [],
+        "missingGlSamples": 0,
+        "sampling": true,
+        "leakZero": true,
+        "admitted": [],
+        "refused": [
+          "pine-hollow",
+          "template-2",
+          "sunscar-dunes",
+          "driftwood-isle",
+          "nalati-grasslands",
+          "far-reach"
+        ],
+        "attemptedEveryCell": false,
+        "crossroads": 0,
+        "rehearsal": true,
+        "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+      },
+      "functionalPass": false,
+      "perLap": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "samples": 150,
+          "peakBytes": 717327338,
+          "troughBytes": 433737232,
+          "webContentPeakBytes": 567054800,
+          "allWebContentPeakBytes": 555424848,
+          "glPeakBytes": 180404135,
+          "accountedPeakBytes": 705062745,
+          "gpuProcessPeakBytes": 254036752,
+          "wasmPeakBytes": 53673984,
+          "overCapBytes": 0
+        }
+      ],
+      "nativeSummary": {
+        "type": "summary",
+        "t": "2026-10-08T15:18:52.453561+00:00",
+        "phases": {
+          "loading": {
+            "samples": 41,
+            "seconds": 40.1,
+            "gamePid": 46266,
+            "gameHighGB": 1.316,
+            "gameSampledGB": 1.298,
+            "allWebContentGB": 1.356,
+            "gpuProcessGB": 0.165
+          },
+          "baseline-0": {
+            "samples": 20,
+            "seconds": 19.1,
+            "gamePid": 46266,
+            "gameHighGB": 0.415,
+            "gameSampledGB": 0.379,
+            "allWebContentGB": 0.454,
+            "gpuProcessGB": 0.162
+          },
+          "drive": {
+            "samples": 150,
+            "seconds": 149.6,
+            "gamePid": 46266,
+            "gameHighGB": 0.567,
+            "gameSampledGB": 0.516,
+            "allWebContentGB": 0.606,
+            "gpuProcessGB": 0.255
+          },
+          "unloaded": {
+            "samples": 6,
+            "seconds": 5,
+            "gamePid": 46266,
+            "gameHighGB": 0.402,
+            "gameSampledGB": 0.402,
+            "allWebContentGB": 0.441,
+            "gpuProcessGB": 0.244
+          }
+        },
+        "lost": [
+          {
+            "pid": 46315,
+            "phase": "loading",
+            "elapsed": 3
+          },
+          {
+            "pid": 46453,
+            "phase": "loading",
+            "elapsed": 3
+          },
+          {
+            "pid": 46310,
+            "phase": "loading",
+            "elapsed": 5
+          },
+          {
+            "pid": 46480,
+            "phase": "loading",
+            "elapsed": 5
+          },
+          {
+            "pid": 46514,
+            "phase": "loading",
+            "elapsed": 6
+          },
+          {
+            "pid": 46518,
+            "phase": "loading",
+            "elapsed": 6
+          },
+          {
+            "pid": 46524,
+            "phase": "loading",
+            "elapsed": 6
+          }
+        ]
+      }
+    }
+  ],
+  "interpretation": "Failure-inclusive Developer D/P/N/template-2 subset. Full catalogue, road-only and shipped coverage remain open. GPU process is separate; no phone-cap or native-saving claim."
+}

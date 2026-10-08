@@ -1,0 +1,68 @@
+[
+  {
+    "archive": "rehearsal.json.br",
+    "bytes": 111133,
+    "sha256": "2d88ad485bcee31bbf829cf608c536a63892f896876895d0b5d0a8c0e4c2f0d9",
+    "files": [
+      {
+        "file": "manifest.json",
+        "bytes": 530,
+        "sha256": "e5ab6eec82043dcc5fa0c84c5897529b848fda197d8fd9657dfb2756c5332fd7"
+      },
+      {
+        "file": "dev-cells.json",
+        "bytes": 802301,
+        "sha256": "3c5d9cdfca7435fa3f7dd558da6673898a1f8b49ace23c4d3213cfa1a0abf6a8"
+      },
+      {
+        "file": "dev-cells-native.jsonl",
+        "bytes": 53983,
+        "sha256": "0a230eaa2cbe2d675b9586c005d61d5e325b1f61915084f93f0e493ffa1fa565"
+      },
+      {
+        "file": "dev-cells-gl.jsonl",
+        "bytes": 12003076,
+        "sha256": "5104ebf0afae5666529d99895cc77111548480c64c6143fa6bff4e604afc1702"
+      },
+      {
+        "file": "dev-cells-gl-events.jsonl",
+        "bytes": 2289962,
+        "sha256": "1390c1815beba6ad9fc4bedf90d4a1cc13d675f4288417d17d39a7bbddae09a7"
+      },
+      {
+        "file": "dev-cells-gl-uploads.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "dev-cells.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "file": "command.log",
+        "bytes": 4400,
+        "sha256": "5c2e124e2b06962a6ef195bf6550a7a9b3f1d9bad891d5ac3c60975b0edd7b87"
+      },
+      {
+        "file": "exit.json",
+        "bytes": 63,
+        "sha256": "5b13326bb6d08ec627a372988fc52d3836b4e1bd1462b4b12425ab7b9a7eda42"
+      }
+    ]
+  },
+  {
+    "archive": "fixture.html.br",
+    "bytes": 8173,
+    "sha256": "69581d0afea0bc1077eeb4480b47fea3661e8416f61f222b391358b7e88c4f52",
+    "rawBytes": 31529,
+    "rawSha256": "d3af7cc43225382fb69d02f9870662d839b32c3c15d73a83cceabe0664468603"
+  },
+  {
+    "archive": "driver.mjs.br",
+    "bytes": 844,
+    "sha256": "4cfe9d77579c831cbc2556b8cb97e5b574e6ddb06047b226c33fac62c5fa2ebf",
+    "rawBytes": 1985,
+    "rawSha256": "8bb95a74e73caf41e353a789b3ef58d526f103990970a081a53d5083565d4e04"
+  }
+]
