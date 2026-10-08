@@ -1,4 +1,6 @@
 // Shared non-restoring WebKit attribution; never a substitute for Simulator WC + GL.
+import { pageMemoryAttributionExpression } from '../../../scripts/memory-report-snapshot.mjs';
+
 export const AUDIO_INIT = `(() => {
  if(window.__g227Audio) return; window.__g227Audio=[]; window.__g227AudioContexts=[];
  const sources=new WeakMap(), originalBytes=Response.prototype.arrayBuffer;
@@ -109,7 +111,7 @@ export const snapshotExpression = `(() => {
       }
       const census = { gl: linked, cpuAllocations: [...allocations.values()], releasedAttributes, textures: [...textures.values()],
         note: 'GPU allocations plus deduplicated directly retained scene ArrayBuffers. ImageBitmap/canvas/native costs are not inferred from dimensions.' };
-      return { census, state: grid.state(), residency: grid.residency(), road: grid.roadResident(), roadView: grid.roadView?.() ?? null, camera: camera ? {position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov} : null, roots, longTasks: window.__gridAdmissionLongTasks,
+      return { census, memoryAttribution: ${pageMemoryAttributionExpression}, state: grid.state(), residency: grid.residency(), road: grid.roadResident(), roadView: grid.roadView?.() ?? null, camera: camera ? {position:camera.position.toArray(),quaternion:camera.quaternion.toArray(),fov:camera.fov} : null, roots, longTasks: window.__gridAdmissionLongTasks,
         settings: JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.settings?.data,
         devicePicks: Object.fromEntries(['debug.plugin.pine-hollow.pineMemoryTrim', 'debug.plugin.pine-hollow.pineHybrid',
           'debug.plugin.nalati-grasslands.nalatiHybrid'].map(key =>
