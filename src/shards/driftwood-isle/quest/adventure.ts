@@ -110,11 +110,20 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
   pier: { x: PIER.x, z: PIER.z, rot: 0 },
 };
 
+/**
+ * The adventure's view of the Game with its own update registration. Never spread the Game: `scene` (and `camera`) may
+ * be prototype getters (SF47's `Game.scene` resolves the bound regional frame), which an object spread drops, leaving
+ * `scene` undefined. Delegating getters keep the live resolution.
+ */
+export function adventureGame(game: AdventureWorld['game'], onUpdate: AdventureWorld['game']['onUpdate']): AdventureWorld['game'] {
+  return { get scene() { return game.scene; }, get camera() { return game.camera; }, onUpdate };
+}
+
 /** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
 export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, source: AdventureWorld<A>): Promise<Adventure> {
   const { Interactables } = await import('@wildshard/engine/world/interact/Interactables');
   const { InteractSfx } = await import('@wildshard/engine/audio/interactSfx');
-  const w: AdventureWorld<A> = { ...source, scope: ctx.scope, debug: ctx.debug, game: { ...source.game, onUpdate: (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); } },
+  const w: AdventureWorld<A> = { ...source, scope: ctx.scope, debug: ctx.debug, game: adventureGame(source.game, (run, label) => { ctx.system({ id: label ?? 'shard.driftwood.adventure', phase: 'update', before: ['game.loot', 'body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'], run }); }),
     onDeath: (run, order) => { ctx.on('actor.died', ({ actor }) => { const animal = source.animals.animals?.find((a) => a.combatActor?.() === actor); if (animal !== undefined) run(animal); }, { order }); } };
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
