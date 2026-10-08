@@ -14,6 +14,20 @@ The source-identified Pine-centre Mac heap on `0e6d69988` contained **23,920,672
 
 Focused Node tests: three reuse tests (concurrency/content identity, retry/bounded metadata, weak retirement), three score-residency tests, five Deck lifecycle tests, one plugin lifecycle test. Typed source/test lint passes.
 
+## Actual after-heap confirmation
+
+The [exact source/object table](audio-title-native-964988732/audio-heap-comparison.json) compares the same `0e6d69988` before to the isolated two-file candidate `964988732` at Pine centre in Mac WebKit, phone tier / Memory saver ON. Both live contexts were RUNNING (before42.8027s, after44.6293s); the heap command collects only after the unchanged pose census. The compressed after census and exact remote-identity owner rows are preserved, with raw snapshot SHA256 and the complete AudioBuffer class-node census. Unmatched small audio nodes remain unclassified.
+
+| Exact decoded source | Before objects / MB | After objects / MB | Removed MB |
+|---|---:|---:|---:|
+| Title | 1 / 23.920672 | 0 / 0 | 23.920672 |
+| Death sting | 2 / 3.457072 | 1 / 1.728536 | 1.728536 |
+| Chunk sting | 2 / 2.703408 | 1 / 1.351704 | 1.351704 |
+| Pickup sting | 2 / 1.540144 | 1 / 0.770072 | 0.770072 |
+| **Total attributable retirement** | | | **27.770984** |
+
+Active Pine calm/tension, the oneshot sprite and the hollow bed retain exactly the same object count and bytes. Page errors=[], browser closed; the owned4400 preview is stopped. This confirms live PCM ownership retirement, **not an equal native footprint saving**. The full-class AudioBuffer census includes all sizes; the weak source identity lookup covers the64 largest matching resource objects≥500KB, including every named buffer above.
+
 ## Isolated native comparison
 
 The [raw comparison](audio-title-native-964988732/comparison.json) preserves the accepted before and after plus compressed after JSON, native journal, sampler log and each pose’s vmmap / footprint. Candidate `964988732` is parent `0e6d69988` plus **only Music.ts and preload.ts from `8b0801cd4`**. No other concurrent cut or cost-model change. Phone / 2x / Auto / Memory saver ON / Developer ON / volume0 / seed357, cold boot and the same home→Pine-centre route.

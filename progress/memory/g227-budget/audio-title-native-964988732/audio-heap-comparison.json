@@ -1,0 +1,677 @@
+{
+  "protocol": "Mac WebKit phone-tier retainer attribution only, after the original pose census. Heap command collects. No native WC saving or allocation-model discount implied.",
+  "sourceCandidate": "96498873272ca4dc55129633693d648dac008512",
+  "beforeVersion": {
+    "build": "0e6d699-muz9oi4a",
+    "time": "2026-10-08T08:20:59.850Z"
+  },
+  "afterVersion": {
+    "build": "9649887-muzaxxz3",
+    "time": "2026-10-08T08:56:20.499Z"
+  },
+  "beforeEvidence": "progress/memory/g227-budget/pine-centre-0e6d69988/audio-owners.json",
+  "beforeAudioContexts": [
+    {
+      "kind": "AudioContext",
+      "state": "running",
+      "currentTime": 42.80266666666667,
+      "sampleRate": 48000
+    },
+    {
+      "kind": "OfflineAudioContext",
+      "state": "suspended",
+      "currentTime": 0,
+      "sampleRate": 48000
+    }
+  ],
+  "afterAudioContexts": [
+    {
+      "kind": "AudioContext",
+      "state": "running",
+      "currentTime": 44.629333333333335,
+      "sampleRate": 48000
+    },
+    {
+      "kind": "OfflineAudioContext",
+      "state": "suspended",
+      "currentTime": 0,
+      "sampleRate": 48000
+    }
+  ],
+  "before": {
+    "heapSha256": "63ed9f266eaeccf3a0d9807ea40312e71a831f96b697476fb164b601c95f45cd",
+    "heapBytes": 100044718,
+    "allAudioBufferNodes": [
+      {
+        "id": 277024,
+        "bytes": 25,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166727,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166957,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166796,
+        "bytes": 768032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166985,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166984,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166981,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166980,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166977,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166976,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166973,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166972,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166969,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166968,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166965,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166964,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166961,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166960,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166795,
+        "bytes": 768032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166789,
+        "bytes": 576032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166788,
+        "bytes": 1207712,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166782,
+        "bytes": 724640,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166836,
+        "bytes": 23920672,
+        "flags": 0,
+        "source": "/assets/music/piano/title-3d1f713a.m4a"
+      },
+      {
+        "id": 1166779,
+        "bytes": 289568,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166824,
+        "bytes": 770072,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-pickup-6ed91318.m4a"
+      },
+      {
+        "id": 1166823,
+        "bytes": 1728536,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-death-99b071e0.m4a"
+      },
+      {
+        "id": 1166821,
+        "bytes": 1351704,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-chunk-a4f2ffab.m4a"
+      },
+      {
+        "id": 277006,
+        "bytes": 23633952,
+        "flags": 0,
+        "source": "/assets/music/piano/pine-calm-923e0056.m4a"
+      },
+      {
+        "id": 277001,
+        "bytes": 11816992,
+        "flags": 0,
+        "source": "/assets/music/piano/pine-tension-cc014e5b.m4a"
+      },
+      {
+        "id": 1166762,
+        "bytes": 241184,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 277225,
+        "bytes": 770072,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-pickup-6ed91318.m4a"
+      },
+      {
+        "id": 277220,
+        "bytes": 1728536,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-death-99b071e0.m4a"
+      },
+      {
+        "id": 277213,
+        "bytes": 1351704,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-chunk-a4f2ffab.m4a"
+      },
+      {
+        "id": 1166773,
+        "bytes": 48032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166772,
+        "bytes": 48032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166769,
+        "bytes": 48032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166776,
+        "bytes": 163232,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166768,
+        "bytes": 163232,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1166759,
+        "bytes": 455072,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1377356,
+        "bytes": 30691344,
+        "flags": 0,
+        "source": "/assets/sfx/pine-hollow/oneshots-362ce515.m4a"
+      },
+      {
+        "id": 643416,
+        "bytes": 3504032,
+        "flags": 0,
+        "source": "/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a"
+      }
+    ],
+    "totalAudioBufferBytes": 112106585,
+    "sourceGroups": {
+      "/assets/music/piano/pine-calm-923e0056.m4a": [
+        {
+          "id": 277006,
+          "bytes": 23633952
+        }
+      ],
+      "/assets/music/piano/pine-tension-cc014e5b.m4a": [
+        {
+          "id": 277001,
+          "bytes": 11816992
+        }
+      ],
+      "/assets/music/piano/sting-chunk-a4f2ffab.m4a": [
+        {
+          "id": 1166821,
+          "bytes": 1351704
+        },
+        {
+          "id": 277213,
+          "bytes": 1351704
+        }
+      ],
+      "/assets/music/piano/sting-death-99b071e0.m4a": [
+        {
+          "id": 1166823,
+          "bytes": 1728536
+        },
+        {
+          "id": 277220,
+          "bytes": 1728536
+        }
+      ],
+      "/assets/music/piano/sting-pickup-6ed91318.m4a": [
+        {
+          "id": 1166824,
+          "bytes": 770072
+        },
+        {
+          "id": 277225,
+          "bytes": 770072
+        }
+      ],
+      "/assets/music/piano/title-3d1f713a.m4a": [
+        {
+          "id": 1166836,
+          "bytes": 23920672
+        }
+      ],
+      "/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a": [
+        {
+          "id": 643416,
+          "bytes": 3504032
+        }
+      ],
+      "/assets/sfx/pine-hollow/oneshots-362ce515.m4a": [
+        {
+          "id": 1377356,
+          "bytes": 30691344
+        }
+      ]
+    },
+    "identityCoverage": "Exact remote object identity for the 64 largest matching ArrayBuffer/ImageBitmap/Float32Array/canvas/AudioBuffer nodes >=500000 bytes. Complete AudioBuffer class-node census extracted from the whole v3 snapshot; source identity for smaller/unmatched audio nodes is unknown."
+  },
+  "after": {
+    "heapSha256": "da9337ad1ccb51298ee7a5b13772749b1e41158d081fe884db653c803a1ace39",
+    "heapBytes": 98169887,
+    "allAudioBufferNodes": [
+      {
+        "id": 220719,
+        "bytes": 25,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1197001,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196999,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196992,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196990,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196979,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196976,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196970,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196966,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1196961,
+        "bytes": 268832,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1189217,
+        "bytes": 768032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1189211,
+        "bytes": 576032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187599,
+        "bytes": 1207712,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187592,
+        "bytes": 724640,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187517,
+        "bytes": 241184,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1192503,
+        "bytes": 770072,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-pickup-6ed91318.m4a"
+      },
+      {
+        "id": 1192497,
+        "bytes": 1728536,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-death-99b071e0.m4a"
+      },
+      {
+        "id": 1192490,
+        "bytes": 1351704,
+        "flags": 0,
+        "source": "/assets/music/piano/sting-chunk-a4f2ffab.m4a"
+      },
+      {
+        "id": 1187579,
+        "bytes": 289568,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187571,
+        "bytes": 48032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187565,
+        "bytes": 48032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187558,
+        "bytes": 48032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187546,
+        "bytes": 163232,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187540,
+        "bytes": 163232,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1187487,
+        "bytes": 455072,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1354907,
+        "bytes": 30691344,
+        "flags": 0,
+        "source": "/assets/sfx/pine-hollow/oneshots-362ce515.m4a"
+      },
+      {
+        "id": 220712,
+        "bytes": 3504032,
+        "flags": 0,
+        "source": "/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a"
+      },
+      {
+        "id": 1192449,
+        "bytes": 23633952,
+        "flags": 0,
+        "source": "/assets/music/piano/pine-calm-923e0056.m4a"
+      },
+      {
+        "id": 1192444,
+        "bytes": 11816992,
+        "flags": 0,
+        "source": "/assets/music/piano/pine-tension-cc014e5b.m4a"
+      },
+      {
+        "id": 1186076,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1197029,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1189240,
+        "bytes": 768032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1197027,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1197022,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1197018,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1197011,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      },
+      {
+        "id": 1197006,
+        "bytes": 384032,
+        "flags": 0,
+        "source": null
+      }
+    ],
+    "totalAudioBufferBytes": 84335601,
+    "sourceGroups": {
+      "/assets/music/piano/pine-calm-923e0056.m4a": [
+        {
+          "id": 1192449,
+          "bytes": 23633952
+        }
+      ],
+      "/assets/music/piano/pine-tension-cc014e5b.m4a": [
+        {
+          "id": 1192444,
+          "bytes": 11816992
+        }
+      ],
+      "/assets/music/piano/sting-chunk-a4f2ffab.m4a": [
+        {
+          "id": 1192490,
+          "bytes": 1351704
+        }
+      ],
+      "/assets/music/piano/sting-death-99b071e0.m4a": [
+        {
+          "id": 1192497,
+          "bytes": 1728536
+        }
+      ],
+      "/assets/music/piano/sting-pickup-6ed91318.m4a": [
+        {
+          "id": 1192503,
+          "bytes": 770072
+        }
+      ],
+      "/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a": [
+        {
+          "id": 220712,
+          "bytes": 3504032
+        }
+      ],
+      "/assets/sfx/pine-hollow/oneshots-362ce515.m4a": [
+        {
+          "id": 1354907,
+          "bytes": 30691344
+        }
+      ]
+    },
+    "identityCoverage": "Exact remote object identity for the 64 largest matching ArrayBuffer/ImageBitmap/Float32Array/canvas/AudioBuffer nodes >=500000 bytes. Complete AudioBuffer class-node census extracted from the whole v3 snapshot; source identity for smaller/unmatched audio nodes is unknown."
+  },
+  "sourceComparison": [
+    {
+      "source": "/assets/music/piano/title-3d1f713a.m4a",
+      "beforeObjects": 1,
+      "afterObjects": 0,
+      "beforeBytes": 23920672,
+      "afterBytes": 0
+    },
+    {
+      "source": "/assets/music/piano/sting-death-99b071e0.m4a",
+      "beforeObjects": 2,
+      "afterObjects": 1,
+      "beforeBytes": 3457072,
+      "afterBytes": 1728536
+    },
+    {
+      "source": "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+      "beforeObjects": 2,
+      "afterObjects": 1,
+      "beforeBytes": 2703408,
+      "afterBytes": 1351704
+    },
+    {
+      "source": "/assets/music/piano/sting-pickup-6ed91318.m4a",
+      "beforeObjects": 2,
+      "afterObjects": 1,
+      "beforeBytes": 1540144,
+      "afterBytes": 770072
+    }
+  ],
+  "exactRedundantAudioBytesRetired": 27770984,
+  "creditedNativeSavingBytes": 0,
+  "errors": [],
+  "closed": true,
+  "artifacts": [
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/mac-after.json.gz",
+      "sha256": "35643a43ad071081905f9eb78e299e7d52d8d2ea41621ae3df3aa6d3d4dbd6b4",
+      "uncompressedBytes": 2794597
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/mac-after-heap-owners.json.gz",
+      "sha256": "67c3b680831be0b8ead52615d6e3be3be1dacc1fb3e08f0f58c35ca365d2ed8a",
+      "uncompressedBytes": 75085
+    }
+  ]
+}
