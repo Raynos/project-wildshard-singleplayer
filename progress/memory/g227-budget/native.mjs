@@ -62,7 +62,12 @@ try {
   await sleep(3000);
   evaluate = await connect(helper);
   const until = async (expression, ms = 180000) => {
-    for (const started = Date.now(); Date.now() - started < ms;) { if (await evaluate(expression)) return; await sleep(500); }
+    for (const started = Date.now(); Date.now() - started < ms;) {
+      const status = await evaluate(`({ready:Boolean(${expression}),fatal:document.getElementById('wserr')?.innerText ?? null})`);
+      if (status.fatal !== null) throw new Error('Native boot failed: ' + status.fatal);
+      if (status.ready) return;
+      await sleep(500);
+    }
     throw new Error('Readiness timed out: ' + expression);
   };
   await until("Boolean(document.querySelector('.ws-main-grid'))");
