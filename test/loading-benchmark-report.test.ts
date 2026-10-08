@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { loadingReport } from '../progress/loading/sf67/benchmark.mjs';
+import { loadingReport } from '../scripts/loading-benchmark/benchmark.mjs';
 
 it('uses tap-to-playable clocks, records all loading tasks over 50ms, and excludes post-play tasks', () => {
   const report = loadingReport('pin', 'iPhone 16 Pro emulation / 4x CPU', [{ shard: 'fixture', cache: 'cold', status: 'ok', playMs: 200, tapToOriginMs: 10 }],
