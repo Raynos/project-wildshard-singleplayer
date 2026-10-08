@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { nativeSample, waitNativeSample } from './native-samples.mjs';
+const now = Date.now(), row = { type: 'sample', phase: 'centre', t: new Date(now).toISOString(), pids: { 12: [900, 950], 7: [50, 60] }, gpu: 70 };
+const journal = JSON.stringify(row) + '\n';
+assert.equal(nativeSample(journal, { phase: 'centre', now }).pid, 12);
+assert.equal(nativeSample(journal + '{"partial":', { phase: 'centre', now }).footprintBytes, 900);
+assert.equal(nativeSample(journal, { phase: 'other', now }), undefined);
+assert.equal(nativeSample(journal, { phase: 'centre', now: now + 3000 }), undefined);
+assert.equal(nativeSample(journal, { phase: 'centre', now, after: row.t }), undefined);
+assert.equal(nativeSample(journal, { phase: 'centre', now, pid: 7 }).pid, 7);
+assert.throws(() => nativeSample(journal, { phase: 'centre', now, pid: 99 }), /PID disappeared/);
+const active = { exitCode: null, signal: null, error: null };
+assert.equal((await waitNativeSample(() => journal, () => active, { phase: 'centre', now })).at, row.t);
+await assert.rejects(waitNativeSample(() => journal, () => ({ ...active, exitCode: 1 }), { phase: 'centre' }), /sampler stopped/);
+let reads = 0;
+const next = JSON.stringify({ ...row, t: new Date(now + 1).toISOString() }) + '\n';
+assert.equal((await waitNativeSample(() => ++reads === 1 ? journal : next, () => active, { phase: 'centre', now, after: row.t }, () => Promise.resolve())).at, new Date(now + 1).toISOString());
+console.log('10 native independent-sample regressions passed');

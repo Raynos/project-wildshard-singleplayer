@@ -2,8 +2,9 @@
 import { spawn, execFileSync } from 'node:child_process';
 import WebSocket from 'ws';
 import { memoryCategories } from './memory-categories.mjs';
+import { waitNativeSample } from './native-samples.mjs';
 import { AUDIO_INIT, WASM_INIT, snapshotExpression, heapOwners } from './inspect.mjs';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { closeSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
@@ -33,6 +34,8 @@ const phaseFile = out + '.phase', nativeFile = out + '.native.jsonl';
 writeFileSync(phaseFile, 'loading');
 const simctl = args => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 let inspector, sampler, proxy, gamePID;
+const samplerState = { pid: null, exitCode: null, signal: null, error: null, log: out + '.sampler.log' };
+report.sampler = samplerState;
 const nativeDetail = process.env.G227_NATIVE_DETAIL === '1';
 let evalSequence = 0;
 try {
@@ -50,7 +53,12 @@ try {
   report.stage = 'cold-reset'; save();
   await evaluate(`(async () => {for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();for(const k of await caches.keys()) await caches.delete(k);localStorage.clear();sessionStorage.clear();return true;})()`);
   await evaluate(`(() => {${saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver }, merge: true })};${saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};return true;})()`);
-  sampler = spawn('python3', ['scripts/sim-mem-phases.py', '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--max', '1200'], { stdio: 'ignore' });
+  const samplerLog = openSync(samplerState.log, 'wx');
+  try { sampler = spawn('python3', ['scripts/sim-mem-phases.py', '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--max', '1200'], { stdio: ['ignore', samplerLog, samplerLog] }); }
+  finally { closeSync(samplerLog); }
+  samplerState.pid = sampler.pid ?? null;
+  sampler.on('error', error => { samplerState.error = String(error); });
+  sampler.on('exit', (code, signal) => { samplerState.exitCode = code; samplerState.signal = signal; });
   if (routeMode === 'control') {
     await evaluate(`(() => { ${GL_INIT}; return true; })()`);
     await evaluate(`(() => { const gl=document.createElement('canvas').getContext('webgl2'); const texture=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,texture); gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,1,1); gl.finish(); window.__g227WarmGL={gl,texture}; return true;})()`);
@@ -87,14 +95,9 @@ try {
     const samples = [];
     for (let i = 0; i < 3; i++) {
       await sleep(1100);
-      const lines = readFileSync(nativeFile, 'utf8').split('\n').filter(Boolean);
-      const latest = lines.slice(0, -1).map(line => JSON.parse(line)).findLast(row => row.type === 'sample' && row.phase === label);
-      if (!latest) throw new Error('Missing native sample');
-      const candidate = gamePID === undefined ? Object.entries(latest.pids).sort((a, b) => b[1][0] - a[1][0])[0]
-        : Object.entries(latest.pids).find(([pid]) => Number(pid) === gamePID);
-      if (!candidate) throw new Error('Admitted WebContent PID disappeared; cannot substitute another process');
-      const [pid, values] = candidate; gamePID ??= Number(pid); report.gamePID = gamePID;
-      samples.push({ at: latest.t, pid: Number(pid), footprintBytes: values[0], intervalPeakBytes: values[1], gpuProcessBytes: latest.gpu });
+      const sample = await waitNativeSample(() => readFileSync(nativeFile, 'utf8'), () => samplerState,
+        { phase: label, pid: gamePID, after: samples.at(-1)?.at });
+      gamePID ??= sample.pid; report.gamePID = gamePID; samples.push(sample);
     }
     const value = await evaluate(snapshotExpression);
     if (value.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + value.settings?.memorySaver);
