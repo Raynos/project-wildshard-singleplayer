@@ -4,6 +4,21 @@
 
 The source is the [fenced ledger](../g226-platform-ledger/report-1b0572d69-fenced.json) on `1b0572d69`, build `1b0572d-muz46mxi`: Developer ON, phone tier, Auto textures, one muted Chromium/Metal iPhone 16 Pro. Pine and Nalati were entered in turn, with the prior opaque region retired. [The route receipt](../g226-platform-ledger/README.md) records zero page errors and successful crossing witnesses. This is an allocator/model census, not a fresh native Simulator measurement. Decimal MB throughout; [budget.json](budget.json) contains exact bytes and arithmetic.
 
+## Native A/B rule for every memory lane
+
+A single cold native run varies by roughly **±50 MB WebContent**. A credited native saving requires **at least three independent cold boots per side**, identical configuration / route / settled poses and isolated source pins, with the **median and full min–max spread** reported. Three settled samples inside one boot are within-run samples, not three cold runs. Keep unsuccessful runs and document changes as failures; do not retry them into a silent pass. Match labelled GL to each native pose, state the audio clock and effective settings, and keep Mac heap attribution separate from the Simulator WC + labelled GL ruler.
+
+**WebKit malloc can keep freed pages in its arenas.** Removing a heap retainer after the peak may leave WC unchanged. Credit exact object retirement as an ownership result, not as an equal native saving. Prefer cuts that **never allocate unused data**, or free it **before the next large allocation**. Report a smaller live heap and a smaller native footprint separately; no allocator discount follows from either without a reconciled admitted cost.
+
+Rank the remaining cuts by allocation timing and actual attribution:
+
+1. **Avoid unused decoding / construction entirely.** Unentered world builders, full audio families / sprites not needed by the entered shard, hidden dungeon geometry, and redundant procedural texture sources are candidates only after their consumers and exact retained owners are proved. Preserve first-use timing and output; no blanket lazy-load credit.
+2. **Retire source and previous-shard owners before destination allocation.** Product / rig / renderer caches, title-bank PCM and duplicated stings must release before the next large build where possible. Scope disposal alone is insufficient if a cache still owns the resource. The title/sting source fix is landed; its [single native pair](audio-title-retirement.md) earns no native saving credit.
+3. **Release upload sources at their safe consumption boundary.** CPU geometry / decoded images under Memory saver, and sky fallback sources, must preserve query and GPU-recovery consumers. Measure whether retirement occurs before the next allocation peak.
+4. **Release currently invisible platform chunks after a peak.** Signs, plots and screens can reduce live allocations if actually disposed, but post-peak malloc retention makes the native benefit uncertain. Keep permanent collision; hiding a mesh alone earns zero credit. Small ~2 MB plot lifetime work is deferred behind larger owners.
+
+These are priorities, not booked savings. Each owner lane supplies exact before/after source identity, zero-look / zero-audio-change evidence as applicable, and the repeated native comparison before claiming a footprint reduction.
+
 ## Current per-owner table
 
 Accounted bytes include retained CPU and GPU resources. The model is **300 MB engine base + 80 MB overlap + ceil(1.11 × accounted bytes)**. The dated 299 MB calibration has already been removed once when deriving each runtime claim. Do not subtract it again or add labelled GL to these totals.
