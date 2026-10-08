@@ -122,6 +122,9 @@
     "./shardfile/meshCollision": "./shardfile/meshCollision.ts",
     "./grid/runtimeRenderPlan": "./grid/runtimeRenderPlan.ts",
     "./grid/runtimeRenderDependencies": "./grid/runtimeRenderDependencies.ts",
-    "./grid/runtimeRenderRings": "./grid/runtimeRenderRings.ts"
+    "./grid/runtimeRenderRings": "./grid/runtimeRenderRings.ts",
+    "./shardfile/portalLink": "./shardfile/portalLink.ts",
+    "./shardfile/portalTraversal": "./shardfile/portalTraversal.ts",
+    "./shardfile/portalLinkProof": "./shardfile/portalLinkProof.ts"
   }
 }
