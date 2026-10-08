@@ -3,6 +3,7 @@ import { CELL_ABOVE, CELL_BELOW } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { isJsonData } from './json';
 import { PropMaterialsSchema, validatePropMaterials } from './propMaterials';
+import { glbPoint, glbTransform } from './glbTriangles';
 
 const ref = v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u));
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u), v.maxLength(128));
@@ -15,7 +16,15 @@ const extent = v.pipe(finite, v.minValue(0.005), v.maxValue(250));
 const point = v.strictObject({ x: coord, y: height, z: coord });
 const surface = v.optional(v.picklist(['wood', 'stone', 'grass', 'sand', 'rock', 'metal', 'earth', 'felt']));
 const rotation = v.pipe(v.strictObject({ x: finite, y: finite, z: finite, w: finite }), v.check((q) => Math.abs(q.x ** 2 + q.y ** 2 + q.z ** 2 + q.w ** 2 - 1) < 1e-5, 'unit collider rotation'));
-const box = v.pipe(v.strictObject({ kind: v.literal('box'), x: coord, y: height, z: coord, hx: extent, hy: extent, hz: extent, yaw: v.optional(finite), rot: v.optional(rotation), surface }), v.check((b) => Math.abs(b.x) + Math.hypot(b.hx, b.hz) <= 250 && Math.abs(b.z) + Math.hypot(b.hx, b.hz) <= 250 && b.y - b.hy >= -CELL_BELOW && b.y + b.hy <= CELL_ABOVE, 'collider within cell'));
+const boxData = v.strictObject({ kind: v.literal('box'), x: coord, y: height, z: coord, hx: extent, hy: extent, hz: extent, yaw: v.optional(finite), rot: v.optional(rotation), surface });
+function boxWithinCell(b: v.InferOutput<typeof boxData>): boolean {
+  const q = b.rot ?? { x: 0, y: Math.sin((b.yaw ?? 0) / 2), z: 0, w: Math.cos((b.yaw ?? 0) / 2) };
+  const transform = glbTransform({ translation: [b.x, b.y, b.z], rotation: [q.x, q.y, q.z, q.w] });
+  return Array.from({ length: 8 }, (_unused, index) => glbPoint(transform, {
+    x: (index & 1) === 0 ? -b.hx : b.hx, y: (index & 2) === 0 ? -b.hy : b.hy, z: (index & 4) === 0 ? -b.hz : b.hz,
+  })).every(vertex => Math.abs(vertex.x) <= 250 && Math.abs(vertex.z) <= 250 && vertex.y >= -CELL_BELOW && vertex.y <= CELL_ABOVE);
+}
+const box = v.pipe(boxData, v.check(boxWithinCell, 'collider within cell'));
 const treads = v.pipe(v.strictObject({ kind: v.literal('treads'), from: point, to: point, width: extent, count: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(256)), surface }), v.check((t) => Math.hypot(t.to.x - t.from.x, t.to.z - t.from.z) > 0 && t.to.y >= t.from.y && [t.from, t.to].every((p) => Math.abs(p.x) + t.width / 2 <= 250 && Math.abs(p.z) + t.width / 2 <= 250), 'bounded nondegenerate stair'));
 const collider = v.strictObject({ id, panel: v.nullable(id), initialActive: v.boolean(), shapes: v.pipe(v.array(v.variant('kind', [box, treads])), v.minLength(1), v.maxLength(256)) });
 /** Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. */
