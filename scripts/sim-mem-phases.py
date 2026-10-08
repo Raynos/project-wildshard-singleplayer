@@ -36,6 +36,8 @@ def main() -> int:
     ap.add_argument('--out', type=pathlib.Path, required=True, help='a new JSONL file (refuses to overwrite)')
     ap.add_argument('--interval', type=float, default=0.1)
     ap.add_argument('--max', type=float, default=900, help='seconds before it stops on its own')
+    ap.add_argument('--sample-interval-high', action='store_true',
+                    help='reset kernel interval highs after each sample; phase summary maxima stay cumulative')
     args = ap.parse_args()
 
     native = wd.NativeMemory()
@@ -124,6 +126,12 @@ def main() -> int:
         emit('sample', phase=ph, elapsed=el, footprint=agg, interval=agg_interval,
              pids={r['pid']: [r['physicalFootprintBytes'], r['intervalMaxPhysicalFootprintBytes']] for r in rows},
              gpu=sum(r['physicalFootprintBytes'] for r in grows))
+        if args.sample_interval_high:
+            for pid in list(procs) + list(gprocs):
+                try:
+                    native.reset_interval(pid)
+                except RuntimeError as error:
+                    emit('reset-failed', pid=pid, error=str(error))
         if tick - start > args.max:
             print('sim-mem-phases: --max reached', flush=True)
             break

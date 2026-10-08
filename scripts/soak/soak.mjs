@@ -99,7 +99,7 @@ async function worker() {
   if (existsSync(glFile) || existsSync(glEventsFile) || existsSync(nativeFile) || existsSync(join(out, `${name}.json`))) throw new Error('Soak evidence already exists; use a fresh output directory');
   writeFileSync(glFile, '');
   writeFileSync(glEventsFile, '');
-  const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'Playing: fixed game WebContent PID physical footprint + live labelled GL. Loading: conservative all-WebContent overlap + GL. All-WebContent and GPU process also printed separately.', sha, layout, leg, device: udid, surface: 'portrait iPhone Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
+  const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'Playing: fixed game WebContent PID physical footprint / per-sample interval high + live labelled GL. Loading: conservative all-WebContent overlap + GL. Phase maxima remain separate summary; all-WebContent and GPU process also printed separately.', sha, layout, leg, device: udid, surface: 'portrait iPhone Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
   let lastResidents = [];
@@ -126,7 +126,7 @@ async function worker() {
     await driver.evaluate(`${GL_INIT};window.__sf57Errors=[];localStorage.clear();sessionStorage.clear();(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();window.__sf57GL.push(window.__sf57ReadGL());true`);
     await collectGl();
     phase('loading');
-    sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
+    sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--sample-interval-high', '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
     /** @type {{ error: string | null }} */ const samplerResult = { error: null };
     const samplerClosed = new Promise((resolve) => { sampler.on('error', (error) => { samplerResult.error = String(error); resolve(); }); sampler.on('close', (code) => { if (code !== 0) samplerResult.error = `Native sampler exited ${code}`; resolve(); }); });
     const gameUrl = `${base}sf57-safari.html?mute=1&nolock=1&sw=0`;
