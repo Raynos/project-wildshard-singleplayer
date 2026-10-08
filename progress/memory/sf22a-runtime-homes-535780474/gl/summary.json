@@ -1,0 +1,146 @@
+[
+  {
+    "slug": "nine-dragon-stack",
+    "round": 1,
+    "version": {
+      "build": "5357804-muyrh1b6",
+      "time": "2026-10-07T23:51:18.734Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 277197403,
+        "maxBytes": 278256291,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 321424879,
+        "maxBytes": 321424879,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "slug": "far-reach",
+    "round": 1,
+    "version": {
+      "build": "5357804-muyrh1b6",
+      "time": "2026-10-07T23:51:18.734Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 267683500,
+        "maxBytes": 267713680,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 310705702,
+        "maxBytes": 310705702,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "slug": "nine-dragon-stack",
+    "round": 2,
+    "version": {
+      "build": "5357804-muyrh1b6",
+      "time": "2026-10-07T23:51:18.734Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 277197403,
+        "maxBytes": 278256291,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 321424879,
+        "maxBytes": 321424879,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "slug": "far-reach",
+    "round": 2,
+    "version": {
+      "build": "5357804-muyrh1b6",
+      "time": "2026-10-07T23:51:18.734Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 267683500,
+        "maxBytes": 267713680,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 310705702,
+        "maxBytes": 310705702,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "slug": "nine-dragon-stack",
+    "round": 3,
+    "version": {
+      "build": "5357804-muyrh1b6",
+      "time": "2026-10-07T23:51:18.734Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 277197403,
+        "maxBytes": 278256291,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 321424879,
+        "maxBytes": 321424879,
+        "samples": 33
+      }
+    ]
+  },
+  {
+    "slug": "far-reach",
+    "round": 3,
+    "version": {
+      "build": "5357804-muyrh1b6",
+      "time": "2026-10-07T23:51:18.734Z"
+    },
+    "poses": [],
+    "errors": [],
+    "phases": [
+      {
+        "phase": "play",
+        "minBytes": 267683500,
+        "maxBytes": 267713680,
+        "samples": 30
+      },
+      {
+        "phase": "explorer",
+        "minBytes": 310705702,
+        "maxBytes": 310705702,
+        "samples": 33
+      }
+    ]
+  }
+]

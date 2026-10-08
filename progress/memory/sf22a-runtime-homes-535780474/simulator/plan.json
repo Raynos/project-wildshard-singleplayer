@@ -1,0 +1,57 @@
+{
+  "opts": {
+    "out": "/Users/raynos/projects/games/wildshard-singleplayer/progress/memory/sf22a-runtime-homes-535780474/simulator",
+    "expectedBuild": "5357804-muyquhiz",
+    "play": 30,
+    "fly": 30,
+    "locations": false,
+    "settings": [
+      "tex=auto"
+    ],
+    "deviceSaves": {}
+  },
+  "runs": [
+    {
+      "label": "far-reach",
+      "shard": "far-reach",
+      "base": "http://127.0.0.1:4404/",
+      "round": 1,
+      "tag": "far-reach-r1"
+    },
+    {
+      "label": "nine-dragon-stack",
+      "shard": "nine-dragon-stack",
+      "base": "http://127.0.0.1:4404/",
+      "round": 1,
+      "tag": "nine-dragon-stack-r1"
+    },
+    {
+      "label": "far-reach",
+      "shard": "far-reach",
+      "base": "http://127.0.0.1:4404/",
+      "round": 2,
+      "tag": "far-reach-r2"
+    },
+    {
+      "label": "nine-dragon-stack",
+      "shard": "nine-dragon-stack",
+      "base": "http://127.0.0.1:4404/",
+      "round": 2,
+      "tag": "nine-dragon-stack-r2"
+    },
+    {
+      "label": "far-reach",
+      "shard": "far-reach",
+      "base": "http://127.0.0.1:4404/",
+      "round": 3,
+      "tag": "far-reach-r3"
+    },
+    {
+      "label": "nine-dragon-stack",
+      "shard": "nine-dragon-stack",
+      "base": "http://127.0.0.1:4404/",
+      "round": 3,
+      "tag": "nine-dragon-stack-r3"
+    }
+  ]
+}

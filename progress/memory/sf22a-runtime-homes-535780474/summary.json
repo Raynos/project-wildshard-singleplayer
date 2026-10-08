@@ -1,0 +1,467 @@
+{
+  "sha": "5357804745121cdda8f9492b62d3266244f4ac1b",
+  "instrumentation": {
+    "glSourceLabelFix": "932576d0a",
+    "peakRoundingUpperMB": 0.5
+  },
+  "memoryProtocol": "cold-origin-build-verified-v1",
+  "settings": {
+    "tex": "auto",
+    "developer": true,
+    "variants": "shipped defaults; no Debug overrides"
+  },
+  "coverage": {
+    "coldRuns": 3,
+    "playSeconds": 30,
+    "explorerSeconds": 30,
+    "captureLocations": false
+  },
+  "calibration": {
+    "engineBaseMB": 299,
+    "evidence": "progress/memory/sf22a-2026-10-04.json",
+    "remeasured": false
+  },
+  "limitation": "Simulator relative memory; same-pin Chromium phone-tier labelled GL proxy. No physical-iPhone claim.",
+  "shards": [
+    {
+      "slug": "far-reach",
+      "runs": [
+        {
+          "round": 1,
+          "identity": {
+            "build": "5357804-muyquhiz",
+            "shard": "far-reach"
+          },
+          "explorerIdentity": {
+            "build": "5357804-muyquhiz",
+            "shard": "far-reach"
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 291.769608,
+              "inspectorMB": 606.9888679999999,
+              "nativePeakMB": 469,
+              "nativePeakUpperMB": 469.5,
+              "nativeSpreadMB": [
+                271.6828,
+                357.649648
+              ]
+            },
+            "play": {
+              "nativeMB": 277.81046399999997,
+              "inspectorMB": 647.534433,
+              "nativePeakMB": 294,
+              "nativePeakUpperMB": 294.5,
+              "nativeSpreadMB": [
+                275.54947200000004,
+                277.82684800000004
+              ],
+              "glMB": 267.71368,
+              "combinedMB": 545.524144
+            },
+            "explorer": {
+              "nativeMB": 278.41679200000004,
+              "inspectorMB": 602.995738,
+              "nativePeakMB": 353,
+              "nativePeakUpperMB": 353.5,
+              "nativeSpreadMB": [
+                278.41679200000004,
+                278.41679200000004
+              ],
+              "glMB": 310.705702,
+              "combinedMB": 589.122494
+            }
+          }
+        },
+        {
+          "round": 2,
+          "identity": {
+            "build": "5357804-muyquhiz",
+            "shard": "far-reach"
+          },
+          "explorerIdentity": {
+            "build": "5357804-muyquhiz",
+            "shard": "far-reach"
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 273.829008,
+              "inspectorMB": 606.138326,
+              "nativePeakMB": 402,
+              "nativePeakUpperMB": 402.5,
+              "nativeSpreadMB": [
+                269.53632799999997,
+                304.974968
+              ]
+            },
+            "play": {
+              "nativeMB": 254.823568,
+              "inspectorMB": 640.4489719999999,
+              "nativePeakMB": 265,
+              "nativePeakUpperMB": 265.5,
+              "nativeSpreadMB": [
+                252.513424,
+                254.83995199999998
+              ],
+              "glMB": 267.71368,
+              "combinedMB": 522.537248
+            },
+            "explorer": {
+              "nativeMB": 260.98414399999996,
+              "inspectorMB": 595.006688,
+              "nativePeakMB": 405,
+              "nativePeakUpperMB": 405.5,
+              "nativeSpreadMB": [
+                260.98414399999996,
+                260.98414399999996
+              ],
+              "glMB": 310.705702,
+              "combinedMB": 571.689846
+            }
+          }
+        },
+        {
+          "round": 3,
+          "identity": {
+            "build": "5357804-muyquhiz",
+            "shard": "far-reach"
+          },
+          "explorerIdentity": {
+            "build": "5357804-muyquhiz",
+            "shard": "far-reach"
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 276.712568,
+              "inspectorMB": 592.31912,
+              "nativePeakMB": 419,
+              "nativePeakUpperMB": 419.5,
+              "nativeSpreadMB": [
+                266.93132,
+                300.92812000000004
+              ]
+            },
+            "play": {
+              "nativeMB": 270.994576,
+              "inspectorMB": 647.251895,
+              "nativePeakMB": 288,
+              "nativePeakUpperMB": 288.5,
+              "nativeSpreadMB": [
+                268.7172,
+                271.158416
+              ],
+              "glMB": 267.71368,
+              "combinedMB": 538.708256
+            },
+            "explorer": {
+              "nativeMB": 281.513224,
+              "inspectorMB": 712.359084,
+              "nativePeakMB": 379,
+              "nativePeakUpperMB": 379.5,
+              "nativeSpreadMB": [
+                281.513224,
+                281.529608
+              ],
+              "glMB": 310.705702,
+              "combinedMB": 592.218926
+            }
+          }
+        }
+      ],
+      "phases": {
+        "loading": {
+          "nativeMB": {
+            "median": 276.712568,
+            "min": 273.829008,
+            "max": 291.769608
+          },
+          "inspectorMB": {
+            "median": 606.138326,
+            "min": 592.31912,
+            "max": 606.9888679999999
+          },
+          "nativePeakMB": 469
+        },
+        "play": {
+          "nativeMB": {
+            "median": 270.994576,
+            "min": 254.823568,
+            "max": 277.81046399999997
+          },
+          "inspectorMB": {
+            "median": 647.251895,
+            "min": 640.4489719999999,
+            "max": 647.534433
+          },
+          "nativePeakMB": 294,
+          "glMB": {
+            "median": 267.71368,
+            "min": 267.71368,
+            "max": 267.71368
+          },
+          "combinedMB": {
+            "median": 538.708256,
+            "min": 522.537248,
+            "max": 545.524144
+          },
+          "conservativeUpperMB": 562.2136800000001
+        },
+        "explorer": {
+          "nativeMB": {
+            "median": 278.41679200000004,
+            "min": 260.98414399999996,
+            "max": 281.513224
+          },
+          "inspectorMB": {
+            "median": 602.995738,
+            "min": 595.006688,
+            "max": 712.359084
+          },
+          "nativePeakMB": 405,
+          "glMB": {
+            "median": 310.705702,
+            "min": 310.705702,
+            "max": 310.705702
+          },
+          "combinedMB": {
+            "median": 589.122494,
+            "min": 571.689846,
+            "max": 592.218926
+          },
+          "conservativeUpperMB": 716.205702
+        }
+      },
+      "runtimeCost": {
+        "webContentMB": 270.994576,
+        "glMB": 267.71368,
+        "engineBaseMB": 299,
+        "rev": "5357804745121cdda8f9492b62d3266244f4ac1b",
+        "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+        "evidence": "progress/memory/sf22a-runtime-homes-535780474/summary.json"
+      },
+      "accountedBytes": 215953384,
+      "playingAdmissionMB": 619.708257,
+      "conservativeCapMarginMB": 283.794298
+    },
+    {
+      "slug": "nine-dragon-stack",
+      "runs": [
+        {
+          "round": 1,
+          "identity": {
+            "build": "5357804-muyquhiz",
+            "shard": "nine-dragon-stack"
+          },
+          "explorerIdentity": {
+            "build": "5357804-muyquhiz",
+            "shard": "nine-dragon-stack"
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 342.85518399999995,
+              "inspectorMB": 617.740815,
+              "nativePeakMB": 756,
+              "nativePeakUpperMB": 756.5,
+              "nativeSpreadMB": [
+                342.363664,
+                343.133712
+              ]
+            },
+            "play": {
+              "nativeMB": 332.221992,
+              "inspectorMB": 597.297307,
+              "nativePeakMB": 353,
+              "nativePeakUpperMB": 353.5,
+              "nativeSpreadMB": [
+                332.221992,
+                332.238376
+              ],
+              "glMB": 278.256291,
+              "combinedMB": 610.4782829999999
+            },
+            "explorer": {
+              "nativeMB": 341.34788,
+              "inspectorMB": 655.776764,
+              "nativePeakMB": 368,
+              "nativePeakUpperMB": 368.5,
+              "nativeSpreadMB": [
+                341.34788,
+                341.34788
+              ],
+              "glMB": 321.424879,
+              "combinedMB": 662.772759
+            }
+          }
+        },
+        {
+          "round": 2,
+          "identity": {
+            "build": "5357804-muyquhiz",
+            "shard": "nine-dragon-stack"
+          },
+          "explorerIdentity": {
+            "build": "5357804-muyquhiz",
+            "shard": "nine-dragon-stack"
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 415.46921599999996,
+              "inspectorMB": 629.8443129999999,
+              "nativePeakMB": 782,
+              "nativePeakUpperMB": 782.5,
+              "nativeSpreadMB": [
+                415.25622400000003,
+                416.337568
+              ]
+            },
+            "play": {
+              "nativeMB": 402.44396,
+              "inspectorMB": 608.3033839999999,
+              "nativePeakMB": 422,
+              "nativePeakUpperMB": 422.5,
+              "nativeSpreadMB": [
+                402.44396,
+                402.493112
+              ],
+              "glMB": 278.256291,
+              "combinedMB": 680.700251
+            },
+            "explorer": {
+              "nativeMB": 411.53708,
+              "inspectorMB": 662.971215,
+              "nativePeakMB": 439,
+              "nativePeakUpperMB": 439.5,
+              "nativeSpreadMB": [
+                411.53708,
+                411.53708
+              ],
+              "glMB": 321.424879,
+              "combinedMB": 732.961959
+            }
+          }
+        },
+        {
+          "round": 3,
+          "identity": {
+            "build": "5357804-muyquhiz",
+            "shard": "nine-dragon-stack"
+          },
+          "explorerIdentity": {
+            "build": "5357804-muyquhiz",
+            "shard": "nine-dragon-stack"
+          },
+          "phases": {
+            "loading": {
+              "nativeMB": 409.816664,
+              "inspectorMB": 628.1693849999999,
+              "nativePeakMB": 753,
+              "nativePeakUpperMB": 753.5,
+              "nativeSpreadMB": [
+                409.34150400000004,
+                410.7014
+              ]
+            },
+            "play": {
+              "nativeMB": 399.21624,
+              "inspectorMB": 609.269385,
+              "nativePeakMB": 420,
+              "nativePeakUpperMB": 420.5,
+              "nativeSpreadMB": [
+                399.21624,
+                399.21624
+              ],
+              "glMB": 278.256291,
+              "combinedMB": 677.472531
+            },
+            "explorer": {
+              "nativeMB": 409.030256,
+              "inspectorMB": 665.297202,
+              "nativePeakMB": 422,
+              "nativePeakUpperMB": 422.5,
+              "nativeSpreadMB": [
+                408.93195199999997,
+                409.030256
+              ],
+              "glMB": 321.424879,
+              "combinedMB": 730.4551349999999
+            }
+          }
+        }
+      ],
+      "phases": {
+        "loading": {
+          "nativeMB": {
+            "median": 409.816664,
+            "min": 342.85518399999995,
+            "max": 415.46921599999996
+          },
+          "inspectorMB": {
+            "median": 628.1693849999999,
+            "min": 617.740815,
+            "max": 629.8443129999999
+          },
+          "nativePeakMB": 782
+        },
+        "play": {
+          "nativeMB": {
+            "median": 399.21624,
+            "min": 332.221992,
+            "max": 402.44396
+          },
+          "inspectorMB": {
+            "median": 608.3033839999999,
+            "min": 597.297307,
+            "max": 609.269385
+          },
+          "nativePeakMB": 422,
+          "glMB": {
+            "median": 278.256291,
+            "min": 278.256291,
+            "max": 278.256291
+          },
+          "combinedMB": {
+            "median": 677.472531,
+            "min": 610.4782829999999,
+            "max": 680.700251
+          },
+          "conservativeUpperMB": 700.7562909999999
+        },
+        "explorer": {
+          "nativeMB": {
+            "median": 409.030256,
+            "min": 341.34788,
+            "max": 411.53708
+          },
+          "inspectorMB": {
+            "median": 662.971215,
+            "min": 655.776764,
+            "max": 665.297202
+          },
+          "nativePeakMB": 439,
+          "glMB": {
+            "median": 321.424879,
+            "min": 321.424879,
+            "max": 321.424879
+          },
+          "combinedMB": {
+            "median": 730.4551349999999,
+            "min": 662.772759,
+            "max": 732.961959
+          },
+          "conservativeUpperMB": 760.9248789999999
+        }
+      },
+      "runtimeCost": {
+        "webContentMB": 399.21624,
+        "glMB": 278.256291,
+        "engineBaseMB": 299,
+        "rev": "5357804745121cdda8f9492b62d3266244f4ac1b",
+        "device": "iOS Simulator iPhone 17 Pro Safari + desktop labelled GL census",
+        "evidence": "progress/memory/sf22a-runtime-homes-535780474/summary.json"
+      },
+      "accountedBytes": 340966245,
+      "playingAdmissionMB": 758.472532,
+      "conservativeCapMarginMB": 239.07512100000008
+    }
+  ]
+}
