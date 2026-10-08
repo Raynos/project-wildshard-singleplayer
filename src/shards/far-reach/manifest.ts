@@ -1,7 +1,6 @@
-import { SKY_REACH_RUNTIME_COST } from './data/runtimeCost';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './strings';
-import { BUDGETS } from './budgets';
+import { BUDGETS, SKY_REACH_RUNTIME_COST } from './budgets';
 import { CROWN, DECK, HIGH, KEEPER, ROOST, SPAWN, STEP, WINDMILL } from './layout';
 import { SKY_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';

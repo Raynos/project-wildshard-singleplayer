@@ -1,4 +1,4 @@
-import { SKY_REACH_RUNTIME_COST } from './data/runtimeCost';
+import { SKY_REACH_RUNTIME_COST } from './budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { parseSocketLift } from '@wildshard/sdk/socketLift';
