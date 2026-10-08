@@ -1,0 +1,371 @@
+{
+  "pin": "d739e3149",
+  "build": {
+    "build": "d739e31-muz5vjpf",
+    "time": "2026-10-08T06:34:30.956Z"
+  },
+  "pass": true,
+  "seconds": 99.89,
+  "protocol": "Developer ON owned shell, real held-input D->P->N->D. No crossing reload. One muted Metal iPhone16Pro portrait browser.",
+  "sourceCommits": [
+    "6dc8abbac",
+    "479122378",
+    "ee87b56d0",
+    "41097c02c"
+  ],
+  "raw": {
+    "file": "loop-d739e3149.json.gz",
+    "decodedBytes": 6571044,
+    "sha256": "473fe5c28618206b906b5f36b7664fa732129eeda22bd3b740d88a7181d401b5"
+  },
+  "reconciliation": {
+    "rawGL": 54135336,
+    "rawComposer": 13140576,
+    "rawCaches": 40994760,
+    "chargedComposer": 13140576,
+    "cachedGPU": 54019164,
+    "cachedCPU": 45630588,
+    "uncoveredGPU": -13024404,
+    "engineBase": 286859424,
+    "noRuntimeClaims": true,
+    "allCachesUncovered": true,
+    "composerMatches": true,
+    "retainedGPUSafelyCharged": true
+  },
+  "stops": [
+    {
+      "label": "home-first",
+      "current": "driftwood-isle",
+      "cost": {
+        "playing": 933330798,
+        "loading": 1013330798,
+        "accounted": 514380768,
+        "input": {
+          "l0": 105894374,
+          "l1": 369960,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 348526174,
+          "commons": 0,
+          "products": 9160452,
+          "overlap": 80000000,
+          "page": 40829808,
+          "engineBase": 286859424
+        }
+      },
+      "rawGL": 206083623,
+      "composerRaw": 40829808,
+      "composerCharged": 40829808,
+      "runtimeClaims": [
+        "sim-sky:driftwood-isle",
+        "sim:driftwood-isle",
+        "sim:platform.highway"
+      ]
+    },
+    {
+      "label": "pine-hollow-entered",
+      "current": "pine-hollow",
+      "cost": {
+        "playing": 1155116960,
+        "loading": 1235116960,
+        "accounted": 714188121,
+        "input": {
+          "l0": 105894374,
+          "l1": 369960,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 536943715,
+          "commons": 11389812,
+          "products": 9160452,
+          "overlap": 80000000,
+          "page": 40829808,
+          "engineBase": 286859424
+        }
+      },
+      "rawGL": 263344878,
+      "composerRaw": 40829808,
+      "composerCharged": 40829808,
+      "runtimeClaims": [
+        "sim-sky:pine-hollow",
+        "sim:pine-hollow",
+        "sim:platform.highway"
+      ]
+    },
+    {
+      "label": "nalati-grasslands-entered",
+      "current": "nalati-grasslands",
+      "cost": {
+        "playing": 1179176782,
+        "loading": 1259176782,
+        "accounted": 735863636,
+        "input": {
+          "l0": 105894374,
+          "l1": 1111588,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 496654102,
+          "commons": 72613312,
+          "products": 9160452,
+          "overlap": 80000000,
+          "page": 40829808,
+          "engineBase": 286859424
+        }
+      },
+      "rawGL": 321390520,
+      "composerRaw": 40829808,
+      "composerCharged": 40829808,
+      "runtimeClaims": [
+        "sim:nalati-grasslands",
+        "sim:platform.highway"
+      ]
+    },
+    {
+      "label": "driftwood-isle-entered",
+      "current": "driftwood-isle",
+      "cost": {
+        "playing": 1044590760,
+        "loading": 1124590760,
+        "accounted": 614614968,
+        "input": {
+          "l0": 105894374,
+          "l1": 954408,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 348526174,
+          "commons": 99649752,
+          "products": 9160452,
+          "overlap": 80000000,
+          "page": 40829808,
+          "engineBase": 286859424
+        }
+      },
+      "rawGL": 275497273,
+      "composerRaw": 40829808,
+      "composerCharged": 40829808,
+      "runtimeClaims": [
+        "sim-sky:driftwood-isle",
+        "sim:driftwood-isle",
+        "sim:platform.highway"
+      ]
+    },
+    {
+      "label": "home-returned-durable",
+      "current": "driftwood-isle",
+      "cost": {
+        "playing": 1044590760,
+        "loading": 1124590760,
+        "accounted": 614614968,
+        "input": {
+          "l0": 105894374,
+          "l1": 954408,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 348526174,
+          "commons": 99649752,
+          "products": 9160452,
+          "overlap": 80000000,
+          "page": 40829808,
+          "engineBase": 286859424
+        }
+      },
+      "rawGL": 275497273,
+      "composerRaw": 40829808,
+      "composerCharged": 40829808,
+      "runtimeClaims": [
+        "sim-sky:driftwood-isle",
+        "sim:driftwood-isle",
+        "sim:platform.highway"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "plan": {
+        "name": "pine-interior",
+        "from": "driftwood-isle",
+        "to": "pine-hollow",
+        "start": {
+          "x": 0,
+          "z": 230
+        },
+        "waypoints": [
+          {
+            "x": 0,
+            "z": 325
+          }
+        ],
+        "requiredResidents": [
+          "pine-hollow"
+        ],
+        "retiredResidents": [
+          "driftwood-isle"
+        ]
+      },
+      "seconds": 10.135900000095367,
+      "failures": []
+    },
+    {
+      "plan": {
+        "name": "nalati-interior",
+        "from": "pine-hollow",
+        "to": "nalati-grasslands",
+        "waypoints": [
+          {
+            "x": 0,
+            "z": 277.5
+          },
+          {
+            "x": 277.5,
+            "z": 277.5
+          },
+          {
+            "x": 277.5,
+            "z": 0
+          },
+          {
+            "x": 325,
+            "z": 0
+          }
+        ],
+        "requiredResidents": [
+          "nalati-grasslands"
+        ],
+        "retiredResidents": [
+          "pine-hollow"
+        ]
+      },
+      "seconds": 51.7085,
+      "failures": []
+    },
+    {
+      "plan": {
+        "name": "driftwood-return",
+        "from": "nalati-grasslands",
+        "to": "driftwood-isle",
+        "waypoints": [
+          {
+            "x": 277.5,
+            "z": 0
+          },
+          {
+            "x": 230,
+            "z": 0
+          }
+        ],
+        "requiredResidents": [
+          "driftwood-isle"
+        ],
+        "retiredResidents": [
+          "nalati-grasslands"
+        ]
+      },
+      "seconds": 14.462799999713898,
+      "failures": []
+    }
+  ],
+  "damage": [
+    {
+      "instance": "driftwood-isle",
+      "id": "creature:33",
+      "kind": "sailor",
+      "before": 60,
+      "after": 59
+    },
+    {
+      "instance": "pine-hollow",
+      "id": "creature:152",
+      "kind": "boar",
+      "before": 100,
+      "after": 99
+    },
+    {
+      "instance": "nalati-grasslands",
+      "id": "creature:4",
+      "kind": "wolf",
+      "before": 55,
+      "after": 54
+    }
+  ],
+  "homeRestoredHP": 59,
+  "documents": {
+    "boot": 2,
+    "final": 2
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "unload": {
+    "bodies": 0,
+    "colliders": 0,
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": [],
+    "listeners": {
+      "window": 0,
+      "document": 0,
+      "canvas": 0,
+      "other": 4
+    },
+    "events": {
+      "listeners": 7,
+      "answerers": 5
+    }
+  },
+  "finalCost": {
+    "playing": 490611225,
+    "loading": 570611225,
+    "accounted": 112790328,
+    "input": {
+      "l0": 0,
+      "l1": 0,
+      "far": 0,
+      "libraries": 0,
+      "sims": 0,
+      "commons": 99649752,
+      "products": 0,
+      "overlap": 80000000,
+      "page": 13140576,
+      "engineBase": 286859424
+    }
+  },
+  "memoryCapPass": false,
+  "sf57Pass": false,
+  "priorDiagnostic": {
+    "pin": "ee87b56d0",
+    "pass": false,
+    "failure": "Error: Retained GL residency reconciliation failed\n    at file:///private/tmp/claude-501/sp-builders/sp-x1/pine-regional/asset-ledger.mjs:67:182",
+    "reconciliation": {
+      "rawGL": 52799368,
+      "rawComposer": 13140576,
+      "rawCaches": 39658792,
+      "chargedComposer": 40829808,
+      "cachedGPU": 54019164,
+      "cachedCPU": 45630588,
+      "uncoveredGPU": -14360372,
+      "engineBase": 286859424,
+      "noRuntimeClaims": true,
+      "allCachesUncovered": true,
+      "composerMatches": false,
+      "retainedGPUSafelyCharged": true
+    },
+    "raw": {
+      "file": "diagnostic-ee87b56d0.json.gz",
+      "decodedBytes": 6869894,
+      "sha256": "1e7945e81782d49d1fbedf3ed7bc15d26d4c174230ce214ef1ce270d875991e3"
+    }
+  }
+}
