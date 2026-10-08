@@ -21,7 +21,7 @@ import { installBounds } from '../../../src/engine/world/bounds';
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three';
 import { ISLET, RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
 import manifest from '../../../src/shards/far-reach/manifest';
-import { SkyReachPlugin } from '../../../src/shards/far-reach/plugin';
+import { SkyReachPlugin } from '../../../src/shards/far-reach/runtime/index';
 import { WarFan, GUST, inCone } from '../../../src/shards/far-reach/weapons/WarFan';
 import { DIVE } from '../../../src/shards/far-reach/species/driftRay';
 import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE, apothem } from '../../../src/shards/far-reach/layout';

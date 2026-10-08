@@ -48,7 +48,7 @@ const constructors: Record<string, (fixture: Fixture) => readonly Weapon[]> = {
     Sword, world: { ...f, game: f.game.asGame() }, targets: emptyTargets, nolock: true,
     wood: SWORD_WOOD, iron: SWORD_IRON, swordRig, woodArms: {}, ironArms: undefined,
   }),
-  'far-reach': ({ services }) => callerWeapons('src/shards/far-reach/plugin.ts', 'WarFan', {
+  'far-reach': ({ services }) => callerWeapons('src/shards/far-reach/runtime/index.ts', 'WarFan', {
     WarFan, ctx: { app: services }, targets: () => [],
   }),
   'nalati-grasslands': ({ world: f }) => {

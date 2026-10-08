@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { SKY_REACH } from '../../../src/shards/far-reach/manifest';
-import { SkyReachPlugin } from '../../../src/shards/far-reach/plugin';
+import { SkyReachPlugin } from '../../../src/shards/far-reach/runtime/index';
 
 it('resolves only the declared entry to the unchanged standalone Sky Reach constructor', async () => {
   const loaded = await SKY_REACH.load?.();
