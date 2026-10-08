@@ -53,9 +53,11 @@ export const OCEAN: OceanDef = {
 
 /** Where the south pier lands (the crescent beach) — the island's origin for the later pieces. */
 export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
-/** the other three jetties at the N / W / E edge midpoints (the mandated entry roads are their sandbars); the E one runs on into Wreck Cove */
-export const JETTIES = [
-  { x: 0, z: CHUNK_HALF, rot: Math.PI, length: ROAD_LENGTH },
+/** the other three jetties at the N / W / E edge midpoints (the mandated entry roads are their sandbars); the E one runs on into Wreck Cove.
+ *  `landing`: the deck runs on to the dry sand and ramps down onto it, like the south pier (agent playtest round 1, #6: the
+ *  north jetty ended 1.45 m over the beach, a step the hoverboard could not climb back up) */
+export const JETTIES: readonly { readonly x: number; readonly z: number; readonly rot: number; readonly length: number; readonly landing?: boolean }[] = [
+  { x: 0, z: CHUNK_HALF, rot: Math.PI, length: ROAD_LENGTH, landing: true },
   { x: -CHUNK_HALF, z: 0, rot: Math.PI / 2, length: 95 },
   { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 72 }, // ends 30 m short of the wreck's stern (x 149) — 108 ran straight through it
 ];
