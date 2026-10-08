@@ -144,7 +144,7 @@ export class AacPull {
     this.busy = true;
     try {
       if (start < this.cursor - this.historyFrames) this.reset();
-      while (this.cursor < start) { await this.fill(); this.consume(start - this.cursor, undefined, 0); }
+      while (this.cursor < start) { await this.fill(); this.live(); this.consume(start - this.cursor, undefined, 0); }
       const result: Stereo = [new Float32Array(frames), new Float32Array(frames)];
       let done = 0;
       if (start < this.cursor) {
@@ -155,7 +155,7 @@ export class AacPull {
           const from = HISTORY - (this.cursor - start); target.set(source.subarray(from, from + done));
         }
       }
-      while (done < frames) { await this.fill(); done += this.consume(frames - done, result, done); }
+      while (done < frames) { await this.fill(); this.live(); done += this.consume(frames - done, result, done); }
       return result;
     } catch (error) {
       this.dispose(); throw error;
