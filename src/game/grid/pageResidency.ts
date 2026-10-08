@@ -34,10 +34,10 @@ export class PageResidency {
   private composerBound = false;
 
   /** Renderer caches survive level unload, so their claims live with the actual renderer owner. */
-  bindAssets(assets: App['assets'], rendererScope: Scope, homeScope: Scope, readOwner: () => Scope | null, readAllocations: AssetAllocationReader): void {
+  bindAssets(assets: App['assets'], rendererScope: Scope, homeScope: Scope | null, readOwner: () => Scope | null, readAllocations: AssetAllocationReader): void {
     if (this.assetsBound || this.closed || rendererScope.disposed) throw new Error('Page asset residency requires one live renderer');
     const bridge = new AssetResidencyBridge(this.allocator, readAllocations, readOwner);
-    if (this.bootLease !== undefined) bridge.cover(homeScope, this.bootLease);
+    if (this.bootLease !== undefined && homeScope !== null) bridge.cover(homeScope, this.bootLease);
     let detach: () => void;
     try { detach = assets.bindResidency(bridge); }
     catch (error) { bridge.dispose(); throw error; }

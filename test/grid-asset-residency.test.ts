@@ -64,3 +64,23 @@ it('evicts the unused home cache while keeping the calibrated composer until ren
   expect(page.allocator.cost().input.page).toBe(20_000_000);
   renderer.dispose(); expect(page.allocator.entries()).toEqual([]); expect(resize).toBeUndefined();
 });
+
+it('uses the closest runtime owner rather than a borrowed ancestor and keeps the neutral shell out of home coverage', async () => {
+  const { PageResidency } = await import('../src/game/grid/pageResidency');
+  for (const owned of [false, true]) {
+    const page = new PageResidency(), renderer = new Scope('renderer'), home = renderer.child('home'), resident = home.child('region');
+    const assets = new AssetService(); page.admitHome('home', 1_000_000);
+    page.bindAssets(assets, renderer, owned ? null : home, () => resident, cachedResourceAllocations);
+    const regional = page.allocator.reserve({ id: 'sim:region', owner: 'region', category: 'sim', bytes: 1_000_000, distance: 0, needed: true });
+    if (regional === null) throw new Error('fixture admission');
+    // Factory uses the one allocator's bridge, even with a scope beneath a borrowed home.
+    const { coverRuntimeAssets } = await import('../src/game/grid/assetResidency'); coverRuntimeAssets(page.allocator, resident, regional);
+    const texture = new DataTexture(new Uint8Array(64), 4, 4);
+    withOwner(resident, () => { assets.register('region-only', texture, { retain: true, cache: true }); });
+    assets.observeResidency(texture, resident);
+    expect(page.allocator.entries().filter(entry => entry.category === 'commons').every(entry => entry.coveredBy === 'sim:region')).toBe(true);
+    resident.dispose(); regional.release(); expect(assets.has('region-only')).toBe(false);
+    expect(page.allocator.cost().input.commons).toBe(0);
+    home.dispose(); page.dispose(); renderer.dispose(); expect(page.allocator.entries()).toEqual([]);
+  }
+});

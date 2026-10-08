@@ -43,8 +43,10 @@ export class AssetResidencyBridge implements AssetPort {
   }
   private runtimeOwner(scope: Scope | null): Scope | undefined {
     if (scope === null || scope.disposed) return undefined;
-    for (const [owner, claim] of this.owners) if (scope.belongsTo(owner) && this.allocator.has(claim)) return owner;
-    return undefined;
+    let closest: Scope | undefined;
+    for (const [owner, claim] of this.owners) if (scope.belongsTo(owner) && this.allocator.has(claim) &&
+      (closest === undefined || owner.belongsTo(closest))) closest = owner;
+    return closest;
   }
   private covering(scope: Scope | null): string | undefined {
     const owner = this.runtimeOwner(scope); return owner === undefined ? undefined : this.owners.get(owner);
