@@ -1,0 +1,41 @@
+{
+  "row": "SF22a / G226, E435",
+  "units": "decimal MB; bytes rounded upward once",
+  "pineConfiguration": "cold Auto resolving to KTX2, trim ON (grid default), G187 cuts 1\u20133; three cold runs",
+  "measurement": "median of cold-run settled play medians + same-pin same-phase labelled GL; no GPU-process RSS added",
+  "rows": {
+    "pine-hollow": {
+      "webContentMB": 648.990416,
+      "glMB": 205.941312,
+      "engineBaseMB": 299,
+      "rev": "8e82ae91f701f8990199fe92407e4f1c61f14b20",
+      "evidence": "progress/memory/sf22a-pine-g187-8e82ae91f/summary.json",
+      "accountedBytes": 500839395,
+      "modeledPlayingBytesBeforePlatformAndNeighbours": 935931729,
+      "remainingPlayingBytes": 64068271
+    },
+    "nalati-grasslands": {
+      "webContentMB": 606,
+      "glMB": 236.8,
+      "engineBaseMB": 299,
+      "rev": "91f97bdfc",
+      "evidence": "progress/memory/sf22a-2026-10-04.json",
+      "accountedBytes": 489909910,
+      "modeledPlayingBytesBeforePlatformAndNeighbours": 923800001,
+      "remainingPlayingBytes": 76199999
+    }
+  },
+  "pineNativePlayColdRangeMB": [
+    629.231336,
+    651.235
+  ],
+  "pineConservativeTransientMB": 960.832454,
+  "pineConservativeTransientMarginMB": 39.167546000000016,
+  "nalatiDecision": "Retain evidenced vintage single-run charge; do not substitute newer lower single-run reading. Not a fresh regional measurement.",
+  "limits": [
+    "These are opaque runtime costs before platform and neighbour claims, not a grid-fit verdict.",
+    "Pine standalone trim OFF is not measured by the selected study.",
+    "Simulator plus desktop GL proxy is not a physical-iPhone cap proof.",
+    "Original images-first Pine reading retained independently for G188."
+  ]
+}

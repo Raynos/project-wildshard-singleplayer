@@ -4,6 +4,8 @@ import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { imagesFirstPlayingBytes, runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
+import { PINE_IMAGES_FIRST_COST, PINE_RUNTIME_COST } from '../src/shards/pine-hollow/data/runtimeCost';
+import { NALATI_RUNTIME_COST } from '../src/shards/nalati-grasslands/data/runtimeCost';
 
 const measured = DRIFTWOOD_RUNTIME_COST;
 
@@ -36,4 +38,21 @@ it('retains a strict images-first reading independently of the lower compressed 
   for (const images of [{ ...imagesFirst, rev: '' }, { ...imagesFirst, glMB: Number.NaN }, { ...imagesFirst, unknown: 1 }, { ...imagesFirst, imagesFirst }]) {
     expect(() => runtimeAccountedBytes({ ...measured, imagesFirst: images })).toThrow();
   }
+});
+
+it('admits the measured cold KTX2 Pine charge without changing its over-cap images-first phone policy', () => {
+  const owner = new PageResidency(new ResidencyAllocator());
+  expect(PINE_RUNTIME_COST).toMatchObject({ webContentMB: 648.990416, glMB: 205.941312, engineBaseMB: 299,
+    rev: '8e82ae91f701f8990199fe92407e4f1c61f14b20', evidence: 'progress/memory/sf22a-pine-g187-8e82ae91f/summary.json' });
+  expect(NALATI_RUNTIME_COST).toMatchObject({ webContentMB: 606, glMB: 236.8, engineBaseMB: 299,
+    rev: '91f97bdfc', evidence: 'progress/memory/sf22a-2026-10-04.json' });
+  expect(owner.admitHome('pine-hollow', runtimeAccountedBytes(PINE_RUNTIME_COST)).bytes).toBe(500_839_395);
+  expect(owner.allocator.cost().playing).toBe(935_931_729);
+  expect(PINE_RUNTIME_COST.imagesFirst).toBe(PINE_IMAGES_FIRST_COST);
+  expect(imagesFirstPlayingBytes(PINE_RUNTIME_COST)).toBeGreaterThan(CONTENT_CAPS.playing);
+  // Platform and neighbour claims still consume the remaining margin; they do not inherit a whole-world discount.
+  expect(owner.allocator.reserve({ id: 'road', category: 'commons', owner: 'platform', bytes: 60_000_000,
+    distance: 0, needed: true })).toBeNull();
+  expect(runtimeAccountedBytes(NALATI_RUNTIME_COST)).toBe(489_909_910);
+  owner.dispose();
 });

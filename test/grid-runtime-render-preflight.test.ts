@@ -6,7 +6,7 @@ import { CHUNK_HALF } from '../src/engine/core/config';
 import { compileRuntimeRenderPlan } from '../src/game/grid/runtimeRenderPlan';
 import { runtimeAccountedBytes } from '../src/game/grid/runtimeCost';
 import { preflightRenderPlan, textureCost, toRuntimeRenderPlan, wantedL1Chunks, type PreflightPlan } from '../src/game/grid/runtimeRenderPreflight';
-import { PINE_RUNTIME_COST } from '../src/shards/pine-hollow/data/runtimeCost';
+import { PINE_IMAGES_FIRST_COST, PINE_RUNTIME_COST } from '../src/shards/pine-hollow/data/runtimeCost';
 
 const texture = (size: number): DataTexture => { const t = new DataTexture(new Uint8Array(size * size * 4), size, size); t.generateMipmaps = false; return t; };
 const geoBytes = (g: BufferGeometry): number => Object.values(g.attributes).reduce((s, a) => s + a.array.byteLength, 0) + (g.index?.array.byteLength ?? 0);
@@ -59,7 +59,7 @@ const census = JSON.parse(readFileSync('test/fixtures/g208/pine-plan.json', 'utf
 // the served HEAD (scripts/serve-build.sh --head) of build be4c277-muytjp7n
 const pin = { rev: 'be4c27711', evidence: 'progress/memory/g208-pine-rings/plan.json' };
 
-it('refuses Pine\'s census plan against the shipped images-first measurement: different pins, no discount', () => {
+it('refuses Pine\'s census plan against a different measured pin: no discount', () => {
   const whole = runtimeAccountedBytes(PINE_RUNTIME_COST);
   expect(() => compileRuntimeRenderPlan(toRuntimeRenderPlan(census.plan, pin, whole), PINE_RUNTIME_COST)).toThrow(/reviewed measurement/u);
 });
@@ -67,7 +67,7 @@ it('refuses Pine\'s census plan against the shipped images-first measurement: di
 it('Pine by rings (arithmetic on the census plan): covers the whole claim and saves nothing within the L1 radius', () => {
   // The census pin has no same-pin WebContent reading yet: the shipped figures under the census provenance check only the
   // accounting arithmetic, never a cost a page admits.
-  const measured = { ...PINE_RUNTIME_COST, ...pin }, whole = runtimeAccountedBytes(measured);
+  const measured = { ...PINE_IMAGES_FIRST_COST, ...pin }, whole = runtimeAccountedBytes(measured);
   const inventory = compileRuntimeRenderPlan(toRuntimeRenderPlan(census.plan, pin, whole), measured);
   expect(inventory.full.totalBytes).toBe(whole); // the residual keeps every unclassified byte
   expect(inventory.full.chunks).toHaveLength(16);
