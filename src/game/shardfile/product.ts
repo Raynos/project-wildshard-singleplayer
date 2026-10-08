@@ -114,6 +114,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     unique.set(hash, cap);
   }
   const transport = new Map<string, Uint8Array>(), addresses = [...unique];
+  const verifiedCached = new Set<string>();
   let bytesRead = 0, filesDone = 0;
   const bytesTotal = addresses.reduce((total, [, cap]) => total + cap, 0);
   const progress = (phase: ProductProgress['phase'], detail: string): void => {
@@ -122,6 +123,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   progress('assets', 'Reading immutable assets');
   const load = async ([hash, cap]: [string, number]): Promise<Uint8Array> => {
     let bytes = await options.cache?.asset(base, hash);
+    const fromCache = bytes !== null && bytes !== undefined;
     if (bytes === null || bytes === undefined) {
       if (options.offline) throw new Error('Visited shardfile has an incomplete offline cache');
       progress('assets', `Fetching ${hash.slice(0, 12)}`);
@@ -131,6 +133,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     progress('hash', `Verifying ${hash.slice(0, 12)}`);
     const owned = Uint8Array.from(bytes), actual = await options.hash(owned);
     if (actual !== hash) throw new Error('Shardfile asset hash mismatch');
+    if (fromCache) verifiedCached.add(hash);
     filesDone++; progress('assets', `Verified ${filesDone} / ${addresses.length} files`);
     return owned;
   };
@@ -156,8 +159,18 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     const cache = options.cache, release = cache.pin?.([...assets.keys()].map((ref) => ref.replace(/^commons:/u, '')));
     try {
       let complete = true;
-      for (const [ref, bytes] of assets) { progress('cache', `Saving ${ref.slice(0, 12)}`); if (await cache.putAsset(base, ref.replace(/^commons:/u, ''), bytes) === false) complete = false; }
-      for (const ref of assets.keys()) { progress('cache', `Checking saved ${ref.slice(0, 12)}`); if (await cache.asset(base, ref.replace(/^commons:/u, '')) === null) complete = false; }
+      for (const [ref, bytes] of assets) {
+        const hash = ref.replace(/^commons:/u, '');
+        if (verifiedCached.has(hash)) continue; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
+        progress('cache', `Saving ${ref.slice(0, 12)}`); if (await cache.putAsset(base, hash, bytes) === false) complete = false;
+      }
+      for (const [ref, bytes] of assets) {
+        const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${ref.slice(0, 12)}`);
+        if (await cache.asset(base, hash) !== null) continue;
+        // Another owner/browser may have evicted a previously verified hit before this publication pin.
+        // Repair that miss, then recheck durable presence just as for a newly fetched file.
+        if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || await cache.asset(base, hash) === null) complete = false;
+      }
       if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty });
     } finally { release?.(); }
   }

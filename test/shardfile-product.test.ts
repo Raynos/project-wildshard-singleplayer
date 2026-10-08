@@ -178,3 +178,16 @@ it('reports only bounded bytes and never completion for an oversized streaming r
   await expect(boundedResponse(new Response(body), 4, (bytes) => { read += bytes; })).rejects.toThrow('cap');
   expect(read).toBe(2);
 });
+
+it('does not rewrite verified warm immutable bytes, but repairs an intervening eviction before publishing', async () => {
+  const f = fixture(), put = vi.fn(f.cache.putAsset), cache = { ...f.cache, putAsset: put };
+  await admitProduct(f.shard, { ...f.options, cache }); expect(put).toHaveBeenCalledTimes(1);
+  put.mockClear(); await admitProduct(f.shard, { ...f.options, cache }); expect(put).not.toHaveBeenCalled();
+  let reads = 0;
+  const evicting: ProductCache = { ...cache, asset: (cacheBase, hash) => {
+    reads++; if (reads === 2) f.cache.bytes.delete(hash);
+    return f.cache.asset(cacheBase, hash);
+  } };
+  await admitProduct(f.shard, { ...f.options, cache: evicting });
+  expect(put).toHaveBeenCalledTimes(1); expect(reads).toBe(3); expect(f.cache.products.get(base)).toBeDefined();
+});
