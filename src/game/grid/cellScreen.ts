@@ -19,6 +19,13 @@ import { GAME_STRINGS } from '../strings';
 
 /** Why the cell can't be entered now. */
 export type CellScreenStatus = 'loading' | 'waiting' | 'refused';
+/** Live admission wins over a render-ring metadata snapshot. A declared/active request is loading, never an M3 wait;
+ * ready cells wear no screen even if an earlier refusal or canvas snapshot has not been polled again yet. */
+export function cellScreenStatus(input: { ready: boolean; declared: boolean; pending: boolean; waiting: boolean; refusal: ShardRefusal | null }): CellScreenStatus | null {
+  if (input.ready) return null;
+  if (input.refusal !== null) return 'refused';
+  return input.waiting || (!input.declared && !input.pending) ? 'waiting' : 'loading';
+}
 /** What a waiting cell waits for: a shardfile at all, or the hybrid runtime (both arrive in M3). */
 export type CellWait = 'format' | 'hybrid';
 /** One cell's live state, read through the session's read-only port (null from the port: the cell can be entered). */
@@ -236,6 +243,8 @@ export interface CellScreenCell { readonly instance: string; readonly x: number;
 export interface CellScreenPorts {
   /** every unenterable neighbour's live state (a cell that can be entered is absent), read a few times a second */
   readonly read: () => ReadonlyMap<string, CellScreenInput>;
+  /** Cheap authoritative readiness, checked every step so a throttled canvas snapshot cannot flash on a loaded cell. */
+  readonly ready?: (instance: string) => boolean;
   /** the traveller's feet in the home frame */
   readonly feet: () => { readonly x: number; readonly z: number };
 }
@@ -318,7 +327,7 @@ export function installCellScreens(input: {
       if (ticks++ % REFRESH === 0) snapshot = ports.read();
       const feet = ports.feet(), now = time();
       const distance = (cell: CellScreenCell): number => Math.hypot(Math.max(0, Math.abs(feet.x - cell.x) - wall), Math.max(0, Math.abs(feet.z - cell.z) - wall));
-      const wanted = [...snapshot.keys()].flatMap((id) => { const cell = byInstance.get(id); return cell === undefined || distance(cell) > RANGE ? [] : [cell]; })
+      const wanted = [...snapshot.keys()].flatMap((id) => { const cell = byInstance.get(id); return ports.ready?.(id) === true || cell === undefined || distance(cell) > RANGE ? [] : [cell]; })
         .sort((a, b) => distance(a) - distance(b) || a.instance.localeCompare(b.instance)).slice(0, count);
       const keep = new Set(wanted.map((cell) => cell.instance));
       for (let i = slots.length - 1; i >= 0; i--) {

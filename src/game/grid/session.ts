@@ -75,7 +75,7 @@ import { admittedMapImage, ProductMinimaps } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
-import { installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
+import { cellScreenStatus, installCellScreens, type CellScreenInput, type CellScreensState } from './cellScreen';
 import { installOpenPlots, openPlotColliders, type OpenPlotState } from './openPlot';
 import type { MemoryAdmissionWarning } from './memoryAdmission';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -220,9 +220,8 @@ export class GridSession {
   private readonly issues = new Map<string, string>();
   private readonly farViews = new Set<string>();
   private readonly farMissing = new Set<string>();
-  /** each slug's shown name and whether it ships a shardfile (read once: the registry lookup builds a map) */
+  /** each slug's shown name */
   private readonly names = new Map<string, string>();
-  private readonly shardfiles = new Map<string, boolean>();
   /** G217: the full loading screen on every cell you can't enter */
   private readonly screens: { readonly step: () => void; readonly state: () => CellScreensState };
   /** G198 / G219: the open plots, platform ground with four entry showrooms and a centrepiece each */
@@ -261,7 +260,7 @@ export class GridSession {
     this.home = this.assembly.cell(instance);
     const home = this.home, empty = this.assembly.emptyNeighbour.edge;
     this.neighbours = this.assembly.cells.filter((cell) => host.ownedHome === true || cell.instance !== home.instance);
-    for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); this.shardfiles.set(cell.slug, manifest?.shardfile !== undefined); }
+    for (const cell of this.assembly.cells) { const manifest = findShard(cell.slug); this.names.set(cell.slug, manifest?.name ?? cell.slug); }
     // the deck: one generator run, one draw, the same vertices as the platform colliders
     // the shards' real edge rows and observations (loaded once by `create`, before this one generation); a platform the
     // generator refuses (an edge past the cliff envelope, an entry off road height) falls back to road-level edges
@@ -301,7 +300,8 @@ export class GridSession {
       this.screens = installCellScreens({ scene: host.scene, admission, time: () => app.clock.real, wall: CHUNK_HALF + 6,
         build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '', tier: TIER,
         cells: this.neighbours.map((cell) => ({ instance: cell.instance, x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, art: findShard(cell.slug)?.card.thumb ?? null })),
-        ports: { read: () => this.screenInputs(), feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
+        ports: { read: () => this.screenInputs(), ready: id => this.live?.live.ready(id) === true,
+          feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
     } catch (error) {
       if (!(error instanceof PlatformRenderAdmissionError)) throw error;
       console.warn('[grid] the cell screens did not fit the envelope:', error);
@@ -454,13 +454,17 @@ export class GridSession {
     for (const report of this.allocator.memory.reports()) over.set(report.owner === 'grid' && report.id.startsWith('product:grid:') ? report.id : report.owner, report);
     for (const cell of this.neighbours) {
       const id = cell.instance;
-      if (live?.live.ready(id) === true) continue;
-      const raw = live?.refusal(id), refusal = this.refusal(id), shardfile = this.shardfiles.get(cell.slug) === true;
-      const waiting = refusal === null && (!shardfile || raw instanceof GridCellWaitingError || (raw !== undefined && classifyRefusal(raw) === null));
+      const raw = live?.refusal(id), refusal = this.refusal(id), manifest = findShard(cell.slug);
+      const status = cellScreenStatus({ ready: live?.live.ready(id) === true,
+        declared: (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined,
+        pending: live?.live.state().pending.includes(id) === true,
+        waiting: raw instanceof GridCellWaitingError || (raw !== undefined && classifyRefusal(raw) === null), refusal });
+      if (status === null) continue;
+      const waiting = status === 'waiting';
       const message = raw instanceof Error ? raw.message : raw === undefined ? this.issues.get(id) ?? null : typeof raw === 'string' ? raw : null;
       const stages = live?.live.readiness.status(id), own = claimed.get(id), product = claimed.get(`product:grid:${cell.slug}`);
       const warning = over.get(id) ?? over.get(`product:grid:${cell.slug}`);
-      out.set(id, { instance: id, slug: cell.slug, name: this.shardName(id), status: refusal !== null ? 'refused' : waiting ? 'waiting' : 'loading', refusal,
+      out.set(id, { instance: id, slug: cell.slug, name: this.shardName(id), status, refusal,
         wait: waiting ? (message !== null && /hybrid/u.test(message) ? 'hybrid' : 'format') : null, issue: message, far: this.farStatus(id),
         requested: stages?.requested ?? false, product: product !== undefined, runtime: stages?.runtime ?? false, colliders: stages?.colliders ?? false, sim: stages?.sim ?? false,
         claimedBytes: (own?.bytes ?? 0) + (product?.bytes ?? 0), claims: (own?.count ?? 0) + (product?.count ?? 0), declaredBytes: product?.bytes ?? 0,

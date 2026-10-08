@@ -4,7 +4,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Group, type Mesh } from 'three';
 import { Scope } from '../src/engine/app/scope';
-import { cellScreenBytes, cellScreenContent, drawCellScreen, installCellScreens, SCREEN_M, type CellScreenInput, type ScreenContext } from '../src/game/grid/cellScreen';
+import { cellScreenBytes, cellScreenContent, cellScreenStatus, drawCellScreen, installCellScreens, SCREEN_M, type CellScreenInput, type ScreenContext } from '../src/game/grid/cellScreen';
 import { PlatformRenderResidency, type PlatformRenderAdmission, type PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 
@@ -17,6 +17,15 @@ const base: CellScreenInput = { instance: 'template-1', slug: 'template', name: 
 const frame = { build: 'abc1234def567', tier: 'phone', elapsedS: 7 };
 
 describe('G217: the cell state maps to the loading screen', () => {
+  it('uses live readiness and declared product capability before stale render metadata', () => {
+    const state = { ready: false, declared: true, pending: false, waiting: false, refusal: null };
+    expect(cellScreenStatus(state)).toBe('loading'); // a declared hybrid is supported before its far ring settles
+    expect(cellScreenStatus({ ...state, declared: false })).toBe('waiting');
+    expect(cellScreenStatus({ ...state, declared: false, pending: true })).toBe('loading');
+    expect(cellScreenStatus({ ...state, waiting: true })).toBe('waiting');
+    expect(cellScreenStatus({ ...state, refusal: 'too-big' })).toBe('refused');
+    expect(cellScreenStatus({ ...state, ready: true, waiting: true, refusal: 'too-big' })).toBeNull();
+  });
   it('loading: the real stages, the product admitted, the clock and the memory claim', () => {
     const s = cellScreenContent(base, frame);
     expect(s.kicker).toBe('Loading chunk ·'); expect(s.title).toBe('Template'); expect(s.chip).toBe('LOADING'); expect(s.clock).toBe('00:07');
@@ -95,12 +104,12 @@ describe('G217: the panels in the world', () => {
     const drawn: string[] = [], plans: PlatformRenderBytePlan[] = [], scope = new Scope('cell-screen-test');
     vi.stubGlobal('document', { createElement: () => ({ width: 0, height: 0, getContext: () => recorder(drawn) }) });
     const admission: PlatformRenderAdmission = { allocate: (plan, build) => { plans.push(plan); return build(scope.child(plan.id)); } };
-    const scene = new Group(), snapshot = new Map<string, CellScreenInput>();
+    const scene = new Group(), snapshot = new Map<string, CellScreenInput>(), ready = new Set<string>();
     const cells = [{ instance: 'east', x: 560, z: 0, art: null }, { instance: 'north', x: 0, z: 560, art: null }, { instance: 'far-corner', x: 560, z: 560, art: null }];
     for (const cell of cells) snapshot.set(cell.instance, { ...base, instance: cell.instance });
     let feet = { x: 270, z: 10 }, now = 0;
     try {
-      const screens = installCellScreens({ cells, wall: 256, scene, admission, time: () => now, build: 'b', tier: 'desktop', slots: 2, ports: { read: () => snapshot, feet: () => feet } });
+      const screens = installCellScreens({ cells, wall: 256, scene, admission, time: () => now, build: 'b', tier: 'desktop', slots: 2, ports: { read: () => snapshot, ready: id => ready.has(id), feet: () => feet } });
       expect(plans).toEqual([{ id: 'cell-screens', jsBytes: 140, gpuBytes: 140 }]);
       expect(cellScreenBytes(2)).toEqual({ jsBytes: 2 * 1024 * 640 * 4, gpuBytes: 2 * Math.ceil(1024 * 640 * 4 * 4 / 3) });
       screens.step();
@@ -129,6 +138,9 @@ describe('G217: the panels in the world', () => {
       for (let k = 0; k < 6; k++) screens.step();
       expect(screens.state().shown).toEqual([{ instance: 'east', status: 'refused' }, { instance: 'far-corner', status: 'loading' }]);
       expect(drawn).toContain('TEMPLATE'); expect(drawn).toContain('TOO BIG FOR THIS DEVICE');
+      // No six-tick canvas polling delay: native readiness removes a stale refused/waiting panel this very step.
+      ready.add('east'); screens.step();
+      expect(screens.state().shown).toEqual([{ instance: 'far-corner', status: 'loading' }]);
       feet = { x: 2000, z: 2000 }; for (let k = 0; k < 6; k++) screens.step();
       expect(screens.state().shown).toEqual([]); // out of range
       scope.dispose();
