@@ -43,3 +43,29 @@ it('gates releases with an exact-SHA real boot outside push CI and pre-push', ()
   expect(workflow).toContain('-f context=production-live -f state=success');
   expect(readFileSync('scripts/vercel-tree-gate.sh', 'utf8')).not.toContain('boot-smoke');
 });
+
+it('waits for the real entered HUD, frame gate and current grid reveal before claiming gameplay', () => {
+  const observe = (entered: boolean, paused: boolean, revealing: boolean, frameGate: boolean): unknown => runInNewContext(`(${observer})()`, {
+    document: { querySelectorAll: () => [], querySelector: (selector: string) => selector === '#hud'
+      ? { classList: { contains: () => false } } : selector === '.ws-grid-reveal' && revealing ? {} : null },
+    window: { __wildshard: {
+      world: {}, requireWorld: () => ({ hud: { entered, paused }, game: { frameGate: () => frameGate, app: { debug: { snapshot: () => ({}) } } } }),
+      state: () => ({ appState: 'play', player: { pos: { x: 0, y: 1, z: 0 }, health: 100 } }),
+      app: { clock: { frame: 24 } }, shard: { slug: 'platform.grid' },
+    } },
+  });
+  expect(observe(false, false, false, true)).toMatchObject({ ready: false, entered: false });
+  expect(observe(true, true, false, true)).toMatchObject({ ready: false, entered: false });
+  expect(observe(true, false, true, true)).toMatchObject({ ready: false, revealing: true });
+  expect(observe(true, false, false, false)).toMatchObject({ ready: false, frameGate: false });
+  expect(observe(true, false, false, true)).toMatchObject({ ready: true, frame: 24 });
+});
+
+it('boots public Pine through real SHARD SELECT as well as Driftwood and the Developer grid', () => {
+  expect(source).toContain("['standalone', 'pine-hollow']");
+  expect(source).toContain("url.searchParams.set('chunk', shard)");
+  expect(source).toContain("page.locator('.ws-main-select').click()");
+  expect(source).toContain("page.locator('.ws-menu-play').click()");
+  expect(source).toContain('value.shard === shard && value.grid === null');
+  expect(source).toContain('started + 60000');
+});

@@ -17,9 +17,11 @@ export function bootObservation() {
   const { grid: exposed } = world.game.app.debug.snapshot();
   const grid = typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : null;
   const hud = document.querySelector('#hud');
-  const ready = state.appState === 'play' && hud !== null && !hud.classList.contains('intro') && !document.querySelector('.ws-reveal') &&
+  const revealing = document.querySelector('.ws-grid-reveal') !== null;
+  const entered = world.hud.entered && !world.hud.paused, frameGate = world.game.frameGate();
+  const ready = state.appState === 'play' && entered && frameGate && hud !== null && !hud.classList.contains('intro') && !revealing &&
     [state.player.pos.x, state.player.pos.y, state.player.pos.z, state.player.health].every(Number.isFinite) && state.player.health > 0;
-  return { fatal, ready, frame: probe.app.clock.frame, shard: probe.shard.slug, grid };
+  return { fatal, ready, entered, revealing, frameGate, frame: probe.app.clock.frame, shard: probe.shard.slug, grid };
 }
 
 /** @param {import('playwright').Page} page @param {string[]} faults @param {() => Promise<boolean>} condition @param {string} label @param {number} deadline */
@@ -50,9 +52,11 @@ export function bootLifecycleDiagnostic(report, observedGridNavigation) {
     /^boot after the last page ended on "hide" \(nav navigate\): \d+ frames \/ 6s$/u.test(report.message);
 }
 
-/** @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out */
-export async function bootCase(browser, base, mode, out) {
+/** @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out @param {string} [shard] */
+export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle') {
   const started = Date.now(), deadline = started + 60000;
+  const receipt = mode === 'standalone' && shard !== 'driftwood-isle' ? shard : mode;
+  /** @type {Record<string, number>} */ const phases = {};
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   // Both ordinary documents read the same device choice. Standalone proves the public default too.
   await saveFixture(context, { scope: 'device', key: 'devMode', data: mode === 'grid' });
@@ -100,9 +104,10 @@ export async function bootCase(browser, base, mode, out) {
   try {
     const url = new URL(base);
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
-    if (mode === 'standalone') url.searchParams.set('chunk', 'driftwood-isle');
+    if (mode === 'standalone') url.searchParams.set('chunk', shard);
     await page.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await until(page, faults, async () => await page.locator('.ws-main-logo').isVisible() && !(await page.locator('.ws-load').isVisible()), 'rendered usable title', deadline);
+    phases.titleMs = Date.now() - started;
     if (mode === 'standalone') {
       await page.locator('.ws-main-select').click();
       await page.locator('.ws-menu-play').click();
@@ -114,7 +119,7 @@ export async function bootCase(browser, base, mode, out) {
     await until(page, faults, async () => {
       const value = await page.evaluate(bootObservation);
       if (!value.ready) return false;
-      if (mode === 'standalone') return value.shard === 'driftwood-isle' && value.grid === null;
+      if (mode === 'standalone') return value.shard === shard && value.grid === null;
       const grid = value.grid;
       if (typeof grid !== 'object' || grid === null || !('home' in grid) || typeof grid.home !== 'string' || grid.home.length === 0 ||
         !('inside' in grid) || grid.home !== grid.inside || !('ringsReady' in grid) || grid.ringsReady !== true ||
@@ -123,15 +128,16 @@ export async function bootCase(browser, base, mode, out) {
       const live = typeof session === 'object' && session !== null && 'live' in session ? session.live : null;
       return typeof live === 'object' && live !== null && 'current' in live && live.current === grid.home && 'gameplayReady' in live && live.gameplayReady === true;
     }, `${mode} gameplay`, deadline);
+    phases.gameplayMs = Date.now() - started;
     const initial = await page.evaluate(bootObservation);
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
-    const result = { mode, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
+    const result = { mode, phases, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
-    writeFileSync(join(out, `${mode}.json`), `${JSON.stringify(result, null, 2)}\n`);
+    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;
   } catch (error) {
-    await page.screenshot({ path: join(out, `${mode}-failure.jpg`), type: 'jpeg', quality: 70 }).catch(() => undefined);
-    writeFileSync(join(out, `${mode}.json`), `${JSON.stringify({ mode, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation: await page.evaluate(bootObservation).catch(() => null) }, null, 2)}\n`);
+    await page.screenshot({ path: join(out, `${receipt}-failure.jpg`), type: 'jpeg', quality: 70 }).catch(() => undefined);
+    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify({ mode, phases, elapsedMs: Date.now() - started, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation: await page.evaluate(bootObservation).catch(() => null) }, null, 2)}\n`);
     throw error;
   } finally { await context.close(); }
 }
@@ -148,8 +154,8 @@ async function main() {
   const pool = browserPool(root, 1, option('angle') ?? (process.platform === 'darwin' ? 'metal' : 'swiftshader'));
   try {
     const browser = await pool.browser(0);
-    for (const mode of /** @type {const} */ (['standalone', 'grid'])) {
-      const result = await bootCase(browser, base, mode, out);
+    for (const [mode, shard] of /** @type {const} */ ([['standalone', 'driftwood-isle'], ['standalone', 'pine-hollow'], ['grid', 'driftwood-isle']])) {
+      const result = await bootCase(browser, base, mode, out, shard);
       console.log(`${mode}: gameplay PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
     }
   } finally { try { await pool.close(); } finally { preview?.close(); } }
