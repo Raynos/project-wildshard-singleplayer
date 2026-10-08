@@ -5,6 +5,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
+import { summarizePineAllocations } from './pine-events.mjs';
 
 /** Keep entry outcomes separate from ordinary renderer teardown and boot/harness failures. */
 export function classifyPineEntry(result) {
@@ -26,7 +27,7 @@ async function main() {
   const sha = execFileSync('git', ['rev-parse', revision], { cwd: root, encoding: 'utf8' }).trim();
   const version = await (await fetch(new URL('version.json', base))).json();
   if (!version.build.startsWith(sha.slice(0, 7))) throw new Error('Rate preview revision mismatch');
-  const sources = ['scripts/soak/pine-rate.mjs', 'scripts/soak/soak.mjs', 'scripts/soak/gl.mjs', 'scripts/soak/owned.mjs',
+  const sources = ['scripts/soak/pine-rate.mjs', 'scripts/soak/pine-events.mjs', 'scripts/soak/soak.mjs', 'scripts/soak/gl.mjs', 'scripts/soak/owned.mjs',
     'scripts/soak/route.ts', 'scripts/parity/glbytes.mjs', 'scripts/parity/resources.mjs', 'scripts/frame-floor-grid.mjs',
     'scripts/debug-settings.mjs', 'scripts/sim-mem-phases.py', 'scripts/ios-memory-watchdog.py'];
   const fingerprints = () => Object.fromEntries(sources.map(file => [file, createHash('sha256').update(readFileSync(join(root, file))).digest('hex')]));
@@ -51,7 +52,12 @@ async function main() {
     });
     const path = join(directory, 'dev-cells.json');
     const result = existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : { failure: 'No completed worker evidence' };
-    const row = { attempt, directory, status, ...classifyPineEntry(result) }; report.attempts.push(row);
+    const row = { attempt, directory, status, ...classifyPineEntry(result) };
+    const readRows = file => existsSync(file) ? readFileSync(file, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
+    row.allocations = summarizePineAllocations(readRows(join(directory, 'dev-cells-gl-events.jsonl')),
+      readRows(join(directory, 'dev-cells-gl-uploads.jsonl')), readRows(join(directory, 'dev-cells-native.jsonl')),
+      row.loss?.at ?? result.diagnosticEntry?.at ?? Date.now() / 1000);
+    report.attempts.push(row);
     report.counts = { coldBoots: report.attempts.length, entryAttempts: report.attempts.filter(value => value.entryStarted).length,
       entryLosses: report.attempts.filter(value => value.entryLoss).length, completedEntries: report.attempts.filter(value => value.entryCompleted).length,
       bootLosses: report.attempts.filter(value => value.bootLoss).length,
