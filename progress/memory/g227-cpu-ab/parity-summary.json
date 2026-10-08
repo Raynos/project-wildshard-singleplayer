@@ -1,0 +1,341 @@
+{
+  "pins": {
+    "candidate": "c4a90774f24f5f692fcf9f6fe6f67a9b76b61503",
+    "candidateTree": "e37801eeee580f29147028f22a14f59f4dd23820",
+    "baseline": "29c1c18e9d898623e74c500f70697c1b6548ac66",
+    "baselineTree": "c08765c5b30dcef594d397afc2d118887c488076",
+    "patchSha256": "09dfac333a53496a3ba65fecc48c67d6d09f0aea7cf61927b39754f538444a3f",
+    "protocol": "Identical audio/KTX2/final source except inverse own road + vegetation source cuts. Memory saver ON; independent cold native routes, 3 per side."
+  },
+  "pass": true,
+  "elapsedSeconds": 609.858,
+  "surface": "Chromium iPhone16Pro portrait emulation; not a native Safari or phone cap verdict",
+  "harness": {
+    "clockFixes": [
+      "69be032f5",
+      "55fa34274",
+      "96c90a137"
+    ],
+    "clockSha256": "9f1a3bca7c29c24dd31a2200b9b7dcb2342351891efb194188768b0cd003a11f"
+  },
+  "reports": [
+    {
+      "setting": "off",
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.086,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.063,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.9996895137035025,
+          "full": 0.9996976176166025,
+          "masked": 0.026,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": {
+        "count": 119,
+        "verdicts": {
+          "green": 119
+        },
+        "failures": []
+      },
+      "scopes": [
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      ],
+      "disposalErrors": [],
+      "errors": []
+    },
+    {
+      "setting": "off",
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "pier",
+          "ssim": 0.9949782694349043,
+          "full": 0.9951135380572944,
+          "masked": 0.027,
+          "note": null
+        },
+        {
+          "name": "beach",
+          "ssim": 0.9954343764217747,
+          "full": 0.9956715592273062,
+          "masked": 0.052,
+          "note": null
+        },
+        {
+          "name": "wreck",
+          "ssim": 0.9999763582143775,
+          "full": 0.9999794112250224,
+          "masked": 0.129,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": {
+        "count": 108,
+        "verdicts": {
+          "green": 108
+        },
+        "failures": []
+      },
+      "scopes": [
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      ],
+      "disposalErrors": [],
+      "errors": []
+    },
+    {
+      "setting": "on",
+      "shard": "pine-hollow",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "gate",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.086,
+          "note": null
+        },
+        {
+          "name": "cabin",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.063,
+          "note": null
+        },
+        {
+          "name": "pond",
+          "ssim": 0.999759373914583,
+          "full": 0.999765654426502,
+          "masked": 0.026,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": {
+        "count": 119,
+        "verdicts": {
+          "green": 119
+        },
+        "failures": []
+      },
+      "scopes": [
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      ],
+      "disposalErrors": [],
+      "errors": []
+    },
+    {
+      "setting": "on",
+      "shard": "driftwood-isle",
+      "tier": "phone",
+      "verdict": "green",
+      "images": [
+        {
+          "name": "pier",
+          "ssim": 0.9933134172111081,
+          "full": 0.9934935313830345,
+          "masked": 0.027,
+          "note": null
+        },
+        {
+          "name": "beach",
+          "ssim": 0.9994937253459513,
+          "full": 0.9995200261657105,
+          "masked": 0.052,
+          "note": null
+        },
+        {
+          "name": "wreck",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.129,
+          "note": null
+        }
+      ],
+      "differences": [],
+      "checks": {
+        "count": 108,
+        "verdicts": {
+          "green": 108
+        },
+        "failures": []
+      },
+      "scopes": [
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      ],
+      "disposalErrors": [],
+      "errors": []
+    }
+  ],
+  "native": "Queued, no saving or cap credit yet",
+  "artifacts": [
+    {
+      "file": "parity-assertions.json.gz",
+      "sha256": "631719d6098166122f382b55771ff3852df55ae6ef63110498bb96d2dfa6c7e6",
+      "rawSha256": "50fbfb23ff80a7f8ebe1fa9b4b9e960f6e8b8d1558b18c86b765394a972146fb"
+    },
+    {
+      "file": "original-parity-failure.json.gz",
+      "sha256": "495e9306928b296fa0ce217e827d5c083576f73643676bfb23714667500b0011",
+      "rawSha256": "30f86b2eb6bc50f95b11767da66958e14f443d92764a2563ef4e67b3f70c1c21"
+    },
+    {
+      "file": "inverse-source.patch.gz",
+      "sha256": "09212fdb4ac3237d6cb8f54ebafc48ed0dfe12b12ea4fe519afd75707f6e9141",
+      "rawSha256": "09dfac333a53496a3ba65fecc48c67d6d09f0aea7cf61927b39754f538444a3f"
+    }
+  ]
+}

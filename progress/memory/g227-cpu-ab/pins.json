@@ -1,0 +1,8 @@
+{
+  "candidate": "c4a90774f24f5f692fcf9f6fe6f67a9b76b61503",
+  "candidateTree": "e37801eeee580f29147028f22a14f59f4dd23820",
+  "baseline": "29c1c18e9d898623e74c500f70697c1b6548ac66",
+  "baselineTree": "c08765c5b30dcef594d397afc2d118887c488076",
+  "patchSha256": "09dfac333a53496a3ba65fecc48c67d6d09f0aea7cf61927b39754f538444a3f",
+  "protocol": "Identical audio/KTX2/final source except inverse own road + vegetation source cuts. Memory saver ON; independent cold native routes, 3 per side."
+}
