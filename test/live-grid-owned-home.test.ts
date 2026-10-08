@@ -128,6 +128,24 @@ it('cancels a late admitted product without creating a world or resurrecting the
   } finally { f.finish(); }
 });
 
+it('keeps every neighbour product/module-only at boot and while the owned home is entered', async () => {
+  const f = await open();
+  try {
+    const neighbours = f.registry.assembly.cells.map(cell => cell.instance).filter(id => id !== 'driftwood-isle');
+    await f.registry.prefetch(neighbours);
+    expect(f.creates).toEqual([]);
+    expect(f.registry.state().residents).toEqual([]);
+    expect(f.owner.allocator.entries().map(row => row.id).sort()).toEqual(['sim:driftwood-isle', 'sim:platform.highway']);
+    const home = await f.registry.prepare(null, 'driftwood-isle'); home.commit();
+    for (let tick = 0; tick < 2400; tick++) f.registry.beforeFixed();
+    await f.registry.prefetch(neighbours);
+    expect(f.creates).toEqual(['driftwood-isle']);
+    expect(f.registry.state().residents).toEqual(['driftwood-isle']);
+    expect(f.owner.allocator.entries().filter(row => neighbours.includes(row.owner))).toEqual([]);
+    expect(f.modules).toEqual([...new Set([...neighbours].sort().concat('driftwood-isle'))]);
+  } finally { f.finish(); }
+});
+
 it('retains a failed final runtime disposal claim and retries cleanup after returning the traveller to the shell', async () => {
   const f = await open();
   try {
