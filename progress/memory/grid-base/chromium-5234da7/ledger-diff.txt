@@ -1,0 +1,67 @@
+home-settled         heapMB    69.3 ledger ram   138.1 gpu   179.5
+pine-entry           heapMB   128.2 ledger ram   227.7 gpu   232.3
+pine-centre          heapMB   129.6 ledger ram   260.6 gpu   230.1
+standalone-spawn     heapMB    87.1 ledger ram   205.0 gpu   258.3
+standalone-centre    heapMB    88.0 ledger ram   211.6 gpu   257.4
+
+== ram: grid-only (grid minus standalone), top 20
+    22.35  engine/physics  (grid 35.45 / standalone 13.11)
+    21.67  grid.world:driftwood-isle  (grid 21.67 / standalone 0.00)
+    19.55  grid.world:pine-hollow  (grid 19.55 / standalone 0.00)
+    10.89  runtime:pine-hollow  (grid 10.89 / standalone 0.00)
+     4.67  engine/loadRigFile  (grid 13.14 / standalone 8.47)
+     3.57  palms  (grid 3.57 / standalone 0.00)
+     2.61  bushes  (grid 2.61 / standalone 0.00)
+     2.16  rocks  (grid 2.16 / standalone 0.00)
+     1.39  trailside  (grid 1.39 / standalone 0.00)
+     0.44  pier  (grid 0.44 / standalone 0.00)
+     0.41  jetty-1  (grid 0.41 / standalone 0.00)
+     0.36  BackdropLayer  (grid 0.36 / standalone 0.00)
+     0.34  cove  (grid 0.34 / standalone 0.00)
+     0.29  engine/loadGlbPart  (grid 2.23 / standalone 1.94)
+     0.29  lookout  (grid 0.29 / standalone 0.00)
+     0.06  trader  (grid 0.06 / standalone 0.00)
+     0.04  trade-counter  (grid 0.04 / standalone 0.00)
+     0.03  runtime:driftwood-isle  (grid 0.03 / standalone 0.00)
+     0.01  bridge  (grid 0.01 / standalone 0.00)
+     0.01  grid.object:shrine  (grid 0.01 / standalone 0.00)
+== ram: standalone-only, top 8
+   -37.00  level
+    -3.77  engine/scene
+    -1.05  engine/ktx2Texture
+    -0.35  unattributed
+    -0.00  pine-lookout
+     0.00  pine-hollow/canoe
+     0.00  pine-hollow/bilberry-shrub
+     0.00  pine-crags-crag-cliff
+
+== gpu: grid-only (grid minus standalone), top 20
+    16.96  BackdropLayer  (grid 16.96 / standalone 0.00)
+    16.61  grid.world:pine-hollow  (grid 16.61 / standalone 0.00)
+    14.08  runtime:pine-hollow  (grid 14.08 / standalone 0.00)
+     0.00  grid.world:driftwood-isle  (grid 0.00 / standalone 0.00)
+     0.00  pine-hollow/waystone  (grid 0.00 / standalone 0.00)
+     0.00  pine-hollow/canoe  (grid 0.00 / standalone 0.00)
+     0.00  pier  (grid 0.00 / standalone 0.00)
+     0.00  pine-hollow/moss-patch  (grid 0.58 / standalone 0.58)
+     0.00  pine-hollow/fern  (grid 3.26 / standalone 3.26)
+     0.00  pine-hollow/bilberry-shrub  (grid 1.68 / standalone 1.68)
+     0.00  pine-crags-crag-cliff  (grid 6.00 / standalone 6.00)
+     0.00  pine-zip-cable  (grid 0.02 / standalone 0.02)
+     0.00  pine-hollow/cave-arch  (grid 0.00 / standalone 0.00)
+     0.00  pine-hollow/needle-litter  (grid 1.78 / standalone 1.78)
+     0.00  pine-hollow/forest-tree  (grid 3.94 / standalone 3.94)
+     0.00  pine-hollow/beaver-dam  (grid 0.00 / standalone 0.00)
+     0.00  engine/renderer  (grid 0.00 / standalone 0.00)
+     0.00  pine-landmarks  (grid 0.09 / standalone 0.09)
+     0.00  pine-zip-landing  (grid 0.11 / standalone 0.11)
+     0.00  pine-hollow/standing-stone  (grid 0.00 / standalone 0.00)
+== gpu: standalone-only, top 8
+   -26.73  engine/ktx2Texture
+   -16.96  engine/render-target
+    -8.09  engine/loadPBRArray
+    -7.72  engine/loadGLTF
+    -5.79  engine/scene
+    -3.41  engine/loadGlbPart
+    -1.54  props-wood
+    -1.54  props-stumps

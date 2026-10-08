@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/sp-builders/grid-base/ret3.py", line 2, in <module>
+    exec(open('snapshot_lib.py').read().split('# region roots')[0])
+         ~~~~^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'snapshot_lib.py'

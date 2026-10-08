@@ -1,0 +1,5 @@
+cold-01.native.jsonl.gz home-settled: pre 518 -> end 739 | pine-hollow-entry: pre 764 -> end 904 | pine-hollow-centre: pre 904 -> end 947
+cold-02.native.jsonl.gz home-settled: pre 563 -> end 824 | pine-hollow-entry: pre 777 -> end 887 | pine-hollow-centre: pre 885 -> end 937
+cold-03.native.jsonl.gz home-settled: pre 539 -> end 832 | pine-hollow-entry: pre 757 -> end 872 | pine-hollow-centre: pre 870 -> end 915
+cold-01.native.jsonl.gz home-settled: pre 541 -> end 842 | pine-hollow-entry: pre 797 -> end 849 | pine-hollow-centre: pre 847 -> end 929
+cold-02.native.jsonl.gz home-settled: pre 555 -> end 728 | pine-hollow-entry: pre 717 -> end 895 | pine-hollow-centre: pre 893 -> end 947
