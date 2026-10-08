@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2226 members; 830 without a doc line (—).
+2236 members; 835 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -773,6 +773,16 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `SUN_CASCADES_MAX` | const | @wildshard/engine/core/materialGraph | the most cascades a validation may count (three's CSM tops out at four here) |
 | `SUN_OPS` | const | @wildshard/engine/core/materialGraph | the ops whose value is one directional light's (a node reading one is built per light, and counted per cascade) |
 | `validateGraph` | function | @wildshard/engine/core/materialGraph | Validate a graph read from content (`unknown`): its shape, every op against the vocabulary, every input's type, no |
+| `MemoryAllocation` | interface | @wildshard/engine/core/memoryAttribution | — |
+| `memoryAttribution` | const | @wildshard/engine/core/memoryAttribution | The installed allocation paths and Developer/report readers share this ledger; importing creates no service. |
+| `MemoryAttribution` | class | @wildshard/engine/core/memoryAttribution | One page's scalar projection of live allocations. Identity is per domain; shared backing storage counts once. |
+| `memoryCreationLabel` | function | @wildshard/engine/core/memoryAttribution | Synchronous allocation labels share the existing labelledCreation path, including renderer initialization. |
+| `MemoryDomain` | type | @wildshard/engine/core/memoryAttribution | Scalar memory diagnostics over the existing resource/upload identities. Allocation capacity is not resident RAM; |
+| `MemoryLabel` | interface | @wildshard/engine/core/memoryAttribution | — |
+| `MemoryMeasurement` | interface | @wildshard/engine/core/memoryAttribution | Provenance names a native report/revision/settings/PID; never synthesize a footprint from JS heap capacity. |
+| `MemoryPrecision` | type | @wildshard/engine/core/memoryAttribution | — |
+| `MemorySnapshot` | interface | @wildshard/engine/core/memoryAttribution | — |
+| `withMemoryLabel` | function | @wildshard/engine/core/memoryAttribution | — |
 | `decodeMeshCollision` | function | @wildshard/engine/core/meshCollision | Admit exact WMC1 wire bytes before native allocation and return owned arrays, including for unaligned input. |
 | `encodeMeshCollision` | function | @wildshard/engine/core/meshCollision | Encode bounded indexed geometry deterministically, with no simplification or heightfield conversion. |
 | `isMeshCollisionData` | function | @wildshard/engine/core/meshCollision | Identify WMC1 bytes without allocating or admitting their contents. |

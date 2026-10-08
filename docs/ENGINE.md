@@ -1872,7 +1872,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2209 exports, grouped by the module to import them from.
+2219 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2009,6 +2009,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/core/KeepAlive`: `KeepAlive`
 - `@wildshard/engine/core/ktx2`: `BASIS_PATH`, `initKtx2`, `ktx2Layers`, `ktx2Texture`, `layerArrayMips`, `prepareCompressedTexture`, `readTexturePixels`, `releaseAfterUpload`
 - `@wildshard/engine/core/materialGraph`: `DEFAULT_GRAPH_BUDGET`, `GRAPH_ADMISSION_LIMITS`, `GRAPH_IR_VERSION`, `GRAPH_OPS`, `graphAdmissionErrors`, `GraphBinding`, `GraphBudget`, `GraphCost`, `GraphIr`, `GraphLighting`, `GraphLiteral`, `GraphLoopBody`, `GraphNode`, `GraphOpSpec`, `GraphOutline`, `GraphParam`, `GraphParamType`, `GraphRef`, `GraphStages`, `GraphSurface`, `GraphValidation`, `GraphValidationOptions`, `GraphValueType`, `GraphVertexOffset`, `LOOP_MAX`, `SUN_CASCADES`, `SUN_CASCADES_MAX`, `SUN_OPS`, `validateGraph`
+- `@wildshard/engine/core/memoryAttribution`: `MemoryAllocation`, `memoryAttribution`, `MemoryAttribution`, `memoryCreationLabel`, `MemoryDomain`, `MemoryLabel`, `MemoryMeasurement`, `MemoryPrecision`, `MemorySnapshot`, `withMemoryLabel`
 - `@wildshard/engine/core/meshCollision`: `decodeMeshCollision`, `encodeMeshCollision`, `isMeshCollisionData`, `lowestMeshHeight`, `MESH_COLLISION_LIMITS`, `meshCollisionCost`, `MeshCollisionData`
 - `@wildshard/engine/core/noise`: `clamp`, `lerp`, `Noise2D`, `smoothstep`
 - `@wildshard/engine/core/perfLap`: `LapPlayer`, `LapSpot`, `perfLap`, `PerfLapHost`

@@ -4601,6 +4601,66 @@
         "from": "@wildshard/engine/core/materialGraph"
       },
       {
+        "name": "MemoryAllocation",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "memoryAttribution",
+        "kind": "const",
+        "doc": "The installed allocation paths and Developer/report readers share this ledger; importing creates no service.",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "MemoryAttribution",
+        "kind": "class",
+        "doc": "One page's scalar projection of live allocations. Identity is per domain; shared backing storage counts once.",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "memoryCreationLabel",
+        "kind": "function",
+        "doc": "Synchronous allocation labels share the existing labelledCreation path, including renderer initialization.",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "MemoryDomain",
+        "kind": "type",
+        "doc": "Scalar memory diagnostics over the existing resource/upload identities. Allocation capacity is not resident RAM;",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "MemoryLabel",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "MemoryMeasurement",
+        "kind": "interface",
+        "doc": "Provenance names a native report/revision/settings/PID; never synthesize a footprint from JS heap capacity.",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "MemoryPrecision",
+        "kind": "type",
+        "doc": "",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "MemorySnapshot",
+        "kind": "interface",
+        "doc": "",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
+        "name": "withMemoryLabel",
+        "kind": "function",
+        "doc": "",
+        "from": "@wildshard/engine/core/memoryAttribution"
+      },
+      {
         "name": "decodeMeshCollision",
         "kind": "function",
         "doc": "Admit exact WMC1 wire bytes before native allocation and return owned arrays, including for unaligned input.",
