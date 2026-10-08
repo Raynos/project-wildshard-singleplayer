@@ -32,6 +32,8 @@ export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDes
 
 /** a building front's depth behind its line (it is a solid block to the map; the player never reaches its back) */
 const DEEP = 6;
+/** how far the shopfronts' pillars and counters stand proud of their front's line (world/facades.ts `shopfronts`) */
+const SHOP = 0.6;
 
 /**
  * SF51-p (G184): with Debug ▸ Nine Dragon entries on, the north street is walkable on to its drawn end at STREET.z0, where
@@ -70,16 +72,17 @@ export function fragmentColliders(north?: NorthStreet): FragmentColliders {
   out.push(span(STAIR.x1, STAIR_TOP.y - SLAB, STAIR.z0, STAIR_TOP.x1, STAIR_TOP.y, STAIR.z1));         // its top landing
   // the Well's south rim at the square's level (dome C's well.ts: its ledge, balustrade + parapet, the wall ends)
   out.push(...wellColliders());
-  // ── the building fronts round the square (the shopfronts sit on these lines) ──
+  // ── the building fronts round the square (the shopfronts sit on these lines; each collides from SHOP proud of its line,
+  // where the shopfronts' pillars and counters stand, world/facades.ts, so nobody, and no camera, walks into them) ──
   out = fronts;
   const top = Y0 + WALL_H;
-  out.push(span(PLAZA.x1 + 0.6, Y0, PLAZA.z0 - 0.6, PLAZA.x1 + DEEP, top, STAIR.z0));                   // east, north of the stair
-  out.push(span(PLAZA.x1 + 0.6, Y0, STAIR.z1, PLAZA.x1 + DEEP, top, PLAZA.z1 + DEEP));                   // east, south of the stair
-  out.push(span(STREET.x1, Y0, PLAZA.z0 - DEEP, PLAZA.x1 + DEEP, top, PLAZA.z0 - 0.6));                  // north, right of the gate
-  out.push(span(PLAZA.x0 - 0.6, Y0, PLAZA.z1 + 0.6, PLAZA.x1 + DEEP, top, PLAZA.z1 + DEEP));             // south, behind the spawn
-  // ── the street's walls and its end ──
-  out.push(span(STREET.x0 - DEEP, Y0, streetEnd, STREET.x0, top, WELL.z0));                             // west, past the Well
-  out.push(span(STREET.x1, Y0, streetEnd, STREET.x1 + DEEP, top, PLAZA.z0 - 0.6));                       // east
+  out.push(span(PLAZA.x1 + 0.6 - SHOP, Y0, PLAZA.z0 - 0.6, PLAZA.x1 + DEEP, top, STAIR.z0));            // east, north of the stair
+  out.push(span(PLAZA.x1 + 0.6 - SHOP, Y0, STAIR.z1, PLAZA.x1 + DEEP, top, PLAZA.z1 + DEEP));            // east, south of the stair
+  out.push(span(STREET.x1, Y0, PLAZA.z0 - DEEP, PLAZA.x1 + DEEP, top, PLAZA.z0 - 0.6 + SHOP));           // north, right of the gate
+  out.push(span(PLAZA.x0 - 0.6, Y0, PLAZA.z1 + 0.6 - SHOP, PLAZA.x1 + DEEP, top, PLAZA.z1 + DEEP));      // south, behind the spawn
+  // ── the street's walls (shopfronts both sides) and its end ──
+  out.push(span(STREET.x0 - DEEP, Y0, streetEnd, STREET.x0 + SHOP, top, WELL.z0));                      // west, past the Well
+  out.push(span(STREET.x1 - SHOP, Y0, streetEnd, STREET.x1 + DEEP, top, PLAZA.z0 - 0.6));                // east
   if (north === undefined) out.push(span(STREET.x0, Y0, STREET_END - 2, STREET.x1, top, STREET_END - 1)); // the fragment's end
   else {
     // the street's drawn end, beside and over the lift's door (SF51-p)
