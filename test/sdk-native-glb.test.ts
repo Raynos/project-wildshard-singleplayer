@@ -1,4 +1,4 @@
-import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Float32BufferAttribute, InterleavedBufferAttribute, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it } from 'vitest';
 import { staticGlb } from '../src/sdk/bake/glb';
@@ -26,7 +26,9 @@ describe('native terrain GLB application channels', () => {
       if (!(loadedGeometry instanceof BufferGeometry)) throw new Error('Expected actual loaded BufferGeometry');
       meshes++;
       for (const [semantic, name] of Object.entries(customAttributes)) {
-        const original = g.getAttribute(name), loaded = loadedGeometry.getAttribute(semantic.toLowerCase());
+        const original = g.getAttribute(name);
+        const loaded: unknown = loadedGeometry.getAttribute(semantic.toLowerCase());
+        if (!(loaded instanceof BufferAttribute) && !(loaded instanceof InterleavedBufferAttribute)) throw new Error('Expected loaded vertex channel');
         expect(loaded.itemSize).toBe(original.itemSize);
         expect(Array.from(loaded.array)).toEqual(Array.from(original.array));
       }
