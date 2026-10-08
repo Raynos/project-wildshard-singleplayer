@@ -1,4 +1,5 @@
 import type { FloorGridPlan, FloorGridState } from './frame-floor-grid.mjs';
+
 export interface PublicGridWitness {
   developer: boolean; savedDeveloper: unknown; state: FloorGridState;
   refusals: Record<string,string>; homeResidency: {instance:string;bytes:number}|undefined; runtimeLevel: string;

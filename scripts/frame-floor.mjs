@@ -47,7 +47,7 @@ const picks = Object.fromEntries(settingArgs.map((arg) => {
   if (!match || ['tier', 'fps'].includes(match[1])) throw new Error('Invalid Debug setting; tier and fps belong to the floor protocol');
   return [match[1], match[2]];
 }));
-if (publicGrid && picks.memorySaver !== undefined && picks.memorySaver !== 'off') throw new Error('Public grid measures the shipping Memory saver default OFF');
+if (publicGrid && Object.hasOwn(picks, 'memorySaver') && picks.memorySaver !== 'off') throw new Error('Public grid measures the shipping Memory saver default OFF');
 const settings = { ...picks, ...(publicGrid ? {memorySaver:'off'} : {}), tier: surface === 'sim' ? 'phone' : 'desktop', fps: 'auto' };
 const deviceSaveArgs = args.filter((arg) => arg.startsWith('--device-save='));
 const deviceSaves = Object.fromEntries(deviceSaveArgs.map((arg) => {
