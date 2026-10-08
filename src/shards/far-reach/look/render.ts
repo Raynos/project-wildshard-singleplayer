@@ -109,14 +109,20 @@ export function cloudBanks(): [number, number, number, number][] {
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama();
   const [cloudAtlas, seaPaint, vortex] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true), loadPainted(TEX_URL.maelstrom, 'far.maelstrom')]);
+  // A regional frame reads this strategy's parts without composing its standalone scene. Until compose adopts these
+  // eager sources, the strategy owns them, including a late strategy returned after its resident has already left.
+  const pending = new Set([pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null));
   let seaTime: { value: number } | null = null;
   let glowUpdate: ((t: number) => void) | null = null;
   return { mode: 'extend',
+    dispose: () => { for (const texture of pending) texture.dispose(); pending.clear(); },
     // `c.fx` builds the CINEMATIC chain when nothing is built yet, so the clean chain is asked first and `fx` only after
     // it (E399: destructuring `fx` in the parameters, or reading it before `engineChain('clean')`, makes the clean ask
     // throw 'already built', and the load hangs)
     compose: (c) => {
       const { scene, scope } = c, chain = c.engineChain('clean');
+      for (const texture of pending) scope.own(texture);
+      pending.clear();
       // E399 (council rounds 1-5, 'the light never glows'; measured as Rec. 709 luminance): AgX compressed the top 1 % to
       // 223-228 where the mockups reach 236-241. NEUTRAL with the manifest grade's saturation 0, contrast 0.12 and bloom
       // 0.35 measures 236-241, 2.1-3.6 % of the frame over 230 (the mockups 1.9-3.8 %)

@@ -20,13 +20,14 @@ import type { TerrainField } from '../src/engine/level/data';
 import type { LevelSpec } from '../src/engine/level/spec';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { Terrain } from '../src/engine/world/Terrain';
+import { SkyRig } from '../src/engine/world/skyRig';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../src/game/grid/regionalRuntime';
 import { createRegionalView } from '../src/game/grid/regionalView';
 import { createRegionalWorldFoundation, regionalWorldCensus } from '../src/game/grid/regionalWorld';
 import { regionGrade, type FrameLookContribution, type FrameLookPort } from '../src/game/grid/frameLook';
-import type { TerrainPainter } from '../src/engine/render/look';
+import type { SkyBackdropFactory, TerrainPainter } from '../src/engine/render/look';
 import { shardContext } from '../src/game/shard/context';
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
@@ -195,12 +196,14 @@ it('releases everything it allocated when the runtime leaves during preparation'
 
 it("paints the region's ground with its own level's look painter on its own heightfield, owned by the resident (E452)", async () => {
   const f = fixture(), seen: { height: number; global: number; owner: Scope | null }[] = [];
+  const dispose = vi.fn<() => void>();
   const painter: TerrainPainter = { build: (terrain, ground, owner) => {
     seen.push({ height: ground.heightAt(0, 0), global: heightAt(0, 0), owner });
     const mesh = new Mesh(new PlaneGeometry(1, 1), new MeshLambertMaterial()); owner.own(mesh.geometry); owner.own(mesh.material);
     terrain.mesh = mesh; terrain.group.add(mesh); return Promise.resolve();
   } };
-  const level: LevelSpec = { ...f.region, look: () => Promise.resolve({ compose: () => ({}), terrainPainter: painter }) };
+  const resolveLook = vi.fn(() => Promise.resolve({ compose: () => ({}), terrainPainter: painter, dispose }));
+  const level: LevelSpec = { ...f.region, look: resolveLook };
   const scope = f.scope.child('grid.runtime:pine-hollow');
   const foundation = createRegionalWorldFoundation({ rapier, level: () => level, pause: () => Promise.resolve(), checkpoint: () => true, look: null });
   const prepared = await foundation({ ...f.request, scope });
@@ -212,9 +215,51 @@ it("paints the region's ground with its own level's look painter on its own heig
   expect(world.terrain.mesh.parent?.parent?.parent).toBe(view.root);
   const owner = seen[0]?.owner;
   expect(owner?.disposed).toBe(false);
+  expect(resolveLook).toHaveBeenCalledOnce(); expect(dispose).not.toHaveBeenCalled();
+  const entry = scope.child('entered'); prepared.enter(entry); entry.dispose();
+  expect(dispose).not.toHaveBeenCalled();
   prepared.region.dispose(); scope.dispose();
+  expect(dispose).toHaveBeenCalledOnce();
   expect(owner?.disposed).toBe(true); expect(f.game.rootScene.children).toHaveLength(0);
   f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
+});
+
+it('retires a look that resolves after its resident left without allocating a native destination', async () => {
+  const f = fixture(), dispose = vi.fn<() => void>(), installed = vi.fn<() => void>();
+  const level: LevelSpec = { ...f.region, look: async () => {
+    await Promise.resolve(); f.scope.dispose();
+    return { compose: () => ({}), dispose };
+  } };
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => level, terrain: drawnGround, install: installed,
+    pause: () => Promise.resolve(), checkpoint: () => true });
+  try {
+    await expect(foundation(f.request)).rejects.toThrow('loading its look');
+    expect(dispose).toHaveBeenCalledOnce(); expect(installed).not.toHaveBeenCalled();
+    expect(f.homePhysics.world.colliders.len()).toBe(0);
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
+it('hands the same resolved look backdrop to the regional sky and keeps it alive until resident retirement', async () => {
+  const f = fixture(), dispose = vi.fn<() => void>();
+  const backdrop = vi.fn<SkyBackdropFactory>(() => { throw new Error('The fixture sky only admits the backdrop factory'); });
+  const resolveLook = vi.fn(() => Promise.resolve({ compose: () => ({}), backdrop, dispose }));
+  const level: LevelSpec = { ...f.region, look: resolveLook };
+  let delivered: SkyBackdropFactory | undefined;
+  Object.setPrototypeOf(f.world.sky, SkyRig.prototype);
+  Reflect.set(f.world.sky, 'scopeLevelLook', () => null);
+  Reflect.set(f.world.sky, 'layeredBackdrop', (factory: SkyBackdropFactory) => { delivered = factory; return Promise.resolve(null); });
+  const look: FrameLookPort = { contribute: () => noop, sky: () => noop };
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => level, terrain: drawnGround,
+    pause: () => Promise.resolve(), checkpoint: () => true, light: null, look });
+  try {
+    const prepared = await foundation(f.request);
+    const view = createRegionalView({ cell: f.request.cell, home: { x: 0, z: 0 }, scene: f.game.rootScene, physics: prepared.region.host.physics, slot: f.app,
+      assets: f.app.assets, allocator: f.allocator, claim: f.claim, scope: f.scope, ground: prepared.ground });
+    prepared.world(view);
+    await vi.waitFor(() => { expect(delivered).toBe(backdrop); });
+    expect(resolveLook).toHaveBeenCalledOnce(); expect(dispose).not.toHaveBeenCalled();
+    prepared.region.dispose(); expect(dispose).toHaveBeenCalledOnce();
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });
 
 it("contributes its own fog object and its level's grade to the one grid frame while resident, and releases them (E452)", async () => {

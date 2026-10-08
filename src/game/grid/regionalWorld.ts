@@ -41,6 +41,7 @@ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/level/frame';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
+import type { LookStrategy } from '@wildshard/engine/render/look';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
@@ -92,11 +93,13 @@ export interface RegionalWorldPorts {
  * A region's drawn ground as its own level paints it standalone: the painter its look declares (`LookStrategy.terrainPainter`),
  * owned by the region's scope, on the frame's captured heightfield; without one, the engine ground from the level's own
  * assets (splat, layers, boreal set). Only the painter is taken from the look: its sky, fog and chain stay the frame's.
+ * Pass the resident's resolved look to share its lifetime; otherwise this function resolves and owns one strategy.
  */
-export async function regionalTerrain(level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain']): Promise<Terrain> {
-  const painter = level.look === undefined ? undefined : (await level.look()).terrainPainter;
+export async function regionalTerrain(level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain'], look?: LookStrategy | null): Promise<Terrain> {
+  const resolved = look === undefined ? await level.look?.() : look;
+  if (look === undefined) scope.onDispose(() => { resolved?.dispose?.(); });
   if (scope.disposed) throw new Error('Regional terrain left while loading its look');
-  return new Terrain().build(level.ground, painter, scope, binding);
+  return new Terrain().build(level.ground, resolved?.terrainPainter, scope, binding);
 }
 
 /** What a leak check reads from a prepared region, beside the view's own census. */
@@ -144,6 +147,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const water = ports.water?.(level) ?? new WaterBodies();
       // the level's own look parts its content builds from while its frame is bound (SF63: its grass driver)
       const levelLook = level.look === undefined ? null : await level.look();
+      resident.onDispose(() => { levelLook?.dispose?.(); });
       if (left()) throw new Error('Regional world left while loading its look');
       const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures, look: levelLook });
       const field = (): typeof frame.terrain.field => frame.terrain.field;
@@ -154,7 +158,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       ports.install?.(host, request);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its collision');
-      const terrain = await (ports.terrain ?? regionalTerrain)(level, resident, frame.terrain);
+      const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');
       terrain.group.traverse((node: Object3D) => { const material: unknown = node instanceof Mesh ? node.material : null; if (isMaterial(material)) sky.setupMaterial(material); });
@@ -192,7 +196,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
             try {
               const made: { backdrop: LayeredBackdrop | null } = { backdrop: null };
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
-                const make = level.look === undefined ? undefined : (await level.look()).backdrop;
+                const make = levelLook?.backdrop;
                 const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null) });
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
