@@ -28,6 +28,9 @@ import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } f
 import { MoverScriptDriver } from './moverDriver';
 import { MoverRuntime } from './moverRuntime';
 import { socketLiftEntries } from './socketLift';
+import { portalLinkEntries, portalLinkRules } from './portalLink';
+import { validatePortalFloors } from './portalFloor';
+import { portalTransitioning } from './portalTraversal';
 import { LiftRiderSchema, captureLiftRider, restoreLiftRider, type LiftRider } from './liftRider';
 import * as v from 'valibot';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
@@ -67,6 +70,9 @@ export interface ShardfileSimulation {
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
 export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
+  const portals = portalLinkEntries(shard.entryways), portalErrors = portalLinkRules(portals, shard);
+  if (portalErrors.length > 0) throw new Error(portalErrors.join('; '));
+  validatePortalFloors(portals, shard, assets);
   validateMeshCollisionAssets(shard, assets);
   validateMeshEntryways(shard, assets);
   const bytes = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
@@ -86,6 +92,9 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
   const levelId = shard.identity.slug;
   if (host.level.id !== levelId || host.level.seed !== shard.identity.seed || host.entities.size !== shard.creatures.spawns.length || shard.creatures.spawns.some((row) => !host.entities.has(row.id))) throw new Error('Shardfile simulation host mismatch');
   try {
+    const portals = portalLinkEntries(shard.entryways), portalErrors = portalLinkRules(portals, shard);
+    if (portalErrors.length > 0) throw new Error(portalErrors.join('; '));
+    validatePortalFloors(portals, shard, assets);
     validateMeshCollisionAssets(shard, assets);
     validateMeshEntryways(shard, assets);
     const bytes = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
@@ -98,6 +107,12 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     const water = ports.water ?? new WaterBodies();
     if (ports.water === undefined) for (const row of [...shard.water].sort((a, b) => Number(a.kind === 'sea') - Number(b.kind === 'sea'))) water.add(declaredWaterBody(row), host.scope);
     const ids = shardfileColliderIds(shard);
+    if (portals.length > 0) {
+      const safe = () => { if (portalTransitioning(host.physics)) throw new Error('Cannot step or snapshot during a portal transfer'); };
+      host.onStep('portal.declared', safe, { snapshot: () => { safe(); return null; }, restore: value => {
+        if (value !== null) throw new Error('Portal continuation cannot contain a mid-transfer state');
+      } });
+    }
     const colliders = ports.colliders ?? installShardfileColliders(shard, assets, () => host.physics, host.scope, ports.restoring);
     if (ids.length !== colliders.size || ids.some(id => !colliders.has(id))) throw new Error('Declared collider port mismatch');
     if (shard.meshCollision !== null) {

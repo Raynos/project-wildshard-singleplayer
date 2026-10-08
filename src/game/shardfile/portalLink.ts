@@ -37,9 +37,10 @@ export function portalLinkEntries(entries: readonly { edge: PortalLinkEntry['edg
   });
 }
 /** Only permanently active authored colliders can bind a portal floor; moving/hidden panels and platform floors cannot. */
-export function portalLinkRules(entries: readonly PortalLinkEntry[], source: { props: ShardProps | null; meshCollision: ShardMeshCollision | null }): string[] {
-  const floors = new Set([...source.props?.colliders.filter(row => row.initialActive && row.panel === null).map(row => row.id) ?? [],
-    ...source.meshCollision?.tiles.map(row => `mesh.tile.${row.x}.${row.z}`) ?? []]);
+export function portalLinkRules(entries: readonly PortalLinkEntry[], source: { props: ShardProps | null; meshCollision: ShardMeshCollision | null; targets?: { panels: readonly { colliders: readonly string[] }[] }; movers?: readonly { id: string }[] }): string[] {
+  const controlled = new Set([...source.targets?.panels.flatMap(row => row.colliders) ?? [], ...source.movers?.map(row => row.id) ?? []]);
+  const floors = new Set([...source.props?.colliders.filter(row => row.initialActive && row.panel === null && !controlled.has(row.id)).map(row => row.id) ?? [],
+    ...source.meshCollision?.tiles.map(row => `mesh.tile.${row.x}.${row.z}`).filter(key => !controlled.has(key)) ?? []]);
   const nodes = new Map<string, string>(), outgoing = new Set<string>(), errors: string[] = [];
   for (const entry of entries) {
     try {

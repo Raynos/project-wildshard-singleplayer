@@ -29,6 +29,8 @@ it('refuses unknown, unbound, extra and duplicate links or routes not ending at 
 it('refuses arbitrary, inactive or panel floor bindings and duplicate outgoing nodes', () => {
   const portal = parsePortalLink(declaration()), s = source();
   expect(portalLinkRules([{ edge: 'north', portal: { ...portal, road: { ...portal.road, floor: 'platform.grid' } } }], s)).toContain('Portal floor must bind an active permanent static collider');
+  expect(portalLinkRules([{ edge: 'north', portal }], { ...s, targets: { panels: [{ colliders: ['square'] }] } })).toContain('Portal floor must bind an active permanent static collider');
+  expect(portalLinkRules([{ edge: 'north', portal }], { ...s, movers: [{ id: 'square' }] })).toContain('Portal floor must bind an active permanent static collider');
   const row = s.props.colliders[0]; if (row === undefined) throw new Error('Missing floor'); row.initialActive = false;
   expect(portalLinkRules([{ edge: 'north', portal }], s)).toContain('Portal floor must bind an active permanent static collider');
   expect(portalLinkRules([{ edge: 'north', portal }, { edge: 'north', portal }], source())).toContain('Portal has more than one outgoing link');

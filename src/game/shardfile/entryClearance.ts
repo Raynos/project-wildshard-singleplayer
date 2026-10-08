@@ -56,7 +56,7 @@ export function validateEntrywayClearance(source: { entryways: ShardEntryways; p
   for (const water of source.water) for (const [index, rect] of rectangles.entries()) {
     const entry = source.entryways[index]; if (entry === undefined) throw new Error('Missing water entryway');
     if (water.dryEntries?.includes(entry.edge)) continue;
-    const socket = entry.kind === 'socketOverWater' || entry.kind === 'socketLift';
+    const socket = entry.kind === 'socketOverWater' || entry.kind === 'socketLift' || entry.kind === 'portalLink';
     let wet = false;
     // Sum of absolute amplitudes bounds every swell phase; a below-road sea is safe only below that crest.
     if (water.kind === 'sea') wet = socket || water.level + (water.waves ? WAVES.reduce((sum, wave) => sum + Math.abs(wave[2]), 0) : 0) >= 0;

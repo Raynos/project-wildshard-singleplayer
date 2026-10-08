@@ -3,17 +3,19 @@ import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { decodeTerrainTile } from '@wildshard/engine/world/terrainTileData';
 import { clipEntryPolygon, entryFootprints } from './entryGeometry';
 import { SocketLiftSchema } from './socketLift';
+import { PortalLinkSchema } from './portalLink';
 
 const finite = v.pipe(v.number(), v.finite());
 const points = { north: [0, 0, 250], south: [0, 0, -250], east: [250, 0, 0], west: [-250, 0, 0] } as const;
 /** A legal 500 m cube has exactly one opening at each edge midpoint, meeting the highway at y=0. */
 export const EntrywaysSchema = v.pipe(v.array(v.strictObject({ edge: v.picklist(['north', 'east', 'south', 'west']), at: v.tuple([finite, finite, finite]),
-  kind: v.optional(v.picklist(['ground', 'socketOverWater', 'socketLift'])), lift: v.exactOptional(SocketLiftSchema),
+  kind: v.optional(v.picklist(['ground', 'socketOverWater', 'socketLift', 'portalLink'])), lift: v.exactOptional(SocketLiftSchema), portal: v.exactOptional(PortalLinkSchema),
   width: v.literal(ENTRY_WIDTH, 'illegal shard: entryways must be 8 metres wide') }), 'illegal shard: four midpoint entryways are required'),
 v.length(4, 'illegal shard: exactly four midpoint entryways are required'),
 v.check((rows) => new Set(rows.map((row) => row.edge)).size === 4 && rows.every((row) => row.at.every((coordinate, axis) => coordinate === points[row.edge][axis])),
   'illegal shard: entryways must be unique edge midpoints at road height y=0'),
-v.check(rows => rows.every(row => (row.kind === 'socketLift') === (row.lift !== undefined)), 'illegal shard: only socketLift entries require a lift declaration'));
+v.check(rows => rows.every(row => (row.kind === 'socketLift') === (row.lift !== undefined)), 'illegal shard: only socketLift entries require a lift declaration'),
+v.check(rows => rows.every(row => (row.kind === 'portalLink') === (row.portal !== undefined)), 'illegal shard: only portalLink entries require a portal declaration'));
 /** Width is the full opening in metres along the boundary; it never overrides authored terrain. */
 export type ShardEntryways = v.InferOutput<typeof EntrywaysSchema>;
 function flatOpening(samples: readonly number[], width: number): boolean {
@@ -37,7 +39,7 @@ export function validateEntrywayTerrain(source: { entryways: ShardEntryways; ter
   const terrain = decodeTerrainTile(bytes);
   const n = terrain.resolution - 1, stride = terrain.size / n;
   for (const [index, rect] of entryFootprints(source.entryways).entries()) {
-    const kind = source.entryways[index]?.kind, socket = kind === 'socketOverWater' || kind === 'socketLift';
+    const kind = source.entryways[index]?.kind, socket = kind === 'socketOverWater' || kind === 'socketLift' || kind === 'portalLink';
     if (rect.minX < terrain.x || rect.maxX > terrain.x + terrain.size || rect.minZ < terrain.z || rect.maxZ > terrain.z + terrain.size) throw new Error('illegal shard: missing entryway ground footprint');
     const vertex = (x: number, z: number) => {
       const y = terrain.heights[z * terrain.resolution + x]; if (y === undefined) throw new Error('Missing terrain sample');

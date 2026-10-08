@@ -6,7 +6,7 @@ export interface EntryFootprint { minX: number; maxX: number; minZ: number; maxZ
 /** A point on an admitted collision or visual triangle, independent of a renderer or physics world. */
 export interface EntryVertex { x: number; y: number; z: number }
 /** The authored ground under the platform socket, with north on positive z. */
-export function entryFootprints(entries: ShardEntryways): EntryFootprint[] {
+export function entryFootprints(entries: readonly Pick<ShardEntryways[number], 'edge' | 'width'>[]): EntryFootprint[] {
   return entries.map((entry) => {
     const half = entry.width / 2;
     switch (entry.edge) {

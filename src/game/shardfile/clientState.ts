@@ -7,6 +7,7 @@ import { logicalStateFromLane, restoreLogicalLane } from './logicalState';
 import { test as flagsMatch } from '@wildshard/engine/world/interact/flags';
 import { socketLiftEntries } from './socketLift';
 import { LiftRiderSchema, captureLiftRider, restoreLiftRider } from './liftRider';
+import { portalTransitioning } from './portalTraversal';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
 
 const finite = v.pipe(v.number(), v.finite());
@@ -44,7 +45,8 @@ export const clientStateSave = { key: 'platform.continuation', scope: 'shard' as
 type Runtimes = DeclaredItems['runtimes'];
 
 /** Retry every home save owner; a logical continuation alone cannot confirm durable rewards or coins. */
-export function checkpointClientState(ports: { ledger: { flush: () => boolean }; purse: { flush: () => boolean } | null; encounters: () => boolean; continuation: () => boolean }): boolean {
+export function checkpointClientState(ports: { ledger: { flush: () => boolean }; purse: { flush: () => boolean } | null; encounters: () => boolean; continuation: () => boolean; canCheckpoint?: () => boolean }): boolean {
+  if (ports.canCheckpoint?.() === false) return false;
   const profile = ports.ledger.flush(), coins = ports.purse?.flush() ?? true;
   // Attempt all writes even after a refusal, retaining the latest local progress for the next retry.
   const encounters = ports.encounters(), continuation = ports.continuation();
@@ -76,6 +78,7 @@ export function installClientItemState(sim: ShardfileSimulation, items: Runtimes
 }
 /** Snapshot only logical authored progress; regional whole-world snapshots remain owned by the grid sim registry. */
 export function captureClientState(source: Shardfile, sim: ShardfileSimulation, items: Runtimes): ClientCheckpoint {
+  if (portalTransitioning(sim.host.physics)) throw new Error('Cannot checkpoint during a portal transfer');
   const lane = sim.lane?.snapshot() ?? null;
   return v.parse(logicalCheckpoint, { version: 2, shard: source.identity.slug, state: migrateLogicalState(logicalStateFromLane(source.state.version, lane), source.state), revision: source.identity.revision, tick: sim.host.state.tick,
     lane, liftRider: captureLiftRider(source, sim), moverPending: sim.movers?.snapshot(new Set(socketLiftEntries(source.entryways).flatMap(entry => [entry.lift.mover, entry.lift.gate]))) ?? [], items: itemStates(items), flags: sim.host.flags.all,

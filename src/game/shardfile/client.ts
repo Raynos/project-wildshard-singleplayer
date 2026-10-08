@@ -36,6 +36,7 @@ import { clientWorld } from './clientWorld';
 import { clientSimStep } from './clientStep';
 import { clientScene, projectItemFields, handledItemInputs } from './clientItems';
 import { captureClientState, restoreClientState, installClientItemState, clientStateSave, clientCheckpoint } from './clientState';
+import { portalTransitioning } from './portalTraversal';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
@@ -304,6 +305,7 @@ export class ShardfileClient {
     if (prior !== null && !restoreClientState(source, sim, items.runtimes, prior)) throw new Error('Saved progress requires an admitted checkpoint migration');
     syncTargetColliders(source.targets, sim.colliders, read);
     const saver = clientCheckpoint({ ledger, purse: loot?.purse ?? null,
+      canCheckpoint: () => !portalTransitioning(sim.host.physics),
       encounters: () => saved.write(encounters), continuation: () => continuation.write(captureClientState(source, sim, items.runtimes)),
     });
     const checkpoint = saver.checkpoint;

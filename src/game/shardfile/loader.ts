@@ -91,7 +91,7 @@ function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindin
   const manifest = sourceManifest(source);
   const clientBindings = { ...ownedBindings, allocator: residency.allocator };
   return { ...manifest, biome: 'Authored world', blurb: source.identity.name,
-    ground: { ...(source.terrain === null && !source.entryways.some(entry => entry.kind === 'socketLift') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
+    ground: { ...(source.terrain === null && !source.entryways.some(entry => entry.kind === 'socketLift' || entry.kind === 'portalLink') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
     species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
     loot: { coins: source.rows.loot.length > 0 },
     creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },

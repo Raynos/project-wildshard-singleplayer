@@ -12,6 +12,8 @@ import { validateSkinAssets } from './skins';
 import { validateEntrywayTerrain } from './entryways';
 import { validateEntrywayClearance } from './entryClearance';
 import { validateSocketLandings } from './entryLanding';
+import { portalLinkEntries } from './portalLink';
+import { validatePortalFloors } from './portalFloor';
 import { clientScriptViewCost } from './clientScripts';
 import { preflightShardfile } from './preflight';
 import { preflightAssetGraph } from './assetGraph';
@@ -169,6 +171,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   validateMeshCollisionAssets(s, assets);
   validateMeshEntryways(s, assets);
   validateSocketLandings(s, assets);
+  validatePortalFloors(portalLinkEntries(s.entryways), s, assets);
   if (s.terrain !== null) validateTerrainAssets(s.terrain, assets, s);
   if (s.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
   validateSkinAssets(s, assets);

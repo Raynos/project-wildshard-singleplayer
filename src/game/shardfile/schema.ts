@@ -30,6 +30,7 @@ import { EdgeProfilesSchema } from './edgeProfiles';
 import { EntrywaysSchema, entrywayRules } from './entryways';
 import { MoversSchema, parseMovers } from './movers';
 import { socketLiftEntries, socketLiftRules } from './socketLift';
+import { portalLinkEntries, portalLinkRules } from './portalLink';
 import { StateSchema, stateRules } from './state';
 import { CommonsCostsSchema, assertCommonsCosts } from './commonsCosts';
 import { AccentSchema } from './accent';
@@ -104,6 +105,7 @@ export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
   errors.push(...entrywayRules(s));
   errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers, s));
+  errors.push(...portalLinkRules(portalLinkEntries(s.entryways), s));
   try { parseMovers(s.movers); } catch { errors.push('declared mover identities and primitives'); }
   if (s.movers.some(row => row.kind === 'chain')) errors.push('compiled mover chains require native joint restore support');
   if (s.movers.some(row => !s.sim.scripts.includes(row.module) || !s.critical.includes(row.module) || s.files.find(asset => asset.hash === row.module)?.kind !== 'wasm')) errors.push('mover modules are admitted critical sim scripts');

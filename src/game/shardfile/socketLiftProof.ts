@@ -8,6 +8,8 @@ import { walkEdgeEntries } from '@wildshard/engine/physics/edgeEntries';
 import { createShardfileSim, type ShardfileSimPorts, type ShardfileSimulation } from './simulation';
 import type { Shardfile } from './schema';
 import type { LiftApproachSource } from './socketLiftApproach';
+import { portalLinkEntries } from './portalLink';
+import { provePortalLinks } from './portalLinkProof';
 
 /** The normal interaction queues these commands on both the deck and its road gate. No author callback is invoked. */
 export function commandSocketLift(runtime: MoverRuntime, lift: SocketLift, action: 1 | 2 | 3): void {
@@ -22,10 +24,10 @@ export interface SocketLiftProofPorts {
 /** Counts come from actual fixed steps and motor moves, including both stop calls and the automatic idle return. */
 export interface SocketLiftProof { steps: number; rides: number; calls: number; maximumDeckStep: number }
 /** Ordinary entries retain the full capsule walk; each lift instead proves its complete ride and 23 road-gate lanes. */
-export function proveShardfileEntries(source: Shardfile, sim: ShardfileSimulation, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): { lanes: number; steps: number; liftRides?: number; liftCalls?: number } {
+export function proveShardfileEntries(source: Shardfile, sim: ShardfileSimulation, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): { lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number } {
   const lifts = socketLiftEntries(source.entryways);
-  const result = walkEdgeEntries(sim.host.physics, (x, z) => sim.water.restAt(x, z), source.entryways.filter(entry => entry.kind !== 'socketLift').map(entry => entry.edge));
-  if (lifts.length === 0) return result;
+  const portals = portalLinkEntries(source.entryways);
+  const result = walkEdgeEntries(sim.host.physics, (x, z) => sim.water.restAt(x, z), source.entryways.filter(entry => entry.kind !== 'socketLift' && entry.kind !== 'portalLink').map(entry => entry.edge));
   let liftRides = 0, liftCalls = 0;
   for (const entry of lifts) {
     // Every ride starts at a freshly admitted road stop, independently of validation ticks or other lifts.
@@ -39,7 +41,15 @@ export function proveShardfileEntries(source: Shardfile, sim: ShardfileSimulatio
       result.lanes += 23; result.steps += proof.steps; liftRides += proof.rides; liftCalls += proof.calls;
     } finally { fresh.dispose(); }
   }
-  return { ...result, liftRides, liftCalls };
+  let portalTransfers = 0;
+  if (portals.length > 0) {
+    const fresh = createShardfileSim(source, assets, { ...ports, ground: false });
+    try {
+      const proof = provePortalLinks(portals, source, assets, { physics: fresh.host.physics, waterAt: (x, z) => fresh.water.restAt(x, z) });
+      result.lanes += proof.lanes; result.steps += proof.steps; portalTransfers = proof.transfers;
+    } finally { fresh.dispose(); }
+  }
+  return { ...result, ...(lifts.length > 0 ? { liftRides, liftCalls } : {}), ...(portals.length > 0 ? { portalTransfers } : {}) };
 }
 const distance = (a: { x: number; y: number; z: number }, b: readonly [number, number, number]) => Math.hypot(a.x - b[0], a.y - b[1], a.z - b[2]);
 const options = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] } as const;
