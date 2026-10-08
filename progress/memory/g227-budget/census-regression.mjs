@@ -36,7 +36,7 @@ assert.equal(result.census.cpuAllocations.reduce((sum, row) => sum + row.bytes, 
 assert.equal(result.settings.memorySaver, 'on');
 console.log('Native census: released getters untouched, backing buffers deduplicated, interleaved arrays observed.');
 
-const htmlExpression = /const builtHtml = ([\s\S]*?);\nconst documentHtml/u.exec(source)?.[1];
+const htmlExpression = /const builtHtml = ([\s\S]*?);\nconst /u.exec(source)?.[1];
 assert.ok(htmlExpression);
 const html = '<head><script data-g227-fixture>window.__g227Errors=[];oldOn();</script><script>window.__g227Errors=[];oldOff();</script><script type="module" src="/assets/game.js"></script></head>';
 const cleaned = vm.runInNewContext(htmlExpression, { readFileSync: () => html, dist: '/fixture' });
@@ -55,3 +55,18 @@ assert.equal(views[1].inFrustum, false);
 assert.equal(views[2].visible, false);
 assert.equal(reads, 0);
 console.log('Platform view diagnostics distinguish in-frustum, off-view and hidden roots without reading attribute arrays.');
+
+// The ruler fix (E435 ruler lane): no in-page census before a pose's native samples, and the default is one final census.
+assert.match(source, /\?\.slice\('--census='\.length\) \?\? 'final'/u, 'The default census mode is final');
+const snapshotBody = /const snapshot = async label => \{([\s\S]*?)\n {2}\};/u.exec(source)?.[1] ?? '';
+const firstSample = snapshotBody.indexOf('waitNativeSample'), firstCensus = snapshotBody.indexOf('evaluate(snapshotExpression)');
+assert.ok(firstSample >= 0 && firstCensus > firstSample, 'A pose samples the footprint before any census');
+assert.match(snapshotBody, /censusMode === 'every' \? await evaluate\(snapshotExpression\)/u, 'Only the legacy mode runs a census at every pose');
+const lightSource = /const lightExpression = `([\s\S]*?)`;/u.exec(source)?.[1];
+assert.ok(lightSource);
+const light = vm.runInNewContext(lightSource, { localStorage: context.localStorage, window: { __sc_gl: () => [
+  { gl: {}, totalBytes: 30, reconciled: true, top: [], resources: [{ bytes: 20, labelled: true }, { bytes: 10, labelled: false }] },
+] } });
+assert.deepEqual(JSON.parse(JSON.stringify(light.gl)), [{ totalBytes: 30, reconciled: true, unlabelledBytes: 10 }]);
+assert.equal(light.settings.memorySaver, 'on');
+console.log('Ruler: footprint before census, final census by default, light GL read returns totals without resource rows.');

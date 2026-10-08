@@ -1,4 +1,11 @@
 // G227 one cold Simulator grid route, kernel footprint and labelled GL at entered poses.
+// --census=final (default) | none | every. The in-page census (snapshotExpression) walks the scene and every texture and
+// buffer; WebKit keeps the 50-300 MB of WebContent it allocates, so a census inflates every LATER reading in the same page
+// (grid-base, c2d910073). final: every pose reads the kernel footprint and a light GL total (the tracker's per-context
+// sums, no scene walk), and one full census runs after the last pose's reading. none: no census. every: the legacy order
+// (a census after each pose's reading), kept only to compare against old receipts.
+// Route mode standalone-pine boots ?chunk=pine-hollow and reads its spawn and centre (the grid-base pose) with the same
+// sampler, for a like-for-like grid-vs-standalone comparison.
 import { spawn, execFileSync } from 'node:child_process';
 import WebSocket from 'ws';
 import { memoryCategories } from './memory-categories.mjs';
@@ -13,7 +20,12 @@ import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute, gridFloorWitnessFailures } from '../../../scripts/frame-floor-grid.mjs';
 import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from '../../../scripts/public-grid.mjs';
 
-const [base, out, dist, routeMode = 'full', memorySaver = 'off', entryEdge = 'north'] = process.argv.slice(2), udid = process.env.SIM_UDID;
+const argv = process.argv.slice(2);
+const censusMode = argv.find(arg => arg.startsWith('--census='))?.slice('--census='.length) ?? 'final';
+if (!['final', 'none', 'every'].includes(censusMode)) throw new Error('--census must be final, none or every');
+const [base, out, dist, routeMode = 'full', memorySaver = 'off', entryEdge = 'north'] = argv.filter(arg => !arg.startsWith('--')), udid = process.env.SIM_UDID;
+const standalone = routeMode === 'standalone-pine';
+if (standalone && censusMode !== 'none') throw new Error('standalone-pine has no grid for the census: pass --census=none');
 const publicGrid = routeMode === 'public-grid';
 if (routeMode === 'sun-entry' && !['north', 'east', 'south', 'west'].includes(entryEdge)) throw new Error('Unknown Sun entry edge');
 if (publicGrid && memorySaver !== 'off') throw new Error('Public grid measures the shipping Memory saver default OFF');
@@ -37,11 +49,16 @@ const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixtur
 writeFileSync(dist + '/index.html', documentHtml);
 writeFileSync(dist + '/g227-safari.html', documentHtml);
 if (!udid) throw new Error('Run through sim-lane.sh');
-const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver, tex, developer:!publicGrid,
+const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver, tex, developer:!publicGrid, census: censusMode,
   ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}),
-  protocol: 'One cold Safari Simulator route. Three settled one-second kernel physical-footprint samples per pose; live labelled GL at the same pose. Relative evidence, not physical-phone cap proof.',
+  protocol: 'One cold Safari Simulator route. Three settled one-second kernel physical-footprint samples per pose; live labelled GL (tracker totals) at the same pose; the in-page census only as --census says (final: once, after the last reading). Relative evidence, not physical-phone cap proof.',
   snapshots: [], routes: [] };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
+// The light GL read: the tracker's per-context sums. No scene walk, no labelling, no per-resource rows returned.
+const lightExpression = `(() => ({
+  gl: window.__sc_gl().map(({ gl, resources, top, ...context }) => ({ ...context, unlabelledBytes: resources.reduce((sum, row) => sum + (row.labelled ? 0 : row.bytes), 0) })),
+  settings: JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.settings?.data,
+}))()`;
 const phaseFile = out + '.phase', nativeFile = out + '.native.jsonl';
 writeFileSync(phaseFile, 'loading');
 const simctl = args => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
@@ -80,7 +97,7 @@ try {
     await evaluate(`(() => { const {gl,texture}=window.__g227WarmGL;gl.deleteTexture(texture);gl.getExtension('WEBGL_lose_context')?.loseContext();delete window.__g227WarmGL;return true;})()`);
   } else {
   report.stage = 'title-load'; save();
-  simctl(['openurl', udid, publicGrid ? `${helper}?chunk=driftwood-isle&skipintro=1&mute=1&nolock=1&sw=0` : helper]);
+  simctl(['openurl', udid, publicGrid ? `${helper}?chunk=driftwood-isle&skipintro=1&mute=1&nolock=1&sw=0` : standalone ? `${helper}?chunk=pine-hollow&skipintro=1&mute=1&nolock=1&sw=0` : helper]);
   await sleep(3000);
   evaluate = await connect(helper);
   const until = async (expression, ms = 180000) => {
@@ -96,7 +113,7 @@ try {
     }
     throw new Error('Readiness timed out: ' + expression);
   };
-  if (!publicGrid) {
+  if (!publicGrid && !standalone) {
   await until("Boolean(document.querySelector('.ws-main-grid'))");
   report.stage = 'grid-tap'; save();
   // This deliberate title-to-game navigation precedes the measurement document fence.
@@ -104,9 +121,14 @@ try {
   await sleep(3000); evaluate = await connect(helper);
   }
   report.stage = 'grid-load'; save();
+  if (standalone) {
+    await until("!document.querySelector('.ws-load') && Boolean(window.__wildshard?.world?.player)", 240000);
+    await sleep(4000);
+  } else {
   await until("!document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live)", 240000);
   await evaluate('(window.__wildshard.world.hud.enterNow(),true)');
   await until('window.__wsReveal?.endedMs != null', 45000);
+  }
   const documentOrigin = await evaluate(`(${gridFloorDocumentIdentity.toString()})()`); report.documentOrigin = documentOrigin; beforeMeasurement = false;
   const snapshot = async label => {
     report.stage = label; writeFileSync(phaseFile, label); save(); await sleep(5000);
@@ -117,18 +139,21 @@ try {
         { phase: label, pid: gamePID, after: samples.at(-1)?.at });
       gamePID ??= sample.pid; report.gamePID = gamePID; samples.push(sample);
     }
-    const value = await evaluate(snapshotExpression);
-    if (publicGrid) {
-      value.publicWitness = await evaluate(`(${readPublicGridWitness.toString()})()`);
-      const failures = publicGridWitnessFailures(value.publicWitness, false);
-      if (failures.length > 0) throw new Error(failures.join('; '));
-    }
-    if (value.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + value.settings?.memorySaver);
+    // Nothing in-page that allocates runs before the samples above. vmmap is out of process.
     const sorted = samples.map(s => s.footprintBytes).sort((a, b) => a - b);
     const vmmapPath = out.replace(/\.json$/u, '') + '.' + label + '.vmmap.txt';
     let vmmap;
     try { vmmap = execFileSync('vmmap', ['-summary', String(samples[2].pid)], { encoding: 'utf8', timeout: 30000, maxBuffer: 8e6 }); writeFileSync(vmmapPath, vmmap); }
     catch (error) { vmmap = String(error); }
+    const light = await evaluate(lightExpression);
+    const glBytes = light.gl.reduce((sum, context) => sum + context.totalBytes, 0);
+    const value = censusMode === 'every' ? await evaluate(snapshotExpression) : {};
+    if (publicGrid) {
+      value.publicWitness = await evaluate(`(${readPublicGridWitness.toString()})()`);
+      const failures = publicGridWitnessFailures(value.publicWitness, false);
+      if (failures.length > 0) throw new Error(failures.join('; '));
+    }
+    if (light.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + light.settings?.memorySaver);
     const detail = {};
     if (nativeDetail) {
       // Original WC/GL samples above stay intact; passive diagnostics happen afterwards, without collecting the heap.
@@ -142,9 +167,27 @@ try {
         catch (error) { detail[name] = { error: String(error), pid: gamePID }; }
       }
     }
-    report.snapshots.push({ label, ...value, native: { samples, medianBytes: sorted[1], minBytes: sorted[0], maxBytes: sorted[2], vmmapPath, vmmapError: vmmap.startsWith('Error:') ? vmmap : null, ...detail } });
-    save(); console.log(label, 'native', sorted[1] / 1e6, 'GL', value.census.gl.reduce((s, c) => s + c.totalBytes, 0) / 1e6, 'model', value.residency.cost.playing / 1e6);
+    report.snapshots.push({ label, glBytes, light, ...value, native: { samples, medianBytes: sorted[1], minBytes: sorted[0], maxBytes: sorted[2], vmmapPath, vmmapError: vmmap.startsWith('Error:') ? vmmap : null, ...detail } });
+    save(); console.log(label, 'native', sorted[1] / 1e6, 'GL', glBytes / 1e6, 'census', censusMode === 'every' ? 'after this reading' : 'not yet');
   };
+  // --census=final: one full census, after the last measured pose's reading, attached to that pose.
+  let censusDone = censusMode !== 'final';
+  const finalCensus = async () => {
+    if (censusDone) return;
+    censusDone = true;
+    const row = report.snapshots.at(-1);
+    if (!row) return;
+    report.stage = 'census:' + row.label; save();
+    const value = await evaluate(snapshotExpression);
+    const censusGL = value.census.gl.reduce((sum, context) => sum + context.totalBytes, 0);
+    Object.assign(row, value, { censusAfterReading: true, censusGLDriftBytes: censusGL - row.glBytes });
+    save(); console.log(row.label, 'census GL', censusGL / 1e6, 'model', value.residency.cost.playing / 1e6);
+  };
+  if (standalone) {
+    await snapshot('standalone-spawn');
+    await evaluate('(async () => { await window.__wildshard.pose({ x: 0.92, y: 0.55, z: -0.92, yaw: 0, pitch: -0.08 }); return true; })()');
+    await snapshot('standalone-centre');
+  } else {
   await snapshot('home-settled');
   const state = await evaluate('window.__wildshard.shard.grid.state()');
   const page = { evaluate: expression => evaluate(expression, 180000) };
@@ -154,6 +197,7 @@ try {
       report.routes.push(await runFloorGridRoute(page,plan,documentOrigin));
       await snapshot(plan.name === 'public-road' ? 'public-road' : 'public-template-centre');
     }
+    await finalCensus();
     report.publicWitness = await evaluate(`(${readPublicGridWitness.toString()})()`);
     const failures = publicGridWitnessFailures(report.publicWitness,true);
     if (failures.length > 0) throw new Error(failures.join('; '));
@@ -193,14 +237,14 @@ try {
     await snapshot('sun-road-return');
     await drive('sun-reentry', null, sun.instance, [entry]);
     await snapshot('sun-reentry');
+    await finalCensus();
     report.recoveries = await evaluate('window.__sunNativeRecoveries');
     const gameErrors = await evaluate('window.__g227Errors');
     const edgeFallbacks = await evaluate("window.__g227Warnings.filter(message=>/edges stay at road level|platform keeps road-level edges|edge.*fallback|fallback.*edge/iu.test(message))");
     if (report.recoveries.length !== 0 || gameErrors.length !== 0 || edgeFallbacks.length !== 0) throw new Error('Sun route had a recovery, game error or edge fallback');
     report.enteredCost = report.snapshots.filter(row => ['sun-entry', 'sun-spawn', 'sun-reentry'].includes(row.label)).map(row => {
-      const contexts = row.census.gl, resources = contexts.flatMap(context => context.resources);
-      const glBytes = contexts.reduce((sum, context) => sum + context.totalBytes, 0);
-      if (contexts.length === 0 || glBytes <= 0 || !contexts.every(context => context.reconciled) || resources.some(resource => !resource.labelled && resource.bytes > 0)) throw new Error('Sun entered GL census is missing, unreconciled or unlabelled');
+      const contexts = row.light.gl, glBytes = row.glBytes;
+      if (contexts.length === 0 || glBytes <= 0 || !contexts.every(context => context.reconciled) || contexts.some(context => context.unlabelledBytes > 0)) throw new Error('Sun entered GL census is missing, unreconciled or unlabelled');
       const combinedBytes = row.native.medianBytes + glBytes, highSampleCombinedBytes = row.native.maxBytes + glBytes;
       return { label: row.label, webContentBytes: row.native.medianBytes, labelledGLBytes: glBytes, combinedBytes, highSampleCombinedBytes, withinExplorerCap: highSampleCombinedBytes <= 1e9 };
     });
@@ -251,6 +295,7 @@ try {
     await snapshot('sky-gate');
     await drive('sky-bridge-island', sky.instance, entry.climb.slice(3));
     await snapshot('sky-island');
+    await finalCensus();
     const islandY = await evaluate('window.__wildshard.requireWorld().player.position.y');
     if (Math.abs(islandY - entry.isle.y) > .5) throw new Error('Sky bridge failed to reach playable island ground');
     report.recoveries = await evaluate('window.__skyNativeRecoveries');
@@ -258,7 +303,7 @@ try {
     const edgeFallbacks = await evaluate("window.__g227Warnings.filter(message=>/edges stay at road level|platform keeps road-level edges|edge.*fallback|fallback.*edge/iu.test(message))");
     if (report.recoveries.length !== 0 || gameErrors.length !== 0 || edgeFallbacks.length !== 0) throw new Error('Sky route had a recovery, game error or edge fallback');
     report.enteredCost = report.snapshots.filter(row => row.label.startsWith('sky-') && row.label !== 'sky-road').map(row => {
-      const glBytes=row.census.gl.reduce((sum,context)=>sum+context.totalBytes,0);
+      const glBytes=row.glBytes;
       const combinedBytes=row.native.medianBytes+glBytes;
       const highSampleCombinedBytes=row.native.maxBytes+glBytes;
       return {label:row.label,webContentBytes:row.native.medianBytes,labelledGLBytes:glBytes,combinedBytes,highSampleCombinedBytes,withinExplorerCap:highSampleCombinedBytes<=1e9};
@@ -312,8 +357,11 @@ try {
     finally {await inspector.raw('(() => {const game=window.__wildshard?.world?.game;if(game && window.__g227SavedFrameGate)game.frameGate=window.__g227SavedFrameGate;delete window.__g227SavedFrameGate;return true;})()').catch(()=>null);}
   };
   if (routeMode === 'nalati-centre-heap') {
+    await finalCensus();
     await heapAt('nalati-grasslands-centre');
-  } else if (routeMode !== 'pine-centre') {
+  } else if (routeMode === 'pine-centre') {
+    await finalCensus();
+  } else {
   // A real-input road-only counterfactual, far beyond the former source's retained ring.
   // It measures the page/platform/cache remainder after owned runtime retirement, not hidden meshes.
   const nalati = state.cells.find(cell => cell.slug === 'nalati-grasslands');
@@ -323,9 +371,11 @@ try {
     waypoints:[{x:277.5,z:0},{x:277.5,z:-277.5},{x:-277.5,z:-277.5}],requiredResidents:[]},documentOrigin));
   await until('window.__wildshard.shard.grid.state().live.live.residents.length === 0',90000);
   await snapshot('neutral-road');
+  await finalCensus();
   if(routeMode === 'nalati-heap') {
     await heapAt('neutral-road');
   } else if (routeMode !== 'nalati-route') { report.glFootprintControl = await footprintControl(evaluate); save(); }
+  }
   }
   }
   }

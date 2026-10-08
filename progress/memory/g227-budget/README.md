@@ -8,6 +8,17 @@ The source is the [fenced ledger](../g226-platform-ledger/report-1b0572d69-fence
 
 A single cold native run varies by roughly **±50 MB WebContent**. A credited native saving requires **at least three independent cold boots per side**, identical configuration / route / settled poses and isolated source pins, with the **median and full min–max spread** reported. Three settled samples inside one boot are within-run samples, not three cold runs. Keep **every attempted boot**, including GPU-process restarts and document changes, in the receipt. A failed boot is not a valid measurement, but it does not end the cohort: continue until there are at least three valid cold boots per side, with **attempt / valid / failure counts reported separately for each side**. An excess failure rate on the candidate side is signal, not something the valid-run median can hide. Exclude a failed boot’s partial poses from the valid-run statistics; retain its last samples, recovery reason and source pin. Never overwrite an unsuccessful attempt or retry it into a silent pass. Match labelled GL to each native pose, state the audio clock and effective settings, and keep Mac heap attribution separate from the Simulator WC + labelled GL ruler.
 
+**The census perturbs the reading: never read after a census in the same page.** The in-page census (`snapshotExpression`
+in [inspect.mjs](inspect.mjs)) walks the scene and every texture and buffer. WebKit keeps the 50–300 MB of WebContent it
+allocates, so every later reading in that page carries it ([grid-base](../grid-base/README.md), `c2d910073`: in 5 of 5 runs
+Pine centre equalled the entry's post-census level). [native.mjs](native.mjs) therefore takes `--census=final` by default:
+each pose reads the three kernel footprint samples first, then a light GL total (the tracker's per-context sums, no scene
+walk, no per-resource rows), and the full census runs once, after the last pose's reading, attached to that pose
+(`censusAfterReading`, `censusGLDriftBytes`). `--census=none` skips it; `--census=every` is the old order, kept only to
+compare with receipts taken before the fix. A snapshot's GL is `glBytes`; `census` exists only on the census pose. Any other
+script that reads the native footprint follows the same rule: a heap snapshot, a census or any in-page walk comes after the
+page's last reading, or in its own page. Corrected verdicts: [../ruler/README.md](../ruler/README.md).
+
 **WebKit malloc can keep freed pages in its arenas.** Removing a heap retainer after the peak may leave WC unchanged. Credit exact object retirement as an ownership result, not as an equal native saving. Prefer cuts that **never allocate unused data**, or free it **before the next large allocation**. Report a smaller live heap and a smaller native footprint separately; no allocator discount follows from either without a reconciled admitted cost.
 
 Rank the remaining cuts by allocation timing and actual attribution:
