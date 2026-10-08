@@ -68,8 +68,18 @@ try {
   first.host.flags.set('ring.visited'); first.colliders.get('template.door').setActive(false);
   assert.equal(registry.checkpoint(target.instance), true);
   const exit = await registry.prepare(target.instance, null); exit.commit(); const frozen = first.host.state.tick;
+  // Forty seconds of boulevard motion around the request/release band must keep one frozen allocation.
+  // Load distance is 433.5m; release includes another 150m, independently of the 6/10m motor bands.
+  for (let i = 0; i < 2400; i++) {
+    player.position.set(target.origin.x - 250 - (i % 240 < 120 ? 430 : 455), 0.02, target.origin.z);
+    registry.beforeFixed(); step(1);
+  }
+  assert.equal(creations, 1); assert.equal(first.host.scope.disposed, false); assert.equal(first.host.state.tick, frozen);
+  // A brief excursion beyond the release radius resets on retreat; it cannot finish a later dwell early.
+  far(); for (let i = 0; i < 180; i++) { registry.beforeFixed(); step(1); }
+  near(); registry.beforeFixed(); assert.equal(first.host.scope.disposed, false);
   far(); durable = false; const beforeRefusal = checkpoints;
-  for (let i = 0; i < 60; i++) { registry.beforeFixed(); step(1); }
+  for (let i = 0; i < 360; i++) { registry.beforeFixed(); step(1); }
   assert.equal(checkpoints, beforeRefusal + 1); assert.equal(registry.ready(target.instance), true);
   assert.equal(first.host.scope.disposed, false); assert.equal(first.host.state.tick, frozen);
   assert.equal(allocator.has(`sim:${target.instance}`), true); assert.equal(allocator.has(`sim-basis:${target.instance}`), true);
@@ -84,7 +94,8 @@ try {
   assert.equal(restored.host.entities.get('grey-blob:1').hp, 55);
   assert.equal(restored.host.flags.has('ring.visited'), true); assert.equal(restored.colliders.get('template.door').active(), false);
   // A prepared destination owns a hold; releasing distant regions must not destroy a pending frame transaction.
-  const prepared = await registry.prepare(null, target.instance); far(); registry.beforeFixed();
+  const prepared = await registry.prepare(null, target.instance); far();
+  for (let i = 0; i < 360; i++) { registry.beforeFixed(); step(1); }
   assert.equal(restored.host.scope.disposed, false); assert.equal(registry.ready(target.instance), true);
   prepared.cancel(); await assert.rejects(registry.prefetch(['template-3']), /Next product sees retired cold claims/);
   assert.equal(restored.host.scope.disposed, true);

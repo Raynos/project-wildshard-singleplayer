@@ -67,7 +67,11 @@ export interface LiveGridState {
   gameplayReady: boolean;
   continuations: { entries: number; storedChars: number; capacityChars: number; claimedBytes: number };
 }
-interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; exclusiveRuntime: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean }
+interface Resident { region: LiveGridRegion; lease: ResidencyLease; reloadsCheckpoint: boolean; exclusiveRuntime: boolean; reservations: number; evicting: boolean; disposalFailed?: boolean; outsideSince?: number }
+
+// The motor's 6/10 m frame bands are independent. Residency waits five continuous fixed-step seconds outside
+// a further five seconds of travel distance, so a boulevard U-turn never churns a world at its request threshold.
+const COLD_DWELL_TICKS = 5 * 60;
 
 /** One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;
  * owned homes begin on neutral page physics and transfer the sole preallocation claim to their first runtime. */
@@ -86,6 +90,7 @@ export class LiveGridHost {
   private readonly frames = new Set<() => void>();
   private readonly transitions: { from: string | null; to: string | null }[] = [];
   private crossings = 0;
+  private fixedTick = 0;
   private readonly homeLease: ResidencyLease | undefined;
   private initialHomePending: boolean;
   private readonly highwayLease: ResidencyLease;
@@ -283,14 +288,21 @@ export class LiveGridHost {
     finally { this.requests.delete(instance); }
   }
   private distance(cell: GridCell): number { const p = this.worldFeet(); return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
-  /** Dispose cold frozen worlds before a new product/sim claim, with a ten-metre release band at the readiness bound. */
+  /** Automatic retirement uses a wider release radius and a continuous five-second dwell; explicit durable departure
+   * still retires an exclusive runtime immediately before another foundation can allocate. */
   private retireColdRegions(): void {
     for (const cell of this.assembly.cells) {
       if (this.borrowedHome(cell.instance)) continue;
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
-      const resident = this.residents.get(cell.instance); resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 || resident.disposalFailed === true });
-      if (distance <= estimate.distance + 10) this.coldUnloadRefused.delete(cell.instance);
-      else if (resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
+      const resident = this.residents.get(cell.instance);
+      const inside = distance <= estimate.distance + Math.max(10, this.ports.readiness.link.speed * 5);
+      if (inside) {
+        this.coldUnloadRefused.delete(cell.instance);
+        if (resident !== undefined) delete resident.outsideSince;
+      } else if (resident !== undefined) resident.outsideSince ??= this.fixedTick;
+      const dwelling = resident !== undefined && (resident.outsideSince === undefined || this.fixedTick - resident.outsideSince < COLD_DWELL_TICKS);
+      resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 || resident.disposalFailed === true || dwelling });
+      if (!inside && !dwelling && resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
         && !this.coldUnloadRefused.has(cell.instance) && !this.unload(cell.instance)) this.coldUnloadRefused.add(cell.instance);
     }
   }
@@ -307,13 +319,13 @@ export class LiveGridHost {
   /** Before the existing page physics/player step: radial requests are U-turn safe, and current-world walls synchronize first. */
   beforeFixed(): void {
     if (this.disposed) return;
+    this.fixedTick++;
     // Request the closest cells that fit the shard count. Requesting all eight within a wide cold bound
     // would repeatedly evict and rebuild earlier admissions even while the traveller stands still.
     // Unsupported far proxies do not consume the count before enterable cells inside the cold readiness bound.
     const nearby = this.assembly.cells.filter((cell) => !this.borrowedHome(cell.instance) && cell.instance !== this.active && (this.ports.prefetchable?.(cell) ?? true))
       .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, this.limit - (this.ports.home.mode === 'owned' ? 0 : 1));
-    // Retire cold, frozen worlds before requesting another one. The ten-metre release band avoids rebuilding at the
-    // cold-request threshold; active/prepared frames remain protected by prepareUnload, without changing motor bands.
+    // Active/prepared frames and recently nearby worlds remain protected without changing motor bands.
     this.retireColdRegions();
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
