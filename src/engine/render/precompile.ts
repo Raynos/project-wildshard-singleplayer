@@ -1,4 +1,5 @@
 import { resourceScope } from '../app/resources';
+import type { Scope } from '../app/scope';
 import { engineString } from '../strings';
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
@@ -52,9 +53,22 @@ export interface CompileJob {
   rt: THREE.WebGLRenderTarget | null;
   /** compile with the target scene's fog cleared (the shadow pass and the background box see no fog) */
   fogOff?: boolean;
+  /** Release only stand-in resources, after their owner's real draws no longer need the cached programs. */
+  dispose?: () => void;
 }
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
+
+/** Resolve an entered world's programs, then warm the actual depth/post pass targets without advancing simulation.
+ * The entered owner fences both phases; the renderer target is restored even if a pass fails. */
+export async function warmComposerFrame(composer: Pick<EffectComposer, 'render'>,
+  renderer: Pick<Renderer, 'getRenderTarget' | 'setRenderTarget'>, prepare: () => Promise<unknown>, current: () => boolean): Promise<void> {
+  if (!current()) throw new Error('Entered frame left before shader warm-up');
+  await prepare();
+  if (!current()) throw new Error('Entered frame left during shader warm-up');
+  const target = renderer.getRenderTarget();
+  try { composer.render(0); } finally { renderer.setRenderTarget(target); }
+}
 
 /** any scene object, with the mesh-ish fields the program key reads (all optional: lights, groups and bones have none) */
 type MeshLike = THREE.Object3D & { isMesh?: boolean; geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[]; isInstancedMesh?: boolean; instanceColor?: THREE.InstancedBufferAttribute | null; isSkinnedMesh?: boolean; isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
@@ -127,6 +141,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
   const flip: Record<number, THREE.Side> = { [THREE.FrontSide]: THREE.BackSide, [THREE.BackSide]: THREE.FrontSide, [THREE.DoubleSide]: THREE.DoubleSide };
   const seen = new Set<string>();
   const clones: THREE.Object3D[] = [];
+  const temporary = new Set<THREE.Material>();
   scene.traverse((o) => {
     const mesh = o as MeshLike;
     if (!mesh.castShadow || !mesh.isMesh && !mesh.isPoints && !mesh.isLine) return;
@@ -143,6 +158,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
         key = `depth|${mat.map ? `m${mat.map.channel}` : ''}|${mat.alphaMap ? `a${mat.alphaMap.channel}` : ''}|${alphaTest > 0 ? 't' : ''}|${side}|${disp ? `d${disp.channel}` : ''}|${ok}`;
         if (seen.has(key)) continue;
         depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map: mat.map ?? null, alphaMap: mat.alphaMap ?? null, alphaTest, side, displacementMap: disp, displacementScale: mat.displacementScale, displacementBias: mat.displacementBias });
+        temporary.add(depth);
       }
       if (seen.has(key)) continue;
       seen.add(key);
@@ -159,7 +175,9 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
     const key = `depth|${map ? 'm0' : ''}||${alphaTest > 0 ? 't' : ''}|${side}||generic`;
     if (seen.has(key)) continue;
     seen.add(key);
-    clones.push(new THREE.Mesh(box, new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map, alphaTest, side })));
+    const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map, alphaTest, side });
+    temporary.add(depth);
+    clones.push(new THREE.Mesh(box, depth));
   }
   const jobs: CompileJob[] = [];
   for (let i = 0; i < clones.length; i += per) {
@@ -167,6 +185,8 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
     for (const c of clones.slice(i, i + per)) root.add(c);
     jobs.push({ label: engineString('s_2a96df75489f', [i]), root, target: scene, rt, fogOff: true });
   }
+  const first = jobs[0];
+  if (first !== undefined) first.dispose = () => { for (const material of temporary) material.dispose(); box.dispose(); white.dispose(); };
   return jobs;
 }
 
@@ -187,7 +207,8 @@ export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
   mat.toneMapped = THREE.ColorManagement.getTransfer(bg.colorSpace) !== THREE.SRGBTransfer;
   const geo = new THREE.BoxGeometry(1, 1, 1); geo.deleteAttribute('normal'); geo.deleteAttribute('uv');
   const root = new THREE.Group(); root.add(new THREE.Mesh(geo, mat));
-  return { label: engineString('s_ff7f862b819f'), root, target: scene, rt };
+  return { label: engineString('s_ff7f862b819f'), root, target: scene, rt,
+    dispose: () => { mat.dispose(); geo.dispose(); if (cube !== bg) cube.dispose(); } };
 }
 
 /**
@@ -226,6 +247,8 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   for (const [m, toScreen] of found) (toScreen ? groups.screen : groups.buffer).add(new THREE.Mesh(tri, m));
   if (groups.buffer.children.length > 0) jobs.push({ label: engineString('s_178612197e2b'), root: groups.buffer, target: empty, rt });
   if (groups.screen.children.length > 0) jobs.push({ label: engineString('s_9070659b32c3'), root: groups.screen, target: empty, rt: null });
+  const first = jobs[0];
+  if (first === undefined) tri.dispose(); else first.dispose = () => { tri.dispose(); };
   return jobs;
 }
 
@@ -263,7 +286,10 @@ export async function runPrecompile(
   renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress?: (done: number, total: number, detail: string) => void,
   textures: THREE.Texture[] = collectTextures(jobs),
+  current: () => boolean = () => true,
 ): Promise<PrecompileReport> {
+  const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
+  checkCurrent();
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
   const created: ProgramLike[] = [];
@@ -271,6 +297,7 @@ export async function runPrecompile(
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now();
   for (const [i, job] of jobs.entries()) {
+    checkCurrent();
     const prevRt = renderer.getRenderTarget();
     const fog = job.target?.fog ?? null;
     try {
@@ -291,6 +318,7 @@ export async function runPrecompile(
   const units = parallel ? 2 * n : n;
   if (parallel) {
     for (;;) {
+      checkCurrent();
       let ready = 0;
       for (const p of created) if (p.isReady()) ready++;
       onProgress?.(jobs.length + ready, jobs.length + units + textures.length, `${ready} / ${n} programs linked · parallel`);
@@ -307,6 +335,7 @@ export async function runPrecompile(
   // program otherwise ran inside the first frame (~45 ms of onFirstUse at 4x CPU).
   let tSlice = performance.now();
   for (const [i, p] of created.entries()) {
+    checkCurrent();
     p.getUniforms();
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
@@ -315,6 +344,7 @@ export async function runPrecompile(
   tSlice = performance.now();
   const base = jobs.length + units;
   for (const [i, tex] of textures.entries()) {
+    checkCurrent();
     const compressed = TIER === 'phone' && tex instanceof THREE.CompressedTexture;
     if (compressed) recordBootCheckpoint('texture:upload', { index: i, total: textures.length, name: tex.name, format: tex.format,
       mips: tex.mipmaps.length, width: tex.mipmaps[0]?.width ?? 0, height: tex.mipmaps[0]?.height ?? 0 });
@@ -330,6 +360,7 @@ export async function runPrecompile(
     onProgress?.(base + i + 1, base + textures.length, `${i + 1} / ${textures.length} textures uploaded`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
+  checkCurrent();
   return { materials, jobs: jobs.length, programs: n, parallel };
 }
 
@@ -340,8 +371,11 @@ export async function runPrecompile(
 
 
 /** The level supplies compile policy; the mechanism owns all shader jobs. */
-export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
+export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | 'scene' | 'rootScene' | 'composer' | 'level'>, onProgress?: (done: number, total: number, detail: string) => void,
+  options: { /** Entered frames reuse their existing caster geometry. */ chunkCasters?: boolean; /** Fence yielded work to its entered owner. */ current?: () => boolean;
+    /** Temporary program holders survive until this frame leaves; content materials remain borrowed. */ owner?: Pick<Scope, 'onDispose'> } = {}): Promise<number> {
 
+    if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     const tracedBoot = bootTraceActive();
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:before');
     // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and
@@ -350,8 +384,10 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     // oxlint-disable-next-line typescript/no-deprecated -- the guard exists to migrate away from the deprecated value
     if (game.renderer.shadowMap.type === THREE.PCFSoftShadowMap) game.renderer.shadowMap.type = THREE.PCFShadowMap;
     // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts)
-    const cut = chunkShadowCasters(game.scene);
-    if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
+    if (options.chunkCasters !== false) {
+      const cut = chunkShadowCasters(game.scene);
+      if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
+    }
     // Compile against the same page lights/environment as firstFrame. A regional content binding
     // changes game.scene only for installation; the renderer always draws rootScene. Keep caster
     // chunking above scoped to the content frame so warm-up cannot restructure other residents.
@@ -363,9 +399,11 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt));
     if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt));
     const bg = backgroundJob(scene, rt);
-    if (bg && policy?.background !== false) jobs.push(bg);
+    if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();
     if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt));
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress);
+    const owner = options.owner ?? resourceScope();
+    for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   

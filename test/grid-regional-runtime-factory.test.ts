@@ -48,7 +48,7 @@ function fixture(continuation?: RegionalRuntimeFactoryPorts['continuation']) {
   // the native destination, registry, equipment, saves, scopes and entered systems below are real implementations.
   const candidate: unknown = Object.create(Game.prototype);
   if (!(candidate instanceof Game)) throw new Error('Invalid fixture Game prototype');
-  for (const [key, value] of Object.entries({ rootScene: scene, sceneFrames: [], renderer: {}, levelScope: scope })) Reflect.defineProperty(candidate, key, { value, writable: true });
+  for (const [key, value] of Object.entries({ _composer: null, rootScene: scene, sceneFrames: [], renderer: {}, levelScope: scope })) Reflect.defineProperty(candidate, key, { value, writable: true });
   const game = candidate;
   const player = { position: new Vector3() } as Player;
   const world = { game, player, physics: home, registry: homeRegistry, chunk: PINE_HOLLOW } as ShardWorld;
@@ -293,4 +293,27 @@ it('refuses every checkpoint after failed strict restore without replacing the l
     session.leave(); expect(prepared.checkpoint()).toBe(false); expect(wire()).toEqual(before);
   } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
   expect(wire()).toEqual(before); expect(f.allocator.entries()).toEqual([]);
+});
+
+
+it('keeps entered gameplay and checkpoint unready until the real page warm-up finishes', async () => {
+  const f = fixture(); let release = noop;
+  const barrier = new Promise<void>(resolve => { release = resolve; });
+  const warm = vi.spyOn(f.world.game, 'warmEnteredFrame').mockReturnValue(barrier);
+  class Runtime extends ShardPlugin { override kit(ctx: ShardContext): void { emptyKit(ctx); } }
+  const prepared = await f.regional(f.request);
+  const session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [
+    { slug: 'pine-hollow', entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) },
+  ], f.scope);
+  try {
+    const pending = session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' });
+    for (let tick = 0; tick < 100 && warm.mock.calls.length === 0; tick++) await Promise.resolve();
+    expect(warm).toHaveBeenCalledOnce();
+    expect(session.state().ready).toBe(false); expect(prepared.checkpoint()).toBe(false);
+    expect(session.timings().current?.hook).toBe('afterPlay');
+    release(); expect(await pending).toBe(true);
+    expect(session.state().ready).toBe(true); expect(prepared.checkpoint()).toBe(true);
+    session.leave(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
+    expect(warm).toHaveBeenCalledOnce(); // Retained programs are reused without replaying the trusted hooks.
+  } finally { release(); prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
 });

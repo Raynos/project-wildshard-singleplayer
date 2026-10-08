@@ -50,7 +50,7 @@ const drawnGround = (): Promise<Terrain> => { const terrain = new Terrain(); ter
 function pageGame(scope: Scope): Game {
   const game: unknown = Object.create(Game.prototype);
   if (!(game instanceof Game)) throw new Error('Game prototype');
-  for (const [key, value] of Object.entries({ rootScene: new Scene(), sceneFrames: [], renderer: { extensions: { has: () => false } }, levelScope: scope })) Reflect.defineProperty(game, key, { value, writable: true });
+  for (const [key, value] of Object.entries({ _composer: null, rootScene: new Scene(), sceneFrames: [], renderer: { extensions: { has: () => false } }, levelScope: scope })) Reflect.defineProperty(game, key, { value, writable: true });
   return game;
 }
 

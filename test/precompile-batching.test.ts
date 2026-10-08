@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { BatchedMesh, BoxGeometry, Color, Group, Mesh, MeshStandardMaterial, Scene } from 'three';
-import { sceneJobs, shadowJobs } from '../src/engine/render/precompile';
+import { describe, expect, it, vi } from 'vitest';
+import { BatchedMesh, BoxGeometry, Color, Group, Mesh, MeshDepthMaterial, MeshStandardMaterial, Scene, PerspectiveCamera, WebGLRenderer } from 'three';
+import { sceneJobs, shadowJobs, postJobs } from '../src/engine/render/precompile';
 
+import { EffectComposer } from 'postprocessing';
+import { WorldRenderPass } from '../src/engine/core/worldDepth';
 
 function fixture(): Scene {
   const scene = new Scene(), geometry = new BoxGeometry(), material = new MeshStandardMaterial();
@@ -34,4 +36,36 @@ describe('shader preparation for shared plain and batched materials', () => {
     root.traverse((o) => { if (o instanceof BatchedMesh) batches++; });
     expect(batches).toBe(2);
   });
+});
+
+
+it('includes the real world-depth merge material with the compositor post jobs', () => {
+  const composer = new EffectComposer();
+  // Only clearDepth is captured by this pass's constructor; no WebGL is used in this job-inventory fixture.
+  const renderer: unknown = Object.create(WebGLRenderer.prototype);
+  if (!(renderer instanceof WebGLRenderer)) throw new Error('Renderer prototype');
+  Reflect.set(renderer, 'clearDepth', (): void => undefined);
+  vi.spyOn(composer, 'getRenderer').mockReturnValue(renderer);
+  const pass = new WorldRenderPass(new Scene(), new PerspectiveCamera(), composer);
+  composer.passes.push(pass);
+  const jobs = postJobs(composer, composer.inputBuffer);
+  expect(jobs.flatMap(job => job.root.children).some(object => object instanceof Mesh && object.material === pass.mergeMaterial)).toBe(true);
+  expect(jobs.find(job => job.root.children.some(object => object instanceof Mesh && object.material === pass.mergeMaterial))?.rt).toBe(composer.inputBuffer);
+  pass.dispose(); composer.dispose();
+});
+
+it('releases temporary shadow program holders without disposing borrowed caster resources', () => {
+  const scene = fixture(), custom = new MeshDepthMaterial(), first = scene.children[0];
+  if (!(first instanceof Mesh)) throw new Error('Missing fixture caster');
+  first.customDepthMaterial = custom;
+  const borrowedMaterial = vi.spyOn(custom, 'dispose'), borrowedGeometry = vi.spyOn(first.geometry, 'dispose');
+  const jobs = shadowJobs(scene, null), temporary = jobs.flatMap(job => job.root.children)
+    .filter((object): object is Mesh => object instanceof Mesh).map(mesh => mesh.material)
+    .filter((material): material is MeshDepthMaterial => material instanceof MeshDepthMaterial && material !== custom);
+  const released = temporary.map(material => vi.spyOn(material, 'dispose'));
+  for (const job of jobs) job.dispose?.();
+  expect(released.length).toBeGreaterThan(0);
+  for (const dispose of released) expect(dispose).toHaveBeenCalledOnce();
+  expect(borrowedMaterial).not.toHaveBeenCalled(); expect(borrowedGeometry).not.toHaveBeenCalled();
+  custom.dispose();
 });

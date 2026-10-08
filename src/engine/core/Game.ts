@@ -657,6 +657,17 @@ export class Game {
    * (src/engine/boot/precompile.ts). Returns the distinct material count.
    */
 
+  /** Prepare an entered frame's new world/depth/post programs before its owner publishes readiness.
+   * Initial boot has no composer yet and uses the ordinary shaders/firstFrame stages instead. No simulation tick,
+   * camera turn or caster rechunking runs here; the final zero-delta composer draw warms its real pass targets. */
+  async warmEnteredFrame(owner: Scope): Promise<void> {
+    const composer = this._composer;
+    if (composer === null) return;
+    const current = (): boolean => !owner.disposed;
+    const { precompileLevel, warmComposerFrame } = await import('../render/precompile');
+    await warmComposerFrame(composer, this.renderer, () => precompileLevel(this, undefined, { chunkCasters: false, current, owner }), current);
+  }
+
   /**
    * The first frames, as a step: a scene-only draw (shadow-depth programs + the GPU's first draw of
    * every pipeline), then the full composer (screen-quad shaders compileAsync cannot reach).

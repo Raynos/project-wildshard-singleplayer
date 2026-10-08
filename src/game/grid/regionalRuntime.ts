@@ -236,14 +236,16 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 });
               });
             },
-            afterPlay: entered => {
+            afterPlay: async entered => {
               if (localPlay === null) throw new Error('Regional play services are not installed');
               // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
               ports.continuation?.restore(localPlay.animals);
-              restored = true;
               const equipment = request.page.equipment, weapons = localPlay.weapons;
               if (equipment !== undefined) installEnteredRuntimeService(entered, entry => { equipment.bind(weapons, entry); });
               for (const animal of localPlay.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
+              // G217 stays up until the actual page composer has warmed this newly entered world and kit.
+              await request.page.world.game.warmEnteredFrame(owner);
+              restored = true;
             },
           };
         } };
