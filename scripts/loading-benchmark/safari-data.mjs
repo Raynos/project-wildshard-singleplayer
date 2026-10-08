@@ -1,5 +1,12 @@
 import { readLoadingReport } from '../admin-data/validate.mjs';
 
+/** Match the real picker policy: prototypes/experimental cards require Developer; only the template uses its data entry. */
+export function safariEntryPolicy(shard) {
+  if (!['driftwood-isle', 'nalati-grasslands', 'pine-hollow', '_template', 'far-reach', 'sunscar-dunes', 'nine-dragon-stack'].includes(shard)) throw new Error('Unknown benchmark shard');
+  const compiled = shard === '_template';
+  return { developer: compiled || ['far-reach', 'sunscar-dunes', 'nine-dragon-stack'].includes(shard), entry: compiled ? 'shardfile' : 'legacy', selector: compiled ? '.ws-menu-shardfile' : '.ws-menu-play' };
+}
+
 /** The exported HTML runs this before game modules, including after Safari process swaps.
  * No prototype patches, scene walks or production bundle changes. */
 export function safariRecorder() {

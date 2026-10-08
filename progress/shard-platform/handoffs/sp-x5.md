@@ -28,12 +28,12 @@ harness observations are archived separately, not pooled into matched numbers.
 
 ## Exact next step
 
-Finish the matched Simulator Safari cohort using `scripts/loading-benchmark/safari-matched.mjs`.
+Finish the corrected experimental-card Simulator Safari cohort using `scripts/loading-benchmark/safari-matched.mjs`.
 It uses one owned device, erased only while shut down between shard pairs, and the same
 before `19e647272` / after `6f4490e83` pins as Chromium. Cold + warm use the real title,
 card and ENTER flow; fixtures are in owned exported HTML only and restore exact bytes.
 Unsupported Safari task events remain missing, never zero; rAF gaps are not CPU tasks.
-Coordinator authorized the sim-lane queue behind sky-mem (no extra GO needed).
+Coordinator authorized the sim-lane queue; the current sole turn covers two AB/BA pairs per shard, shared CPU load recorded and >30 flagged. Original four shards completed 32/32 valid entries in safari-abba, helper fe1b5040f. Experimental Sky/Sun/Nine require Developer ON; the initial driver attempted disabled public ENTER controls and those refused attempts are preserved, excluded from timing. This commit fixes explicit mode/button policy and checks enabled/visible before the tap. Finish the remaining three in a fresh output, keeping the same immutable before/after pins. The recorder itself is unchanged. Then archive all evidence, publish medians/ranges/load and release/delete only the owned device and previews. Keep Safari CPU durations missing (unsupported LongTask; pilot Inspector timestamps all zero), not zero. After cohort, shorten Signal Dunes chip to fit the existing 18-char format (read defining row first).
 Fix 3 (bake code-built worlds) remains unassigned. Physical phone evidence is open.
 
 ## Resources / checks
@@ -42,10 +42,10 @@ Old :4412/:4413 previews are stopped. Current owned Safari pair:
 - before :4406 `/private/tmp/wildshard-serve/20261008-144326-4406/dist`, exact19e647272;
 - after :4400 `/private/tmp/wildshard-serve/20261008-144558-4400/dist`, exact6f4490e83.
 HTTP/disk versions and listener/PGID verified. Stop both through serve-build after the
-Safari cohort. No owned browser/Simulator at this commit. New Safari conversion,
+Safari cohort. One active Simulator worker is finishing its refused Sun pair before the corrected restart; the parent is paused. Do not edit fixtures while it cleans up. New Safari conversion,
 fixture preservation tests (5/5), root strict and full folder typed lint are green.
 Docs/comments reconciliation `8039db709`, corrected Debug help `613714fc6`. Full tests use the heavy-lane, no direct Vite or full Vitest.
-Clean source pin `11da76006` passed full queued verification: 925 files / 5337 tests
+Latest clean source `64a1f0b4b` passed 927 files / 5326 tests + 14 skips in 121.37 s through the heavy lane; subsequent harness controls pass focused checks and full root folder typed lint. Earlier clean source pin `11da76006` passed full queued verification: 925 files / 5337 tests
 in 106.86 s. The later gate-path forward has focused 2/2 green; this receipt fixes the full scripts
 folder under root type-aware lint after that gate exposed script-only rules. Focused 24 boot/plugin checks and 9 benchmark/receipt checks passed;
 root strict, scoped typed lint and check-paths passed. The earlier gate packaging red is

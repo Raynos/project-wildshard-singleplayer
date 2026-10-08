@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { safariReport } from '../scripts/loading-benchmark/safari-data.mjs';
+import { safariReport, safariEntryPolicy } from '../scripts/loading-benchmark/safari-data.mjs';
 
 const capture = { shard: '_template', cache: 'cold', status: 'ok', tapEpoch: 1000, data: { origin: 1010, installedAt: 1, url: 'http://fixture/?chunk=_template', play: 300, observerSupported: false, steps: [{ at: 5, phase: 'admission.descriptor' }, { at: 50, phase: 'props' }], tasks: [] } } as const;
 it('Safari report fences the new document and keeps unsupported task attribution missing instead of zero', () => {
@@ -16,4 +16,11 @@ it('Safari report fences the new document and keeps unsupported task attribution
 it('includes observed tasks strictly above 50ms and excludes post-play samples without calling gaps tasks', () => {
   const report = safariReport('pin', [{ ...capture, data: { ...capture.data, observerSupported: true, tasks: [{ at: 20, duration: 50 }, { at: 80, duration: 51 }, { at: 301, duration: 90 }] } }]);
   expect(report.runs[0]?.longTasks).toEqual([{ startMs: 90, durationMs: 51, owner: 'unattributed: Safari long-task observer has no sampled app owner' }]);
+});
+
+it('uses the admitted picker mode and refuses an unknown shard before timing a control', () => {
+  expect(safariEntryPolicy('_template')).toEqual({ developer: true, entry: 'shardfile', selector: '.ws-menu-shardfile' });
+  for (const shard of ['far-reach', 'sunscar-dunes', 'nine-dragon-stack']) expect(safariEntryPolicy(shard)).toEqual({ developer: true, entry: 'legacy', selector: '.ws-menu-play' });
+  for (const shard of ['driftwood-isle', 'nalati-grasslands', 'pine-hollow']) expect(safariEntryPolicy(shard)).toEqual({ developer: false, entry: 'legacy', selector: '.ws-menu-play' });
+  expect(() => safariEntryPolicy('unknown')).toThrow('Unknown benchmark shard');
 });
