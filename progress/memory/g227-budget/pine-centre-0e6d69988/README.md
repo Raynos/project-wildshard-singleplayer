@@ -144,14 +144,34 @@ The production change reuses only weak source identity, bounded to 256 keys of
 exact encoded URL, selected mip level, format, type and dimensions. Each call still
 gets fresh transcoded mip data and independent sampler/transform state. The memo
 owns no strong source, texture, pixel or GL reference. Memory saver OFF retains
-the previous behavior. This proves the real-file allocation mechanism; **actual
-entered-Pine centre credit still awaits the corrected product route**, and native
-WC saving / a 1.0 GB pass is not claimed.
+the previous behavior. This proves the real-file allocation mechanism; the actual
+entered-Pine route below confirms the allocation change. Native WC saving / a
+1.0 GB pass is not claimed.
+
+## Actual entered-Pine KTX2 allocation
+
+`ktx2-centre-allocation.json` compares the completed cdad59776 and 111ea74e9
+Mac WebKit phone-tier, 2×, Memory saver ON routes; both reach Pine interior and
+centre with no game errors and close their browsers. The complete after census
+is `gl-owners-111ea74e9.json.gz`. The only per-asset GL byte changes are removal
+of one duplicate rock colour allocation (626,288 bytes), one rock normal
+(626,288), one wood-plank colour (158,432) and one wood-plank normal (158,432):
+**1,569,440 GL bytes** total. All other per-asset byte totals match exactly.
+The all-context sums include temporary probe allocations; they are not the
+labelled scene-only ranking above. Pixel preservation is established by the
+separate compressed-source readback proof, not inferred from these totals.
+
+The Simulator first-crossing failure occurred on both memo and historical pins.
+Its separate fresh-device warm-up counterfactual found baseline losses 2/5 and
+fixed losses 0/5; this receipt does not attribute that failure to the memo. A
+warm-up-fixed isolated memo A/B is queued, retaining failed native attempts and
+requiring at least three valid cold runs per arm. No native WC saving is credited.
 
 ## Handoff (sp-x5)
 
-Pine remains over cap. The procedural shared-source comparison is zero. The new KTX2
-real-file pixel/lifetime proof removes 1,252,576 GL bytes in its controlled allocation
-fixture; actual centre credit awaits the corrected shared product route. Canvas/Float32
-attribution belongs to sp-x1; sp-x2 owns generic music; sp-x4 owns Nalati cuts.
-No native saving or cap pass is claimed.
+Pine remains over cap. Procedural shared-source comparison is zero. The KTX2
+readback/lifetime fixture is exact, and the completed product centre census
+removes 1,569,440 GL bytes across the four identified rock/wood duplicates.
+Warm-up-fixed isolated native A/B is queued after sp-x2; no native WC saving or
+cap pass is claimed. Canvas/Float32 attribution belongs to sp-x1; sp-x2 owns
+generic music; sp-x4 owns Nalati cuts.

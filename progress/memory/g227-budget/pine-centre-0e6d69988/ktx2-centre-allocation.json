@@ -1,0 +1,81 @@
+{
+  "basis": "Actual Mac WebKit phone-tier 2x Pine interior -> centre, Memory saver ON; exact GL allocation census, not native WebContent or cap evidence",
+  "reports": [
+    {
+      "pin": "cdad59776",
+      "version": {
+        "build": "cdad597-muzcgb1q",
+        "time": "2026-10-08T09:38:37.194Z"
+      },
+      "stage": "gl-census-complete",
+      "closed": true,
+      "errors": [],
+      "routes": [
+        {
+          "name": "pine-interior",
+          "inside": "pine-hollow"
+        },
+        {
+          "name": "pine-hollow-centre",
+          "inside": "pine-hollow"
+        }
+      ],
+      "allContextGLBytes": 228853982,
+      "resourceCount": 1254
+    },
+    {
+      "pin": "111ea74e9",
+      "version": {
+        "build": "111ea74-muze9i79",
+        "time": "2026-10-08T10:29:18.383Z"
+      },
+      "stage": "gl-census-complete",
+      "closed": true,
+      "errors": [],
+      "routes": [
+        {
+          "name": "pine-interior",
+          "inside": "pine-hollow"
+        },
+        {
+          "name": "pine-hollow-centre",
+          "inside": "pine-hollow"
+        }
+      ],
+      "allContextGLBytes": 227284542,
+      "resourceCount": 1250
+    }
+  ],
+  "assetDeltas": [
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/rock_ground/diffuse-90136f33.ktx2/Texture",
+      "before": 1252576,
+      "after": 626288,
+      "saving": 626288
+    },
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/rock_ground/nor_gl-78bf8132.ktx2/Texture",
+      "before": 1252576,
+      "after": 626288,
+      "saving": 626288
+    },
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/wood_planks_grey/diffuse-323f103f.ktx2/Texture",
+      "before": 316864,
+      "after": 158432,
+      "saving": 158432
+    },
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/wood_planks_grey/nor_gl-cce436f8.ktx2/Texture",
+      "before": 316864,
+      "after": 158432,
+      "saving": 158432
+    }
+  ],
+  "savingGLBytes": 1569440,
+  "limitations": [
+    "Different product pins; warm-up-fixed isolated A/B still pending.",
+    "All-context sums include probe allocations; prior ranking uses labelled scene resources.",
+    "No screenshot parity or native memory saving inferred."
+  ]
+}
