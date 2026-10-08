@@ -1,0 +1,94 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "tag": "base",
+  "scene": "nalati",
+  "stops": [
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 6.831099999904633,
+        "feet": {
+          "x": 320.62738675200313,
+          "y": 0.44999727652949245,
+          "z": 0.0003778393920571138
+        },
+        "current": "nalati-grasslands",
+        "inside": "nalati-grasslands"
+      },
+      "shots": [
+        "nalati-entry-road-e",
+        "nalati-entry-n",
+        "nalati-entry-w"
+      ],
+      "probe": {
+        "player": [
+          -232.99511330282616,
+          0.45000000000000007,
+          -0.0000013451648767509594
+        ],
+        "camera": [
+          322.00488669717384,
+          2.13,
+          -0.0000013451648767509594
+        ],
+        "programs": 133,
+        "memory": {
+          "geometries": 164,
+          "textures": 98
+        },
+        "glMB": null,
+        "skies": {}
+      }
+    },
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 11.8635,
+        "feet": {
+          "x": 468.627833375369,
+          "y": 26.95776462987831,
+          "z": 0.01976557880076557
+        },
+        "current": "nalati-grasslands",
+        "inside": "nalati-grasslands"
+      },
+      "shots": [
+        "nalati-inside-e",
+        "nalati-inside-n",
+        "nalati-inside-w"
+      ],
+      "probe": {
+        "player": [
+          -84.99480953386586,
+          27.005936577375365,
+          -0.00007476693720986916
+        ],
+        "camera": [
+          470.00519046613414,
+          28.68593657640931,
+          -0.00007476693720986916
+        ],
+        "programs": 133,
+        "memory": {
+          "geometries": 170,
+          "textures": 121
+        },
+        "glMB": null,
+        "skies": {}
+      }
+    }
+  ],
+  "errors": [],
+  "console": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+  ],
+  "look": [],
+  "shaderErrors": 0,
+  "version": {
+    "build": "eb74adf-muz2wgrt",
+    "time": "2026-10-08T05:11:14.181Z"
+  }
+}

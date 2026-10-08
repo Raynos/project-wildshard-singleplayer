@@ -89,6 +89,15 @@ export const volumetricFog: { height: number | null; falloff: number | null } = 
  */
 const fogExtras: Record<string, THREE.IUniform>[] = [];
 export function addFogUniforms(set: Record<string, THREE.IUniform>): void { if (!fogExtras.includes(set)) fogExtras.push(set); }
+/**
+ * Run `install` (a level look's light / fog install, sandboxed by `captureLookChunks`) and hand back the uniform sets it
+ * added with `addFogUniforms`, taking them out of the page's list again: a grid region's look binds them on its own
+ * materials only (SF63, render/regionLook.ts).
+ */
+export function captureFogUniforms(install: () => void): Record<string, THREE.IUniform>[] {
+  const before = fogExtras.length;
+  try { install(); return fogExtras.slice(before); } finally { fogExtras.splice(before); }
+}
 
 /** the engine's fog chunks (slot 100, once a page: render/fogPatches.ts); a level's own fog (`LookStrategy.fog`) is installed after it (Game.buildSky) */
 export function installAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean; weather?: boolean } = {}): void {

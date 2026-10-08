@@ -5,7 +5,7 @@ import { bindChunkConstants, CHUNK_COORDS, SEED, TREE_COUNT } from '../core/conf
 import type { Navmesh } from '../physics/navmesh';
 import { bindHeightfield, captureHeightfield, HeightfieldBinding } from '../world/Heightfield';
 import type { WaterBodies } from '../world/water/body';
-import { bindLevelSelection } from './selection';
+import { bindLevelSelection, type LevelLookParts } from './selection';
 import type { LevelSpec } from './spec';
 
 /** The level-dependent app slots; physics, renderer, scene and player are bound separately. */
@@ -25,6 +25,11 @@ export interface LevelFrameOptions {
   navmesh: Navmesh | null;
   /** Retained asset policy; absent keeps the configured page's existing texture choice. */
   textures?: TexturePolicyBinding;
+  /**
+   * The level's own resolved look parts (its grass driver), bound with the level while the frame is entered (SF63): the
+   * region's content builds its own level's grass, not the page look's. Absent / null: the engine defaults.
+   */
+  look?: LevelLookParts | null;
 }
 interface HostPorts { scope: Scope | null; navmesh: Navmesh | null; navmeshId: string | null }
 interface HostFrame { ports: HostPorts }
@@ -58,7 +63,7 @@ export class LevelFrameBinding {
     if (bindings === undefined) { bindings = { home: read(host), frames: [] }; hosts.set(host, bindings); }
     const retained = bindings;
     const frame: HostFrame = { ports: { scope: this.options.levelScope ?? scope, navmesh, navmeshId: navmesh === null ? null : level.id } };
-    const leaveLevel = bindLevelSelection(level);
+    const leaveLevel = bindLevelSelection(level, this.options.look ?? null);
     const leaveTerrain = bindHeightfield(this.terrain);
     const leaveConstants = bindChunkConstants(this.constants);
     const leaveWater = host.world.bindWater(water);

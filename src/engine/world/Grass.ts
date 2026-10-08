@@ -9,7 +9,7 @@ import { patchWindField } from './wind';
 import type { SkyRig as Sky } from './skyRig';
 import type { Forest } from './forest/Forest';
 import { TIER_CONFIG } from '../core/tier';
-import { activeLevel } from '../level/selection';
+import { activeLevel, boundLevelLook } from '../level/selection';
 import { groundSet } from './lookFlags';
 import { app } from '../app/runtime';
 import type { GrassLayer } from '../render/look';
@@ -51,7 +51,8 @@ import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
  *
  * A level look with its own grass (`LookStrategy.grass`, a GrassDriver: GPU blade rings, say) is built instead
  * (exposed as `driven`; `mesh` / `material` / `flowers` stay unset) and `update()` forwards to it — the Pine Hollow /
- * Driftwood path below is untouched.
+ * Driftwood path below is untouched. Inside a bound level frame (a grid region, `LevelFrameOptions.look`) the driver is
+ * that level's own (or none: the carpet), never the page look's (SF63).
  */
 
 const RADIUS = TIER_CONFIG.grassRadius; // metres: ring around the player that has grass (55 desktop, 40 phone)
@@ -142,7 +143,9 @@ export class Grass {
   }
 
   build(): this {
-    const driver = app.render?.look?.grass;
+    // a bound level frame (a grid region) grows its own level's grass, never the page look's (SF63)
+    const bound = boundLevelLook();
+    const driver = (bound === undefined ? app.render?.look : bound)?.grass;
     if (driver !== undefined) { this.driven = driver.build(this.sky, this.forest); this.group.add(this.driven.group); return this; } // the level look's own grass
     const geo = buildClumpGeometry();
     this.material = this.buildMaterial();

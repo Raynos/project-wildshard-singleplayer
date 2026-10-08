@@ -112,7 +112,7 @@ export const OPTION_VALUES = {
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload
-  regionSky: ['shared', 'own'],                        // G223: a grid region's own sky backdrop inside its cell (src/engine/world/backdropLayer.ts); shared = the one grid sky — a reload
+  regionSky: ['shared', 'own'],                        // G223 / SF63 (Region look): a grid region's own sky backdrop (src/engine/world/backdropLayer.ts), light model and fog (src/engine/render/regionLook.ts) inside its cell; shared = the one grid look — a reload
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;

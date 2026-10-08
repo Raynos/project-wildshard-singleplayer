@@ -1,6 +1,8 @@
 import { SkyBackdropView } from './skyBackdrop';
 import { BackdropLayer } from './backdropLayer';
 import { resourceScope } from '../app/resources';
+import type { Scope } from '../app/scope';
+import { captureLookChunks, scopeLookChunks, type LookScopeOptions } from '../render/regionLook';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
 import { TIER, TIER_CONFIG } from '../core/tier';
@@ -213,6 +215,19 @@ export class SkyRig {
       const backdrop = await factory({ sky: this, scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });
       return { layer, backdrop };
     } catch (error) { layer.dispose(); throw error; }
+  }
+
+  /**
+   * SF63: a level's light model and fog (`LookStrategy.lighting` / `fog`) on the materials under `root` only, while
+   * Settings ▸ Debug ▸ Region look is B (the region's own), as region-keyed program variants (`render/regionLook.ts`);
+   * the page's chunks and programs never change. Null with the row on A (the default) or when the level's installs change
+   * nothing on this page. `sweep` patches materials added since (call it before each frame the subtree draws); the
+   * patches leave with `scope`.
+   */
+  scopeLevelLook(root: THREE.Object3D, level: { readonly id: string }, look: Pick<LookStrategy, 'lighting' | 'fog'>, scope: Scope, options: LookScopeOptions = {}): { sweep: () => number; patched: () => number } | null {
+    if (setting('regionSky') !== 'own') return null;
+    const chunks = captureLookChunks(level.id, look);
+    return chunks === null ? null : scopeLookChunks(root, chunks, scope, options);
   }
 
   attachPost(post: SkyBackdropPost): void { this.backdrop?.attachPost(post); }

@@ -19,8 +19,12 @@
  *   and blend across the edge band; it builds no sky dome or sun of its own.
  * - its light on the page's one sky (`regionLight.ts`, G223): whatever its runtime lights (the key light, fill, sun disc,
  *   shadow maps, painterly / fog uniforms, volumetric light, engine grade) is held on each entry and put back on leave.
- * - its own sky (`regionSky.ts`, G223, default-off behind Settings ▸ Debug ▸ Region sky): its level's sky backdrop laid
+ * - its own sky (`regionSky.ts`, G223, default-off behind Settings ▸ Debug ▸ Region look): its level's sky backdrop laid
  *   over the page's one sky by its owner weight, charged under its own `sim-sky:` claim beside the runtime's.
+ * - its own look parts (SF63): its level's grass driver (`LookStrategy.grass`) is bound with its level frame, so its
+ *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (default-off,
+ *   the same Region look row) its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
+ *   materials as region-keyed program variants (`render/regionLook.ts`), freed with the resident scope.
  *
  * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
  * (the resident scope): the host's Physics frees every body and collider, the subtree leaves the page scene and frees the
@@ -133,7 +137,10 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       await ports.pause();
       if (left()) throw new Error('Regional world left while loading its navmesh');
       const water = ports.water?.(level) ?? new WaterBodies();
-      const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures });
+      // the level's own look parts its content builds from while its frame is bound (SF63: its grass driver)
+      const levelLook = level.look === undefined ? null : await level.look();
+      if (left()) throw new Error('Regional world left while loading its look');
+      const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures, look: levelLook });
       const field = (): typeof frame.terrain.field => frame.terrain.field;
       const host = withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
         heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
@@ -181,6 +188,13 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
             } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
           })();
           view.root.add(scene); scene.updateMatrixWorld(true);
+          // SF63, default-off (the same Region look row): its level's light model and fog on its own materials only
+          const scoped = levelLook !== null && sky instanceof SkyRig ? sky.scopeLevelLook(view.root, level, levelLook, resident, { isShared: (material) => app.assets.isAcquired(material) }) : null;
+          if (scoped !== null) {
+            const lookCensus = (): void => { if (scoped.sweep() > 0) console.info(`[region look] ${cell.instance}: ${scoped.patched()} materials on ${level.id}'s light and fog`); };
+            lookCensus();
+            app.addSystem({ id: `grid.look.${cell.instance}`, phase: 'late', run: lookCensus }, resident);
+          }
           if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(view.scope, () => view.registry.add({ id: `forest:${cell.instance}`, name: 'Forest', category: 'nature',
             file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));
           world = { ...home, terrain, forest, physics: host.physics, registry: view.registry, chunk: request.manifest };
