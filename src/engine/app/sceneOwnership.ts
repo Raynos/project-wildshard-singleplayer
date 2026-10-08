@@ -29,6 +29,16 @@ export function containerResources(container: unknown, excludeNodes?: ReadonlySe
 interface DelegatedScene { scope: Scope; capture: () => void }
 const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
 const resourceOwners = new WeakMap<object, Scope>();
+const resourceKeys = new WeakMap<object, string>();
+let nextResourceKey = 0;
+function resourceKey(resource: object): string {
+  const known = resourceKeys.get(resource);
+  if (known !== undefined) return known;
+  const uuid: unknown = Reflect.get(resource, 'uuid');
+  const key = typeof uuid === 'string' ? `scene:${uuid}` : `scene:object:${++nextResourceKey}`;
+  resourceKeys.set(resource, key);
+  return key;
+}
 
 /** Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. */
 export function sceneResourceOwner(resource: object): Scope | null { return resourceOwners.get(resource) ?? null; }
@@ -134,7 +144,7 @@ export class SceneOwnership {
     if (this.acquired.has(resource) || (owner !== null && !owner.disposed)) return;
     let release = this.assets.acquireResource(resource);
     if (release === null) {
-      const key = `scene:${String(Reflect.get(resource, 'uuid'))}`;
+      const key = resourceKey(resource);
       this.assets.register(key, resource);
       this.assets.acquire(key);
       release = () => { this.assets.release(key); };

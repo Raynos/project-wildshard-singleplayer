@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { BatchedMesh, BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture } from 'three';
+import { BatchedMesh, BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture, WebGLRenderTarget } from 'three';
 import { AssetService } from '../src/engine/app/assets';
 import { Scope } from '../src/engine/app/scope';
 import { ownSceneResource, ownSceneTree, SceneOwnership } from '../src/engine/app/sceneOwnership';
@@ -67,4 +67,16 @@ it('releases generated engine scene resources at the last level consumer, preser
   const c = new SceneOwnership(new Scene(), user, assets); c.retainContainer({ map: cached }); user.dispose();
   expect(cachedDispose).not.toHaveBeenCalled(); expect(assets.evictCached('cache')).toBe(false);
   assets.release('cache'); expect(assets.evictCached('cache')).toBe(true); expect(cachedDispose).toHaveBeenCalledOnce();
+});
+
+it('keeps distinct native render targets without UUIDs independent across two consumer lifetimes', () => {
+  const assets = new AssetService(), first = new Scope('first'), second = new Scope('second');
+  const targets = [new WebGLRenderTarget(8, 8), new WebGLRenderTarget(16, 16)], dispose = targets.map(target => vi.spyOn(target, 'dispose'));
+  const a = new SceneOwnership(new Scene(), first, assets), b = new SceneOwnership(new Scene(), second, assets);
+  expect(() => { a.retainContainer({ targets }); a.retainContainer({ targets }); b.retainContainer({ targets }); }).not.toThrow();
+  for (const target of targets) expect(assets.acquiredResources()).toContain(target);
+  const entries = assets.retained(); expect(new Set(entries.map(entry => entry.key)).size).toBe(entries.length);
+  first.dispose(); for (const freed of dispose) expect(freed).not.toHaveBeenCalled();
+  second.dispose(); for (const freed of dispose) expect(freed).toHaveBeenCalledOnce();
+  expect(assets.retained()).toEqual([]);
 });
