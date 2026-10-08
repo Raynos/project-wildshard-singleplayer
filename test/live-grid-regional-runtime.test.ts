@@ -67,6 +67,9 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
   }
   const trusted = PINE_HOLLOW.trustedRuntime; if (trusted === undefined) throw new Error('Missing trusted entry');
   const registered = findShard(target.slug); if (registered === undefined) throw new Error('Missing registered manifest');
+  const originalBounds = Object.getOwnPropertyDescriptor(registered, 'bounds');
+  // A high standalone start can have a positive shipping kill floor while its grid landing is at y=0.
+  Object.defineProperty(registered, 'bounds', { configurable: true, value: { x0: -120, x1: 120, z0: -240, z1: 60, floor: 12 } });
   vi.spyOn(registered, 'load').mockResolvedValue({ default: Runtime, resolveTrustedRuntime: entry => {
     if (entry !== 'runtime/index.ts') throw new Error('Unknown fixture entry'); return Runtime;
   } });
@@ -127,6 +130,7 @@ it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered 
   } finally {
     gridCells.leave(); scope.dispose(); pageHost.attachPlayerMotor(traveller.motor);
     expect(pageHost.physics.world.colliders.len()).toBe(initial); pageHost.dispose();
+    if (originalBounds === undefined) Reflect.deleteProperty(registered, 'bounds'); else Object.defineProperty(registered, 'bounds', originalBounds);
     for (const restore of globals) restore();
   }
   expect(allocator.entries()).toEqual([]);
