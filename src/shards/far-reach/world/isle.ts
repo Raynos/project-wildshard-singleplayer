@@ -1,6 +1,7 @@
 import { BufferGeometry, Color, Float32BufferAttribute, Mesh, MeshStandardMaterial, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { apothem, type Isle } from '../layout';
+import { onPaintedDispose } from '../look/image';
 
 /**
  * A floating island, loop 4 (the targets: a rounded meadow top that rolls over a soil lip, a lumpy keel of warm
@@ -47,7 +48,13 @@ function polyRadius(isle: Isle, a: number): number {
  * built; without them the islands keep their painted vertex colours.
  */
 let TEX: { rock: Texture | null; meadow: Texture | null } = { rock: null, meadow: null };
-export function setIsleTextures(tex: { rock: Texture | null; meadow: Texture | null }): void { TEX = tex; }
+export function setIsleTextures(tex: { rock: Texture | null; meadow: Texture | null }): void {
+  TEX = tex;
+  for (const key of ['rock', 'meadow'] as const) {
+    const texture = tex[key];
+    onPaintedDispose(texture, () => { if (TEX[key] === texture) TEX[key] = null; });
+  }
+}
 
 export function islandMesh(isle: Isle, random: () => number): Mesh<BufferGeometry, MeshStandardMaterial> {
   let draw = 0; for (let i = 0; i < ISLE_SHAPE.drawsOfOldIsland; i++) draw = random();

@@ -1,4 +1,5 @@
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { onPaintedDispose } from '../look/image';
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type Texture } from 'three';
 
 /**
@@ -66,7 +67,10 @@ export function firGeometry(): BufferGeometry {
 
 /** The branch sheet, set by the plugin behind the loading screen; null keeps the code pine. */
 let SHEET: Texture | null = null;
-export function setFirSheet(t: Texture | null): void { SHEET = t; }
+export function setFirSheet(t: Texture | null): void {
+  SHEET = t;
+  onPaintedDispose(t, () => { if (SHEET === t) SHEET = null; });
+}
 export const firSheet = (): Texture | null => SHEET;
 
 /** The firs at `at` ([x, y, z, scale]), one instanced draw. */

@@ -1,4 +1,11 @@
 import { LinearMipmapLinearFilter, RepeatWrapping, SRGBColorSpace, Texture } from 'three';
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+
+/** Drop a borrowed sampler assignment when its owning texture retires, without touching a newer assignment. */
+export function onPaintedDispose(texture: Texture | null, forget: () => void): void {
+  if (texture === null) return;
+  cacheUntilDisposed(texture, forget);
+}
 
 /**
  * A painted image as an sRGB texture, fetched and decoded off the main thread (an ImageBitmap, flipped at decode as the
@@ -11,6 +18,7 @@ export async function loadPainted(url: string, name: string, tile = false): Prom
     if (!response.ok) throw new Error(`${response.status} ${url}`);
     const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
     const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = name;
+    onPaintedDispose(tex, () => { bitmap.close(); });
     if (tile) { tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.generateMipmaps = true; tex.minFilter = LinearMipmapLinearFilter; tex.anisotropy = 4; }
     tex.needsUpdate = true;
     return tex;

@@ -1,4 +1,5 @@
 import { AdditiveBlending, BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, ShaderMaterial, Vector3, type Texture } from 'three';
+import { onPaintedDispose } from '../look/image';
 
 /**
  * The storm crown's storm (style bible §4, loop 3): a lit, swirling vortex hung over the crown, not puffs. Two stacked
@@ -140,7 +141,10 @@ export interface CrownStorm {
 
 let PAINT: Texture | null = null;
 /** The painted cumulus spiral for the storm's underside (the sea's maelstrom painting; the plugin owns it). */
-export function setStormPaint(t: Texture | null): void { PAINT = t; }
+export function setStormPaint(t: Texture | null): void {
+  PAINT = t;
+  onPaintedDispose(t, () => { if (PAINT === t) PAINT = null; });
+}
 
 /** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */
 export function crownStorm(sun: Vector3, tex: Texture, random: () => number): CrownStorm {

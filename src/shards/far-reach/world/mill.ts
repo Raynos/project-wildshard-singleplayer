@@ -2,6 +2,7 @@ import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { fit, hdMaterial, skyHd } from './meshes';
+import { onPaintedDispose } from '../look/image';
 
 /**
  * The windmill (loop 20, the judge: "a flat white/grey plaster cylinder with plain plank sails; the mockup has weathered
@@ -28,7 +29,13 @@ export const MILL = { base: 2.5, top: 1.7, height: 8.6, cap: 2.9, sail: 7.4 } as
  * stone, the ivy and the canvas; without one (offline, a test page) its part keeps the code look.
  */
 const MILL_TEX: { stone: Texture | null; canvas: Texture | null; ivy: Texture | null } = { stone: null, canvas: null, ivy: null };
-export function setMillTextures(t: { stone: Texture | null; canvas: Texture | null; ivy: Texture | null }): void { Object.assign(MILL_TEX, t); }
+export function setMillTextures(t: { stone: Texture | null; canvas: Texture | null; ivy: Texture | null }): void {
+  Object.assign(MILL_TEX, t);
+  for (const key of ['stone', 'canvas', 'ivy'] as const) {
+    const texture = t[key];
+    onPaintedDispose(texture, () => { if (MILL_TEX[key] === texture) MILL_TEX[key] = null; });
+  }
+}
 function painted(t: Texture | null, apply: (t: Texture) => void): void { if (t !== null) apply(t); }
 
 const hash = (a: number, b: number): number => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); };
