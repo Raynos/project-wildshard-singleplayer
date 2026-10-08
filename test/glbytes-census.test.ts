@@ -96,3 +96,24 @@ it('recovers a late source label without changing uploaded bytes or resource ide
   expect(rows[0]?.reconciled).toBe(true);
   expect(rows[0]?.resources[0]?.asset).toBe('generated/background/position');
 });
+
+it('journals exact allocation mutations and labels without retaining WebGL objects or changing the census', () => {
+  const rows = census(`
+    const events=[]; window.__sc_gl_change=event=>events.push(event);
+    const b=window.__sc_gl_scope('engine','fixture-buffer',()=>gl.createBuffer());
+    gl.bindBuffer(0x8892,b); gl.bufferData(0x8892,64,0x88e4); gl.bufferData(0x8892,128,0x88e4); gl.deleteBuffer(b);
+    const t=gl.createTexture(),pixels=new Uint8Array(64);
+    window.__sc_label_source(pixels,'engine','fixture-texture');
+    gl.bindTexture(0x0de1,t); gl.texImage2D(0x0de1,0,0x8058,4,4,0,0x1908,0x1401,pixels); gl.generateMipmap(0x0de1);
+    const buffer=events.filter(e=>e.op==='allocation' && e.kind==='buffer');
+    if(JSON.stringify(buffer.map(e=>e.bytes))!=='[0,64,128,null]')throw Error('Missing buffer mutation');
+    if(new Set(buffer.map(e=>e.id)).size!==1)throw Error('Unstable allocation identity');
+    const texture=events.filter(e=>e.op==='allocation' && e.kind==='texture').at(-1);
+    if(texture.bytes!==84 || texture.asset!=='fixture-texture' || !texture.labelled)throw Error('Missing mip/label mutation');
+    if(events.some(e=>Object.values(e).some(v=>v!==null && typeof v==='object')))throw Error('Journal retains an object');
+    const count=events.length; window.__sc_gl_change=null; gl.createBuffer();
+    if(events.length!==count)throw Error('Disabled loading journal still observes playing allocations');
+  `);
+  expect(rows[0]?.totalBytes).toBe(84);
+  expect(rows[0]?.resources.filter(row => row.kind === 'texture').map(row => row.asset)).toEqual(['fixture-texture']);
+});

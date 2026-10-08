@@ -4,7 +4,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
   const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap(), uploads = new WeakMap();
   let scope = null, sequence = 0;
   const object = (v) => v !== null && (typeof v === 'object' || typeof v === 'function');
-  const label = (resource, owner, asset) => { if (object(resource) && owner && asset) labels.set(resource, { owner, asset }); };
+  const label = (resource, owner, asset) => { if (object(resource) && owner && asset) { labels.set(resource, { owner, asset }); W.__sc_gl_change?.({at:Date.now()/1000,op:'label',id:identity(resource,'resource'),owner,asset}); } };
   W.__sc_label_gl = label;
   W.__sc_label_source = (source, owner, asset) => { if (object(source) && owner && asset) sources.set(source, { owner, asset }); };
   W.__sc_gl_scope = (owner, asset, fn) => { const previous = scope; scope = { owner, asset }; try { return fn(); } finally { scope = previous; } };
@@ -16,6 +16,9 @@ export const GL_INIT = String.raw`(() => { const W = window;
     if (!labels.has(resource)) fromSource(resource, uploads.get(resource)?.deref());
     return { id: identity(resource, kind), kind, bytes, ...(labels.get(resource) ?? { owner: 'unlabelled', asset: 'unlabelled' }), labelled: labels.has(resource) };
   };
+  // Optional loading journal contains scalar identities only; it never retains GPU/source objects.
+  const changed = (gl, resource, kind, bytes) => { if (W.__sc_gl_change) {const row=entry(resource,kind,bytes);W.__sc_gl_change({at:Date.now()/1000,op:'allocation',context:identity(gl,'context'),...row,bytes});} };
+  const changedTexture = (gl, resource) => { if (!W.__sc_gl_change) return; let bytes=0; for(const level of rec(gl).tex.get(resource)?.values() ?? []) bytes+=level.bytes; changed(gl,resource,'texture',bytes); };
   // GPU bytes at the WebGL API, per context: textures (per face + level), renderbuffers, buffers
   const SIZED = { 0x8229: 1, 0x822b: 2, 0x8051: 4, 0x8058: 4, 0x8c43: 4, 0x8c41: 4, 0x822d: 2, 0x822f: 4, 0x881b: 8, 0x881a: 8, 0x822e: 4, 0x8230: 8, 0x8815: 16, 0x8814: 16,
     0x8c3a: 4, 0x8c3d: 4, 0x8059: 4, 0x8d62: 2, 0x8056: 2, 0x8057: 2, 0x8232: 1, 0x8231: 1, 0x8234: 2, 0x8233: 2, 0x8236: 4, 0x8235: 4, 0x823a: 4, 0x823c: 8, 0x8d7c: 4, 0x8d76: 8,
@@ -50,6 +53,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
     const t = texBinding(gl, target); if (!t) return;
     const r = rec(gl); let e = r.tex.get(t); if (!e) { e = new Map(); r.tex.set(t, e); }
     e.set(face(target) * 64 + level, info); if (scope && !labels.has(t)) label(t, scope.owner, scope.asset);
+    changedTexture(gl,t);
   };
   const srcDims = (s) => s ? [s.naturalWidth || s.videoWidth || s.displayWidth || s.codedWidth || s.width || 0, s.naturalHeight || s.videoHeight || s.displayHeight || s.codedHeight || s.height || 0] : [0, 0];
   const BUF_BIND = { 0x8892: 0x8894, 0x8893: 0x8895, 0x8a11: 0x8a28, 0x8f36: 0x8f36, 0x8f37: 0x8f37, 0x88eb: 0x88ed, 0x88ec: 0x88ef, 0x8c8e: 0x8c8f };
@@ -57,7 +61,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
     if (!proto) return;
     const wrap = (name, after) => { const orig = proto[name]; if (typeof orig !== 'function') return; proto[name] = function wrapped(...a) { const r = orig.apply(this, a); try { after(this, a, r); } catch {} return r; }; };
     for (const [method, kind, field] of [['createTexture', 'texture', 'tex'], ['createRenderbuffer', 'renderbuffer', 'rb'], ['createBuffer', 'buffer', 'buf']]) {
-      wrap(method, (gl, _args, resource) => { if (!resource) return; const r = rec(gl); r[field].set(resource, kind === 'texture' ? new Map() : 0); identity(resource, kind); if (scope) label(resource, scope.owner, scope.asset); });
+      wrap(method, (gl, _args, resource) => { if (!resource) return; const r = rec(gl); r[field].set(resource, kind === 'texture' ? new Map() : 0); identity(resource, kind); if (scope) label(resource, scope.owner, scope.asset); changed(gl,resource,kind,0); });
     }
     wrap('texImage2D', (gl, a) => {
       const [target, level, ifmt] = a; let w, h, format, type;
@@ -84,17 +88,19 @@ export const GL_INIT = String.raw`(() => { const W = window;
         let { w, h, d } = info; const is3d = target === 0x806f;
         for (let l = 1; w > 1 || h > 1 || (is3d && d > 1); l++) { w = Math.max(1, w >> 1); h = Math.max(1, h >> 1); if (is3d) d = Math.max(1, d >> 1); e.set(k + l, { ...info, w, h, d, bytes: imgBytes(info.ifmt, w, h, d, info.format, info.type) }); }
       }
+      changedTexture(gl,t);
     });
-    wrap('deleteTexture', (gl, a) => { recOf.get(gl)?.tex.delete(a[0]); });
-    const rbSet = (gl, samples, ifmt, w, h) => { const b = gl.getParameter(0x8ca7); if (b) rec(gl).rb.set(b, w * h * (SIZED[ifmt] ?? 4) * Math.max(1, samples)); };
+    wrap('deleteTexture', (gl, a) => { recOf.get(gl)?.tex.delete(a[0]); if(a[0]) changed(gl,a[0],'texture',null); });
+    const rbSet = (gl, samples, ifmt, w, h) => { const b = gl.getParameter(0x8ca7); if (b) {const bytes=w * h * (SIZED[ifmt] ?? 4) * Math.max(1, samples);rec(gl).rb.set(b,bytes);changed(gl,b,'renderbuffer',bytes);} };
     wrap('renderbufferStorage', (gl, a) => { rbSet(gl, 1, a[1], a[2], a[3]); });
     wrap('renderbufferStorageMultisample', (gl, a) => { rbSet(gl, a[1], a[2], a[3], a[4]); });
-    wrap('deleteRenderbuffer', (gl, a) => { recOf.get(gl)?.rb.delete(a[0]); });
+    wrap('deleteRenderbuffer', (gl, a) => { recOf.get(gl)?.rb.delete(a[0]); if(a[0]) changed(gl,a[0],'renderbuffer',null); });
     wrap('bufferData', (gl, a) => {
       const bind = BUF_BIND[a[0]]; const b = bind && gl.getParameter(bind); if (!b) return;
       const s = a[1]; rec(gl).buf.set(b, typeof s === 'number' ? s : (s && s.byteLength) || 0); fromSource(b, s); if (scope && !labels.has(b)) label(b, scope.owner, scope.asset);
+      changed(gl,b,'buffer',rec(gl).buf.get(b));
     });
-    wrap('deleteBuffer', (gl, a) => { recOf.get(gl)?.buf.delete(a[0]); });
+    wrap('deleteBuffer', (gl, a) => { recOf.get(gl)?.buf.delete(a[0]); if(a[0]) changed(gl,a[0],'buffer',null); });
   };
   hook(W.WebGL2RenderingContext && W.WebGL2RenderingContext.prototype);
   hook(W.WebGLRenderingContext && W.WebGLRenderingContext.prototype);
