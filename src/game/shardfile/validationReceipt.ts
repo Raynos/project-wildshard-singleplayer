@@ -23,7 +23,7 @@ export function readValidationReceipt(input: unknown, sourceHash: string): Valid
   if (typeof input !== 'object' || input === null || !('revision' in input) || typeof input.revision !== 'string' || input.revision !== validationRevision() || !('sourceHash' in input) || input.sourceHash !== sourceHash || !('worst' in input)) return null;
   const cost = input.worst;
   if (typeof cost !== 'object' || cost === null || !('playing' in cost) || !('loading' in cost) || !('accounted' in cost) || !('location' in cost)) return null;
-  if (![cost.playing, cost.loading, cost.accounted].every(value => typeof value === 'number' && Number.isFinite(value) && value >= 0) || !Array.isArray(cost.location) || cost.location.length !== 2 || !cost.location.every(value => typeof value === 'number' && Number.isFinite(value))) return null;
+  if (![cost.playing, cost.loading, cost.accounted].every(value => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) || !Array.isArray(cost.location) || cost.location.length !== 2 || !cost.location.every(value => typeof value === 'number' && Number.isSafeInteger(value))) return null;
   // Explicit numeric narrowing preserves the defining cost type without accepting arbitrary metadata.
   if (typeof cost.playing !== 'number' || typeof cost.loading !== 'number' || typeof cost.accounted !== 'number' || typeof cost.location[0] !== 'number' || typeof cost.location[1] !== 'number') return null;
   return { revision: input.revision, sourceHash, worst: { playing: cost.playing, loading: cost.loading, accounted: cost.accounted, location: [cost.location[0], cost.location[1]] } };

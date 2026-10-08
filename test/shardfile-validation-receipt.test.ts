@@ -69,7 +69,7 @@ it('rechecks strict page memory policy when an exact product was validated under
 });
 it('refuses stale, malformed or unbundled receipts and isolates memoized cost values from mutation', () => {
   const f = fixture(), receipt = f.receipt();
-  for (const value of [null, {}, { ...receipt, revision: 'old' }, { ...receipt, worst: { ...receipt.worst, playing: -1 } }]) expect(readValidationReceipt(value, receipt.sourceHash)).toBeNull();
+  for (const value of [null, {}, { ...receipt, revision: 'old' }, { ...receipt, worst: { ...receipt.worst, playing: -1 } }, { ...receipt, worst: { ...receipt.worst, playing: 0.5 } }]) expect(readValidationReceipt(value, receipt.sourceHash)).toBeNull();
   const first = worstContentCost(f.source); first.playing = 0; first.location[0] = 99;
   expect(worstContentCost(f.source)).toEqual(receipt.worst);
   f.source.budgets.library.resident += 100;

@@ -5,6 +5,7 @@ import { resolve, relative } from 'node:path';
 /** Any defining engine/game validator change invalidates durable verdicts, including parser and memory policy. */
 export function shardfileValidationRevision(root = resolve(import.meta.dirname, '..')) {
   const hash = createHash('sha256');
+  for (const name of ['package.json', 'pnpm-lock.yaml']) hash.update(name).update('\0').update(readFileSync(resolve(root, name))).update('\0');
   const visit = directory => {
     for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       const path = resolve(directory, entry.name);
