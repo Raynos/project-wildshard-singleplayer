@@ -38,7 +38,7 @@ export function regionalRuntimeCheckpoint(store: SaveStore, instance: LocalSaveI
         if (row.alive && saved.revision === revision) throw new Error(`Missing stable runtime creature: ${row.id} (${row.kind})`);
         continue; // deleted/dead actors never manufacture a creature or regrant its rewards
       }
-      if (animal.kind !== row.kind || animal.maxHp !== row.maxHp) throw new Error('Runtime creature identity changed');
+      if (animal.kind !== row.kind || animal.maxHp !== row.maxHp) throw new Error(`Runtime creature identity changed: ${row.id}, saved ${row.kind}/${row.maxHp}, rebuilt ${animal.kind}/${animal.maxHp}`);
     }
     for (const row of saved.actors) {
       const animal = byId.get(row.id); if (animal === undefined) continue;

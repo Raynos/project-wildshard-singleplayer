@@ -3,7 +3,7 @@ import { expect, it, vi } from 'vitest';
 import { Group, PerspectiveCamera, Scene, Vector3 } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { withOwner } from '../src/engine/app/ownership';
-import { Animal } from '../src/engine/entities/AnimalView';
+import type { Animal } from '../src/engine/entities/AnimalView';
 import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { SaveStore } from '../src/engine/saves/store';
 import { EliteBar } from '../src/engine/ui/EliteBar';
@@ -31,8 +31,7 @@ it('materializes eligible encounters before strict HP restore without AI, timers
             rule, respawnMin: 20, signature: 'Hit', phase2: 'Phase', drop: { skin: null, skinName: '', weapon: 'rifle', blurb: '' } };
           let animal: Animal | null = null;
           const script: EliteScript = { def, get animal() { return animal; }, spawn: () => {
-            const model = animals.factory.model('boar');
-            animal = new Animal(animals.factory.instantiate(model, 0.5), model, 0.5, 1, id); animals.animals.push(animal);
+            animal = animals.spawn('boar', 0, 0, 0, 'boar');
           }, despawn: () => { throw new Error('Initialization must not despawn'); }, tick, enterPhase2: () => undefined,
             reset: () => undefined, dropModel: () => new Group(), trophy, canSpawn: () => allowed };
           elites.add(script);
@@ -40,8 +39,10 @@ it('materializes eligible encounters before strict HP restore without AI, timers
         for (let actor = 164; actor < 168; actor++) add(`creature:${actor}`);
         add('cooldown'); add('retired'); add('night', 'night'); add('locked', 'always', false);
         const before = elitesSave.read('pine-hollow');
+        // The shipping boss reserves three parked/warm-up identities before first-frame lair spawning.
+        for (let warm = 0; warm < 3; warm++) animals.retire(animals.spawn('boar', 0, 0, 0, 'boar'));
         expect(animals.animals).toHaveLength(0); elites.initialize(); elites.initialize();
-        expect(animals.animals.map(animal => animal.entityId)).toEqual(['creature:164', 'creature:165', 'creature:166', 'creature:167']);
+        expect(animals.animals.map(animal => animal.entityId)).toEqual(['creature:3', 'creature:4', 'creature:5', 'creature:6']);
         expect(elites.entry('cooldown')?.timer).toBe(10); expect(elites.entry('retired')?.state).toBe('retired');
         expect(elites.entries.every(entry => !entry.discovered)).toBe(true);
         expect(elitesSave.read('pine-hollow')).toEqual(before); expect(show).not.toHaveBeenCalled();

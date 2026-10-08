@@ -141,7 +141,6 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   };
   const eliteUi = new EliteBar(), elites = new Elites(eliteHost, eliteUi, 'pine-hollow');
   const pineElites = makePineElites(ctx, elites);
-  if (entered !== undefined) elites.initialize(); // The strict regional continuation restores these authored actors before the first tick.
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
   const king = new AntlerKing({
@@ -165,6 +164,9 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
       player.spawn(x, z, Math.atan2(-(a.position.x - x), -(a.position.z - z)));
     }
   }
+
+  // Preserve the King prewarm's three reserved actor IDs before materializing the first-frame lair roster.
+  if (entered !== undefined) elites.initialize();
 
   // The shell split its original frame into world / creature / HUD passes. Lair spawns must
   // still precede the first world pass and creature sync, which installs their hitboxes.
