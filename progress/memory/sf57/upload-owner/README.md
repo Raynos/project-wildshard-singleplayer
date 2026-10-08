@@ -42,11 +42,31 @@ At c0 (Driftwood home, before any circuit), stray owner reads at boot fell from 
 weak holding only, against `ac5d6fb` with the full change). That pose had 77 live unowned uploads, all engine-global:
 the composer's buffers and targets, and the page's own draws.
 
-The 4-circuit Chromium drive (heap ≤ 2 MB a circuit, GL flat) did not finish inside the lane's cap:
+Two earlier drives died at the c1 diagnostic on the dispose-time lookup above, which is how that bug was found:
+the weak-only build's, and `ac5d6fb`'s.
 
-- The weak-only build's run died at the c1 diagnostic on the dispose-time lookup above. That is how the bug was found.
-- The `ac5d6fb` run died the same way.
-- The `83e35d4` run (this fix) was queued behind a full browser lane at the cap.
+The `83e35d4` drive (this change, plus the DIAG upload-site capture) is in `run-83e35d4-c0-c2.json`. Chromium,
+iPhone 16 Pro, muted, Developer on, phone tier, 2×.
+
+| pose | heap MB | GL geometries / textures / programs | unowned live (weak) | stray reads | BossBar / EliteBar / Elites scopes |
+| --- | ---: | --- | ---: | ---: | --- |
+| c0 | 70.2 | 324 / 96 / 154 | 74 | 97 | 1 / 0 / 0 |
+| c1 | 129.6 | 257 / 100 / 305 | 78 | 384 | 3 / 1 / 1 |
+| c2 | 137.4 | 258 / 106 / 312 | 91 | 671 | 5 / 2 / 2 |
+
+- **The upload live set no longer grows by about 185 a circuit.** Unowned uploads go +4, then +13. Before, about 100
+  a circuit were held only by the set.
+- **The heap step c1 → c2 is +7.8 MB.** leak3's first step was +6.7, so the ≤ 2 MB target is not shown yet. Only one
+  step was measured; c3 / c4 were still running at the lane's 90-minute cap.
+- **Stray owner reads are about 290 a circuit.** leak3 counted about 1,320.
+- **GL textures still rise by 6 a circuit.** The weak set does not hold them, so something else keeps them alive. Its
+  site list (`sites.py`) names:
+  - PMREM `cubeUv` targets from the sky's environment refresh (`_applyGGXFilter`, `refreshEnvironment`);
+  - one target from a `bake`;
+  - Driftwood's `props03x / props04x` geometries, drawn outside any owned subtree (the page-level home).
+- **Pine's and Driftwood's bars no longer accumulate.** Nalati's still do, two BossBars and one EliteBar and Elites
+  a circuit. Its `rt.boss / rt.elites / rt.titan.bind` calls sit inside another agent's uncommitted hunk in
+  `src/shards/nalati-grasslands/runtime/index.ts`. The fix is the same one line, `ctx.scope.run(() => …)`.
 
 The driver is `drive.mjs`; summarize a run with `sites.py <result.json>`.
 

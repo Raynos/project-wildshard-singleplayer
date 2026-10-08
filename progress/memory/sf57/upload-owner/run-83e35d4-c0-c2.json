@@ -1,0 +1,508 @@
+{
+ "base": "http://127.0.0.1:4403/",
+ "circuits": 4,
+ "heap": [
+  {
+   "cycle": 0,
+   "usedMB": 70.166764,
+   "totalMB": 73.433088,
+   "load": [
+    32,
+    34.8,
+    36.3
+   ],
+   "gpu": {
+    "memory": {
+     "geometries": 324,
+     "textures": 96,
+     "programs": 154
+    },
+    "orphans": {
+     "live": 74,
+     "collected": 0
+    },
+    "retained": {
+     "geometries": 4,
+     "textures": 15,
+     "programs": 28
+    },
+    "live": 755,
+    "groups": {
+     "level:runtime:driftwood-isle|Zl": 2,
+     "level:runtime:driftwood-isle|Yl": 4,
+     "null|oo": 6,
+     "null|Ia": 1,
+     "level:BackdropLayer|Yl": 5,
+     "level:grid.world:driftwood-isle|Zl": 60,
+     "level:grid.world:driftwood-isle|oo": 5,
+     "level:grid.object:reef-fish|Zl": 1,
+     "level:grid.world:driftwood-isle|js": 3,
+     "level:grid.world:driftwood-isle|Yl": 2,
+     "level:grid.object:pier|Zl": 2,
+     "level:grid.object:entry-decks|Zl": 1,
+     "level:grid.object:boat|Zl": 1,
+     "level:grid.object:hut|oo": 1,
+     "level:grid.object:shrine|Zl": 1,
+     "level:grid.object:shrine|oo": 1,
+     "level:grid.object:shrine|js": 1,
+     "level:grid.object:jetty-0|Zl": 1,
+     "level:grid.object:jetty-1|Zl": 1,
+     "level:grid.object:jetty-2|Zl": 1,
+     "level:grid.object:trailside|Zl": 1,
+     "level:grid.object:bridge|Zl": 3,
+     "level:grid.object:cove|oo": 1,
+     "level:grid.object:cove|Zl": 1,
+     "level:grid.object:cove|Yl": 3,
+     "level:grid.object:palms|Zl": 1,
+     "level:grid.world:driftwood-isle|ru": 10,
+     "level:grid.object:pier|ru": 2,
+     "level:grid.object:jetty-0|ru": 1,
+     "level:grid.object:jetty-2|ru": 1,
+     "level:grid.object:trailside|ru": 1,
+     "level:grid.object:bridge|ru": 1,
+     "level:grid.object:palms|ru": 1,
+     "level:grid.object:bridge|No": 2,
+     "null|Gs": 2,
+     "level:grid.world:driftwood-isle|e": 212,
+     "level:grid.world:driftwood-isle|Gs": 3,
+     "level:grid.object:shrine|Gs": 1,
+     "level:BackdropLayer|e": 6,
+     "level:grid.world:driftwood-isle|Go": 92,
+     "level:grid.world:driftwood-isle|wd": 1,
+     "level:grid.world:driftwood-isle|gs": 2,
+     "level:grid.world:driftwood-isle|No": 42,
+     "level:grid.object:rocks|e": 1,
+     "level:grid.object:trailside|e": 1,
+     "level:grid.object:bridge|Go": 2,
+     "level:grid.object:bridge|e": 3,
+     "level:grid.object:palms|e": 1,
+     "level:grid.object:cove-small-rocks|e": 1,
+     "level:grid.world:driftwood-isle|qs": 1,
+     "level:grid.object:pier|e": 2,
+     "level:grid.object:entry-decks|e": 1,
+     "level:grid.object:boat|e": 3,
+     "level:grid.object:bushes|e": 1,
+     "level:grid.object:trophy-plaques|e": 1,
+     "level:grid.object:hut|e": 2,
+     "level:grid.object:sea-glass-chime|e": 1,
+     "level:grid.object:trader|e": 4,
+     "level:grid.object:trade-counter|e": 1,
+     "level:grid.object:reef-fish|Go": 1,
+     "level:grid.object:reef-fish|e": 1,
+     "null|e": 41,
+     "level:runtime:driftwood-isle|e": 2,
+     "level:grid.object:shrine|e": 4,
+     "level:grid.object:jetty-1|e": 1,
+     "level:grid.object:lookout|e": 1,
+     "level:grid.object:jetty-0|e": 2,
+     "level:grid.object:jetty-2|e": 2,
+     "level:grid.object:cove|e": 7,
+     "null|Fr": 21,
+     "level:level|e": 49,
+     "level:level|No": 17,
+     "level:level|nu": 7,
+     "level:level|Zl": 16,
+     "level:level|Gs": 6,
+     "level:level|Yl": 7,
+     "level:level|oo": 13,
+     "level:level|_s": 4,
+     "level:level|js": 1,
+     "null|Te": 1,
+     "null|ke": 1,
+     "null|Me": 1,
+     "null|Tt": 2,
+     "null|Yl": 4,
+     "null|Zl": 13,
+     "null|ru": 6,
+     "null|ce": 1,
+     "null|No": 3,
+     "null|Ir": 1,
+     "null|nu": 3
+    },
+    "scopes": {
+     "ui.BossBar": {
+      "n": 1,
+      "cleanups": 1,
+      "own": {
+       "nodes": 1
+      }
+     }
+    },
+    "ledger": {
+     "gpuMB": 179.474555,
+     "ramMB": 138.300326,
+     "unattributedGpuMB": 2.796196
+    }
+   },
+   "placement": {
+    "lives": 1,
+    "records": 56,
+    "groups": 61,
+    "cullers": 0
+   },
+   "owners": {
+    "pendingTasks": 0,
+    "strayReads": 97,
+    "stacks": [
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createRigidBody (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5682)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87437\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createCollider (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5867)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87623\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createRigidBody (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5682)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87437\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createCollider (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5867)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87623\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)"
+    ]
+   },
+   "current": "driftwood-isle",
+   "residents": [
+    "driftwood-isle"
+   ]
+  },
+  {
+   "cycle": 1,
+   "usedMB": 129.571744,
+   "totalMB": 137.428992,
+   "load": [
+    89.8,
+    61.1,
+    47.2
+   ],
+   "gpu": {
+    "memory": {
+     "geometries": 257,
+     "textures": 100,
+     "programs": 305
+    },
+    "orphans": {
+     "live": 78,
+     "collected": 0
+    },
+    "retained": {
+     "geometries": 27,
+     "textures": 15,
+     "programs": 75
+    },
+    "live": 741,
+    "groups": {
+     "null|oo": 9,
+     "null|Ia": 2,
+     "level:BackdropLayer|Yl": 5,
+     "null|Gs": 4,
+     "null|e": 81,
+     "null|Fr": 20,
+     "level:level|e": 49,
+     "level:level|No": 24,
+     "level:level|nu": 7,
+     "level:level|Zl": 16,
+     "level:level|Gs": 7,
+     "level:level|Yl": 7,
+     "level:level|oo": 13,
+     "level:level|_s": 4,
+     "level:level|js": 1,
+     "null|Te": 2,
+     "null|ke": 1,
+     "null|Me": 1,
+     "null|Tt": 2,
+     "null|Zl": 21,
+     "null|ce": 3,
+     "null|Yl": 4,
+     "null|No": 5,
+     "null|qs": 1,
+     "null|Se": 1,
+     "null|_t": 1,
+     "level:level|ru": 1,
+     "level:BackdropLayer|e": 6,
+     "level:runtime:driftwood-isle|Zl": 2,
+     "level:runtime:driftwood-isle|Yl": 4,
+     "level:grid.world:driftwood-isle|Zl": 60,
+     "level:grid.world:driftwood-isle|oo": 5,
+     "level:grid.object:reef-fish|Zl": 1,
+     "level:grid.world:driftwood-isle|js": 3,
+     "level:grid.world:driftwood-isle|Yl": 2,
+     "level:grid.object:pier|Zl": 2,
+     "level:grid.object:entry-decks|Zl": 1,
+     "level:grid.object:boat|Zl": 1,
+     "level:grid.object:hut|oo": 1,
+     "level:grid.object:shrine|Zl": 1,
+     "level:grid.object:shrine|oo": 1,
+     "level:grid.object:shrine|js": 1,
+     "level:grid.object:jetty-0|Zl": 1,
+     "level:grid.object:jetty-1|Zl": 1,
+     "level:grid.object:jetty-2|Zl": 1,
+     "level:grid.object:trailside|Zl": 1,
+     "level:grid.object:bridge|Zl": 3,
+     "level:grid.object:cove|oo": 1,
+     "level:grid.object:cove|Zl": 1,
+     "level:grid.object:cove|Yl": 3,
+     "level:grid.object:palms|Zl": 1,
+     "level:grid.world:driftwood-isle|ru": 9,
+     "level:grid.object:pier|ru": 2,
+     "level:grid.object:jetty-0|ru": 1,
+     "level:grid.object:jetty-2|ru": 1,
+     "level:grid.object:trailside|ru": 1,
+     "level:grid.object:bridge|ru": 1,
+     "level:grid.object:palms|ru": 1,
+     "level:grid.world:driftwood-isle|e": 128,
+     "level:grid.world:driftwood-isle|Gs": 2,
+     "level:grid.object:shrine|Gs": 1,
+     "level:grid.world:driftwood-isle|Go": 92,
+     "level:grid.world:driftwood-isle|wd": 1,
+     "level:grid.world:driftwood-isle|No": 36,
+     "level:grid.world:driftwood-isle|gs": 2,
+     "level:grid.object:rocks|e": 1,
+     "level:grid.object:shrine|e": 4,
+     "level:grid.object:jetty-0|e": 3,
+     "level:grid.object:trailside|e": 1,
+     "level:grid.object:bridge|Go": 2,
+     "level:grid.object:bridge|e": 3,
+     "level:grid.object:palms|e": 1,
+     "level:grid.object:jetty-0|qs": 1,
+     "level:grid.object:pier|e": 2,
+     "level:grid.object:boat|e": 3,
+     "level:grid.object:lookout|e": 1,
+     "level:grid.object:bushes|e": 1,
+     "level:grid.object:cove|e": 5,
+     "level:grid.object:trophy-plaques|e": 1,
+     "level:grid.object:hut|e": 2,
+     "level:grid.object:sea-glass-chime|e": 1,
+     "level:grid.object:trader|e": 4,
+     "level:grid.object:trade-counter|e": 1,
+     "level:grid.object:cove-small-rocks|e": 1,
+     "level:grid.object:entry-decks|e": 1,
+     "level:grid.object:reef-fish|Go": 1,
+     "level:grid.object:reef-fish|e": 1,
+     "level:runtime:driftwood-isle|e": 2,
+     "null|ru": 12,
+     "null|Ir": 1,
+     "null|nu": 4,
+     "null|Vs": 1,
+     "null|Go": 6
+    },
+    "scopes": {
+     "ui.BossBar": {
+      "n": 3,
+      "cleanups": 3,
+      "own": {
+       "nodes": 3
+      }
+     },
+     "ui.EliteBar": {
+      "n": 1,
+      "cleanups": 3,
+      "own": {
+       "nodes": 2,
+       "disposers": 1
+      }
+     },
+     "Elites": {
+      "n": 1,
+      "cleanups": 0,
+      "own": {}
+     }
+    },
+    "ledger": {
+     "gpuMB": 183.590429,
+     "ramMB": 263.999988,
+     "unattributedGpuMB": 2.796196
+    }
+   },
+   "placement": {
+    "lives": 1,
+    "records": 56,
+    "groups": 61,
+    "cullers": 0
+   },
+   "owners": {
+    "pendingTasks": 0,
+    "strayReads": 384,
+    "stacks": [
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createCollider (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5867)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87623\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createRigidBody (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5682)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87437\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createCollider (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5867)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87623\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at ke.register (http://127.0.0.1:4403/assets/runtime-GEZ7vGFa.js:1:28635)\n    at i (http://127.0.0.1:4403/assets/cachedAssets-B4LdUK9w.js:1:276)\n    at http://127.0.0.1:4403/assets/campPeople-Bnby0WD6.js:1:50085\n    at async Promise.all (index 5)\n    at async Object.adoptCoats (http://127.0.0.1:4403/assets/campPeople-Bnby0WD6.js:1:49717)\n    at async http://127.0.0.1:4403/assets/campPeople-Bnby0WD6.js:1:49496\n    at async Promise.all (index 0)"
+    ]
+   },
+   "current": "driftwood-isle",
+   "residents": [
+    "driftwood-isle"
+   ]
+  },
+  {
+   "cycle": 2,
+   "usedMB": 137.386932,
+   "totalMB": 145.702912,
+   "load": [
+    49.8,
+    55.9,
+    47.8
+   ],
+   "gpu": {
+    "memory": {
+     "geometries": 258,
+     "textures": 106,
+     "programs": 312
+    },
+    "orphans": {
+     "live": 91,
+     "collected": 0
+    },
+    "retained": {
+     "geometries": 32,
+     "textures": 15,
+     "programs": 75
+    },
+    "live": 769,
+    "groups": {
+     "null|oo": 10,
+     "null|Ia": 3,
+     "level:BackdropLayer|Yl": 5,
+     "null|Gs": 4,
+     "null|e": 92,
+     "null|Fr": 21,
+     "level:level|e": 49,
+     "level:level|No": 28,
+     "level:level|nu": 7,
+     "level:level|Zl": 16,
+     "level:level|Gs": 9,
+     "level:level|Yl": 7,
+     "level:level|oo": 13,
+     "level:level|_s": 4,
+     "level:level|js": 1,
+     "null|Te": 2,
+     "null|ke": 1,
+     "null|Me": 1,
+     "null|Tt": 2,
+     "null|Zl": 21,
+     "null|ce": 3,
+     "null|Yl": 4,
+     "null|No": 5,
+     "null|qs": 1,
+     "null|Se": 1,
+     "null|_t": 1,
+     "level:level|ru": 1,
+     "level:BackdropLayer|e": 6,
+     "level:runtime:driftwood-isle|Zl": 2,
+     "level:runtime:driftwood-isle|Yl": 4,
+     "level:grid.world:driftwood-isle|Zl": 60,
+     "level:grid.world:driftwood-isle|oo": 5,
+     "level:grid.object:reef-fish|Zl": 1,
+     "level:grid.world:driftwood-isle|js": 3,
+     "level:grid.world:driftwood-isle|Yl": 2,
+     "level:grid.object:pier|Zl": 2,
+     "level:grid.object:entry-decks|Zl": 1,
+     "level:grid.object:boat|Zl": 1,
+     "level:grid.object:hut|oo": 1,
+     "level:grid.object:shrine|Zl": 1,
+     "level:grid.object:shrine|oo": 1,
+     "level:grid.object:shrine|js": 1,
+     "level:grid.object:jetty-0|Zl": 1,
+     "level:grid.object:jetty-1|Zl": 1,
+     "level:grid.object:jetty-2|Zl": 1,
+     "level:grid.object:trailside|Zl": 1,
+     "level:grid.object:bridge|Zl": 3,
+     "level:grid.object:cove|oo": 1,
+     "level:grid.object:cove|Zl": 1,
+     "level:grid.object:cove|Yl": 3,
+     "level:grid.object:palms|Zl": 1,
+     "level:grid.world:driftwood-isle|ru": 9,
+     "level:grid.object:pier|ru": 2,
+     "level:grid.object:jetty-0|ru": 1,
+     "level:grid.object:jetty-2|ru": 1,
+     "level:grid.object:trailside|ru": 1,
+     "level:grid.object:bridge|ru": 1,
+     "level:grid.object:palms|ru": 1,
+     "level:grid.world:driftwood-isle|e": 128,
+     "level:grid.world:driftwood-isle|Gs": 2,
+     "level:grid.object:shrine|Gs": 1,
+     "level:grid.world:driftwood-isle|Go": 92,
+     "level:grid.world:driftwood-isle|wd": 1,
+     "level:grid.world:driftwood-isle|No": 36,
+     "level:grid.world:driftwood-isle|gs": 2,
+     "level:grid.object:rocks|e": 1,
+     "level:grid.object:shrine|e": 4,
+     "level:grid.object:jetty-0|e": 3,
+     "level:grid.object:trailside|e": 1,
+     "level:grid.object:bridge|Go": 2,
+     "level:grid.object:bridge|e": 3,
+     "level:grid.object:palms|e": 1,
+     "level:grid.object:jetty-0|qs": 1,
+     "level:grid.object:pier|e": 2,
+     "level:grid.object:boat|e": 3,
+     "level:grid.object:lookout|e": 1,
+     "level:grid.object:bushes|e": 1,
+     "level:grid.object:cove|e": 6,
+     "level:grid.object:trophy-plaques|e": 1,
+     "level:grid.object:hut|e": 2,
+     "level:grid.object:sea-glass-chime|e": 1,
+     "level:grid.object:trader|e": 4,
+     "level:grid.object:trade-counter|e": 1,
+     "level:grid.object:cove-small-rocks|e": 1,
+     "level:grid.object:entry-decks|e": 1,
+     "level:grid.object:reef-fish|Go": 1,
+     "level:grid.object:reef-fish|e": 1,
+     "level:runtime:driftwood-isle|e": 2,
+     "null|ru": 12,
+     "null|Ir": 1,
+     "null|nu": 4,
+     "null|Vs": 2,
+     "null|Go": 12
+    },
+    "scopes": {
+     "ui.BossBar": {
+      "n": 5,
+      "cleanups": 5,
+      "own": {
+       "nodes": 5
+      }
+     },
+     "ui.EliteBar": {
+      "n": 2,
+      "cleanups": 6,
+      "own": {
+       "nodes": 4,
+       "disposers": 2
+      }
+     },
+     "Elites": {
+      "n": 2,
+      "cleanups": 0,
+      "own": {}
+     }
+    },
+    "ledger": {
+     "gpuMB": 185.429133,
+     "ramMB": 272.133918,
+     "unattributedGpuMB": 2.7962
+    }
+   },
+   "placement": {
+    "lives": 1,
+    "records": 56,
+    "groups": 61,
+    "cullers": 0
+   },
+   "owners": {
+    "pendingTasks": 0,
+    "strayReads": 671,
+    "stacks": [
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createRigidBody (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5682)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87437\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at world.createCollider (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:5867)\n    at http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87623\n    at Array.forEach (<anonymous>)\n    at new Kn (http://127.0.0.1:4403/assets/simulation-DLAuX-R_.js:1:87413)\n    at Rl (http://127.0.0.1:4403/assets/plugin-B5nHxLB2.js:349:6488)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at ke.register (http://127.0.0.1:4403/assets/runtime-GEZ7vGFa.js:1:28635)\n    at i (http://127.0.0.1:4403/assets/cachedAssets-B4LdUK9w.js:1:276)\n    at http://127.0.0.1:4403/assets/campPeople-Bnby0WD6.js:1:50085\n    at async Promise.all (index 5)\n    at async Object.adoptCoats (http://127.0.0.1:4403/assets/campPeople-Bnby0WD6.js:1:49717)\n    at async http://127.0.0.1:4403/assets/campPeople-Bnby0WD6.js:1:49496\n    at async Promise.all (index 0)",
+     "Error: ambient owner read during an owned async build\n    at be (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:3000)\n    at pe (http://127.0.0.1:4403/assets/runtime-BOvhK_U-.js:1:2112)\n    at r (http://127.0.0.1:4403/assets/retainedHooks-BdzdDkZ9.js:17:9278)\n    at Object.on (http://127.0.0.1:4403/assets/retainedHooks-BdzdDkZ9.js:17:9584)\n    at Ah (http://127.0.0.1:4403/assets/plugin-CtyZHJY-.js:546:61141)\n    at async _ (http://127.0.0.1:4403/assets/voxelAO-BPRW0_j8.js:1:1524)\n    at async og.world (http://127.0.0.1:4403/assets/plugin-CtyZHJY-.js:546:74149)"
+    ]
+   },
+   "current": "driftwood-isle",
+   "residents": [
+    "driftwood-isle"
+   ]
+  }
+ ],
+ "errors": [],
+ "version": {
+  "build": "83e35d4-mv05v7mb",
+  "time": "2026-10-08T23:22:04.053Z"
+ },
+ "route": [
+  "driftwood-isle-to-pine-hollow",
+  "pine-hollow-to-nalati-grasslands",
+  "nalati-grasslands-to-template-2",
+  "template-2-to-driftwood-isle"
+ ]
+}
