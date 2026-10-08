@@ -100,6 +100,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   let bindings = 0, held = false;
   // Unwinds last (LIFO): the scene node, then the claim hold, after every piece scope below has released its handles.
   scope.onDispose(() => {
+    registry.retire(); // SF57: what `place` recorded and the cullers it started for this region go with it
     registry.pieces.length = 0; registry.picks.length = 0; registry.sets.length = 0;
     movers.clear(); platforms.length = 0;
   });

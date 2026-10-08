@@ -214,12 +214,48 @@ export class WorldRegistry {
   /** the sets placed on this shard (E306 M7: explored between single models and the world) */
   readonly sets: RegisteredSet[] = [];
   private readonly listeners: ((p: Piece) => void)[] = [];
+  private readonly retirers = new Set<() => void>();
+  private retiredAt = false;
+
+  /** true once `retire` ran: the world this registry describes has left */
+  get retired(): boolean { return this.retiredAt; }
+  /**
+   * Run `fn` when this registry retires (SF57: what `place` recorded and the cullers it started for this world go with it);
+   * at once when it already has. Returns a forget.
+   */
+  onRetire(fn: () => void): () => void {
+    if (this.retiredAt) { fn(); return () => undefined; }
+    this.retirers.add(fn);
+    return () => { this.retirers.delete(fn); };
+  }
+  /** The world this registry describes has left (a grid region's view disposing): every `onRetire`, once, in the order added. */
+  retire(): void {
+    if (this.retiredAt) return;
+    this.retiredAt = true;
+    const fns = [...this.retirers];
+    this.retirers.clear();
+    for (const fn of fns) fn();
+  }
+
+  /**
+   * `remove` runs when the current owner disposes. SF57: the owner a registration sees after an `await` in a resident shard's
+   * build is the page's scope, not the shard's — so the owner's hold on `remove` (and the piece it closes over) is dropped
+   * when this registry retires, or every shard visit's pieces would live as long as the page.
+   */
+  private untilOwnerOrRetire(remove: () => void): void {
+    const owner = currentOwner();
+    if (owner === null) return;
+    if (owner.disposed) { remove(); return; } // (as a disposed scope's onDispose: at once)
+    const hold = { forgetRetire: (): void => undefined };
+    const forget = owner.capture('disposers', () => { hold.forgetRetire(); remove(); });
+    hold.forgetRetire = this.onRetire(forget);
+  }
 
   /** Register a built thing: every listener sees it now; later listeners see it on subscribe. */
   add<P extends Piece>(piece: P): P {
     if (piece.object) labelObjectTree(piece.object, piece.id, `${piece.file}#${piece.name}`);
     this.pieces.push(piece);
-    currentOwner()?.onDispose(() => { const i = this.pieces.indexOf(piece); if (i !== -1) this.pieces.splice(i, 1); });
+    this.untilOwnerOrRetire(() => { const i = this.pieces.indexOf(piece); if (i !== -1) this.pieces.splice(i, 1); });
     for (const l of this.listeners) l(piece);
     return piece;
   }
@@ -227,7 +263,7 @@ export class WorldRegistry {
   /** Called for every piece already added and every one added after. */
   onAdd(fn: (p: Piece) => void): void {
     this.listeners.push(fn);
-    currentOwner()?.onDispose(() => { const i = this.listeners.indexOf(fn); if (i !== -1) this.listeners.splice(i, 1); });
+    this.untilOwnerOrRetire(() => { const i = this.listeners.indexOf(fn); if (i !== -1) this.listeners.splice(i, 1); });
     for (const p of this.pieces) fn(p);
   }
 

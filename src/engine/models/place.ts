@@ -23,6 +23,7 @@ import { app } from '../app/runtime';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
+import { currentOwner } from '../app/ownership';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
 import { paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
@@ -166,26 +167,78 @@ interface Drawn {
 // ── the shard's placed models (E155: every resident shard has its own) ──
 
 interface ModelRecord { readonly groups: Placed[] }
-const records = new Map<string, ModelRecord>();
-const cullers: ((camera: THREE.Camera) => void)[] = [];
+type Culler = (camera: THREE.Camera) => void;
+/**
+ * What one resident world placed (SF57): its model records and the cullers its calls started. A life is its registry's (a
+ * grid region's view, a standalone level's), or for a build-only call (`registry: null`) its owner scope's, else the page's.
+ * When the registry retires or the owner disposes, its records and cullers go: `cullPlaced` runs only live worlds' cullers,
+ * `placedGroups` returns only live groups, and nothing keeps their copies, boxes or culler arrays alive.
+ */
+interface Life { readonly records: Map<string, ModelRecord>; readonly cullers: Culler[]; retired: boolean }
+const lives = new Map<object, Life>();
+const pageLife: Life = { records: new Map(), cullers: [], retired: false };
+/** every live culler, flat, in the order they started (cullPlaced allocates nothing per frame) */
+const cullers: Culler[] = [];
+/** the life each weld's place calls belong to (its band culler starts at `finishWeld`) */
+const weldLives = new WeakMap<Weld, Life>();
 
-/** Per-copy culling and LODs of everything this shard placed — once a frame, after the camera is posed. */
+function livedBy(key: object, retireOn: (end: () => void) => void): Life {
+  const known = lives.get(key);
+  if (known !== undefined) return known;
+  const life: Life = { records: new Map(), cullers: [], retired: false };
+  lives.set(key, life);
+  retireOn(() => {
+    life.retired = true;
+    if (lives.get(key) === life) lives.delete(key);
+    for (const c of life.cullers) { const i = cullers.indexOf(c); if (i !== -1) cullers.splice(i, 1); }
+    life.cullers.length = 0;
+    life.records.clear();
+  });
+  return life;
+}
+
+/** the life a `place` call into `registry` belongs to */
+function lifeOf(registry: WorldRegistry | null): Life {
+  if (registry !== null) return livedBy(registry, (end) => { registry.onRetire(end); });
+  const owner = currentOwner();
+  return owner === null ? pageLife : livedBy(owner, (end) => { owner.onDispose(end); });
+}
+
+function startCuller(life: Life, c: Culler): void {
+  if (life.retired) return;
+  life.cullers.push(c); cullers.push(c);
+}
+
+function eachLife(fn: (life: Life) => void): void {
+  fn(pageLife);
+  for (const life of lives.values()) fn(life);
+}
+
+/** Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed. */
 export function cullPlaced(camera: THREE.Camera): void {
   for (let i = 0; i < cullers.length; i++) cullers[i]?.(camera);
 }
 
-/** how many copies of a model this shard has placed (0 when none) */
+/** how many copies of a model the live shards have placed (0 when none) */
 export function placedCopies(id: string): number {
   let n = 0;
-  for (const g of records.get(id)?.groups ?? []) n += g.copies;
+  eachLife((life) => { for (const g of life.records.get(id)?.groups ?? []) n += g.copies; });
   return n;
 }
 
-/** every `place` call this shard has registered, in the order they were made (a shard's named places sort them into Sets) */
+/** every `place` call the live shards have registered, in the order they were made (a shard's named places sort them into Sets) */
 export function placedGroups(): readonly Placed[] {
   const out: Placed[] = [];
-  for (const r of records.values()) out.push(...r.groups);
+  eachLife((life) => { for (const r of life.records.values()) out.push(...r.groups); });
   return out;
+}
+
+/** What placement holds now (SF57's lifetime check): live worlds, model records, registered groups and per-frame cullers. */
+export interface PlacementCensus { readonly lives: number; readonly records: number; readonly groups: number; readonly cullers: number }
+export function placementCensus(): PlacementCensus {
+  let records = 0, groups = 0;
+  eachLife((life) => { records += life.records.size; for (const r of life.records.values()) groups += r.groups.length; });
+  return { lives: lives.size, records, groups, cullers: cullers.length };
 }
 
 const _near = new THREE.Box3(), _nearC = new THREE.Vector3();
@@ -824,7 +877,7 @@ export class Weld {
     this.culler = culler;
     for (const s of this.hostedSets) culler.host(s);
     this.hostedSets.length = 0;
-    cullers.push((camera) => { culler.update(camera); });
+    startCuller(weldLives.get(this) ?? lifeOf(null), (camera) => { culler.update(camera); });
     this.done = true;
     // the copies' boxes (what the weld drew), then their pieces, in the order they were placed
     for (const c of this.copies) c.onBox(c.build.box(new THREE.Box3()));
@@ -1062,17 +1115,20 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
       return bi;
     },
   };
+  const registry = o.registry === undefined ? app.registry : o.registry;
+  // what this call starts and records lives as long as its registry (a resident shard's) — or its owner, when build-only
+  const life = lifeOf(registry);
+  if (w !== undefined && !weldLives.has(w)) weldLives.set(w, life);
   const view = o.cull?.view, cullWith = drawn.cullWith;
   if (view !== undefined && cullWith) view.onViewChange(cullWith); // the shard's view drives it (never per frame here)
-  else if (drawn.cull) cullers.push(drawn.cull);
-  const registry = o.registry === undefined ? app.registry : o.registry;
+  else if (drawn.cull) startCuller(life, drawn.cull);
   // drawn by what it shares (a set's kit, a weld): its piece anchors on its copies, and a tap claims one of them
   const shared = o.drawnInto !== undefined || w !== undefined;
   if (registry === null) { if (w === undefined) o.parent?.add(drawn.object); return placed; }
   const register = (): void => {
-    let rec = records.get(def.id);
+    let rec = life.records.get(def.id);
     const first = rec === undefined;
-    if (!rec) { rec = { groups: [] }; records.set(def.id, rec); }
+    if (!rec) { rec = { groups: [] }; if (!life.retired) life.records.set(def.id, rec); }
     rec.groups.push(placed);
     const pc = o.piece ?? {};
     if (pc.follows === 'copy') followCopy(def, placements.length, params[0], o, drawn);

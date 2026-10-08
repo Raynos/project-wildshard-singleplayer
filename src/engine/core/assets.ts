@@ -27,6 +27,8 @@ export function setAnisotropy(renderer: Renderer): void { gpu = renderer; maxAni
 const images = new Map<string, Promise<ImageBitmap | HTMLImageElement>>();
 /** the decode cache's key: a decode below the tier's own cap (a level's memory trim) is another image */
 const imageKey = (url: string, maxSize: number): string => (maxSize === TIER_CONFIG.maxTexture ? url : `${url}@${maxSize}`);
+/** decodes the cache holds now (SF57: a released decode leaves it, trimmed or not) */
+export function decodedImageCount(): number { return images.size; }
 export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promise<ImageBitmap | HTMLImageElement> {
   const key = imageKey(url, maxSize);
   let p = images.get(key);
@@ -42,16 +44,17 @@ export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promis
 const sharedSources = new Map<string, { source: THREE.TextureSource<unknown>; flipY: boolean }>();
 const imageUsers = new Map<string, number>();
 const sourceKey = (url: string, srgb: boolean): string => `${url}|${srgb ? 'srgb' : 'linear'}`;
-function shareSource(t: THREE.Texture, url: string, srgb: boolean, image: ImageBitmap | HTMLImageElement): void {
-  const key = sourceKey(url, srgb), source = t.source;
-  sharedSources.set(key, { source, flipY: t.flipY });
-  imageUsers.set(url, (imageUsers.get(url) ?? 0) + 1);
+function shareSource(t: THREE.Texture, key: string, srgb: boolean, image: ImageBitmap | HTMLImageElement): void {
+  // `key` is the decode cache's own key (`imageKey`: `url@size` for a trimmed decode): it is released under that same key
+  const shared = sourceKey(key, srgb), source = t.source;
+  sharedSources.set(shared, { source, flipY: t.flipY });
+  imageUsers.set(key, (imageUsers.get(key) ?? 0) + 1);
   const done = (): void => {
-    if (sharedSources.get(key)?.source === source) sharedSources.delete(key);
-    const left = (imageUsers.get(url) ?? 1) - 1;
-    if (left > 0) { imageUsers.set(url, left); return; }
-    imageUsers.delete(url);
-    images.delete(url);
+    if (sharedSources.get(shared)?.source === source) sharedSources.delete(shared);
+    const left = (imageUsers.get(key) ?? 1) - 1;
+    if (left > 0) { imageUsers.set(key, left); return; }
+    imageUsers.delete(key);
+    images.delete(key);
     if (typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) image.close();
   };
   releaseOnUpload(t.source, done);
