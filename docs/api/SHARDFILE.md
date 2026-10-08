@@ -1886,6 +1886,8 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.rows.weather[].states[].numbers.wet | number | required | min_value 0; max_value 1 |
 | $.rows.weather[].states[].numbers.wind | number | required | min_value 0; max_value 1 |
 | $.runtime | strict_object | optional; default null; nullable; default undefined |  |
+| $.runtime.binds | array | optional; default undefined | max_length 3; check [function; not executed] "unique runtime-bound sections" |
+| $.runtime.binds[] | picklist "quests", "ledger", "items" | required |  |
 | $.runtime.cost | strict_object | optional; default undefined | check [function; not executed] "Runtime cost must contain a positive safe measured content bound" |
 | $.runtime.cost.device | string | required | min_length 1; max_length 200 |
 | $.runtime.cost.engineBaseMB | number | required | finite [function; not executed]; min_value 0 |

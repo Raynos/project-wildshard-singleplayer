@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2246 members; 834 without a doc line (—).
+2247 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1138,7 +1138,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `claimCopy` | function | @wildshard/engine/models/place | the smallest of `p`'s copy boxes holding `pt` (grown by CLAIM_MARGIN), or null when `pt` is on none of them |
 | `copiesAt` | function | @wildshard/engine/models/place | Copies `at` (indices into the call's placement order) of a `place` call as a `Placed` of their own, like `copiesNear`'s |
 | `copiesNear` | function | @wildshard/engine/models/place | The copies of a `place` call whose box centre stands within each circle (x, z, r: metres, on the ground), as a `Placed` |
-| `cullPlaced` | function | @wildshard/engine/models/place | Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed. |
+| `cullPlaced` | function | @wildshard/engine/models/place | Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed. A world whose |
 | `Draw` | type | @wildshard/engine/models/place | how the copies are drawn (see ./model.ts step 3) |
 | `DrawnInto` | interface | @wildshard/engine/models/place | Copies drawn by the set they stand in, not by `place` (M3): each Nalati place is ONE painted mesh — every model of a |
 | `finishWeld` | function | @wildshard/engine/models/place | Draw a weld's shared meshes, start its bands, and register its copies' pieces (in the order they were placed). |
@@ -2014,6 +2014,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TreeSetVariant` | interface | @wildshard/engine/world/forest/treeSpecies | one variant of a tree set: its mesh name in the set's GLB, its species, height and trunk (m), the trunk collider's scale |
 | `TreeSpecies` | type | @wildshard/engine/world/forest/treeSpecies | A tree set's species (PH-B4; E405: the set is content — Pine Hollow's is src/shards/pine-hollow/world/treeSet.ts): a |
 | `TreeSpeciesTraits` | interface | @wildshard/engine/world/forest/treeSpecies | how a species is planted: its scale range; whether it follows the zone's growth (ForestSpec.scale); the trunk's extra |
+| `FrameCamera` | class | @wildshard/engine/world/frameCamera | A camera's stand-in in a frame's own space (SHARD-PLATFORM SF63, E435). Content that culls against the view compares the |
 | `beam` | function | @wildshard/engine/world/geometryKit | a squared timber (w × h cross-section) between two points; `roll` spins it about its own axis |
 | `blob` | function | @wildshard/engine/world/geometryKit | a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed |
 | `lathe` | function | @wildshard/engine/world/geometryKit | a lathe from a (radius, height) profile, `seg` around; smooth normals |

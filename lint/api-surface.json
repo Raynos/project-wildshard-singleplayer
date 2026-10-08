@@ -6800,7 +6800,7 @@
       {
         "name": "cullPlaced",
         "kind": "function",
-        "doc": "Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed.",
+        "doc": "Per-copy culling and LODs of everything the live shards placed — once a frame, after the camera is posed. A world whose",
         "from": "@wildshard/engine/models/place"
       },
       {
@@ -12058,6 +12058,12 @@
         "from": "@wildshard/engine/world/forest/treeSpecies"
       },
       {
+        "name": "FrameCamera",
+        "kind": "class",
+        "doc": "A camera's stand-in in a frame's own space (SHARD-PLATFORM SF63, E435). Content that culls against the view compares the",
+        "from": "@wildshard/engine/world/frameCamera"
+      },
+      {
         "name": "beam",
         "kind": "function",
         "doc": "a squared timber (w × h cross-section) between two points; `roll` spins it about its own axis",
@@ -16230,6 +16236,66 @@
         "from": "@wildshard/game/shardfile/hybrid"
       },
       {
+        "name": "bindRuntimeItemContexts",
+        "kind": "function",
+        "doc": "Register the declared item input contexts in the runtime's play stage: while its cell is entered for a retained home",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "bindRuntimeItems",
+        "kind": "function",
+        "doc": "Install the declared item rows inside a runtime's `buildEquipment`. A runtime-bound row carries no script hook (no",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "bindRuntimeLedger",
+        "kind": "function",
+        "doc": "Bind the declared ledger rules for a runtime that has no simulation host: each fact is stamped tick 0 and told apart by",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "bindRuntimeQuest",
+        "kind": "function",
+        "doc": "Build one declared quest's state over the runtime's flags, scoped to its play scope. The `onComplete` fact is emitted",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "runtimeBinds",
+        "kind": "function",
+        "doc": "The sections `source` declares its runtime binds; empty for a pure-data shard.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeFacts",
+        "kind": "type",
+        "doc": "Emit one declared fact for an entity; the platform ledger decides the grant.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeItemPorts",
+        "kind": "interface",
+        "doc": "What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeQuest",
+        "kind": "interface",
+        "doc": "A declared quest bound into the runtime's play scope. Coins are the runtime's to pay (its purse and its beat).",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeQuestPorts",
+        "kind": "interface",
+        "doc": "What a runtime lends a declared quest: its flags, the built place of a world-piece marker, a chip the format cannot carry yet.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "withoutRuntimeRows",
+        "kind": "function",
+        "doc": "The source as the data client installs it: every runtime-bound section emptied, so neither installs it twice.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
         "name": "DeclaredItemPorts",
         "kind": "interface",
         "doc": "Trusted loader dependencies; factories and icons are resolved below the game layer.",
@@ -16269,6 +16335,12 @@
         "name": "parseItems",
         "kind": "function",
         "doc": "Validate authored item rows at both SDK and browser boundaries.",
+        "from": "@wildshard/game/shardfile/items"
+      },
+      {
+        "name": "shardItemFamilies",
+        "kind": "function",
+        "doc": "Merge a trusted shard's own item families over the kit's, refusing a foreign or shadowing name.",
         "from": "@wildshard/game/shardfile/items"
       },
       {

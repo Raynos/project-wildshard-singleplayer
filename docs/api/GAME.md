@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-673 members; 112 without a doc line (—).
+684 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -463,6 +463,16 @@ The game layer's public modules (src/game/package.json `exports`).
 | `HybridShardPlugin` | class | @wildshard/game/shardfile/hybrid | Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path. |
 | `installHybridRuntime` | function | @wildshard/game/shardfile/hybrid | Consume the grid client's interior events; a late subscriber installs the current cell, never its neighbours. |
 | `prepareHybridShard` | function | @wildshard/game/shardfile/hybrid | Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. |
+| `bindRuntimeItemContexts` | function | @wildshard/game/shardfile/hybridRows | Register the declared item input contexts in the runtime's play stage: while its cell is entered for a retained home |
+| `bindRuntimeItems` | function | @wildshard/game/shardfile/hybridRows | Install the declared item rows inside a runtime's `buildEquipment`. A runtime-bound row carries no script hook (no |
+| `bindRuntimeLedger` | function | @wildshard/game/shardfile/hybridRows | Bind the declared ledger rules for a runtime that has no simulation host: each fact is stamped tick 0 and told apart by |
+| `bindRuntimeQuest` | function | @wildshard/game/shardfile/hybridRows | Build one declared quest's state over the runtime's flags, scoped to its play scope. The `onComplete` fact is emitted |
+| `runtimeBinds` | function | @wildshard/game/shardfile/hybridRows | The sections `source` declares its runtime binds; empty for a pure-data shard. |
+| `RuntimeFacts` | type | @wildshard/game/shardfile/hybridRows | Emit one declared fact for an entity; the platform ledger decides the grant. |
+| `RuntimeItemPorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends its declared items: its own families (`<slug>.<name>`) and the icon resolver. |
+| `RuntimeQuest` | interface | @wildshard/game/shardfile/hybridRows | A declared quest bound into the runtime's play scope. Coins are the runtime's to pay (its purse and its beat). |
+| `RuntimeQuestPorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends a declared quest: its flags, the built place of a world-piece marker, a chip the format cannot carry yet. |
+| `withoutRuntimeRows` | function | @wildshard/game/shardfile/hybridRows | The source as the data client installs it: every runtime-bound section emptied, so neither installs it twice. |
 | `DeclaredItemPorts` | interface | @wildshard/game/shardfile/items | Trusted loader dependencies; factories and icons are resolved below the game layer. |
 | `DeclaredItems` | interface | @wildshard/game/shardfile/items | Normal equipment factory result plus authoritative fixed-step runtimes, scoped to the one session. |
 | `declaredItemScriptEntities` | function | @wildshard/game/shardfile/items | Build trusted item-handle aliases for the one script lane; actor identity comes from the host session. |
@@ -470,6 +480,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `itemRules` | function | @wildshard/game/shardfile/items | Local references plus optional script catalogue checks; global format composition supplies admitted module ids. |
 | `ItemsSchema` | const | @wildshard/game/shardfile/items | JSON-only admission rejects closures before serialisation and checks all item/loadout references. |
 | `parseItems` | function | @wildshard/game/shardfile/items | Validate authored item rows at both SDK and browser boundaries. |
+| `shardItemFamilies` | function | @wildshard/game/shardfile/items | Merge a trusted shard's own item families over the kit's, refusing a foreign or shadowing name. |
 | `ShardItems` | type | @wildshard/game/shardfile/items | Declared item families, numeric contacts, input contexts, script hooks and initial loadout. |
 | `isJsonData` | function | @wildshard/game/shardfile/json | Refuse values JSON would silently discard or change, without invoking authored accessors. |
 | `LedgerFact` | type | @wildshard/game/shardfile/ledger | One witnessed engine/script outcome, with a stable six-part identity. |

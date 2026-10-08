@@ -1908,7 +1908,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2229 exports, grouped by the module to import them from.
+2230 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2250,6 +2250,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/world/forest/treeSet`: `BARK_LAYERS`, `CrownTop`, `crownTopUniforms`, `loadTreeSetGeometry`, `patchBarkArrays`, `patchCardCrownTop`, `patchImpostorCrownTop`, `standIn`, `TREE_SET_PARTS`, `treeSetFiles`, `TreeSetPart`, `treeSetUrls`
 - `@wildshard/engine/world/forest/treeSpec`: `TREE_SPECS`, `treeSetOf`
 - `@wildshard/engine/world/forest/treeSpecies`: `SpeciesWeights`, `TreeSetVariant`, `TreeSpecies`, `TreeSpeciesTraits`
+- `@wildshard/engine/world/frameCamera`: `FrameCamera`
 - `@wildshard/engine/world/geometryKit`: `beam`, `blob`, `lathe`, `log`, `mergeVerticesByPos`, `plank`, `pole`, `revolve`, `revolveUV`, `rock`, `rope`, `sagLine`, `tris`, `wobble`
 - `@wildshard/engine/world/Grass`: `Grass`, `GrassTrampleField`, `TrampleField`
 - `@wildshard/engine/world/groundField`: `terrainFieldFor`
@@ -2286,7 +2287,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-673 exports, grouped by the module to import them from.
+684 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2370,7 +2371,8 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/game/shardfile/groupBrains`: `groupBrainRules`, `GroupBrainSchema`, `HerdGroupSchema`, `PackGroupSchema`, `parseGroupBrain`, `ShardGroupBrain`, `ShardHerdGroup`, `ShardPackGroup`
 - `@wildshard/game/shardfile/groupRuntime`: `DeclaredGroupPolicy`, `DeclaredGroupPorts`, `DeclaredHerdRecipe`, `DeclaredPackRecipe`, `prepareDeclaredGroupBrains`, `PreparedGroupBrains`
 - `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `HybridHookTiming`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeOptions`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
-- `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `ShardItems`
+- `@wildshard/game/shardfile/hybridRows`: `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `runtimeBinds`, `RuntimeFacts`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `withoutRuntimeRows`
+- `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `shardItemFamilies`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`
 - `@wildshard/game/shardfile/loader`: `browserShardfileOptions`, `configuredShardfile`, `emptyShardfileSource`, `installManifestShardfile`, `installShardfileProduct`, `installShardfileSource`, `loadShardfile`, `shardfileLevelSpec`, `shardfileSource`
