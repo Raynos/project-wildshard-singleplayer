@@ -13,7 +13,7 @@ for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every 
   assert.deepEqual(route.plans.map(p => p.to).sort(), cells.map(c => c.instance).sort());
   let previous = route.reference, from = 'driftwood-isle';
   for (const plan of [...route.plans, ...route.coveragePlans]) {
-    assert.equal(plan.from, from); assert.equal(plan.start, undefined); assert.equal(plan.movement, 'road-hover');
+    assert.equal(plan.from, from); assert.equal(plan.start, undefined); assert.equal(plan.movement, 'road-hover'); assert.equal(plan.hoverMaxSpeed, 30);
     for (const point of plan.waypoints) {
       assert.ok(point.x === previous.x || point.z === previous.z, 'Each actual leg follows an axis through road midpoint sockets');
       previous = point;

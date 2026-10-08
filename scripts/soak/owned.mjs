@@ -16,7 +16,7 @@ export function ownedSoakPlans(state, leg = 'cells') {
     const start = { x: half, z: first.z };
     points.push({ x: half, z: points.at(-1).z }, start);
     return { reference: start, plans: points.map((point, index) => ({ name: `road-${index}`, from: null, to: null,
-      movement: 'road-hover', waypoints: [point], requiredResidents: [], crossroads: index < 16 ? `${point.x},${point.z}` : null })) };
+      movement: 'road-hover', hoverMaxSpeed: 30, waypoints: [point], requiredResidents: [], crossroads: index < 16 ? `${point.x},${point.z}` : null })) };
   }
   const pine = state.cells.find(cell => cell.slug === 'pine-hollow'), nalati = state.cells.find(cell => cell.slug === 'nalati-grasslands');
   if (!pine || !nalati) throw new Error('Soak requires Pine and Nalati');
@@ -43,14 +43,14 @@ export function ownedSoakPlans(state, leg = 'cells') {
     waypoints.push(destination);
     const unique = waypoints.filter((point, index) => index === 0 || point.x !== waypoints[index - 1].x || point.z !== waypoints[index - 1].z);
     plans.push({ name: `${source.instance}-to-${cell.instance}`, from: source.instance, to: cell.instance,
-      movement: 'road-hover', waypoints: unique, requiredResidents: [cell.instance], retiredResidents: ['driftwood-isle', 'pine-hollow', 'nalati-grasslands'].includes(source.slug) ? [source.instance] : [] });
+      movement: 'road-hover', hoverMaxSpeed: 30, waypoints: unique, requiredResidents: [cell.instance], retiredResidents: ['driftwood-isle', 'pine-hollow', 'nalati-grasslands'].includes(source.slug) ? [source.instance] : [] });
     source = cell; portal = nextPortal;
   }
   const road = ownedSoakPlans(state, 'road');
   const first = road.plans[0].waypoints[0];
-  const coveragePlans = [{ name: 'home-to-road-tour', from: home.instance, to: null, movement: 'road-hover',
+  const coveragePlans = [{ name: 'home-to-road-tour', from: home.instance, to: null, movement: 'road-hover', hoverMaxSpeed: 30,
     waypoints: [{ x: h.x, z: h.z + half }, { x: first.x, z: h.z + half }, first], requiredResidents: [], retiredResidents: [home.instance] },
-    ...road.plans, { name: 'road-tour-to-home', from: null, to: home.instance, movement: 'road-hover',
+    ...road.plans, { name: 'road-tour-to-home', from: null, to: home.instance, movement: 'road-hover', hoverMaxSpeed: 30,
       waypoints: [{ x: half, z: h.z + half }, { x: h.x, z: h.z + half }, reference], requiredResidents: [home.instance] }];
   return { reference, plans, coveragePlans };
 }

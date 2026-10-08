@@ -139,11 +139,13 @@ export async function driveFloorGrid(plan, documentOrigin) {
   const source = read(), live = source.live.live;
   if (live.current !== plan.from || source.inside !== plan.from || !live.gameplayReady || (plan.from !== null && !live.residents.includes(plan.from))) throw new Error(`Grid floor source ${plan.from} is not an entered ready resident`);
   const oldHover = player.hover, oldLimit = player.hoverSpeedLimit;
+  const hoverMaxSpeed = plan.hoverMaxSpeed ?? 15;
+  if (!Number.isFinite(hoverMaxSpeed) || hoverMaxSpeed <= 0 || hoverMaxSpeed > 30) throw new Error('Invalid grid harness hover speed');
   if (typeof oldLimit !== 'function') throw new Error('Grid hover-speed rule missing');
   input.clear();
   player.setHover(plan.movement !== 'road-hover' || live.current === null);
   let distance = 100;
-  player.hoverSpeedLimit = () => Math.min(15, oldLimit(), Math.max(3, distance * 1.5));
+  player.hoverSpeedLimit = () => Math.min(hoverMaxSpeed, oldLimit(), Math.max(3, distance * 1.5));
   const before = read(), trace = [], started = performance.now();
   try {
     await new Promise((resolve, reject) => {
@@ -154,9 +156,9 @@ export async function driveFloorGrid(plan, documentOrigin) {
         try {
           const state = read(), active = state.live.live, feet = active.worldFeet, seconds = (performance.now() - started) / 1000;
           window.__frameFloorGridStop = { leg: plan.name, phase: 'travel', waypoint, target: plan.waypoints[waypoint] ?? null };
-          if (seconds - lastSample >= 0.25) { trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady }); lastSample = seconds; }
-          if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
           if (plan.movement === 'road-hover') player.setHover(active.current === null);
+          if (seconds - lastSample >= 0.25) { trace.push({ seconds, ...feet, current: active.current, gameplayReady: active.gameplayReady, hover: player.hover }); lastSample = seconds; }
+          if (state.live.crossing.phase === 'blocked' || state.live.crossing.phase === 'save-failed') throw new Error(`Grid floor crossing blocked: ${state.live.crossing.issue}`);
           const target = plan.waypoints[waypoint];
           if (!target) {
             input.clear();

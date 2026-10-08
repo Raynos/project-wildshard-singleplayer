@@ -188,7 +188,9 @@ it('walks the interior and hovers the road through the same held-input driver, r
     current.live.live.current = null; current.inside = null; current.live.live.residents = [];
     current.live.live.worldFeet.z = 277.5;
     frame(); expect(player.hover).toBe(true); frame();
-    expect((await driven).after.live.live.current).toBeNull();
+    const drivenResult = await driven;
+    expect(drivenResult.after.live.live.current).toBeNull();
+    expect(drivenResult.trace[0]?.hover).toBe(false);
     expect(player.hover).toBe(false); expect(player.hoverSpeedLimit).toBe(originalLimit);
   } finally { restoreGlobals(); }
 });
