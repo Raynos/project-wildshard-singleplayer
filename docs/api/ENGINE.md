@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2155 members; 830 without a doc line (—).
+2163 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -159,8 +159,9 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `app` | const | @wildshard/engine/app/runtime | The page app; legacy active-service entry points delegate here during the migration. |
 | `gameplayRandom` | function | @wildshard/engine/app/runtime | One gameplay draw from the seeded `gameplay` stream (01 §2): aim spread and other rolls that change a hit. |
 | `containerResources` | function | @wildshard/engine/app/sceneOwnership | Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. |
+| `ownSceneTree` | function | @wildshard/engine/app/sceneOwnership | Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never |
 | `SceneOwnership` | class | @wildshard/engine/app/sceneOwnership | — |
-| `sceneResources` | function | @wildshard/engine/app/sceneOwnership | — |
+| `sceneResources` | function | @wildshard/engine/app/sceneOwnership | Resources a caller may own; explicit subtree owners are respected even when passed as the root. |
 | `InterruptReason` | type | @wildshard/engine/app/scheduler | — |
 | `TickActor` | interface | @wildshard/engine/app/scheduler | — |
 | `TickBand` | interface | @wildshard/engine/app/scheduler | — |
@@ -497,7 +498,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HitStopProfile` | interface | @wildshard/engine/combat/cues | — |
 | `resolveHitStop` | const | @wildshard/engine/combat/cues | — |
 | `WeaponChargePhase` | type | @wildshard/engine/combat/cues | — |
-| `bindPlayerEffects` | function | @wildshard/engine/combat/effects/EffectService | Bind player-owned movement channels and periodic damage for the same lifetime as the player. |
+| `bindPlayerEffects` | function | @wildshard/engine/combat/effects/EffectService | Bind player-owned movement channels and periodic damage once for the same player/service lifetime. |
 | `EffectService` | class | @wildshard/engine/combat/effects/EffectService | — |
 | `ActiveEffect` | interface | @wildshard/engine/combat/effects/types | — |
 | `AttributeSet` | type | @wildshard/engine/combat/effects/types | Numeric attributes stay live at the simulation ports; modifiers retain a separate base. |
@@ -1190,6 +1191,13 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `KinematicMover` | class | @wildshard/engine/physics/mover | A kinematic deck moves before the world step and carries the existing CharacterMotor without another collision path. |
 | `MoverBox` | interface | @wildshard/engine/physics/mover | Local boxes for a script-owned platform; the physics layer alone constructs Rapier descriptors. |
 | `MoverPose` | interface | @wildshard/engine/physics/mover | Published mover pose, in the world's local frame; Euler order is always YXZ. |
+| `activeNavmesh` | function | @wildshard/engine/physics/navmesh | The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests. |
+| `loadNavmesh` | function | @wildshard/engine/physics/navmesh | Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so |
+| `MAX_SEARCH_NODES` | const | @wildshard/engine/physics/navmesh | A path search visits at most this many polys (~0.3 ms); past it the path runs to the poly nearest the goal so far. |
+| `NavLayer` | interface | @wildshard/engine/physics/navmesh | One agent class's mesh. |
+| `Navmesh` | class | @wildshard/engine/physics/navmesh | — |
+| `parseNavmesh` | function | @wildshard/engine/physics/navmesh | Parse a navmesh.bin (scripts/bake-navmesh.mjs's format); null when it isn't one of this version. |
+| `setActiveNavmesh` | function | @wildshard/engine/physics/navmesh | Set (or clear) the active navmesh — node tests, or a shard switch. |
 | `pathRampDescs` | function | @wildshard/engine/physics/paths | — |
 | `PathRampOptions` | interface | @wildshard/engine/physics/paths | — |
 | `Physics` | class | @wildshard/engine/physics/Physics | Owns one fixed-step collision world and its complete same-version continuation. |

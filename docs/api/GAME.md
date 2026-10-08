@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-605 members; 112 without a doc line (—).
+606 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -86,6 +86,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `GridPlot` | interface | @wildshard/game/grid/assembly | G198 / G219: an open plot. A platform cell with no shard: the platform draws its floor, its four entry showrooms and its |
 | `GridPoint` | interface | @wildshard/game/grid/assembly | A world-space or cell-local point; authoritative simulations only receive the latter. |
 | `GridSide` | type | @wildshard/game/grid/assembly | Neighbour queries use the same signed convention as the grid: north is positive z. |
+| `CopyIdentity` | type | @wildshard/game/grid/catalogue | A copy's declared identity: its accent and its number panels (copyIdentity.ts). |
 | `GridCatalogue` | type | @wildshard/game/grid/catalogue | Admitted assembly input; a cell remains a mutable placement attribute, never a save namespace. |
 | `GridCatalogueSchema` | const | @wildshard/game/grid/catalogue | Platform placement data, independent of package content and standalone shard coordinates. |
 | `GridMode` | interface | @wildshard/game/grid/catalogue | Runtime switches originate from Settings and build-time DEVSERVER; Nine Dragon defaults on only in DEVSERVER. |
@@ -125,7 +126,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `regionalRuntimeAccountedBytes` | function | @wildshard/game/grid/regionalRuntime | A transitional region pays for its whole opaque runtime. The first-party manifest and admitted declaration must |
 | `RegionalRuntimeFactory` | type | @wildshard/game/grid/regionalRuntime | Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only. |
 | `RegionalRuntimeFactoryPorts` | interface | @wildshard/game/grid/regionalRuntime | Composition ports owned by the page root, with explicit absence until the engine's regional binding lands. |
-| `RegionalRuntimeFoundation` | interface | @wildshard/game/grid/regionalRuntime | TODO SF47 engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine |
+| `RegionalRuntimeFoundation` | interface | @wildshard/game/grid/regionalRuntime | Required engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine |
 | `RegionalRuntimePage` | interface | @wildshard/game/grid/regionalRuntime | Existing page services lent to a regional shell; it never constructs another renderer, player or input loop. |
 | `RegionalRuntimeRequest` | interface | @wildshard/game/grid/regionalRuntime | Fully admitted immutable content and the one page owner, supplied before any trusted gameplay hook executes. |
 | `gridCanAct` | function | @wildshard/game/grid/rules | Only the active writable shard interior accepts authoritative actions; visible neighbours are projections. |

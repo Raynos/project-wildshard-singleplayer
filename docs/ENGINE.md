@@ -1846,7 +1846,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2138 exports, grouped by the module to import them from.
+2146 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1883,7 +1883,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enterOwner`, `onOwnerDispose`, `withOwner`
 - `@wildshard/engine/app/resources`: `pageScope`, `resourceScope`
 - `@wildshard/engine/app/runtime`: `app`, `gameplayRandom`
-- `@wildshard/engine/app/sceneOwnership`: `containerResources`, `SceneOwnership`, `sceneResources`
+- `@wildshard/engine/app/sceneOwnership`: `containerResources`, `ownSceneTree`, `SceneOwnership`, `sceneResources`
 - `@wildshard/engine/app/scheduler`: `InterruptReason`, `TickActor`, `TickBand`, `TickPoint`, `TickRate`, `TickScheduler`
 - `@wildshard/engine/app/scope`: `Disposable3`, `disposalErrorMessages`, `NativeCensus`, `nodeOwner`, `PhysicsHandle`, `registrationTimerIds`, `Scope`, `ScopeCensus`, `scopeRegistrations`, `SoundHandle`
 - `@wildshard/engine/app/systems`: `AppState`, `inState`, `Phase`, `PHASES`, `RunCondition`, `sortSystems`, `SystemSpec`, `TickRateId`
@@ -2048,6 +2048,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/physics/heightPatch`: `HeightPatch`, `HeightPatchOpts`
 - `@wildshard/engine/physics/meshCollision`: `addBakedMeshCollider`, `BakedMeshColliderRow`, `installBakedMeshColliders`
 - `@wildshard/engine/physics/mover`: `KinematicMover`, `MoverBox`, `MoverPose`
+- `@wildshard/engine/physics/navmesh`: `activeNavmesh`, `loadNavmesh`, `MAX_SEARCH_NODES`, `NavLayer`, `Navmesh`, `parseNavmesh`, `setActiveNavmesh`
 - `@wildshard/engine/physics/paths`: `pathRampDescs`, `PathRampOptions`
 - `@wildshard/engine/physics/Physics`: `Physics`
 - `@wildshard/engine/physics/pieces`: `AddedPiece`, `addPiece`, `treadBoxes`
@@ -2219,7 +2220,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-605 exports, grouped by the module to import them from.
+606 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2236,7 +2237,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/cosmetics/locker`: `CosmeticDef`, `CosmeticProfile`, `CosmeticsLocker`, `CosmeticState`, `SkinLocker`
 - `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
 - `@wildshard/game/grid/assembly`: `EmptyNeighbour`, `GridAssembly`, `GridCell`, `GridPlot`, `GridPoint`, `GridSide`
-- `@wildshard/game/grid/catalogue`: `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `GridPlotPlacement`, `parseGridCatalogue`
+- `@wildshard/game/grid/catalogue`: `CopyIdentity`, `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `GridPlotPlacement`, `parseGridCatalogue`
 - `@wildshard/game/grid/crossing`: `GridCheckpointResult`, `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`
 - `@wildshard/game/grid/edgeProfiles`: `GridEdgeObservations`, `GridEdgeSource`, `loadGridEdgeProfiles`
 - `@wildshard/game/grid/instances`: `firstPartyInstance`, `templateInstance`

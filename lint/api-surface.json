@@ -909,6 +909,12 @@
         "from": "@wildshard/engine/app/sceneOwnership"
       },
       {
+        "name": "ownSceneTree",
+        "kind": "function",
+        "doc": "Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
         "name": "SceneOwnership",
         "kind": "class",
         "doc": "",
@@ -917,7 +923,7 @@
       {
         "name": "sceneResources",
         "kind": "function",
-        "doc": "",
+        "doc": "Resources a caller may own; explicit subtree owners are respected even when passed as the root.",
         "from": "@wildshard/engine/app/sceneOwnership"
       },
       {
@@ -2945,7 +2951,7 @@
       {
         "name": "bindPlayerEffects",
         "kind": "function",
-        "doc": "Bind player-owned movement channels and periodic damage for the same lifetime as the player.",
+        "doc": "Bind player-owned movement channels and periodic damage once for the same player/service lifetime.",
         "from": "@wildshard/engine/combat/effects/EffectService"
       },
       {
@@ -7108,6 +7114,48 @@
         "kind": "interface",
         "doc": "Published mover pose, in the world's local frame; Euler order is always YXZ.",
         "from": "@wildshard/engine/physics/mover"
+      },
+      {
+        "name": "activeNavmesh",
+        "kind": "function",
+        "doc": "The loaded shard's navmesh — null before the `physics` step, for a shard the build has none for, or in node tests.",
+        "from": "@wildshard/engine/physics/navmesh"
+      },
+      {
+        "name": "loadNavmesh",
+        "kind": "function",
+        "doc": "Fetch and parse the level `levelId`'s navmesh and make it the active one (the `physics` step; the file is a declared boot file, so",
+        "from": "@wildshard/engine/physics/navmesh"
+      },
+      {
+        "name": "MAX_SEARCH_NODES",
+        "kind": "const",
+        "doc": "A path search visits at most this many polys (~0.3 ms); past it the path runs to the poly nearest the goal so far.",
+        "from": "@wildshard/engine/physics/navmesh"
+      },
+      {
+        "name": "NavLayer",
+        "kind": "interface",
+        "doc": "One agent class's mesh.",
+        "from": "@wildshard/engine/physics/navmesh"
+      },
+      {
+        "name": "Navmesh",
+        "kind": "class",
+        "doc": "",
+        "from": "@wildshard/engine/physics/navmesh"
+      },
+      {
+        "name": "parseNavmesh",
+        "kind": "function",
+        "doc": "Parse a navmesh.bin (scripts/bake-navmesh.mjs's format); null when it isn't one of this version.",
+        "from": "@wildshard/engine/physics/navmesh"
+      },
+      {
+        "name": "setActiveNavmesh",
+        "kind": "function",
+        "doc": "Set (or clear) the active navmesh — node tests, or a shard switch.",
+        "from": "@wildshard/engine/physics/navmesh"
       },
       {
         "name": "pathRampDescs",
@@ -13422,6 +13470,12 @@
         "from": "@wildshard/game/grid/assembly"
       },
       {
+        "name": "CopyIdentity",
+        "kind": "type",
+        "doc": "A copy's declared identity: its accent and its number panels (copyIdentity.ts).",
+        "from": "@wildshard/game/grid/catalogue"
+      },
+      {
         "name": "GridCatalogue",
         "kind": "type",
         "doc": "Admitted assembly input; a cell remains a mutable placement attribute, never a save namespace.",
@@ -13658,7 +13712,7 @@
       {
         "name": "RegionalRuntimeFoundation",
         "kind": "interface",
-        "doc": "TODO SF47 engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine",
+        "doc": "Required engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine",
         "from": "@wildshard/game/grid/regionalRuntime"
       },
       {
