@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial } from 'three';
+import { BoxGeometry, BufferGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as v from 'valibot';
 import { bakeProps } from '../src/sdk/bake/props';
@@ -72,11 +72,25 @@ describe('declared prop baker', () => {
     for (const [hash, bytes] of result.assets) expect(contentHash(bytes)).toBe(hash);
   });
   it('is deterministic and the real loader reconstructs instance matrices, geometry and panel ports, then scope disposal removes roots', async () => {
-    const fixture = source(), a = bakeProps(fixture.source), b = bakeProps(fixture.source);
+    // Full-template admission is covered above. This lifecycle fixture stays bounded when teaching content grows.
+    const geometry = new BoxGeometry(1, 1, 1), material = new MeshStandardMaterial(), root = new Group();
+    const fixed = new Mesh(geometry, material); fixed.position.set(-20, 1, -20); root.add(fixed);
+    const door = new Mesh(geometry, material); door.position.set(10, 1, 10);
+    const transforms = [2, 4, 6].map(x => new Matrix4().makeTranslation(x, 1, 2));
+    cleanups.push(() => geometry.dispose(), () => material.dispose());
+    const fixture = { static: root, scatter: [{ model: new Mesh(geometry, material), transforms }],
+      panels: [{ id: 'template.door', model: door }], models: [{ id: 'template.lantern', model: new Mesh(geometry, material) }] };
+    const a = bakeProps(fixture), b = bakeProps(fixture);
     expect(a.props).toEqual(b.props); expect(a.report).toEqual(b.report); expect([...a.assets]).toEqual([...b.assets]);
-    const scene = new Group(), scope = new Scope('props.fixture'), material = new MeshStandardMaterial(); cleanups.push(() => scope.dispose(), () => material.dispose());
+    const scene = new Group(), scope = new Scope('props.fixture'); cleanups.push(() => scope.dispose());
     const installed = await installDeclaredProps(a.props, { scene, scope, assets: a.assets, materials: new Map([['pbr', material]]) });
-    let instances = 0; scene.traverse((o) => { if (o instanceof InstancedMesh) instances += o.count; }); expect(instances).toBeGreaterThan(0);
+    const matrices: number[][] = [];
+    scene.traverse((o) => { if (o instanceof InstancedMesh) for (let i = 0; i < o.count; i++) {
+      const matrix = new Matrix4(); o.getMatrixAt(i, matrix); matrices.push(matrix.elements);
+      if (!(o.geometry instanceof BufferGeometry)) throw new Error('Missing loaded instance geometry');
+      expect(o.geometry.getAttribute('position').count).toBe(geometry.index?.count ?? geometry.getAttribute('position').count);
+    } });
+    expect(matrices).toEqual(transforms.map(matrix => matrix.elements));
     const panel = installed.panels.get('template.door'); expect(panel).toBeDefined(); if (panel === undefined) throw new Error('Missing panel'); panel.visible = false; expect(panel.visible).toBe(false);
     expect(installed.models.has('template.lantern')).toBe(true); expect(scene.children).toHaveLength(1); scope.dispose(); expect(scene.children).toHaveLength(0);
   });
