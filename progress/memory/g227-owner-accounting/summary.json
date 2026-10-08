@@ -250,6 +250,10 @@
     "native-composer-classifier-red.json.gz": {
       "sha256": "43f20de802297123d9b732089e37b2ef58dddf158bc442c28019cc4715107891",
       "bytes": 425522
+    },
+    "title-boot-assertions.json.gz": {
+      "sha256": "cee69ff9edf98751b9cd5f002911595857670c05416eb53ecbd254a1bf1d75a4",
+      "bytes": 7855
     }
   },
   "scope": "Chromium Metal iPhone portrait, Developer admissions; accounting/lifecycle only. Not Safari SF57, frame floor or public cap qualification."
