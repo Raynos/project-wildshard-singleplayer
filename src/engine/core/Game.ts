@@ -2,7 +2,7 @@ import { app } from '../app/runtime';
 import { Scope } from '../app/scope';
 import { SceneOwnership } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
-import { composerAllocationBytes } from '../render/textureBytes';
+import { composerAllocations, cachedResourceAllocations, type ResourceAllocation } from '../render/textureBytes';
 import { ViewmodelRoot } from '../render/viewmodel';
 import type { Phase } from '../app/systems';
 import { currentOwner, enterOwner } from '../app/ownership';
@@ -11,7 +11,7 @@ import { createRenderer, type Renderer } from '../render/renderer';
 import {
   EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, FXAAEffect, VignetteEffect, ToneMappingEffect,
   ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
-  type Effect, type Pass,
+  type Effect, Pass,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { retried } from '../boot/retry';
@@ -133,15 +133,27 @@ export class Game {
   /** A budget owner reads actual allocated composer targets after warm-up and resize, without owning the renderer. */
   observeComposerAllocation(read: (bytes: number) => void): () => void {
     if (this._composer === null) throw new Error('Composer allocation observed before build');
-    read(composerAllocationBytes(this._composer, this.renderer));
+    read(this.composerAllocationResources().reduce((sum, row) => sum + row.bytes, 0));
     this.compositionObservers.add(read);
     const scope = this.engineScope.child('composer.allocation');
     scope.onDispose(() => { this.compositionObservers.delete(read); });
     this.levelScope.onDispose(() => { queueMicrotask(() => {
       // All synchronous resource disposers finish first; a retired observer cannot write into another lifetime.
-      if (!scope.disposed && this._composer !== null) read(composerAllocationBytes(this._composer, this.renderer));
+      if (!scope.disposed && this._composer !== null) read(this.composerAllocationResources().reduce((sum, row) => sum + row.bytes, 0));
     }); });
     return () => { scope.dispose(); };
+  }
+  /** Actual composer target handles and its drawn shared fullscreen attributes. Read-only identities let an
+   * independent WebGL census reconcile nested bloom targets without relying on resource names. */
+  composerAllocationResources(): readonly ResourceAllocation[] {
+    if (this._composer === null) return [];
+    const rows = [...composerAllocations(this._composer, this.renderer)];
+    // postprocessing shares this one triangle across all passes. Only charge it after this renderer drew it.
+    const geometry: unknown = Reflect.get(Pass, 'fullscreenGeometry');
+    if (geometry instanceof THREE.BufferGeometry && this.uploads.resources().has(geometry)) {
+      rows.push(...cachedResourceAllocations(geometry).filter(row => row.kind === 'gpu'));
+    }
+    return rows;
   }
   private _sky: Sky | null = null;
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
@@ -838,7 +850,7 @@ export class Game {
         cullPlaced(this.camera); // placed models' per-copy culling and LODs for this view (src/engine/models/place.ts; nothing when none cull)
         composer.render(realDt);
         if (this.compositionChanged && this.compositionObservers.size > 0) {
-          const bytes = composerAllocationBytes(composer, this.renderer);
+          const bytes = this.composerAllocationResources().reduce((sum, row) => sum + row.bytes, 0);
           for (const read of this.compositionObservers) read(bytes);
           this.compositionChanged = false;
         }

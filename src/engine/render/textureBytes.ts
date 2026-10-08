@@ -133,7 +133,7 @@ export function cachedResourceAllocations(resource: object): readonly ResourceAl
 
 /** Actual allocated composer texture/renderbuffer bytes in one renderer, deduplicated by native handle. Called only
  * after a first draw or size change; unallocated spare targets cost zero. Restores the prior renderbuffer binding. */
-export function composerAllocationBytes(composer: object, renderer: THREE.WebGLRenderer): number {
+export function composerAllocations(composer: object, renderer: THREE.WebGLRenderer): readonly ResourceAllocation[] {
   const allocations = new Map<object, number>(), context = renderer.getContext();
   if (!(context instanceof WebGL2RenderingContext)) throw new Error('Composer accounting requires the renderer WebGL2 context');
   const addBuffer = (value: unknown): void => {
@@ -170,5 +170,10 @@ export function composerAllocationBytes(composer: object, renderer: THREE.WebGLR
     if (typeof properties !== 'object' || properties === null) continue;
     for (const key of ['__webglDepthbuffer', '__webglDepthRenderbuffer', '__webglColorRenderbuffer']) addBuffer(Reflect.get(properties, key));
   }
-  return [...allocations.values()].reduce((sum, bytes) => sum + bytes, 0);
+  return [...allocations].map(([identity, bytes]) => ({ identity, bytes, kind: 'gpu' }));
+}
+
+/** Actual composer target allocation total; native handle identity is also available for independent reconciliation. */
+export function composerAllocationBytes(composer: object, renderer: THREE.WebGLRenderer): number {
+  return composerAllocations(composer, renderer).reduce((sum, row) => sum + row.bytes, 0);
 }

@@ -1,6 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { DataTexture, HalfFloatType, WebGLRenderTarget, type WebGLRenderer } from 'three';
-import { composerAllocationBytes } from '../../src/engine/render/textureBytes';
+import { Pass } from 'postprocessing';
+import { composerAllocationBytes, composerAllocations } from '../../src/engine/render/textureBytes';
 import { App } from '../../src/engine/app/app';
 import { Scope } from '../../src/engine/app/scope';
 import { Game } from '../../src/engine/core/Game';
@@ -32,14 +33,17 @@ it('counts only allocated composer native handles once and restores the renderbu
   try {
     expect(composerAllocationBytes({ target, alias, sampled, spare, renderer }, renderer)).toBe(16 * 8 + 16 * 2);
     expect(binding).toBe(prior);
+    expect(composerAllocations({ nested: { arbitrarilyNamed: target }, spare, sampled }, renderer).map(row => row.identity)).toEqual([nativeTexture, depth]);
     const game: unknown = Object.create(Game.prototype);
     if (!(game instanceof Game)) throw new Error('Game prototype');
     const app = new App(), engineScope = new Scope('renderer'), levelScope = engineScope.child('level'), read = vi.fn<(bytes: number) => void>();
+    const triangle: unknown = Reflect.get(Pass, 'fullscreenGeometry');
+    Reflect.set(game, 'uploads', { resources: () => allocated ? new Set([triangle]) : new Set() });
     Reflect.set(game, '_composer', { target, alias, sampled, spare, renderer });
     Reflect.set(game, 'renderer', renderer); Reflect.set(game, 'app', app);
     Reflect.set(game, 'levelScope', levelScope); Reflect.set(game, 'engineScope', engineScope); Reflect.set(game, 'compositionObservers', new Set());
     const detach = game.observeComposerAllocation(read);
-    expect(read).toHaveBeenLastCalledWith(160);
+    expect(read).toHaveBeenLastCalledWith(220);
     levelScope.onDispose(() => { allocated = false; }); levelScope.dispose();
     expect(read).toHaveBeenCalledTimes(1); await Promise.resolve();
     expect(read).toHaveBeenLastCalledWith(0);

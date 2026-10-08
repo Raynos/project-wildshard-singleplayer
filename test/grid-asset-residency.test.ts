@@ -55,13 +55,13 @@ it('evicts the unused home cache while keeping the calibrated composer until ren
   page.bindAssets(assets, renderer, level, () => level, cachedResourceAllocations);
   const before = page.allocator.cost().playing;
   let resize: ((bytes: number) => void) | undefined;
-  page.bindComposer({ observeComposerAllocation: read => { resize = read; read(13_140_576); return () => { resize = undefined; }; } }, renderer);
+  page.bindComposer({ observeComposerAllocation: read => { resize = read; read(13_140_636); return () => { resize = undefined; }; } }, renderer);
   expect(page.allocator.cost().playing).toBe(before);
   resize?.(20_000_000);
   expect(page.allocator.entries().filter(entry => entry.category === 'page')).toMatchObject([
     { id: 'page:composer', bytes: 20_000_000, refs: 1 }, { id: 'page:renderer-initialization', bytes: 36, refs: 1 },
   ]);
-  expect(page.allocator.cost().playing).toBe(before + 6_859_424);
+  expect(page.allocator.cost().playing).toBe(before + 6_859_364);
   level.dispose(); page.dispose();
   expect(page.allocator.cost().input.sims).toBe(0);
   expect(page.allocator.cost().input.commons).toBe(0);
@@ -93,7 +93,7 @@ it('releases both calibrated renderer components if composer observation fails d
   const { PageResidency } = await import('../src/game/grid/pageResidency');
   const page = new PageResidency(), renderer = new Scope('renderer'), before = page.allocator.cost().playing;
   expect(() => page.bindComposer({ observeComposerAllocation: read => {
-    read(13_140_576); throw new Error('failed observer');
+    read(13_140_636); throw new Error('failed observer');
   } }, renderer)).toThrow('failed observer');
   expect(page.allocator.entries()).toEqual([]); expect(page.allocator.cost().playing).toBe(before);
   renderer.dispose(); page.dispose();

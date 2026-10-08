@@ -55,22 +55,25 @@ try {
  if(report.homeRestoredHP!==report.homeDamage.after)throw Error('Home creature HP did not survive D->P->N->D');
  report.saved=await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage).filter(([key])=>key.startsWith('wildshard.save.v2.')).map(([key,value])=>[key,JSON.parse(value)])));
  for(const value of report.damage){const saved=report.saved['wildshard.save.v2.'+value.instance]?.keys?.['platform.runtime-logical']?.data;if(!saved?.actors?.some(actor=>actor.id===value.id&&actor.hp===value.after))throw Error('Durable creature HP missing for '+value.instance);}
- await snapshot('home-returned-durable');await page.evaluate(()=>{window.__retainedLedger=window.__wildshard.shard.grid.residency;});report.leak=await page.evaluate(()=>window.__wildshard.leak());
+ await snapshot('home-returned-durable');await page.evaluate(()=>{window.__retainedLedger=window.__wildshard.shard.grid.residency;const game=window.__wildshard.world.game;window.__composerLedger=()=>game.composerAllocationResources().map(row=>({bytes:row.bytes,ids:window.__sc_gl_id(row.identity)!==null?[window.__sc_gl_id(row.identity)]:window.__sc_gl_source_ids(Object.getOwnPropertyDescriptor(row.identity,'array')?.value)}));});report.leak=await page.evaluate(()=>window.__wildshard.leak());
+ report.composerAllocations=await page.evaluate(()=>{const rows=window.__composerLedger();delete window.__composerLedger;return rows;});
  report.finalGL=await page.evaluate(()=>window.__sc_gl().map(({gl,...r})=>r));
  report.finalResidency=await page.evaluate(()=>{const value=window.__retainedLedger();delete window.__retainedLedger;return value;});
  report.debugRoots=await page.evaluate(()=>({probePresent:typeof window.__wildshard==='object',worldUndefined:window.__wildshard.world===undefined,physicsAbsent:window.__physics===undefined,heightfieldAbsent:window.__hf===undefined,perfHudAbsent:window.__perfHud===undefined,skyAbsent:window.__skyV2===undefined,bakeAbsent:window.__bake===undefined}));
  const resources=report.finalGL.flatMap(row=>row.resources), claims=report.finalResidency.claims;
- const rawComposer=resources.filter(row=>row.asset.includes('EffectComposer')).reduce((sum,row)=>sum+row.bytes,0);
+ const composerIds=new Set(report.composerAllocations.flatMap(row=>row.ids));
+ const rawComposer=resources.filter(row=>composerIds.has(row.id)).reduce((sum,row)=>sum+row.bytes,0);
+ const composerIdentityMatches=report.composerAllocations.every(row=>row.ids.length===1&&resources.find(resource=>resource.id===row.ids[0])?.bytes===row.bytes)&&composerIds.size===report.composerAllocations.length;
  const rawRendererInitialization=resources.filter(row=>row.asset==='builtin/renderer-initialization').reduce((sum,row)=>sum+row.bytes,0);
  const rawGL=resources.reduce((sum,row)=>sum+row.bytes,0), rawCaches=rawGL-rawComposer-rawRendererInitialization;
  const chargedRendererInitialization=claims.filter(row=>row.id==='page:renderer-initialization').reduce((sum,row)=>sum+row.accountedBytes,0);
  const chargedComposer=claims.filter(row=>row.id==='page:composer').reduce((sum,row)=>sum+row.accountedBytes,0);
  const cachedGPU=claims.filter(row=>row.category==='commons'&&row.id.startsWith('commons:retained:')&&row.id.endsWith(':gpu')).reduce((sum,row)=>sum+row.accountedBytes,0);
  const cachedCPU=claims.filter(row=>row.category==='commons'&&row.id.startsWith('commons:retained:')&&row.id.endsWith(':cpu')).reduce((sum,row)=>sum+row.accountedBytes,0);
- report.reconciliation={rawGL,rawComposer,rawRendererInitialization,chargedRendererInitialization,rawCaches,chargedComposer,cachedGPU,cachedCPU,uncoveredGPU:rawCaches-cachedGPU,engineBase:report.finalResidency.cost.input.engineBase,
+ report.reconciliation={composerIdentityMatches,rawGL,rawComposer,rawRendererInitialization,chargedRendererInitialization,rawCaches,chargedComposer,cachedGPU,cachedCPU,uncoveredGPU:rawCaches-cachedGPU,engineBase:report.finalResidency.cost.input.engineBase,
    noRuntimeClaims:claims.every(row=>row.category!=='sim'),allCachesUncovered:claims.filter(row=>row.id.startsWith('commons:retained:')).every(row=>row.accountedBytes===row.bytes),
    rendererInitializationMatches:rawRendererInitialization===chargedRendererInitialization,composerMatches:rawComposer===chargedComposer,retainedGPUSafelyCharged:cachedGPU>=rawCaches};
- report.accountingPass=report.reconciliation.noRuntimeClaims&&report.reconciliation.allCachesUncovered&&report.reconciliation.composerMatches&&report.reconciliation.rendererInitializationMatches&&report.reconciliation.retainedGPUSafelyCharged;
+ report.accountingPass=report.reconciliation.composerIdentityMatches&&report.reconciliation.noRuntimeClaims&&report.reconciliation.allCachesUncovered&&report.reconciliation.composerMatches&&report.reconciliation.rendererInitializationMatches&&report.reconciliation.retainedGPUSafelyCharged;
  report.pass=report.accountingPass&&Object.values(report.debugRoots).every(Boolean)&&report.errors.length===0&&report.consoleErrors.length===0&&report.leak.disposalErrors.length===0&&report.leak.after.bodies===0&&report.leak.after.colliders===0&&Object.values(report.leak.scope).every(value=>value===0)&&report.routes.every(r=>r.failures.length===0)&&report.documents.length===report.bootDocuments;
  if(!report.pass)throw Error(report.accountingPass?'Final debug/errors/native/scope/document checks failed':'Retained GL residency reconciliation failed');
  await context.close();

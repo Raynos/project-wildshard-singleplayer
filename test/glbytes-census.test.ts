@@ -117,3 +117,17 @@ it('journals exact allocation mutations and labels without retaining WebGL objec
   expect(rows[0]?.totalBytes).toBe(84);
   expect(rows[0]?.resources.filter(row => row.kind === 'texture').map(row => row.asset)).toEqual(['fixture-texture']);
 });
+
+it('joins native handles and uploaded sources by scalar identities without labels or deleted buffers', () => {
+  const rows = census(`
+    const data = new Float32Array(9), b = gl.createBuffer(), spare = gl.createBuffer();
+    gl.bindBuffer(0x8892,b); gl.bufferData(0x8892,data,0x88e4);
+    const id = window.__sc_gl_id(b);
+    if (window.__sc_gl_source_ids(data).join() !== id) throw Error('exact source join');
+    if (window.__sc_gl_id({}) !== null || window.__sc_gl_source_ids(undefined).length) throw Error('unknown identity');
+    gl.deleteBuffer(b);
+    if (window.__sc_gl_source_ids(data).length) throw Error('retired native buffer');
+  `);
+  expect(rows[0]?.resources).toHaveLength(1);
+  expect(rows[0]?.totalBytes).toBe(0);
+});

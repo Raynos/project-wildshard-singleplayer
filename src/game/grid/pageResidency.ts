@@ -45,7 +45,7 @@ export class PageResidency {
     rendererScope.onDispose(() => { detach(); bridge.dispose(); });
   }
 
-  /** Calibration: the 804×1362 phone census owns 8-byte colour + 4-byte depth = 13,140,576 bytes in the measured
+  /** Calibration: the 804×1362 phone census owns 8-byte colour + 4-byte depth + 60-byte fullscreen triangle = 13,140,636 bytes in the measured
    * 300 MB engine base (G226 full-loop receipt). Split that credit out; any larger current composer is additional. */
   bindComposer(game: Pick<Game, 'observeComposerAllocation'>, rendererScope: Scope): void {
     if (this.composerBound || this.closed || rendererScope.disposed) throw new Error('Page composer requires one live renderer');
@@ -58,7 +58,7 @@ export class PageResidency {
     let detach: () => void;
     try {
       detach = game.observeComposerAllocation(bytes => {
-        const next = this.allocator.reservePageComponent('page:composer', bytes, 13_140_576);
+        const next = this.allocator.reservePageComponent('page:composer', bytes, 13_140_636);
         if (next === null) throw new Error('Composer admission deferred by the shared budget');
         const previous = lease; lease = next; previous?.release();
       });

@@ -16,6 +16,9 @@ export const GL_INIT = String.raw`(() => { const W = window;
     if (!labels.has(resource)) fromSource(resource, uploads.get(resource)?.deref());
     return { id: identity(resource, kind), kind, bytes, ...(labels.get(resource) ?? { owner: 'unlabelled', asset: 'unlabelled' }), labelled: labels.has(resource) };
   };
+  // Scalar-only identity bridge: never return or retain source/GPU objects in a receipt.
+  W.__sc_gl_id = (resource) => object(resource) ? ids.get(resource) ?? null : null;
+  W.__sc_gl_source_ids = (source) => !object(source) ? [] : recs.flatMap(r => [...r.buf.keys()].filter(resource => uploads.get(resource)?.deref() === source).map(resource => identity(resource, 'buffer')));
   // Optional loading journal contains scalar identities only; it never retains GPU/source objects.
   const changed = (gl, resource, kind, bytes) => { if (W.__sc_gl_change) {const row=entry(resource,kind,bytes);W.__sc_gl_change({at:Date.now()/1000,op:'allocation',context:identity(gl,'context'),...row,bytes});} };
   const changedTexture = (gl, resource) => { if (!W.__sc_gl_change) return; let bytes=0; for(const level of rec(gl).tex.get(resource)?.values() ?? []) bytes+=level.bytes; changed(gl,resource,'texture',bytes); };
