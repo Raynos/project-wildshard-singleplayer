@@ -1,0 +1,261 @@
+{
+  "diagnostic": true,
+  "base": "http://127.0.0.1:4400",
+  "mode": "standalone",
+  "sky": "shared",
+  "dev": true,
+  "started": "2026-10-08T04:40:19.787Z",
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "stops": [
+    {
+      "label": "east-inside",
+      "x": 231,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "census": {
+        "level": "pine-hollow",
+        "feet": [
+          231,
+          0.01,
+          0
+        ],
+        "world": null,
+        "current": null,
+        "ready": null,
+        "info": {
+          "calls": 127,
+          "triangles": 1254127
+        },
+        "glMB": 294.69,
+        "gl": [
+          {
+            "totalBytes": 294690360,
+            "texBytes": 246869500,
+            "bufBytes": 47820860,
+            "rbBytes": 0,
+            "textures": 417,
+            "buffers": 894
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 4.519276,
+              "color": [
+                1,
+                0.757231,
+                0.5541
+              ],
+              "dir": [
+                -0.9006,
+                0.4279,
+                -0.076
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.525953,
+              "color": [
+                0.340153,
+                0.38072,
+                0.534386
+              ],
+              "ground": [
+                0.09378,
+                0.050718,
+                0.021488
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.741023,
+              0.81584,
+              0.859646
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": "3e508fe5-648f-47c1-ad25-fdbc306e39c9",
+          "environmentIntensity": 1.391235,
+          "background": null
+        },
+        "screens": null,
+        "frame": null
+      }
+    },
+    {
+      "label": "east-deep",
+      "x": 180,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "census": {
+        "level": "pine-hollow",
+        "feet": [
+          180,
+          3.95,
+          0
+        ],
+        "world": null,
+        "current": null,
+        "ready": null,
+        "info": {
+          "calls": 137,
+          "triangles": 1432085
+        },
+        "glMB": 294.62,
+        "gl": [
+          {
+            "totalBytes": 294618242,
+            "texBytes": 246869500,
+            "bufBytes": 47748742,
+            "rbBytes": 0,
+            "textures": 417,
+            "buffers": 876
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 4.519454,
+              "color": [
+                1,
+                0.756928,
+                0.553583
+              ],
+              "dir": [
+                -0.9006,
+                0.4279,
+                -0.076
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.525768,
+              "color": [
+                0.340136,
+                0.380573,
+                0.534071
+              ],
+              "ground": [
+                0.09381,
+                0.050712,
+                0.021472
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.741038,
+              0.815745,
+              0.8594
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": "ad2e0afe-0c8e-4c98-bfb8-33096f62d96e",
+          "environmentIntensity": 1.391177,
+          "background": null
+        },
+        "screens": null,
+        "frame": null
+      }
+    },
+    {
+      "label": "east-deep-up",
+      "x": 180,
+      "z": 0,
+      "yaw": 2.2707963267948967,
+      "pitch": 0.35,
+      "census": {
+        "level": "pine-hollow",
+        "feet": [
+          180,
+          3.95,
+          0
+        ],
+        "world": null,
+        "current": null,
+        "ready": null,
+        "info": {
+          "calls": 115,
+          "triangles": 1361760
+        },
+        "glMB": 292.66,
+        "gl": [
+          {
+            "totalBytes": 292656610,
+            "texBytes": 246856956,
+            "bufBytes": 45799654,
+            "rbBytes": 0,
+            "textures": 416,
+            "buffers": 870
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 4.519454,
+              "color": [
+                1,
+                0.756928,
+                0.553583
+              ],
+              "dir": [
+                -0.9006,
+                0.4279,
+                -0.076
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.525768,
+              "color": [
+                0.340136,
+                0.380573,
+                0.534071
+              ],
+              "ground": [
+                0.09381,
+                0.050712,
+                0.021472
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.741038,
+              0.815745,
+              0.8594
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": "93df1a2a-bbc8-4a71-ac7b-0a1285633d3e",
+          "environmentIntensity": 1.391177,
+          "background": null
+        },
+        "screens": null,
+        "frame": null
+      }
+    }
+  ]
+}

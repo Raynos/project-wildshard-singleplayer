@@ -1,0 +1,1199 @@
+{
+  "diagnostic": true,
+  "base": "http://127.0.0.1:4400",
+  "mode": "grid",
+  "sky": "own",
+  "dev": true,
+  "started": "2026-10-08T04:41:46.098Z",
+  "errors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: \nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1672: 'uToonNight' : undeclared identifier\nERROR: 0:1699: 'uFogZenith' : undeclared identifier\nERROR: 0:1699: 'mix' : no matching overloaded function found\nERROR: 0:1699: '=' : dimension mismatch\nERROR: 0:1699: '=' :",
+    "THREE.WebGLProgram: Shader Error 0 - VALIDATE_STATUS false\n\nMaterial Name: \nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1674: 'uToonNight' : undeclared identifier\nERROR: 0:1701: 'uFogZenith' : undeclared identifier\nERROR: 0:1701: 'mix' : no matching overloaded function found\nERROR: 0:1701: '=' : dimension mismatch\nERROR: 0:1701: '=' :",
+    "THREE.WebGLProgram: Shader Error 1282 - VALIDATE_STATUS false\n\nMaterial Name: \nMaterial Type: MeshStandardMaterial\n\nProgram Info Log: Fragment shader is not compiled.\n\nFRAGMENT\n\nERROR: 0:1681: 'uToonNight' : undeclared identifier\nERROR: 0:1708: 'uFogZenith' : undeclared identifier\nERROR: 0:1708: 'mix' : no matching overloaded function found\nERROR: 0:1708: '=' : dimension mismatch\nERROR: 0:1708: '="
+  ],
+  "stops": [
+    {
+      "label": "road-before",
+      "x": 277.5,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "census": {
+        "level": "platform.grid",
+        "feet": [
+          277.5,
+          0.02,
+          555
+        ],
+        "world": {
+          "x": 277.5000094022945,
+          "y": 0.019997712392068934,
+          "z": 555
+        },
+        "current": null,
+        "ready": true,
+        "info": {
+          "calls": 44,
+          "triangles": 71120
+        },
+        "glMB": 133.8,
+        "gl": [
+          {
+            "totalBytes": 133797606,
+            "texBytes": 102865720,
+            "bufBytes": 21827438,
+            "rbBytes": 9104448,
+            "textures": 52,
+            "buffers": 246
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 2.7,
+              "color": [
+                1,
+                0.97,
+                0.9
+              ],
+              "dir": [
+                0.3841,
+                0.7682,
+                0.5121
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.9,
+              "color": [
+                0.198069,
+                0.278894,
+                0.904661
+              ],
+              "ground": [
+                0.686685,
+                0.391572,
+                0.187821
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.362108,
+              0.389097,
+              0.424088
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": null,
+          "environmentIntensity": 1,
+          "background": [
+            0.332452,
+            0.386429,
+            0.456411
+          ]
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "pine-hollow",
+              "status": "loading"
+            },
+            {
+              "instance": "template-2",
+              "status": "loading"
+            },
+            {
+              "instance": "nalati-grasslands",
+              "status": "loading"
+            }
+          ],
+          "draws": 38
+        },
+        "frame": {
+          "roadSky": 1,
+          "skies": {},
+          "owner": null
+        }
+      }
+    },
+    {
+      "label": "east-inside",
+      "x": 231,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "leg": {
+        "ok": true,
+        "elapsed": 11.14150000000002,
+        "feet": {
+          "x": 231.65895753170753,
+          "y": 0.020111824460400385,
+          "z": 555.0007597711584
+        }
+      },
+      "census": {
+        "level": "platform.grid",
+        "feet": [
+          231.42,
+          0.02,
+          0
+        ],
+        "world": {
+          "x": 231.42344838133027,
+          "y": 0.01999920823618595,
+          "z": 555.0003526906545
+        },
+        "current": "pine-hollow",
+        "ready": true,
+        "info": {
+          "calls": 144,
+          "triangles": 1454418
+        },
+        "glMB": 386.31,
+        "gl": [
+          {
+            "totalBytes": 386311786,
+            "texBytes": 328280012,
+            "bufBytes": 48927326,
+            "rbBytes": 9104448,
+            "textures": 184,
+            "buffers": 656
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 4.505994,
+              "color": [
+                1,
+                0.779811,
+                0.592618
+              ],
+              "dir": [
+                -0.8924,
+                0.4406,
+                -0.0977
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.539767,
+              "color": [
+                0.34142,
+                0.3917,
+                0.557884
+              ],
+              "ground": [
+                0.091602,
+                0.051137,
+                0.022647
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.740356,
+              0.823255,
+              0.878318
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": "0426a1ed-b8ae-49d0-9bc3-89fd1dadf70b",
+          "environmentIntensity": 1.395552,
+          "background": [
+            0.332452,
+            0.386429,
+            0.456411
+          ]
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "template-2",
+              "status": "loading"
+            },
+            {
+              "instance": "driftwood-isle",
+              "status": "loading"
+            },
+            {
+              "instance": "nalati-grasslands",
+              "status": "loading"
+            }
+          ],
+          "draws": 85
+        },
+        "frame": {
+          "roadSky": 0,
+          "skies": {
+            "pine-hollow": {
+              "weight": 1,
+              "drawn": true,
+              "bytes": 20971520,
+              "reserved": 29360128
+            }
+          },
+          "owner": "pine-hollow"
+        }
+      }
+    },
+    {
+      "label": "east-deep",
+      "x": 180,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "leg": {
+        "ok": true,
+        "elapsed": 12.165799999713903,
+        "feet": {
+          "x": 180.72020859259018,
+          "y": 3.897144631961055,
+          "z": 555.0824635027993
+        }
+      },
+      "census": {
+        "level": "platform.grid",
+        "feet": [
+          180.5,
+          3.92,
+          0.08
+        ],
+        "world": {
+          "x": 180.501119016851,
+          "y": 3.9219707717111305,
+          "z": 555.0849491179952
+        },
+        "current": "pine-hollow",
+        "ready": true,
+        "info": {
+          "calls": 140,
+          "triangles": 1641730
+        },
+        "glMB": 386.61,
+        "gl": [
+          {
+            "totalBytes": 386612314,
+            "texBytes": 328305356,
+            "bufBytes": 49202510,
+            "rbBytes": 9104448,
+            "textures": 195,
+            "buffers": 663
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 4.481162,
+              "color": [
+                1,
+                0.822025,
+                0.66463
+              ],
+              "dir": [
+                -0.8737,
+                0.4656,
+                -0.1408
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.565591,
+              "color": [
+                0.343789,
+                0.412227,
+                0.601816
+              ],
+              "ground": [
+                0.087528,
+                0.05192,
+                0.024814
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.740004,
+              0.837618,
+              0.913724
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": "0426a1ed-b8ae-49d0-9bc3-89fd1dadf70b",
+          "environmentIntensity": 1.403622,
+          "background": [
+            0.332452,
+            0.386429,
+            0.456411
+          ]
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "template-2",
+              "status": "loading"
+            },
+            {
+              "instance": "driftwood-isle",
+              "status": "loading"
+            }
+          ],
+          "draws": 126
+        },
+        "frame": {
+          "roadSky": 0,
+          "skies": {
+            "pine-hollow": {
+              "weight": 1,
+              "drawn": true,
+              "bytes": 20971520,
+              "reserved": 29360128
+            }
+          },
+          "owner": "pine-hollow"
+        }
+      }
+    },
+    {
+      "label": "east-deep-up",
+      "x": 180,
+      "z": 0,
+      "yaw": 2.2707963267948967,
+      "pitch": 0.35,
+      "leg": {
+        "ok": true,
+        "elapsed": 0.03340000009536743,
+        "feet": {
+          "x": 180.50118680589307,
+          "y": 3.921856267790645,
+          "z": 555.0850598454899
+        }
+      },
+      "census": {
+        "level": "platform.grid",
+        "feet": [
+          180.5,
+          3.92,
+          0.09
+        ],
+        "world": {
+          "x": 180.50220485558597,
+          "y": 3.9214284782847244,
+          "z": 555.0867185711168
+        },
+        "current": "pine-hollow",
+        "ready": true,
+        "info": {
+          "calls": 113,
+          "triangles": 1669816
+        },
+        "glMB": 388.48,
+        "gl": [
+          {
+            "totalBytes": 388484234,
+            "texBytes": 329708064,
+            "bufBytes": 49671722,
+            "rbBytes": 9104448,
+            "textures": 198,
+            "buffers": 676
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 4.478316,
+              "color": [
+                1,
+                0.826863,
+                0.672883
+              ],
+              "dir": [
+                -0.872,
+                0.4677,
+                -0.1444
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.568551,
+              "color": [
+                0.344061,
+                0.41458,
+                0.606851
+              ],
+              "ground": [
+                0.087061,
+                0.05201,
+                0.025062
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.739963,
+              0.839264,
+              0.917782
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": "0426a1ed-b8ae-49d0-9bc3-89fd1dadf70b",
+          "environmentIntensity": 1.404547,
+          "background": [
+            0.332452,
+            0.386429,
+            0.456411
+          ]
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "template-2",
+              "status": "loading"
+            },
+            {
+              "instance": "driftwood-isle",
+              "status": "loading"
+            }
+          ],
+          "draws": 129
+        },
+        "frame": {
+          "roadSky": 0,
+          "skies": {
+            "pine-hollow": {
+              "weight": 1,
+              "drawn": true,
+              "bytes": 20971520,
+              "reserved": 29360128
+            }
+          },
+          "owner": "pine-hollow"
+        }
+      }
+    },
+    {
+      "label": "road-after-leave",
+      "x": 277.5,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "leg": {
+        "ok": true,
+        "elapsed": 22.590799999713838,
+        "feet": {
+          "x": 276.81967369384745,
+          "y": 0.020100307005122886,
+          "z": 555.0012558450129
+        }
+      },
+      "census": {
+        "level": "platform.grid",
+        "feet": [
+          277.06,
+          0.02,
+          555
+        ],
+        "world": {
+          "x": 277.0551898075744,
+          "y": 0.020099989053051104,
+          "z": 555.0010501875757
+        },
+        "current": null,
+        "ready": true,
+        "info": {
+          "calls": 44,
+          "triangles": 71120
+        },
+        "glMB": 237.98,
+        "gl": [
+          {
+            "totalBytes": 237981862,
+            "texBytes": 203223124,
+            "bufBytes": 25654290,
+            "rbBytes": 9104448,
+            "textures": 77,
+            "buffers": 515
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 2.7,
+              "color": [
+                1,
+                0.97,
+                0.9
+              ],
+              "dir": [
+                0.3841,
+                0.7682,
+                0.5121
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.9,
+              "color": [
+                0.198069,
+                0.278894,
+                0.904661
+              ],
+              "ground": [
+                0.686685,
+                0.391572,
+                0.187821
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.362108,
+              0.389097,
+              0.424088
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": null,
+          "environmentIntensity": 1,
+          "background": [
+            0.332452,
+            0.386429,
+            0.456411
+          ]
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "template-2",
+              "status": "loading"
+            },
+            {
+              "instance": "driftwood-isle",
+              "status": "loading"
+            },
+            {
+              "instance": "pine-hollow",
+              "status": "loading"
+            }
+          ],
+          "draws": 222
+        },
+        "frame": {
+          "roadSky": 1,
+          "skies": {},
+          "owner": null
+        }
+      }
+    },
+    {
+      "label": "re-enter.east-inside",
+      "x": 231,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "leg": {
+        "ok": true,
+        "elapsed": 10.958699999809276,
+        "feet": {
+          "x": 231.69094160524907,
+          "y": 0.01999982762056618,
+          "z": 555.0001135693817
+        }
+      },
+      "census": {
+        "level": "platform.grid",
+        "feet": [
+          231.46,
+          0.02,
+          0
+        ],
+        "world": {
+          "x": 231.45545622980563,
+          "y": 0.02009996468980546,
+          "z": 555.0000646799882
+        },
+        "current": "pine-hollow",
+        "ready": true,
+        "info": {
+          "calls": 179,
+          "triangles": 1462218
+        },
+        "glMB": 489.41,
+        "gl": [
+          {
+            "totalBytes": 489406566,
+            "texBytes": 432519476,
+            "bufBytes": 47782642,
+            "rbBytes": 9104448,
+            "textures": 203,
+            "buffers": 958
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 4.50593,
+              "color": [
+                1,
+                0.77992,
+                0.592804
+              ],
+              "dir": [
+                -0.8924,
+                0.4406,
+                -0.0977
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.539833,
+              "color": [
+                0.341426,
+                0.391753,
+                0.557998
+              ],
+              "ground": [
+                0.091591,
+                0.051139,
+                0.022653
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.740356,
+              0.823292,
+              0.87841
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": "6210abdb-2638-4d37-8819-cd9ad3204b7e",
+          "environmentIntensity": 1.395573,
+          "background": [
+            0.332452,
+            0.386429,
+            0.456411
+          ]
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "template-2",
+              "status": "loading"
+            },
+            {
+              "instance": "driftwood-isle",
+              "status": "loading"
+            },
+            {
+              "instance": "nalati-grasslands",
+              "status": "loading"
+            }
+          ],
+          "draws": 270
+        },
+        "frame": {
+          "roadSky": 0,
+          "skies": {
+            "pine-hollow": {
+              "weight": 1,
+              "drawn": true,
+              "bytes": 20971520,
+              "reserved": 29360128
+            }
+          },
+          "owner": "pine-hollow"
+        }
+      }
+    },
+    {
+      "label": "road-after-re-enter",
+      "x": 277.5,
+      "z": 0,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05,
+      "leg": {
+        "ok": true,
+        "elapsed": 10.667400000095371,
+        "feet": {
+          "x": 276.7474184996995,
+          "y": 0.019925866507335854,
+          "z": 555.0000026673712
+        }
+      },
+      "census": {
+        "level": "platform.grid",
+        "feet": [
+          276.98,
+          0.02,
+          555
+        ],
+        "world": {
+          "x": 276.9829414881294,
+          "y": 0.01999185632878664,
+          "z": 554.9999696929493
+        },
+        "current": null,
+        "ready": true,
+        "info": {
+          "calls": 44,
+          "triangles": 71120
+        },
+        "glMB": 310.03,
+        "gl": [
+          {
+            "totalBytes": 310027102,
+            "texBytes": 274526260,
+            "bufBytes": 26396394,
+            "rbBytes": 9104448,
+            "textures": 84,
+            "buffers": 535
+          }
+        ],
+        "shared": {
+          "lights": [
+            {
+              "type": "DirectionalLight",
+              "name": "",
+              "intensity": 2.7,
+              "color": [
+                1,
+                0.97,
+                0.9
+              ],
+              "dir": [
+                0.3841,
+                0.7682,
+                0.5121
+              ]
+            },
+            {
+              "type": "HemisphereLight",
+              "name": "",
+              "intensity": 0.9,
+              "color": [
+                0.198069,
+                0.278894,
+                0.904661
+              ],
+              "ground": [
+                0.686685,
+                0.391572,
+                0.187821
+              ]
+            }
+          ],
+          "fog": {
+            "color": [
+              0.362108,
+              0.389097,
+              0.424088
+            ],
+            "near": 1,
+            "far": 1000000,
+            "density": null
+          },
+          "environment": null,
+          "environmentIntensity": 1,
+          "background": [
+            0.332452,
+            0.386429,
+            0.456411
+          ]
+        },
+        "screens": {
+          "shown": [
+            {
+              "instance": "template-2",
+              "status": "loading"
+            },
+            {
+              "instance": "driftwood-isle",
+              "status": "loading"
+            },
+            {
+              "instance": "pine-hollow",
+              "status": "loading"
+            }
+          ],
+          "draws": 311
+        },
+        "frame": {
+          "roadSky": 1,
+          "skies": {},
+          "owner": null
+        }
+      }
+    }
+  ],
+  "version": {
+    "build": "6888453-muz1ma23",
+    "time": "2026-10-08T04:35:20.571Z"
+  },
+  "setting": null,
+  "spawn": {
+    "ok": true
+  },
+  "pineOnRoad": {
+    "cell": {
+      "instance": "pine-hollow",
+      "slug": "pine-hollow",
+      "cell": [
+        0,
+        1
+      ],
+      "shows": "far proxy"
+    },
+    "issues": {},
+    "ready": null
+  },
+  "roadResources": [
+    "texture|22369628|engine/scene|generated/Scene/grid-boulevard/grid-signs/map/Texture",
+    "texture|13107172|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-billboards/map/Texture",
+    "texture|8760384|engine/render-target|EffectComposer.Buffer/color/Texture",
+    "texture|8760384|engine/render-target|EffectComposer.Buffer/color/Texture",
+    "texture|8760384|engine/render-target|LuminancePass.Target/color/Texture",
+    "texture|5592404|engine/scene|generated/Scene/grid-boulevard/grid-junctions/map/Texture",
+    "texture|5592404|engine/scene|http://127.0.0.1:4400/assets/models/driftwood-blender/lm-ao.phone.webp/Texture",
+    "renderbuffer|4380192|engine/render-target|EffectComposer.Buffer/Depthbuffer",
+    "renderbuffer|4380192|engine/render-target|EffectComposer.Buffer/Depthbuffer",
+    "texture|4194304|engine/render-target|generated/render-target/1024x1024/color/Texture",
+    "texture|4194304|engine/render-target|generated/render-target/1024x1024/depth/Texture",
+    "texture|4194300|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-signs/map/Texture",
+    "texture|3495244|engine/scene|generated/Scene/grid-cell-screens/grid-cell-screen/map/Texture",
+    "buffer|3380184|engine/scene|generated/Scene/grid-deck/index",
+    "buffer|3269072|engine/scene|generated/Scene/grid-deck/grainUv",
+    "texture|2796204|engine/scene|generated/Scene/grid-boulevard/grid-asphalt/map/Texture",
+    "buffer|2451804|engine/scene|generated/Scene/grid-deck/color",
+    "buffer|2451804|engine/scene|generated/Scene/grid-deck/normal",
+    "buffer|2451804|engine/scene|generated/Scene/grid-deck/position",
+    "texture|2190096|engine/render-target|Downsampling.Mipmap0/color/Texture",
+    "texture|2190096|engine/scene|generated/Group/Mesh[2]/uniform/e0Map/Upsampling.Mipmap0/Texture",
+    "texture|1747620|engine/texture|generated/texture/Texture",
+    "texture|1398100|engine/scene|http://127.0.0.1:4400/assets/models/driftwood-blender/lm-bounce.phone.webp/Texture",
+    "texture|688128|engine/render-target|PMREM.cubeUv/color/Texture",
+    "texture|688128|engine/render-target|PMREM.cubeUv/color/Texture",
+    "buffer|550080|engine/scene|generated/Scene/Mesh[29]/Mesh[0]/normal",
+    "buffer|550080|engine/scene|generated/Scene/Mesh[29]/Mesh[0]/position",
+    "texture|548328|engine/render-target|Downsampling.Mipmap1/color/Texture",
+    "texture|548328|engine/render-target|Upsampling.Mipmap1/color/Texture",
+    "texture|349524|engine/scene|generated/Scene/Group[8]/cloud-sea/uniform/tNoise/Texture",
+    "texture|349524|engine/scene|generated/Scene/Mesh[4]/Sprite[0]/map/Texture",
+    "renderbuffer|344064|engine/render-target|PMREM.cubeUv/Depthbuffer",
+    "buffer|321048|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid/position",
+    "buffer|320352|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-solid/position",
+    "buffer|316464|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid/position",
+    "buffer|237456|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:boar/position",
+    "buffer|237456|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:boar/skinIndex",
+    "buffer|183360|engine/scene|generated/Scene/Mesh[29]/Mesh[0]/belly",
+    "buffer|155616|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-solid/index",
+    "buffer|155520|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid/index",
+    "buffer|153168|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid/index",
+    "texture|138168|engine/render-target|Downsampling.Mipmap2/color/Texture",
+    "texture|138168|engine/render-target|Upsampling.Mipmap2/color/Texture",
+    "buffer|96096|engine/scene|generated/Scene/animals/SkinnedMesh[12]/skinWeight",
+    "buffer|96096|engine/scene|generated/Scene/animals/SkinnedMesh[13]/skinWeight",
+    "buffer|94164|engine/scene|generated/Scene/grid-cell:far-reach/far-proxy/index",
+    "buffer|87168|engine/scene|generated/Scene/grid-boulevard/grid-signs/normal",
+    "buffer|87168|engine/scene|generated/Scene/grid-boulevard/grid-signs/position",
+    "buffer|80262|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid/color",
+    "buffer|80088|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-solid/color",
+    "buffer|79116|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid/color",
+    "buffer|74040|engine/scene|generated/Scene/grid-cell:driftwood-isle/far-proxy/index",
+    "buffer|73728|engine/scene|generated/Scene/grid-cell:nalati-grasslands/far-proxy/index",
+    "buffer|73728|engine/scene|generated/Scene/grid-cell:pine-hollow/far-proxy/index",
+    "buffer|73728|engine/scene|generated/Scene/grid-cell:sunscar-dunes/far-proxy/index",
+    "buffer|73728|engine/scene|generated/Scene/grid-cell:template-2/far-proxy/index",
+    "buffer|72072|engine/scene|generated/Scene/animals/SkinnedMesh[12]/color",
+    "buffer|72072|engine/scene|generated/Scene/animals/SkinnedMesh[12]/normal",
+    "buffer|72072|engine/scene|generated/Scene/animals/SkinnedMesh[12]/position",
+    "buffer|72072|engine/scene|generated/Scene/animals/SkinnedMesh[13]/color",
+    "buffer|72072|engine/scene|generated/Scene/animals/SkinnedMesh[13]/normal",
+    "buffer|72072|engine/scene|generated/Scene/animals/SkinnedMesh[13]/position",
+    "buffer|70872|engine/scene|generated/Scene/grid-cell:far-reach/far-proxy/color",
+    "buffer|70872|engine/scene|generated/Scene/grid-cell:far-reach/far-proxy/normal",
+    "buffer|70872|engine/scene|generated/Scene/grid-cell:far-reach/far-proxy/position",
+    "buffer|58112|engine/scene|generated/Scene/grid-boulevard/grid-signs/uv",
+    "buffer|56640|engine/scene|generated/Scene/animals/SkinnedMesh[7]/skinWeight",
+    "buffer|55872|engine/scene|generated/Scene/animals/SkinnedMesh[1]/skinWeight",
+    "buffer|55872|engine/scene|generated/Scene/animals/SkinnedMesh[2]/skinWeight",
+    "buffer|55872|engine/scene|generated/Scene/animals/SkinnedMesh[8]/skinWeight",
+    "buffer|48048|engine/scene|generated/Scene/animals/SkinnedMesh[12]/skinIndex",
+    "buffer|48048|engine/scene|generated/Scene/animals/SkinnedMesh[12]/uv",
+    "buffer|48048|engine/scene|generated/Scene/animals/SkinnedMesh[13]/skinIndex",
+    "buffer|48048|engine/scene|generated/Scene/animals/SkinnedMesh[13]/uv",
+    "buffer|47248|engine/scene|generated/Scene/grid-cell:far-reach/far-proxy/uv",
+    "buffer|45552|engine/scene|generated/Scene/grid-cell:driftwood-isle/far-proxy/color",
+    "buffer|45552|engine/scene|generated/Scene/grid-cell:driftwood-isle/far-proxy/normal",
+    "buffer|45552|engine/scene|generated/Scene/grid-cell:driftwood-isle/far-proxy/position",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:nalati-grasslands/far-proxy/color",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:nalati-grasslands/far-proxy/normal",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:nalati-grasslands/far-proxy/position",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:pine-hollow/far-proxy/color",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:pine-hollow/far-proxy/normal",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:pine-hollow/far-proxy/position",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:sunscar-dunes/far-proxy/color",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:sunscar-dunes/far-proxy/normal",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:sunscar-dunes/far-proxy/position",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:template-2/far-proxy/color",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:template-2/far-proxy/normal",
+    "buffer|44928|engine/scene|generated/Scene/grid-cell:template-2/far-proxy/position",
+    "buffer|43584|engine/scene|generated/Scene/grid-boulevard/grid-signs/index",
+    "buffer|42480|engine/scene|generated/Scene/animals/SkinnedMesh[7]/color",
+    "buffer|42480|engine/scene|generated/Scene/animals/SkinnedMesh[7]/normal",
+    "buffer|42480|engine/scene|generated/Scene/animals/SkinnedMesh[7]/position",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[1]/color",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[1]/normal",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[1]/position",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[2]/color",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[2]/normal",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[2]/position",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[8]/color",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[8]/normal",
+    "buffer|41904|engine/scene|generated/Scene/animals/SkinnedMesh[8]/position",
+    "buffer|37440|engine/scene|generated/Scene/grid-border-shimmer/grid-border-shimmer-line/position",
+    "texture|35088|engine/render-target|Downsampling.Mipmap3/color/Texture",
+    "buffer|30368|engine/scene|generated/Scene/grid-cell:driftwood-isle/far-proxy/uv",
+    "buffer|29952|engine/scene|generated/Scene/grid-cell:nalati-grasslands/far-proxy/uv",
+    "buffer|29952|engine/scene|generated/Scene/grid-cell:pine-hollow/far-proxy/uv",
+    "buffer|29952|engine/scene|generated/Scene/grid-cell:sunscar-dunes/far-proxy/uv",
+    "buffer|29952|engine/scene|generated/Scene/grid-cell:template-2/far-proxy/uv",
+    "buffer|28320|engine/scene|generated/Scene/animals/SkinnedMesh[7]/skinIndex",
+    "buffer|28320|engine/scene|generated/Scene/animals/SkinnedMesh[7]/uv",
+    "buffer|27936|engine/scene|generated/Scene/animals/SkinnedMesh[1]/skinIndex",
+    "buffer|27936|engine/scene|generated/Scene/animals/SkinnedMesh[1]/uv",
+    "buffer|27936|engine/scene|generated/Scene/animals/SkinnedMesh[2]/skinIndex",
+    "buffer|27936|engine/scene|generated/Scene/animals/SkinnedMesh[2]/uv",
+    "buffer|27936|engine/scene|generated/Scene/animals/SkinnedMesh[8]/skinIndex",
+    "buffer|27936|engine/scene|generated/Scene/animals/SkinnedMesh[8]/uv",
+    "buffer|25920|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Group[1]/Group[0]/Mesh[0]/color",
+    "buffer|25920|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Group[1]/Group[0]/Mesh[0]/normal",
+    "buffer|25920|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Group[1]/Group[0]/Mesh[0]/position",
+    "buffer|24960|engine/scene|generated/Scene/grid-border-shimmer/grid-border-shimmer-line/uv",
+    "buffer|24024|engine/scene|generated/Scene/animals/SkinnedMesh[12]/furLen",
+    "buffer|24024|engine/scene|generated/Scene/animals/SkinnedMesh[13]/furLen",
+    "buffer|20400|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:grey-blob/position",
+    "buffer|20400|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:grey-blob/skinIndex",
+    "buffer|18672|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-lines/position",
+    "buffer|18432|engine/scene|generated/Scene/grid-border-shimmer/grid-border-shimmer-line/index",
+    "buffer|17448|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-lines/position",
+    "buffer|17304|engine/scene|generated/Scene/Group[8]/Mesh[0]/color",
+    "buffer|17304|engine/scene|generated/Scene/Group[8]/Mesh[0]/normal",
+    "buffer|17304|engine/scene|generated/Scene/Group[8]/Mesh[0]/position",
+    "buffer|17304|engine/scene|generated/Scene/Group[8]/Mesh[1]/color",
+    "buffer|17304|engine/scene|generated/Scene/Group[8]/Mesh[1]/normal",
+    "buffer|17304|engine/scene|generated/Scene/Group[8]/Mesh[1]/position",
+    "buffer|15216|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-lines/position",
+    "buffer|14700|engine/scene|generated/Scene/Mesh[0]/normal",
+    "buffer|14700|engine/scene|generated/Scene/Mesh[0]/position",
+    "buffer|14160|engine/scene|generated/Scene/animals/SkinnedMesh[7]/furLen",
+    "buffer|13968|engine/scene|generated/Scene/animals/SkinnedMesh[1]/furLen",
+    "buffer|13968|engine/scene|generated/Scene/animals/SkinnedMesh[2]/furLen",
+    "buffer|13968|engine/scene|generated/Scene/animals/SkinnedMesh[8]/furLen",
+    "buffer|13968|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:boar/index",
+    "buffer|13248|engine/scene|generated/Scene/Mesh[0]/index",
+    "buffer|12984|engine/scene|generated/Scene/Group[8]/Mesh[2]/color",
+    "buffer|12984|engine/scene|generated/Scene/Group[8]/Mesh[2]/normal",
+    "buffer|12984|engine/scene|generated/Scene/Group[8]/Mesh[2]/position",
+    "buffer|11520|engine/scene|generated/Scene/grid-seam-curtain/position",
+    "buffer|10944|engine/scene|generated/Scene/grid-boulevard/grid-asphalt/normal",
+    "buffer|10944|engine/scene|generated/Scene/grid-boulevard/grid-asphalt/position",
+    "buffer|10224|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-lines/position",
+    "buffer|10224|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-lines/position",
+    "buffer|10224|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-lines/position",
+    "buffer|9800|engine/scene|generated/Scene/Mesh[0]/uv",
+    "buffer|8640|engine/scene|generated/Scene/Group[8]/Mesh[0]/index",
+    "buffer|8640|engine/scene|generated/Scene/Group[8]/Mesh[1]/index",
+    "buffer|7680|engine/scene|generated/Scene/grid-boulevard/grid-junctions/normal",
+    "buffer|7680|engine/scene|generated/Scene/grid-boulevard/grid-junctions/position",
+    "buffer|7500|engine/scene|generated/Scene/Mesh[4]/normal",
+    "buffer|7500|engine/scene|generated/Scene/Mesh[4]/position",
+    "buffer|7296|engine/scene|generated/Scene/grid-boulevard/grid-asphalt/uv",
+    "buffer|7200|engine/scene|generated/Scene/grid-seam-curtain/index",
+    "buffer|6732|engine/scene|generated/Scene/road-sky/normal",
+    "buffer|6732|engine/scene|generated/Scene/road-sky/position",
+    "buffer|6624|engine/scene|generated/Scene/grid-boulevard/grid-asphalt/index",
+    "buffer|6624|engine/scene|generated/Scene/Mesh[4]/index",
+    "buffer|6480|engine/scene|generated/Scene/Group[8]/Mesh[2]/index",
+    "buffer|6048|engine/scene|generated/Scene/grid-cell:template-2/copy-identity:template-2/copy-layout/normal",
+    "buffer|6048|engine/scene|generated/Scene/grid-cell:template-2/copy-identity:template-2/copy-layout/position",
+    "buffer|5760|engine/scene|generated/Scene/road-sky/index",
+    "buffer|5664|engine/scene|generated/Scene/grid-boulevard/grid-junctions/index",
+    "texture|5460|engine/scene|generated/Scene/animals/Group[0]/Points[0]/map/Texture",
+    "buffer|5120|engine/scene|generated/Scene/grid-boulevard/grid-junctions/uv",
+    "buffer|5000|engine/scene|generated/Scene/Mesh[4]/uv",
+    "buffer|4608|engine/scene|generated/Scene/animals/Group[0]/Points[0]/position",
+    "buffer|4488|engine/scene|generated/Scene/road-sky/uv",
+    "buffer|3024|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Group[1]/Group[1]/Mesh[0]/color",
+    "buffer|3024|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Group[1]/Group[1]/Mesh[0]/normal",
+    "buffer|3024|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Group[1]/Group[1]/Mesh[0]/position",
+    "buffer|2880|engine/scene|generated/Scene/grid-cell:template-2/copy-identity:template-2/copy-identity-number/position",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[1]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[1]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[1]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[1]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[12]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[13]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[2]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[2]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[2]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[2]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[2]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[7]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/animals/SkinnedMesh[8]/skeleton/bones/Texture",
+    "texture|2304|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:boar/skeleton/bones/Texture",
+    "buffer|2016|engine/scene|generated/Scene/grid-cell:template-2/copy-identity:template-2/copy-layout/color",
+    "buffer|1512|engine/scene|generated/Scene/grid-cell:template-2/copy-identity:template-2/copy-layout/index",
+    "buffer|1200|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:grey-blob/index",
+    "buffer|1152|engine/scene|generated/Scene/grid-soft-walls/grid-soft-wall/position",
+    "texture|1024|engine/texture|generated/texture/DFG_LUT/Texture",
+    "buffer|768|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-cards/position",
+    "buffer|768|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-cards/position",
+    "buffer|768|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-cards/position",
+    "buffer|768|engine/scene|generated/Scene/grid-soft-walls/grid-soft-wall/uv",
+    "buffer|576|engine/scene|generated/Scene/grid-cell:template-2/copy-identity:template-2/copy-identity-plate/position",
+    "buffer|576|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-signs/position",
+    "buffer|576|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-signs/position",
+    "buffer|576|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-signs/position",
+    "buffer|512|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-cards/uv",
+    "buffer|512|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-cards/uv",
+    "buffer|512|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-cards/uv",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/outputDirection",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Mesh/position",
+    "buffer|432|engine/scene|generated/Scene/grid-cell:template-2/Group[5]/Group[0]/templatedoor/color",
+    "buffer|432|engine/scene|generated/Scene/grid-cell:template-2/Group[5]/Group[0]/templatedoor/normal",
+    "buffer|432|engine/scene|generated/Scene/grid-cell:template-2/Group[5]/Group[0]/templatedoor/position",
+    "buffer|384|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-cards/index",
+    "buffer|384|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-signs/uv",
+    "buffer|384|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-cards/index",
+    "buffer|384|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-signs/uv",
+    "buffer|384|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-cards/index",
+    "buffer|384|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-signs/uv",
+    "buffer|384|engine/scene|generated/Scene/grid-soft-walls/grid-soft-wall/aClosed",
+    "buffer|288|engine/scene|generated/Scene/grid-cell:template-2/Group[5]/Group[0]/templatedoor/uv",
+    "buffer|288|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-glass/normal",
+    "buffer|288|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-glass/position",
+    "buffer|288|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-signs/index",
+    "buffer|288|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-signs/index",
+    "buffer|288|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-signs/index",
+    "buffer|288|engine/scene|generated/Scene/grid-soft-walls/grid-soft-wall/index",
+    "buffer|288|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Mesh[0]/normal",
+    "buffer|288|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Mesh[0]/position",
+    "texture|256|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:grey-blob/skeleton/bones/Texture",
+    "texture|256|engine/scene|generated/Scene/grid-cell:template-2/neighbour-creature:grey-blob/skeleton/bones/Texture",
+    "buffer|192|engine/scene|generated/Scene/grid-cell:sunscar-dunes/haze-band/position",
+    "buffer|192|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-billboards/position",
+    "buffer|192|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-glass/uv",
+    "buffer|192|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-billboards/position",
+    "buffer|192|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-billboards/position",
+    "buffer|192|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Mesh[0]/uv",
+    "buffer|144|engine/scene|generated/Scene/grid-cell:template-2/Group[5]/Group[0]/templatedoor/index",
+    "buffer|128|engine/scene|generated/Scene/grid-cell:sunscar-dunes/haze-band/uv",
+    "buffer|128|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-billboards/uv",
+    "buffer|128|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-billboards/uv",
+    "buffer|128|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-billboards/uv",
+    "buffer|96|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-billboards/index",
+    "buffer|96|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-billboards/index",
+    "buffer|96|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-billboards/index",
+    "buffer|96|engine/scene|generated/Scene/grid-void/grid-void-floor/position",
+    "buffer|80|engine/scene|generated/Scene/Mesh[4]/Sprite[0]/position",
+    "buffer|72|engine/scene|generated/Scene/grid-cell:template-2/client-script-particles/aColour",
+    "buffer|72|engine/scene|generated/Scene/grid-cell:template-2/client-script-particles/position",
+    "buffer|72|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-holo-glass/index",
+    "buffer|72|engine/scene|generated/Scene/PerspectiveCamera[0]/Group[0]/Mesh[0]/index",
+    "buffer|48|engine/scene|generated/Scene/grid-cell-screens/grid-cell-screen/normal",
+    "buffer|48|engine/scene|generated/Scene/grid-cell-screens/grid-cell-screen/position",
+    "buffer|48|engine/scene|generated/Scene/grid-cell:sunscar-dunes/haze-band/index",
+    "buffer|48|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-floor/position",
+    "buffer|48|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-scan/normal",
+    "buffer|48|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-scan/position",
+    "buffer|48|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-floor/position",
+    "buffer|48|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-floor/position",
+    "buffer|48|engine/scene|generated/Scene/grid-void/grid-void-floor/index",
+    "buffer|48|engine/scene|generated/Scene/Group[8]/cloud-sea/normal",
+    "buffer|48|engine/scene|generated/Scene/Group[8]/cloud-sea/position",
+    "buffer|36|engine/scene|generated/Scene/Mesh[0]/position",
+    "buffer|32|engine/scene|generated/Scene/grid-cell-screens/grid-cell-screen/uv",
+    "buffer|32|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-scan/uv",
+    "buffer|32|engine/scene|generated/Scene/Group[8]/cloud-sea/uv",
+    "texture|24|engine/renderer|builtin/renderer-initialization",
+    "buffer|24|engine/scene|generated/Scene/grid-cell:template-2/client-script-particles/aAlpha",
+    "buffer|24|engine/scene|generated/Scene/grid-cell:template-2/client-script-particles/aSize",
+    "buffer|24|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-floor/index",
+    "buffer|24|engine/scene|generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-floor/index",
+    "buffer|24|engine/scene|generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-floor/index",
+    "buffer|24|engine/scene|generated/Scene/Mesh[0]/uv",
+    "buffer|12|engine/scene|generated/Scene/grid-cell-screens/grid-cell-screen/index",
+    "buffer|12|engine/scene|generated/Scene/grid-open-plot:open-plot-nw/grid-open-plot-hologram/grid-open-plot-scan/index",
+    "buffer|12|engine/scene|generated/Scene/Group[8]/cloud-sea/index",
+    "buffer|12|engine/scene|generated/Scene/Mesh[4]/Sprite[0]/index",
+    "texture|4|engine/renderer|builtin/renderer-initialization",
+    "texture|4|engine/renderer|builtin/renderer-initialization",
+    "texture|4|engine/renderer|builtin/renderer-initialization",
+    "texture|4|engine/scene|generated/Group/Mesh[0]/map/Texture",
+    "texture|4|engine/scene|generated/Group/Mesh[1]/map/family:pbr-filler/Texture",
+    "texture|4|engine/scene|generated/Group/Mesh[1]/normalMap/family:pbr-filler/Texture",
+    "texture|4|pier|src/shards/driftwood-isle/models/pier.ts#Pier/driftwood-isle/pier/map/Texture",
+    "texture|4|pier|src/shards/driftwood-isle/models/pier.ts#Pier/driftwood-isle/pier/normalMap/Texture"
+  ],
+  "roadSky": {
+    "exactAfterLeave": true,
+    "exactAfterReEnter": true,
+    "skiesOnRoad": [
+      {},
+      {},
+      {}
+    ],
+    "glMB": [
+      133.8,
+      237.98,
+      310.03
+    ]
+  }
+}
