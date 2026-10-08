@@ -15,7 +15,7 @@ import { mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync } fr
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GL_INIT } from '../parity/glbytes.mjs';
-import { installSoakGl, installSoakWasm } from './gl.mjs';
+import { installSoakGl, installSoakWasm, installLoadingGlJournal } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
@@ -93,9 +93,10 @@ async function worker() {
   const duration = policy.seconds;
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
   const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
-  const glFile = join(out, `${name}-gl.jsonl`), glRows = [];
-  if (existsSync(glFile) || existsSync(nativeFile) || existsSync(join(out, `${name}.json`))) throw new Error('Soak evidence already exists; use a fresh output directory');
+  const glFile = join(out, `${name}-gl.jsonl`), glRows = [], glEvents = [], glEventsFile = join(out, `${name}-gl-events.jsonl`);
+  if (existsSync(glFile) || existsSync(glEventsFile) || existsSync(nativeFile) || existsSync(join(out, `${name}.json`))) throw new Error('Soak evidence already exists; use a fresh output directory');
   writeFileSync(glFile, '');
+  writeFileSync(glEventsFile, '');
   const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'Playing: fixed game WebContent PID physical footprint + live labelled GL. Loading: conservative all-WebContent overlap + GL. All-WebContent and GPU process also printed separately.', sha, layout, leg, device: udid, surface: 'portrait iPhone Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
@@ -103,6 +104,9 @@ async function worker() {
   const collectGl = async () => {
     if (!driver) return;
     const rows = await driver.evaluate('window.__sf57GL?.splice(0) ?? []');
+    for (const row of await driver.evaluate('window.__sf57GLEvents?.splice(0) ?? []')) {
+      glEvents.push(row); appendFileSync(glEventsFile, `${JSON.stringify(row)}\n`);
+    }
     for (const row of rows) {
       for (const instance of lastResidents) if (!row.residents.includes(instance)) result.evictions.push({ at: row.at, cycle: row.cycle, instance, residents: row.residents });
       lastResidents = row.residents;
@@ -116,7 +120,7 @@ async function worker() {
     proxy = spawn('ios_webkit_debug_proxy', ['-s', `unix:${xcrun(['getenv', udid, 'RWI_LISTEN_SOCKET'])}`, '-c', 'null:9221,:9232-9240', '-F'], { stdio: 'ignore' });
     proxy.on('error', (error) => { result.errors.push(String(error)); });
     xcrun(['openurl', udid, `${base}version.json`]); driver = await connect(`${base}version.json`);
-    await driver.evaluate(`${GL_INIT};window.__sf57Errors=[];(${installSoakGl.toString()})();localStorage.clear();sessionStorage.clear();window.__sf57GL.push(window.__sf57ReadGL());true`);
+    await driver.evaluate(`${GL_INIT};window.__sf57Errors=[];localStorage.clear();sessionStorage.clear();(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();window.__sf57GL.push(window.__sf57ReadGL());true`);
     await collectGl();
     phase('loading');
     sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
@@ -151,6 +155,7 @@ async function worker() {
     const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
     const first = result.route.plans[0];
     await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)})`);
+    await driver.evaluate('window.__sf57StopGLJournal();true'); await collectGl();
     result.listenerBaseline = await driver.evaluate('window.__parityResources().listenerDetails');
     await driver.evaluate('window.__sf57={cycles:0};true');
     phase('baseline-0'); await measuredWait(10);
@@ -192,11 +197,13 @@ async function worker() {
     }
     result.seconds = (Date.now() - driveStart) / 1000;
     result.lastState = await driver.evaluate('window.__wildshard.shard.grid.state()');
+    result.listenerBeforeUnload = await driver.evaluate('window.__parityResources().listenerDetails');
     phase('unloaded');
     await driver.evaluate(`window.__wildshard.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true`);
     await until(driver, 'Boolean(window.__sf57Leak)', 60000, collectGl);
-    result.leak = await driver.evaluate('window.__sf57Leak'); await measuredWait(20);
+    result.leak = await driver.evaluate('window.__sf57Leak');
     result.listenerAfter = await driver.evaluate('window.__parityResources().listenerDetails');
+    await measuredWait(20);
     await driver.evaluate('clearInterval(window.__sf57GLTimer);true');
     result.errors = [...new Set([...result.errors, ...await driver.evaluate('window.__sf57Errors')])];
     phase('done'); await samplerClosed; sampler = null;
@@ -204,15 +211,18 @@ async function worker() {
   } catch (error) {
     result.failure = String(error.stack ?? error); result.errors.push(result.failure);
     if (driver) {
+      await driver.evaluate('window.__sf57StopGLJournal?.();true').catch(() => undefined); await collectGl().catch(() => undefined);
       result.diagnostic = await driver.evaluate('JSON.stringify({url:location.href,documentId:window.__sf57DocumentId,stop:window.__frameFloorGridStop,state:window.__wildshard?.shard?.grid?.state(),errors:window.__sf57Errors,body:document.body.innerText.slice(-4000)})').catch(() => null);
+      result.listenerBeforeUnload = await driver.evaluate('window.__parityResources?.().listenerDetails').catch(() => null);
       await driver.evaluate('window.__wildshard?.world?.game.app.input.clear();true').catch(() => undefined);
       if (!(await driver.evaluate('Boolean(window.__sf57Leak)'))) {
         phase('unloaded');
         try {
           await driver.evaluate('window.__wildshard?.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true');
           await until(driver, 'Boolean(window.__sf57Leak)', 60000, collectGl);
-          result.leak = await driver.evaluate('window.__sf57Leak'); await measuredWait(5);
+          result.leak = await driver.evaluate('window.__sf57Leak');
           result.listenerAfter = await driver.evaluate('window.__parityResources().listenerDetails');
+          await measuredWait(5);
         } catch (cleanupError) { result.cleanupError = String(cleanupError); }
       }
     }
@@ -223,7 +233,7 @@ async function worker() {
     try { xcrun(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Already closed. */ }
   }
   const native = existsSync(nativeFile) ? readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line)) : [];
-  const samples = joinSoakSamples(native, glRows, result.gamePid ?? null);
+  const samples = joinSoakSamples(native, glRows, result.gamePid ?? null, glEvents);
   result.grade = gradeSoak({ samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal, leg, contentCut });
@@ -233,6 +243,7 @@ async function worker() {
   if (!result.functionalPass) process.exitCode = 1;
   result.nativeSummary = native.find((row) => row.type === 'summary');
   result.glFile = glFile; result.glSamples = glRows.length; result.nativeFile = nativeFile; result.sampleCount = samples.length;
+  result.glEventsFile = glEventsFile; result.glEvents = glEvents.length;
   writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
   console.log(JSON.stringify({ layout, ...result.grade, failure: result.failure }));
 }
@@ -261,7 +272,7 @@ function writeHelper(base, layout) {
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
-  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};`;
+  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();${fixtures};`;
   const helper = html.replace('<head>', `<head><script data-sf57-fixture>${pins}</script>`);
   // The ordinary main-menu action can return to index.html before any measurement begins.
   writeFileSync(join(dist, 'index.html'), helper);

@@ -1,3 +1,25 @@
+/** Record loading mutations even when long tasks prevent the one-second timer from running. */
+export function installLoadingGlJournal() {
+  const key = 'sf57.loading-gl-journal';
+  const documentId = window.__sf57DocumentId ??= `${Date.now()}:${Math.random()}`;
+  window.__sf57GLEvents = JSON.parse(sessionStorage.getItem(key) ?? '[]');
+  sessionStorage.removeItem(key);
+  let sequence = 0;
+  const push = row => window.__sf57GLEvents.push({ ...row, document: documentId, sequence: sequence++ });
+  push({ op: 'begin', at: Date.now() / 1000 });
+  window.__sc_gl_change = push;
+  window.__sf57StopGLJournal = () => {
+    if (window.__sc_gl_change !== push) return;
+    push({ op: 'stop', at: Date.now() / 1000 }); window.__sc_gl_change = null;
+  };
+  // Page lifetime, installed before game boot. Persist the tail through the ordinary title navigation.
+  window.addEventListener('pagehide', () => {
+    if (window.__sc_gl_change !== push) return;
+    push({ op: 'end', at: Date.now() / 1000 }); window.__sc_gl_change = null;
+    sessionStorage.setItem(key, JSON.stringify(window.__sf57GLEvents));
+  }, { once: true });
+}
+
 /** Called before boot, after GL_INIT. Live API allocations are labelled; GPU-process footprint is separate. */
 export function installSoakGl() {
   window.__sf57GL = [];

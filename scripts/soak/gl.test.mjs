@@ -1,6 +1,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { installSoakGl, installSoakWasm } from './gl.mjs';
+import { installSoakGl, installSoakWasm, installLoadingGlJournal } from './gl.mjs';
+
+void test('SF57 loading journal survives ordinary navigation, preserves sequence and disables mutations before playing', () => {
+  const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map();
+  let hide;
+  try {
+    globalThis.sessionStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { storage.set(key, value); }, removeItem: key => { storage.delete(key); } };
+    const page = id => ({ __sf57DocumentId: id, addEventListener: (name, listener) => { assert.equal(name, 'pagehide'); hide = listener; } });
+    globalThis.window = page('first'); installLoadingGlJournal();
+    window.__sc_gl_change({ op: 'allocation', at: Date.now() / 1000, id: 'buffer:1', bytes: 64 }); hide();
+    assert.equal(window.__sc_gl_change, null);
+    globalThis.window = page('second'); installLoadingGlJournal();
+    assert.deepEqual(window.__sf57GLEvents.map(row => [row.document, row.sequence, row.op]),
+      [['first', 0, 'begin'], ['first', 1, 'allocation'], ['first', 2, 'end'], ['second', 0, 'begin']]);
+    window.__sf57StopGLJournal(); assert.equal(window.__sc_gl_change, null);
+    assert.equal(window.__sf57GLEvents.at(-1).op, 'stop');
+    hide(); assert.equal(storage.size, 0, 'Playing navigation does not create a new loading journal');
+  } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
+});
 
 void test('SF57 preserves labelled GL allocations, reconciliation and allocator telemetry each second', () => {
   const oldWindow = globalThis.window, oldInterval = globalThis.setInterval;

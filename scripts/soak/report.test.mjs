@@ -31,6 +31,29 @@ for (const format of ['modern', 'historical']) void test(`reports ${format} cont
   } finally { rmSync(scratch, { recursive: true, force: true }); }
 });
 
+void test('regrading uses complete loading mutations and preserves their raw artifact, but refuses a missing mutation', () => {
+  const scratch = mkdtempSync(join(tmpdir(), 'sf57-loading-journal-')), origin = Date.parse('2026-10-04T00:00:00Z') / 1000;
+  try {
+    writeFileSync(join(scratch, 'dev-cells.json'), JSON.stringify({ sha: 'fixture', leg: 'cells', seconds: 0, circuits: 0,
+      driveStarted: new Date(origin * 1000).toISOString(), windows: [], evictions: [], errors: [], leak: null, expected: [], entries: [], crossroads: [] }));
+    writeFileSync(join(scratch, 'dev-cells-native.jsonl'), `${JSON.stringify({ type: 'sample', phase: 'loading', t: new Date((origin + 5) * 1000).toISOString(), footprint: 400_000_000 })}\n`);
+    writeFileSync(join(scratch, 'dev-cells-gl.jsonl'), '');
+    const events = [{ op: 'begin', at: origin, sequence: 0 },
+      { op: 'allocation', at: origin + 1, sequence: 1, id: 'buffer:1', kind: 'buffer', bytes: 64, labelled: true },
+      { op: 'stop', at: origin + 6, sequence: 2 }].map(row => Object.assign(row, { document: 'fixture' }));
+    const run = (directory) => {
+      writeFileSync(join(scratch, 'dev-cells-gl-events.jsonl'), `${events.map(row => JSON.stringify(row)).join('\n')}\n`);
+      execFileSync(process.execPath, ['scripts/soak/report.mjs', `--from=${scratch}`, `--out=${join(scratch, directory)}`]);
+      return JSON.parse(readFileSync(join(scratch, directory, 'summary.json'), 'utf8')).layouts[0];
+    };
+    const complete = run('complete');
+    assert.equal(complete.grade.loadingPeakBytes, 400_000_064); assert.equal(complete.grade.missingGlSamples, 0);
+    assert.ok(complete.artifacts.some(row => row.file === 'dev-cells-gl-events.jsonl.br'));
+    events[1].sequence = 9;
+    const incomplete = run('incomplete'); assert.equal(incomplete.grade.missingGlSamples, 1); assert.equal(incomplete.grade.gatePass, false);
+  } finally { rmSync(scratch, { recursive: true, force: true }); }
+});
+
 void test('regrading preserves the fixed game PID and leaves prewarmed WebContent and GPU outside the ruler', () => {
   const scratch = mkdtempSync(join(tmpdir(), 'sf57-fixed-pid-'));
   try {

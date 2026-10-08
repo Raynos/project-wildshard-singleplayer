@@ -78,9 +78,10 @@ export async function releaseSoakPreviews(/** @type {readonly {base:string}[]} *
 }
 
 /** Match native and GL samples by wall timestamp, retaining missing reads as failures. GPU stays separate. */
-export function joinSoakSamples(native, gl, gamePid = /** @type {number | null} */ (null)) {
+export function joinSoakSamples(native, gl, gamePid = /** @type {number | null} */ (null), loadingEvents = []) {
   let cursor = 0;
   const samples = [];
+  const loading = loadingGlSamples(loadingEvents, native.filter(row => row.type === 'sample' && row.phase === 'loading').map(row => Date.parse(row.t) / 1000));
   for (const row of native) {
     if (row.type !== 'sample') continue;
     const elapsed = Date.parse(row.t) / 1000;
@@ -96,10 +97,54 @@ export function joinSoakSamples(native, gl, gamePid = /** @type {number | null} 
         sample.footprint = process?.[0] ?? 0; sample.interval = process?.[1] ?? 0;
       }
     }
-    if (closest && Math.abs(closest.at - elapsed) <= 1.5) sample.gl = closest;
+    if (row.phase === 'loading' && loading.has(elapsed)) sample.gl = loading.get(elapsed);
+    else if (closest && Math.abs(closest.at - elapsed) <= 1.5) sample.gl = closest;
     samples.push(sample);
   }
   return samples;
+}
+
+/** Replay every loading allocation/label mutation; never infer state outside explicit begin/stop coverage. */
+export function loadingGlSamples(events, timestamps) {
+  const sorted = [...events].sort((a, b) => a.at - b.at), result = new Map();
+  const first = sorted.find(row => row.op === 'begin'), last = sorted.findLast(row => row.op === 'stop');
+  if (!first || !last) return result;
+  const sequences = new Map(), endings = new Map();
+  for (const event of sorted) {
+    const previous = sequences.get(event.document);
+    if (previous === undefined ? event.op !== 'begin' || event.sequence !== 0 : event.sequence !== previous + 1) return result;
+    sequences.set(event.document, event.sequence);
+    endings.set(event.document, event.op);
+  }
+  if ([...endings.values()].some(op => op !== 'end' && op !== 'stop') || sorted.filter(row => row.op === 'stop').length !== 1) return result;
+  const resources = new Map(), labels = new Map(); let cursor = 0;
+  for (const at of [...timestamps].sort((a, b) => a - b)) {
+    if (at < first.at || at > last.at) continue;
+    while (cursor < sorted.length && sorted[cursor].at <= at) {
+      const event = sorted[cursor++], key = `${event.document}:${event.id}`;
+      if (event.op === 'end') {
+        for (const [id, resource] of resources) if (resource.document === event.document) resources.delete(id);
+        for (const id of labels.keys()) if (id.startsWith(`${event.document}:`)) labels.delete(id);
+      } else if (event.op === 'label') {
+        const tag = { owner: event.owner, asset: event.asset, labelled: true }; labels.set(key, tag);
+        if (resources.has(key)) resources.set(key, { ...resources.get(key), ...tag });
+      } else if (event.op === 'allocation') {
+        if (event.bytes === null) resources.delete(key);
+        else resources.set(key, { ...event, ...labels.get(key) });
+      }
+    }
+    let totalBytes = 0, textures = 0, renderbuffers = 0, buffers = 0, unlabelled = 0;
+    for (const resource of resources.values()) {
+      totalBytes += resource.bytes; if (!resource.labelled) unlabelled++;
+      if (resource.kind === 'texture') textures += resource.bytes;
+      else if (resource.kind === 'renderbuffer') renderbuffers += resource.bytes;
+      else if (resource.kind === 'buffer') buffers += resource.bytes;
+    }
+    result.set(at, { at, totalBytes, textures, renderbuffers, buffers, unlabelled,
+      reconciled: totalBytes === textures + renderbuffers + buffers, accountedBytes: null, cycle: null,
+      source: 'complete loading allocation journal', journalFrom: first.at, journalThrough: last.at });
+  }
+  return result;
 }
 
 /** Safari returns Promise handles, so poll a fenced result envelope while sampling continues. */

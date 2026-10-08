@@ -2,10 +2,31 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
+
+void test('SF57 loading mutation replay covers blocked timers, resizes, labels and document retirement without interpolation', () => {
+  const events = [
+    { at: 0, op: 'begin' }, { at: 1, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 64, labelled: false },
+    { at: 1, op: 'label', id: 'buffer:1', owner: 'engine', asset: 'fixture' },
+    { at: 2, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 128 },
+    { at: 8, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: null }, { at: 9, op: 'end' },
+  ].map((row, sequence) => Object.assign(row, { document: 'first', sequence }));
+  events.push(...[{ at: 10, op: 'begin' }, { at: 11, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 20, labelled: true },
+    { at: 12, op: 'stop' }].map((row, sequence) => Object.assign(row, { document: 'second', sequence })));
+  const replay = loadingGlSamples(events, [-1, .5, 5, 8.5, 9.5, 11.5, 13]);
+  assert.equal(replay.has(-1), false); assert.equal(replay.has(13), false);
+  assert.deepEqual([...replay.values()].map(row => row.totalBytes), [0, 128, 0, 0, 20]);
+  assert.equal(replay.get(5).unlabelled, 0); assert.equal(replay.get(5).reconciled, true);
+  assert.equal(loadingGlSamples(events.slice(0, -1), [5]).size, 0);
+  assert.equal(loadingGlSamples(events.filter(row => row.op !== 'end'), [5]).size, 0, 'Navigation must retire the previous document explicitly');
+  assert.equal(loadingGlSamples(events.filter(row => row.at !== 2), [5]).size, 0, 'A lost mutation is missing evidence, never a guessed state');
+  const native = [{ type: 'sample', phase: 'loading', t: new Date(5000).toISOString(), footprint: 500 }];
+  assert.equal(joinSoakSamples(native, [], null, events)[0].gl.totalBytes, 128);
+  assert.equal(joinSoakSamples([{ ...native[0], phase: 'drive' }], [], null, events)[0].gl, undefined, 'Playing still needs the actual one-second census');
+});
 
 void test('SF57 prepared-cell rehearsal records open coverage and refuses qualifying subset runs', () => {
   const cells = soakCatalogue(catalogue, 'dev');

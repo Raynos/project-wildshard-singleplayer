@@ -36,21 +36,17 @@ for (const { layout, leg, name } of runs) {
   if (original.leg !== undefined && original.leg !== leg) throw new Error(`Receipt leg mismatch: ${name}`);
   writeFileSync(join(out, `${name}-original.json`), originalText);
   const rawNative = readFileSync(join(from, `${name}-native.jsonl`), 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line));
-  const native = joinSoakSamples(rawNative, [], original.gamePid ?? null);
   // Keep full labelled allocation groups in the compressed raw log; joins need only scalar telemetry.
   const gl = readFileSync(join(from, `${name}-gl.jsonl`), 'utf8').trim().split('\n').filter(Boolean).map((line) => {
     const row = JSON.parse(line); delete row.assets; return row;
   });
-  let cursor = 0;
+  const eventsName = `${name}-gl-events.jsonl`;
+  const loadingEvents = existsSync(join(from, eventsName)) ? readFileSync(join(from, eventsName), 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
+  const native = joinSoakSamples(rawNative, gl, original.gamePid ?? null, loadingEvents);
   const missing = [], csv = ['seconds,phase,webContentBytes,intervalHighBytes,glBytes,accountedBytes,gpuProcessBytes,allWebContentBytes'];
   const samples = native.filter((row) => row.type === 'sample').map((row) => {
     row.elapsed = Date.parse(row.t) / 1000;
-    while (cursor + 1 < gl.length && gl[cursor + 1].at < row.elapsed) cursor++;
-    const left = gl[cursor], right = gl[cursor + 1];
-    const nearest = right && Math.abs(right.at - row.elapsed) < Math.abs(left.at - row.elapsed) ? right : left;
-    const gap = nearest === undefined ? null : Math.abs(nearest.at - row.elapsed);
-    if (gap !== null && gap <= 1.5) row.gl = nearest;
-    else missing.push({ phase: row.phase, t: row.t, nearestGlSeconds: gap });
+    if (row.gl === undefined) missing.push({ phase: row.phase, t: row.t, nearestGlSeconds: gl.length === 0 ? null : Math.min(...gl.map(point => Math.abs(point.at - row.elapsed))) });
     csv.push([row.elapsed - Date.parse(original.driveStarted) / 1000, row.phase, row.footprint, row.interval, row.gl?.totalBytes ?? '', row.gl?.accountedBytes ?? '', row.gpu, row.allWebContentBytes ?? ''].join(','));
     return row;
   });
@@ -58,7 +54,7 @@ for (const { layout, leg, name } of runs) {
     evictions: original.evictions.length, errors: original.errors, leak: original.leak,
     expected: original.expected, entries: original.entries, crossroads: original.crossroads, engineBase: summary.engineBase, rehearsal: true, leg });
   const artifacts = [];
-  for (const suffix of ['native.jsonl', 'gl.jsonl']) {
+  for (const suffix of ['native.jsonl', 'gl.jsonl', ...(loadingEvents.length > 0 ? ['gl-events.jsonl'] : [])]) {
     const file = `${name}-${suffix}`, bytes = readFileSync(join(from, file));
     await pipeline(createReadStream(join(from, file)), createBrotliCompress({ params: { [compression.BROTLI_PARAM_QUALITY]: 6, [compression.BROTLI_PARAM_LGWIN]: 24 } }), createWriteStream(join(out, `${file}.br`)));
     artifacts.push({ file: `${file}.br`, rawBytes: bytes.length, rawSha256: createHash('sha256').update(bytes).digest('hex') });
