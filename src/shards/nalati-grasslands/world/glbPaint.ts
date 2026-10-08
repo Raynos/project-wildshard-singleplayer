@@ -25,6 +25,7 @@
  * a fifth on them (MODEL_FLOOR). Live: colours swapped in place, one uniform per material (no new program, no reload).
  */
 import * as THREE from 'three';
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '@wildshard/engine/core/tier';
@@ -241,6 +242,10 @@ function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
       const out = rawFromGltf(gltf.scene, name);
       const { geometry } = out;
       ready.set(rkey, out);
+      cacheUntilDisposed(out, () => {
+        if (ready.get(rkey) !== out) return;
+        ready.delete(rkey); raw.delete(rkey); shades.delete(geometry);
+      });
       const rgb = geometry.getAttribute('color').array;
       shades.set(geometry, { plain: rgb instanceof Float32Array ? rgb.slice() : new Float32Array(rgb), ao: null });
       if (modelShadeOn) applyShade(geometry);
@@ -278,7 +283,10 @@ export function loadNalatiModel(sky: Sky, name: NalatiModelName, look: ModelLook
       modelMats.set(material, r.geometry);
       modelMatList.add(material);
       applyFloor(material);
-      return { name, geometry: r.geometry, box: r.box, material };
+      const model = { name, geometry: r.geometry, box: r.box, material };
+      const cache = bySky;
+      cacheUntilDisposed(model, () => { cache.delete(key); modelMatList.delete(material); });
+      return model;
     });
     bySky.set(key, p);
   }

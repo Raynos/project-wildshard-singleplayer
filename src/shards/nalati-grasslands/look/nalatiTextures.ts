@@ -33,6 +33,7 @@
  * Bytes (measured): desktop 2.78 MB — cards 0.89 · the seven tiles 1.90; phone 0.92 MB — cards 0.32 · tiles 0.61. Nothing here is in the boot manifest: a module that adopts a file loads it lazily.
  */
 import * as THREE from 'three';
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadTexture } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 
@@ -69,6 +70,7 @@ export function loadNalatiTexture(name: NalatiTexName): Promise<THREE.Texture> {
   if (!p) {
     p = loadTexture(url, true).then((t) => { t.name = `nalati-${name}`; return t; });
     cache.set(url, p);
+    const cached = p; void cacheUntilDisposed(cached, () => { if (cache.get(url) === cached) cache.delete(url); });
   }
   return p;
 }
@@ -117,10 +119,12 @@ function buildCards(): GrassCard[] {
 let atlas: Promise<THREE.Texture> | null = null;
 /** The card atlas: sRGB, clamped, mipmapped. */
 export function loadGrassCardAtlas(): Promise<THREE.Texture> {
-  atlas ??= loadTexture(nalatiUrl('cards'), true).then((t) => {
+  if (atlas !== null) return atlas;
+  atlas = loadTexture(nalatiUrl('cards'), true).then((t) => {
     t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
     t.name = 'nalati-cards';
     return t;
   });
+  const cached = atlas; void cacheUntilDisposed(cached, () => { if (atlas === cached) atlas = null; });
   return atlas;
 }

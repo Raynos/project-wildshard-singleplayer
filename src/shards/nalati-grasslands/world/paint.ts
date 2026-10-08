@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 /**
  * PaintKit — the model toolbox for Nalati's painterly POIs (B5). The painterly sibling of `lowpolyKit.ts`:
  * every static POI is one merged mesh on the ONE shared painterly material (`src/engine/world/painterly.ts`), so detail
@@ -211,7 +212,7 @@ const mats = new WeakMap<Sky, THREE.MeshLambertMaterial>();
 /** the one painterly material every Nalati POI mesh shares */
 export function poiMaterial(sky: Sky): THREE.MeshLambertMaterial {
   let m = mats.get(sky);
-  if (!m) { m = painterlyMaterial(sky, { vertexColors: true, rim: 0.35, bands: 0.8 }); mats.set(sky, m); }
+  if (!m) { m = painterlyMaterial(sky, { vertexColors: true, rim: 0.35, bands: 0.8 }); mats.set(sky, m); const cached = m; cacheUntilDisposed(cached, () => { if (mats.get(sky) === cached) mats.delete(sky); }); }
   return m;
 }
 
@@ -231,6 +232,7 @@ export function texturedMaterial(sky: Sky, name: NalatiTexName): THREE.MeshLambe
     mat.map = white;
     loadNalatiTexture(name).then((t) => { mat.map = t; return t; }).catch(() => null);                // on failure the placeholder stays: vertex colour only
     byName.set(name, mat);
+    const cache = byName; cacheUntilDisposed(mat, () => { if (cache.get(name) === mat) cache.delete(name); });
     m = mat;
   }
   return m;

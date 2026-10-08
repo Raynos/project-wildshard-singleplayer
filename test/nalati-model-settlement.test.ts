@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { BoxGeometry, Group, Mesh, MeshLambertMaterial } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { fakeWorld } from './fake/world';
-import { addModelInstances, awaitNalatiModelLoads, loadModelRaw, setModelShade } from '../src/shards/nalati-grasslands/world/glbPaint';
+import { addModelInstances, awaitNalatiModelLoads, loadModelRaw, loadNalatiModel, setModelShade } from '../src/shards/nalati-grasslands/world/glbPaint';
 
 async function decoded(): Promise<GLTF> {
   const gltf = await new GLTFLoader().parseAsync(JSON.stringify({ asset: { version: '2.0' }, scenes: [{ nodes: [] }], scene: 0 }), '');
@@ -34,6 +34,19 @@ describe('Nalati owned model settlement', () => {
     expect(root.children[0]?.name).toBe('nalati-model-chest');
     expect(producer).toHaveBeenCalledTimes(2);
     await awaitNalatiModelLoads(sky); expect(producer).toHaveBeenCalledTimes(2);
+  });
+
+  it('rebuilds generated geometry and painted material after each regional retirement', async () => {
+    setModelShade(false);
+    const { sky } = fakeWorld(), producer = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(decoded);
+    let previous: unknown;
+    for (let entry = 0; entry < 3; entry++) {
+      const model = await loadNalatiModel(sky, 'cauldron');
+      expect(model.geometry).not.toBe(previous); previous = model.geometry;
+      expect(await loadNalatiModel(sky, 'cauldron')).toBe(model);
+      model.material.dispose(); model.geometry.dispose();
+      expect(producer).toHaveBeenCalledTimes(entry + 1);
+    }
   });
 
   it('refuses capture when a requested asset fails even if its presentation catches the failure', async () => {

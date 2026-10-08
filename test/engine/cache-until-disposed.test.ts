@@ -2,6 +2,10 @@ import { expect, it, vi } from 'vitest';
 import { BoxGeometry, CompressedTexture, MeshStandardMaterial, RGBA_S3TC_DXT5_Format } from 'three';
 import { cacheUntilDisposed } from '../../src/engine/app/cachedAssets';
 import { Scope } from '../../src/engine/app/scope';
+import { coatTextures } from '../../src/shards/pine-hollow/weapons/hunterHands';
+import { poiMaterial } from '../../src/shards/nalati-grasslands/world/paint';
+import { terrainHeightTexture } from '../../src/shards/nalati-grasslands/look/grass';
+import { fakeWorld } from '../fake/world';
 import { modelContext } from '../../src/engine/models/model';
 
 it('invalidates an asynchronous memo once on actual retirement without freeing or retaining its resources', async () => {
@@ -32,4 +36,14 @@ it('keeps rejected async results rejected and evicts the failed memo for an expl
   await expect(context.once('load', fail)).rejects.toThrow('asset unavailable');
   await expect(context.once('load', fail)).rejects.toThrow('asset unavailable');
   expect(fail).toHaveBeenCalledTimes(2);
+});
+
+it('rebuilds module-wide coat, terrain and shared-sky paint caches after disposal', () => {
+  const sky = fakeWorld().sky;
+  for (let entry = 0; entry < 3; entry++) {
+    const coat = coatTextures(), paint = poiMaterial(sky), height = terrainHeightTexture();
+    expect(coatTextures()).toBe(coat); expect(poiMaterial(sky)).toBe(paint); expect(terrainHeightTexture()).toBe(height);
+    coat.map.dispose(); paint.dispose(); height.dispose();
+    expect(coatTextures()).not.toBe(coat); expect(poiMaterial(sky)).not.toBe(paint); expect(terrainHeightTexture()).not.toBe(height);
+  }
 });

@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
@@ -75,6 +76,10 @@ export class CaptainMesh {
     g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2).scale(k, k, k);
     this.source = g;
     this.texture = hit.map;
+    cacheUntilDisposed({ geometry: g, map: hit.map }, () => {
+      if (this.source !== g) return;
+      this.source = null; this.texture = null; this.loading = null; this.settled = false;
+    });
   } catch (e: unknown) { console.warn('[captain] generated mesh not loaded, using the stand-in:', e); }
   finally { this.settled = true; }
   }

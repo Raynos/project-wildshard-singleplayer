@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { lin } from '@wildshard/engine/math/color';
@@ -226,7 +227,7 @@ export function coatTextures(): CoatTex {
     t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 8; t.needsUpdate = true;
     return t;
   };
-  coatTex = { map: tex(col, true), normalMap: tex(nrm, false), arm: tex(arm, false) };
+  coatTex = cacheUntilDisposed({ map: tex(col, true), normalMap: tex(nrm, false), arm: tex(arm, false) }, () => { coatTex = null; });
   return coatTex;
 }
 /** the coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas) */

@@ -13,6 +13,7 @@
  * `balbalGeometry(variant)` (feet at y 0, facing −z, 2.1 m) is B11's rig's body too.
  */
 import * as THREE from 'three';
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -144,6 +145,7 @@ function generatedBalbal(sky: Sky): Promise<{ geometry: THREE.BufferGeometry; ma
       return { geometry: model.geometry.clone().rotateY(Math.PI).scale(k, k, k), material: model.material };
     });
     worn.set(sky, p);
+    const cached = p; void cacheUntilDisposed(cached, () => { if (worn.get(sky) === cached) worn.delete(sky); });
   }
   return p;
 }

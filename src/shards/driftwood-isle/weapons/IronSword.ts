@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { WRECK } from '../manifest';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
@@ -265,7 +266,7 @@ export class IronSwordPickup {
     // the warm glow: an amber point light over the deck (the orb's own is a short cyan one) and a big soft halo
     this.light = LightPool.for(opts.scene).acquire(WARM, 18, 11, 1.6); // pooled (B7): released dark on pickup, never removed
     this.light.position.set(this.floor.x, this.floor.y + 1.3, this.floor.z);
-    haloTex ??= makeHalo();
+    haloTex ??= cacheUntilDisposed(makeHalo(), () => { haloTex = null; });
     this.haloMat = new THREE.SpriteMaterial({ map: haloTex, color: WARM, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false });
     this.halo = new THREE.Sprite(this.haloMat);
     this.halo.position.set(this.floor.x, this.floor.y + 0.75, this.floor.z);

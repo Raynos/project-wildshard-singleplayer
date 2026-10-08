@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 /**
  * Look v2 — the grass (port-v2.md step 5; the user: "the grass is not bad"): the clean-room prototype's GPU blade rings
  * and shader flowers, on the engine's own field, wind, trample and senses.
@@ -456,7 +457,7 @@ export function terrainHeightTexture(): THREE.DataTexture {
   for (let j = 0; j < HN; j++) for (let i = 0; i < HN; i++) hd[j * HN + i] = THREE.DataUtils.toHalfFloat(heightAt(H_ORG + i + 0.5, H_ORG + j + 0.5));
   const t = new THREE.DataTexture(hd, HN, HN, THREE.RedFormat, THREE.HalfFloatType);
   t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
-  heightTex = t;
+  heightTex = cacheUntilDisposed(t, () => { if (heightTex === t) heightTex = null; });
   return t;
 }
 

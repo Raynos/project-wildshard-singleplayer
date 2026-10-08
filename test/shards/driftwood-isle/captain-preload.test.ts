@@ -55,6 +55,19 @@ describe('Captain preload barrier (E357 R9)', { timeout: 30_000 }, () => {
     } finally { pending.resolve(hull().gltf); await ready; scope.dispose(); app.levelScope = previous; }
   });
 
+  it('reloads the cached Captain atlas after a regional owner retires it', async () => {
+    const load = vi.fn(() => Promise.resolve(hull().gltf)), mesh = new CaptainMesh(load);
+    let previous: Texture | null = null;
+    for (let entry = 0; entry < 3; entry++) {
+      await mesh.preload();
+      const model = mesh.meshFor([{ name: 'body', parent: null, pos: [0, 0, 0] }]);
+      if (model?.map === null || model === null) throw new Error('Missing Captain atlas');
+      expect(model.map).not.toBe(previous); previous = model.map;
+      model.map.dispose(); for (const part of model.parts) part.dispose();
+      expect(mesh.loaded()).toBe(false); expect(load).toHaveBeenCalledTimes(entry + 1);
+    }
+  });
+
   it.each(['captain', 'sailor'])('keeps play behind the loading screen until the %s finishes loading', async (last) => {
     const captain = deferred<GLTF>(), sailor = deferred<GLTF>();
     const mesh = new CaptainMesh(() => captain.promise);
