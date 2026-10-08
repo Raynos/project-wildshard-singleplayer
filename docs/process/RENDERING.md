@@ -28,6 +28,12 @@ first paint. SF67 targets tasks below about 100 ms, with tasks above 50 ms attri
 in a separate cold/warm SHARD SELECT benchmark. A frame-floor pass does not prove
 loading responsiveness, and a Chromium emulation result is not Safari evidence.
 
+"Models as code are cheap" does not hold at load (E461 audit: Driftwood's world 3.3 s, Nalati's 5.4 s at 4× CPU,
+warm too). Any world-build output that is a pure function of committed files is baked by a Node baker that runs the
+page's own functions, listed in `scripts/bake-check.mjs` so a source or asset change without a rebake fails the gate;
+the page keeps the code path only as the fallback when the bake is missing or does not fit (first: Driftwood's cove
+cover splat, `scripts/bake-island-cover.mjs`). Bakes are per tier when the output depends on the tier.
+
 Debug instruments are gated work: ordinary boot fingerprints are lazy, and the GPU
 allocation journal is Developer/census-only. Preserve harness evidence without making
 its scene walks, task observers or resource journals unconditional production work.

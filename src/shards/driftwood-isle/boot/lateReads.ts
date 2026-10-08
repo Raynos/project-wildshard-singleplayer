@@ -11,11 +11,12 @@ const CAPTAIN = '/assets/models/driftwood-hero/captain/captain.glb';
 
 /**
  * What the island reads after boot (E357 S4.1, 08 §6.1 step 7), in the order shardPrefetch.ts listed them for an open-water
- * shard: the learned LUT, the horizon strips, the Blender spawn cove's GLB + its data + lightmaps, and the Drowned Captain.
+ * shard: the learned LUT, the horizon strips, the Blender spawn cove's GLB + its data + lightmaps + its baked cover splat
+ * (SF67, scripts/bake-island-cover.mjs), and the Drowned Captain.
  */
 export function lateReads(tier: Tier, tex: TexMode = 'img'): string[] {
   const { gpu } = filePolicy(tier, tex, GPU_FILES);
   const lm = tier === 'phone' ? '.phone.webp' : '.webp';
   return ['/assets/lut/driftwood-isle.bin', ...HORIZON.map(gpu), gpu(`${ISLAND}island.glb`), `${ISLAND}island.json`, `${ISLAND}placements.bin`,
-    gpu(`${ISLAND}lm-ao${lm}`), gpu(`${ISLAND}lm-bounce${lm}`), gpu(CAPTAIN)].filter((url) => url in publicBytes());
+    gpu(`${ISLAND}lm-ao${lm}`), gpu(`${ISLAND}lm-bounce${lm}`), `/assets/baked/driftwood-isle/island-cover.${tier}.bin`, gpu(CAPTAIN)].filter((url) => url in publicBytes());
 }

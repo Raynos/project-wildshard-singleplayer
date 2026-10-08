@@ -19,7 +19,7 @@ const run = (args, command = process.execPath) => {
   if (result.status !== 0) state.failed = true;
   return result.status === 0;
 };
-for (const baker of ['chunk', 'sky', 'navmesh']) run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', `scripts/bake-${baker}.mjs`, '--check']);
+for (const baker of ['chunk', 'sky', 'navmesh', 'island-cover']) run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', `scripts/bake-${baker}.mjs`, '--check']);
 
 const metal = process.platform === 'darwin' && spawnSync('system_profiler', ['SPDisplaysDataType'], { encoding: 'utf8' }).stdout.includes('Metal');
 if (!metal) console.log('bake-check: GPU bakers skipped (no Metal): bake-cards, bake-textures');

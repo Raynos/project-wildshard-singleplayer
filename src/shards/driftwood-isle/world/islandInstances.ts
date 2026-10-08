@@ -83,6 +83,41 @@ const PAD = 4;
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _t = new THREE.Vector3();
 const _pv = new THREE.Matrix4(), _box = new THREE.Box3();
 
+/** one cover triangle in world space (`a`, `b`, `d` its corners) and its mean tinted colour */
+export interface CoverTriangle { ax: number; ay: number; az: number; bx: number; by: number; bz: number; dx: number; dy: number; dz: number; r: number; g: number; b: number }
+
+/**
+ * E156: each cover triangle's centre, ground / upright areas and colour, in world space, exactly as the merged tiles
+ * held them (f32 positions, the truncated tinted Uint8 colour), in the merged path's order: set by set, tile by tile, each
+ * tile's placements in order. SF67 (E461): a free function, so scripts/bake-island-cover.mjs walks the same triangles in
+ * Node that `IslandInstances.coverTriangles` walks in the page.
+ */
+export function* coverTrianglesOf(protos: readonly (InstProto | undefined)[], f: Float32Array, sets: readonly (readonly (readonly number[])[])[]): Generator<CoverTriangle> {
+  const e = _m.elements;
+  const o: CoverTriangle = { ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, dx: 0, dy: 0, dz: 0, r: 0, g: 0, b: 0 };
+  const w = new Float32Array(9);
+  for (const tiles of sets) for (const items of tiles) for (const i of items) {
+    const pr = protos[f[i * 10] ?? 0];
+    if (pr === undefined) continue;
+    const k = i * 10, tint = f[k + 9] ?? 1, sc = f[k + 8] ?? 1;
+    _t.set(f[k + 1] ?? 0, f[k + 2] ?? 0, f[k + 3] ?? 0); _q.set(f[k + 4] ?? 0, f[k + 5] ?? 0, f[k + 6] ?? 0, f[k + 7] ?? 1);
+    _m.compose(_t, _q, _s.set(sc, sc, sc));
+    const ch = (v: number, c: number) => Math.trunc(Math.min(255, (pr.col[v * 4 + c] ?? 0) * tint)) / 255;
+    for (let t = 0; t + 2 < pr.index.length; t += 3) {
+      for (let j = 0; j < 3; j++) {
+        const v = pr.index[t + j] ?? 0, px = pr.pos[v * 3] ?? 0, py = pr.pos[v * 3 + 1] ?? 0, pz = pr.pos[v * 3 + 2] ?? 0;
+        w[j * 3] = e[0] * px + e[4] * py + e[8] * pz + e[12];
+        w[j * 3 + 1] = e[1] * px + e[5] * py + e[9] * pz + e[13];
+        w[j * 3 + 2] = e[2] * px + e[6] * py + e[10] * pz + e[14];
+      }
+      o.ax = w[0] ?? 0; o.ay = w[1] ?? 0; o.az = w[2] ?? 0; o.bx = w[3] ?? 0; o.by = w[4] ?? 0; o.bz = w[5] ?? 0; o.dx = w[6] ?? 0; o.dy = w[7] ?? 0; o.dz = w[8] ?? 0;
+      const a = pr.index[t] ?? 0, b = pr.index[t + 1] ?? 0, d = pr.index[t + 2] ?? 0;
+      o.r = (ch(a, 0) + ch(b, 0) + ch(d, 0)) / 3; o.g = (ch(a, 1) + ch(b, 1) + ch(d, 1)) / 3; o.b = (ch(a, 2) + ch(b, 2) + ch(d, 2)) / 3;
+      yield o;
+    }
+  }
+}
+
 /**
  * The instanced props material's vertex patch: the merged path baked `min(255, colour × tint)` into a Uint8 per vertex
  * (truncated); this does the same per instance, from the same Uint8 colour and the same f32 tint.
@@ -203,33 +238,8 @@ export class IslandInstances {
    * held them (f32 positions, the truncated tinted Uint8 colour), in the merged path's order: tile by tile, each tile's
    * placements in order.
    */
-  *coverTriangles(): Generator<{ ax: number; ay: number; az: number; bx: number; by: number; bz: number; dx: number; dy: number; dz: number; r: number; g: number; b: number }> {
-    const f = this.f, e = _m.elements;
-    const o = { ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, dx: 0, dy: 0, dz: 0, r: 0, g: 0, b: 0 };
-    const w = new Float32Array(9);
-    for (const s of this.sets) {
-      if (!s.spec.cover) continue;
-      for (const items of s.spec.tiles) for (const i of items) {
-        const pr = this.protos[f[i * 10] ?? 0];
-        if (pr === undefined) continue;
-        const k = i * 10, tint = f[k + 9] ?? 1, sc = f[k + 8] ?? 1;
-        _t.set(f[k + 1] ?? 0, f[k + 2] ?? 0, f[k + 3] ?? 0); _q.set(f[k + 4] ?? 0, f[k + 5] ?? 0, f[k + 6] ?? 0, f[k + 7] ?? 1);
-        _m.compose(_t, _q, _s.set(sc, sc, sc));
-        const ch = (v: number, c: number) => Math.trunc(Math.min(255, (pr.col[v * 4 + c] ?? 0) * tint)) / 255;
-        for (let t = 0; t + 2 < pr.index.length; t += 3) {
-          for (let j = 0; j < 3; j++) {
-            const v = pr.index[t + j] ?? 0, px = pr.pos[v * 3] ?? 0, py = pr.pos[v * 3 + 1] ?? 0, pz = pr.pos[v * 3 + 2] ?? 0;
-            w[j * 3] = e[0] * px + e[4] * py + e[8] * pz + e[12];
-            w[j * 3 + 1] = e[1] * px + e[5] * py + e[9] * pz + e[13];
-            w[j * 3 + 2] = e[2] * px + e[6] * py + e[10] * pz + e[14];
-          }
-          o.ax = w[0] ?? 0; o.ay = w[1] ?? 0; o.az = w[2] ?? 0; o.bx = w[3] ?? 0; o.by = w[4] ?? 0; o.bz = w[5] ?? 0; o.dx = w[6] ?? 0; o.dy = w[7] ?? 0; o.dz = w[8] ?? 0;
-          const a = pr.index[t] ?? 0, b = pr.index[t + 1] ?? 0, d = pr.index[t + 2] ?? 0;
-          o.r = (ch(a, 0) + ch(b, 0) + ch(d, 0)) / 3; o.g = (ch(a, 1) + ch(b, 1) + ch(d, 1)) / 3; o.b = (ch(a, 2) + ch(b, 2) + ch(d, 2)) / 3;
-          yield o;
-        }
-      }
-    }
+  *coverTriangles(): Generator<CoverTriangle> {
+    yield* coverTrianglesOf(this.protos, this.f, this.sets.filter((s) => s.spec.cover).map((s) => s.spec.tiles));
   }
 
   /**

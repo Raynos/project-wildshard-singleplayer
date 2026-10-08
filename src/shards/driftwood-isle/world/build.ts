@@ -198,8 +198,10 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // so none where a deck carries the path (a board there pokes up through the bridge's planks); `ground.paths: 'plugin'`
   registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
-  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove,
-  // which stays as the fallback when it fails to load
+  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove.
+  // The island is in the boot pack, so its failure already fails the boot: the procedural cove underneath is no longer a
+  // live fallback, only load cost (E461 audit). SF67 fix 3 bakes what the island computes (its cover splat so far,
+  // scripts/bake-island-cover.mjs); building the procedural cove only when the island fails is still open
   await slice(completed + 1, total, 'Bridge physics and paths');
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({

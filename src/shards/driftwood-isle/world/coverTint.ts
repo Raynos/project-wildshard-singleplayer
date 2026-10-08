@@ -95,6 +95,30 @@ export class CoverGrid {
     }
   }
 
+  /**
+   * SF67 (E461): the cells inside [x0, x1] × [z0, z1] (the rect `splat` overwrites), row by row, so a build-time splat
+   * (scripts/bake-island-cover.mjs) can be stored and written back with `writeBlock` instead of splatting at load.
+   */
+  readBlock(x0: number, x1: number, z0: number, z1: number): Float32Array {
+    const i0 = this.ix(x0), i1 = this.ix(x1), k0 = this.ix(z0), k1 = this.ix(z1), row = (i1 - i0 + 1) * W;
+    const out = new Float32Array((k1 - k0 + 1) * row);
+    for (let k = k0; k <= k1; k++) out.set(this.data.subarray((k * N + i0) * W, (k * N + i1 + 1) * W), (k - k0) * row);
+    return out;
+  }
+
+  /** the number of floats `readBlock` returns for this rect */
+  blockLength(x0: number, x1: number, z0: number, z1: number): number {
+    return (this.ix(z1) - this.ix(z0) + 1) * (this.ix(x1) - this.ix(x0) + 1) * W;
+  }
+
+  /** write a `readBlock` of the same rect back (false, and nothing written, when its length does not fit the rect) */
+  writeBlock(block: Float32Array, x0: number, x1: number, z0: number, z1: number): boolean {
+    if (block.length !== this.blockLength(x0, x1, z0, z1)) return false;
+    const i0 = this.ix(x0), i1 = this.ix(x1), k0 = this.ix(z0), k1 = this.ix(z1), row = (i1 - i0 + 1) * W;
+    for (let k = k0; k <= k1; k++) this.data.set(block.subarray((k - k0) * row, (k - k0 + 1) * row), (k * N + i0) * W);
+    return true;
+  }
+
   /** bilinear sample at (x, z) into out (the colour weighted by cover, so a bare neighbour doesn't grey it) */
   sample(x: number, z: number, out: CoverSample): CoverSample {
     const fx = (x + CHUNK_HALF) / STEP, fz = (z + CHUNK_HALF) / STEP;

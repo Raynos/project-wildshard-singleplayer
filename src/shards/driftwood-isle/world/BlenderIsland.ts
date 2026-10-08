@@ -4,6 +4,8 @@
  * builds in Blender and bakes in Cycles (the user's pick, E7; the switch is gone since E136). The procedural cove is still
  * built before this install, then replaced or clipped inside the area. That construction is remaining loading
  * work, not a supported load-failure fallback: a required island asset failure refuses boot.
+ * What this file computes from its committed files alone is baked at build (SF67 fix 3): the cover splat (`islandCoverUrl`,
+ * scripts/bake-island-cover.mjs).
  *
  *   island = await BlenderIsland.install({ game, sky, player, terrain, palms, … });
  *
@@ -42,11 +44,11 @@ import { WORLD_DROP } from './sea';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
 import { CoverGrid, tintTerrain, triAreas, coverSample, coverJitter, type CoverTri } from './coverTint';
-import { IslandInstances, TINT_VERTEX } from './islandInstances';
+import { IslandInstances, TINT_VERTEX, type CoverTriangle } from './islandInstances';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
-import { TIER } from '@wildshard/engine/core/tier';
+import { TIER, type Tier } from '@wildshard/engine/core/tier';
 import { modelContext, type ModelContext, type Placement } from '@wildshard/engine/models/model';
 import { place as placeModel } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -96,7 +98,7 @@ const BIG_NEAR = TIER === 'phone' ? 50 : COVER_NEAR, BIG_FAR = TIER === 'phone' 
  */
 const FAR_RATIO = 0.25, FAR_ERROR = 0.01;
 
-interface Proto { pos: Float32Array; col: Uint8Array; index: Uint32Array }
+export interface Proto { pos: Float32Array; col: Uint8Array; index: Uint32Array }
 /** `p` with its triangles simplified and its vertices compacted to the ones they use */
 function simplified(p: Proto): Proto {
   const target = Math.max(3, Math.floor((p.index.length * FAR_RATIO) / 3) * 3);
@@ -115,7 +117,7 @@ function simplified(p: Proto): Proto {
   return { pos, col, index };
 }
 
-interface IslandMeta {
+export interface IslandMeta {
   version: number;
   protos: { name: string; kind: string; tris: number }[];
   placements: number;
@@ -193,15 +195,113 @@ function clipInstanced(mat: THREE.Material): void {
 
 /** E156 / G144: each cover triangle's centre, ground / upright areas and colour, for CoverGrid.splat, from the instanced
  *  placements (./islandInstances.ts) in world space */
-function* instancedCoverTriangles(ins: IslandInstances): Generator<CoverTri> {
+function* instancedCoverTriangles(tris: Iterable<CoverTriangle>): Generator<CoverTri> {
   const o: CoverTri = { x: 0, z: 0, top: 0, side: 0, r: 0, g: 0, b: 0 };
-  for (const t of ins.coverTriangles()) {
+  for (const t of tris) {
     const ar = triAreas(t.ax, t.ay, t.az, t.bx, t.by, t.bz, t.dx, t.dy, t.dz);
     o.top = ar.top; o.side = ar.side;
     o.x = (t.ax + t.bx + t.dx) / 3; o.z = (t.az + t.bz + t.dz) / 3;
     o.r = t.r; o.g = t.g; o.b = t.b;
     yield o;
   }
+}
+
+/** how much of the cover the splat turns into optical depth (fronds overlap) */
+const COVER_DEPTH = 0.6;
+
+/**
+ * SF67 (E461): the cove's cover splat, baked. `CoverGrid.splat` overwrites every cell of the area from the instanced cover
+ * triangles alone (whatever GroundCover filled there before), so the area's block is a pure function of island.glb,
+ * placements.bin, island.json and the tier: scripts/bake-island-cover.mjs runs this same code in Node per tier and writes
+ * it, the build writes it back (`CoverGrid.writeBlock`) instead of walking ~1 M triangles at load, and splats only when
+ * the file is missing or does not fit. bake-check (`--check`) rebuilds it byte for byte, so a stale bake fails the gate.
+ */
+export const islandCoverUrl = (tier: Tier): string => `/assets/baked/driftwood-isle/island-cover.${tier}.bin`;
+const COVER_MAGIC = 0x43495357, COVER_VERSION = 1, COVER_HEADER = 16; // 'WSIC' · version · placements used · floats
+
+/** the area's splatted block (`CoverGrid.readBlock`) from the cover sets' triangles */
+export function islandCoverBlock(tris: Iterable<CoverTriangle>): Float32Array {
+  const grid = new CoverGrid();
+  grid.splat(instancedCoverTriangles(tris), area.x0, area.x1, area.z0, area.z1, COVER_DEPTH);
+  return grid.readBlock(area.x0, area.x1, area.z0, area.z1);
+}
+
+/** the baked file: a 16-byte header (magic, version, placements used, floats) and the block's f32s, little-endian */
+export function encodeIslandCover(block: Float32Array, used: number): Uint8Array {
+  const out = new Uint8Array(COVER_HEADER + block.length * 4), view = new DataView(out.buffer);
+  view.setUint32(0, COVER_MAGIC, true); view.setUint32(4, COVER_VERSION, true); view.setUint32(8, used, true); view.setUint32(12, block.length, true);
+  for (let i = 0; i < block.length; i++) view.setFloat32(COVER_HEADER + i * 4, block[i] ?? 0, true);
+  return out;
+}
+
+/** the baked block, or null when the file is not this build's (another version, placement count or rect) */
+export function decodeIslandCover(buf: ArrayBuffer, used: number, floats: number): Float32Array | null {
+  if (buf.byteLength !== COVER_HEADER + floats * 4) return null;
+  const view = new DataView(buf);
+  if (view.getUint32(0, true) !== COVER_MAGIC || view.getUint32(4, true) !== COVER_VERSION || view.getUint32(8, true) !== used || view.getUint32(12, true) !== floats) return null;
+  const out = new Float32Array(floats);
+  for (let i = 0; i < floats; i++) out[i] = view.getFloat32(COVER_HEADER + i * 4, true);
+  return out;
+}
+
+/** the prototypes from island.glb's meshes (world-space positions, Uint8 colour + baked AO), by island.json's index */
+export function islandProtos(found: readonly THREE.Mesh[], meta: IslandMeta): Proto[] {
+  const protos: Proto[] = [];
+  const protoIndex = new Map<string, number>(meta.protos.map((p, i) => [`proto_${p.name}`, i]));
+  const v = new THREE.Vector3();
+  for (const o of found) {
+    const pi = protoIndex.get(o.name);
+    if (pi === undefined) continue;
+    const g = o.geometry, p = g.getAttribute('position'), c = g.getAttribute('color'), idx = g.getIndex();
+    const pos = new Float32Array(p.count * 3), col = new Uint8Array(p.count * 4);
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld);
+      pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
+      col[i * 4] = Math.round(THREE.MathUtils.clamp(c.getX(i), 0, 1) * 255);
+      col[i * 4 + 1] = Math.round(THREE.MathUtils.clamp(c.getY(i), 0, 1) * 255);
+      col[i * 4 + 2] = Math.round(THREE.MathUtils.clamp(c.getZ(i), 0, 1) * 255);
+      col[i * 4 + 3] = c.itemSize > 3 ? Math.round(THREE.MathUtils.clamp(c.getW(i), 0, 1) * 255) : 255;
+    }
+    const index = new Uint32Array(idx ? idx.count : p.count);
+    for (let i = 0; i < index.length; i++) index[i] = idx ? idx.getX(i) : i;
+    protos[pi] = { pos, col, index };
+  }
+  return protos;
+}
+
+/** placements.bin as the build reads it: each placement's y dropped with the world (G164) */
+export function islandPlacements(buf: ArrayBuffer): Float32Array {
+  const f = new Float32Array(buf);
+  for (let i = 0; i < f.length / 10; i++) f[i * 10 + 2] = (f[i * 10 + 2] ?? 0) - WORLD_DROP;
+  return f;
+}
+
+/** how many placements this tier builds (every palm / rock / log, and the tier's share of the small cover: a prefix) */
+export function islandUsed(f: Float32Array, meta: IslandMeta, phone: boolean): number {
+  return meta.mustDraw + Math.round((f.length / 10 - meta.mustDraw) * (phone ? PHONE_COVER : 1));
+}
+
+/** the placements by set and tile: casters CT×CT, small cover and big cover VT×VT; the small rocks rockKit rebuilds */
+export function islandSets(f: Float32Array, meta: IslandMeta, used: number): { casters: number[][]; covers: number[][]; bigs: number[][]; smallRocks: number[] } {
+  const tileOf = (x: number, z: number, n: number) => {
+    const tx = Math.min(n - 1, Math.max(0, Math.floor((x - area.x0) / (area.x1 - area.x0) * n)));
+    const tz = Math.min(n - 1, Math.max(0, Math.floor((z - area.z0) / (area.z1 - area.z0) * n)));
+    return tz * n + tx;
+  };
+  const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []), bigs: number[][] = Array.from({ length: VT * VT }, () => []);
+  // E114: the loose rocks are rockKit's — the boulders (rock*, rockb*: the shore boulders' spots, drawn by Boulders.ts
+  // instead) are skipped, the small scattered rocks (smallrock*) rebuilt below. The crag plates on the cliffs (cliff*)
+  // stay the Blender ones
+  const smallRocks: number[] = [];
+  for (let i = 0; i < used; i++) {
+    const pi = f[i * 10] ?? 0, kind = meta.protos[pi]?.kind ?? 'small';
+    const x = f[i * 10 + 1] ?? 0, z = f[i * 10 + 3] ?? 0;
+    const name = meta.protos[pi]?.name ?? '';
+    if (/^rockb?\d+$/.test(name)) continue;
+    if (/^smallrock\d+$/.test(name)) { smallRocks.push(i); continue; }
+    if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else (BIG_COVER.test(name) ? bigs : covers)[tileOf(x, z, VT)]?.push(i);
+  }
+  return { casters, covers, bigs, smallRocks };
 }
 
 function load<T>(f: (ok: (v: T) => void, bad: (e: unknown) => void) => void): Promise<T> { return new Promise<T>((resolve, reject) => { f(resolve, reject); }); }
@@ -232,11 +332,12 @@ export class BlenderIsland {
       const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
       return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
     };
-    const [gltf, meta, place, ao, bounce] = await Promise.all([
+    const [gltf, meta, place, ao, bounce, bakedCover] = await Promise.all([
       load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
       fetch(`${BASE}island.json`).then((r) => r.json() as Promise<IslandMeta>),
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
       lm('lm-ao'), lm('lm-bounce'),
+      fetch(islandCoverUrl(TIER)).then((r) => (r.ok ? r.arrayBuffer() : null), () => null), // SF67: the baked cover splat
     ]);
     // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles,
     // every placement and every collider box), so it stays on the dropped terrain exactly
@@ -287,71 +388,35 @@ export class BlenderIsland {
 
     // ── terrain tiles ──
     gltf.scene.updateMatrixWorld(true);
-    const protos: Proto[] = [];
-    const protoIndex = new Map<string, number>(meta.protos.map((p, i) => [`proto_${p.name}`, i]));
     const models = modelContext(ctx.sky);
-    const v = new THREE.Vector3();
     const found: THREE.Mesh[] = [], terrainTiles: THREE.Mesh[] = [];
     gltf.scene.traverse((o) => { if (isMesh(o)) found.push(o); });
+    const protoNames = new Set(meta.protos.map((p) => `proto_${p.name}`));
     for (const o of found) {
-      const pi = protoIndex.get(o.name);
-      if (pi === undefined) {
-        // a terrain tile — the 1 m grid on desktop, the 2 m one (terrainlo_*) on the phone; keep its node transform (meshopt's
-        // dequantisation lives there)
-        if (o.name.startsWith('terrainlo') !== phone) continue;
-        const m = new THREE.Mesh(o.geometry, terrainMat);
-        m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
-        m.name = `island-${o.name}`; m.castShadow = true; m.receiveShadow = true;
-        terrainTiles.push(m);
-        if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
-        o.geometry.computeBoundingSphere();
-        this.group.add(m);
-        this.stats.terrainTris += (o.geometry.getIndex()?.count ?? o.geometry.getAttribute('position').count) / 3;
-        continue;
-      }
-      const g = o.geometry, p = g.getAttribute('position'), c = g.getAttribute('color'), idx = g.getIndex();
-      const pos = new Float32Array(p.count * 3), col = new Uint8Array(p.count * 4);
-      for (let i = 0; i < p.count; i++) {
-        v.fromBufferAttribute(p, i).applyMatrix4(o.matrixWorld);
-        pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
-        col[i * 4] = Math.round(THREE.MathUtils.clamp(c.getX(i), 0, 1) * 255);
-        col[i * 4 + 1] = Math.round(THREE.MathUtils.clamp(c.getY(i), 0, 1) * 255);
-        col[i * 4 + 2] = Math.round(THREE.MathUtils.clamp(c.getZ(i), 0, 1) * 255);
-        col[i * 4 + 3] = c.itemSize > 3 ? Math.round(THREE.MathUtils.clamp(c.getW(i), 0, 1) * 255) : 255;
-      }
-      const index = new Uint32Array(idx ? idx.count : p.count);
-      for (let i = 0; i < index.length; i++) index[i] = idx ? idx.getX(i) : i;
-      protos[pi] = { pos, col, index };
+      if (protoNames.has(o.name)) continue;
+      // a terrain tile — the 1 m grid on desktop, the 2 m one (terrainlo_*) on the phone; keep its node transform (meshopt's
+      // dequantisation lives there)
+      if (o.name.startsWith('terrainlo') !== phone) continue;
+      const m = new THREE.Mesh(o.geometry, terrainMat);
+      m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
+      m.name = `island-${o.name}`; m.castShadow = true; m.receiveShadow = true;
+      terrainTiles.push(m);
+      if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
+      o.geometry.computeBoundingSphere();
+      this.group.add(m);
+      this.stats.terrainTris += (o.geometry.getIndex()?.count ?? o.geometry.getAttribute('position').count) / 3;
     }
+    const protos = islandProtos(found, meta);
 
     // ── the placements by tile: casters (palms, rocks, logs) CT×CT, each with a far copy (the LOD palms); ground cover
     //    VT×VT, drawn only near the camera ──
-    const f = new Float32Array(place);
+    const f = islandPlacements(place); // G164: each placement's y
     const count = f.length / 10;
-    for (let i = 0; i < count; i++) f[i * 10 + 2] = (f[i * 10 + 2] ?? 0) - drop; // G164: each placement's y
-    const cover = Math.round((count - meta.mustDraw) * (phone ? PHONE_COVER : 1));
-    const used = meta.mustDraw + cover;
+    const used = islandUsed(f, meta, phone);
     const lodOf = new Map<number, number>(Object.entries(meta.lod).map(([k, lo]) => [Number(k), lo]));
     await MeshoptSimplifier.ready;
     for (const [pi, lo] of lodOf) { const near = protos[pi]; if (near) protos[lo] = simplified(near); } // E117: far = near, simplified
-    const tileOf = (x: number, z: number, n: number) => {
-      const tx = Math.min(n - 1, Math.max(0, Math.floor((x - area.x0) / (area.x1 - area.x0) * n)));
-      const tz = Math.min(n - 1, Math.max(0, Math.floor((z - area.z0) / (area.z1 - area.z0) * n)));
-      return tz * n + tx;
-    };
-    const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []), bigs: number[][] = Array.from({ length: VT * VT }, () => []);
-    // E114: the loose rocks are rockKit's — the boulders (rock*, rockb*: the shore boulders' spots, drawn by Boulders.ts
-    // instead) are skipped, the small scattered rocks (smallrock*) rebuilt below. The crag plates on the cliffs (cliff*)
-    // stay the Blender ones
-    const smallRocks: number[] = [];
-    for (let i = 0; i < used; i++) {
-      const pi = f[i * 10] ?? 0, kind = meta.protos[pi]?.kind ?? 'small';
-      const x = f[i * 10 + 1] ?? 0, z = f[i * 10 + 3] ?? 0;
-      const name = meta.protos[pi]?.name ?? '';
-      if (/^rockb?\d+$/.test(name)) continue;
-      if (/^smallrock\d+$/.test(name)) { smallRocks.push(i); continue; }
-      if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else (BIG_COVER.test(name) ? bigs : covers)[tileOf(x, z, VT)]?.push(i);
-    }
+    const { casters, covers, bigs, smallRocks } = islandSets(f, meta, used);
     const rect = (k: number, n: number) => {
       const w = (area.x1 - area.x0) / n, d = (area.z1 - area.z0) / n, tx = k % n, tz = Math.floor(k / n);
       return { x0: area.x0 + tx * w, x1: area.x0 + (tx + 1) * w, z0: area.z0 + tz * d, z1: area.z0 + (tz + 1) * d };
@@ -366,7 +431,9 @@ export class BlenderIsland {
     // GroundCover's estimate for this area, then sampled by the cove's terrain
     const coverGrid = CoverGrid.get();
     if (coverGrid) {
-      coverGrid.splat(instancedCoverTriangles(ins), area.x0, area.x1, area.z0, area.z1, 0.6);
+      // SF67: the build-time splat when there is one that fits (bit for bit the splat below: bake-check rebuilds it)
+      const baked = bakedCover === null ? null : decodeIslandCover(bakedCover, used, coverGrid.blockLength(area.x0, area.x1, area.z0, area.z1));
+      if (baked === null || !coverGrid.writeBlock(baked, area.x0, area.x1, area.z0, area.z1)) coverGrid.splat(instancedCoverTriangles(ins.coverTriangles()), area.x0, area.x1, area.z0, area.z1, COVER_DEPTH);
       // each cover plant's fade-out colour: the grid's at its base (a = 0 where the grid has none: it keeps its own)
       const smp = coverSample();
       ins.fillGround((x, z, out, o) => {
