@@ -77,6 +77,13 @@ log() { printf '%s %s\n' "$(date '+%F %T')" "$*" >> "$DIR/reap.log"; }
 
 kill_tree() {
   local pid="$1" kids
+  # Registered detached previews use their PID as PGID: expiry must retire every child in that owned session.
+  if [ "$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')" = "$pid" ]; then
+    kill -TERM -- "-$pid" 2>/dev/null
+    sleep 2
+    kill -KILL -- "-$pid" 2>/dev/null
+    return 0
+  fi
   kids="$(pgrep -P "$pid" 2>/dev/null)"
   kill -TERM "$pid" $kids 2>/dev/null
   sleep 2

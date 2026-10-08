@@ -39,7 +39,16 @@ case "${1:-}" in
       [ -f "$f" ] || continue
       read -r pid exp out cwd name < "$f"
       if [ "$tgt" = "$(basename "$f")" ] || { [ "$tgt" = "all-mine" ] && [ "$cwd" = "$CALLER" ]; }; then
-        pkill -TERM -P "$pid" 2>/dev/null; kill -TERM "$pid" 2>/dev/null; rm -f "$f"
+        # New previews have PID == PGID. Retire their whole session, including pnpm/vite descendants.
+        # Older registered previews share their launcher's group, so retain the legacy PID-only cleanup there.
+        if [ "$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')" = "$pid" ]; then
+          kill -TERM -- "-$pid" 2>/dev/null
+          sleep 2
+          kill -KILL -- "-$pid" 2>/dev/null
+        else
+          pkill -TERM -P "$pid" 2>/dev/null; kill -TERM "$pid" 2>/dev/null
+        fi
+        rm -f "$f"
         # delete the build now (~1.5 GB each): kept as .stopped-* they filled the disk (221 GB, 2026-10-02)
         [ -n "$out" ] && [ -d "$out" ] && [[ "$out" == /private/tmp/?*/?* ]] && { rm -rf "$out" & } 2>/dev/null
         echo "stopped :$(basename "$f")"
@@ -164,8 +173,19 @@ link_tree() {
 link_tree "$SRC/public" "$OUT"
 
 cd "$SRC" || exit 1
-nohup pnpm exec vite preview --config "$CFG" --outDir "$OUT" --port "$PORT" --strictPort --host 127.0.0.1 > "$BASE/$stamp/preview.log" 2>&1 &
-pid=$!
+# A tool runner retires its process group when the calling command exits. nohup ignores HUP, but stays in that
+# group: the preview died and the lane reaper correctly deleted its registered export. Give it its own session.
+pid="$(node --input-type=module - "$CFG" "$OUT" "$PORT" "$BASE/$stamp/preview.log" <<'PREVIEW_NODE'
+import { spawn } from 'node:child_process';
+import { openSync, closeSync } from 'node:fs';
+const [config, outDir, port, log] = process.argv.slice(2);
+const fd = openSync(log, 'a');
+const child = spawn('pnpm', ['exec', 'vite', 'preview', '--config', config, '--outDir', outDir, '--port', port, '--strictPort', '--host', '127.0.0.1'],
+  { detached: true, stdio: ['ignore', fd, fd] });
+child.once('error', error => { closeSync(fd); console.error(error); process.exitCode = 1; });
+child.once('spawn', () => { closeSync(fd); console.log(child.pid); child.unref(); });
+PREVIEW_NODE
+)" || exit 1
 for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:$PORT/" && break; sleep 0.5; done
 echo "$pid $(( $(date +%s) + HOURS * 3600 )) $BASE/$stamp $CALLER $NAME" > "$REG/$PORT"
 echo "http://127.0.0.1:$PORT/"

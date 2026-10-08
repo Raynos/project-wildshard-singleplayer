@@ -34,6 +34,8 @@ preview past its `--hours` (default 4), an unregistered one after 6 h and any de
 - **Start previews from your session scratchpad, not the repo root.** Its "all mine" eviction keys on the caller's
   folder, so repo-root previews get killed or reused by other agents. Read `/version.json` on your port before each
   capture batch.
+- Each preview starts in its own session; its registered PID is also its PGID. `serve-build.sh stop <port>` and expiry
+  reap that whole owned process group, including pnpm/vite descendants. The registry, expiry and preview log stay the same.
 
 ## iOS Simulators: at most 1 booted (E316)
 
