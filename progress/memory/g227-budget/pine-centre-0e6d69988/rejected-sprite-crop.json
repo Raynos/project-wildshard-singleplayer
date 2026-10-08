@@ -1,0 +1,62 @@
+{
+  "protocol": "Playwright WebKit OfflineAudioContext, actual shipped AAC decoded once at48kHz. Every clip uses identical start time, original duration and -40/0/+40cent pitch; compare all samples at48/44.1kHz without normalization or alignment shifts. No live audio device.",
+  "asset": "/Users/raynos/projects/games/wildshard-singleplayer/public/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+  "assetSha256": "c2e8552892361aff20e4355c58f800ce5fd64c68367e8a219447ef7a49cac679",
+  "implementationSha256": "5b2d6cd9da7a1e5d3c1d05ffd3a04771c5b9d6df61ced21d2b4fd73b46f8e7c7",
+  "channels": 1,
+  "rate": 48000,
+  "clips": 84,
+  "beforePCMBytes": 30691312,
+  "afterPCMBytes": 27510240,
+  "cases": [
+    {
+      "rate": 48000,
+      "detune": -40,
+      "samples": 7429039,
+      "maximumAbsoluteDifference": 0.000014215707778930664,
+      "rmsDifference": 2.3925576933556475e-7,
+      "signalRms": 0.08929258343850494
+    },
+    {
+      "rate": 48000,
+      "detune": 0,
+      "samples": 7268788,
+      "maximumAbsoluteDifference": 5.960464477539063e-8,
+      "rmsDifference": 1.2234675279317918e-10,
+      "signalRms": 0.08949176006396933
+    },
+    {
+      "rate": 48000,
+      "detune": 40,
+      "samples": 7112197,
+      "maximumAbsoluteDifference": 0.000012427568435668945,
+      "rmsDifference": 1.7599883800459244e-7,
+      "signalRms": 0.08917627766781844
+    },
+    {
+      "rate": 44100,
+      "detune": -40,
+      "samples": 6825430,
+      "maximumAbsoluteDifference": 9.834766387939453e-7,
+      "rmsDifference": 2.0419342065068087e-8,
+      "signalRms": 0.08929218427855884
+    },
+    {
+      "rate": 44100,
+      "detune": 0,
+      "samples": 6678199,
+      "maximumAbsoluteDifference": 0.000002428889274597168,
+      "rmsDifference": 5.141087453200934e-8,
+      "signalRms": 0.0892365914925018
+    },
+    {
+      "rate": 44100,
+      "detune": 40,
+      "samples": 6534331,
+      "maximumAbsoluteDifference": 0.000006370246410369873,
+      "rmsDifference": 1.1701345177034618e-7,
+      "signalRms": 0.08917443093932208
+    }
+  ],
+  "pass": false
+}

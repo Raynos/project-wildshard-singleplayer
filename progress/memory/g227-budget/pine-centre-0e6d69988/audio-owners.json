@@ -1,0 +1,2258 @@
+{
+  "protocol": "Exact object-identity match through Heap.getRemoteObject + Runtime.callFunctionOn against active scene attributes/textures and weak WASM/audio registrations. Audio sources follow Response bytes through the unchanged decoder. Strong remote handles released before the post-heap footprint. Unmatched objects require retainer paths; no owner is inferred from equal sizes.",
+  "rows": [
+    {
+      "id": 195334,
+      "className": "ArrayBuffer",
+      "bytes": 35913856,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 35913728,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "WASM:instantiateStreaming:memory",
+            "role": "memory",
+            "viewBytes": 35913728
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1377356,
+      "className": "AudioBuffer",
+      "bytes": 30691344,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 7672828,
+        "width": null,
+        "height": null,
+        "duration": 159.85058333333333,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/sfx/pine-hollow/oneshots-362ce515.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166836,
+      "className": "AudioBuffer",
+      "bytes": 23920672,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 2990080,
+        "width": null,
+        "height": null,
+        "duration": 62.29333333333334,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/title-3d1f713a.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/title-3d1f713a.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 277006,
+      "className": "AudioBuffer",
+      "bytes": 23633952,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 2954240,
+        "width": null,
+        "height": null,
+        "duration": 61.54666666666667,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/pine-calm-923e0056.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/pine-calm-923e0056.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 111264,
+      "className": "ArrayBuffer",
+      "bytes": 16777344,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 16777216,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "WASM:instantiate:memory",
+            "role": "memory",
+            "viewBytes": 16777216
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 277001,
+      "className": "AudioBuffer",
+      "bytes": 11816992,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 2954240,
+        "width": null,
+        "height": null,
+        "duration": 61.54666666666667,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/pine-tension-cc014e5b.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/pine-tension-cc014e5b.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1112947,
+      "className": "ImageBitmap",
+      "bytes": 4194336,
+      "details": {
+        "kind": "ImageBitmap",
+        "byteLength": null,
+        "length": null,
+        "width": 1024,
+        "height": 1024,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 643416,
+      "className": "AudioBuffer",
+      "bytes": 3504032,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 876000,
+        "width": null,
+        "height": null,
+        "duration": 18.25,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385109,
+      "className": "ArrayBuffer",
+      "bytes": 3380312,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 3380184,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/grid-deck",
+            "role": "index",
+            "viewBytes": 3380184
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166823,
+      "className": "AudioBuffer",
+      "bytes": 1728536,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 216063,
+        "width": null,
+        "height": null,
+        "duration": 4.5013125,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/sting-death-99b071e0.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/sting-death-99b071e0.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 277220,
+      "className": "AudioBuffer",
+      "bytes": 1728536,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 216063,
+        "width": null,
+        "height": null,
+        "duration": 4.5013125,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/sting-death-99b071e0.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/sting-death-99b071e0.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384965,
+      "className": "ArrayBuffer",
+      "bytes": 1560392,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1560264,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Mesh",
+            "role": "index",
+            "viewBytes": 1560264
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384703,
+      "className": "ArrayBuffer",
+      "bytes": 1513056,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1512928,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/pine-crags",
+            "role": "cdata",
+            "viewBytes": 1512928
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1176008,
+      "className": "Float32Array",
+      "bytes": 1512976,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1512928,
+        "length": 378232,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384705,
+      "className": "ArrayBuffer",
+      "bytes": 1442216,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1442088,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/pine-crags",
+            "role": "index",
+            "viewBytes": 1442088
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384927,
+      "className": "ArrayBuffer",
+      "bytes": 1433728,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1433600,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Mesh",
+            "role": "instances",
+            "viewBytes": 1433600
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166821,
+      "className": "AudioBuffer",
+      "bytes": 1351704,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 168959,
+        "width": null,
+        "height": null,
+        "duration": 3.519979166666667,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/sting-chunk-a4f2ffab.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 277213,
+      "className": "AudioBuffer",
+      "bytes": 1351704,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 168959,
+        "width": null,
+        "height": null,
+        "duration": 3.519979166666667,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/sting-chunk-a4f2ffab.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 672699,
+      "className": "ArrayBuffer",
+      "bytes": 1310848,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1310720,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "WASM:instantiate:memory",
+            "role": "memory",
+            "viewBytes": 1310720
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 743475,
+      "className": "Float32Array",
+      "bytes": 1293180,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1293132,
+        "length": 323283,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 743472,
+      "className": "Float32Array",
+      "bytes": 1293180,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1293132,
+        "length": 323283,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166788,
+      "className": "AudioBuffer",
+      "bytes": 1207712,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 150960,
+        "width": null,
+        "height": null,
+        "duration": 3.145,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384701,
+      "className": "ArrayBuffer",
+      "bytes": 1134824,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1134696,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/pine-crags",
+            "role": "position",
+            "viewBytes": 1134696
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384702,
+      "className": "ArrayBuffer",
+      "bytes": 1134824,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1134696,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/pine-crags",
+            "role": "normal",
+            "viewBytes": 1134696
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1176014,
+      "className": "Float32Array",
+      "bytes": 1134744,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1134696,
+        "length": 283674,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1176013,
+      "className": "Float32Array",
+      "bytes": 1134744,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 1134696,
+        "length": 283674,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385678,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385679,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385680,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385644,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Group/Group/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:3b36293b-3adb-4f7a-bf1d-a71c894404bb",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385645,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Group/Group/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:7c4445aa-5503-4e36-aef7-854d9364bfe0",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385646,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Group/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Group/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Group/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:442f0d4c-9a36-4595-84af-77eb4da248ef",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388899,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:f2a04132-3da1-44f6-a333-3139994c9621",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:f2a04132-3da1-44f6-a333-3139994c9621",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:f2a04132-3da1-44f6-a333-3139994c9621",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:f2a04132-3da1-44f6-a333-3139994c9621",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388898,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:a1d07b96-654b-420e-87fd-030b6bfcd448",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388970,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:c7edb9de-17b7-49aa-91d7-23d041481ef7",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:c7edb9de-17b7-49aa-91d7-23d041481ef7",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:c7edb9de-17b7-49aa-91d7-23d041481ef7",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:c7edb9de-17b7-49aa-91d7-23d041481ef7",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:c7edb9de-17b7-49aa-91d7-23d041481ef7",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388896,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:4ba082b8-ff19-49f0-a67d-781609b4d024",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388895,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:52ec1658-7631-43d8-b43a-d49d4cf8b008",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388893,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/skin-antlers/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:43d3baff-c43f-41f4-9d33-e595b20dadbe",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388958,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:701e9b37-88da-4f94-8eba-1b9395e05f44",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388874,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d4f17c5c-4e31-4d96-8151-8821d1a38120",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388873,
+      "className": "ArrayBuffer",
+      "bytes": 1048704,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 1048576,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/PerspectiveCamera/Group/Group/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-loadout-parked/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          },
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh",
+            "role": "texture-data:d02e513b-fe36-476b-ba20-78a6641baeb9",
+            "viewBytes": 1048576
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388630,
+      "className": "ArrayBuffer",
+      "bytes": 884144,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 884016,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/cabin-cluster/Mesh",
+            "role": "position",
+            "viewBytes": 884016
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 743469,
+      "className": "Float32Array",
+      "bytes": 862136,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 862088,
+        "length": 215522,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 743493,
+      "className": "Float32Array",
+      "bytes": 862136,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 862088,
+        "length": 215522,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388629,
+      "className": "ArrayBuffer",
+      "bytes": 841232,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 841104,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/cabin-cluster/Mesh",
+            "role": "position",
+            "viewBytes": 841104
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384964,
+      "className": "ArrayBuffer",
+      "bytes": 786560,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 786432,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/Mesh",
+            "role": "position",
+            "viewBytes": 786432
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166824,
+      "className": "AudioBuffer",
+      "bytes": 770072,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 96255,
+        "width": null,
+        "height": null,
+        "duration": 2.0053125,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/sting-pickup-6ed91318.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/sting-pickup-6ed91318.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 277225,
+      "className": "AudioBuffer",
+      "bytes": 770072,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 96255,
+        "width": null,
+        "height": null,
+        "duration": 2.0053125,
+        "matches": [
+          {
+            "owner": "decoded-audio:http://127.0.0.1:4405/assets/music/piano/sting-pickup-6ed91318.m4a",
+            "role": "audio-buffer",
+            "source": "http://127.0.0.1:4405/assets/music/piano/sting-pickup-6ed91318.m4a"
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166796,
+      "className": "AudioBuffer",
+      "bytes": 768032,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 192000,
+        "width": null,
+        "height": null,
+        "duration": 4,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166795,
+      "className": "AudioBuffer",
+      "bytes": 768032,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 192000,
+        "width": null,
+        "height": null,
+        "duration": 4,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384704,
+      "className": "ArrayBuffer",
+      "bytes": 756592,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 756464,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/pine-crags",
+            "role": "ctint",
+            "viewBytes": 756464
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1176007,
+      "className": "Float32Array",
+      "bytes": 756512,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 756464,
+        "length": 189116,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166782,
+      "className": "AudioBuffer",
+      "bytes": 724640,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 90576,
+        "width": null,
+        "height": null,
+        "duration": 1.887,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1385676,
+      "className": "ArrayBuffer",
+      "bytes": 667128,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 667000,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 584805,
+      "className": "ArrayBuffer",
+      "bytes": 655488,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 655360,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "WASM:instantiate:memory",
+            "role": "memory",
+            "viewBytes": 655360
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388663,
+      "className": "ArrayBuffer",
+      "bytes": 638480,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 638352,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/cabin-cluster/Mesh",
+            "role": "position",
+            "viewBytes": 638352
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1388662,
+      "className": "ArrayBuffer",
+      "bytes": 638480,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 638352,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/cabin-cluster/Mesh",
+            "role": "normal",
+            "viewBytes": 638352
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384978,
+      "className": "ArrayBuffer",
+      "bytes": 577928,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 577800,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/pine-hollow/forest-tree/pine-hollow/forest-tree:batch",
+            "role": "position",
+            "viewBytes": 577800
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384979,
+      "className": "ArrayBuffer",
+      "bytes": 577928,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 577800,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/pine-hollow/forest-tree/pine-hollow/forest-tree:batch",
+            "role": "normal",
+            "viewBytes": 577800
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1384981,
+      "className": "ArrayBuffer",
+      "bytes": 577928,
+      "details": {
+        "kind": "ArrayBuffer",
+        "byteLength": 577800,
+        "length": null,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": [
+          {
+            "owner": "Scene/region:pine-hollow/region-scene:pine-hollow/Group/pine-hollow/forest-tree/pine-hollow/forest-tree:batch",
+            "role": "color",
+            "viewBytes": 577800
+          }
+        ]
+      },
+      "thrown": false
+    },
+    {
+      "id": 1210995,
+      "className": "Float32Array",
+      "bytes": 577848,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 577800,
+        "length": 144450,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1210990,
+      "className": "Float32Array",
+      "bytes": 577848,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 577800,
+        "length": 144450,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1210984,
+      "className": "Float32Array",
+      "bytes": 577848,
+      "details": {
+        "kind": "Float32Array",
+        "byteLength": 577800,
+        "length": 144450,
+        "width": null,
+        "height": null,
+        "duration": null,
+        "matches": []
+      },
+      "thrown": false
+    },
+    {
+      "id": 1166789,
+      "className": "AudioBuffer",
+      "bytes": 576032,
+      "details": {
+        "kind": "AudioBuffer",
+        "byteLength": null,
+        "length": 144000,
+        "width": null,
+        "height": null,
+        "duration": 6,
+        "matches": []
+      },
+      "thrown": false
+    }
+  ]
+}
