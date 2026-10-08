@@ -1,0 +1,1030 @@
+{
+  "revision": {
+    "build": "f2bc891-muyuw0pw",
+    "time": "2026-10-08T01:27:01.047Z"
+  },
+  "verdict": "FAIL: absent late encounter actors before restore",
+  "exception": "Error: Missing stable runtime creature: creature:25 (leopard)\n    at Object.restore (http://127.0.0.1:4404/assets/session-C5IqwWqS.js:909:6475)\n    at Object.afterPlay (http://127.0.0.1:4404/assets/session-C5IqwWqS.js:304:80987)\n    at http://127.0.0.1:4404/assets/hybrid-CKqc-gby.js:1:12129\n    at _ (http://127.0.0.1:4404/assets/runtime-f_Gxem5W.js:1:2082)\n    at j.enter (http://127.0.0.1:4404/assets/hybrid-CKqc-gby.js:1:12108)\n    at async http://127.0.0.1:4404/assets/session-C5IqwWqS.js:909:9059",
+  "restoreFrame": {
+    "functionName": "restore",
+    "url": "",
+    "location": {
+      "scriptId": "724",
+      "lineNumber": 908,
+      "columnNumber": 6468
+    },
+    "locals": [
+      {
+        "name": "e",
+        "type": "object",
+        "description": "Hv"
+      },
+      {
+        "name": "t",
+        "type": "string",
+        "value": "valid"
+      },
+      {
+        "name": "i",
+        "type": "object",
+        "description": "Object"
+      },
+      {
+        "name": "o",
+        "type": "object",
+        "description": "Map(24)"
+      },
+      {
+        "name": "n",
+        "type": "number",
+        "description": "1",
+        "value": 1
+      },
+      {
+        "name": "r",
+        "type": "object",
+        "description": "Object"
+      },
+      {
+        "name": "a",
+        "type": "object",
+        "description": "Object"
+      }
+    ]
+  },
+  "saved": {
+    "revision": 1,
+    "actors": [
+      {
+        "id": "creature:0",
+        "kind": "wolf",
+        "hp": 110,
+        "maxHp": 110,
+        "alive": true,
+        "x": -127.3544317308131,
+        "y": 25.18746086413406,
+        "z": 52.96524527732006,
+        "yaw": 2.4274322679039146
+      },
+      {
+        "id": "creature:1",
+        "kind": "wolf",
+        "hp": 70,
+        "maxHp": 70,
+        "alive": true,
+        "x": -121.72102436109492,
+        "y": 24.991952968400415,
+        "z": 55.78807284674124,
+        "yaw": 2.5771970776806494
+      },
+      {
+        "id": "creature:2",
+        "kind": "wolf",
+        "hp": 70,
+        "maxHp": 70,
+        "alive": true,
+        "x": -129.32502916022693,
+        "y": 25.450902832118004,
+        "z": 52.362624636751825,
+        "yaw": 2.4192753138573524
+      },
+      {
+        "id": "creature:3",
+        "kind": "wolf",
+        "hp": 70,
+        "maxHp": 70,
+        "alive": true,
+        "x": -123.39828575390598,
+        "y": 24.88738264838994,
+        "z": 54.03029172761681,
+        "yaw": 2.4285113350818652
+      },
+      {
+        "id": "creature:4",
+        "kind": "wolf",
+        "hp": 55,
+        "maxHp": 55,
+        "alive": true,
+        "x": -125.53866511426232,
+        "y": 25.014227697170234,
+        "z": 54.15359771783887,
+        "yaw": 2.4268908506070987
+      },
+      {
+        "id": "creature:5",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 66.21545754018342,
+        "y": 27.56904890028683,
+        "z": 44.95752730915648,
+        "yaw": 4.706983651688196
+      },
+      {
+        "id": "creature:6",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 56.182147985506525,
+        "y": 27.2708426162216,
+        "z": 35.57232768433323,
+        "yaw": 5.51496265052522
+      },
+      {
+        "id": "creature:7",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 56.19769222912889,
+        "y": 27.2038195671,
+        "z": 39.505378799561434,
+        "yaw": 3.7171633270243425
+      },
+      {
+        "id": "creature:8",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 68.57726604289445,
+        "y": 27.588989411420137,
+        "z": 44.82780256310538,
+        "yaw": 5.9086788991644585
+      },
+      {
+        "id": "creature:9",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 71.29131196278891,
+        "y": 27.744847782256628,
+        "z": 38.95049147099375,
+        "yaw": 3.5298035728413932
+      },
+      {
+        "id": "creature:10",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 73.9448089943175,
+        "y": 27.53092530804438,
+        "z": 37.17406401184148,
+        "yaw": 2.9314059894429905
+      },
+      {
+        "id": "creature:11",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 72.61892961514076,
+        "y": 27.069660956123336,
+        "z": 29.012671529128077,
+        "yaw": 4.218114414265039
+      },
+      {
+        "id": "creature:12",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 59.655740427213075,
+        "y": 27.183736160914258,
+        "z": 43.230807970427044,
+        "yaw": 3.0788486472272223
+      },
+      {
+        "id": "creature:13",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 56.95518555764241,
+        "y": 27.360492907802257,
+        "z": 31.47633151362809,
+        "yaw": 1.0513255978282143
+      },
+      {
+        "id": "creature:14",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 59.576455175194866,
+        "y": 27.058661003849327,
+        "z": 30.492864146615727,
+        "yaw": 5.814862566926223
+      },
+      {
+        "id": "creature:15",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 73.7534886429562,
+        "y": 27.618431888229374,
+        "z": 42.560268721250964,
+        "yaw": 0.1169122421155874
+      },
+      {
+        "id": "creature:16",
+        "kind": "horse",
+        "hp": 70,
+        "maxHp": 70,
+        "alive": true,
+        "x": 66.59997401683694,
+        "y": 27.579660861634956,
+        "z": 43.10635202234936,
+        "yaw": 4.706983651688196
+      },
+      {
+        "id": "creature:17",
+        "kind": "horse",
+        "hp": 70,
+        "maxHp": 70,
+        "alive": true,
+        "x": 56.01863620262193,
+        "y": 27.24866590109549,
+        "z": 36.104372658488955,
+        "yaw": 5.51496265052522
+      },
+      {
+        "id": "creature:18",
+        "kind": "horse",
+        "hp": 70,
+        "maxHp": 70,
+        "alive": true,
+        "x": 57.477121076263,
+        "y": 27.140807445993303,
+        "z": 38.34750339952486,
+        "yaw": 3.7171633270243425
+      },
+      {
+        "id": "creature:19",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 81,
+        "y": 26.650775939941404,
+        "z": 40,
+        "yaw": 0
+      },
+      {
+        "id": "creature:20",
+        "kind": "sheepdog",
+        "hp": 60,
+        "maxHp": 60,
+        "alive": true,
+        "x": -105.64752820926358,
+        "y": -3.3096310716678996,
+        "z": 212.86853231975385,
+        "yaw": 0
+      },
+      {
+        "id": "creature:21",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 69.1,
+        "y": -3.530386807410239,
+        "z": 213.4,
+        "yaw": 1.5707963267948966
+      },
+      {
+        "id": "creature:22",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": 69.1,
+        "y": -3.059890135611056,
+        "z": 216.9,
+        "yaw": 1.5707963267948966
+      },
+      {
+        "id": "creature:23",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -108,
+        "y": -2.0367280824661256,
+        "z": 228,
+        "yaw": -2.498091544796509
+      },
+      {
+        "id": "creature:25",
+        "kind": "leopard",
+        "hp": 700,
+        "maxHp": 700,
+        "alive": true,
+        "x": 138,
+        "y": 54.77015529785156,
+        "z": -68,
+        "yaw": 0
+      },
+      {
+        "id": "creature:26",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -167.038165316088,
+        "y": 52,
+        "z": -70.42182141826548,
+        "yaw": -4.278813566786943
+      },
+      {
+        "id": "creature:27",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -171.53860529930003,
+        "y": 52,
+        "z": -73.97866798041986,
+        "yaw": 3.5046905143789866
+      },
+      {
+        "id": "creature:28",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -165.52832254971923,
+        "y": 52,
+        "z": -74.65602446888657,
+        "yaw": 1.7212862933735118
+      },
+      {
+        "id": "creature:29",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -166.32168340312586,
+        "y": 52.73805602115351,
+        "z": -70.17053552860578,
+        "yaw": -11.377369842697316
+      },
+      {
+        "id": "creature:30",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -167.92033645442146,
+        "y": 51.60778463322631,
+        "z": -61.1185491135752,
+        "yaw": 0.9240553091929584
+      },
+      {
+        "id": "creature:31",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -177.4796316090343,
+        "y": 52.00038680513206,
+        "z": -66.20231768570382,
+        "yaw": 4.338724199687797
+      },
+      {
+        "id": "creature:32",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -171.4194564810391,
+        "y": 52,
+        "z": -71.54783536147215,
+        "yaw": 2.61401670090055
+      },
+      {
+        "id": "creature:33",
+        "kind": "horse",
+        "hp": 150,
+        "maxHp": 150,
+        "alive": true,
+        "x": -169.04477252241895,
+        "y": 51.958586950364705,
+        "z": -62.31258437443124,
+        "yaw": 8.218454317240534
+      },
+      {
+        "id": "creature:34",
+        "kind": "horse",
+        "hp": 70,
+        "maxHp": 70,
+        "alive": true,
+        "x": -168.035054468829,
+        "y": 52,
+        "z": -67.30918991756519,
+        "yaw": 3.491223035692753
+      },
+      {
+        "id": "creature:35",
+        "kind": "argymaq",
+        "hp": 750,
+        "maxHp": 750,
+        "alive": true,
+        "x": -179.28021353803678,
+        "y": 42.251326247445846,
+        "z": -50.144095550721325,
+        "yaw": 4.319675751470374
+      }
+    ]
+  },
+  "rebuilt": [
+    {
+      "id": "creature:0",
+      "kind": "wolf",
+      "hp": 110,
+      "maxHp": 110,
+      "alive": true,
+      "x": -151.79264762629865,
+      "y": 33.0418072439647,
+      "z": 84.45180076599955
+    },
+    {
+      "id": "creature:1",
+      "kind": "wolf",
+      "hp": 70,
+      "maxHp": 70,
+      "alive": true,
+      "x": -144.4472873584019,
+      "y": 33.67786943030253,
+      "z": 91.44907554972457
+    },
+    {
+      "id": "creature:2",
+      "kind": "wolf",
+      "hp": 70,
+      "maxHp": 70,
+      "alive": true,
+      "x": -156.82701476802686,
+      "y": 32.711752288659156,
+      "z": 84.19433158658566
+    },
+    {
+      "id": "creature:3",
+      "kind": "wolf",
+      "hp": 70,
+      "maxHp": 70,
+      "alive": true,
+      "x": -148.88662999620485,
+      "y": 33.93528514543382,
+      "z": 84.6973169203428
+    },
+    {
+      "id": "creature:4",
+      "kind": "wolf",
+      "hp": 55,
+      "maxHp": 55,
+      "alive": true,
+      "x": -155.4900063490583,
+      "y": 33.964777247170495,
+      "z": 88.16680883920662
+    },
+    {
+      "id": "creature:5",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 66.21545754018342,
+      "y": 27.56904890028683,
+      "z": 44.95752730915648
+    },
+    {
+      "id": "creature:6",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 56.182147985506525,
+      "y": 27.2708426162216,
+      "z": 35.57232768433323
+    },
+    {
+      "id": "creature:7",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 56.19769222912889,
+      "y": 27.2038195671,
+      "z": 39.505378799561434
+    },
+    {
+      "id": "creature:8",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 68.57726604289445,
+      "y": 27.588989411420137,
+      "z": 44.82780256310538
+    },
+    {
+      "id": "creature:9",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 71.29131196278891,
+      "y": 27.744847782256628,
+      "z": 38.95049147099375
+    },
+    {
+      "id": "creature:10",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 73.9448089943175,
+      "y": 27.53092530804438,
+      "z": 37.17406401184148
+    },
+    {
+      "id": "creature:11",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 72.61892961514076,
+      "y": 27.069660956123336,
+      "z": 29.012671529128077
+    },
+    {
+      "id": "creature:12",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 59.655740427213075,
+      "y": 27.183736160914258,
+      "z": 43.230807970427044
+    },
+    {
+      "id": "creature:13",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 56.95518555764241,
+      "y": 27.360492907802257,
+      "z": 31.47633151362809
+    },
+    {
+      "id": "creature:14",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 59.576455175194866,
+      "y": 27.058661003849327,
+      "z": 30.492864146615727
+    },
+    {
+      "id": "creature:15",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 73.7534886429562,
+      "y": 27.618431888229374,
+      "z": 42.560268721250964
+    },
+    {
+      "id": "creature:16",
+      "kind": "horse",
+      "hp": 70,
+      "maxHp": 70,
+      "alive": true,
+      "x": 66.59997401683694,
+      "y": 27.579660861634956,
+      "z": 43.10635202234936
+    },
+    {
+      "id": "creature:17",
+      "kind": "horse",
+      "hp": 70,
+      "maxHp": 70,
+      "alive": true,
+      "x": 56.01863620262193,
+      "y": 27.24866590109549,
+      "z": 36.104372658488955
+    },
+    {
+      "id": "creature:18",
+      "kind": "horse",
+      "hp": 70,
+      "maxHp": 70,
+      "alive": true,
+      "x": 57.477121076263,
+      "y": 27.140807445993303,
+      "z": 38.34750339952486
+    },
+    {
+      "id": "creature:19",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 81,
+      "y": 26.650775939941404,
+      "z": 40
+    },
+    {
+      "id": "creature:20",
+      "kind": "sheepdog",
+      "hp": 60,
+      "maxHp": 60,
+      "alive": true,
+      "x": -105.64752820926358,
+      "y": -3.3096310716678996,
+      "z": 212.86853231975385
+    },
+    {
+      "id": "creature:21",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 69.1,
+      "y": -3.530386807410239,
+      "z": 213.4
+    },
+    {
+      "id": "creature:22",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": 69.1,
+      "y": -3.059890135611056,
+      "z": 216.9
+    },
+    {
+      "id": "creature:23",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -108,
+      "y": -2.0367280824661256,
+      "z": 228
+    }
+  ],
+  "missing": [
+    {
+      "id": "creature:25",
+      "kind": "leopard",
+      "hp": 700,
+      "maxHp": 700,
+      "alive": true,
+      "x": 138,
+      "y": 54.77015529785156,
+      "z": -68,
+      "yaw": 0
+    },
+    {
+      "id": "creature:26",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -167.038165316088,
+      "y": 52,
+      "z": -70.42182141826548,
+      "yaw": -4.278813566786943
+    },
+    {
+      "id": "creature:27",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -171.53860529930003,
+      "y": 52,
+      "z": -73.97866798041986,
+      "yaw": 3.5046905143789866
+    },
+    {
+      "id": "creature:28",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -165.52832254971923,
+      "y": 52,
+      "z": -74.65602446888657,
+      "yaw": 1.7212862933735118
+    },
+    {
+      "id": "creature:29",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -166.32168340312586,
+      "y": 52.73805602115351,
+      "z": -70.17053552860578,
+      "yaw": -11.377369842697316
+    },
+    {
+      "id": "creature:30",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -167.92033645442146,
+      "y": 51.60778463322631,
+      "z": -61.1185491135752,
+      "yaw": 0.9240553091929584
+    },
+    {
+      "id": "creature:31",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -177.4796316090343,
+      "y": 52.00038680513206,
+      "z": -66.20231768570382,
+      "yaw": 4.338724199687797
+    },
+    {
+      "id": "creature:32",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -171.4194564810391,
+      "y": 52,
+      "z": -71.54783536147215,
+      "yaw": 2.61401670090055
+    },
+    {
+      "id": "creature:33",
+      "kind": "horse",
+      "hp": 150,
+      "maxHp": 150,
+      "alive": true,
+      "x": -169.04477252241895,
+      "y": 51.958586950364705,
+      "z": -62.31258437443124,
+      "yaw": 8.218454317240534
+    },
+    {
+      "id": "creature:34",
+      "kind": "horse",
+      "hp": 70,
+      "maxHp": 70,
+      "alive": true,
+      "x": -168.035054468829,
+      "y": 52,
+      "z": -67.30918991756519,
+      "yaw": 3.491223035692753
+    },
+    {
+      "id": "creature:35",
+      "kind": "argymaq",
+      "hp": 750,
+      "maxHp": 750,
+      "alive": true,
+      "x": -179.28021353803678,
+      "y": 42.251326247445846,
+      "z": -50.144095550721325,
+      "yaw": 4.319675751470374
+    }
+  ],
+  "savedActorsPreservedAfterUnload": true,
+  "routes": [
+    {
+      "edge": "west",
+      "origin": {
+        "x": 555,
+        "z": 0
+      },
+      "road": {
+        "x": 277.5,
+        "z": 0
+      },
+      "target": {
+        "x": 336.5,
+        "z": 0
+      },
+      "legs": [
+        {
+          "entering": true,
+          "start": {
+            "x": 277.5000005417421,
+            "y": 0.020099997615034226,
+            "z": 0
+          },
+          "end": {
+            "x": 336.27943687434777,
+            "y": 0.02011373799757621,
+            "z": -2.7436809743770774e-7
+          },
+          "current": "nalati-grasslands",
+          "ready": true,
+          "appState": "play",
+          "hudPaused": false,
+          "crossing": {
+            "current": "nalati-grasslands",
+            "target": "nalati-grasslands",
+            "phase": "settled",
+            "issue": null
+          },
+          "grounded": true,
+          "depth": 31.279436874347766,
+          "elapsed": 14.279000000000003,
+          "wallMs": 17465.400000095367,
+          "stuck": [],
+          "failure": null
+        },
+        {
+          "entering": false,
+          "start": {
+            "x": 336.27943687434777,
+            "y": 0.02011373799757621,
+            "z": -2.7436809743770774e-7
+          },
+          "end": {
+            "x": 277.60799611891593,
+            "y": 0.020432652924114336,
+            "z": 0.00003775443150435924
+          },
+          "current": null,
+          "ready": true,
+          "appState": "play",
+          "hudPaused": false,
+          "crossing": {
+            "current": null,
+            "target": null,
+            "phase": "settled",
+            "issue": null
+          },
+          "grounded": true,
+          "depth": -27.392003881084065,
+          "elapsed": 13.911499999999991,
+          "wallMs": 14045.099999904633,
+          "stuck": [],
+          "failure": null
+        }
+      ]
+    },
+    {
+      "edge": "south",
+      "origin": {
+        "x": 555,
+        "z": 0
+      },
+      "road": {
+        "x": 555,
+        "z": -277.5
+      },
+      "target": {
+        "x": 555,
+        "z": -218.5
+      },
+      "legs": [
+        {
+          "entering": true,
+          "start": {
+            "x": 555,
+            "y": 0.5,
+            "z": -277.5
+          },
+          "end": {
+            "x": 554.9999676742914,
+            "y": 0.020247641641567782,
+            "z": -218.648386963534
+          },
+          "current": "nalati-grasslands",
+          "ready": true,
+          "appState": "play",
+          "hudPaused": false,
+          "crossing": {
+            "current": "nalati-grasslands",
+            "target": "nalati-grasslands",
+            "phase": "settled",
+            "issue": null
+          },
+          "grounded": true,
+          "depth": 31.351613036466006,
+          "elapsed": 14.018999999999998,
+          "wallMs": 14446,
+          "stuck": [],
+          "failure": null
+        },
+        {
+          "entering": false,
+          "start": {
+            "x": 554.9999676742914,
+            "y": 0.020247641641567782,
+            "z": -218.648386963534
+          },
+          "end": {
+            "x": 555.0001123763184,
+            "y": 0.020100771722304955,
+            "z": -277.34588100504334
+          },
+          "current": null,
+          "ready": true,
+          "appState": "play",
+          "hudPaused": false,
+          "crossing": {
+            "current": null,
+            "target": null,
+            "phase": "settled",
+            "issue": null
+          },
+          "grounded": true,
+          "depth": -27.34588100504334,
+          "elapsed": 13.833100000381467,
+          "wallMs": 13830.900000095367,
+          "stuck": [],
+          "failure": null
+        }
+      ]
+    },
+    {
+      "edge": "east",
+      "origin": {
+        "x": 555,
+        "z": 0
+      },
+      "road": {
+        "x": 832.5,
+        "z": 0
+      },
+      "target": {
+        "x": 773.5,
+        "z": 0
+      },
+      "legs": [
+        {
+          "entering": true,
+          "start": {
+            "x": 832.5,
+            "y": 0.5,
+            "z": 0
+          },
+          "end": {
+            "x": 804.9652952731121,
+            "y": 0.02082167530894452,
+            "z": 0.000967080145365496
+          },
+          "current": "nalati-grasslands",
+          "ready": false,
+          "appState": "play",
+          "hudPaused": false,
+          "crossing": {
+            "current": "nalati-grasslands",
+            "target": "nalati-grasslands",
+            "phase": "settled",
+            "issue": null
+          },
+          "grounded": true,
+          "depth": 0.034704726887866855,
+          "elapsed": 6.806500000000011,
+          "wallMs": 8328,
+          "stuck": [],
+          "failure": "Error: Error: Missing stable runtime creature: creature:25 (leopard)\n    at Object.restore (http://127.0.0.1:4404/assets/session-C5IqwWqS.js:909:6475)\n    at Object.afterPlay (http://127.0.0.1:4404/assets/session-C5IqwWqS.js:304:80987)\n    at http://127.0.0.1:4404/assets/hybrid-CKqc-gby.js:1:12129\n    at _ (http://127.0.0.1:4404/assets/runtime-f_Gxem5W.js:1:2082)\n    at j.enter (http://127.0.0.1:4404/assets/hybrid-CKqc-gby.js:1:12108)\n    at async http://127.0.0.1:4404/assets/session-C5IqwWqS.js:909:9059\n    at eval (eval at evaluate (:311:30), <anonymous>:25:90)"
+        }
+      ],
+      "failure": "Error: Error: Error: Missing stable runtime creature: creature:25 (leopard)\n    at Object.restore (http://127.0.0.1:4404/assets/session-C5IqwWqS.js:909:6475)\n    at Object.afterPlay (http://127.0.0.1:4404/assets/session-C5IqwWqS.js:304:80987)\n    at http://127.0.0.1:4404/assets/hybrid-CKqc-gby.js:1:12129\n    at _ (http://127.0.0.1:4404/assets/runtime-f_Gxem5W.js:1:2082)\n    at j.enter (http://127.0.0.1:4404/assets/hybrid-CKqc-gby.js:1:12108)\n    at async http://127.0.0.1:4404/assets/session-C5IqwWqS.js:909:9059\n    at eval (eval at evaluate (:311:30), <anonymous>:25:90)\n    at walk (eval at evaluate (:311:30), <anonymous>:44:30)\n    at async eval (eval at evaluate (:311:30), <anonymous>:48:15)\n    at async <anonymous>:337:30"
+    }
+  ],
+  "nativeEqual": true,
+  "scope": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "disposalErrors": [],
+  "cdpFailure": null
+}
