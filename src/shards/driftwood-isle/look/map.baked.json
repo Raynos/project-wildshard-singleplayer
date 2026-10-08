@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "tilesHash": "87c6078d4049a49f8ac58a74bb604b01e33261f2714e62f17cbbaa74a87a4522",
+  "tilesHash": "40e5e960d26a437e5c6f8e275e48f09f54dbd4a3e03152106ae5c46aaeeb7b8c",
   "image": "/assets/driftwood-isle/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "placeholder",
-  "bytes": 138978
+  "bytes": 138346
 }
