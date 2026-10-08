@@ -1,0 +1,916 @@
+{
+ "protocol": "progress/memory/g227-budget/native.mjs sky-entry, Memory saver on, Developer on, phone tier, 2x, muted, iOS Simulator wildshard-iphone Safari; WC = kernel physical footprint (median of 3 fresh samples per pose) + same-pose labelled GL",
+ "sides": {
+  "before": {
+   "build": "8039db7-muzy1fuh",
+   "source": "8039db709",
+   "tex": "auto"
+  },
+  "after": {
+   "build": "4c6daa1-muzychta",
+   "source": "8039db709 + saver cut (= d2710e6d7 code)",
+   "tex": "auto"
+  },
+  "ktx2": {
+   "build": "77062f7-muzz6y7z",
+   "source": "248d4f8cf + saver cut + KTX2 set",
+   "tex": "ktx2 (Debug pick)"
+  }
+ },
+ "summary": {
+  "after": {
+   "attempts": 3,
+   "valid": 3,
+   "failures": [],
+   "poses": {
+    "home-settled": {
+     "wcMedian": 547982984,
+     "wcMin": 546442840,
+     "wcMax": 583437960,
+     "glMedian": 180139359,
+     "combinedMedian": 728122343,
+     "combinedMin": 726582199,
+     "combinedMax": 763577319,
+     "runs": [
+      {
+       "file": "after-01.json",
+       "wc": 546442840,
+       "wcMax": 546950744,
+       "gl": 180139359,
+       "combined": 726582199,
+       "high": 727090103
+      },
+      {
+       "file": "after-02.json",
+       "wc": 547982984,
+       "wcMax": 548966048,
+       "gl": 180139359,
+       "combined": 728122343,
+       "high": 729105407
+      },
+      {
+       "file": "after-03.json",
+       "wc": 583437960,
+       "wcMax": 583814792,
+       "gl": 180139359,
+       "combined": 763577319,
+       "high": 763954151
+      }
+     ]
+    },
+    "sky-road": {
+     "wcMedian": 771575480,
+     "wcMin": 693767768,
+     "wcMax": 791187080,
+     "glMedian": 94096430,
+     "combinedMedian": 865671910,
+     "combinedMin": 787864198,
+     "combinedMax": 885283510,
+     "runs": [
+      {
+       "file": "after-01.json",
+       "wc": 693767768,
+       "wcMax": 693866072,
+       "gl": 94096430,
+       "combined": 787864198,
+       "high": 787962502
+      },
+      {
+       "file": "after-02.json",
+       "wc": 771575480,
+       "wcMax": 773000888,
+       "gl": 94096430,
+       "combined": 865671910,
+       "high": 867097318
+      },
+      {
+       "file": "after-03.json",
+       "wc": 791187080,
+       "wcMax": 791301768,
+       "gl": 94096430,
+       "combined": 885283510,
+       "high": 885398198
+      }
+     ]
+    },
+    "sky-lip": {
+     "wcMedian": 795332232,
+     "wcMin": 659934808,
+     "wcMax": 819384016,
+     "glMedian": 260736856,
+     "combinedMedian": 1056069088,
+     "combinedMin": 920671664,
+     "combinedMax": 1080120872,
+     "runs": [
+      {
+       "file": "after-01.json",
+       "wc": 659934808,
+       "wcMax": 660704856,
+       "gl": 260736856,
+       "combined": 920671664,
+       "high": 921441712
+      },
+      {
+       "file": "after-02.json",
+       "wc": 819384016,
+       "wcMax": 819449552,
+       "gl": 260736856,
+       "combined": 1080120872,
+       "high": 1080186408
+      },
+      {
+       "file": "after-03.json",
+       "wc": 795332232,
+       "wcMax": 795610760,
+       "gl": 260736856,
+       "combined": 1056069088,
+       "high": 1056347616
+      }
+     ]
+    },
+    "sky-board": {
+     "wcMedian": 805342880,
+     "wcMin": 775835224,
+     "wcMax": 837062352,
+     "glMedian": 260736856,
+     "combinedMedian": 1066079736,
+     "combinedMin": 1036572080,
+     "combinedMax": 1097800504,
+     "runs": [
+      {
+       "file": "after-01.json",
+       "wc": 775835224,
+       "wcMax": 775900760,
+       "gl": 260736856,
+       "combined": 1036572080,
+       "high": 1036637616
+      },
+      {
+       "file": "after-02.json",
+       "wc": 837062352,
+       "wcMax": 837275344,
+       "gl": 260738152,
+       "combined": 1097800504,
+       "high": 1098013496
+      },
+      {
+       "file": "after-03.json",
+       "wc": 805342880,
+       "wcMax": 805375648,
+       "gl": 260736856,
+       "combined": 1066079736,
+       "high": 1066112504
+      }
+     ]
+    },
+    "sky-gate": {
+     "wcMedian": 806915744,
+     "wcMin": 755158616,
+     "wcMax": 828919504,
+     "glMedian": 260738152,
+     "combinedMedian": 1067653896,
+     "combinedMin": 1015896768,
+     "combinedMax": 1089657656,
+     "runs": [
+      {
+       "file": "after-01.json",
+       "wc": 755158616,
+       "wcMax": 755158616,
+       "gl": 260738152,
+       "combined": 1015896768,
+       "high": 1015896768
+      },
+      {
+       "file": "after-02.json",
+       "wc": 828919504,
+       "wcMax": 828968656,
+       "gl": 260738152,
+       "combined": 1089657656,
+       "high": 1089706808
+      },
+      {
+       "file": "after-03.json",
+       "wc": 806915744,
+       "wcMax": 806981280,
+       "gl": 260738152,
+       "combined": 1067653896,
+       "high": 1067719432
+      }
+     ]
+    },
+    "sky-island": {
+     "wcMedian": 814190336,
+     "wcMin": 762318520,
+     "wcMax": 828591920,
+     "glMedian": 253747664,
+     "combinedMedian": 1067938000,
+     "combinedMin": 1016066184,
+     "combinedMax": 1082339584,
+     "runs": [
+      {
+       "file": "after-01.json",
+       "wc": 762318520,
+       "wcMax": 762367672,
+       "gl": 253747664,
+       "combined": 1016066184,
+       "high": 1016115336
+      },
+      {
+       "file": "after-02.json",
+       "wc": 828591920,
+       "wcMax": 828804912,
+       "gl": 253747664,
+       "combined": 1082339584,
+       "high": 1082552576
+      },
+      {
+       "file": "after-03.json",
+       "wc": 814190336,
+       "wcMax": 814255872,
+       "gl": 253747664,
+       "combined": 1067938000,
+       "high": 1068003536
+      }
+     ]
+    }
+   },
+   "enteredWorstSettled": {
+    "median": 1067938000,
+    "min": 1036572080,
+    "max": 1097800504
+   },
+   "enteredHighSample": {
+    "median": 1068003536,
+    "max": 1098013496
+   }
+  },
+  "before": {
+   "attempts": 3,
+   "valid": 3,
+   "failures": [],
+   "poses": {
+    "home-settled": {
+     "wcMedian": 543592096,
+     "wcMin": 529272456,
+     "wcMax": 545181368,
+     "glMedian": 180139359,
+     "combinedMedian": 723731455,
+     "combinedMin": 709411815,
+     "combinedMax": 725320727,
+     "runs": [
+      {
+       "file": "before-01.json",
+       "wc": 545181368,
+       "wcMax": 545656504,
+       "gl": 180139359,
+       "combined": 725320727,
+       "high": 725795863
+      },
+      {
+       "file": "before-02.json",
+       "wc": 543592096,
+       "wcMax": 544886432,
+       "gl": 180139359,
+       "combined": 723731455,
+       "high": 725025791
+      },
+      {
+       "file": "before-03.json",
+       "wc": 529272456,
+       "wcMax": 529485448,
+       "gl": 180139359,
+       "combined": 709411815,
+       "high": 709624807
+      }
+     ]
+    },
+    "sky-road": {
+     "wcMedian": 759516808,
+     "wcMin": 714313424,
+     "wcMax": 761777824,
+     "glMedian": 94096430,
+     "combinedMedian": 853613238,
+     "combinedMin": 808409854,
+     "combinedMax": 855874254,
+     "runs": [
+      {
+       "file": "before-01.json",
+       "wc": 714313424,
+       "wcMax": 714378960,
+       "gl": 94096430,
+       "combined": 808409854,
+       "high": 808475390
+      },
+      {
+       "file": "before-02.json",
+       "wc": 761777824,
+       "wcMax": 761794208,
+       "gl": 94096430,
+       "combined": 855874254,
+       "high": 855890638
+      },
+      {
+       "file": "before-03.json",
+       "wc": 759516808,
+       "wcMax": 759778952,
+       "gl": 94096430,
+       "combined": 853613238,
+       "high": 853875382
+      }
+     ]
+    },
+    "sky-lip": {
+     "wcMedian": 773705448,
+     "wcMin": 772722336,
+     "wcMax": 784060064,
+     "glMedian": 260736856,
+     "combinedMedian": 1034442304,
+     "combinedMin": 1033459192,
+     "combinedMax": 1044796920,
+     "runs": [
+      {
+       "file": "before-01.json",
+       "wc": 773705448,
+       "wcMax": 775786216,
+       "gl": 260736856,
+       "combined": 1034442304,
+       "high": 1036523072
+      },
+      {
+       "file": "before-02.json",
+       "wc": 784060064,
+       "wcMax": 789139104,
+       "gl": 260736856,
+       "combined": 1044796920,
+       "high": 1049875960
+      },
+      {
+       "file": "before-03.json",
+       "wc": 772722336,
+       "wcMax": 772738720,
+       "gl": 260736856,
+       "combined": 1033459192,
+       "high": 1033475576
+      }
+     ]
+    },
+    "sky-board": {
+     "wcMedian": 799543016,
+     "wcMin": 798002848,
+     "wcMax": 800755360,
+     "glMedian": 260738152,
+     "combinedMedian": 1060281168,
+     "combinedMin": 1058741000,
+     "combinedMax": 1061493512,
+     "runs": [
+      {
+       "file": "before-01.json",
+       "wc": 799543016,
+       "wcMax": 799887080,
+       "gl": 260738152,
+       "combined": 1060281168,
+       "high": 1060625232
+      },
+      {
+       "file": "before-02.json",
+       "wc": 800755360,
+       "wcMax": 800870048,
+       "gl": 260738152,
+       "combined": 1061493512,
+       "high": 1061608200
+      },
+      {
+       "file": "before-03.json",
+       "wc": 798002848,
+       "wcMax": 798052000,
+       "gl": 260738152,
+       "combined": 1058741000,
+       "high": 1058790152
+      }
+     ]
+    },
+    "sky-gate": {
+     "wcMedian": 796561128,
+     "wcMin": 796544672,
+     "wcMax": 799411872,
+     "glMedian": 260738152,
+     "combinedMedian": 1057299280,
+     "combinedMin": 1057282824,
+     "combinedMax": 1060150024,
+     "runs": [
+      {
+       "file": "before-01.json",
+       "wc": 796561128,
+       "wcMax": 796610280,
+       "gl": 260738152,
+       "combined": 1057299280,
+       "high": 1057348432
+      },
+      {
+       "file": "before-02.json",
+       "wc": 796544672,
+       "wcMax": 796610208,
+       "gl": 260738152,
+       "combined": 1057282824,
+       "high": 1057348360
+      },
+      {
+       "file": "before-03.json",
+       "wc": 799411872,
+       "wcMax": 799510176,
+       "gl": 260738152,
+       "combined": 1060150024,
+       "high": 1060248328
+      }
+     ]
+    },
+    "sky-island": {
+     "wcMedian": 809324360,
+     "wcMin": 801902312,
+     "wcMax": 810503912,
+     "glMedian": 253747664,
+     "combinedMedian": 1063072024,
+     "combinedMin": 1055649976,
+     "combinedMax": 1064251576,
+     "runs": [
+      {
+       "file": "before-01.json",
+       "wc": 809324360,
+       "wcMax": 809357128,
+       "gl": 253747664,
+       "combined": 1063072024,
+       "high": 1063104792
+      },
+      {
+       "file": "before-02.json",
+       "wc": 810503912,
+       "wcMax": 810880744,
+       "gl": 253747664,
+       "combined": 1064251576,
+       "high": 1064628408
+      },
+      {
+       "file": "before-03.json",
+       "wc": 801902312,
+       "wcMax": 801935080,
+       "gl": 253747664,
+       "combined": 1055649976,
+       "high": 1055682744
+      }
+     ]
+    }
+   },
+   "enteredWorstSettled": {
+    "median": 1063072024,
+    "min": 1060150024,
+    "max": 1064251576
+   },
+   "enteredHighSample": {
+    "median": 1063104792,
+    "max": 1064628408
+   }
+  },
+  "ktx2": {
+   "attempts": 4,
+   "valid": 3,
+   "failures": [
+    {
+     "file": "ktx2-02.json",
+     "failure": "Error: 'Runtime' domain was not found"
+    }
+   ],
+   "poses": {
+    "home-settled": {
+     "wcMedian": 574901872,
+     "wcMin": 560303848,
+     "wcMax": 608030344,
+     "glMedian": 176294663,
+     "combinedMedian": 751196535,
+     "combinedMin": 736598511,
+     "combinedMax": 784325007,
+     "runs": [
+      {
+       "file": "ktx2-01.json",
+       "wc": 560303848,
+       "wcMax": 573329104,
+       "gl": 176294663,
+       "combined": 736598511,
+       "high": 749623767
+      },
+      {
+       "file": "ktx2-03.json",
+       "wc": 574901872,
+       "wcMax": 575377008,
+       "gl": 176294663,
+       "combined": 751196535,
+       "high": 751671671
+      },
+      {
+       "file": "ktx2-04.json",
+       "wc": 608030344,
+       "wcMax": 615812720,
+       "gl": 176294663,
+       "combined": 784325007,
+       "high": 792107383
+      }
+     ]
+    },
+    "sky-road": {
+     "wcMedian": 754388664,
+     "wcMin": 689229424,
+     "wcMax": 868880128,
+     "glMedian": 95494558,
+     "combinedMedian": 849883222,
+     "combinedMin": 784723982,
+     "combinedMax": 964374686,
+     "runs": [
+      {
+       "file": "ktx2-01.json",
+       "wc": 868880128,
+       "wcMax": 869125888,
+       "gl": 95494558,
+       "combined": 964374686,
+       "high": 964620446
+      },
+      {
+       "file": "ktx2-03.json",
+       "wc": 689229424,
+       "wcMax": 689262192,
+       "gl": 95494558,
+       "combined": 784723982,
+       "high": 784756750
+      },
+      {
+       "file": "ktx2-04.json",
+       "wc": 754388664,
+       "wcMax": 754454200,
+       "gl": 95494558,
+       "combined": 849883222,
+       "high": 849948758
+      }
+     ]
+    },
+    "sky-lip": {
+     "wcMedian": 798183144,
+     "wcMin": 791482064,
+     "wcMax": 889753392,
+     "glMedian": 185240036,
+     "combinedMedian": 983423180,
+     "combinedMin": 976722100,
+     "combinedMax": 1078488672,
+     "runs": [
+      {
+       "file": "ktx2-01.json",
+       "wc": 889753392,
+       "wcMax": 889818928,
+       "gl": 188735280,
+       "combined": 1078488672,
+       "high": 1078554208
+      },
+      {
+       "file": "ktx2-03.json",
+       "wc": 798183144,
+       "wcMax": 798215912,
+       "gl": 185240036,
+       "combined": 983423180,
+       "high": 983455948
+      },
+      {
+       "file": "ktx2-04.json",
+       "wc": 791482064,
+       "wcMax": 791596752,
+       "gl": 185240036,
+       "combined": 976722100,
+       "high": 976836788
+      }
+     ]
+    },
+    "sky-board": {
+     "wcMedian": 808898280,
+     "wcMin": 798953168,
+     "wcMax": 903925552,
+     "glMedian": 185241332,
+     "combinedMedian": 994138316,
+     "combinedMin": 984194500,
+     "combinedMax": 1092662128,
+     "runs": [
+      {
+       "file": "ktx2-01.json",
+       "wc": 903925552,
+       "wcMax": 904597296,
+       "gl": 188736576,
+       "combined": 1092662128,
+       "high": 1093333872
+      },
+      {
+       "file": "ktx2-03.json",
+       "wc": 808898280,
+       "wcMax": 808947432,
+       "gl": 185240036,
+       "combined": 994138316,
+       "high": 994187468
+      },
+      {
+       "file": "ktx2-04.json",
+       "wc": 798953168,
+       "wcMax": 799067856,
+       "gl": 185241332,
+       "combined": 984194500,
+       "high": 984309188
+      }
+     ]
+    },
+    "sky-gate": {
+     "wcMedian": 808455912,
+     "wcMin": 795774672,
+     "wcMax": 902729520,
+     "glMedian": 185241332,
+     "combinedMedian": 993697244,
+     "combinedMin": 981016004,
+     "combinedMax": 1091466096,
+     "runs": [
+      {
+       "file": "ktx2-01.json",
+       "wc": 902729520,
+       "wcMax": 902745904,
+       "gl": 188736576,
+       "combined": 1091466096,
+       "high": 1091482480
+      },
+      {
+       "file": "ktx2-03.json",
+       "wc": 808455912,
+       "wcMax": 808472296,
+       "gl": 185241332,
+       "combined": 993697244,
+       "high": 993713628
+      },
+      {
+       "file": "ktx2-04.json",
+       "wc": 795774672,
+       "wcMax": 795856592,
+       "gl": 185241332,
+       "combined": 981016004,
+       "high": 981097924
+      }
+     ]
+    },
+    "sky-island": {
+     "wcMedian": 816451400,
+     "wcMin": 804917016,
+     "wcMax": 873369440,
+     "glMedian": 181746088,
+     "combinedMedian": 998197488,
+     "combinedMin": 986663104,
+     "combinedMax": 1055115528,
+     "runs": [
+      {
+       "file": "ktx2-01.json",
+       "wc": 873369440,
+       "wcMax": 873369440,
+       "gl": 181746088,
+       "combined": 1055115528,
+       "high": 1055115528
+      },
+      {
+       "file": "ktx2-03.json",
+       "wc": 816451400,
+       "wcMax": 816582472,
+       "gl": 181746088,
+       "combined": 998197488,
+       "high": 998328560
+      },
+      {
+       "file": "ktx2-04.json",
+       "wc": 804917016,
+       "wcMax": 819662616,
+       "gl": 181746088,
+       "combined": 986663104,
+       "high": 1001408704
+      }
+     ]
+    }
+   },
+   "enteredWorstSettled": {
+    "median": 998197488,
+    "min": 986663104,
+    "max": 1092662128
+   },
+   "enteredHighSample": {
+    "median": 1001408704,
+    "max": 1093333872
+   }
+  }
+ },
+ "glTopOwnersAtIsland": {
+  "before": [
+   {
+    "owner": "engine/loadRigFile | texture",
+    "bytes": 97867064
+   },
+   {
+    "owner": "engine/scene | texture",
+    "bytes": 41460944
+   },
+   {
+    "owner": "engine/render-target | texture",
+    "bytes": 33223088
+   },
+   {
+    "owner": "engine/scene | buffer",
+    "bytes": 25588322
+   },
+   {
+    "owner": "unattributed | texture",
+    "bytes": 12932428
+   },
+   {
+    "owner": "far.windmill | texture",
+    "bytes": 12582908
+   },
+   {
+    "owner": "grid.view:far-reach | texture",
+    "bytes": 8754516
+   },
+   {
+    "owner": "far.sky-isles | buffer",
+    "bytes": 6718144
+   },
+   {
+    "owner": "runtime:far-reach | texture",
+    "bytes": 2796204
+   },
+   {
+    "owner": "far.windmill | buffer",
+    "bytes": 1877792
+   },
+   {
+    "owner": "far.pines | buffer",
+    "bytes": 1825992
+   },
+   {
+    "owner": "far.crown.ruin | buffer",
+    "bytes": 767732
+   },
+   {
+    "owner": "far.rope.gate.north | buffer",
+    "bytes": 596972
+   },
+   {
+    "owner": "far.dressing | buffer",
+    "bytes": 586238
+   },
+   {
+    "owner": "far.rope.gate.east | buffer",
+    "bytes": 550380
+   }
+  ],
+  "ktx2": [
+   {
+    "owner": "engine/scene | texture",
+    "bytes": 41460944
+   },
+   {
+    "owner": "engine/render-target | texture",
+    "bytes": 33223088
+   },
+   {
+    "owner": "engine/scene | buffer",
+    "bytes": 25588322
+   },
+   {
+    "owner": "engine/loadRigFile | texture",
+    "bytes": 24467360
+   },
+   {
+    "owner": "unattributed | texture",
+    "bytes": 14330556
+   },
+   {
+    "owner": "far.windmill | texture",
+    "bytes": 12582908
+   },
+   {
+    "owner": "grid.view:far-reach | texture",
+    "bytes": 8754516
+   },
+   {
+    "owner": "far.sky-isles | buffer",
+    "bytes": 6718144
+   },
+   {
+    "owner": "runtime:far-reach | texture",
+    "bytes": 2796204
+   },
+   {
+    "owner": "far.windmill | buffer",
+    "bytes": 1877792
+   },
+   {
+    "owner": "far.pines | buffer",
+    "bytes": 1825992
+   },
+   {
+    "owner": "far.crown.ruin | buffer",
+    "bytes": 767732
+   },
+   {
+    "owner": "far.rope.gate.north | buffer",
+    "bytes": 596972
+   },
+   {
+    "owner": "far.dressing | buffer",
+    "bytes": 586238
+   },
+   {
+    "owner": "far.rope.gate.east | buffer",
+    "bytes": 550380
+   }
+  ]
+ },
+ "residencyClaimsAtIsland_before": [
+  {
+   "claim": "sim far-reach",
+   "bytes": 215953384
+  },
+  {
+   "claim": "commons gpu (covered by sim:far-reach)",
+   "bytes": 97867064
+  },
+  {
+   "claim": "commons cpu (covered by sim:far-reach)",
+   "bytes": 73400320
+  },
+  {
+   "claim": "l0 grid.open-plots",
+   "bytes": 33789972
+  },
+  {
+   "claim": "page composer",
+   "bytes": 31325068
+  },
+  {
+   "claim": "l0 road.deck",
+   "bytes": 22018000
+  },
+  {
+   "claim": "commons cpu",
+   "bytes": 10230520
+  },
+  {
+   "claim": "commons gpu",
+   "bytes": 10230520
+  },
+  {
+   "claim": "far far",
+   "bytes": 9600000
+  },
+  {
+   "claim": "product _template",
+   "bytes": 7417076
+  },
+  {
+   "claim": "l0 road.signs",
+   "bytes": 7004174
+  },
+  {
+   "claim": "sim platform.highway",
+   "bytes": 6537504
+  },
+  {
+   "claim": "l0 cell-screens.slot-2",
+   "bytes": 6116694
+  },
+  {
+   "claim": "l0 road.junctions",
+   "bytes": 5629880
+  },
+  {
+   "claim": "l0 road.asphalt",
+   "bytes": 2845264
+  }
+ ],
+ "pixelDiff": {
+  "saverCut": "11 standard poses within the before-vs-before control (animation noise)",
+  "ktx2Board": {
+   "h1-sunrest": {
+    "abMean": 0.9,
+    "abOver16Pct": 0.47,
+    "controlMean": 6.28,
+    "controlOver16Pct": 10.54
+   },
+   "mock-D-crown-arena": {
+    "abMean": 6.12,
+    "abOver16Pct": 9.97,
+    "controlMean": 7.45,
+    "controlOver16Pct": 12.74
+   },
+   "mock-C-hands-fan": {
+    "abMean": 5.86,
+    "abOver16Pct": 10.06,
+    "controlMean": 5.75,
+    "controlOver16Pct": 9.76
+   }
+  }
+ }
+}

@@ -18,9 +18,12 @@ const publicGrid = routeMode === 'public-grid';
 if (routeMode === 'sun-entry' && !['north', 'east', 'south', 'west'].includes(entryEdge)) throw new Error('Unknown Sun entry edge');
 if (publicGrid && memorySaver !== 'off') throw new Error('Public grid measures the shipping Memory saver default OFF');
 if (!['off', 'on'].includes(memorySaver)) throw new Error('Memory saver must be off or on');
+// GPU textures (Settings ▸ Debug): the build default Auto unless a run pins KTX2 / Images (sky-mem's ASTC A/B)
+const tex = process.env.G227_TEX ?? 'auto';
+if (!['auto', 'ktx2', 'img'].includes(tex)) throw new Error('G227_TEX must be auto, ktx2 or img');
 if (!dist) throw new Error('Pass the owned preview dist directory for the preboot diagnostic helper');
 const fixtures = [
-  {scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex:'auto',memorySaver,volume:0},merge:true},
+  {scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex,memorySaver,volume:0},merge:true},
   {scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}},
   {scope:'device',key:'devMode',data:!publicGrid},
 ].map(saveFixtureCode).join(';');
@@ -34,7 +37,7 @@ const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixtur
 writeFileSync(dist + '/index.html', documentHtml);
 writeFileSync(dist + '/g227-safari.html', documentHtml);
 if (!udid) throw new Error('Run through sim-lane.sh');
-const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver, developer:!publicGrid,
+const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver, tex, developer:!publicGrid,
   ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}),
   protocol: 'One cold Safari Simulator route. Three settled one-second kernel physical-footprint samples per pose; live labelled GL at the same pose. Relative evidence, not physical-phone cap proof.',
   snapshots: [], routes: [] };
@@ -61,7 +64,7 @@ try {
   let evaluate = await connect(`${base}version.json`);
   report.stage = 'cold-reset'; save();
   await evaluate(`(async () => {for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();for(const k of await caches.keys()) await caches.delete(k);localStorage.clear();sessionStorage.clear();return true;})()`);
-  await evaluate(`(() => {${saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver }, merge: true })};${saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: !publicGrid })};return true;})()`);
+  await evaluate(`(() => {${saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex, memorySaver }, merge: true })};${saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: !publicGrid })};return true;})()`);
   const samplerLog = openSync(samplerState.log, 'wx');
   try { sampler = spawn('python3', ['scripts/sim-mem-phases.py', '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--max', '1200'], { stdio: ['ignore', samplerLog, samplerLog] }); }
   finally { closeSync(samplerLog); }

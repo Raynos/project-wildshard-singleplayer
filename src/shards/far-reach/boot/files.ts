@@ -1,4 +1,6 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
+import { filePolicy } from '@wildshard/engine/boot/filePolicy';
+import { GPU_FILES } from '../ktx2.generated';
 
 /** The generated models (C6, and the rope-bridge kit): loaded by `world/meshes.ts`, listed here so the boot and the offline cache fetch them. */
 export type SkyMeshName = 'storm-roc' | 'sky-goat' | 'drift-ray' | 'wind-vane' | 'bridge-post' | 'bridge-deck' | 'keeper';
@@ -53,8 +55,9 @@ export const FAN_LEAF_URL = '/assets/far-reach/fan/leaf.webp';
 export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone: '/assets/far-reach/sky/panorama.phone.webp' } as const;
 
 /** Sky Reach downloads its painted sky (look/sky.ts) and its generated models (C6, `world/meshes.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
-export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier) => ({
-  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map(skyHdUrl)], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
+// The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's ASTC A/B, manifest.ts): images otherwise.
+export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
+  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name)))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
 /** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/far-reach/round-29-lut/). */
