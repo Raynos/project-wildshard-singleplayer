@@ -157,8 +157,11 @@ try {
     await until(`Math.abs(window.__wildshard.shard.farReach.isletAt('north').y-${entry.dock.y})<.01`, (entry.travel + 10) * 1000);
     const riderY = await evaluate('window.__wildshard.requireWorld().player.position.y');
     if (Math.abs(riderY - entry.dock.y) > .5) throw new Error('Sky rider failed to reach its dock');
-    await snapshot('sky-docked');
-    await drive('sky-bridge-island', sky.instance, entry.climb.slice(1));
+    // The lift returns after six seconds: disembark normally before the nine-second settled sample.
+    // Sample on the stationary gate, rather than making the ruler itself miss the playable dock window.
+    await drive('sky-dock-gate', sky.instance, entry.climb.slice(1, 3));
+    await snapshot('sky-gate');
+    await drive('sky-bridge-island', sky.instance, entry.climb.slice(3));
     await snapshot('sky-island');
     const islandY = await evaluate('window.__wildshard.requireWorld().player.position.y');
     if (Math.abs(islandY - entry.isle.y) > .5) throw new Error('Sky bridge failed to reach playable island ground');
