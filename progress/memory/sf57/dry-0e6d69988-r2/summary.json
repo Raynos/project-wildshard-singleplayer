@@ -1,0 +1,181 @@
+{
+  "purpose": "REHEARSAL; incomplete M3 and sampling, cannot close SF57 or establish retained WebKit memory",
+  "engineBase": 300000000,
+  "formula": "1.01 <= (WebContent + labelled GL - engineBase) / accounted <= 1.21; raw ratio informational",
+  "graderRevision": "69469d81c4cfadb1237a582a37b4ac5639e6ddcb",
+  "layouts": [
+    {
+      "layout": "dev",
+      "leg": "cells",
+      "sha": "0e6d69988e4a78c546d691b57c49b8a509cef046",
+      "gamePid": 94727,
+      "perLap": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "samples": 311,
+          "peakBytes": 1059673244,
+          "troughBytes": 493829934,
+          "webContentPeakBytes": 814174840,
+          "allWebContentPeakBytes": 829250688,
+          "glPeakBytes": 300073964,
+          "accountedPeakBytes": 726635037,
+          "gpuProcessPeakBytes": 297946016,
+          "wasmPeakBytes": 71172096,
+          "overCapBytes": 59673244
+        }
+      ],
+      "seconds": 313.539,
+      "circuits": 0,
+      "evictions": 5,
+      "grade": {
+        "contentCut": null,
+        "requiredSeconds": 1800,
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 1059673244,
+        "loadingPeakBytes": 691731067,
+        "phoneEstimateBytes": 1483542541.6,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791450148.295,
+            "end": 1791450158.586,
+            "samples": 10,
+            "bytes": 606739695
+          }
+        ],
+        "baselineDeltaBytes": [
+          null
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "complete": false,
+            "peakBytes": 1059673244,
+            "troughBytes": 493829934
+          }
+        ],
+        "recovery": false,
+        "calibration": true,
+        "ratios": [],
+        "missingGlSamples": 1,
+        "sampling": false,
+        "leakZero": false,
+        "admitted": [
+          "pine-hollow",
+          "template-2",
+          "driftwood-isle",
+          "nalati-grasslands"
+        ],
+        "refused": [
+          "sunscar-dunes",
+          "far-reach"
+        ],
+        "attemptedEveryCell": false,
+        "crossroads": 3,
+        "rehearsal": true,
+        "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+      },
+      "missing": [
+        {
+          "phase": "drive",
+          "t": "2026-10-08T09:04:12.821546+00:00",
+          "nearestGlSeconds": 1.687999963760376
+        }
+      ],
+      "artifacts": [
+        {
+          "file": "dev-cells-native.jsonl.br",
+          "rawBytes": 100030,
+          "rawSha256": "bb19a2c1d7f99052e98558a3f412c2c410d03e7a9ef2389416afee376c9d52c2"
+        },
+        {
+          "file": "dev-cells-gl.jsonl.br",
+          "rawBytes": 22064050,
+          "rawSha256": "c922da10769e4a24afa996242857f6b5e2867029df8381302fef7907a87ce3ef"
+        },
+        {
+          "file": "dev-cells-gl-events.jsonl.br",
+          "rawBytes": 29795578,
+          "rawSha256": "4751e3c9b6e63575d1b30028b7f964601432a04c913b410971794020a73af50b"
+        },
+        {
+          "file": "dev-cells-original.json.br",
+          "rawBytes": 3284487,
+          "rawSha256": "28a97acac7e6fabad0a15467b03d6bb6fb0d7d1354385a3f7891a7f2fad72840"
+        }
+      ],
+      "originalReceipt": "dev-cells-original.json.br",
+      "errors": [],
+      "nativeSummary": {
+        "type": "summary",
+        "t": "2026-10-08T09:08:14.077071+00:00",
+        "phases": {
+          "loading": {
+            "samples": 62,
+            "seconds": 61.4,
+            "gamePid": 94727,
+            "gameHighGB": 0.453,
+            "gameSampledGB": 0.427,
+            "allWebContentGB": 0.496,
+            "gpuProcessGB": 0.165
+          },
+          "baseline-0": {
+            "samples": 20,
+            "seconds": 19.1,
+            "gamePid": 94727,
+            "gameHighGB": 0.434,
+            "gameSampledGB": 0.434,
+            "allWebContentGB": 0.473,
+            "gpuProcessGB": 0.162
+          },
+          "drive": {
+            "samples": 312,
+            "seconds": 313,
+            "gamePid": 94727,
+            "gameHighGB": 0.814,
+            "gameSampledGB": 0.79,
+            "allWebContentGB": 0.854,
+            "gpuProcessGB": 0.3
+          },
+          "unloaded": {
+            "samples": 21,
+            "seconds": 20.1,
+            "gamePid": 94727,
+            "gameHighGB": 0.464,
+            "gameSampledGB": 0.463,
+            "allWebContentGB": 0.503,
+            "gpuProcessGB": 0.282
+          }
+        },
+        "lost": [
+          {
+            "pid": 95155,
+            "phase": "loading",
+            "elapsed": 1
+          },
+          {
+            "pid": 95166,
+            "phase": "loading",
+            "elapsed": 2
+          },
+          {
+            "pid": 95170,
+            "phase": "loading",
+            "elapsed": 2
+          },
+          {
+            "pid": 95278,
+            "phase": "loading",
+            "elapsed": 2
+          }
+        ]
+      },
+      "attribution": "No heap snapshots / Rapier memory readings were captured. Refusals, missing GL readings and unaccounted transitional home prevent a WebKit-retention attribution."
+    }
+  ],
+  "missingReceipts": [
+    "dev-road.json"
+  ]
+}

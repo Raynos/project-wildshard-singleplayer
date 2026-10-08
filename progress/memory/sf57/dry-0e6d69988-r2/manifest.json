@@ -1,0 +1,21 @@
+{
+  "sha": "0e6d69988e4a78c546d691b57c49b8a509cef046",
+  "out": "/private/tmp/claude-501/sp-builders/sp-x3/sf57-dry-0e6-r2",
+  "bases": [
+    {
+      "layout": "dev",
+      "base": "http://127.0.0.1:4405/",
+      "version": {
+        "build": "0e6d699-muz9oi4a",
+        "time": "2026-10-08T08:20:59.850Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "dryRun": true,
+  "legs": [
+    "cells"
+  ],
+  "rehearsal": true,
+  "routeScope": "prepared"
+}
