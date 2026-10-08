@@ -1,4 +1,5 @@
 import { app } from '@wildshard/engine/app/runtime';
+import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import type { Targets } from '@wildshard/engine/combat/types';
@@ -166,7 +167,7 @@ let modelReady: LeverModel | null = null;
 /** Fetch + decode the Blender model once (main.ts starts it early; the weapon step awaits it). null = the procedural build. */
 export function preloadLeverModel(): Promise<LeverModel | null> {
   modelLoad ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(LEVER_MODEL_URL)
-    .then((gltf) => { modelReady = parseLeverModel(gltf.scene); return modelReady; })
+    .then((gltf) => { modelReady = retainCachedResources(parseLeverModel(gltf.scene)); return modelReady; })
     .catch((e: unknown) => { console.warn('[lever-action] the Blender model did not load — the procedural build stands in:', e); return null; });
   return modelLoad;
 }
