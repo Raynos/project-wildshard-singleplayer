@@ -1,0 +1,88 @@
+Process:         com.apple.WebKit.WebContent [18504]
+Path:            /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/System/Library/ExtensionKit/Extensions/WebContentExtension.appex/com.apple.WebKit.WebContent
+Load Address:    0x1024ec000
+Identifier:      com.apple.WebKit.WebContent
+Version:         8624.2.5.10.4
+Code Type:       ARM64
+Platform:        iOS Simulator
+Parent Process:  launchd_sim [17509]
+Target Type:     corpse
+
+Date/Time:       2026-10-08 16:16:51.712 -0500
+Launch Time:     2026-10-08 16:15:09.596 -0500
+OS Version:      macOS 26.5 (25F71)
+Report Version:  7
+Analysis Tool:   /Library/Developer/CoreSimulator/Volumes/iOS_23F77/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 26.5.simruntime/Contents/Resources/RuntimeRoot/usr/bin/vmmap
+Analysis Tool Version:  iOS Simulator 26.5 (23F77)
+
+Physical footprint:         844.1M
+Physical footprint (peak):  889.1M
+Idle exit:                  untracked
+----
+
+ReadOnly portion of Libraries: Total=1.8G resident=610.5M(33%) swapped_out_or_unallocated=1.2G(67%)
+Writable regions: Total=10.5G written=55.7M(1%) resident=1.4G(14%) swapped_out=0K(0%) unallocated=9.1G(86%)
+
+                                VIRTUAL RESIDENT    DIRTY  SWAPPED VOLATILE   NONVOL    EMPTY   REGION 
+REGION TYPE                        SIZE     SIZE     SIZE     SIZE     SIZE     SIZE     SIZE    COUNT (non-coalesced) 
+===========                     ======= ========    =====  ======= ========   ======    =====  ======= 
+Activity Tracing                   256K      32K      32K       0K       0K      32K       0K        1 
+CG raster data                    10.0M    4256K    4256K       0K       0K       0K       0K       19 
+ColorSync                           32K      32K      32K       0K       0K       0K       0K        2 
+CoreServices                        16K      16K      16K       0K       0K       0K       0K        1 
+Dispatch continuations            18.0M     592K     576K       0K       0K       0K       0K        1 
+Foundation                          16K      16K      16K       0K       0K       0K       0K        1 
+Image IO                          11.5M       0K       0K       0K       0K       0K    11.5M       12 
+JS JIT generated code            512.0M    43.8M    40.7M       0K       0K       0K       0K        3 
+JS VM Gigacage                   362.4M   184.7M   141.1M       0K       0K       0K       0K        9 
+JS VM Gigacage (reserved)          4.1G       0K       0K       0K       0K       0K       0K        2         reserved VM address space (unallocated)
+Kernel Alloc Once                   32K      16K      16K       0K       0K       0K       0K        1 
+MALLOC (empty)                    10.2M     336K     336K       0K       0K       0K       0K        7 
+MALLOC guard page                   32K       0K       0K       0K       0K       0K       0K        2 
+MALLOC metadata                    800K     416K     352K       0K       0K       0K       0K        8 
+MALLOC_LARGE                      16.1M       0K       0K       0K       0K       0K    16.1M        2         see MALLOC ZONE table below
+MALLOC_SMALL                      34.4M    18.2M    8160K       0K       0K       0K       0K      586         see MALLOC ZONE table below
+MALLOC_SMALL (empty)              5728K     704K       0K       0K       0K       0K       0K       93         see MALLOC ZONE table below
+MALLOC_TINY                       4096K     160K     160K       0K       0K       0K       0K        1         see MALLOC ZONE table below
+STACK GUARD                       56.4M       0K       0K       0K       0K       0K       0K       24 
+Stack                             20.2M    1312K    1264K       0K       0K       0K       0K       25 
+VM_ALLOCATE                       18.2M    4288K    4288K       0K       0K    4288K       0K      305 
+VM_ALLOCATE (graphics)            9904K    9904K    9904K       0K       0K    9904K       0K       23 
+WebKit Malloc                      9.6G     1.1G   593.4M       0K       0K       0K       0K      361 
+WebKit Malloc (empty)             26.8M    26.8M       0K       0K       0K       0K       0K        2 
+WebKit Malloc (reserved)           3.7G       0K       0K       0K       0K       0K       0K        2         reserved VM address space (unallocated)
+WebKit Malloc metadata           161.9M    20.4M    2384K       0K       0K       0K       0K       25 
+__AUTH_CONST                        32K      32K      32K       0K       0K       0K       0K        1 
+__DATA                            53.4M    29.4M    6748K       0K       0K       0K       0K      943 
+__DATA_CONST                     116.6M    92.2M    11.6M       0K       0K       0K       0K      975 
+__DATA_DIRTY                       155K     155K     155K       0K       0K       0K       0K       13 
+__FONT_DATA                        2352       0K       0K       0K       0K       0K       0K        1 
+__LINKEDIT                       713.5M    51.5M       0K       0K       0K       0K       0K       72 
+__OBJC_RO                         55.6M    50.4M       0K       0K       0K       0K       0K        1 
+__OBJC_RW                         2332K    2316K      28K       0K       0K       0K       0K        1 
+__TEXT                             1.1G   559.0M       0K       0K       0K       0K       0K      988 
+__TPRO_CONST                       164K      68K      68K       0K       0K       0K       0K        3 
+dyld private memory                3.0G    16.9M    16.9M       0K       0K       0K       0K       78 
+mapped file                      248.1M    13.6M      16K       0K       0K       0K       0K       41 
+owned unmapped (graphics)         8528K    8528K    8528K       0K       0K       0K       0K        3 
+page table in kernel              2740K    2740K    2740K       0K       0K       0K       0K        1 
+shared memory                       32K      32K      32K       0K       0K       0K       0K        2 
+unused but dirty shlib __DATA     27.5M    24.4M    4120K       0K       0K       0K       0K      529 
+===========                     ======= ========    =====  ======= ========   ======    =====  ======= 
+TOTAL                             23.9G     2.3G   856.7M       0K       0K    13.9M    27.5M     5170 
+TOTAL, minus reserved VM space    16.1G     2.3G   856.7M       0K       0K    13.9M    27.5M     5170 
+
+                                             VIRTUAL   RESIDENT      DIRTY    SWAPPED ALLOCATION      BYTES DIRTY+SWAP          REGION
+MALLOC ZONE                                     SIZE       SIZE       SIZE       SIZE      COUNT  ALLOCATED  FRAG SIZE  % FRAG   COUNT
+===========                                  =======  =========  =========  =========  =========  =========  =========  ======  ======
+WebKit Malloc_0x10780e5f8                       2.6G       1.3G     777.5M         0K    1448438       8.9G         0K      0%     354
+DefaultMallocZone_0x102c2c000                  44.4M      19.1M      8352K         0K      57161      12.8M         0K      0%     671
+DefaultPurgeableMallocZone_0x172158000         16.1M        32K         0K         0K          2      16.1M         0K      0%       3
+caulk::audio_buffer_resource_0x103af1ce8       10.0M       112K       112K         0K          0         0K       112K    100%       2
+QuartzCore_0x102cf8000                          240K       192K       160K         0K        255        23K       137K     86%      12
+caulk::global_page_cache_0x103af1c08            160K       160K       160K         0K          0         0K       160K    100%       4
+caulk::realtime_safe_resource_0x103af1b28        64K        64K        64K         0K          0         0K        64K    100%       1
+WebKit Using System Malloc_0x102cd0000            0K         0K         0K         0K          0         0K         0K      0%       0
+===========                                  =======  =========  =========  =========  =========  =========  =========  ======  ======
+TOTAL                                           2.6G       1.3G     786.1M         0K    1505856       8.9G         0K      0%    1047
+

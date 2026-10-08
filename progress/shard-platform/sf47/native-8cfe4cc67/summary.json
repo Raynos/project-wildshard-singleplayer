@@ -1,0 +1,148 @@
+{
+ "source": "8cfe4cc67",
+ "builds": [
+  "8cfe4cc-mv00valt",
+  "8cfe4cc-mv00valt",
+  "8cfe4cc-mv00valt"
+ ],
+ "protocol": "progress/memory/g227-budget/native.mjs pine-centre on; three cold sim-lane boots of wildshard-iphone (iPhone 17 Pro Simulator, Safari); phone tier, 2x, Developer ON, Memory saver ON, Auto textures, muted, seed 357; WC = kernel physical footprint median of three settled 1 s samples, GL = same-pose labelled census",
+ "poses": {
+  "home-settled": [
+   {
+    "run": 1,
+    "wcMB": 518.639144,
+    "glMB": 180.920235,
+    "combinedMB": 699.559379,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 908.98
+   },
+   {
+    "run": 2,
+    "wcMB": 564.02292,
+    "glMB": 180.920235,
+    "combinedMB": 744.943155,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 908.98
+   },
+   {
+    "run": 3,
+    "wcMB": 539.02096,
+    "glMB": 180.920235,
+    "combinedMB": 719.941195,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 908.98
+   }
+  ],
+  "pine-hollow-entry": [
+   {
+    "run": 1,
+    "wcMB": 764.514168,
+    "glMB": 229.998622,
+    "combinedMB": 994.51279,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 1128.12
+   },
+   {
+    "run": 2,
+    "wcMB": 783.33948,
+    "glMB": 233.493866,
+    "combinedMB": 1016.833346,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 1128.12
+   },
+   {
+    "run": 3,
+    "wcMB": 759.222304,
+    "glMB": 233.493866,
+    "combinedMB": 992.71617,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 1128.12
+   }
+  ],
+  "pine-hollow-centre": [
+   {
+    "run": 1,
+    "wcMB": 903.72904,
+    "glMB": 231.251376,
+    "combinedMB": 1134.980416,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 1121.84
+   },
+   {
+    "run": 2,
+    "wcMB": 884.822,
+    "glMB": 231.251376,
+    "combinedMB": 1116.073376,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 1121.84
+   },
+   {
+    "run": 3,
+    "wcMB": 870.010984,
+    "glMB": 231.251376,
+    "combinedMB": 1101.26236,
+    "glReconciled": true,
+    "unlabelled": 0,
+    "playingModelMB": 1121.84
+   }
+  ]
+ },
+ "summary": {
+  "home-settled": {
+   "wcMedian": 539.021,
+   "glMedian": 180.92,
+   "combinedMedian": 719.941,
+   "min": 699.559,
+   "max": 744.943,
+   "spread": 45.384,
+   "model": 908.98,
+   "reconciled": true,
+   "unlabelled": 0
+  },
+  "pine-hollow-entry": {
+   "wcMedian": 764.514,
+   "glMedian": 233.494,
+   "combinedMedian": 994.513,
+   "min": 992.716,
+   "max": 1016.833,
+   "spread": 24.117,
+   "model": 1128.12,
+   "reconciled": true,
+   "unlabelled": 0
+  },
+  "pine-hollow-centre": {
+   "wcMedian": 884.822,
+   "glMedian": 231.251,
+   "combinedMedian": 1116.073,
+   "min": 1101.262,
+   "max": 1134.98,
+   "spread": 33.718,
+   "model": 1121.84,
+   "reconciled": true,
+   "unlabelled": 0
+  }
+ },
+ "before": {
+  "rev": "0e6d69988",
+  "runs": 1,
+  "pine-hollow-centre": {
+   "wcMB": 939.49536,
+   "glMB": 245.671812,
+   "combinedMB": 1185.167172
+  },
+  "pine-hollow-entry": {
+   "combinedMB": 1120.429768
+  },
+  "home-settled": {
+   "combinedMB": 761.999835
+  }
+ }
+}
