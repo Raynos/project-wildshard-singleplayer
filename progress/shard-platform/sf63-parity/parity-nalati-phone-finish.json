@@ -1,0 +1,3540 @@
+{
+  "base": "http://127.0.0.1:4401",
+  "tag": "c1",
+  "scene": "nalati",
+  "tier": "phone",
+  "grid": {
+    "stops": [
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 7.3,
+          "feet": {
+            "x": 320.6780052798272,
+            "y": 0.44999597974528943,
+            "z": 0.0005135619940107167
+          },
+          "current": "nalati-grasslands"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,BloomEffect,VignetteEffect,ToneMappingEffect,GradeV2Effect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[FXAAEffect]"
+          ],
+          "programs": 218,
+          "bloom": [
+            0,
+            1,
+            0.08
+          ],
+          "vignette": 0,
+          "saturation": 0.1,
+          "contrast": 0.15,
+          "brightness": 0,
+          "ao": null,
+          "frame": {
+            "owner": "nalati-grasslands",
+            "weight": 1,
+            "lut": false,
+            "values": [
+              0.1,
+              0,
+              0.15,
+              0,
+              0
+            ],
+            "post": [
+              0,
+              1,
+              0.08,
+              0,
+              -1,
+              -1
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "scene",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.8,
+                "cast": true,
+                "dir": [
+                  0.213,
+                  0.956,
+                  -0.201
+                ],
+                "map": [
+                  512,
+                  512
+                ],
+                "frustum": [
+                  -88.156,
+                  88.156,
+                  600
+                ],
+                "fromCam": 145.03
+              }
+            ],
+            "meshes": 103,
+            "cast": 3,
+            "receive": 84
+          }
+        }
+      },
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 11.9,
+          "feet": {
+            "x": 468.64299601761695,
+            "y": 26.958441981784606,
+            "z": 0.020879105119329333
+          },
+          "current": "nalati-grasslands"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,BloomEffect,VignetteEffect,ToneMappingEffect,GradeV2Effect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[FXAAEffect]"
+          ],
+          "programs": 218,
+          "bloom": [
+            0,
+            1,
+            0.08
+          ],
+          "vignette": 0,
+          "saturation": 0.1,
+          "contrast": 0.15,
+          "brightness": 0,
+          "ao": null,
+          "frame": {
+            "owner": "nalati-grasslands",
+            "weight": 1,
+            "lut": false,
+            "values": [
+              0.1,
+              0,
+              0.15,
+              0,
+              0
+            ],
+            "post": [
+              0,
+              1,
+              0.08,
+              0,
+              -1,
+              -1
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "scene",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.8,
+                "cast": true,
+                "dir": [
+                  0.213,
+                  0.956,
+                  -0.201
+                ],
+                "map": [
+                  512,
+                  512
+                ],
+                "frustum": [
+                  -88.156,
+                  88.156,
+                  600
+                ],
+                "fromCam": 143.655
+              }
+            ],
+            "meshes": 105,
+            "cast": 8,
+            "receive": 86
+          }
+        }
+      }
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "road": {
+      "chain": {
+        "passes": [
+          "RenderPass",
+          "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+          "EffectPass[FXAAEffect]"
+        ],
+        "programs": 78,
+        "bloom": [
+          0.4,
+          1,
+          0.08
+        ],
+        "vignette": 0.35,
+        "saturation": 0.3,
+        "contrast": 0.2,
+        "brightness": 0,
+        "ao": null,
+        "frame": {
+          "owner": null,
+          "weight": 0,
+          "lut": false,
+          "values": [
+            0.3,
+            0,
+            0.2,
+            0,
+            0
+          ],
+          "post": [
+            0.4,
+            1,
+            0.08,
+            0.35,
+            -1,
+            -1
+          ],
+          "fx": {
+            "carrier": null,
+            "weight": 0,
+            "vol": [
+              0,
+              0.55
+            ],
+            "chroma": 0,
+            "grain": 0,
+            "target": [
+              1,
+              1
+            ],
+            "depth": "scene",
+            "sceneDepth": false
+          }
+        },
+        "shadows": {
+          "enabled": true,
+          "autoUpdate": true,
+          "lights": [
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                1024,
+                1024
+              ],
+              "frustum": [
+                -88.156,
+                88.156,
+                600
+              ],
+              "fromCam": 67.129
+            }
+          ],
+          "meshes": 0,
+          "cast": 0,
+          "receive": 0
+        }
+      }
+    }
+  },
+  "standalone": {
+    "shots": [
+      "nalati-entry-e",
+      "nalati-entry-n",
+      "nalati-inside-e",
+      "nalati-inside-w"
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "chain": {
+      "passes": [
+        "RenderPass",
+        "EffectPass[GradeV2Effect]"
+      ],
+      "programs": 98,
+      "bloom": null,
+      "vignette": null,
+      "saturation": null,
+      "contrast": null,
+      "brightness": null,
+      "ao": null,
+      "frame": null,
+      "shadows": {
+        "enabled": true,
+        "autoUpdate": true,
+        "lights": [
+          {
+            "name": "",
+            "intensity": 2.8,
+            "cast": true,
+            "dir": [
+              0.213,
+              0.956,
+              -0.201
+            ],
+            "map": [
+              512,
+              512
+            ],
+            "frustum": [
+              -88.156,
+              88.156,
+              600
+            ],
+            "fromCam": 143.755
+          }
+        ],
+        "meshes": 127,
+        "cast": 9,
+        "receive": 97
+      }
+    }
+  },
+  "poses": [
+    [
+      "nalati-entry-e",
+      -232.94,
+      0,
+      -1.5707963267948966,
+      0.3,
+      0.45
+    ],
+    [
+      "nalati-entry-n",
+      -232.94,
+      0,
+      3.141592653589793,
+      0.03,
+      0.45
+    ],
+    [
+      "nalati-inside-e",
+      -84.98,
+      0,
+      -1.5707963267948966,
+      0.05,
+      27.01
+    ],
+    [
+      "nalati-inside-w",
+      -84.98,
+      0,
+      1.5707963267948966,
+      0.03,
+      27.01
+    ]
+  ],
+  "diffs": [
+    {
+      "pose": "nalati-entry-e",
+      "mae": 12.4,
+      "standalone": [
+        141,
+        129.3,
+        121.4
+      ],
+      "grid": [
+        136.2,
+        124.7,
+        122.3
+      ]
+    },
+    {
+      "pose": "nalati-entry-n",
+      "mae": 17,
+      "standalone": [
+        115.5,
+        118.6,
+        101.1
+      ],
+      "grid": [
+        104,
+        106.1,
+        95
+      ]
+    },
+    {
+      "pose": "nalati-inside-e",
+      "mae": 14.2,
+      "standalone": [
+        151.4,
+        135.3,
+        109.4
+      ],
+      "grid": [
+        150.7,
+        136.1,
+        116.8
+      ]
+    },
+    {
+      "pose": "nalati-inside-w",
+      "mae": 15.5,
+      "standalone": [
+        139.4,
+        134.1,
+        124.1
+      ],
+      "grid": [
+        137.9,
+        133.9,
+        131.5
+      ]
+    }
+  ],
+  "version": {
+    "build": "be60163-mv016p81",
+    "time": "2026-10-08T21:10:58.609Z"
+  },
+  "gridCensus": {
+    "nalati-entry-e": {
+      "rootVisible": "region:nalati-grasslands=true ",
+      "rows": {
+        "Mesh": [
+          11,
+          1,
+          280
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          1,
+          0,
+          30
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          55
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          25
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          103
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          154
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          22
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          3
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          9
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          47
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          15,
+          0,
+          15
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "nalati-entry-n": {
+      "rootVisible": "region:nalati-grasslands=true ",
+      "rows": {
+        "Mesh": [
+          11,
+          1,
+          280
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          1,
+          0,
+          30
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          19
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          14
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          53
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          116
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          39
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          16
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          40
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          15,
+          0,
+          15
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "nalati-inside-e": {
+      "rootVisible": "region:nalati-grasslands=true ",
+      "rows": {
+        "Mesh": [
+          11,
+          1,
+          80
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          3,
+          0,
+          114
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          24
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          12
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          33
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          92
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          7
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          167
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          379
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          15,
+          5,
+          15
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "nalati-inside-w": {
+      "rootVisible": "region:nalati-grasslands=true ",
+      "rows": {
+        "Mesh": [
+          11,
+          1,
+          80
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          3,
+          0,
+          114
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          48
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          19
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          73
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          105
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          22
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          3
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          146
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          393
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          15,
+          5,
+          15
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  },
+  "saCensus": {
+    "nalati-entry-e": {
+      "rootVisible": null,
+      "rows": {
+        "Mesh": [
+          32,
+          2,
+          301
+        ],
+        "cloud-sea": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          1,
+          0,
+          30
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          55
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          25
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          103
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          154
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          22
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          3
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          9
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          47
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          15,
+          0,
+          15
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "nalati-entry-n": {
+      "rootVisible": null,
+      "rows": {
+        "Mesh": [
+          32,
+          2,
+          301
+        ],
+        "cloud-sea": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          1,
+          0,
+          30
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          19
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          14
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          53
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          116
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          39
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          16
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          40
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          15,
+          0,
+          15
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "nalati-inside-e": {
+      "rootVisible": null,
+      "rows": {
+        "Mesh": [
+          32,
+          2,
+          101
+        ],
+        "cloud-sea": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          3,
+          0,
+          114
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          24
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          12
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          32
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          90
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          7
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          168
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          378
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          16,
+          5,
+          16
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "nalati-inside-w": {
+      "rootVisible": null,
+      "rows": {
+        "Mesh": [
+          32,
+          2,
+          101
+        ],
+        "cloud-sea": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring0": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring1": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-ring2": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-flowers": [
+          1,
+          0,
+          1
+        ],
+        "grass-v2-cards": [
+          1,
+          0,
+          1
+        ],
+        "nalati-outcrops": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-crag-rock/nalati-crag-rock-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-camp": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-felt": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-camp-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-camp/nalati-model-firewood": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-kumis-churn": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-chest": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-saddle": [
+          1,
+          0,
+          2
+        ],
+        "nalati-camp/nalati-model-eagle": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-bridge": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-signs": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-roads-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-yard": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-summer-camp": [
+          2,
+          0,
+          2
+        ],
+        "nalati-summer-camp/nalati-summer-wood": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-cauldron": [
+          1,
+          0,
+          1
+        ],
+        "nalati-summer-camp/nalati-model-chest": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kurgans": [
+          1,
+          0,
+          1
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:capped:0": [
+          1,
+          0,
+          4
+        ],
+        "nalati-grasslands/balbal/nalati-grasslands/balbal:bare:0": [
+          1,
+          0,
+          8
+        ],
+        "nalati-pois/nalati-eagle-rock": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-cairn": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-crags": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-watchtower/nalati-model-watchtower": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois/nalati-kokpar": [
+          1,
+          0,
+          1
+        ],
+        "nalati-kokpar/nalati-kokpar-riders": [
+          1,
+          0,
+          6
+        ],
+        "nalati-kokpar/nalati-model-horse-saddled": [
+          1,
+          0,
+          6
+        ],
+        "nalati-far-herds/nalati-far-herd": [
+          3,
+          0,
+          114
+        ],
+        "nalati-snow-lotus/nalati-model-snow-lotus": [
+          1,
+          0,
+          32
+        ],
+        "nalati-pois/nalati-glacier": [
+          1,
+          0,
+          1
+        ],
+        "nalati-pois": [
+          2,
+          0,
+          2
+        ],
+        "nalati-dressing/nalati-dress-boulder": [
+          1,
+          0,
+          48
+        ],
+        "nalati-dressing/nalati-dress-boulder-tall": [
+          1,
+          0,
+          19
+        ],
+        "nalati-dressing/nalati-dress-slab": [
+          1,
+          0,
+          73
+        ],
+        "nalati-dressing/nalati-dress-stone": [
+          1,
+          0,
+          105
+        ],
+        "nalati-dressing/nalati-dress-juniper": [
+          1,
+          0,
+          22
+        ],
+        "nalati-dressing/nalati-dress-rose": [
+          1,
+          0,
+          3
+        ],
+        "nalati-dressing/nalati-dress-willow": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dressing/nalati-dress-lupin": [
+          1,
+          0,
+          146
+        ],
+        "nalati-dressing/nalati-dress-daisy": [
+          1,
+          0,
+          393
+        ],
+        "nalati-dressing/nalati-dress-reed": [
+          1,
+          0,
+          0
+        ],
+        "nalati-dress-statics/nalati-dress-props-3": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-2": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-1": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-props-0": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-statics/nalati-dress-fences": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dressing": [
+          1,
+          0,
+          1
+        ],
+        "nalati-dress-life/nalati-dress-butterflies": [
+          1,
+          0,
+          28
+        ],
+        "nalati-dress-life/nalati-dress-raptors": [
+          1,
+          0,
+          6
+        ],
+        "nalati-dressing/nalati-dress-camp-clutter": [
+          1,
+          0,
+          1
+        ],
+        "titan-debris": [
+          1,
+          0,
+          0
+        ],
+        "titan-flames": [
+          1,
+          0,
+          0
+        ],
+        "titan-smoke": [
+          1,
+          0,
+          0
+        ],
+        "titan-scorch": [
+          1,
+          0,
+          0
+        ],
+        "sky-dome-v2": [
+          1,
+          0,
+          1
+        ],
+        "projectiles": [
+          2,
+          0,
+          88
+        ],
+        "animals": [
+          15,
+          5,
+          15
+        ],
+        "sheep-flock": [
+          1,
+          0,
+          40
+        ],
+        "marmots": [
+          1,
+          0,
+          26
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "nalati-camp-people/nalati-camp-people-gen": [
+          1,
+          1,
+          1
+        ],
+        "nalati-kokpar-goat": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  }
+}

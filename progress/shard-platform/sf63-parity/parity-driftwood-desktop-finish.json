@@ -1,0 +1,7932 @@
+{
+  "base": "http://127.0.0.1:4401",
+  "tag": "c1",
+  "scene": "driftwood",
+  "tier": "desktop",
+  "grid": {
+    "stops": [
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 6.4,
+          "feet": {
+            "x": 231.36510087094996,
+            "y": 0.9112610910991906,
+            "z": 0.0014272988391881916
+          },
+          "current": "driftwood-isle"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "Pass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[SMAAEffect]"
+          ],
+          "programs": 198,
+          "bloom": [
+            0.4,
+            1,
+            0.08
+          ],
+          "vignette": 0.35,
+          "saturation": 0.3,
+          "contrast": 0.2,
+          "brightness": 0,
+          "ao": {
+            "enabled": true,
+            "intensity": 2.5,
+            "radius": 2.5
+          },
+          "frame": {
+            "owner": "driftwood-isle",
+            "weight": 1,
+            "lut": true,
+            "values": [
+              0.3,
+              0,
+              0.2,
+              0,
+              0
+            ],
+            "post": [
+              0.4,
+              1,
+              0.08,
+              0.35,
+              0.12,
+              2.5
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "pass",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -40.975,
+                  40.975,
+                  600
+                ],
+                "fromCam": 162.649
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -89.48,
+                  89.48,
+                  600
+                ],
+                "fromCam": 219.955
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -243.909,
+                  243.909,
+                  600
+                ],
+                "fromCam": 400.455
+              }
+            ],
+            "meshes": 162,
+            "cast": 65,
+            "receive": 143
+          }
+        }
+      },
+      {
+        "drive": {
+          "why": "timeout",
+          "seconds": 120,
+          "feet": {
+            "x": 159.5993453369889,
+            "y": 0.24428575255968915,
+            "z": -0.0002751939851261473
+          },
+          "current": "driftwood-isle"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "Pass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[SMAAEffect]"
+          ],
+          "programs": 198,
+          "bloom": [
+            0.4,
+            1,
+            0.08
+          ],
+          "vignette": 0.35,
+          "saturation": 0.3,
+          "contrast": 0.2,
+          "brightness": 0,
+          "ao": {
+            "enabled": true,
+            "intensity": 2.5,
+            "radius": 2.5
+          },
+          "frame": {
+            "owner": "driftwood-isle",
+            "weight": 1,
+            "lut": true,
+            "values": [
+              0.3,
+              0,
+              0.2,
+              0,
+              0
+            ],
+            "post": [
+              0.4,
+              1,
+              0.08,
+              0.35,
+              0.12,
+              2.5
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "pass",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -40.975,
+                  40.975,
+                  600
+                ],
+                "fromCam": 138.634
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -89.48,
+                  89.48,
+                  600
+                ],
+                "fromCam": 169.174
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -243.909,
+                  243.909,
+                  600
+                ],
+                "fromCam": 276.487
+              }
+            ],
+            "meshes": 162,
+            "cast": 76,
+            "receive": 143
+          }
+        }
+      }
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "road": {
+      "chain": {
+        "passes": [
+          "RenderPass",
+          "Pass",
+          "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+          "EffectPass[SMAAEffect]"
+        ],
+        "programs": 94,
+        "bloom": [
+          0.4,
+          1,
+          0.08
+        ],
+        "vignette": 0.35,
+        "saturation": 0.3,
+        "contrast": 0.2,
+        "brightness": 0,
+        "ao": {
+          "enabled": true,
+          "intensity": 2.5,
+          "radius": 2.5
+        },
+        "frame": {
+          "owner": null,
+          "weight": 0,
+          "lut": false,
+          "values": [
+            0.3,
+            0,
+            0.2,
+            0,
+            0
+          ],
+          "post": [
+            0.4,
+            1,
+            0.08,
+            0.35,
+            0.12,
+            2.5
+          ],
+          "fx": {
+            "carrier": null,
+            "weight": 0,
+            "vol": [
+              0,
+              0.55
+            ],
+            "chroma": 0,
+            "grain": 0,
+            "target": [
+              1,
+              1
+            ],
+            "depth": "pass",
+            "sceneDepth": false
+          }
+        },
+        "shadows": {
+          "enabled": true,
+          "autoUpdate": true,
+          "lights": [
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -40.975,
+                40.975,
+                600
+              ],
+              "fromCam": 168.634
+            },
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -89.48,
+                89.48,
+                600
+              ],
+              "fromCam": 228.081
+            },
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -243.909,
+                243.909,
+                600
+              ],
+              "fromCam": 417.684
+            }
+          ],
+          "meshes": 0,
+          "cast": 0,
+          "receive": 0
+        }
+      }
+    }
+  },
+  "standalone": {
+    "shots": [
+      "driftwood-entry-w",
+      "driftwood-inside-w",
+      "driftwood-inside-n"
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "chain": {
+      "passes": [
+        "RenderPass",
+        "Pass",
+        "EffectPass[GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,LUT3DEffect]",
+        "EffectPass[SMAAEffect]"
+      ],
+      "programs": 109,
+      "bloom": [
+        0.4,
+        1,
+        0.08
+      ],
+      "vignette": 0.35,
+      "saturation": 0.3,
+      "contrast": 0.2,
+      "brightness": 0,
+      "ao": {
+        "enabled": true,
+        "intensity": 2.5,
+        "radius": 2.5
+      },
+      "frame": null,
+      "shadows": {
+        "enabled": true,
+        "autoUpdate": true,
+        "lights": [
+          {
+            "name": "",
+            "intensity": 2.7,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -40.975,
+              40.975,
+              600
+            ],
+            "fromCam": 138.631
+          },
+          {
+            "name": "",
+            "intensity": 2.7,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -89.48,
+              89.48,
+              600
+            ],
+            "fromCam": 169.17
+          },
+          {
+            "name": "",
+            "intensity": 2.7,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -243.909,
+              243.909,
+              600
+            ],
+            "fromCam": 276.429
+          },
+          {
+            "name": "sun-shadow-fade-0",
+            "intensity": 0,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -31.497,
+              31.497,
+              600
+            ],
+            "fromCam": 226.173
+          },
+          {
+            "name": "sun-shadow-fade-1",
+            "intensity": 0,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -68.823,
+              68.823,
+              600
+            ],
+            "fromCam": 268.578
+          }
+        ],
+        "meshes": 484,
+        "cast": 360,
+        "receive": 159
+      }
+    }
+  },
+  "poses": [
+    [
+      "driftwood-entry-w",
+      229.99,
+      0,
+      1.5707963267948966,
+      0.05,
+      1.12
+    ],
+    [
+      "driftwood-inside-w",
+      159.6,
+      0,
+      1.5707963267948966,
+      0.08,
+      0.24
+    ],
+    [
+      "driftwood-inside-n",
+      159.6,
+      0,
+      3.141592653589793,
+      0.08,
+      0.24
+    ]
+  ],
+  "diffs": [
+    {
+      "pose": "driftwood-entry-w",
+      "mae": 10.8,
+      "standalone": [
+        109.6,
+        152.4,
+        173.2
+      ],
+      "grid": [
+        108.3,
+        153.9,
+        176.1
+      ]
+    },
+    {
+      "pose": "driftwood-inside-w",
+      "mae": 38.3,
+      "standalone": [
+        83.7,
+        83.3,
+        90
+      ],
+      "grid": [
+        71.1,
+        75.7,
+        86.2
+      ]
+    },
+    {
+      "pose": "driftwood-inside-n",
+      "mae": 21.7,
+      "standalone": [
+        121.8,
+        166.5,
+        186.3
+      ],
+      "grid": [
+        110.2,
+        169.4,
+        196.3
+      ]
+    }
+  ],
+  "version": {
+    "build": "be60163-mv016p81",
+    "time": "2026-10-08T21:10:58.609Z"
+  },
+  "gridCensus": {
+    "driftwood-entry-w": {
+      "rootVisible": "region:driftwood-isle=true ",
+      "rows": {
+        "Mesh": [
+          10,
+          7,
+          45
+        ],
+        "wreck-rocks": [
+          1,
+          1,
+          1
+        ],
+        "wreck-lanterns": [
+          1,
+          0,
+          1
+        ],
+        "seabed": [
+          1,
+          0,
+          1
+        ],
+        "seabed-fish": [
+          1,
+          0,
+          28
+        ],
+        "ground-cover/ground-cover-tuft-far": [
+          1,
+          0,
+          715
+        ],
+        "ground-cover/ground-cover-tuft": [
+          1,
+          0,
+          1
+        ],
+        "ground-cover/ground-cover-fern-far": [
+          1,
+          0,
+          161
+        ],
+        "ground-cover/ground-cover-fern": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-hibiscus-far": [
+          1,
+          0,
+          146
+        ],
+        "ground-cover/ground-cover-hibiscus": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-daisy-far": [
+          1,
+          0,
+          30
+        ],
+        "ground-cover/ground-cover-daisy": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-pebble": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-shells": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-starfish": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-bush-far": [
+          1,
+          0,
+          209
+        ],
+        "ground-cover/ground-cover-bush": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-driftwood": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-both-cliff0": [
+          1,
+          1,
+          29
+        ],
+        "blender-island/island-casters-both-cliff1": [
+          1,
+          1,
+          39
+        ],
+        "blender-island/island-casters-both-cliff2": [
+          1,
+          1,
+          27
+        ],
+        "blender-island/island-casters-both-cliff3": [
+          1,
+          1,
+          20
+        ],
+        "blender-island/island-casters-both-cliff4": [
+          1,
+          1,
+          40
+        ],
+        "blender-island/island-casters-both-cliff5": [
+          1,
+          1,
+          21
+        ],
+        "blender-island/island-casters-both-drift0": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-both-drift1": [
+          1,
+          1,
+          16
+        ],
+        "blender-island/island-casters-both-drift2": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-both-drift3": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-both-coconuts0": [
+          1,
+          1,
+          171
+        ],
+        "blender-island/island-casters-near-palm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm4": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm0_lo": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-far-palm1_lo": [
+          1,
+          1,
+          11
+        ],
+        "blender-island/island-casters-far-palm2_lo": [
+          1,
+          1,
+          7
+        ],
+        "blender-island/island-casters-far-palm3_lo": [
+          1,
+          1,
+          17
+        ],
+        "blender-island/island-casters-far-palm4_lo": [
+          1,
+          1,
+          4
+        ],
+        "blender-island/island-casters-far-bpalm0_lo": [
+          1,
+          1,
+          19
+        ],
+        "blender-island/island-casters-far-bpalm1_lo": [
+          1,
+          1,
+          19
+        ],
+        "blender-island/island-casters-far-bpalm2_lo": [
+          1,
+          1,
+          16
+        ],
+        "blender-island/island-casters-far-bpalm3_lo": [
+          1,
+          1,
+          18
+        ],
+        "blender-island/island-cover-both-shell0": [
+          1,
+          0,
+          16
+        ],
+        "blender-island/island-cover-both-shell1": [
+          1,
+          0,
+          16
+        ],
+        "blender-island/island-cover-both-shell2": [
+          1,
+          0,
+          7
+        ],
+        "blender-island/island-cover-both-shell3": [
+          1,
+          0,
+          9
+        ],
+        "blender-island/island-cover-both-star0": [
+          1,
+          0,
+          1
+        ],
+        "blender-island/island-cover-both-star1": [
+          1,
+          0,
+          3
+        ],
+        "blender-island/island-cover-both-star2": [
+          1,
+          0,
+          2
+        ],
+        "blender-island/island-cover-both-pebble0": [
+          1,
+          0,
+          15
+        ],
+        "blender-island/island-cover-both-pebble1": [
+          1,
+          0,
+          25
+        ],
+        "blender-island/island-cover-both-pebble2": [
+          1,
+          0,
+          12
+        ],
+        "blender-island/island-cover-both-pebble3": [
+          1,
+          0,
+          23
+        ],
+        "blender-island/island-cover-both-beachgrass0": [
+          1,
+          0,
+          11
+        ],
+        "blender-island/island-cover-both-beachgrass1": [
+          1,
+          0,
+          11
+        ],
+        "blender-island/island-cover-both-beachgrass2": [
+          1,
+          0,
+          10
+        ],
+        "blender-island/island-cover-both-tuft0": [
+          1,
+          0,
+          419
+        ],
+        "blender-island/island-cover-both-tuft1": [
+          1,
+          0,
+          428
+        ],
+        "blender-island/island-cover-both-tuft2": [
+          1,
+          0,
+          401
+        ],
+        "blender-island/island-cover-both-tuft3": [
+          1,
+          0,
+          423
+        ],
+        "blender-island/island-cover-both-yellow0": [
+          1,
+          0,
+          123
+        ],
+        "blender-island/island-cover-both-yellow1": [
+          1,
+          0,
+          111
+        ],
+        "blender-island/island-cover-both-white0": [
+          1,
+          0,
+          88
+        ],
+        "blender-island/island-cover-both-white1": [
+          1,
+          0,
+          64
+        ],
+        "blender-island/island-cover-big-both-fern0": [
+          1,
+          0,
+          119
+        ],
+        "blender-island/island-cover-big-both-fern1": [
+          1,
+          0,
+          111
+        ],
+        "blender-island/island-cover-big-both-fern2": [
+          1,
+          0,
+          127
+        ],
+        "blender-island/island-cover-big-both-hibiscus0": [
+          1,
+          0,
+          52
+        ],
+        "blender-island/island-cover-big-both-hibiscus1": [
+          1,
+          0,
+          52
+        ],
+        "blender-island/island-cover-big-both-hibiscus2": [
+          1,
+          0,
+          35
+        ],
+        "blender-island/island-cover-big-both-bush0": [
+          1,
+          0,
+          47
+        ],
+        "blender-island/island-cover-big-both-bush1": [
+          1,
+          0,
+          35
+        ],
+        "blender-island/island-cover-big-both-bush2": [
+          1,
+          0,
+          43
+        ],
+        "blender-island/island-cover-big-both-flowerbush0": [
+          1,
+          0,
+          22
+        ],
+        "blender-island/island-cover-big-both-flowerbush1": [
+          1,
+          0,
+          29
+        ],
+        "animals": [
+          34,
+          1,
+          34
+        ],
+        "enemies": [
+          1,
+          1,
+          16
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "interact-lit": [
+          1,
+          1,
+          1
+        ],
+        "interact-glow": [
+          1,
+          0,
+          1
+        ],
+        "zipline": [
+          1,
+          1,
+          1
+        ],
+        "loot-coins": [
+          1,
+          0,
+          0
+        ],
+        "driftwood-isle/pier/driftwood-isle/pier": [
+          6,
+          6,
+          6
+        ],
+        "driftwood-isle/entry-deck": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/boat": [
+          3,
+          2,
+          3
+        ],
+        "driftwood-isle/shore-boulder": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hut/driftwood-isle/hut": [
+          2,
+          1,
+          2
+        ],
+        "driftwood-isle/lookout": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shrine/driftwood-isle/shrine": [
+          3,
+          1,
+          3
+        ],
+        "driftwood-isle/pier": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush": [
+          1,
+          1,
+          1
+        ],
+        "cove-rocks": [
+          1,
+          1,
+          1
+        ],
+        "cove-glow": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-sheet": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-rings": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-puffs": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock": [
+          1,
+          1,
+          1
+        ],
+        "sea-glass-chime": [
+          1,
+          1,
+          1
+        ],
+        "trophy-plaques": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "driftwood-inside-w": {
+      "rootVisible": "region:driftwood-isle=true ",
+      "rows": {
+        "Mesh": [
+          10,
+          7,
+          45
+        ],
+        "wreck-rocks": [
+          1,
+          1,
+          1
+        ],
+        "wreck-lanterns": [
+          1,
+          0,
+          1
+        ],
+        "seabed": [
+          1,
+          0,
+          1
+        ],
+        "seabed-fish": [
+          1,
+          0,
+          28
+        ],
+        "ground-cover/ground-cover-tuft-far": [
+          1,
+          0,
+          4059
+        ],
+        "ground-cover/ground-cover-tuft": [
+          1,
+          0,
+          1023
+        ],
+        "ground-cover/ground-cover-fern-far": [
+          1,
+          0,
+          717
+        ],
+        "ground-cover/ground-cover-fern": [
+          1,
+          0,
+          142
+        ],
+        "ground-cover/ground-cover-hibiscus-far": [
+          1,
+          0,
+          583
+        ],
+        "ground-cover/ground-cover-hibiscus": [
+          1,
+          0,
+          91
+        ],
+        "ground-cover/ground-cover-daisy-far": [
+          1,
+          0,
+          258
+        ],
+        "ground-cover/ground-cover-daisy": [
+          1,
+          0,
+          36
+        ],
+        "ground-cover/ground-cover-pebble": [
+          1,
+          0,
+          9
+        ],
+        "ground-cover/ground-cover-shells": [
+          1,
+          0,
+          160
+        ],
+        "ground-cover/ground-cover-starfish": [
+          1,
+          0,
+          5
+        ],
+        "ground-cover/ground-cover-bush-far": [
+          1,
+          0,
+          727
+        ],
+        "ground-cover/ground-cover-bush": [
+          1,
+          0,
+          109
+        ],
+        "ground-cover/ground-cover-driftwood": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-both-cliff0": [
+          1,
+          1,
+          29
+        ],
+        "blender-island/island-casters-both-cliff1": [
+          1,
+          1,
+          39
+        ],
+        "blender-island/island-casters-both-cliff2": [
+          1,
+          1,
+          27
+        ],
+        "blender-island/island-casters-both-cliff3": [
+          1,
+          1,
+          20
+        ],
+        "blender-island/island-casters-both-cliff4": [
+          1,
+          1,
+          40
+        ],
+        "blender-island/island-casters-both-cliff5": [
+          1,
+          1,
+          21
+        ],
+        "blender-island/island-casters-both-drift0": [
+          1,
+          1,
+          9
+        ],
+        "blender-island/island-casters-both-drift1": [
+          1,
+          1,
+          12
+        ],
+        "blender-island/island-casters-both-drift2": [
+          1,
+          1,
+          6
+        ],
+        "blender-island/island-casters-both-drift3": [
+          1,
+          1,
+          7
+        ],
+        "blender-island/island-casters-both-coconuts0": [
+          1,
+          1,
+          127
+        ],
+        "blender-island/island-casters-near-palm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-near-palm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm3": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-near-palm4": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-near-bpalm0": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-near-bpalm1": [
+          1,
+          1,
+          3
+        ],
+        "blender-island/island-casters-near-bpalm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm3": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-far-palm0_lo": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-far-palm1_lo": [
+          1,
+          1,
+          9
+        ],
+        "blender-island/island-casters-far-palm2_lo": [
+          1,
+          1,
+          5
+        ],
+        "blender-island/island-casters-far-palm3_lo": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-far-palm4_lo": [
+          1,
+          1,
+          3
+        ],
+        "blender-island/island-casters-far-bpalm0_lo": [
+          1,
+          1,
+          7
+        ],
+        "blender-island/island-casters-far-bpalm1_lo": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-far-bpalm2_lo": [
+          1,
+          1,
+          14
+        ],
+        "blender-island/island-casters-far-bpalm3_lo": [
+          1,
+          1,
+          15
+        ],
+        "blender-island/island-cover-both-shell0": [
+          1,
+          0,
+          11
+        ],
+        "blender-island/island-cover-both-shell1": [
+          1,
+          0,
+          12
+        ],
+        "blender-island/island-cover-both-shell2": [
+          1,
+          0,
+          3
+        ],
+        "blender-island/island-cover-both-shell3": [
+          1,
+          0,
+          6
+        ],
+        "blender-island/island-cover-both-star0": [
+          1,
+          0,
+          1
+        ],
+        "blender-island/island-cover-both-star1": [
+          1,
+          0,
+          3
+        ],
+        "blender-island/island-cover-both-star2": [
+          1,
+          0,
+          1
+        ],
+        "blender-island/island-cover-both-pebble0": [
+          1,
+          0,
+          24
+        ],
+        "blender-island/island-cover-both-pebble1": [
+          1,
+          0,
+          32
+        ],
+        "blender-island/island-cover-both-pebble2": [
+          1,
+          0,
+          18
+        ],
+        "blender-island/island-cover-both-pebble3": [
+          1,
+          0,
+          26
+        ],
+        "blender-island/island-cover-both-beachgrass0": [
+          1,
+          0,
+          6
+        ],
+        "blender-island/island-cover-both-beachgrass1": [
+          1,
+          0,
+          7
+        ],
+        "blender-island/island-cover-both-beachgrass2": [
+          1,
+          0,
+          7
+        ],
+        "blender-island/island-cover-both-tuft0": [
+          1,
+          0,
+          561
+        ],
+        "blender-island/island-cover-both-tuft1": [
+          1,
+          0,
+          581
+        ],
+        "blender-island/island-cover-both-tuft2": [
+          1,
+          0,
+          508
+        ],
+        "blender-island/island-cover-both-tuft3": [
+          1,
+          0,
+          603
+        ],
+        "blender-island/island-cover-both-yellow0": [
+          1,
+          0,
+          132
+        ],
+        "blender-island/island-cover-both-yellow1": [
+          1,
+          0,
+          120
+        ],
+        "blender-island/island-cover-both-white0": [
+          1,
+          0,
+          105
+        ],
+        "blender-island/island-cover-both-white1": [
+          1,
+          0,
+          92
+        ],
+        "blender-island/island-cover-big-both-fern0": [
+          1,
+          0,
+          240
+        ],
+        "blender-island/island-cover-big-both-fern1": [
+          1,
+          0,
+          206
+        ],
+        "blender-island/island-cover-big-both-fern2": [
+          1,
+          0,
+          222
+        ],
+        "blender-island/island-cover-big-both-hibiscus0": [
+          1,
+          0,
+          68
+        ],
+        "blender-island/island-cover-big-both-hibiscus1": [
+          1,
+          0,
+          48
+        ],
+        "blender-island/island-cover-big-both-hibiscus2": [
+          1,
+          0,
+          56
+        ],
+        "blender-island/island-cover-big-both-bush0": [
+          1,
+          0,
+          109
+        ],
+        "blender-island/island-cover-big-both-bush1": [
+          1,
+          0,
+          71
+        ],
+        "blender-island/island-cover-big-both-bush2": [
+          1,
+          0,
+          97
+        ],
+        "blender-island/island-cover-big-both-flowerbush0": [
+          1,
+          0,
+          48
+        ],
+        "blender-island/island-cover-big-both-flowerbush1": [
+          1,
+          0,
+          60
+        ],
+        "animals": [
+          34,
+          12,
+          34
+        ],
+        "enemies": [
+          1,
+          1,
+          16
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "interact-lit": [
+          1,
+          1,
+          1
+        ],
+        "interact-glow": [
+          1,
+          0,
+          1
+        ],
+        "zipline": [
+          1,
+          1,
+          1
+        ],
+        "loot-coins": [
+          1,
+          0,
+          0
+        ],
+        "driftwood-isle/pier/driftwood-isle/pier": [
+          6,
+          6,
+          6
+        ],
+        "driftwood-isle/entry-deck": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/boat": [
+          3,
+          2,
+          3
+        ],
+        "driftwood-isle/shore-boulder": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hut/driftwood-isle/hut": [
+          2,
+          1,
+          2
+        ],
+        "driftwood-isle/lookout": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shrine/driftwood-isle/shrine": [
+          3,
+          1,
+          3
+        ],
+        "driftwood-isle/pier": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush": [
+          1,
+          1,
+          1
+        ],
+        "cove-rocks": [
+          1,
+          1,
+          1
+        ],
+        "cove-glow": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-sheet": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-rings": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-puffs": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock": [
+          1,
+          1,
+          1
+        ],
+        "sea-glass-chime": [
+          1,
+          1,
+          1
+        ],
+        "trophy-plaques": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "driftwood-inside-n": {
+      "rootVisible": "region:driftwood-isle=true ",
+      "rows": {
+        "Mesh": [
+          10,
+          7,
+          45
+        ],
+        "wreck-rocks": [
+          1,
+          1,
+          1
+        ],
+        "wreck-lanterns": [
+          1,
+          0,
+          1
+        ],
+        "seabed": [
+          1,
+          0,
+          1
+        ],
+        "seabed-fish": [
+          1,
+          0,
+          28
+        ],
+        "ground-cover/ground-cover-tuft-far": [
+          1,
+          0,
+          4059
+        ],
+        "ground-cover/ground-cover-tuft": [
+          1,
+          0,
+          1023
+        ],
+        "ground-cover/ground-cover-fern-far": [
+          1,
+          0,
+          717
+        ],
+        "ground-cover/ground-cover-fern": [
+          1,
+          0,
+          142
+        ],
+        "ground-cover/ground-cover-hibiscus-far": [
+          1,
+          0,
+          583
+        ],
+        "ground-cover/ground-cover-hibiscus": [
+          1,
+          0,
+          91
+        ],
+        "ground-cover/ground-cover-daisy-far": [
+          1,
+          0,
+          258
+        ],
+        "ground-cover/ground-cover-daisy": [
+          1,
+          0,
+          36
+        ],
+        "ground-cover/ground-cover-pebble": [
+          1,
+          0,
+          9
+        ],
+        "ground-cover/ground-cover-shells": [
+          1,
+          0,
+          160
+        ],
+        "ground-cover/ground-cover-starfish": [
+          1,
+          0,
+          5
+        ],
+        "ground-cover/ground-cover-bush-far": [
+          1,
+          0,
+          727
+        ],
+        "ground-cover/ground-cover-bush": [
+          1,
+          0,
+          109
+        ],
+        "ground-cover/ground-cover-driftwood": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-both-cliff0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff4": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff5": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-coconuts0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm4": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm0_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm1_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm2_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm3_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm4_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm0_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm1_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm2_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm3_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-cover-both-shell0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-shell1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-shell2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-shell3": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-star0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-star1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-star2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble3": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-beachgrass0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-beachgrass1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-beachgrass2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft3": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-yellow0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-yellow1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-white0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-white1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-fern0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-fern1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-fern2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-hibiscus0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-hibiscus1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-hibiscus2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-bush0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-bush1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-bush2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-flowerbush0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-flowerbush1": [
+          1,
+          0,
+          0
+        ],
+        "animals": [
+          34,
+          12,
+          34
+        ],
+        "enemies": [
+          1,
+          1,
+          16
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "interact-lit": [
+          1,
+          1,
+          1
+        ],
+        "interact-glow": [
+          1,
+          0,
+          1
+        ],
+        "zipline": [
+          1,
+          1,
+          1
+        ],
+        "loot-coins": [
+          1,
+          0,
+          0
+        ],
+        "driftwood-isle/pier/driftwood-isle/pier": [
+          6,
+          6,
+          6
+        ],
+        "driftwood-isle/entry-deck": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/boat": [
+          3,
+          2,
+          3
+        ],
+        "driftwood-isle/shore-boulder": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hut/driftwood-isle/hut": [
+          2,
+          1,
+          2
+        ],
+        "driftwood-isle/lookout": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shrine/driftwood-isle/shrine": [
+          3,
+          1,
+          3
+        ],
+        "driftwood-isle/pier": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush": [
+          1,
+          1,
+          1
+        ],
+        "cove-rocks": [
+          1,
+          1,
+          1
+        ],
+        "cove-glow": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-sheet": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-rings": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-puffs": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock": [
+          1,
+          1,
+          1
+        ],
+        "sea-glass-chime": [
+          1,
+          1,
+          1
+        ],
+        "trophy-plaques": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  },
+  "saCensus": {
+    "driftwood-entry-w": {
+      "rootVisible": null,
+      "rows": {
+        "Mesh": [
+          39,
+          8,
+          74
+        ],
+        "R_weapon/sword_wood": [
+          1,
+          0,
+          1
+        ],
+        "arms": [
+          1,
+          0,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-2": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-3": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-4": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-7": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-8": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-10": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-13": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-18": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-26": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-27": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-33": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-35": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-37": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-38": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-39": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-40": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-43": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-48": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-52": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-53": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-56": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-61": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-62": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "horizon-matte": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/pier/driftwood-isle/pier": [
+          6,
+          5,
+          6
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-0": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-1": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-2": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-3": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-4": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-5": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-6": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-7": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/entry-deck": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/boat": [
+          3,
+          2,
+          3
+        ],
+        "driftwood-isle/shore-boulder": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-2": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-4": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-10": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-48": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hut/driftwood-isle/hut": [
+          2,
+          1,
+          2
+        ],
+        "driftwood-isle/lookout": [
+          1,
+          1,
+          1
+        ],
+        "wreck-rocks": [
+          1,
+          1,
+          1
+        ],
+        "wreck-lanterns": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/shrine/driftwood-isle/shrine": [
+          3,
+          1,
+          3
+        ],
+        "driftwood-isle/pier": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-20": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-52": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-53": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-19": [
+          1,
+          1,
+          1
+        ],
+        "rope-bridge": [
+          3,
+          3,
+          175
+        ],
+        "seabed": [
+          1,
+          0,
+          1
+        ],
+        "seabed-fish": [
+          1,
+          0,
+          28
+        ],
+        "cove-rocks": [
+          1,
+          1,
+          1
+        ],
+        "cove-glow": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-sheet": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-rings": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-puffs": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-52": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover/ground-cover-tuft-far": [
+          1,
+          0,
+          774
+        ],
+        "ground-cover/ground-cover-tuft": [
+          1,
+          0,
+          1
+        ],
+        "ground-cover/ground-cover-fern-far": [
+          1,
+          0,
+          172
+        ],
+        "ground-cover/ground-cover-fern": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-hibiscus-far": [
+          1,
+          0,
+          152
+        ],
+        "ground-cover/ground-cover-hibiscus": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-daisy-far": [
+          1,
+          0,
+          31
+        ],
+        "ground-cover/ground-cover-daisy": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-pebble": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-shells": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-starfish": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-bush-far": [
+          1,
+          0,
+          215
+        ],
+        "ground-cover/ground-cover-bush": [
+          1,
+          0,
+          0
+        ],
+        "ground-cover/ground-cover-driftwood": [
+          1,
+          0,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-2": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-8": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-10": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-12": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-13": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-18": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-19": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-20": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-both-cliff0": [
+          1,
+          1,
+          29
+        ],
+        "blender-island/island-casters-both-cliff1": [
+          1,
+          1,
+          39
+        ],
+        "blender-island/island-casters-both-cliff2": [
+          1,
+          1,
+          27
+        ],
+        "blender-island/island-casters-both-cliff3": [
+          1,
+          1,
+          20
+        ],
+        "blender-island/island-casters-both-cliff4": [
+          1,
+          1,
+          40
+        ],
+        "blender-island/island-casters-both-cliff5": [
+          1,
+          1,
+          21
+        ],
+        "blender-island/island-casters-both-drift0": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-both-drift1": [
+          1,
+          1,
+          16
+        ],
+        "blender-island/island-casters-both-drift2": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-both-drift3": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-both-coconuts0": [
+          1,
+          1,
+          171
+        ],
+        "blender-island/island-casters-near-palm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm4": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm0_lo": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-far-palm1_lo": [
+          1,
+          1,
+          11
+        ],
+        "blender-island/island-casters-far-palm2_lo": [
+          1,
+          1,
+          7
+        ],
+        "blender-island/island-casters-far-palm3_lo": [
+          1,
+          1,
+          17
+        ],
+        "blender-island/island-casters-far-palm4_lo": [
+          1,
+          1,
+          4
+        ],
+        "blender-island/island-casters-far-bpalm0_lo": [
+          1,
+          1,
+          19
+        ],
+        "blender-island/island-casters-far-bpalm1_lo": [
+          1,
+          1,
+          19
+        ],
+        "blender-island/island-casters-far-bpalm2_lo": [
+          1,
+          1,
+          16
+        ],
+        "blender-island/island-casters-far-bpalm3_lo": [
+          1,
+          1,
+          18
+        ],
+        "blender-island/island-cover-both-shell0": [
+          1,
+          0,
+          16
+        ],
+        "blender-island/island-cover-both-shell1": [
+          1,
+          0,
+          16
+        ],
+        "blender-island/island-cover-both-shell2": [
+          1,
+          0,
+          7
+        ],
+        "blender-island/island-cover-both-shell3": [
+          1,
+          0,
+          9
+        ],
+        "blender-island/island-cover-both-star0": [
+          1,
+          0,
+          1
+        ],
+        "blender-island/island-cover-both-star1": [
+          1,
+          0,
+          3
+        ],
+        "blender-island/island-cover-both-star2": [
+          1,
+          0,
+          2
+        ],
+        "blender-island/island-cover-both-pebble0": [
+          1,
+          0,
+          15
+        ],
+        "blender-island/island-cover-both-pebble1": [
+          1,
+          0,
+          25
+        ],
+        "blender-island/island-cover-both-pebble2": [
+          1,
+          0,
+          12
+        ],
+        "blender-island/island-cover-both-pebble3": [
+          1,
+          0,
+          23
+        ],
+        "blender-island/island-cover-both-beachgrass0": [
+          1,
+          0,
+          11
+        ],
+        "blender-island/island-cover-both-beachgrass1": [
+          1,
+          0,
+          11
+        ],
+        "blender-island/island-cover-both-beachgrass2": [
+          1,
+          0,
+          10
+        ],
+        "blender-island/island-cover-both-tuft0": [
+          1,
+          0,
+          419
+        ],
+        "blender-island/island-cover-both-tuft1": [
+          1,
+          0,
+          428
+        ],
+        "blender-island/island-cover-both-tuft2": [
+          1,
+          0,
+          401
+        ],
+        "blender-island/island-cover-both-tuft3": [
+          1,
+          0,
+          423
+        ],
+        "blender-island/island-cover-both-yellow0": [
+          1,
+          0,
+          123
+        ],
+        "blender-island/island-cover-both-yellow1": [
+          1,
+          0,
+          111
+        ],
+        "blender-island/island-cover-both-white0": [
+          1,
+          0,
+          88
+        ],
+        "blender-island/island-cover-both-white1": [
+          1,
+          0,
+          64
+        ],
+        "blender-island/island-cover-big-both-fern0": [
+          1,
+          0,
+          119
+        ],
+        "blender-island/island-cover-big-both-fern1": [
+          1,
+          0,
+          111
+        ],
+        "blender-island/island-cover-big-both-fern2": [
+          1,
+          0,
+          127
+        ],
+        "blender-island/island-cover-big-both-hibiscus0": [
+          1,
+          0,
+          52
+        ],
+        "blender-island/island-cover-big-both-hibiscus1": [
+          1,
+          0,
+          52
+        ],
+        "blender-island/island-cover-big-both-hibiscus2": [
+          1,
+          0,
+          35
+        ],
+        "blender-island/island-cover-big-both-bush0": [
+          1,
+          0,
+          47
+        ],
+        "blender-island/island-cover-big-both-bush1": [
+          1,
+          0,
+          35
+        ],
+        "blender-island/island-cover-big-both-bush2": [
+          1,
+          0,
+          43
+        ],
+        "blender-island/island-cover-big-both-flowerbush0": [
+          1,
+          0,
+          22
+        ],
+        "blender-island/island-cover-big-both-flowerbush1": [
+          1,
+          0,
+          29
+        ],
+        "animals": [
+          34,
+          1,
+          34
+        ],
+        "enemies": [
+          1,
+          1,
+          16
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "interact-lit": [
+          1,
+          1,
+          1
+        ],
+        "interact-glow": [
+          1,
+          0,
+          1
+        ],
+        "zipline": [
+          1,
+          1,
+          1
+        ],
+        "sea-glass-chime": [
+          1,
+          1,
+          1
+        ],
+        "trophy-plaques": [
+          1,
+          1,
+          1
+        ],
+        "loot-coins": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    "driftwood-inside-w": {
+      "rootVisible": null,
+      "rows": {
+        "Mesh": [
+          39,
+          8,
+          74
+        ],
+        "R_weapon/sword_wood": [
+          1,
+          0,
+          1
+        ],
+        "arms": [
+          1,
+          0,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-2": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-3": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-4": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-7": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-8": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-10": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-13": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-18": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-26": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-27": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-33": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-35": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-37": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-38": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-39": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-40": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-43": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-48": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-52": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-53": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-56": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-61": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-62": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "horizon-matte": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/pier/driftwood-isle/pier": [
+          6,
+          5,
+          6
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-0": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-1": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-2": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-3": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-4": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-5": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-6": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-7": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/entry-deck": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/boat": [
+          3,
+          2,
+          3
+        ],
+        "driftwood-isle/shore-boulder": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-2": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-4": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-10": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-48": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hut/driftwood-isle/hut": [
+          2,
+          1,
+          2
+        ],
+        "driftwood-isle/lookout": [
+          1,
+          1,
+          1
+        ],
+        "wreck-rocks": [
+          1,
+          1,
+          1
+        ],
+        "wreck-lanterns": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/shrine/driftwood-isle/shrine": [
+          3,
+          1,
+          3
+        ],
+        "driftwood-isle/pier": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-20": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-52": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-53": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-19": [
+          1,
+          1,
+          1
+        ],
+        "rope-bridge": [
+          3,
+          3,
+          175
+        ],
+        "seabed": [
+          1,
+          0,
+          1
+        ],
+        "seabed-fish": [
+          1,
+          0,
+          28
+        ],
+        "cove-rocks": [
+          1,
+          1,
+          1
+        ],
+        "cove-glow": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-sheet": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-rings": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-puffs": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-52": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover/ground-cover-tuft-far": [
+          1,
+          0,
+          4469
+        ],
+        "ground-cover/ground-cover-tuft": [
+          1,
+          0,
+          1112
+        ],
+        "ground-cover/ground-cover-fern-far": [
+          1,
+          0,
+          811
+        ],
+        "ground-cover/ground-cover-fern": [
+          1,
+          0,
+          157
+        ],
+        "ground-cover/ground-cover-hibiscus-far": [
+          1,
+          0,
+          637
+        ],
+        "ground-cover/ground-cover-hibiscus": [
+          1,
+          0,
+          97
+        ],
+        "ground-cover/ground-cover-daisy-far": [
+          1,
+          0,
+          306
+        ],
+        "ground-cover/ground-cover-daisy": [
+          1,
+          0,
+          37
+        ],
+        "ground-cover/ground-cover-pebble": [
+          1,
+          0,
+          9
+        ],
+        "ground-cover/ground-cover-shells": [
+          1,
+          0,
+          193
+        ],
+        "ground-cover/ground-cover-starfish": [
+          1,
+          0,
+          5
+        ],
+        "ground-cover/ground-cover-bush-far": [
+          1,
+          0,
+          811
+        ],
+        "ground-cover/ground-cover-bush": [
+          1,
+          0,
+          120
+        ],
+        "ground-cover/ground-cover-driftwood": [
+          1,
+          0,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-2": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-8": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-10": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-12": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-13": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-18": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-19": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-20": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-both-cliff0": [
+          1,
+          1,
+          29
+        ],
+        "blender-island/island-casters-both-cliff1": [
+          1,
+          1,
+          39
+        ],
+        "blender-island/island-casters-both-cliff2": [
+          1,
+          1,
+          27
+        ],
+        "blender-island/island-casters-both-cliff3": [
+          1,
+          1,
+          20
+        ],
+        "blender-island/island-casters-both-cliff4": [
+          1,
+          1,
+          40
+        ],
+        "blender-island/island-casters-both-cliff5": [
+          1,
+          1,
+          21
+        ],
+        "blender-island/island-casters-both-drift0": [
+          1,
+          1,
+          9
+        ],
+        "blender-island/island-casters-both-drift1": [
+          1,
+          1,
+          12
+        ],
+        "blender-island/island-casters-both-drift2": [
+          1,
+          1,
+          6
+        ],
+        "blender-island/island-casters-both-drift3": [
+          1,
+          1,
+          7
+        ],
+        "blender-island/island-casters-both-coconuts0": [
+          1,
+          1,
+          127
+        ],
+        "blender-island/island-casters-near-palm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-near-palm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm3": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-near-palm4": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-near-bpalm0": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-near-bpalm1": [
+          1,
+          1,
+          3
+        ],
+        "blender-island/island-casters-near-bpalm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm3": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-far-palm0_lo": [
+          1,
+          1,
+          2
+        ],
+        "blender-island/island-casters-far-palm1_lo": [
+          1,
+          1,
+          9
+        ],
+        "blender-island/island-casters-far-palm2_lo": [
+          1,
+          1,
+          5
+        ],
+        "blender-island/island-casters-far-palm3_lo": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-far-palm4_lo": [
+          1,
+          1,
+          3
+        ],
+        "blender-island/island-casters-far-bpalm0_lo": [
+          1,
+          1,
+          7
+        ],
+        "blender-island/island-casters-far-bpalm1_lo": [
+          1,
+          1,
+          10
+        ],
+        "blender-island/island-casters-far-bpalm2_lo": [
+          1,
+          1,
+          14
+        ],
+        "blender-island/island-casters-far-bpalm3_lo": [
+          1,
+          1,
+          15
+        ],
+        "blender-island/island-cover-both-shell0": [
+          1,
+          0,
+          11
+        ],
+        "blender-island/island-cover-both-shell1": [
+          1,
+          0,
+          12
+        ],
+        "blender-island/island-cover-both-shell2": [
+          1,
+          0,
+          3
+        ],
+        "blender-island/island-cover-both-shell3": [
+          1,
+          0,
+          6
+        ],
+        "blender-island/island-cover-both-star0": [
+          1,
+          0,
+          1
+        ],
+        "blender-island/island-cover-both-star1": [
+          1,
+          0,
+          3
+        ],
+        "blender-island/island-cover-both-star2": [
+          1,
+          0,
+          1
+        ],
+        "blender-island/island-cover-both-pebble0": [
+          1,
+          0,
+          24
+        ],
+        "blender-island/island-cover-both-pebble1": [
+          1,
+          0,
+          32
+        ],
+        "blender-island/island-cover-both-pebble2": [
+          1,
+          0,
+          18
+        ],
+        "blender-island/island-cover-both-pebble3": [
+          1,
+          0,
+          26
+        ],
+        "blender-island/island-cover-both-beachgrass0": [
+          1,
+          0,
+          6
+        ],
+        "blender-island/island-cover-both-beachgrass1": [
+          1,
+          0,
+          7
+        ],
+        "blender-island/island-cover-both-beachgrass2": [
+          1,
+          0,
+          7
+        ],
+        "blender-island/island-cover-both-tuft0": [
+          1,
+          0,
+          561
+        ],
+        "blender-island/island-cover-both-tuft1": [
+          1,
+          0,
+          581
+        ],
+        "blender-island/island-cover-both-tuft2": [
+          1,
+          0,
+          508
+        ],
+        "blender-island/island-cover-both-tuft3": [
+          1,
+          0,
+          603
+        ],
+        "blender-island/island-cover-both-yellow0": [
+          1,
+          0,
+          132
+        ],
+        "blender-island/island-cover-both-yellow1": [
+          1,
+          0,
+          120
+        ],
+        "blender-island/island-cover-both-white0": [
+          1,
+          0,
+          105
+        ],
+        "blender-island/island-cover-both-white1": [
+          1,
+          0,
+          92
+        ],
+        "blender-island/island-cover-big-both-fern0": [
+          1,
+          0,
+          240
+        ],
+        "blender-island/island-cover-big-both-fern1": [
+          1,
+          0,
+          206
+        ],
+        "blender-island/island-cover-big-both-fern2": [
+          1,
+          0,
+          222
+        ],
+        "blender-island/island-cover-big-both-hibiscus0": [
+          1,
+          0,
+          68
+        ],
+        "blender-island/island-cover-big-both-hibiscus1": [
+          1,
+          0,
+          48
+        ],
+        "blender-island/island-cover-big-both-hibiscus2": [
+          1,
+          0,
+          56
+        ],
+        "blender-island/island-cover-big-both-bush0": [
+          1,
+          0,
+          109
+        ],
+        "blender-island/island-cover-big-both-bush1": [
+          1,
+          0,
+          71
+        ],
+        "blender-island/island-cover-big-both-bush2": [
+          1,
+          0,
+          97
+        ],
+        "blender-island/island-cover-big-both-flowerbush0": [
+          1,
+          0,
+          48
+        ],
+        "blender-island/island-cover-big-both-flowerbush1": [
+          1,
+          0,
+          60
+        ],
+        "animals": [
+          34,
+          12,
+          34
+        ],
+        "enemies": [
+          1,
+          1,
+          16
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "interact-lit": [
+          1,
+          1,
+          1
+        ],
+        "interact-glow": [
+          1,
+          0,
+          1
+        ],
+        "zipline": [
+          1,
+          1,
+          1
+        ],
+        "sea-glass-chime": [
+          1,
+          1,
+          1
+        ],
+        "trophy-plaques": [
+          1,
+          1,
+          1
+        ],
+        "loot-coins": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    "driftwood-inside-n": {
+      "rootVisible": null,
+      "rows": {
+        "Mesh": [
+          39,
+          8,
+          74
+        ],
+        "R_weapon/sword_wood": [
+          1,
+          0,
+          1
+        ],
+        "arms": [
+          1,
+          0,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-2": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-3": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-4": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-7": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-8": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-10": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-13": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-18": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-26": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-27": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-33": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-35": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-37": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-38": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-39": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-40": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-43": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-48": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-52": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-53": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-56": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-61": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-62": [
+          2,
+          2,
+          2
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "horizon-matte": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/pier/driftwood-isle/pier": [
+          6,
+          5,
+          6
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-0": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-1": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-2": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-3": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-4": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-5": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-6": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/pier-shadow-pieces/driftwood-isle/pier-shadow-pieces-7": [
+          2,
+          2,
+          2
+        ],
+        "driftwood-isle/entry-deck": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/boat": [
+          3,
+          2,
+          3
+        ],
+        "driftwood-isle/shore-boulder": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-2": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-4": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-10": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-48": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/shore-boulder-shadow-pieces/driftwood-isle/shore-boulder-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hut/driftwood-isle/hut": [
+          2,
+          1,
+          2
+        ],
+        "driftwood-isle/lookout": [
+          1,
+          1,
+          1
+        ],
+        "wreck-rocks": [
+          1,
+          1,
+          1
+        ],
+        "wreck-lanterns": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/shrine/driftwood-isle/shrine": [
+          3,
+          1,
+          3
+        ],
+        "driftwood-isle/pier": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-20": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-52": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-53": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/hibiscus-bush-shadow-pieces/driftwood-isle/hibiscus-bush-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "mesh-shadow-pieces/mesh-shadow-pieces-19": [
+          1,
+          1,
+          1
+        ],
+        "rope-bridge": [
+          3,
+          3,
+          175
+        ],
+        "seabed": [
+          1,
+          0,
+          1
+        ],
+        "seabed-fish": [
+          1,
+          0,
+          28
+        ],
+        "cove-rocks": [
+          1,
+          1,
+          1
+        ],
+        "cove-glow": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-sheet": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-rings": [
+          1,
+          0,
+          1
+        ],
+        "waterfall-puffs": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-15": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-52": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-54": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-58": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/palm-shadow-pieces/driftwood-isle/palm-shadow-pieces-63": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover/ground-cover-tuft-far": [
+          1,
+          0,
+          4469
+        ],
+        "ground-cover/ground-cover-tuft": [
+          1,
+          0,
+          1112
+        ],
+        "ground-cover/ground-cover-fern-far": [
+          1,
+          0,
+          811
+        ],
+        "ground-cover/ground-cover-fern": [
+          1,
+          0,
+          157
+        ],
+        "ground-cover/ground-cover-hibiscus-far": [
+          1,
+          0,
+          637
+        ],
+        "ground-cover/ground-cover-hibiscus": [
+          1,
+          0,
+          97
+        ],
+        "ground-cover/ground-cover-daisy-far": [
+          1,
+          0,
+          306
+        ],
+        "ground-cover/ground-cover-daisy": [
+          1,
+          0,
+          37
+        ],
+        "ground-cover/ground-cover-pebble": [
+          1,
+          0,
+          9
+        ],
+        "ground-cover/ground-cover-shells": [
+          1,
+          0,
+          193
+        ],
+        "ground-cover/ground-cover-starfish": [
+          1,
+          0,
+          5
+        ],
+        "ground-cover/ground-cover-bush-far": [
+          1,
+          0,
+          811
+        ],
+        "ground-cover/ground-cover-bush": [
+          1,
+          0,
+          120
+        ],
+        "ground-cover/ground-cover-driftwood": [
+          1,
+          0,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-49": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-50": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-51": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-55": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-57": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-59": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-60": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-61": [
+          1,
+          1,
+          1
+        ],
+        "ground-cover-driftwood-shadow-pieces/ground-cover-driftwood-shadow-pieces-62": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock": [
+          1,
+          0,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-0": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-1": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-2": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-5": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-6": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-8": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-9": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-10": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-11": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-12": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-13": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-14": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-16": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-17": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-18": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-19": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-20": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-21": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-22": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-23": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-24": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-25": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-26": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-27": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-28": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-29": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-30": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-31": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-32": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-33": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-34": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-35": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-36": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-37": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-38": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-39": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-40": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-41": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-42": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-43": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-44": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-45": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-46": [
+          1,
+          1,
+          1
+        ],
+        "driftwood-isle/small-rock-shadow-pieces/driftwood-isle/small-rock-shadow-pieces-47": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_0_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_0": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-terrain_1_1": [
+          1,
+          1,
+          1
+        ],
+        "blender-island/island-casters-both-cliff0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff4": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-cliff5": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-drift3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-both-coconuts0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-palm4": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm0": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm1": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm2": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-near-bpalm3": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm0_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm1_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm2_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm3_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-palm4_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm0_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm1_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm2_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-casters-far-bpalm3_lo": [
+          1,
+          1,
+          0
+        ],
+        "blender-island/island-cover-both-shell0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-shell1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-shell2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-shell3": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-star0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-star1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-star2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-pebble3": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-beachgrass0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-beachgrass1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-beachgrass2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-tuft3": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-yellow0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-yellow1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-white0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-both-white1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-fern0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-fern1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-fern2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-hibiscus0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-hibiscus1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-hibiscus2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-bush0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-bush1": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-bush2": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-flowerbush0": [
+          1,
+          0,
+          0
+        ],
+        "blender-island/island-cover-big-both-flowerbush1": [
+          1,
+          0,
+          0
+        ],
+        "animals": [
+          34,
+          12,
+          34
+        ],
+        "enemies": [
+          1,
+          1,
+          16
+        ],
+        "impacts": [
+          1,
+          0,
+          0
+        ],
+        "interact-lit": [
+          1,
+          1,
+          1
+        ],
+        "interact-glow": [
+          1,
+          0,
+          1
+        ],
+        "zipline": [
+          1,
+          1,
+          1
+        ],
+        "sea-glass-chime": [
+          1,
+          1,
+          1
+        ],
+        "trophy-plaques": [
+          1,
+          1,
+          1
+        ],
+        "loot-coins": [
+          1,
+          0,
+          0
+        ]
+      }
+    }
+  }
+}

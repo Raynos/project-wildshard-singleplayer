@@ -75,6 +75,44 @@ Pine is a match on both tiers (MAE 4.7–11.8).
 | Full vitest (clean landing tree, `heavy-lane.py full-test`) | 928 files, 5348 tests passed |
 | Guards | tsc (root, layers), oxlint, check-graph (no new or rising pair), shard coupling, ratchet: green. The post-commit ratchet's export shows +1 `shard-sandbox` on five manifests for the parent `64a1f0b4b` too: pre-existing, not this change |
 
+## SF63 finish (d5ebca22d, c5b5bd8a7): region-frame culls landed, the rope bridge back, the rest measured
+
+Re-captured with the same probe on a served build of HEAD + d5ebca22d (tag `finish`; boards above are now SHARD SELECT |
+grid at the parent where that run exists | grid with SF63; JSONs `parity-<shard>-<tier>-finish.json`). Shader / page
+errors 0 / 0 in all 8 runs; programs at the crossing unchanged (Driftwood 185 → 185 phone, 198 → 198 desktop; Nalati
+218 → 218, 241 → 241).
+
+| Shard | Tier | entry | inside-w / -e | inside-n / -w | entry-n |
+|---|---|---|---|---|---|
+| Driftwood | desktop | 10.8 | 38.3 | 21.7 | |
+| Driftwood | phone | 11.6 | 39.4 | 20.6 | |
+| Nalati | desktop | 13.0 (entry-e) | 14.8 (inside-e) | 15.6 (inside-w) | 20.0 |
+| Nalati | phone | 12.4 | 14.2 | 15.5 | 17.0 |
+
+What the per-mesh census and a scene dump (grid against SHARD SELECT, same poses) showed:
+
+| Gap | Finding | State |
+|---|---|---|
+| Nalati's dressing counts | Grid and SHARD SELECT now match layer for layer (boulder / slab / stone, every pose, both tiers; ±2 at inside-e) | closed by d5ebca22d |
+| Driftwood's "162 vs 484 meshes, 76 vs 360 casting" | Not missing casters. SHARD SELECT splits each island-wide caster into ≤ 64 shadow-only pieces (`shadowChunks.ts`, E153: ~300 of the 484); the grid region never runs `chunkShadowCasters`, so the same meshes cast whole (`pier`, `palm`, `shore-boulder` … cast 1 in the grid, 0 + pieces standalone). Same shadow texels, more shadow triangles per cascade in the cell | a perf row, not a parity one |
+| Driftwood's ground cover (tuft 4059 vs 4469 desktop) | `GroundCover` refills its window by distance from where it last rebuilt (`REFILL_M`), so a drive and a teleport to the same pose differ by up to one refill. Driftwood's region root is at the page origin in this boot (root (0, 0, 0); feet = page position), so `FrameCamera` is the identity there | explained |
+| The rope bridge (a declared mover) not drawn in the cell | The bridge's builder was cached by its span (the manifest's `BRIDGE`, which outlives every world). A grid region that leaves disposes its scene tree (sceneOwnership clears the group), and the next resident world was handed that empty group: 0 children in the cell. A builder whose group was emptied is now rebuilt | closed by c5b5bd8a7 (grid: posts + 50 planks + 124 ropes, as standalone) |
+| The drowned sailor missing | He is spawned in both (`enemies` group, his cyan light at the hold). In the grid he stands 0.63 m lower (light y −0.73 against −0.10), under the hold's deck, so the hatch shows nothing. The player on the board stands 0.75 m lower at the same xz too (y −0.30 against 0.45): the region's ground / water-surface answer differs from standalone by the world's drop, not the frame | open: the grid's ground port under the hold (`regionalRuntime`'s `foundation.ground` vs the wreck's floor) |
+| The wreck's shadow on the shallows | The sun, cascades and the wreck's caster flags match (`wreck-rocks` casts, the seabed and the sea receive, 3 × 2048² both sides). What differs is the shallows themselves: SHARD SELECT shows the sand through clear water, the cell an opaque turquoise sea. The sea is drawn under the neutral page shell, where Driftwood's toon lighting (`look/toon.ts`, a `lights_physical_pars_fragment` patch the page never installs) is absent; the shadow falls on a body the cell draws opaque. (Whether the sea itself also stands lower, as the player and the sailor do, was not measured) | open: a look question (the toon chunk on a grid page), maybe the same height offset as the sailor |
+| Hands and held sword | Different arms (the page's skin against Driftwood's bare toon arms) | not this row |
+
+`scripts/parity.mjs --url=<this build> --shards=driftwood-isle,nalati-grasslands --tiers=phone,desktop --jobs=1`: red against the
+M5 baselines (cea89b855, recorded at bfb9dc325) on fields these two files cannot touch: Driftwood +1 mesh (the pier now
+carries a `pier-shadow-pieces` group of 8), +1 geometry, +2 calls / +160 tris at the poses, texture bytes −8 MB phone /
+−98 MB desktop and renderbuffers 10.9 → 5.6 MB on the phone; Nalati −1 mesh (`kurgan-dungeon/kurgan-interior` not built at
+boot), program keys changed, textures −1 MB / −50 MB, poses.camp SSIM 0.989 (≥ 0.99). Candidates since the baseline:
+d77c83b84 (compressed mips retired after first draw), c5ed249db (rooms load on open), b88dc9da6 / 285c2c332 (SF63 chain,
+place frame). Standalone, `FrameCamera.of` returns the camera itself, so d5ebca22d is a no-op there.
+
+`scripts/test-facade-instancing.mjs` (HEAD + c5b5bd8a7 build): PASS desktop / phone tier / iPhone desktop quality, 0
+batches, 24,710 / 24,710 / 16,389 instances. Full vitest on a clean export of 8e5dc65d3 (`pnpm gen`, heavy lane): 933
+files, 5,369 tests passed. SF59: no program added (Driftwood stays at +61 of 64).
+
 ## Files
 
 - `capture.mjs`: the parity capture (grid drive plus SHARD SELECT at the same poses, the diffs, chain and shadow probes).
