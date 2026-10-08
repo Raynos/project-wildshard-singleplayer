@@ -109,6 +109,24 @@ describe('SF57 honest drive and native memory gate', () => {
     const result = witness(); for (const sample of result.samples) if (sample.elapsed < 600) sample.footprint = 350_000_000;
     expect(gradeSoak(result).recovery).toBe(true);
   });
+  it('reports partial laps without requiring unvisited peaks or troughs, retaining the cap', () => {
+    const value = witness();
+    // Loop two spans both poses; the last partial lap has reached only the lower-memory pose.
+    for (const sample of value.samples) if (sample.gl.cycle === 1 && sample.elapsed > 610) sample.interval += 80_000_000;
+    const partial = gradeSoak(value);
+    expect(partial.recovery).toBe(true);
+    expect(partial.loops.at(-1)?.complete).toBe(false);
+    expect(gradeSoak({ ...value, circuits: 3, windows: [...value.windows, { start: 1800, end: 1810 }] }).recovery).toBe(false);
+    const tooHigh = witness();
+    for (const sample of tooHigh.samples) if (sample.gl.cycle === 2 && sample.elapsed > 1210) sample.interval += 30_000_001;
+    expect(gradeSoak(tooHigh).recovery).toBe(false);
+    const tooLow = witness();
+    for (const sample of tooLow.samples) if (sample.gl.cycle === 2 && sample.elapsed > 1210) sample.footprint -= 30_000_001;
+    expect(gradeSoak(tooLow).recovery).toBe(false);
+    const capped = witness();
+    for (const sample of capped.samples) if (sample.gl.cycle === 2 && sample.elapsed > 1210) sample.interval = 1_000_000_000;
+    expect(gradeSoak(capped).memoryPass).toBe(false);
+  });
   it('fails WebContent under the cap when labelled GL pushes the playing total over it', () => {
     const result = witness(); for (const sample of result.samples) sample.gl.totalBytes = 650_000_000;
     expect(gradeSoak(result).peakBytes).toBe(1_072_000_000); expect(gradeSoak(result).memoryPass).toBe(false);

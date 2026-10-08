@@ -20,7 +20,7 @@ export function parseSoakContentCut(input: unknown): SoakContentCut {
 /** Ordinary routes are thirty minutes; a picked content-cut route qualifies at minute sixty (G186). */
 export function soakDuration(contentCut?: SoakContentCut | null): number { return contentCut === undefined || contentCut === null ? 1800 : 3600; }
 interface Witness { readonly samples: readonly Sample[]; readonly windows: readonly Window[]; readonly seconds: number; readonly circuits: number; readonly evictions: number; readonly errors: readonly string[]; readonly leak: Leak | null; readonly expected: readonly string[]; readonly entries: readonly Entry[]; readonly crossroads: readonly string[]; readonly engineBase?: number; readonly rehearsal?: boolean; readonly leg?: 'cells' | 'road'; readonly contentCut?: SoakContentCut | null }
-interface Loop { cycle: number; peakBytes: number; troughBytes: number }
+interface Loop { cycle: number; complete: boolean; peakBytes: number; troughBytes: number }
 interface Grade { contentCut: SoakContentCut | null; requiredSeconds: number; memoryPass: boolean; gatePass: boolean; peakBytes: number; loadingPeakBytes: number; phoneEstimateBytes: number; baselines: { start: number; end: number; samples: number; bytes: number | null }[]; baselineDeltaBytes: (number | null)[]; loops: Loop[]; recovery: boolean; calibration: boolean; ratios: { cycle: number; raw: number; adjusted: number }[]; missingGlSamples: number; sampling: boolean; leakZero: boolean; admitted: string[]; refused: string[]; attemptedEveryCell: boolean; crossroads: number; limitation: string | null; rehearsal: boolean }
 /** The drive uses the admitted catalogue, never a second hand-maintained shard list. */
 export function soakRoute(cells: readonly Cell[], pitch = 555, leg: 'cells' | 'road' = 'cells'): { reference: Point; steps: readonly Step[] } {
@@ -97,11 +97,13 @@ export function gradeSoak({ samples, windows, seconds, circuits, evictions, erro
   const loops: Loop[] = [];
   for (let cycle = 0; cycle <= circuits; cycle++) {
     const rows = drive.filter((row) => row.gl?.cycle === cycle);
-    if (rows.length > 0) loops.push({ cycle, peakBytes: Math.max(...rows.map((row) => combined(row, true))), troughBytes: Math.min(...rows.map((row) => combined(row))) });
+    if (rows.length > 0) loops.push({ cycle, complete: cycle < circuits, peakBytes: Math.max(...rows.map((row) => combined(row, true))), troughBytes: Math.min(...rows.map((row) => combined(row))) });
   }
   const loopTwo = loops.find((loop) => loop.cycle === 1);
-  // Loop one warms the process. Loop two is the peak/trough reference, including the last partial loop.
-  const recovery = baselineRecovery && loopTwo !== undefined && loops.filter((loop) => loop.cycle >= 1).every((loop) => Math.abs(loop.peakBytes - loopTwo.peakBytes) <= 30_000_000 && Math.abs(loop.troughBytes - loopTwo.troughBytes) <= 30_000_000);
+  // Completed loops must repeat loop two. A partial lap has not visited every high/low-memory pose yet.
+  const recovery = baselineRecovery && loopTwo?.complete === true && loops.filter((loop) => loop.cycle >= 1).every((loop) => loop.complete
+    ? Math.abs(loop.peakBytes - loopTwo.peakBytes) <= 30_000_000 && Math.abs(loop.troughBytes - loopTwo.troughBytes) <= 30_000_000
+    : loop.peakBytes <= loopTwo.peakBytes + 30_000_000 && loop.troughBytes >= loopTwo.troughBytes - 30_000_000);
   const ratios = windows.slice(1).flatMap((window, index) => {
     const points = samples.filter((row) => row.type === 'sample' && row.elapsed >= window.start && row.elapsed <= window.end && (row.gl?.accountedBytes ?? 0) > 0 && row.gl?.settled === true);
     if (points.length < 5) return [];
