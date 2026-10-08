@@ -4,6 +4,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { app } from '../src/engine/app/runtime';
 import { ownSceneTree, SceneOwnership } from '../src/engine/app/sceneOwnership';
 import { Scope } from '../src/engine/app/scope';
+import { finalizeCompressedMipmaps } from '../src/engine/render/compressedMipmaps';
 import { releaseAfterUpload } from '../src/engine/core/ktx2';
 import { preloadLeverModel } from '../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { legacyDouble } from './fake/FakeGame';
@@ -23,7 +24,11 @@ it('keeps the cached rifle atlases alive across complete regional retirement and
     if (cached === null) throw new Error('Actual cached model did not parse');
     const textures = new Set([cached.steel.map, cached.steel.normalMap, cached.steel.armMap, cached.wood.map, cached.wood.normalMap, cached.wood.armMap]);
     const disposed = [...textures].map(texture => vi.spyOn(texture, 'dispose'));
-    for (const texture of textures) { expect(texture).toBeInstanceOf(CompressedTexture); texture.onUpdate?.(texture); }
+    for (const texture of textures) {
+      expect(texture).toBeInstanceOf(CompressedTexture); texture.onUpdate?.(texture);
+      // Upload is provisional; simulate the successful first-draw retirement boundary.
+      expect(texture.mipmaps.length).toBeGreaterThan(0); finalizeCompressedMipmaps(texture);
+    }
     // Three cannot re-upload these compressed planes once released: only the shared GPU allocation remains.
     expect([...textures].every(texture => texture.mipmaps.length === 0)).toBe(true);
     for (let visit = 0; visit < 2; visit++) {
