@@ -46,7 +46,8 @@ async function buildPainterly(t: Terrain, f: PainterField): Promise<void> {
   t.group.add(slab);
 }
 
-function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.BufferGeometry, undefined> {
+/** the painted terrain grid (G227: public so a bake runs the one painter on its native samplers; no behaviour change) */
+export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.BufferGeometry, undefined> {
   const paint = def.groundColor;
   const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
   const hs = new Float32Array(res * res);
