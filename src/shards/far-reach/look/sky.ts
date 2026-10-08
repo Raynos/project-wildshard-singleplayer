@@ -51,7 +51,9 @@ export const HEADING_GLSL = 'float farHeading(vec3 v){ return fract(atan(v.x, -v
 export function skyDome(pano: Texture, haze: Texture): Mesh<SphereGeometry, ShaderMaterial> {
   const [zr, zg, zb] = PANO_ZENITH_SRGB, [nr, ng, nb] = PANO_NADIR_SRGB;
   // the strip carries PANO_PAD_PX columns of wrap either side: the heading maps inside them
-  const image: unknown = pano.image, total = typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap ? image.width : PANO_PAD_PX * 2 + 1;
+  // the strip's width: its bitmap's, or the size the Memory saver keeps once the bitmap went at its upload
+  const image: unknown = pano.image, width: unknown = typeof image === 'object' && image !== null ? Reflect.get(image, 'width') : undefined;
+  const total = typeof width === 'number' && width > 1 ? width : PANO_PAD_PX * 2 + 1;
   const padU = PANO_PAD_PX / total, scaleU = (total - PANO_PAD_PX * 2) / total;
   return new Mesh(new SphereGeometry(900, 64, 32), new ShaderMaterial({ side: BackSide, depthWrite: false, fog: false,
     uniforms: { pano: { value: pano }, haze: { value: haze }, padU: { value: padU }, scaleU: { value: scaleU } },

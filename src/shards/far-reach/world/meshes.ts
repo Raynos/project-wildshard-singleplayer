@@ -1,5 +1,6 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import { releaseDecodedOnUpload } from '../look/image';
 import { SKY_HD, SKY_MESHES, skyHdUrl, skyMeshUrl, type SkyHdName, type SkyMeshName } from '../boot/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Uint32BufferAttribute, Vector3, type BufferAttribute, type InterleavedBufferAttribute, type Object3D, type Texture } from 'three';
 
@@ -70,6 +71,10 @@ async function loadHd(name: SkyHdName): Promise<void> {
       found.push({ geometry: g, map: m.map });
     });
     const one = found[0]; if (one === undefined) throw new Error(`${name}: no textured mesh`);
+    // Memory saver: the GLB's decoded atlas goes at its upload. Sky Reach never reads these maps on the CPU, every user
+    // shares this one texture (no other sampler key), and the GLB is parsed afresh per visit (no cache keeps the source).
+    const atlas: unknown = one.map.image;
+    if (typeof ImageBitmap !== 'undefined' && atlas instanceof ImageBitmap) releaseDecodedOnUpload(one.map, () => { atlas.close(); });
     retainCachedResources(one); hd.set(name, one);
     cacheUntilDisposed(one, () => { if (hd.get(name) === one) { hd.delete(name); loading = null; } });
   } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the faceted model stands in:`, e); }
