@@ -23,6 +23,7 @@ describe('Nalati combined world rows', () => {
       expect(new Set(first.props.tiles.map(row => `${row.lod}/${row.x}/${row.z}`)).size).toBe(80);
       expect(first.props.family).toBe('nalati.ground');
       const nativeHash = contentHash(native); expect(first.critical).toEqual([nativeHash]);
+      expect(first.nativeGround).toEqual({ version: 1, file: nativeHash }); expect(second.nativeGround).toEqual(first.nativeGround);
       const retainedNative = first.assets.get(nativeHash); if (retainedNative === undefined) throw new Error('Missing native authority');
       expect(contentHash(retainedNative)).toBe(nativeHash); expect(retainedNative.length).toBe(native.length);
       expect(first.files.find(row => row.hash === nativeHash)).toEqual({ hash: nativeHash, kind: 'binary', compressed: native.length, decoded: native.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
