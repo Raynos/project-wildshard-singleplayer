@@ -203,3 +203,17 @@ export function soakGamePid(native) {
   if (!selected || selected[1][0] <= 0) throw new Error('Missing native game WebContent PID after admission');
   return Number(selected[0]);
 }
+
+/** Retry only WebKit's premeasurement process-target transition; runtime/game failures remain fatal.
+ * @template T
+ * @param {() => Promise<T>} poll
+ * @param {boolean} beforeMeasurement
+ * @returns {Promise<T | false>}
+ */
+export async function soakBootPoll(poll, beforeMeasurement) {
+  try { return await poll(); }
+  catch (error) {
+    if (beforeMeasurement && error instanceof Error && error.message === "'Runtime' domain was not found") return false;
+    throw error;
+  }
+}

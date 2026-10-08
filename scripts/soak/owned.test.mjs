@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
@@ -118,4 +118,12 @@ void test('SF57 binds playing WC to the admitted game PID, not the prewarm, and 
   assert.equal(rows[0].footprint, 545); assert.equal(rows[1].footprint, 505); assert.equal(rows[1].interval, 515);
   assert.equal(rows[1].allWebContentBytes, 550); assert.equal(rows[2].footprint, 0);
   assert.throws(() => soakGamePid([]), /Missing native game/u);
+});
+
+void test('SF57 permits only the exact premeasurement WebKit target transition', async () => {
+  const transition = () => Promise.reject(new Error("'Runtime' domain was not found"));
+  assert.equal(await soakBootPoll(transition, true), false);
+  await assert.rejects(soakBootPoll(transition, false), /Runtime/u);
+  await assert.rejects(soakBootPoll(() => Promise.reject(new Error('Owned-shell load failed: broken')), true), /load failed/u);
+  assert.equal(await soakBootPoll(() => Promise.resolve('ready'), true), 'ready');
 });

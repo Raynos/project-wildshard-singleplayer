@@ -19,7 +19,7 @@ import { installSoakGl, installSoakWasm, installLoadingGlJournal } from './gl.mj
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, soakBootPoll } from './owned.mjs';
 import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -69,13 +69,15 @@ async function connect(base) {
   }
   throw new Error('Simulator Safari inspector did not expose this preview');
 }
-async function until(driver, expression, timeout = 240000, observe = () => Promise.resolve()) {
+async function until(driver, expression, timeout = 240000, observe = () => Promise.resolve(), beforeMeasurement = false) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
-    await observe();
-    const failure = await driver.evaluate("document.querySelector('#wserr .msg')?.textContent ?? null");
-    if (failure) throw new Error(`Owned-shell load failed: ${failure}`);
-    if (await driver.evaluate(expression)) return;
+    if (await soakBootPoll(async () => {
+      await observe();
+      const failure = await driver.evaluate("document.querySelector('#wserr .msg')?.textContent ?? null");
+      if (failure) throw new Error(`Owned-shell load failed: ${failure}`);
+      return await driver.evaluate(expression);
+    }, beforeMeasurement)) return;
     await sleep(1000);
   }
   throw new Error(`Safari condition timed out: ${expression}`);
@@ -103,8 +105,9 @@ async function worker() {
   let lastResidents = [];
   const collectGl = async () => {
     if (!driver) return;
-    const rows = await driver.evaluate('window.__sf57GL?.splice(0) ?? []');
-    for (const row of await driver.evaluate('window.__sf57GLEvents?.splice(0) ?? []')) {
+    // Drain both journals in one protocol response so a boot process swap cannot lose a drained half.
+    const { rows, events, errors } = await driver.evaluate('({rows:window.__sf57GL?.splice(0) ?? [],events:window.__sf57GLEvents?.splice(0) ?? [],errors:window.__sf57Errors ?? []})');
+    for (const row of events) {
       glEvents.push(row); appendFileSync(glEventsFile, `${JSON.stringify(row)}\n`);
     }
     for (const row of rows) {
@@ -112,7 +115,7 @@ async function worker() {
       lastResidents = row.residents;
       glRows.push(row); appendFileSync(glFile, `${JSON.stringify(row)}\n`);
     }
-    result.errors = [...new Set([...result.errors, ...await driver.evaluate('window.__sf57Errors ?? []')])];
+    result.errors = [...new Set([...result.errors, ...errors])];
   };
   const measuredWait = async (seconds) => { for (let second = 0; second < seconds; second++) { await sleep(1000); await collectGl(); } };
   try {
@@ -131,13 +134,13 @@ async function worker() {
     await driver.evaluate(`setTimeout(()=>location.replace(${JSON.stringify(gameUrl)}),100);true`);
     driver.close(); driver = null;
     driver = await connect(`${base}sf57-safari.html`);
-    await until(driver, `Boolean(document.querySelector('.ws-main-grid'))`, 240000, collectGl);
+    await until(driver, `Boolean(document.querySelector('.ws-main-grid'))`, 240000, collectGl, true);
     await driver.evaluate(`setTimeout(()=>document.querySelector('.ws-main-grid').click(),100);true`);
     // Title-to-grid navigation is intentional and precedes the single measurement-document fence.
     driver.close(); driver = null; await sleep(3000); driver = await connect(base);
-    await until(driver, `Boolean(!document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live)`, 240000, collectGl);
+    await until(driver, `Boolean(!document.querySelector('.ws-load') && window.__wildshard?.shard?.grid?.state().live?.live)`, 240000, collectGl, true);
     await driver.evaluate('(window.__wildshard.world.hud.enterNow(),true)');
-    await until(driver, 'window.__wsReveal?.endedMs != null', 45000, collectGl);
+    await until(driver, 'window.__wsReveal?.endedMs != null', 45000, collectGl, true);
     result.metadata = await driver.evaluate(`(() => {const p=window.__wildshard,w=p.world;return {href:location.href,clock:w.game.app.clock.mode,level:w.game.level.id,renderScale:w.game.renderer.getPixelRatio(),viewport:[innerWidth,innerHeight],userAgent:navigator.userAgent,boot:p.boot,state:p.shard.grid.state(),settings:JSON.parse(localStorage.getItem('wildshard.save.v2.global')).keys.settings.data,developer:JSON.parse(localStorage.getItem('wildshard.save.v2.device')).keys.devMode.data};})()`);
     if (result.metadata.clock !== 'live' || result.metadata.renderScale !== 2 || result.metadata.level !== 'platform.grid') throw new Error('Soak requires the owned shell, live clock and 2x render scale');
     if (result.metadata.developer !== (layout === 'dev')) throw new Error('Wrong Developer setting');
