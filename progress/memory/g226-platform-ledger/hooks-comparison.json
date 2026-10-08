@@ -1,0 +1,512 @@
+{
+  "before": {
+    "build": "1cca1dc-muz1tbpz",
+    "time": "2026-10-08T04:40:48.600Z"
+  },
+  "after": {
+    "build": "163516e-muz292zu",
+    "time": "2026-10-08T04:53:03.003Z"
+  },
+  "protocol": "One muted Chromium/Metal phone per run, Auto. Diagnostic only, not a controlled perf benchmark: coordinator floors/other lane browsers were active during the after run.",
+  "closed": true,
+  "pageErrors": [],
+  "console": [],
+  "routes": [
+    {
+      "name": "pine-interior",
+      "failures": []
+    },
+    {
+      "name": "nalati-interior",
+      "failures": []
+    }
+  ],
+  "rigs": [
+    {
+      "raw": "/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/antler-king-rig.phone.rigged-4aa793ec.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    },
+    {
+      "raw": "/assets/pine-hollow/creatures/bear-black.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/bear-black.phone.rigged-a8af23a6.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    },
+    {
+      "raw": "/assets/pine-hollow/creatures/bear-brown.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/bear-brown.phone.rigged-32e35d31.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    },
+    {
+      "raw": "/assets/pine-hollow/creatures/boar.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/boar.phone.rigged-936315d8.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    },
+    {
+      "raw": "/assets/pine-hollow/creatures/deer-hind.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/deer-hind.phone.rigged-838344e3.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    },
+    {
+      "raw": "/assets/pine-hollow/creatures/deer-stag.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/deer-stag.phone.rigged-3411c5fe.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    },
+    {
+      "raw": "/assets/pine-hollow/creatures/elk-bull.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/elk-bull.phone.rigged-e616d5c8.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    },
+    {
+      "raw": "/assets/pine-hollow/creatures/elk-cow.phone.rigged.glb",
+      "compressed": "/assets/gpu/pine-hollow/creatures/elk-cow.phone.rigged-c9e2aff7.glb",
+      "compressedRequested": true,
+      "rawRequested": false
+    }
+  ],
+  "coatKtx2Requests": 16,
+  "hooks": [
+    {
+      "instance": "pine-hollow",
+      "hook": "beforeWorld",
+      "beforeWallMs": 0.19999980926513672,
+      "afterWallMs": 0.09999990463256836,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "pine-hollow",
+      "hook": "constructor",
+      "beforeWallMs": 0.10000038146972656,
+      "afterWallMs": 0,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "pine-hollow",
+      "hook": "world",
+      "beforeWallMs": 383,
+      "afterWallMs": 380.09999990463257,
+      "afterSampledMs": 380.603
+    },
+    {
+      "instance": "pine-hollow",
+      "hook": "afterWorld",
+      "beforeWallMs": 0,
+      "afterWallMs": 0,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "pine-hollow",
+      "hook": "kit",
+      "beforeWallMs": 12,
+      "afterWallMs": 8.299999713897705,
+      "afterSampledMs": 8.46
+    },
+    {
+      "instance": "pine-hollow",
+      "hook": "afterKit",
+      "beforeWallMs": 5637.89999961853,
+      "afterWallMs": 1038.2000002861023,
+      "afterSampledMs": 1040.226
+    },
+    {
+      "instance": "pine-hollow",
+      "hook": "play",
+      "beforeWallMs": 423.40000009536743,
+      "afterWallMs": 174.5,
+      "afterSampledMs": 170.61
+    },
+    {
+      "instance": "pine-hollow",
+      "hook": "afterPlay",
+      "beforeWallMs": 0,
+      "afterWallMs": 0.10000038146972656,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "beforeWorld",
+      "beforeWallMs": 0.19999980926513672,
+      "afterWallMs": 0.09999990463256836,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "constructor",
+      "beforeWallMs": 0,
+      "afterWallMs": 0,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "world",
+      "beforeWallMs": 1298.1999998092651,
+      "afterWallMs": 1320.2999997138977,
+      "afterSampledMs": 1324.852
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "afterWorld",
+      "beforeWallMs": 0,
+      "afterWallMs": 0.09999990463256836,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "kit",
+      "beforeWallMs": 0.20000028610229492,
+      "afterWallMs": 0.19999980926513672,
+      "afterSampledMs": 0
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "afterKit",
+      "beforeWallMs": 602.5,
+      "afterWallMs": 606.9000000953674,
+      "afterSampledMs": 606.919
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "play",
+      "beforeWallMs": 114.69999980926514,
+      "afterWallMs": 114.09999990463257,
+      "afterSampledMs": 113.48
+    },
+    {
+      "instance": "nalati-grasslands",
+      "hook": "afterPlay",
+      "beforeWallMs": 0.09999990463256836,
+      "afterWallMs": 0.19999980926513672,
+      "afterSampledMs": 0.281
+    }
+  ],
+  "poses": [
+    {
+      "label": "home-settled",
+      "playingMB": 905.23,
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "label": "pine-hollow-entry",
+      "playingMB": 1082.19,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "label": "pine-hollow-centre",
+      "playingMB": 1075.91,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "label": "nalati-grasslands-entry",
+      "playingMB": 1070.88,
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "label": "nalati-grasslands-centre",
+      "playingMB": 1064.19,
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    }
+  ],
+  "remainingLongTasks": [
+    {
+      "instance": "pine-hollow",
+      "start": 24658,
+      "ms": 376,
+      "topStacks": [
+        {
+          "milliseconds": 241.999,
+          "stack": [
+            "getProgramInfoLog (:0)",
+            "C (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7022:10)",
+            "getUniforms (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7121:20)",
+            "Ct (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18407:11)",
+            "Yg.renderBufferDirect (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17233:28)",
+            "renderer.renderBufferDirect (../../src/src/engine/core/Game.ts:336:18)",
+            "e.renderBufferDirect (../../src/src/engine/render/uploadOwnership.ts:39:13)",
+            "vt (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18192:11)",
+            "_t (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18165:11)",
+            "ht (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18015:11)",
+            "Yg.render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17674:16)",
+            "Ue.e.render (../../src/src/engine/render/frameCounter.ts:29:11)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6896:2)",
+            "render (../../src/src/engine/core/worldDepth.ts:139:2)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1297:2)",
+            "s (../../src/src/engine/core/Game.ts:762:18)"
+          ]
+        },
+        {
+          "milliseconds": 30.005,
+          "stack": [
+            "getShaderInfoLog (:0)",
+            "C (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7022:10)",
+            "getUniforms (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7121:20)",
+            "Ct (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18407:11)",
+            "Yg.renderBufferDirect (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17233:28)",
+            "renderer.renderBufferDirect (../../src/src/engine/core/Game.ts:336:18)",
+            "e.renderBufferDirect (../../src/src/engine/render/uploadOwnership.ts:39:13)",
+            "vt (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18192:11)",
+            "_t (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18165:11)",
+            "ht (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18015:11)",
+            "Yg.render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17674:16)",
+            "Ue.e.render (../../src/src/engine/render/frameCounter.ts:29:11)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6896:2)",
+            "render (../../src/src/engine/core/worldDepth.ts:139:2)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1297:2)",
+            "s (../../src/src/engine/core/Game.ts:762:18)"
+          ]
+        },
+        {
+          "milliseconds": 14.145,
+          "stack": [
+            "paintRegion (../../src/src/engine/ui/Minimap.ts:540:2)",
+            "paintLayer (../../src/src/engine/ui/Minimap.ts:478:2)",
+            "update (../../src/src/engine/ui/Minimap.ts:298:2)",
+            " (../../src/src/game/session/play.ts:622:17)",
+            "run (../../src/src/engine/app/app.ts:219:30)",
+            " (../../src/src/engine/app/app.ts:229:74)",
+            "_ (../../src/src/engine/app/ownership.ts:7:16)",
+            "run (../../src/src/engine/app/app.ts:229:30)",
+            "runPhase (../../src/src/engine/core/Game.ts:609:2)",
+            "s (../../src/src/engine/core/Game.ts:762:18)",
+            " (../../src/src/engine/app/scope.ts:231:29)",
+            "(root) (:0)"
+          ]
+        }
+      ]
+    },
+    {
+      "instance": "pine-hollow",
+      "start": 73539.40000009537,
+      "ms": 323,
+      "topStacks": [
+        {
+          "milliseconds": 300.416,
+          "stack": [
+            "getProgramInfoLog (:0)",
+            "C (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7022:10)",
+            "getUniforms (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7121:20)",
+            "Ct (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18407:11)",
+            "Yg.renderBufferDirect (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17233:28)",
+            "renderer.renderBufferDirect (../../src/src/engine/core/Game.ts:336:18)",
+            "e.renderBufferDirect (../../src/src/engine/render/uploadOwnership.ts:39:13)",
+            "vt (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18192:11)",
+            "_t (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18165:11)",
+            "ht (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18015:11)",
+            "Yg.render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17674:16)",
+            "Ue.e.render (../../src/src/engine/render/frameCounter.ts:29:11)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6896:2)",
+            "render (../../src/src/engine/core/worldDepth.ts:139:2)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1297:2)",
+            "s (../../src/src/engine/core/Game.ts:762:18)"
+          ]
+        },
+        {
+          "milliseconds": 12.665,
+          "stack": [
+            "getShaderInfoLog (:0)",
+            "C (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7022:10)",
+            "getUniforms (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:7121:20)",
+            "Ct (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18407:11)",
+            "Yg.renderBufferDirect (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17233:28)",
+            "renderer.renderBufferDirect (../../src/src/engine/core/Game.ts:336:18)",
+            "e.renderBufferDirect (../../src/src/engine/render/uploadOwnership.ts:39:13)",
+            "vt (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18192:11)",
+            "_t (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18165:11)",
+            "ht (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:18015:11)",
+            "Yg.render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.module.js:17674:16)",
+            "Ue.e.render (../../src/src/engine/render/frameCounter.ts:29:11)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:6896:2)",
+            "render (../../src/src/engine/core/worldDepth.ts:139:2)",
+            "render (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/postprocessing@6.39.5_three@0.186.0/node_modules/postprocessing/build/index.js:1297:2)",
+            "s (../../src/src/engine/core/Game.ts:762:18)"
+          ]
+        },
+        {
+          "milliseconds": 7.497,
+          "stack": [
+            "(program) (:0)",
+            "(root) (:0)"
+          ]
+        }
+      ]
+    },
+    {
+      "instance": "nalati-grasslands",
+      "start": 118576.30000019073,
+      "ms": 264,
+      "topStacks": [
+        {
+          "milliseconds": 27.301,
+          "stack": [
+            "copy (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:5006:1)",
+            "Fa (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/geometries/RoundedBoxGeometry.js:8:9)",
+            "e (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/geometries/RoundedBoxGeometry.js:65:1)",
+            "La (../../src/src/shards/nalati-grasslands/world/granite.ts:11:16)",
+            "za (../../src/src/shards/nalati-grasslands/models/outcrop.ts:53:6)",
+            "paint (../../src/src/shards/nalati-grasslands/world/painted.ts:250:2)",
+            "Ga (../../src/src/shards/nalati-grasslands/outcrops.ts:44:16)",
+            "yh (../../src/src/shards/nalati-grasslands/runtime/state.ts:117:22)",
+            "(root) (:0)"
+          ]
+        },
+        {
+          "milliseconds": 19.861,
+          "stack": [
+            "D (../../src/src/engine/world/geometryKit.ts:140:16)",
+            "La (../../src/src/shards/nalati-grasslands/world/granite.ts:11:16)",
+            "za (../../src/src/shards/nalati-grasslands/models/outcrop.ts:53:6)",
+            "paint (../../src/src/shards/nalati-grasslands/world/painted.ts:250:2)",
+            "Ga (../../src/src/shards/nalati-grasslands/outcrops.ts:44:16)",
+            "yh (../../src/src/shards/nalati-grasslands/runtime/state.ts:117:22)",
+            "(root) (:0)"
+          ]
+        },
+        {
+          "milliseconds": 15.037,
+          "stack": [
+            "t (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:19486:11)",
+            "toNonIndexed (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:19484:1)",
+            "e (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/examples/jsm/geometries/RoundedBoxGeometry.js:65:1)",
+            "La (../../src/src/shards/nalati-grasslands/world/granite.ts:11:16)",
+            "za (../../src/src/shards/nalati-grasslands/models/outcrop.ts:53:6)",
+            "paint (../../src/src/shards/nalati-grasslands/world/painted.ts:250:2)",
+            "Ga (../../src/src/shards/nalati-grasslands/outcrops.ts:44:16)",
+            "yh (../../src/src/shards/nalati-grasslands/runtime/state.ts:117:22)",
+            "(root) (:0)"
+          ]
+        }
+      ]
+    },
+    {
+      "instance": "nalati-grasslands",
+      "start": 118883.80000019073,
+      "ms": 389,
+      "topStacks": [
+        {
+          "milliseconds": 32.793,
+          "stack": [
+            "a (../../src/src/engine/world/voxelAO.ts:62:16)",
+            "be (../../src/src/shards/nalati-grasslands/world/paint.ts:268:16)",
+            "shade (../../src/src/shards/nalati-grasslands/world/paint.ts:178:17)",
+            "finish (../../src/src/shards/nalati-grasslands/world/paint.ts:154:2)",
+            "mesh (../../src/src/shards/nalati-grasslands/world/paint.ts:202:2)",
+            "bs (../../src/src/shards/nalati-grasslands/world/NomadCamp.ts:43:16)",
+            "t (../../src/src/shards/nalati-grasslands/world/index.ts:80:10)",
+            "build (../../src/src/shards/nalati-grasslands/world/index.ts:78:2)",
+            "yh (../../src/src/shards/nalati-grasslands/runtime/state.ts:117:22)",
+            "(root) (:0)"
+          ]
+        },
+        {
+          "milliseconds": 7.839,
+          "stack": [
+            "add (../../src/src/shards/nalati-grasslands/world/paint.ts:81:2)",
+            "add (../../src/src/shards/nalati-grasslands/world/painted.ts:201:6)",
+            "f (../../src/src/shards/nalati-grasslands/models/yurt.ts:88:8)",
+            "so (../../src/src/shards/nalati-grasslands/models/yurt.ts:81:16)",
+            "R.build.V.seed (../../src/src/shards/nalati-grasslands/models/yurt.ts:311:9)",
+            "paint (../../src/src/shards/nalati-grasslands/world/painted.ts:250:2)",
+            "bs (../../src/src/shards/nalati-grasslands/world/NomadCamp.ts:43:16)",
+            "t (../../src/src/shards/nalati-grasslands/world/index.ts:80:10)",
+            "build (../../src/src/shards/nalati-grasslands/world/index.ts:78:2)",
+            "yh (../../src/src/shards/nalati-grasslands/runtime/state.ts:117:22)",
+            "(root) (:0)"
+          ]
+        },
+        {
+          "milliseconds": 7.529,
+          "stack": [
+            "getY (../../../../../../Users/raynos/projects/games/wildshard-singleplayer/node_modules/.pnpm/three@0.186.0/node_modules/three/build/three.core.js:17366:1)",
+            "add (../../src/src/shards/nalati-grasslands/world/paint.ts:81:2)",
+            "add (../../src/src/shards/nalati-grasslands/world/painted.ts:201:6)",
+            "uo (../../src/src/shards/nalati-grasslands/models/campProps.ts:30:9)",
+            "Fo (../../src/src/shards/nalati-grasslands/models/campProps.ts:416:6)",
+            "paint (../../src/src/shards/nalati-grasslands/world/painted.ts:250:2)",
+            "Bs (../../src/src/shards/nalati-grasslands/world/SummerCamp.ts:22:16)",
+            "t (../../src/src/shards/nalati-grasslands/world/index.ts:80:10)",
+            "build (../../src/src/shards/nalati-grasslands/world/index.ts:78:2)",
+            "yh (../../src/src/shards/nalati-grasslands/runtime/state.ts:117:22)",
+            "(root) (:0)"
+          ]
+        }
+      ]
+    },
+    {
+      "instance": "nalati-grasslands",
+      "start": 119945.10000038147,
+      "ms": 581,
+      "topStacks": [
+        {
+          "milliseconds": 345.97,
+          "stack": [
+            "xi (../../src/src/shards/nalati-grasslands/species/coats.ts:164:16)",
+            "skin (../../src/src/shards/nalati-grasslands/species/hulls.ts:150:2)",
+            "skin (../../src/src/shards/nalati-grasslands/species/rows.ts:46:4)",
+            "model (../../src/src/engine/entities/AnimalFactory.ts:303:2)",
+            "spawn (../../src/src/engine/entities/AnimalManager.ts:673:2)",
+            "s (../../src/src/shards/nalati-grasslands/creatures/wildlife.ts:153:10)",
+            "spawnHerd (../../src/src/shards/nalati-grasslands/creatures/wildlife.ts:150:2)",
+            "build (../../src/src/shards/nalati-grasslands/creatures/wildlife.ts:98:2)",
+            "attachAnimals (../../src/src/shards/nalati-grasslands/runtime/state.ts:301:4)",
+            "t.hooks.animalsReady (../../src/src/shards/nalati-grasslands/runtime/index.ts:64:32)",
+            "afterKit (../../src/src/game/grid/regionalRuntime.ts:198:22)",
+            "(root) (:0)"
+          ]
+        },
+        {
+          "milliseconds": 64.242,
+          "stack": [
+            "xi (../../src/src/shards/nalati-grasslands/species/coats.ts:164:16)",
+            "skin (../../src/src/shards/nalati-grasslands/species/hulls.ts:150:2)",
+            "skin (../../src/src/shards/nalati-grasslands/species/rows.ts:46:4)",
+            "model (../../src/src/engine/entities/AnimalFactory.ts:303:2)",
+            "spawn (../../src/src/engine/entities/AnimalManager.ts:673:2)",
+            "spawnPack (../../src/src/shards/nalati-grasslands/creatures/wildlife.ts:135:2)",
+            "build (../../src/src/shards/nalati-grasslands/creatures/wildlife.ts:98:2)",
+            "attachAnimals (../../src/src/shards/nalati-grasslands/runtime/state.ts:301:4)",
+            "t.hooks.animalsReady (../../src/src/shards/nalati-grasslands/runtime/index.ts:64:32)",
+            "afterKit (../../src/src/game/grid/regionalRuntime.ts:198:22)",
+            "(root) (:0)"
+          ]
+        },
+        {
+          "milliseconds": 19.964,
+          "stack": [
+            "xi (../../src/src/shards/nalati-grasslands/species/coats.ts:164:16)",
+            "skin (../../src/src/shards/nalati-grasslands/species/hulls.ts:150:2)",
+            "skin (../../src/src/shards/nalati-grasslands/species/rows.ts:46:4)",
+            "model (../../src/src/engine/entities/AnimalFactory.ts:303:2)",
+            "spawn (../../src/src/engine/entities/AnimalManager.ts:673:2)",
+            " (../../src/src/shards/nalati-grasslands/creatures/wildlife.ts:106:24)",
+            "build (../../src/src/shards/nalati-grasslands/creatures/wildlife.ts:98:2)",
+            "attachAnimals (../../src/src/shards/nalati-grasslands/runtime/state.ts:301:4)",
+            "t.hooks.animalsReady (../../src/src/shards/nalati-grasslands/runtime/index.ts:64:32)",
+            "afterKit (../../src/src/game/grid/regionalRuntime.ts:198:22)",
+            "(root) (:0)"
+          ]
+        }
+      ]
+    }
+  ]
+}

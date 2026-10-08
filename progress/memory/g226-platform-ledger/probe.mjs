@@ -9,7 +9,7 @@ const [base, out] = process.argv.slice(2);
 const { TraceMap, originalPositionFor } = createRequire(import.meta.url)('@jridgewell/trace-mapping');
 const report = { version: await (await fetch(new URL('version.json', base))).json(),
   protocol: 'One muted Chromium/Metal iPhone 16 Pro, Developer ON, live input crossings. Claims count retained resources; hidden is not freed.',
-  driverHash: createHash('sha256').update(driveFloorGrid.toString()).digest('hex'), snapshots: [], routes: [], errors: [], console: [] };
+  driverHash: createHash('sha256').update(driveFloorGrid.toString()).digest('hex'), snapshots: [], routes: [], errors: [], console: [], assetRequests: [] };
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
@@ -28,6 +28,7 @@ try {
   const page = await context.newPage();
   const profiler = await context.newCDPSession(page);
   let profileStart = null;
+  page.on('request', request => { const url = request.url(); if (/\.(glb|gltf|ktx2)(?:[?#]|$)/u.test(url)) report.assetRequests.push(url); });
   page.on('requestfailed', request => { report.console.push(`REQUEST FAILED ${request.url()} ${request.failure()?.errorText}`); });
   page.on('pageerror', error => { report.errors.push(String(error)); save(); });
   page.on('console', message => { if (['error', 'warn'].includes(message.type())) report.console.push(message.text().slice(0, 1200)); });

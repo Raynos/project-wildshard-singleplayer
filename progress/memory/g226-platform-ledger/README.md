@@ -1,6 +1,6 @@
 # G226 entered-cell platform ledger (E435)
 
-Pin `1d2f2abdc32c3bbee8fe88558a1e8030c954ba57`, build `1d2f2ab-muz1gxuf`. One muted Chromium/Metal iPhone 16 Pro, Developer ON, phone Auto KTX2, 2x render scale. `probe.mjs` enters through INFINITE WILDSHARD and drives real held input; only the first home approach is seeded. The browser and preview :4408 are closed. This is an allocator ledger, not a native memory or frame-floor reading.
+Pin `1d2f2abdc32c3bbee8fe88558a1e8030c954ba57`, build `1d2f2ab-muz1gxuf`. One muted Chromium/Metal iPhone 16 Pro, Developer ON, phone Auto, 2x render scale. The original receipt called this Auto KTX2; the later hook trace found that destination policy/overlays were not installed, so this older ledger does **not** prove the actual regional texture configuration. The corrected compressed-request proof below matches the measured KTX2 policy and keeps the same claims. `probe.mjs` enters through INFINITE WILDSHARD and drives real held input; only the first home approach is seeded. The browser and preview :4408 are closed. This is an allocator ledger, not a native memory or frame-floor reading.
 
 | Pose | Modelled playing MB | Margin to 1,000 MB | Runtime resident |
 |---|---:|---:|---|
