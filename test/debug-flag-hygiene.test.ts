@@ -7,6 +7,13 @@ import { askExists, debugFlags, declaredDebugRows, validateFlags } from '../lint
 import { parseSync } from 'vite';
 
 interface Ceiling { debugRows: { max: number; raisedBy: string[] } }
+// The source tree is immutable during this file's checks. Inventory it once;
+// repeating the full AST walk adds coverage cost without testing another state.
+let inventory: ReturnType<typeof debugFlags> | undefined;
+function scannedFlags(): ReturnType<typeof debugFlags> {
+  inventory ??= debugFlags(resolve('.'));
+  return inventory;
+}
 it('inventories literal declared rows through an aliased parser and rejects opaque spread rows', () => {
   const parse = (source: string): ReturnType<typeof parseSync>['program'] => parseSync('declarations.ts', source).program;
   expect(declaredDebugRows(parse("import { parsePlumbing as compile } from '@wildshard/sdk/plumbing'; const data=compile({debug:[{id:'owned',ask:'E435',reviewBy:'2026-12-01'}]});"))).toHaveLength(1);
@@ -21,14 +28,14 @@ it('inventories literal declared rows through an aliased parser and rejects opaq
 describe('Debug flag ownership and review dates', () => {
   it('inventories all static/plugin rows, checks the ceiling, and lists overdue flags without failing', () => {
     const root = resolve('.'), ceiling = JSON.parse(readFileSync('lint/ratchet.json', 'utf8')) as Ceiling;
-    const result = validateFlags(debugFlags(root), { today: new Date().toISOString().slice(0, 10), ...ceiling.debugRows, askExists: (id: string) => askExists(root, id) });
+    const result = validateFlags(scannedFlags(), { today: new Date().toISOString().slice(0, 10), ...ceiling.debugRows, askExists: (id: string) => askExists(root, id) });
     mkdirSync('.cache', { recursive: true }); writeFileSync('.cache/debug-overdue.txt', `${result.overdue.join('\n')}${result.overdue.length > 0 ? '\n' : ''}`);
     if (result.overdue.length > 0) console.info(`Overdue Debug flags:\n${result.overdue.join('\n')}`);
     expect(result.errors).toEqual([]);
     if (existsSync('project/archive/2026-09-22-asks-table.md')) {
       const ids = JSON.parse(readFileSync('lint/ask-ids.json', 'utf8')) as string[];
       for (const id of ids) expect(askExists(root, id)).toBe(true);
-      for (const row of debugFlags(root)) expect(ids).toContain(row.ask);
+      for (const row of scannedFlags()) expect(ids).toContain(row.ask);
     }
   }, 120_000); // walks every Debug row's source and ask file: over 30 s on the CI coverage runner (assertions unchanged)
   it('counts only comparisons while preserving Developer tool ownership and review checks', () => {
@@ -38,7 +45,7 @@ describe('Debug flag ownership and review dates', () => {
     expect(validateFlags([row, tool], options).errors).toEqual([]);
     expect(validateFlags([row, { ...tool, ask: 'E999999' }], options).errors).toHaveLength(1);
     expect(validateFlags([{ ...tool, reviewBy: '2026-02-30' }], options).errors).toHaveLength(1);
-    const scanned = debugFlags(resolve('.'));
+    const scanned = scannedFlags();
     expect(scanned.filter(value => value.purpose === 'developer').map(value => value.id).sort()).toEqual([
       'ai.brains', 'budgetReadout', 'clearDownloads', 'fps', 'game.template', 'shardDirectors', 'storage', 'time', 'weather',
     ]);
