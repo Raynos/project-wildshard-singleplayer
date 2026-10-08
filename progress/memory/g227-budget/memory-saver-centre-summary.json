@@ -1,0 +1,3675 @@
+{
+  "protocol": "One cold run each, three settled native samples per pose, same pin and same-pose GL. Negative ON minus OFF is lower, not an isolated causality claim. Descriptor census never invokes CPU restore getters. No forced GC before poses. Decimal bytes.",
+  "variants": {
+    "off": {
+      "file": "native-nalati-saver-off-verified-65106ea87.json",
+      "version": {
+        "build": "65106ea-muz7o6gx",
+        "time": "2026-10-08T07:24:45.352Z"
+      },
+      "setting": "off",
+      "poses": {
+        "home-settled": {
+          "webContentBytes": 517263008,
+          "glBytes": 211842683,
+          "combinedBytes": 729105691,
+          "playingBytes": 934896463,
+          "directSceneArrayBytes": 57886242,
+          "releasedAttributeCount": 0,
+          "largestDirectArrays": [
+            {
+              "id": 215,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 1259,
+              "bytes": 2938824,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/palm:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/palm",
+                  "role": "position",
+                  "viewBytes": 2938824
+                }
+              ]
+            },
+            {
+              "id": 1188,
+              "bytes": 2155680,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/shore-boulder:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/shore-boulder",
+                  "role": "position",
+                  "viewBytes": 2155680
+                }
+              ]
+            },
+            {
+              "id": 1216,
+              "bytes": 2153016,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/hibiscus-bush:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/hibiscus-bush",
+                  "role": "position",
+                  "viewBytes": 2153016
+                }
+              ]
+            },
+            {
+              "id": 1263,
+              "bytes": 1499040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/small-rock:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/small-rock",
+                  "role": "position",
+                  "viewBytes": 1499040
+                }
+              ]
+            },
+            {
+              "id": 1264,
+              "bytes": 1499040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/small-rock:normal",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/small-rock",
+                  "role": "normal",
+                  "viewBytes": 1499040
+                }
+              ]
+            },
+            {
+              "id": 1265,
+              "bytes": 1499040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/small-rock:color",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/small-rock",
+                  "role": "color",
+                  "viewBytes": 1499040
+                }
+              ]
+            },
+            {
+              "id": 1221,
+              "bytes": 1392480,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/Mesh:position",
+                  "user": "Scene/region:driftwood-isle/Mesh",
+                  "role": "position",
+                  "viewBytes": 1392480
+                }
+              ]
+            },
+            {
+              "id": 353,
+              "bytes": 1292112,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 1292112
+                }
+              ]
+            },
+            {
+              "id": 354,
+              "bytes": 1292112,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63",
+                  "role": "index",
+                  "viewBytes": 1292112
+                }
+              ]
+            },
+            {
+              "id": 391,
+              "bytes": 1105920,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1105920
+                }
+              ]
+            },
+            {
+              "id": 396,
+              "bytes": 1105920,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1105920
+                }
+              ]
+            },
+            {
+              "id": 360,
+              "bytes": 848256,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 848256
+                }
+              ]
+            },
+            {
+              "id": 1201,
+              "bytes": 826200,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/shrine/driftwood-isle/shrine:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/shrine/driftwood-isle/shrine",
+                  "role": "position",
+                  "viewBytes": 826200
+                }
+              ]
+            },
+            {
+              "id": 348,
+              "bytes": 786432,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63",
+                  "role": "position",
+                  "viewBytes": 786432
+                }
+              ]
+            },
+            {
+              "id": 378,
+              "bytes": 739404,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/seabed:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/seabed",
+                  "role": "position",
+                  "viewBytes": 739404
+                }
+              ]
+            },
+            {
+              "id": 1262,
+              "bytes": 633960,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/palm:index",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/palm",
+                  "role": "index",
+                  "viewBytes": 633960
+                }
+              ]
+            },
+            {
+              "id": 366,
+              "bytes": 620856,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "position",
+                  "viewBytes": 620856
+                }
+              ]
+            },
+            {
+              "id": 404,
+              "bytes": 599040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft",
+                  "role": "instanceMatrix",
+                  "viewBytes": 599040
+                }
+              ]
+            },
+            {
+              "id": 409,
+              "bytes": 599040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft",
+                  "role": "instanceMatrix",
+                  "viewBytes": 599040
+                }
+              ]
+            }
+          ]
+        },
+        "nalati-grasslands-entry": {
+          "webContentBytes": 749719344,
+          "glBytes": 310395848,
+          "combinedBytes": 1060115192,
+          "playingBytes": 1143313166,
+          "directSceneArrayBytes": 111870850,
+          "releasedAttributeCount": 0,
+          "largestDirectArrays": [
+            {
+              "id": 549,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "position",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 550,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "normal",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 551,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "color",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 962,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "position",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 963,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "normal",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 964,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "color",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 312,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 569,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "position",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 570,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "normal",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 571,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "color",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 470,
+              "bytes": 1560600,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh:index",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 1560600
+                }
+              ]
+            },
+            {
+              "id": 744,
+              "bytes": 1266624,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone:instanceMatrix",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1266624
+                }
+              ]
+            },
+            {
+              "id": 649,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "position",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 650,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "normal",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 651,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "color",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 52,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:e05d9e8c-7ed3-40d3-9e12-c317adb02585",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:e05d9e8c-7ed3-40d3-9e12-c317adb02585",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 53,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:de46c37e-2e20-4791-a182-bb7e584c11d7",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:de46c37e-2e20-4791-a182-bb7e584c11d7",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 54,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:67ba71e8-d7ad-44d7-945d-4afbdf11d03f",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:67ba71e8-d7ad-44d7-945d-4afbdf11d03f",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 66,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 67,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "viewBytes": 1048576
+                }
+              ]
+            }
+          ]
+        },
+        "nalati-grasslands-centre": {
+          "webContentBytes": 818843440,
+          "glBytes": 306902020,
+          "combinedBytes": 1125745460,
+          "playingBytes": 1128784955,
+          "directSceneArrayBytes": 112049410,
+          "releasedAttributeCount": 0,
+          "largestDirectArrays": [
+            {
+              "id": 567,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "position",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 568,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "normal",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 569,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "color",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 983,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "position",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 984,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "normal",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 985,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "color",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 312,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 587,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "position",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 588,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "normal",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 589,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "color",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 488,
+              "bytes": 1560600,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh:index",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 1560600
+                }
+              ]
+            },
+            {
+              "id": 765,
+              "bytes": 1266624,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone:instanceMatrix",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1266624
+                }
+              ]
+            },
+            {
+              "id": 667,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "position",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 668,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "normal",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 669,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "color",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 52,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:e05d9e8c-7ed3-40d3-9e12-c317adb02585",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:e05d9e8c-7ed3-40d3-9e12-c317adb02585",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 53,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:de46c37e-2e20-4791-a182-bb7e584c11d7",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:de46c37e-2e20-4791-a182-bb7e584c11d7",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 54,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:67ba71e8-d7ad-44d7-945d-4afbdf11d03f",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:67ba71e8-d7ad-44d7-945d-4afbdf11d03f",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 66,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:17677486-48dc-43cc-b960-8ac0e8171c4a",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 67,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:bf004944-dc23-4a37-bbbb-52967f27772d",
+                  "viewBytes": 1048576
+                }
+              ]
+            }
+          ]
+        },
+        "neutral-road": {
+          "webContentBytes": 827412320,
+          "glBytes": 136083318,
+          "combinedBytes": 963495638,
+          "playingBytes": 555518462,
+          "directSceneArrayBytes": 9608974,
+          "releasedAttributeCount": 0,
+          "largestDirectArrays": [
+            {
+              "id": 189,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 233,
+              "bytes": 321048,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid:position",
+                  "user": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid",
+                  "role": "position",
+                  "viewBytes": 321048
+                }
+              ]
+            },
+            {
+              "id": 249,
+              "bytes": 320352,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid:position",
+                  "user": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid",
+                  "role": "position",
+                  "viewBytes": 320352
+                }
+              ]
+            },
+            {
+              "id": 209,
+              "bytes": 316464,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid:position",
+                  "user": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid",
+                  "role": "position",
+                  "viewBytes": 316464
+                }
+              ]
+            },
+            {
+              "id": 278,
+              "bytes": 237456,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:position",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "position",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:normal",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "normal",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:uv",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "uv",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:color",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "color",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:skinIndex",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "skinIndex",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:skinWeight",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "skinWeight",
+                  "viewBytes": 237456
+                }
+              ]
+            },
+            {
+              "id": 251,
+              "bytes": 155616,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid:index",
+                  "user": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid",
+                  "role": "index",
+                  "viewBytes": 155616
+                }
+              ]
+            },
+            {
+              "id": 235,
+              "bytes": 155520,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid:index",
+                  "user": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid",
+                  "role": "index",
+                  "viewBytes": 155520
+                }
+              ]
+            },
+            {
+              "id": 211,
+              "bytes": 153168,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid:index",
+                  "user": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid",
+                  "role": "index",
+                  "viewBytes": 153168
+                }
+              ]
+            },
+            {
+              "id": 124,
+              "bytes": 96096,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:skinWeight",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "skinWeight",
+                  "viewBytes": 96096
+                }
+              ]
+            },
+            {
+              "id": 131,
+              "bytes": 96096,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:skinWeight",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "skinWeight",
+                  "viewBytes": 96096
+                }
+              ]
+            },
+            {
+              "id": 321,
+              "bytes": 94164,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:far-reach/far-proxy:index",
+                  "user": "Scene/grid-cell:far-reach/far-proxy",
+                  "role": "index",
+                  "viewBytes": 94164
+                }
+              ]
+            },
+            {
+              "id": 234,
+              "bytes": 80262,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid:color",
+                  "user": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid",
+                  "role": "color",
+                  "viewBytes": 80262
+                }
+              ]
+            },
+            {
+              "id": 250,
+              "bytes": 80088,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid:color",
+                  "user": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid",
+                  "role": "color",
+                  "viewBytes": 80088
+                }
+              ]
+            },
+            {
+              "id": 210,
+              "bytes": 79116,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid:color",
+                  "user": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid",
+                  "role": "color",
+                  "viewBytes": 79116
+                }
+              ]
+            },
+            {
+              "id": 311,
+              "bytes": 74040,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:driftwood-isle/far-proxy:index",
+                  "user": "Scene/grid-cell:driftwood-isle/far-proxy",
+                  "role": "index",
+                  "viewBytes": 74040
+                }
+              ]
+            },
+            {
+              "id": 267,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:pine-hollow/far-proxy:index",
+                  "user": "Scene/grid-cell:pine-hollow/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 298,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:template-2/far-proxy:index",
+                  "user": "Scene/grid-cell:template-2/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 303,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:sunscar-dunes/far-proxy:index",
+                  "user": "Scene/grid-cell:sunscar-dunes/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 316,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:nalati-grasslands/far-proxy:index",
+                  "user": "Scene/grid-cell:nalati-grasslands/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 119,
+              "bytes": 72072,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:position",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "position",
+                  "viewBytes": 72072
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "warnings": [
+        "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      ]
+    },
+    "on": {
+      "file": "native-nalati-saver-on-verified-65106ea87.json",
+      "version": {
+        "build": "65106ea-muz7o6gx",
+        "time": "2026-10-08T07:24:45.352Z"
+      },
+      "setting": "on",
+      "poses": {
+        "home-settled": {
+          "webContentBytes": 609128000,
+          "glBytes": 196167259,
+          "combinedBytes": 805295259,
+          "playingBytes": 923415343,
+          "directSceneArrayBytes": 49078976,
+          "releasedAttributeCount": 550,
+          "largestDirectArrays": [
+            {
+              "id": 175,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 1105,
+              "bytes": 2938824,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/palm:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/palm",
+                  "role": "position",
+                  "viewBytes": 2938824
+                }
+              ]
+            },
+            {
+              "id": 1034,
+              "bytes": 2155680,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/shore-boulder:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/shore-boulder",
+                  "role": "position",
+                  "viewBytes": 2155680
+                }
+              ]
+            },
+            {
+              "id": 1062,
+              "bytes": 2153016,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/hibiscus-bush:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/hibiscus-bush",
+                  "role": "position",
+                  "viewBytes": 2153016
+                }
+              ]
+            },
+            {
+              "id": 1109,
+              "bytes": 1499040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/small-rock:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/small-rock",
+                  "role": "position",
+                  "viewBytes": 1499040
+                }
+              ]
+            },
+            {
+              "id": 1067,
+              "bytes": 1392480,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/Mesh:position",
+                  "user": "Scene/region:driftwood-isle/Mesh",
+                  "role": "position",
+                  "viewBytes": 1392480
+                }
+              ]
+            },
+            {
+              "id": 267,
+              "bytes": 1292112,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 1292112
+                }
+              ]
+            },
+            {
+              "id": 268,
+              "bytes": 1292112,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62",
+                  "role": "index",
+                  "viewBytes": 1292112
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63",
+                  "role": "index",
+                  "viewBytes": 1292112
+                }
+              ]
+            },
+            {
+              "id": 304,
+              "bytes": 1105920,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1105920
+                }
+              ]
+            },
+            {
+              "id": 309,
+              "bytes": 1105920,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft-far",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1105920
+                }
+              ]
+            },
+            {
+              "id": 273,
+              "bytes": 848256,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 848256
+                }
+              ]
+            },
+            {
+              "id": 1047,
+              "bytes": 826200,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/shrine/driftwood-isle/shrine:position",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/shrine/driftwood-isle/shrine",
+                  "role": "position",
+                  "viewBytes": 826200
+                }
+              ]
+            },
+            {
+              "id": 266,
+              "bytes": 786432,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-0",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-1",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-2",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-3",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-4",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-5",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-6",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-7",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-8",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-9",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-10",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-13",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-14",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-15",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-16",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-17",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-18",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-21",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-22",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-23",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-24",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-25",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-26",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-27",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-28",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-29",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-30",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-31",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-32",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-33",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-34",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-35",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-36",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-37",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-38",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-39",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-40",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-41",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-42",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-43",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-44",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-45",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-46",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-47",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-48",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-49",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-50",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-51",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-52",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-53",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-54",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-55",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-56",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-57",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-58",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-59",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-60",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-61",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-62",
+                  "role": "position",
+                  "viewBytes": 786432
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh/mesh-shadow-pieces/mesh-shadow-pieces-63",
+                  "role": "position",
+                  "viewBytes": 786432
+                }
+              ]
+            },
+            {
+              "id": 291,
+              "bytes": 739404,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/seabed:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/seabed",
+                  "role": "position",
+                  "viewBytes": 739404
+                }
+              ]
+            },
+            {
+              "id": 1108,
+              "bytes": 633960,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/driftwood-isle/palm:index",
+                  "user": "Scene/region:driftwood-isle/driftwood-isle/palm",
+                  "role": "index",
+                  "viewBytes": 633960
+                }
+              ]
+            },
+            {
+              "id": 279,
+              "bytes": 620856,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh:position",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/Group/Mesh",
+                  "role": "position",
+                  "viewBytes": 620856
+                }
+              ]
+            },
+            {
+              "id": 317,
+              "bytes": 599040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft",
+                  "role": "instanceMatrix",
+                  "viewBytes": 599040
+                }
+              ]
+            },
+            {
+              "id": 322,
+              "bytes": 599040,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft:instanceMatrix",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/ground-cover/ground-cover-tuft",
+                  "role": "instanceMatrix",
+                  "viewBytes": 599040
+                }
+              ]
+            },
+            {
+              "id": 1121,
+              "bytes": 550080,
+              "uses": [
+                {
+                  "key": "Scene/Mesh/Mesh:position",
+                  "user": "Scene/Mesh/Mesh",
+                  "role": "position",
+                  "viewBytes": 550080
+                }
+              ]
+            },
+            {
+              "id": 460,
+              "bytes": 511230,
+              "uses": [
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_0_0:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_0_0",
+                  "role": "index",
+                  "viewBytes": 32928
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_0_1:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_0_1",
+                  "role": "index",
+                  "viewBytes": 33600
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_1_0:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_1_0",
+                  "role": "index",
+                  "viewBytes": 33516
+                },
+                {
+                  "key": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_1_1:index",
+                  "user": "Scene/region:driftwood-isle/region-scene:driftwood-isle/blender-island/island-terrainlo_1_1",
+                  "role": "index",
+                  "viewBytes": 34200
+                }
+              ]
+            }
+          ]
+        },
+        "nalati-grasslands-entry": {
+          "webContentBytes": 760090344,
+          "glBytes": 297866152,
+          "combinedBytes": 1057956496,
+          "playingBytes": 1131832046,
+          "directSceneArrayBytes": 69036992,
+          "releasedAttributeCount": 434,
+          "largestDirectArrays": [
+            {
+              "id": 411,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "position",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 697,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "position",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 698,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "normal",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 699,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "color",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 249,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 418,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "position",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 357,
+              "bytes": 1560600,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh:index",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 1560600
+                }
+              ]
+            },
+            {
+              "id": 522,
+              "bytes": 1266624,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone:instanceMatrix",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1266624
+                }
+              ]
+            },
+            {
+              "id": 471,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "position",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 41,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:d1c5312c-f574-4b61-b886-db8b4a7ad190",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:d1c5312c-f574-4b61-b886-db8b4a7ad190",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 42,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:c8a13e1f-cc85-4b24-8f52-5155f3abff1e",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:c8a13e1f-cc85-4b24-8f52-5155f3abff1e",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 43,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:6e46cf70-3190-4b58-87ed-65027b72ff8e",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:6e46cf70-3190-4b58-87ed-65027b72ff8e",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 55,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 56,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 57,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 379,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring0:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring0",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring1:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring1",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring2:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring2",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-flowers:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-flowers",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-cards:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-cards",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 466,
+              "bytes": 850032,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/Mesh",
+                  "role": "position",
+                  "viewBytes": 850032
+                }
+              ]
+            },
+            {
+              "id": 356,
+              "bytes": 786432,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh",
+                  "role": "position",
+                  "viewBytes": 786432
+                }
+              ]
+            },
+            {
+              "id": 476,
+              "bytes": 690480,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-eagle-rock:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-eagle-rock",
+                  "role": "position",
+                  "viewBytes": 690480
+                }
+              ]
+            },
+            {
+              "id": 991,
+              "bytes": 673440,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/nalati-camp-people/nalati-camp-people-gen:skinWeight",
+                  "user": "Scene/region:nalati-grasslands/nalati-camp-people/nalati-camp-people-gen",
+                  "role": "skinWeight",
+                  "viewBytes": 673440
+                }
+              ]
+            }
+          ]
+        },
+        "nalati-grasslands-centre": {
+          "webContentBytes": 806653696,
+          "glBytes": 294372324,
+          "combinedBytes": 1101026020,
+          "playingBytes": 1117303835,
+          "directSceneArrayBytes": 69215552,
+          "releasedAttributeCount": 432,
+          "largestDirectArrays": [
+            {
+              "id": 429,
+              "bytes": 5926752,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops",
+                  "role": "position",
+                  "viewBytes": 5926752
+                }
+              ]
+            },
+            {
+              "id": 718,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "position",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 719,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:normal",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "normal",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 720,
+              "bytes": 4007376,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior:color",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior",
+                  "role": "color",
+                  "viewBytes": 4007376
+                }
+              ]
+            },
+            {
+              "id": 249,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 436,
+              "bytes": 1891584,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-camp/Mesh",
+                  "role": "position",
+                  "viewBytes": 1891584
+                }
+              ]
+            },
+            {
+              "id": 375,
+              "bytes": 1560600,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh:index",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh",
+                  "role": "index",
+                  "viewBytes": 1560600
+                }
+              ]
+            },
+            {
+              "id": 543,
+              "bytes": 1266624,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone:instanceMatrix",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-dressing/nalati-dress-stone",
+                  "role": "instanceMatrix",
+                  "viewBytes": 1266624
+                }
+              ]
+            },
+            {
+              "id": 489,
+              "bytes": 1143216,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-kurgans",
+                  "role": "position",
+                  "viewBytes": 1143216
+                }
+              ]
+            },
+            {
+              "id": 41,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:d1c5312c-f574-4b61-b886-db8b4a7ad190",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:d1c5312c-f574-4b61-b886-db8b4a7ad190",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 42,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:c8a13e1f-cc85-4b24-8f52-5155f3abff1e",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:c8a13e1f-cc85-4b24-8f52-5155f3abff1e",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 43,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:6e46cf70-3190-4b58-87ed-65027b72ff8e",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:6e46cf70-3190-4b58-87ed-65027b72ff8e",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 55,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:79ec48df-9e1a-46d8-a6d9-13bd5773ccf4",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 56,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:9f71e6d6-d321-431c-af2f-f7762dc5a866",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 57,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/PerspectiveCamera/Group/Group/Mesh:texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "user": "Scene/PerspectiveCamera/Group/Group/Mesh",
+                  "role": "texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh:texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Mesh",
+                  "role": "texture:e24b99a7-812f-4991-a6e2-0858f1484f87",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 397,
+              "bytes": 1048576,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring0:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring0",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring1:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring1",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring2:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-ring2",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-flowers:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-flowers",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                },
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-cards:texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Group/grass-v2-cards",
+                  "role": "texture:c373189a-e907-4998-9db5-94dd63e4f259",
+                  "viewBytes": 1048576
+                }
+              ]
+            },
+            {
+              "id": 484,
+              "bytes": 850032,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-summer-camp/Mesh",
+                  "role": "position",
+                  "viewBytes": 850032
+                }
+              ]
+            },
+            {
+              "id": 374,
+              "bytes": 786432,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/Group/Mesh",
+                  "role": "position",
+                  "viewBytes": 786432
+                }
+              ]
+            },
+            {
+              "id": 494,
+              "bytes": 690480,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-eagle-rock:position",
+                  "user": "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-pois/nalati-eagle-rock",
+                  "role": "position",
+                  "viewBytes": 690480
+                }
+              ]
+            },
+            {
+              "id": 1012,
+              "bytes": 673440,
+              "uses": [
+                {
+                  "key": "Scene/region:nalati-grasslands/nalati-camp-people/nalati-camp-people-gen:skinWeight",
+                  "user": "Scene/region:nalati-grasslands/nalati-camp-people/nalati-camp-people-gen",
+                  "role": "skinWeight",
+                  "viewBytes": 673440
+                }
+              ]
+            }
+          ]
+        },
+        "neutral-road": {
+          "webContentBytes": 812797744,
+          "glBytes": 120407894,
+          "combinedBytes": 933205638,
+          "playingBytes": 544037342,
+          "directSceneArrayBytes": 7418292,
+          "releasedAttributeCount": 142,
+          "largestDirectArrays": [
+            {
+              "id": 135,
+              "bytes": 3380184,
+              "uses": [
+                {
+                  "key": "Scene/grid-deck:index",
+                  "user": "Scene/grid-deck",
+                  "role": "index",
+                  "viewBytes": 3380184
+                }
+              ]
+            },
+            {
+              "id": 167,
+              "bytes": 321048,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid:position",
+                  "user": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid",
+                  "role": "position",
+                  "viewBytes": 321048
+                }
+              ]
+            },
+            {
+              "id": 179,
+              "bytes": 320352,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid:position",
+                  "user": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid",
+                  "role": "position",
+                  "viewBytes": 320352
+                }
+              ]
+            },
+            {
+              "id": 151,
+              "bytes": 316464,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid:position",
+                  "user": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid",
+                  "role": "position",
+                  "viewBytes": 316464
+                }
+              ]
+            },
+            {
+              "id": 199,
+              "bytes": 237456,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:position",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "position",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:normal",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "normal",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:uv",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "uv",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:color",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "color",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:skinIndex",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "skinIndex",
+                  "viewBytes": 237456
+                },
+                {
+                  "key": "Scene/grid-cell:template-2/neighbour-creature:boar:skinWeight",
+                  "user": "Scene/grid-cell:template-2/neighbour-creature:boar",
+                  "role": "skinWeight",
+                  "viewBytes": 237456
+                }
+              ]
+            },
+            {
+              "id": 180,
+              "bytes": 155616,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid:index",
+                  "user": "Scene/grid-open-plot:open-plot-se/grid-open-plot-solid",
+                  "role": "index",
+                  "viewBytes": 155616
+                }
+              ]
+            },
+            {
+              "id": 168,
+              "bytes": 155520,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid:index",
+                  "user": "Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid",
+                  "role": "index",
+                  "viewBytes": 155520
+                }
+              ]
+            },
+            {
+              "id": 152,
+              "bytes": 153168,
+              "uses": [
+                {
+                  "key": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid:index",
+                  "user": "Scene/grid-open-plot:open-plot-nw/grid-open-plot-solid",
+                  "role": "index",
+                  "viewBytes": 153168
+                }
+              ]
+            },
+            {
+              "id": 77,
+              "bytes": 96096,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:skinWeight",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "skinWeight",
+                  "viewBytes": 96096
+                }
+              ]
+            },
+            {
+              "id": 80,
+              "bytes": 96096,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:skinWeight",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "skinWeight",
+                  "viewBytes": 96096
+                }
+              ]
+            },
+            {
+              "id": 223,
+              "bytes": 94164,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:far-reach/far-proxy:index",
+                  "user": "Scene/grid-cell:far-reach/far-proxy",
+                  "role": "index",
+                  "viewBytes": 94164
+                }
+              ]
+            },
+            {
+              "id": 219,
+              "bytes": 74040,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:driftwood-isle/far-proxy:index",
+                  "user": "Scene/grid-cell:driftwood-isle/far-proxy",
+                  "role": "index",
+                  "viewBytes": 74040
+                }
+              ]
+            },
+            {
+              "id": 190,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:pine-hollow/far-proxy:index",
+                  "user": "Scene/grid-cell:pine-hollow/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 213,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:template-2/far-proxy:index",
+                  "user": "Scene/grid-cell:template-2/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 215,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:sunscar-dunes/far-proxy:index",
+                  "user": "Scene/grid-cell:sunscar-dunes/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 221,
+              "bytes": 73728,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:nalati-grasslands/far-proxy:index",
+                  "user": "Scene/grid-cell:nalati-grasslands/far-proxy",
+                  "role": "index",
+                  "viewBytes": 73728
+                }
+              ]
+            },
+            {
+              "id": 75,
+              "bytes": 72072,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:position",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "position",
+                  "viewBytes": 72072
+                }
+              ]
+            },
+            {
+              "id": 78,
+              "bytes": 72072,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:position",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "position",
+                  "viewBytes": 72072
+                }
+              ]
+            },
+            {
+              "id": 222,
+              "bytes": 70872,
+              "uses": [
+                {
+                  "key": "Scene/grid-cell:far-reach/far-proxy:position",
+                  "user": "Scene/grid-cell:far-reach/far-proxy",
+                  "role": "position",
+                  "viewBytes": 70872
+                }
+              ]
+            },
+            {
+              "id": 71,
+              "bytes": 56640,
+              "uses": [
+                {
+                  "key": "Scene/animals/SkinnedMesh:skinWeight",
+                  "user": "Scene/animals/SkinnedMesh",
+                  "role": "skinWeight",
+                  "viewBytes": 56640
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "warnings": [
+        "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+      ]
+    }
+  },
+  "onMinusOff": {
+    "home-settled": {
+      "webContentBytes": 91864992,
+      "glBytes": -15675424,
+      "combinedBytes": 76189568,
+      "directSceneArrayBytes": -8807266,
+      "releasedAttributeCount": 550
+    },
+    "nalati-grasslands-entry": {
+      "webContentBytes": 10371000,
+      "glBytes": -12529696,
+      "combinedBytes": -2158696,
+      "directSceneArrayBytes": -42833858,
+      "releasedAttributeCount": 434
+    },
+    "nalati-grasslands-centre": {
+      "webContentBytes": -12189744,
+      "glBytes": -12529696,
+      "combinedBytes": -24719440,
+      "directSceneArrayBytes": -42833858,
+      "releasedAttributeCount": 432
+    },
+    "neutral-road": {
+      "webContentBytes": -14614576,
+      "glBytes": -15675424,
+      "combinedBytes": -30290000,
+      "directSceneArrayBytes": -2190682,
+      "releasedAttributeCount": 142
+    }
+  }
+}
