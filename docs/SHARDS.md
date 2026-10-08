@@ -1,5 +1,56 @@
 # How to write a shard
 
+## Performance comes first
+
+Run `wildshard build <folder>` and `wildshard validate <folder>` after each content step.
+Both print a performance report. New and outside projects refuse target overages;
+only the canonical six old shards in the trusted checkout warn while they convert.
+A borrowed old slug does not grant an exemption. Runtime admission remains hard.
+
+The only hard memory budgets are the **complete worst-location totals: 1,000 MB
+playing and 1,800 MB loading**, including the engine, neighbours, commons and overlap.
+Library, simulation, tile and far resident targets are tradeable warnings, not separate
+per-shard memory caps. Wire/render targets still refuse new content:
+
+| Content step | Current target | Check before continuing |
+|---|---|---|
+| Critical simulation and library | 2 MB / 8 MB compressed | Report download closures; validate actual bytes and dependencies |
+| Fine tile / coarse tile | 0.3 / 0.2 MB wire; 8 / 2 draws; 40,000 / 10,000 triangles | Report every tile; include shadows and all LODs |
+| Far proxy | 1 MB wire; 1 draw; 8,000 triangles | Report the proxy and inspect the approach view |
+| Materials | SF59 graph v1 node, sampler and instruction budgets | Report every graph; prefer platform families |
+| Scripts | Host fuel ceiling; CPU p95 ≤ declared tick budget or 4,167 µs, whichever is lower | Build observes 60 headless ticks; validate retains the full simulation/entry proof |
+| Trusted custom runtime | No frame allocation, raw rendering/DOM, timers, fetch or unbounded loops | Runtime source lint, then frame-floor CPU receipt |
+| Playable view | 60 fps desktop / 30 fps Simulator; shard CPU p95 ≤ 4.167 / 8.333 ms per drawn frame | Run frame-floor through browser/Simulator lanes |
+
+The report bounds draws/triangles at spawn and at the worst memory location before
+frustum/occlusion. A native transition's measured resident cost is charged; unknown
+native view/download work is explicitly **UNMEASURED**, never counted as zero.
+Estimated time to playable uses unique playable bytes at **1 MB/s plus 1 s setup**.
+This cold-network model is not a phone measurement: capture real fetch, decode,
+compile, admission and first-frame timings before claiming a loading improvement.
+
+For example, a 5 MB playable closure estimates 6 s under those assumptions. A good
+card says `PASS (refuse)` with measured script samples and no refusals. A bad new
+card declaring an 8,000,001-byte library says `REFUSED (refuse)` and
+`REFUSAL: library download budget bytes: 8000001 > 8000000`; build writes no product.
+Use `@wildshard/sdk/reportCard` to inspect the same structured report in tooling.
+
+Before marking a shard done:
+
+- [ ] Build and validate pass with truthful decoded/GPU/wire costs and measured script CPU/fuel.
+- [ ] Worst grid totals fit 1,000 / 1,800 MB; every warning has an explained trade.
+- [ ] Spawn, busiest view, approaches and crossings meet draw/triangle and graph targets.
+- [ ] Custom runtime lint is clean; reuse buffers and bound every loop.
+- [ ] Both-surface frame-floor receipts include trusted shard CPU ownership within its quarter-frame share.
+- [ ] Cold-cache phone-tier loading is measured through first playable frame; estimates stay labelled.
+
+## Quickstart
+
+Copy `src/shards/_template/` or run `wildshard new <folder> <slug>`. Install the SDK,
+then build and validate before adding content. Add one bounded tile/library/script
+slice at a time and check its report row before the next slice. Build-time generators
+may allocate freely; shipped data and scripts use the admitted platform systems.
+
 Shared build-time packs use the [commons catalogue](COMMONS.md); runtime imports cannot reach commons code.
 
 SDK projects use `shard.config.ts` plus `generators/`, `data/`, `behaviour/`, `quests/`,

@@ -1,5 +1,27 @@
 # Shardfile 0.x
 
+## Budget-first admission
+
+`wildshard build <folder>` and `wildshard validate <folder>` print the SF62 report:
+near-player and worst-location grid memory, declared draws/triangles per view,
+SF59 graph cost, measured script CPU/fuel, critical/tile/library downloads and
+estimated time to playable. New/outside projects refuse wire/render/execution target
+overages; the six canonical trusted-checkout shards warn during conversion.
+Author identity alone cannot select that warning policy.
+
+The **only hard memory caps** are complete totals: **1,000 MB playing / 1,800 MB
+loading**. Category resident targets can trade space and appear as warnings.
+Dependency integrity, actual-byte/cost understatement, script host limits and runtime
+total-memory admission stay hard. Build observes 60 ticks before writing output;
+validate retains the full headless simulation and entry proof. Native transition
+portions without a measurement are labelled UNMEASURED rather than counted as zero.
+
+The cold-loading model is unique playable bytes / 1 MB/s + 1 s setup. This is an
+explicit estimate, not observed device performance. Measure cold-cache fetch,
+decode, compile, admission and first playable frame separately. See
+[the author targets, good/bad cards and completion checklist](SHARDS.md#performance-comes-first).
+`@wildshard/sdk/reportCard` provides the same structured report for author tooling.
+
 `SHARDFILE_VERSION = "0.1"` covers both the format and script ABI. This is the provisional
 author contract, published by `@wildshard/sdk/shardfile` (`ShardfileSchema`,
 `parseShardfile`, `Shardfile`, `shardfileRules`) and `@wildshard/sdk/version`.
