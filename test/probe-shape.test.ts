@@ -215,9 +215,25 @@ describe('probe contract', () => {
     expect(() => { probe.combat.equip('sword'); }).toThrow('requires the harness pins');
   });
 
+  it('does not fingerprint ordinary boot until explicitly read, then keeps that scalar snapshot', () => {
+    const world = fixture();
+    const traverse = vi.spyOn(world.game.scene, 'traverse');
+    const probe = installProbe(world, deps);
+    expect(traverse).not.toHaveBeenCalled();
+    world.game.scene.add(new THREE.Mesh());
+    expect(probe.boot.scene.totals.mesh).toBe(2);
+    expect(traverse).toHaveBeenCalledOnce();
+    world.game.scene.add(new THREE.Mesh());
+    expect(probe.boot.scene.totals.mesh).toBe(2);
+    world.game.levelScope.dispose();
+    expect(probe.boot.scene.totals.mesh).toBe(2);
+  });
+
   it('records and drains harness observations without changing gameplay snapshots', () => {
     window.__wildshardHarness = { seed: 1, capture: null, lane: 'm5', sha: 'sha', browser: 'Chromium', errors: [], saves: { read: ['local:b', 'local:a', 'local:b'], written: [] }, gpuBytes: () => ({ textures: 1, renderbuffers: 2, buffers: 3, total: 6 }) };
     const world = fixture(), probe = installProbe(world, deps);
+    world.game.scene.add(new THREE.Mesh());
+    expect(probe.boot.scene.totals.mesh).toBe(1); // Pinned harness still captures before mutation.
     expect(probe.boot.saves.read).toEqual(['local:a', 'local:b']);
     expect(probe.boot.gpuBytes.total).toBe(6);
     tap.hit?.('wolf', 12); tap.kill?.('wolf'); tap.use?.('Open'); tap.sound?.('shot'); tap.sound?.('shot');
@@ -260,6 +276,7 @@ describe('probe contract', () => {
     expect(Object.isFrozen(probe.app)).toBe(true); expect(Object.isFrozen(probe.app.clock)).toBe(true);
     expect(Object.isFrozen(probe.app.systems.update)).toBe(true); expect(Object.isFrozen(probe.app.census.level)).toBe(true);
     expect(probe.app.state).toBe('play'); expect(probe.app.clock.now).toBe(10);
+    expect(probe.boot.appStates).toEqual(['boot', 'play']); // Explicit lazy snapshot before subsequent state changes.
     world.game.app.setState('paused'); world.game.app.rng.seed(77);
     expect(probe.app.state).toBe('paused'); expect(probe.app.rngSeed).toBe(77);
     expect(Reflect.has(probe.app, 'setState')).toBe(false); expect(Reflect.has(probe.app.clock, 'tick')).toBe(false);

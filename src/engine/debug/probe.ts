@@ -20,6 +20,7 @@ import { poseBudgets } from '../render/budgetReport';
 import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus, type Scope } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
 import { memoryAttribution, type MemorySnapshot } from '../core/memoryAttribution';
+import { placementCensus, type PlacementCensus } from '../models/place';
 
 declare const __BUILD_ID__: string;
 export interface Vec3 { x: number; y: number; z: number }
@@ -114,11 +115,15 @@ export interface ProbeApp {
   readonly clock: Readonly<{ now: number; real: number; frame: number; mode: 'live' | 'capture' }>;
   readonly rngSeed: number;
   readonly census: Readonly<{ engine: Readonly<ScopeCensus>; level: Readonly<ScopeCensus> }>;
+  /** placed models' live worlds, records, groups and per-frame cullers (SF57: flat across shard visits) */
+  readonly placement: PlacementCensus;
 }
 export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
   /** Scalar allocation storage and native-ruler provenance; available independently of a retired level. */
   memory?: () => MemorySnapshot;
-  version: 1; world: W | undefined; shard: { slug: string } & Record<string, unknown>; boot: Fingerprint;
+  version: 1; world: W | undefined; shard: { slug: string } & Record<string, unknown>;
+  /** Pinned harness: immutable boot snapshot. Otherwise captured lazily on its first explicit read. */
+  readonly boot: Fingerprint;
   /** Active-level access for controls; throws once the world has retired. */
   requireWorld: () => W;
   fingerprint: () => Fingerprint;
@@ -347,6 +352,9 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
   const handles: EngineProbe['shard'] = { slug: world.game.level.id };
   const authored: unknown = app.debug.snapshot()[`harness.shard.${world.game.level.id}`];
   if (authored !== null && typeof authored === 'object') Object.assign(handles, authored);
+  // Harness parity captures the actual boot. Ordinary boots pay no scene/HUD/shader walk
+  // unless a diagnostic consumer explicitly asks for the snapshot.
+  let boot = pins ? fingerprint(world, deps, saves) : undefined;
   const probe: EngineProbe<W> = {
     app: Object.freeze({
       get state() { return app.state; },
@@ -359,9 +367,10 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get clock() { return Object.freeze({ now: app.clock.now, real: app.clock.real, frame: app.clock.frame, mode: app.clock.mode }); },
       get rngSeed() { return app.rng.seedValue; },
       get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
+      get placement() { return placementCensus(); },
     }),
     version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
-    boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
+    get boot() { boot ??= fingerprint(world, deps, saves); return boot; }, fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
       requireHarness();
@@ -440,14 +449,17 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
 function scopedProbe<W extends ProbeWorld>(source: EngineProbe<W>, scope: Scope): EngineProbe<W> {
   let live: EngineProbe<W> | undefined = source;
   let lastLeak: LeakResult | undefined;
-  const slug = source.shard.slug, boot = structuredClone(source.boot);
+  const slug = source.shard.slug;
+  let boot: Fingerprint | undefined;
+  // Preserve eager boot parity only for an explicitly pinned harness.
+  if (harnessPins()) boot = structuredClone(source.boot);
   scope.onDispose(() => { live = undefined; });
   const read = (): EngineProbe<W> => {
     if (live === undefined) throw new Error('Debug level has retired');
     return live;
   };
   return {
-    version: 1, boot, memory: () => memoryAttribution.snapshot(),
+    version: 1, get boot() { boot ??= structuredClone(read().boot); return boot; }, memory: () => memoryAttribution.snapshot(),
     get world() { return live?.world; },
     requireWorld: () => read().requireWorld(),
     get shard() { return live?.shard ?? { slug }; },
