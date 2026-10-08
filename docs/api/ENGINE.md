@@ -1507,7 +1507,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `halfLuminance` | function | @wildshard/engine/render/memorySaver | bloom's luminance (the threshold pass the mip blur reads) at half resolution: −6.6 MB at the phone's frame |
 | `installMemorySaver` | function | @wildshard/engine/render/memorySaver | The renderer's hooks: every texture is looked at when three first asks for its properties (before its upload), every |
 | `memorySaverOn` | function | @wildshard/engine/render/memorySaver | the row, read once per page (a reload row) |
-| `releaseOnUpload` | function | @wildshard/engine/render/memorySaver | assets.ts: a texture file's source; `done` runs once it is on the GPU (the image cache lets go of the image) |
+| `releaseOnUpload` | function | @wildshard/engine/render/memorySaver | Register an exclusively owned, immutable decoded texture source for Memory saver retirement. |
 | `shadowLights` | function | @wildshard/engine/render/memorySaver | Game's shadow pass: after three made a light's map, its colour texture goes (shadowVariants.ts) |
 | `EngineDirectionalLightNode` | class | @wildshard/engine/render/nodes/cascadeLightNode | three's directional light node, gated as a cascade where the sky rig registered the light as one |
 | `engineFog` | function | @wildshard/engine/render/nodes/engineFog | fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off) |

@@ -9014,7 +9014,7 @@
       {
         "name": "releaseOnUpload",
         "kind": "function",
-        "doc": "assets.ts: a texture file's source; `done` runs once it is on the GPU (the image cache lets go of the image)",
+        "doc": "Register an exclusively owned, immutable decoded texture source for Memory saver retirement.",
         "from": "@wildshard/engine/render/memorySaver"
       },
       {
