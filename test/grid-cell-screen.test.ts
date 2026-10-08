@@ -109,7 +109,7 @@ describe('G217: the panels in the world', () => {
       expect(screens.state().draws).toBe(2);
       for (let k = 0; k < 30; k++) screens.step();
       expect(screens.state().draws).toBe(2); // nothing changed: no redraw
-      const panels: { position: Mesh['position']; rotation: Mesh['rotation'] }[] = []; scene.traverse((node) => { if (node.name === 'grid-cell-screen' && node.visible) panels.push(node); });
+      const panels: { position: Mesh['position']; rotation: Mesh['rotation']; scale: Mesh['scale'] }[] = []; scene.traverse((node) => { if (node.name === 'grid-cell-screen' && node.visible) panels.push(node); });
       const east = panels.find((p) => Math.abs(p.position.x - (560 - 256 + 24)) < 1e-6);
       if (east === undefined) throw new Error('No panel on the east cell\'s west wall');
       expect(east.position.y).toBeCloseTo(SCREEN_M.bottom + SCREEN_M.h / 2); expect(east.rotation.y).toBeCloseTo(-Math.PI / 2); // in front of the wall, facing −x, toward the road
@@ -122,6 +122,8 @@ describe('G217: the panels in the world', () => {
       for (let k = 0; k < 12; k++) screens.step();
       expect(screens.state().draws).toBe(6);
       expect(east.position.x - feet.x).toBeCloseTo(24);
+      expect(east.scale.x).toBe(2); expect(east.scale.y).toBe(2);
+      expect(east.position.y - SCREEN_M.h * east.scale.y / 2).toBeCloseTo(SCREEN_M.bottom);
       // a refusal redraws once; an enterable cell (absent from the port) loses its panel
       snapshot.set('east', { ...base, instance: 'east', status: 'refused', refusal: 'too-big' }); snapshot.delete('north');
       for (let k = 0; k < 6; k++) screens.step();

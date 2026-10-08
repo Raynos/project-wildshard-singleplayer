@@ -248,7 +248,7 @@ interface Slot {
 }
 const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
 // Screens stay inside the closed cell, beyond a 20 m glide, leaving the entire road and soft wall clear.
-const SETBACK = 24, NEAR = 55;
+const SETBACK = 24, NEAR = 55, NEAR_SCALE = 2;
 
 /** The byte plan of `slots` screens: each a canvas (JS) and its texture with mips (GPU). */
 export function cellScreenBytes(slots: number): { jsBytes: number; gpuBytes: number } {
@@ -299,13 +299,17 @@ export function installCellScreens(input: {
     };
     const place = (s: Slot, cell: CellScreenCell, feet: { readonly x: number; readonly z: number }): void => {
       const dx = feet.x - cell.x, dz = feet.z - cell.z, onX = Math.abs(dx) >= Math.abs(dz);
-      const side = Math.sign(onX ? dx : dz) || 1, limit = wall - SCREEN_M.w / 2 - 2;
+      const side = Math.sign(onX ? dx : dz) || 1, limit = wall - SCREEN_M.w * NEAR_SCALE / 2 - 2;
       const target = Math.max(-limit, Math.min(limit, onX ? dz : dx));
       // slides along its wall toward the traveller once they are DEAD_ZONE m off it, until it is in front of them again
       const off = Math.abs(target - s.along);
       if (off > DEAD_ZONE) s.sliding = true; else if (off < 0.3) s.sliding = false;
       if (s.sliding) s.along += (target - s.along) * 0.08;
-      const m = s.mesh, y = SCREEN_M.bottom + SCREEN_M.h / 2;
+      const face = side * (wall - SETBACK);
+      const near = Math.hypot(dx - (onX ? face : s.along), dz - (onX ? s.along : face)) < NEAR;
+      // The authoritative wall stops the player tens of metres away: enlarge the same plane for readable near text.
+      const scale = near ? NEAR_SCALE : 1, m = s.mesh, y = SCREEN_M.bottom + SCREEN_M.h * scale / 2;
+      m.scale.setScalar(scale);
       if (onX) { m.position.set(cell.x + side * (wall - SETBACK), y, cell.z + s.along); m.rotation.set(0, side * Math.PI / 2, 0); }
       else { m.position.set(cell.x + s.along, y, cell.z + side * (wall - SETBACK)); m.rotation.set(0, side > 0 ? 0 : Math.PI, 0); }
       m.updateMatrix();
