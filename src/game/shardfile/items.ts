@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { isJsonData } from './json';
-import { ItemRuntime, type ItemPorts } from '@wildshard/engine/combat/items';
+import { ItemRuntime, type ItemPorts, type ItemSpec } from '@wildshard/engine/combat/items';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import type { EquipmentIcon, EquipmentRow, WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
@@ -102,6 +102,10 @@ export interface DeclaredItems {
   primary: Weapon | null; secondary: Weapon | null; extras: readonly Weapon[]; tools: readonly Tool[]; order: readonly WeaponId[];
   runtimes: ReadonlyMap<string, ItemRuntime>; install: (equipment: EquipmentService) => void; step: (tick: number, dt: number) => void;
 }
+/** Runtime-owned tools keep their native input controller; declared toggle tools retain the numeric action path. */
+function bindToolAction(spec: Extract<ItemSpec, { kind: 'tool' }>, ports: DeclaredItemPorts, runtime: ItemRuntime, scope: Scope, instance: Tool): void {
+  if (spec.action !== null) ports.input.bind(spec.action, () => { runtime.queue(3); }, scope, () => instance.enabled);
+}
 /** Resolve every family before construction, register baseline contexts, and expose the normal buildEquipment handoff. */
 export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): DeclaredItems {
   const data = parseItems(input);
@@ -135,7 +139,7 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
       if (declaration.kind === 'weapon' && family.kind === 'weapon') weapons.set(declaration.id, family.create(row, declaration, args));
       else if (declaration.kind === 'tool' && family.kind === 'tool') {
         const instance = family.create(row, declaration, args); tools.set(declaration.id, instance);
-        ports.input.bind(declaration.action, () => { runtime.queue(3); }, itemScope, () => instance.enabled);
+        bindToolAction(declaration, ports, runtime, itemScope, instance);
       }
     }
     const primary = data.loadout.primary === null ? null : weapons.get(data.loadout.primary) ?? null;
