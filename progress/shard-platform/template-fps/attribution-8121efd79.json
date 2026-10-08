@@ -1,0 +1,830 @@
+{
+ "sha": "8121efd79",
+ "what": "Template-1 centre, public grid (Developer off, Memory saver off, phone tier, 2x).",
+ "simulatorAB": {
+  "device": "frame-floor-iphone-17-pro Safari",
+  "spawn": {
+   "fps": 30.3,
+   "p95": 35,
+   "calls": 323,
+   "tris": 1427567
+  },
+  "toggles": [
+   {
+    "name": "base",
+    "hits": null,
+    "fps": 30.3,
+    "p95": 34,
+    "calls": 158,
+    "tris": 235798
+   },
+   {
+    "name": "no-shadow-pass",
+    "fps": 30.3,
+    "p95": 34,
+    "calls": 94,
+    "tris": 169362
+   },
+   {
+    "name": "hide-grid-deck",
+    "hits": [
+     "grid-deck"
+    ],
+    "fps": 30.3,
+    "p95": 42,
+    "calls": 157,
+    "tris": 227546
+   },
+   {
+    "name": "hide-big-transparent-group",
+    "hits": [
+     "Group"
+    ],
+    "fps": 30.3,
+    "p95": 34,
+    "calls": 156,
+    "tris": 156060
+   },
+   {
+    "name": "hide-follow-meshes",
+    "hits": [
+     "Mesh",
+     "Mesh",
+     "Mesh",
+     "Mesh"
+    ],
+    "fps": 30.3,
+    "p95": 34,
+    "calls": 124,
+    "tris": 184088
+   },
+   {
+    "name": "hide-horizon-matte+void",
+    "hits": [
+     "horizon-matte",
+     "grid-void"
+    ],
+    "fps": 30.3,
+    "p95": 38,
+    "calls": 125,
+    "tris": 200624
+   },
+   {
+    "name": "hide-home-props-group",
+    "hits": [],
+    "fps": 30.3,
+    "p95": 41,
+    "calls": 127,
+    "tris": 202680
+   },
+   {
+    "name": "hide-ground-cover",
+    "hits": [
+     "ground-cover"
+    ],
+    "fps": 30.3,
+    "p95": 34,
+    "calls": 155,
+    "tris": 227682
+   },
+   {
+    "name": "hide-template-1",
+    "hits": [
+     "grid-cell:template-1"
+    ],
+    "fps": 30.3,
+    "p95": 40,
+    "calls": 73,
+    "tris": 157432
+   },
+   {
+    "name": "hide-other-cells",
+    "hits": [
+     "grid-cell:template-2",
+     "grid-cell:template-3",
+     "grid-cell:template-4",
+     "grid-cell:template-5"
+    ],
+    "fps": 30.3,
+    "p95": 36,
+    "calls": 106,
+    "tris": 184200
+   },
+   {
+    "name": "hide-grid-misc",
+    "hits": [
+     "grid-boulevard",
+     "grid-seam-curtain",
+     "grid-soft-walls",
+     "grid-border-shimmer"
+    ],
+    "fps": 30.3,
+    "p95": 34,
+    "calls": 121,
+    "tris": 198610
+   },
+   {
+    "name": "hide-all-but-template-1",
+    "hits": [
+     "PerspectiveCamera",
+     "Mesh",
+     "Mesh",
+     "Group",
+     "Group",
+     "horizon-matte",
+     "Group",
+     "driftwood-isle/pier",
+     "driftwood-isle/entry-deck",
+     "driftwood-isle/boat",
+     "Mesh",
+     "driftwood-isle/shore-boulder",
+     "driftwood-isle/hut",
+     "driftwood-isle/lookout",
+     "Group",
+     "driftwood-isle/shrine",
+     "driftwood-isle/pier",
+     "driftwood-isle/pier",
+     "driftwood-isle/pier",
+     "driftwood-isle/hibiscus-bush",
+     "Group",
+     "Mesh",
+     "rope-bridge",
+     "seabed",
+     "seabed-fish",
+     "Group",
+     "driftwood-isle/palm",
+     "ground-cover",
+     "driftwood-isle/small-rock",
+     "blender-island",
+     "animals",
+     "impacts",
+     "grid-boulevard",
+     "grid-void",
+     "grid-deck",
+     "grid-seam-curtain",
+     "grid-soft-walls",
+     "grid-border-shimmer",
+     "grid-open-plot:open-plot-nw",
+     "grid-cell:template-2",
+     "grid-cell:template-3",
+     "grid-cell:template-4",
+     "grid-cell:template-5",
+     "Group",
+     "body-shadow-root",
+     "npc-castaway",
+     "trader",
+     "Group",
+     "sea-glass-chime",
+     "trophy-plaques"
+    ],
+    "fps": 30.3,
+    "p95": 42,
+    "calls": 103,
+    "tris": 74846
+   },
+   {
+    "name": "base-again",
+    "hits": null,
+    "fps": 30.3,
+    "p95": 38,
+    "calls": 157,
+    "tris": 226520
+   }
+  ]
+ },
+ "chromiumPhoneGlCensus": [
+  {
+   "label": "spawn",
+   "frames": 90,
+   "fps": 30,
+   "calls": 324,
+   "tris": 1429789,
+   "programs": 116,
+   "perFrame": {
+    "bindFramebuffer": 15.2,
+    "clear": 4.2,
+    "bufferSubData": 30,
+    "useProgram": 102.3,
+    "drawElements": 100.6,
+    "drawArraysInstanced": 9.3,
+    "drawElementsInstanced": 111.9,
+    "texSubImage2D": 12.1,
+    "texPx": 0,
+    "src:Uint32Array": 5.2,
+    "drawArrays": 60.3,
+    "src:Float32Array": 6.9
+   },
+   "cpu": [
+    {
+     "id": "driftwood-isle",
+     "ms": 1.5,
+     "calls": 53
+    }
+   ],
+   "inside": "driftwood-isle",
+   "current": "driftwood-isle",
+   "residents": [
+    "template-3",
+    "template-4",
+    "template-5"
+   ],
+   "pending": []
+  },
+  {
+   "label": "public-road",
+   "frames": 90,
+   "fps": 30,
+   "calls": 136,
+   "tris": 339662,
+   "programs": 147,
+   "perFrame": {
+    "bindFramebuffer": 15.5,
+    "clear": 4.3,
+    "bufferSubData": 20,
+    "useProgram": 65.7,
+    "drawArraysInstanced": 9.3,
+    "drawElementsInstanced": 16,
+    "drawElements": 67.3,
+    "drawArrays": 24.6,
+    "texSubImage2D": 3,
+    "texPx": 955.7,
+    "src:Float32Array": 3,
+    "texImage2D": 0,
+    "framebufferTexture2D": 0
+   },
+   "cpu": [
+    {
+     "id": "driftwood-isle",
+     "ms": 1.0999999046325684,
+     "calls": 22
+    }
+   ],
+   "inside": null,
+   "current": null,
+   "residents": [
+    "template-1",
+    "template-3",
+    "template-4"
+   ],
+   "pending": []
+  },
+  {
+   "label": "public-template",
+   "frames": 90,
+   "fps": 30,
+   "calls": 126,
+   "tris": 202379,
+   "programs": 147,
+   "perFrame": {
+    "bindFramebuffer": 15.1,
+    "clear": 4.1,
+    "bufferSubData": 16,
+    "useProgram": 70.2,
+    "drawArraysInstanced": 9.1,
+    "drawElementsInstanced": 19.4,
+    "drawElements": 97.1,
+    "drawArrays": 25.6,
+    "texSubImage2D": 3,
+    "texPx": 0,
+    "src:Float32Array": 3
+   },
+   "cpu": [
+    {
+     "id": "driftwood-isle",
+     "ms": 1,
+     "calls": 22
+    }
+   ],
+   "inside": "template-1",
+   "current": "template-1",
+   "residents": [
+    "template-1",
+    "template-2",
+    "template-3"
+   ],
+   "pending": []
+  },
+  {
+   "label": "template-settled",
+   "frames": 90,
+   "fps": 30,
+   "calls": 156,
+   "tris": 226219,
+   "programs": 147,
+   "perFrame": {
+    "bindFramebuffer": 15.1,
+    "clear": 4.1,
+    "bufferSubData": 16,
+    "useProgram": 70.2,
+    "drawArraysInstanced": 9.1,
+    "drawElementsInstanced": 19.4,
+    "drawElements": 97.1,
+    "drawArrays": 25.6,
+    "texSubImage2D": 3,
+    "texPx": 0,
+    "src:Float32Array": 3
+   },
+   "cpu": [
+    {
+     "id": "driftwood-isle",
+     "ms": 1,
+     "calls": 22
+    }
+   ],
+   "inside": "template-1",
+   "current": "template-1",
+   "residents": [
+    "template-1",
+    "template-2",
+    "template-3"
+   ],
+   "pending": []
+  }
+ ],
+ "chromiumPhoneSceneRoots": [
+  {
+   "name": "grid-deck",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 213088,
+   "transparent": 0,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Group",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 70688,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "grid-cell:template-1",
+   "visible": true,
+   "meshes": 141,
+   "hiddenMeshes": 14,
+   "drawn": 53,
+   "tris": 32508,
+   "transparent": 1,
+   "casters": 60,
+   "casterTris": 34747,
+   "pos": [
+    0,
+    555
+   ]
+  },
+  {
+   "name": "Mesh",
+   "visible": true,
+   "meshes": 2,
+   "hiddenMeshes": 0,
+   "drawn": 2,
+   "tris": 17488,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    -1,
+    555
+   ]
+  },
+  {
+   "name": "grid-cell:template-2",
+   "visible": true,
+   "meshes": 18,
+   "hiddenMeshes": 1,
+   "drawn": 17,
+   "tris": 12338,
+   "transparent": 1,
+   "casters": 2,
+   "casterTris": 264,
+   "pos": [
+    555,
+    555
+   ]
+  },
+  {
+   "name": "ground-cover",
+   "visible": true,
+   "meshes": 53,
+   "hiddenMeshes": 13,
+   "drawn": 13,
+   "tris": 8015,
+   "transparent": 0,
+   "casters": 26,
+   "casterTris": 100334,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "grid-cell:template-4",
+   "visible": true,
+   "meshes": 12,
+   "hiddenMeshes": 1,
+   "drawn": 2,
+   "tris": 6146,
+   "transparent": 1,
+   "casters": 2,
+   "casterTris": 312,
+   "pos": [
+    555,
+    0
+   ]
+  },
+  {
+   "name": "grid-boulevard",
+   "visible": true,
+   "meshes": 3,
+   "hiddenMeshes": 0,
+   "drawn": 3,
+   "tris": 4656,
+   "transparent": 0,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Group",
+   "visible": true,
+   "meshes": 2,
+   "hiddenMeshes": 0,
+   "drawn": 2,
+   "tris": 3296,
+   "transparent": 2,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    -788,
+    1639
+   ]
+  },
+  {
+   "name": "grid-border-shimmer",
+   "visible": true,
+   "meshes": 2,
+   "hiddenMeshes": 1,
+   "drawn": 1,
+   "tris": 3072,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Group",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 2844,
+   "transparent": 0,
+   "casters": 1,
+   "casterTris": 2844,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "horizon-matte",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 2048,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    -1,
+    0
+   ]
+  },
+  {
+   "name": "rope-bridge",
+   "visible": true,
+   "meshes": 3,
+   "hiddenMeshes": 0,
+   "drawn": 2,
+   "tris": 1592,
+   "transparent": 0,
+   "casters": 3,
+   "casterTris": 1688,
+   "pos": [
+    16,
+    14
+   ]
+  },
+  {
+   "name": "grid-seam-curtain",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 1120,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Mesh",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 1104,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    -905,
+    -179
+   ]
+  },
+  {
+   "name": "body-shadow-root",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 328,
+   "transparent": 0,
+   "casters": 1,
+   "casterTris": 328,
+   "pos": [
+    -1,
+    555
+   ]
+  },
+  {
+   "name": "seabed-fish",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 280,
+   "transparent": 0,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "animals",
+   "visible": true,
+   "meshes": 38,
+   "hiddenMeshes": 33,
+   "drawn": 1,
+   "tris": 128,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "grid-soft-walls",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 40,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Points",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 8,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "Points",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 8,
+   "transparent": 1,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "grid-void",
+   "visible": true,
+   "meshes": 1,
+   "hiddenMeshes": 0,
+   "drawn": 1,
+   "tris": 8,
+   "transparent": 0,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    0,
+    0
+   ]
+  },
+  {
+   "name": "grid-cell:template-3",
+   "visible": true,
+   "meshes": 12,
+   "hiddenMeshes": 1,
+   "drawn": 1,
+   "tris": 2,
+   "transparent": 1,
+   "casters": 2,
+   "casterTris": 312,
+   "pos": [
+    -555,
+    0
+   ]
+  },
+  {
+   "name": "grid-cell:template-5",
+   "visible": true,
+   "meshes": 10,
+   "hiddenMeshes": 1,
+   "drawn": 1,
+   "tris": 2,
+   "transparent": 1,
+   "casters": 2,
+   "casterTris": 288,
+   "pos": [
+    0,
+    -555
+   ]
+  },
+  {
+   "name": "PerspectiveCamera",
+   "visible": true,
+   "meshes": 29,
+   "hiddenMeshes": 29,
+   "drawn": 0,
+   "tris": 0,
+   "transparent": 0,
+   "casters": 0,
+   "casterTris": 0,
+   "pos": [
+    -1,
+    555
+   ]
+  }
+ ],
+ "shadowLights": [
+  {
+   "type": "DirectionalLight",
+   "name": "",
+   "visible": true,
+   "castShadow": true,
+   "mapSize": 2048,
+   "cam": "OrthographicCamera",
+   "extent": [
+    -8.256534348924498,
+    8.256534348924498,
+    600
+   ]
+  },
+  {
+   "type": "DirectionalLight",
+   "name": "",
+   "visible": true,
+   "castShadow": true,
+   "mapSize": 2048,
+   "cam": "OrthographicCamera",
+   "extent": [
+    -25.964973826558804,
+    25.964973826558804,
+    600
+   ]
+  },
+  {
+   "type": "DirectionalLight",
+   "name": "",
+   "visible": true,
+   "castShadow": true,
+   "mapSize": 2048,
+   "cam": "OrthographicCamera",
+   "extent": [
+    -94.64117042922544,
+    94.64117042922544,
+    600
+   ]
+  },
+  {
+   "type": "DirectionalLight",
+   "name": "sun-shadow-fade-0",
+   "visible": true,
+   "castShadow": true,
+   "mapSize": 2048,
+   "cam": "OrthographicCamera",
+   "extent": [
+    -8.256534348924498,
+    8.256534348924498,
+    600
+   ]
+  },
+  {
+   "type": "DirectionalLight",
+   "name": "sun-shadow-fade-1",
+   "visible": true,
+   "castShadow": true,
+   "mapSize": 2048,
+   "cam": "OrthographicCamera",
+   "extent": [
+    -25.964973826558804,
+    25.964973826558804,
+    600
+   ]
+  },
+  {
+   "type": "HemisphereLight",
+   "name": "",
+   "visible": true,
+   "castShadow": false,
+   "extent": null
+  },
+  {
+   "type": "PointLight",
+   "name": "",
+   "visible": true,
+   "castShadow": false,
+   "mapSize": 512,
+   "cam": "PerspectiveCamera",
+   "extent": [
+    null,
+    null,
+    500
+   ]
+  },
+  {
+   "type": "PointLight",
+   "name": "",
+   "visible": true,
+   "castShadow": false,
+   "mapSize": 512,
+   "cam": "PerspectiveCamera",
+   "extent": [
+    null,
+    null,
+    500
+   ]
+  }
+ ],
+ "desktopComposerBytes": {
+  "total": 587522748,
+  "drawingBuffer": [
+   2880,
+   1800
+  ],
+  "phoneCalibration": 13140636,
+  "note": "Developer-on desktop boot readout; public mode refused it at 1.0 GB"
+ }
+}

@@ -55,7 +55,7 @@ it('evicts the unused home cache while keeping the calibrated composer until ren
   page.bindAssets(assets, renderer, level, () => level, cachedResourceAllocations);
   const before = page.allocator.cost().playing;
   let resize: ((bytes: number) => void) | undefined;
-  page.bindComposer({ observeComposerAllocation: read => { resize = read; read(13_140_636); return () => { resize = undefined; }; } }, renderer);
+  page.bindComposer({ observeComposerAllocation: read => { resize = read; read(13_140_636); return () => { resize = undefined; }; } }, renderer, 'phone');
   expect(page.allocator.cost().playing).toBe(before);
   resize?.(20_000_000);
   expect(page.allocator.entries().filter(entry => entry.category === 'page')).toMatchObject([
@@ -94,7 +94,7 @@ it('releases both calibrated renderer components if composer observation fails d
   const page = new PageResidency(), renderer = new Scope('renderer'), before = page.allocator.cost().playing;
   expect(() => page.bindComposer({ observeComposerAllocation: read => {
     read(13_140_636); throw new Error('failed observer');
-  } }, renderer)).toThrow('failed observer');
+  } }, renderer, 'phone')).toThrow('failed observer');
   expect(page.allocator.entries()).toEqual([]); expect(page.allocator.cost().playing).toBe(before);
   renderer.dispose(); page.dispose();
 });

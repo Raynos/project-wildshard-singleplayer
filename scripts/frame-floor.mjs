@@ -109,7 +109,9 @@ function printVerdict(record) {
 // All browser-side helpers execute identically in Chromium and Mobile Safari, with real time and live gameplay.
 function status() {
   const w = window.__wildshard?.world;
-  return { ready: Boolean(w?.game && !document.querySelector('.ws-load')), error: document.querySelector('#wserr .msg')?.textContent,
+  // A boot failure renders the shell's load-failure screen (src/engine/ui/errorScreen.ts) without a game: fail fast with its message.
+  const failure = document.querySelector('.ws-load-error');
+  return { ready: Boolean(w?.game && !document.querySelector('.ws-load')), error: document.querySelector('#wserr .msg')?.textContent ?? (failure ? `Load failure: ${[...failure.querySelectorAll('h1,p')].map(node => node.textContent).join(' — ')}` : undefined),
     level: w?.game.level.id, clock: w?.game.app.clock.mode, entered: w?.hud?.entered };
 }
 function metadata() {

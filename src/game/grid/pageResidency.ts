@@ -19,6 +19,16 @@ export interface HomeResidencyClaim {
   readonly releasePending: () => void;
 }
 
+/** The quality tier the page renders at (`@wildshard/engine/core/tier`), passed by the session so this owner reads no global. */
+export type ComposerTier = 'phone' | 'desktop';
+/** G226: the phone census's composer (colour + depth + fullscreen triangle) inside the measured 300 MB engine base. */
+export const PHONE_COMPOSER_CALIBRATION = 13_140_636;
+/** The bytes a composer allocation reserves on the page allocator, per tier's render-target budget (see `bindComposer`). */
+export function composerReservation(bytes: number, tier: ComposerTier): number {
+  if (!Number.isSafeInteger(bytes) || bytes < 0) throw new RangeError('Invalid composer allocation');
+  return tier === 'phone' ? bytes : Math.min(bytes, PHONE_COMPOSER_CALIBRATION);
+}
+
 /**
  * SF18b / G144: construct before manifest hydration, then inject this allocator into the home loader and GridSession.
  * The composition root owns disposal, including failed or cancelled boots. Admission precedes world allocation; the
@@ -48,8 +58,13 @@ export class PageResidency {
   }
 
   /** Calibration: the 804×1362 phone census owns 8-byte colour + 4-byte depth + 60-byte fullscreen triangle = 13,140,636 bytes in the measured
-   * 300 MB engine base (G226 full-loop receipt). Split that credit out; any larger current composer is additional. */
-  bindComposer(game: Pick<Game, 'observeComposerAllocation'>, rendererScope: Scope): void {
+   * 300 MB engine base (G226 full-loop receipt). Split that credit out; any larger current composer is additional.
+   *
+   * The reservation is sized to the tier's render-target budget (`composerReservation`): the page envelope (1.0 GB playing) is the
+   * phone's, so a phone composer is charged at its actual allocation, while a desktop composer (sized to its drawing buffer and the
+   * desktop look: 587 MB of targets at 2880×1800) is a property of that device, not of the content, and is charged at the phone
+   * calibration. Without this a public desktop page was refused at boot by its own renderer, before any region loaded. */
+  bindComposer(game: Pick<Game, 'observeComposerAllocation'>, rendererScope: Scope, tier: ComposerTier): void {
     if (this.composerBound || this.closed || rendererScope.disposed) throw new Error('Page composer requires one live renderer');
     // WebGLState creates one RGBA texel for 2D/array/3D and six cube faces: 36 bytes, until renderer retirement.
     // These are present in the same calibrated baseline, separately from the composer's render targets.
@@ -60,7 +75,7 @@ export class PageResidency {
     let detach: () => void;
     try {
       detach = game.observeComposerAllocation(bytes => {
-        const next = this.allocator.reservePageComponent('page:composer', bytes, 13_140_636);
+        const next = this.allocator.reservePageComponent('page:composer', composerReservation(bytes, tier), PHONE_COMPOSER_CALIBRATION);
         if (next === null) throw new Error('Composer admission deferred by the shared budget');
         const previous = lease; lease = next; previous?.release();
       });
