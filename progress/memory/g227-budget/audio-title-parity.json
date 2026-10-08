@@ -1,0 +1,77 @@
+{
+  "before": "f3e892eb9",
+  "after": "8b0801cd4",
+  "sourceHashes": {
+    "f3e892eb9": {
+      "src/engine/audio/Music.ts": "d00cbbcfda058207539b32be5a96fca3fd5683e2a935193dde3eccfeba8cb9ca",
+      "src/engine/audio/Stems.ts": "da2ea417639d70bed2b8a1499fa96bbd76b21ea4501cc84b421e352804e4f776",
+      "src/engine/audio/SetScore.ts": "0a3fcfb9e6a06f70a7ef84c5e88c7d6a52f8f3c8b30526bac299374c4bb75a1a",
+      "src/engine/audio/preload.ts": "eb1f0e2e14b0f63043084abd37544d4ef5a8b0d1a1febcd3755fe482fd4ff14b"
+    },
+    "8b0801cd4": {
+      "src/engine/audio/Music.ts": "28121a64d0aa038189df0c8933277078159c4d8e4fe405b0a3eeb2280105456d",
+      "src/engine/audio/Stems.ts": "da2ea417639d70bed2b8a1499fa96bbd76b21ea4501cc84b421e352804e4f776",
+      "src/engine/audio/SetScore.ts": "0a3fcfb9e6a06f70a7ef84c5e88c7d6a52f8f3c8b30526bac299374c4bb75a1a",
+      "src/engine/audio/preload.ts": "dae5f28ce5f1ddbf0e902cc126b58a309bfe4beed7464f8ad943c4ae5b43f489"
+    }
+  },
+  "engine": "Playwright WebKit OfflineAudioContext",
+  "muted": true,
+  "protocol": "Actual Music/Deck code from each committed revision; deterministic 48kHz stereo stem fixtures. Same first-gesture-equivalent start, bank replacement, title retirement and returning-menu re-decode, bar-aligned calm/tension automation and source disposal/handoff; stop at9s, render14s. Compare every sample, without alignment shifts or normalization.",
+  "cases": [
+    {
+      "scenario": "bank-switch",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.02996760278725479
+    },
+    {
+      "scenario": "calm-to-tension",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.04959059869849915
+    },
+    {
+      "scenario": "shard-handoff",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.03491089844202818
+    },
+    {
+      "scenario": "title-retirement",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.032689106794627616
+    },
+    {
+      "scenario": "title-return",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.02853126789302285
+    },
+    {
+      "scenario": "sting-reuse",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.04082047458831066
+    }
+  ],
+  "titleFallback": {
+    "titleReads": 1,
+    "titleRetained": false,
+    "source": "synth"
+  },
+  "pass": true
+}
