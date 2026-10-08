@@ -7,6 +7,11 @@ import { withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
+import { Animal } from '../src/engine/entities/AnimalView';
+import { CreatureBodies } from '../src/engine/physics/creatures';
+import { SaveStore } from '../src/engine/saves/store';
+import { regionalRuntimeCheckpoint } from '../src/game/grid/runtimeCheckpoint';
+import { MemoryStorage } from './setup';
 import { AnimalManager } from '../src/engine/entities/AnimalManager';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
@@ -14,7 +19,7 @@ import { createSimHost } from '../src/engine/sim';
 import { WorldRegistry } from '../src/engine/world/registry';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
-import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest } from '../src/game/grid/regionalRuntime';
+import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest, type RegionalRuntimeFactoryPorts } from '../src/game/grid/regionalRuntime';
 import { HybridRuntimeSession } from '../src/game/shardfile/hybrid';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { shardContext, type ShardContext } from '../src/game/shard/context';
@@ -27,13 +32,14 @@ import { progressSave, inventorySave } from '../src/game/saves';
 import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import pineSource from '../src/shards/pine-hollow/shard.config';
+import { fakeWorld } from './fake/world';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
 const noop = (): void => undefined;
 
-function fixture() {
+function fixture(continuation?: RegionalRuntimeFactoryPorts['continuation']) {
   const app = new App(), scope = app.engineScope.child('grid.page'), scene = new Scene(), home = new Physics(rapier);
   const homeRegistry = new WorldRegistry(); app.registryValue = homeRegistry; app.levelScope = scope;
   // Renderer, controls and unbuilt scene fields are explicit test doubles. Only composition/lifecycle is claimed here;
@@ -58,10 +64,10 @@ function fixture() {
   let nativeCheckpoints = 0, nativeDurable = true, destroyed = false;
   const host = createSimHost({ ...SIM_LEVEL, id: 'pine-hollow', entities: [], quests: [], ground: { size: 500, height: 0 } }, { rapier, playerBody: false });
   const region = { host, dispose: () => { destroyed = true; host.dispose(); } };
-  const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon', render: { waitForModels: false, lowPoly: true, furRim: false, tintRange: 0, oneMaterial: true } });
+  const animals = new AnimalManager(scene, fakeWorld().sky, world.forest, { style: 'toon', render: { waitForModels: false, lowPoly: true, furRim: false, tintRange: 0, oneMaterial: true } });
   // Foundation double supplies no blood/rig build; the real shell updates its built manager on entered ticks.
   const herd = vi.spyOn(animals, 'update').mockImplementation(noop);
-  const calls: string[] = [], regional = createRegionalRuntimeFactory({ home: { x: 0, z: 0 }, prepareFoundation: prepared => Promise.resolve({ region,
+  const calls: string[] = [], regional = createRegionalRuntimeFactory({ home: { x: 0, z: 0 }, ...(continuation === undefined ? {} : { continuation }), prepareFoundation: prepared => Promise.resolve({ region,
     ground: { heightAt: () => 0, waterSurfaceAt: () => null },
     world: view => {
       const regionalScene = new Scene(); view.root.add(regionalScene);
@@ -78,7 +84,7 @@ function fixture() {
     afterKit: () => { calls.push('shell.kit'); return Promise.resolve({ animals, wearSkin: noop }); },
     checkpoint: () => { nativeCheckpoints++; return nativeDurable; },
   }) });
-  return { app, scope, home, homeRegistry, world, play, runtime, request, claim, allocator, host, calls, regional, herd,
+  return { app, scope, home, homeRegistry, world, play, runtime, request, claim, allocator, host, calls, regional, herd, animals,
     nativeCheckpoints: () => nativeCheckpoints, refuse: () => { nativeDurable = false; }, destroyed: () => destroyed };
 }
 
@@ -192,4 +198,71 @@ it('parents a newly admitted neighbour at the page root while another region is 
   } finally { f.scope.dispose(); f.home.dispose(); f.claim.release(); }
   expect(f.world.game.rootScene.children).toEqual([]);
   expect(f.allocator.entries()).toEqual([]);
+});
+
+
+function addBoar(animals: AnimalManager, id: string): Animal {
+  const model = animals.factory.model('boar');
+  const animal = new Animal(animals.factory.instantiate(model, 0.5), model, 0.5, 1, id);
+  animal.position.set(0, 0, 5); animals.animals.push(animal); return animal;
+}
+function emptyKit(ctx: ShardContext): void {
+  const runtime = ctx.game.runtime; if (runtime === undefined) throw new Error('Missing regional runtime');
+  runtime.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), rifle: null, secondary: null });
+}
+
+it('keeps lazy native creature hitboxes and motors resident across two entered updates and 600 parked ticks', async () => {
+  const f = fixture(), animal = addBoar(f.animals, 'resident.boar');
+  const bodies = new CreatureBodies<Animal>(f.host.physics);
+  f.herd.mockImplementation(() => { bodies.sync(f.animals.animals, new Vector3()); });
+  class Runtime extends ShardPlugin { override kit(ctx: ShardContext): void { emptyKit(ctx); } }
+  const prepared = await f.regional(f.request);
+  const session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [
+    { slug: 'pine-hollow', entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) },
+  ], f.scope);
+  let handles: number[] = [];
+  try {
+    for (let visit = 0; visit < 2; visit++) {
+      expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
+      for (const system of f.app.systemsByPhase().update) system.run(1 / 60, visit);
+      f.host.physics.step();
+      expect(animal.motor).not.toBeNull(); expect(bodies.bodies).toBe(1);
+      animal.motor?.move(animal.position, { x: 0.01, y: 0, z: 0 }, false);
+      const current: number[] = []; f.host.physics.world.forEachCollider(collider => { current.push(collider.handle); }); current.sort((a, b) => a - b);
+      if (visit === 0) handles = current; else expect(current).toEqual(handles);
+      const calls = f.herd.mock.calls.length; session.leave();
+      expect(f.host.physics.world.colliders.len()).toBe(handles.length);
+      for (let tick = 0; tick < 600; tick++) for (const system of f.app.systemsByPhase().update) system.run(1 / 60, tick);
+      expect(f.herd.mock.calls).toHaveLength(calls);
+      for (const handle of handles) expect(f.host.physics.world.colliders.contains(handle)).toBe(true);
+    }
+  } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+  expect(Object.values(f.scope.census).every(value => value === 0)).toBe(true);
+  expect(f.allocator.entries()).toEqual([]);
+});
+
+it('restores a durable play-created creature only after the complete trusted herd exists, before readiness', async () => {
+  const local = new MemoryStorage();
+  for (let visit = 0; visit < 2; visit++) {
+    const continuation = regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'pine-hollow', shard: 'pine-hollow' }, 1);
+    const f = fixture(continuation); addBoar(f.animals, 'initial.boar');
+    let encounter: Animal | undefined;
+    class Runtime extends ShardPlugin {
+      override kit(ctx: ShardContext): void { emptyKit(ctx); }
+      override play(): void { encounter = addBoar(f.animals, 'play.encounter'); }
+    }
+    const prepared = await f.regional(f.request);
+    const session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [
+      { slug: 'pine-hollow', entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) },
+    ], f.scope);
+    try {
+      expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
+      expect(session.state().ready).toBe(true);
+      if (encounter === undefined) throw new Error('Trusted play did not create encounter');
+      if (visit === 0) { encounter.hp -= 1; encounter.position.x = 12; }
+      else { expect(encounter.hp).toBe(encounter.maxHp - 1); expect(encounter.position.x).toBe(12); }
+      expect(prepared.checkpoint()).toBe(true); session.leave();
+    } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+    expect(f.allocator.entries()).toEqual([]);
+  }
 });

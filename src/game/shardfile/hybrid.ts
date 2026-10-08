@@ -34,6 +34,8 @@ export interface HybridResident {
     afterWorld?: (context: ShardContext) => Promise<void> | void;
     /** Create actual creature/equipment/play services from kit rows before trusted play. */
     afterKit?: (context: ShardContext) => Promise<void> | void;
+    /** Apply continuation only after trusted play has created its complete authored encounter herd. */
+    afterPlay?: (context: ShardContext) => Promise<void> | void;
   };
 }
 /** Runtime activation status is separate from data residency and asynchronous module preparation. */
@@ -325,6 +327,7 @@ export class HybridRuntimeSession {
       if (!live()) return false;
       await withOwner(scope, () => installation.afterKit?.(context)); if (!live()) return false;
       await withOwner(scope, () => plugin.play?.(context)); if (!live()) return false;
+      await withOwner(scope, () => installation.afterPlay?.(context)); if (!live()) return false;
       active.ready = true;
       if (active.retained !== undefined) this.retained.set(cell.instance, active);
       return true;

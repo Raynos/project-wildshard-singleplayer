@@ -196,7 +196,6 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const regional = await foundation.afterKit(entered, world);
               if (left()) throw new Error('Regional runtime left while building creatures');
               for (const animal of regional.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
-              ports.continuation?.restore(regional.animals);
               runtime.hooks.animalsReady?.(regional.animals);
               app.effects?.registerDefinitions(app.levelRegistrations.list('effect'));
               const targets = authoredTargets(app.events, regional.animals, () => null);
@@ -223,7 +222,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 runtime.play = localPlay;
                 installEnteredRuntimeService(entered, entry => {
                   app.addSystem({ id: `grid.runtime.${request.cell.instance}.animals`, phase: 'update', run: (dt, t) => {
-                    regional.animals.update(dt, t, world.player.position, world.player.sprinting, world.player.position, world.game.camera);
+                    // Native hitboxes/controllers are lazy, but belong to the parked resident rather than this entry.
+                    withOwner(owner, () => regional.animals.update(dt, t, world.player.position, world.player.sprinting, world.player.position, world.game.camera));
                     localPlay?.progress.addPlay(dt);
                     weapons.update(dt, t);
                   } }, entry);
@@ -231,6 +231,12 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                   entry.onDispose(() => { weapons.enabled = false; weapons.visible = false; weapons.adsHeld = false; weapons.altHeld = false; });
                 });
               });
+            },
+            afterPlay: () => {
+              if (localPlay === null) throw new Error('Regional play services are not installed');
+              // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
+              ports.continuation?.restore(localPlay.animals);
+              for (const animal of localPlay.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
             },
           };
         } };
