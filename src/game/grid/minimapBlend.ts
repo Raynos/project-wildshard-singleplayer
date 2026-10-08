@@ -7,10 +7,11 @@
  *   the road network, and each neighbour's NAME across the road once that road is near (no neighbour terrain);
  * - **on the road / no-man's land**: every cell in view as faded terrain (~50 %) on both sides, so a roundabout shows all four.
  *
- * A neighbour's raster is its baked far proxy (`public/assets/baked/<slug>/far.glb`, the shard's own far look over its
- * baked heightfield) drawn top-down once when the far ring loads it (`farMapImage`), about 0.8 px per metre.
+ * A product's raster combines its baked ground proxy with admitted prop far meshes, drawn once and shared by its copies,
+ * about 0.8 px per metre. The home copy uses that same authored raster when available.
  */
-import type { BufferGeometry } from 'three';
+import { BufferGeometry, Float32BufferAttribute, InstancedMesh, Matrix4, Material, Mesh, Color, type Object3D } from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { MapExtras, MapExtraImage, MapExtraLabel, MapExtraRect } from '@wildshard/engine/ui/Minimap';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -31,21 +32,25 @@ const toSrgb = (c: number): number => Math.round(255 * (c <= 0.0031308 ? 12.92 *
  * A far proxy's top-down raster (the minimap's orientation: top = +Z, left = +X), each triangle in its vertex colours with
  * a light hillshade, lowest first so the water sheet lies over the ground it covers. Null without a 2D context.
  */
-export function farMapImage(geometry: BufferGeometry): HTMLCanvasElement | null {
-  const position = geometry.getAttribute('position'), colour = geometry.getAttribute('color'), index = geometry.getIndex();
+export function farMapImage(geometry: BufferGeometry | readonly BufferGeometry[]): HTMLCanvasElement | null {
   if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = RASTER_PX;
   const ctx = canvas.getContext('2d');
   if (ctx === null) return null;
-  const ppm = RASTER_PX / (2 * CHUNK_HALF), count = index === null ? position.count : index.count;
-  const tris: { y: number; i: readonly [number, number, number] }[] = [];
-  const at = (k: number): number => (index === null ? k : index.getX(k));
-  for (let t = 0; t + 2 < count; t += 3) {
-    const a = at(t), b = at(t + 1), c = at(t + 2);
-    tris.push({ y: (position.getY(a) + position.getY(b) + position.getY(c)) / 3, i: [a, b, c] });
+  const ppm = RASTER_PX / (2 * CHUNK_HALF);
+  const tris: { y: number; geometry: BufferGeometry; i: readonly [number, number, number] }[] = [];
+  for (const part of geometry instanceof BufferGeometry ? [geometry] : geometry) {
+    const position = part.getAttribute('position'), index = part.getIndex();
+    const count = index === null ? position.count : index.count;
+    const at = (k: number): number => (index === null ? k : index.getX(k));
+    for (let t = 0; t + 2 < count; t += 3) {
+      const a = at(t), b = at(t + 1), c = at(t + 2);
+      tris.push({ y: (position.getY(a) + position.getY(b) + position.getY(c)) / 3, geometry: part, i: [a, b, c] });
+    }
   }
   tris.sort((p, q) => p.y - q.y);
-  for (const { i: [a, b, c] } of tris) {
+  for (const { geometry: part, i: [a, b, c] } of tris) {
+    const position = part.getAttribute('position'), colour = part.getAttribute('color');
     const ax = position.getX(a), ay = position.getY(a), az = position.getZ(a), bx = position.getX(b), by = position.getY(b), bz = position.getZ(b);
     const cx = position.getX(c), cy = position.getY(c), cz = position.getZ(c);
     // the face normal's light: a sun from the north-west, high; vertical skirts come out dark and thin
@@ -63,6 +68,82 @@ export function farMapImage(geometry: BufferGeometry): HTMLCanvasElement | null 
     ctx.closePath(); ctx.fillStyle = fill; ctx.strokeStyle = fill; ctx.lineWidth = 0.8; ctx.fill(); ctx.stroke();
   }
   return canvas;
+}
+
+/** Rasterise transformed far meshes and authored instances without retaining their render geometry. */
+export function farMapObjects(roots: readonly Object3D[]): HTMLCanvasElement | null {
+  const parts: BufferGeometry[] = [], matrix = new Matrix4();
+  try {
+    for (const root of roots) {
+      root.updateMatrixWorld(true);
+      root.traverse((node) => {
+        if (!(node instanceof Mesh)) return;
+        const geometry: unknown = node.geometry;
+        if (!(geometry instanceof BufferGeometry)) return;
+        const add = (transform: Matrix4): void => {
+          const part = (geometry as BufferGeometry).clone().applyMatrix4(transform);
+          if (!part.hasAttribute('color')) {
+            const materials: unknown = node.material;
+            const material: unknown = Array.isArray(materials) ? materials[0] : materials;
+            const colour = material instanceof Material && 'color' in material && material.color instanceof Color ? material.color : new Color(0.5, 0.5, 0.5);
+            const colours = new Float32Array(part.getAttribute('position').count * 3);
+            for (let i = 0; i < colours.length; i += 3) colours.set([colour.r, colour.g, colour.b], i);
+            part.setAttribute('color', new Float32BufferAttribute(colours, 3));
+          }
+          parts.push(part);
+        };
+        if (node instanceof InstancedMesh) {
+          for (let i = 0; i < node.count; i++) { node.getMatrixAt(i, matrix); matrix.premultiply(node.matrixWorld); add(matrix); }
+        } else add(node.matrixWorld);
+      });
+    }
+    return farMapImage(parts);
+  } finally { for (const part of parts) part.dispose(); }
+}
+
+/** One canvas from admitted far bytes: terrain and props share their actual colours and positions, with no fetch. */
+export async function admittedMapImage(source: { readonly far: { readonly files: readonly string[] } | null; readonly files: readonly { hash: string; kind: string }[]; readonly props: { readonly far: string | null } | null }, assets: ReadonlyMap<string, Uint8Array>): Promise<HTMLCanvasElement | null> {
+  const propFar = source.props?.far;
+  if (propFar === undefined || propFar === null || source.far === null || typeof document === 'undefined') return null;
+  const roots: Object3D[] = [];
+  try {
+    for (const hash of source.far.files) {
+      if (source.files.find((file) => file.hash === hash)?.kind !== 'glb') continue;
+      const bytes = assets.get(hash);
+      if (bytes === undefined) throw new Error('Missing admitted minimap far bytes');
+      roots.push((await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '')).scene);
+    }
+    return farMapObjects(roots);
+  } finally {
+    for (const root of roots) root.traverse((node) => {
+      if (!(node instanceof Mesh)) return;
+      const geometry: unknown = node.geometry, materials: unknown = node.material;
+      if (geometry instanceof BufferGeometry) geometry.dispose();
+      for (const material of Array.isArray(materials) ? materials : [materials]) if (material instanceof Material) material.dispose();
+    });
+  }
+}
+
+/** One map canvas per shared product; either load order combines the terrain and admitted prop silhouettes. */
+export class ProductMinimaps {
+  private readonly maps = new Map<string, { image: HTMLCanvasElement; terrain: boolean }>();
+  constructor(scope: Scope) { scope.onDispose(() => { for (const { image } of this.maps.values()) image.width = image.height = 0; this.maps.clear(); }); }
+  /** The legacy ground proxy supplies its hillshade once, shared by all instances of that product. */
+  terrain(product: string, geometry: BufferGeometry): void {
+    const previous = this.maps.get(product);
+    if (previous?.terrain === true) return;
+    const image = farMapImage(geometry); if (image === null) return;
+    if (previous !== undefined) { image.getContext('2d')?.drawImage(previous.image, 0, 0); previous.image.width = previous.image.height = 0; }
+    this.maps.set(product, { image, terrain: true });
+  }
+  /** Admitted props paint on the same terrain canvas, or wait on a transparent canvas for its ground. */
+  props(product: string, image: HTMLCanvasElement): void {
+    const previous = this.maps.get(product);
+    if (previous === undefined) this.maps.set(product, { image, terrain: false });
+    else { previous.image.getContext('2d')?.drawImage(image, 0, 0); image.width = image.height = 0; }
+  }
+  /** Every copy of a product receives the same canvas. */
+  image(product: string): HTMLCanvasElement | null { return this.maps.get(product)?.image ?? null; }
 }
 
 /** The road network as overlay rectangles in the home frame: the strips' ground over the grid's box, each road band and its centre line. */
@@ -92,18 +173,19 @@ export interface MinimapBlendHost {
 export function minimapOverlay(host: MinimapBlendHost, rects: readonly MapExtraRect[]): MapExtras {
   const { assembly, home } = host, feet = host.worldFeet(), ox = home.origin.x, oz = home.origin.z;
   const inside = host.cells.cell === null ? undefined : assembly.at(feet.x, feet.z);
+  const homeImage = host.image(home.instance);
   const images: MapExtraImage[] = [], labels: MapExtraLabel[] = [];
   if (inside === undefined) {
     // G107 on the road: every cell in view faded, the home's own layer too
     for (const cell of assembly.cells) {
-      if (cell.instance === home.instance) continue;
+      if (cell.instance === home.instance && homeImage === null) continue;
       const image = host.image(cell.instance);
       if (image !== null) images.push({ image, x: cell.origin.x - ox, z: cell.origin.z - oz, size: 2 * CHUNK_HALF, alpha: ROAD_TERRAIN_ALPHA });
     }
-    return { outside: VOID, baseAlpha: ROAD_TERRAIN_ALPHA, rects, images, labels };
+    return { outside: VOID, baseAlpha: homeImage === null ? ROAD_TERRAIN_ALPHA : 0, rects, images, labels };
   }
   // inside a cell: that shard at full strength, the road, the neighbours' names across it
-  if (inside.instance !== home.instance) {
+  if (inside.instance !== home.instance || homeImage !== null) {
     const image = host.image(inside.instance);
     if (image !== null) images.push({ image, x: inside.origin.x - ox, z: inside.origin.z - oz, size: 2 * CHUNK_HALF, alpha: 1 });
   }
@@ -116,7 +198,7 @@ export function minimapOverlay(host: MinimapBlendHost, rects: readonly MapExtraR
     const along = Math.max(-CHUNK_HALF + 40, Math.min(CHUNK_HALF - 40, dx !== 0 ? lz : lx)), across = edgeToRoad + GAP_HALF + 30;
     labels.push({ x: inside.origin.x - ox + (dx !== 0 ? dx * across : along), z: inside.origin.z - oz + (dz !== 0 ? dz * across : along), text: host.name(next), color: NAME });
   }
-  return { outside: VOID, baseAlpha: inside.instance === home.instance ? 1 : 0, rects, images, labels };
+  return { outside: VOID, baseAlpha: inside.instance === home.instance && homeImage === null ? 1 : 0, rects, images, labels };
 }
 
 /** Feed the page's minimap while the grid runs; the overlay leaves with the scope. */

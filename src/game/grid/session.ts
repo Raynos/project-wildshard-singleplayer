@@ -68,7 +68,7 @@ import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 import type { ClientSkin } from '../shardfile/clientSkins';
 import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
-import { farMapImage } from './minimapBlend';
+import { admittedMapImage, ProductMinimaps } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
 import { GridCellWaitingError, classifyRefusal, pageShardRefusals, type FarViewStatus, type ShardRefusal } from './refusal';
@@ -192,8 +192,8 @@ export class GridSession {
   private readonly rings: RenderRings<LevelPrepared<FarPrepared, PreparedRingTile>>;
   private readonly neighbours: readonly GridCell[];
   private readonly costs = new Map<string, number>();
-  /** G107: each loaded neighbour's top-down minimap raster (its far proxy, drawn once) */
-  private readonly mapImages = new Map<string, HTMLCanvasElement>();
+  /** G107: one ground + admitted-props raster per product, shared by all its copies. */
+  private readonly mapImages: ProductMinimaps;
   private readonly strips: readonly GeneratedStrip[];
   private readonly host: GridSessionHost;
   private last: { x: number; z: number } | null = null;
@@ -243,6 +243,7 @@ export class GridSession {
 
   constructor(host: GridSessionHost, edges?: readonly PlatformCell[], allocator?: ResidencyAllocator) {
     this.host = host;
+    this.mapImages = new ProductMinimaps(host.scope);
     const residency = host.residency;
     if (residency === undefined) throw new Error('Grid session requires the early page residency owner');
     if (allocator !== undefined && allocator !== residency.allocator) throw new Error('Grid session must share the page allocator');
@@ -340,7 +341,7 @@ export class GridSession {
         try { loaded = await loadFar(this.assembly.cell(id).slug); } catch (error) { this.farMissing.add(id); throw error; } // G167: no far view, A's fallback
         this.farMissing.delete(id);
         const { prepared, bytes } = loaded; this.costs.set(id, bytes); frame?.declare(id, prepared.look);
-        if (!this.mapImages.has(id)) { const image = farMapImage(prepared.geometry); if (image !== null) this.mapImages.set(id, image); }
+        this.mapImages.terrain(this.assembly.cell(id).slug, prepared.geometry);
         return prepared;
       },
     });
@@ -398,6 +399,9 @@ export class GridSession {
             if (scope.disposed) throw new Error('Grid product view disposed during admission');
             scope.onDispose(retained.release);
             const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
+            const map = await admittedMapImage(source, admitted.assets);
+            if (this.host.scope.disposed) { if (map !== null) map.width = map.height = 0; throw new Error('Grid minimap disposed during admission'); }
+            if (map !== null) this.mapImages.props(cell.slug, map);
             return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
           } catch (error) { retained.release(); throw error; }
         })();
@@ -467,8 +471,8 @@ export class GridSession {
   }
 
   private rebased(mesh: StripMesh): StripMesh { return { ...mesh, origin: { x: mesh.origin.x - this.home.origin.x, z: mesh.origin.z - this.home.origin.z } }; }
-  /** G107: a neighbour's top-down minimap raster once its far proxy has loaded (null before, or for the home) */
-  mapImage(instance: string): HTMLCanvasElement | null { return this.mapImages.get(instance) ?? null; }
+  /** G107: a cell's shared product raster once loaded, including the home when it shares that product. */
+  mapImage(instance: string): HTMLCanvasElement | null { return this.mapImages.image(this.assembly.cell(instance).slug); }
   /** The traveller's feet in grid metres, whatever frame it is in. */
   worldFeet(): { x: number; z: number } { return this.world(); }
 

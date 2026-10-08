@@ -30,6 +30,16 @@ describe('G107 minimap blend', () => {
     expect(road.images.every((m) => m.alpha === ROAD_TERRAIN_ALPHA)).toBe(true);
     expect(road.labels).toHaveLength(0);
   });
+  it('uses the shared authored raster for a home copy too, at full strength inside and faded on the road', () => {
+    const cells = new GridCellEvents(); cells.enter({ instance: home.instance, slug: home.slug });
+    const port = { ...host({ x: home.origin.x, z: home.origin.z }, cells), image: () => image };
+    const inside = minimapOverlay(port, rects);
+    expect(inside.baseAlpha).toBe(0); expect(inside.images).toEqual([{ image, x: 0, z: 0, size: 500, alpha: 1 }]);
+    cells.leave();
+    const road = minimapOverlay({ ...port, worldFeet: () => ({ x: home.origin.x + 277.5, z: home.origin.z }) }, rects);
+    expect(road.baseAlpha).toBe(0); expect(road.images).toHaveLength(assembly.cells.length);
+    expect(road.images.every((row) => row.alpha === ROAD_TERRAIN_ALPHA)).toBe(true);
+  });
 });
 
 describe('G119 crossing save status', () => {
