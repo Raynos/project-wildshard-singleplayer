@@ -1,4 +1,5 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { patchShader, PATCH_ORDER } from '@wildshard/engine/render/shaderPatches';
 import { FIRE_LIGHTS } from './fireFx';
 import { DUSK } from '../look/dusk';
@@ -41,7 +42,8 @@ async function load(name: DuneMeshName): Promise<void> {
     if (pos.length === 0) throw new Error(`${name}: no mesh`);
     const g = new BufferGeometry();
     g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
-    g.computeVertexNormals(); g.computeBoundingBox(); ready.set(name, g);
+    g.computeVertexNormals(); g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
+    cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
   } catch (e: unknown) { console.warn(`[sunscar-dunes] ${name} not loaded, the code model stands in:`, e); }
 }
 
@@ -246,13 +248,14 @@ async function loadHd(name: DuneHdName): Promise<void> {
         }
       }
     });
-    hd.set(name, gltf.scene);
+    retainCachedResources(gltf.scene); hd.set(name, gltf.scene);
+    cacheUntilDisposed(gltf.scene, () => { if (hd.get(name) === gltf.scene) { hd.delete(name); loading = null; } });
   } catch (e: unknown) { console.warn(`[sunscar-dunes] ${name} not loaded, the flat model stands in:`, e); }
 }
 
 /** Load every generated model once (a failed one is skipped). */
 export function preloadDuneMeshes(): Promise<void> {
-  loading ??= Promise.all([...DUNE_MESHES.map(load), ...DUNE_HD.map(loadHd)]).then(() => undefined);
+  loading ??= Promise.all([...DUNE_MESHES.filter(name => !ready.has(name)).map(load), ...DUNE_HD.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
   return loading;
 }
 
