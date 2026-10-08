@@ -9,7 +9,7 @@ import { createLevelInstallation } from '../src/engine/level/installation';
 import type { LevelDriver } from '../src/engine/level/load';
 import { emptyShardfile } from '../src/sdk/author';
 import { RuntimeSchema, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../src/game/shardfile/runtime';
-import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident } from '../src/game/shardfile/hybrid';
+import { HybridResidentWorld, HybridShardPlugin, HybridRuntimeSession, hybridShardManifest, installHybridRuntime, prepareHybridShard, type HybridResident, type HybridRuntimeOptions } from '../src/game/shardfile/hybrid';
 import { emptyShardfileSource } from '../src/game/shardfile/loader';
 import { installEnteredRuntimeService } from '../src/game/shard/retainedHooks';
 import { bindScopedRuntime, createScopedRuntimeBinding } from '../src/game/shard/scopedRuntime';
@@ -25,7 +25,7 @@ import template from '../src/shards/_template/manifest';
 const noop = (): void => undefined;
 const runtime = (): ShardRuntime => ({ world: null, step: null, play: null, hooks: {}, objects: {}, interactables: [], overhead: [], viewer: () => new Vector3(), horizonVeil: null });
 const entry = 'runtime/index.ts';
-function fixture() {
+function fixture(options?: HybridRuntimeOptions) {
   const app = new App(); app.registryValue = new WorldRegistry();
   const parent = runtime(), cells = new GridCellEvents(), calls: string[] = [], bag = new Set<string>();
   const residents = new Map<string, HybridResident>(), games = new Map<string, GameServices>(), roots = new Map<string, Group>();
@@ -72,7 +72,7 @@ function fixture() {
     });
     entries.push({ slug, entry, load: () => { calls.push(`${slug}.import`); return Promise.resolve({ default: plugin(instance) }); } });
   }
-  const session = new HybridRuntimeSession(residents, entries, app.engineScope);
+  const session = new HybridRuntimeSession(residents, entries, app.engineScope, options);
   const census = () => ({ descriptors: Object.getOwnPropertyDescriptors(parent),
     events: app.events.census(), systems: app.systemIds(app.engineScope), debug: app.debug.snapshot(), input: app.input.contexts,
     engineRows: app.levelRegistrations.list('ammo'), knobs: app.levelRegistrations.knobSchemas(), strings: app.levelRegistrations.findText('hybrid.fixture'),
@@ -160,6 +160,22 @@ it('bounds entered hook diagnostics across repeated installations without changi
     expect(timing.completed.every(row => row.instance === 'template-1' && row.outcome === 'done' && row.end >= row.start)).toBe(true);
     expect(f.calls.filter(call => call === 'template-1.play')).toHaveLength(6);
     expect(f.session.state().ready).toBe(false);
+  } finally { f.app.engineScope.dispose(); }
+});
+
+it('keeps readiness closed during entered presentation boundaries and stops after cancellation', async () => {
+  const waiting: (() => void)[] = [], owners: Scope[] = [];
+  const f = fixture({ pause: scope => { owners.push(scope); return new Promise<void>(resolve => { waiting.push(resolve); }); } });
+  try {
+    const pending = f.session.enter({ instance: 'template-1', slug: 'template' });
+    for (let turn = 0; turn < 30; turn++) await Promise.resolve();
+    expect(f.session.state()).toEqual({ instance: 'template-1', ready: false });
+    expect(f.calls).not.toContain('template-1.world');
+    const resume = waiting.shift(); if (resume === undefined) throw new Error('Missing entered pause');
+    f.session.leave(); resume();
+    expect(await pending).toBe(false); expect(f.calls).not.toContain('template-1.world');
+    expect(owners.every(owner => owner.disposed)).toBe(true);
+    expect(f.session.state()).toEqual({ instance: null, ready: false });
   } finally { f.app.engineScope.dispose(); }
 });
 

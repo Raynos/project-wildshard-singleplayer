@@ -49,6 +49,8 @@ export interface HybridHookTiming {
   readonly end: number;
   readonly outcome: 'done' | 'failed';
 }
+/** Optional presentation boundary for grid entered stages; standalone callers keep the existing staged path. */
+export interface HybridRuntimeOptions { readonly pause?: (scope: Scope) => Promise<void> }
 interface ActiveRuntime {
   resident: HybridResident; scope: Scope; ready: boolean;
   retained?: { slots: ScopedRuntimeBinding; hooks: RetainedRuntimeHooks };
@@ -299,7 +301,7 @@ export class HybridRuntimeSession {
   private disposed = false;
   private currentHook: Readonly<Pick<HybridHookTiming, 'instance' | 'hook' | 'start'>> | null = null;
   private readonly completedHooks: HybridHookTiming[] = [];
-  constructor(residents: ReadonlyMap<string, HybridResident>, entries: readonly TrustedRuntimeEntry[], scope: Scope) {
+  constructor(residents: ReadonlyMap<string, HybridResident>, entries: readonly TrustedRuntimeEntry[], scope: Scope, private readonly options: HybridRuntimeOptions = {}) {
     this.residents = residents; this.entries = entries;
     scope.onDispose(() => {
       this.disposed = true; this.leave();
@@ -318,16 +320,20 @@ export class HybridRuntimeSession {
     void prepared.catch(() => { if (this.prepared.get(instance) === prepared) this.prepared.delete(instance); });
     return prepared;
   }
-  private async stage<T>(instance: string, hook: HybridHookTiming['hook'], run: () => T | Promise<T>): Promise<T> {
+  private async stage<T>(scope: Scope, instance: string, hook: HybridHookTiming['hook'], run: () => T | Promise<T>): Promise<T> {
     const current = Object.freeze({ instance, hook, start: diagnosticNow() });
     this.currentHook = current;
     let outcome: HybridHookTiming['outcome'] = 'failed';
-    try { const value = await run(); outcome = 'done'; return value; }
+    let value: T;
+    try { value = await run(); outcome = 'done'; }
     finally {
       this.completedHooks.push(Object.freeze({ ...current, end: diagnosticNow(), outcome }));
       if (this.completedHooks.length > 32) this.completedHooks.shift();
       if (this.currentHook === current) this.currentHook = null;
     }
+    if (this.options.pause !== undefined) await this.options.pause(scope);
+    if (scope.disposed) throw new Error('Hybrid runtime left between entered stages');
+    return value;
   }
   /** Correlate long-task intervals with the current hook and the last 32 completed hooks, including failed installs. */
   timings(): { readonly current: Readonly<Pick<HybridHookTiming, 'instance' | 'hook' | 'start'>> | null; readonly completed: readonly HybridHookTiming[] } {
@@ -364,17 +370,17 @@ export class HybridRuntimeSession {
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
       const context = hooks?.context ?? installation.context;
       const live = (): boolean => !scope.disposed && this.active === active && generation === this.generation;
-      await this.stage(cell.instance, 'beforeWorld', () => withOwner(scope, () => installation.beforeWorld?.(context))); if (!live()) return false;
-      const plugin = await this.stage(cell.instance, 'constructor', () => withOwner(scope, () => new Plugin()));
+      await this.stage(scope, cell.instance, 'beforeWorld', () => withOwner(scope, () => installation.beforeWorld?.(context))); if (!live()) return false;
+      const plugin = await this.stage(scope, cell.instance, 'constructor', () => withOwner(scope, () => new Plugin()));
       if (!live()) return false;
-      await this.stage(cell.instance, 'world', () => withOwner(scope, () => plugin.world?.(context))); if (!live()) return false;
-      await this.stage(cell.instance, 'afterWorld', () => withOwner(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'world', () => withOwner(scope, () => plugin.world?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'afterWorld', () => withOwner(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
       installation.openKit();
-      try { await this.stage(cell.instance, 'kit', () => withOwner(scope, () => plugin.kit?.(context))); } finally { installation.closeKit(); }
+      try { await this.stage(scope, cell.instance, 'kit', () => withOwner(scope, () => plugin.kit?.(context))); } finally { installation.closeKit(); }
       if (!live()) return false;
-      await this.stage(cell.instance, 'afterKit', () => withOwner(scope, () => installation.afterKit?.(context))); if (!live()) return false;
-      await this.stage(cell.instance, 'play', () => withOwner(scope, () => plugin.play?.(context))); if (!live()) return false;
-      await this.stage(cell.instance, 'afterPlay', () => withOwner(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'afterKit', () => withOwner(scope, () => installation.afterKit?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'play', () => withOwner(scope, () => plugin.play?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'afterPlay', () => withOwner(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
       active.ready = true;
       if (active.retained !== undefined) this.retained.set(cell.instance, active);
       return true;
