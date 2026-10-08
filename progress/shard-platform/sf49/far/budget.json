@@ -1,0 +1,7 @@
+{
+  "source": "node scripts/bake/far-proxies.mjs (SF23 far baker), 2026-10-07; caps CONTENT_CAPS.far: resident 1.6 MB, wire 1 MB, 8000 triangles, 1 draw per proxy",
+  "far-reach": { "before": { "residentMB": 0.580, "wireKB": 291, "triangles": 6990, "draws": 1 }, "after": { "residentMB": 0.706, "wireKB": 354, "triangles": 7847, "draws": 1 },
+    "added": "4 gate isles (110 tris each) + 4 resting islets (60 each), decimated from world/isle.ts islandMesh; 16 chains as crossed 0.45 m strands (8 tris each); 4 stone lips; 4 gate-isle pines" },
+  "unchanged": { "_template": 0.460, "driftwood-isle": 0.465, "pine-hollow": 0.460, "nalati-grasslands": 0.460, "sunscar-dunes": 0.460, "nine-dragon-stack": 0.460 },
+  "note": "the other six proxies re-baked byte-identical; the far ring keeps at most farCount proxies resident, so Sky Reach's share grows by 0.126 MB only while it is in the ring"
+}

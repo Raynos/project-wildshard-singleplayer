@@ -1,0 +1,125 @@
+{
+  "url": "http://127.0.0.1:4400",
+  "started": "2026-10-08T00:22:08.932Z",
+  "errors": [],
+  "warnings": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "[baked] terrain for pine-hollow not used (bad header / seed); computing at launch"
+  ],
+  "home": "driftwood-isle",
+  "sky": {
+    "instance": "far-reach",
+    "cell": [
+      0,
+      -1
+    ],
+    "ox": 0,
+    "oz": -555
+  },
+  "1-road-midpoint": {
+    "pose": {
+      "x": 0,
+      "y": 2,
+      "z": -277.5,
+      "yaw": 0,
+      "pitch": 0.12
+    },
+    "screen": null,
+    "inside": null
+  },
+  "2-road-east": {
+    "pose": {
+      "x": 120,
+      "y": 2,
+      "z": -277.5,
+      "yaw": -0.5,
+      "pitch": 0.08
+    },
+    "screen": null,
+    "inside": null
+  },
+  "3-road-west": {
+    "pose": {
+      "x": -120,
+      "y": 2,
+      "z": -277.5,
+      "yaw": 0.5,
+      "pitch": 0.08
+    },
+    "screen": null,
+    "inside": null
+  },
+  "4-above-road": {
+    "pose": {
+      "x": 0,
+      "y": 45,
+      "z": -245,
+      "yaw": 0,
+      "pitch": -0.12
+    },
+    "screen": null,
+    "inside": "driftwood-isle"
+  },
+  "5-g222-sw-corner-west": {
+    "pose": {
+      "x": -150,
+      "y": 2,
+      "z": -280,
+      "yaw": 1.5707963267948966,
+      "pitch": 0.05
+    },
+    "screen": null,
+    "inside": null
+  },
+  "6-g222-se-corner-east": {
+    "pose": {
+      "x": 150,
+      "y": 2,
+      "z": -280,
+      "yaw": -1.5707963267948966,
+      "pitch": 0.05
+    },
+    "screen": null,
+    "inside": null
+  },
+  "7-g222-x279-north": {
+    "pose": {
+      "x": -279,
+      "y": 2,
+      "z": -150,
+      "yaw": 3.141592653589793,
+      "pitch": 0.05
+    },
+    "screen": null,
+    "inside": null
+  },
+  "8-g222-se-corner-close": {
+    "pose": {
+      "x": 240,
+      "y": 2,
+      "z": -280,
+      "yaw": -1.5707963267948966,
+      "pitch": 0.15
+    },
+    "screen": null,
+    "inside": null
+  },
+  "9-g222-pine-north": {
+    "pose": {
+      "x": -279,
+      "y": 2,
+      "z": 400,
+      "yaw": 3.141592653589793,
+      "pitch": 0.05
+    },
+    "screen": null,
+    "inside": null
+  },
+  "edgeFallback": [],
+  "terrainBin": []
+}
