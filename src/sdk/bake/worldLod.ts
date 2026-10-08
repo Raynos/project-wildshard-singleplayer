@@ -1,10 +1,13 @@
 import { MeshoptSimplifier } from 'meshoptimizer/simplifier';
 import type { WorldPrimitive } from './world';
+import type { NativeLatticeTile } from './nativeLattice';
 
 /** Pinned offline WASM simplification; source topology and every attribute stay owned by the author. */
 export const WORLD_LOD_TOOL = 'meshoptimizer@1.2.0';
 /** Actual triangle count and the tool's absolute appearance-error estimate, including float-position allowance. */
 export interface WorldLod { primitive: WorldPrimitive; errorMetres: number; sourceTriangles: number; triangles: number }
+/** Native render-only L1 result; actual counts can exceed the requested ratio because every border remains locked. */
+export interface NativeLatticeLod { tile: NativeLatticeTile; errorMetres: number; sourceTriangles: number; triangles: number }
 
 function attributes(primitive: WorldPrimitive, vertices: number): { data: Float32Array; stride: number; weights: number[] } {
   const rows: { data: Float32Array; width: number }[] = [];
@@ -64,4 +67,64 @@ export async function simplifyWorldPrimitive(source: WorldPrimitive, targetRatio
     if (output.length < indices.length) errorMetres = error + allowance;
   }
   return { primitive: compact(source, selected), errorMetres, sourceTriangles: indices.length / 3, triangles: selected.length / 3 };
+}
+
+/** Simplify an already clipped native L1 tile with the pinned WASM tool, retaining exact surviving vertices and channels.
+ * Tile and hole borders stay locked; collision and L0 are never changed. All channels participate with unit weights
+ * (at most 32 components, the tool's limit). The absolute appearance-error estimate includes float32 conversion;
+ * it is not a measured Hausdorff bound or a promise to reach the ratio. Charge the returned geometry, not the target.
+ */
+export async function simplifyNativeLatticeTile(source: NativeLatticeTile, targetRatio: number, maxErrorMetres: number): Promise<NativeLatticeLod> {
+  const vertices = source.positions.length / 3, indices = source.indices;
+  if (source.lod !== 1 || source.size !== 125 || ![source.x, source.z].every(value => Number.isInteger(value) && value >= 0 && value < 4)
+    || !(source.positions instanceof Float64Array) || !Number.isInteger(vertices) || vertices > 100_000
+    || source.positions.some(value => !Number.isFinite(value) || Math.abs(value) > 250) || !(indices instanceof Uint32Array)
+    || indices.length > 600_000 || indices.length % 3 !== 0 || indices.some(index => index >= vertices)
+    || (indices.length === 0 && vertices !== 0)) throw new Error('Native L1 invalid bounded tile');
+  const minX = -250 + source.x * 125, minZ = -250 + source.z * 125;
+  if ([...source.bounds.min, ...source.bounds.max].some(value => !Number.isFinite(value) || Math.abs(value) > 250)
+    || source.bounds.min[0] !== minX || source.bounds.max[0] !== minX + 125 || source.bounds.min[2] !== minZ || source.bounds.max[2] !== minZ + 125
+    || source.bounds.min[1] > source.bounds.max[1] || source.positions.some((value, at) => value < (source.bounds.min[at % 3] ?? Infinity) || value > (source.bounds.max[at % 3] ?? -Infinity))) throw new Error('Native L1 invalid tile bounds');
+  if (!Number.isFinite(targetRatio) || targetRatio <= 0 || targetRatio > 1 || !Number.isFinite(maxErrorMetres) || maxErrorMetres <= 0 || maxErrorMetres > 500) throw new Error('Native L1 invalid ratio or error');
+  const channels = Object.entries(source.attributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
+  const stride = channels.reduce((sum, [, channel]) => sum + channel.itemSize, 0);
+  if (channels.length > 16 || stride > 32) throw new Error('Native L1 simplifier attribute cap (32 components)');
+  for (const [name, channel] of channels) if (!/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/u.test(name) || name === 'position'
+    || !Number.isInteger(channel.itemSize) || channel.itemSize < 1 || channel.itemSize > 4 || !(channel.values instanceof Float64Array)
+    || channel.values.length !== vertices * channel.itemSize || channel.values.some(value => !Number.isFinite(Math.fround(value)))) throw new Error(`Native L1 invalid channel ${name}`);
+  const positions = Float32Array.from(source.positions), data = new Float32Array(vertices * stride);
+  let quantization = 0;
+  for (let vertex = 0; vertex < vertices; vertex++) {
+    let squared = 0, offset = 0;
+    for (let c = 0; c < 3; c++) squared += ((source.positions[vertex * 3 + c] ?? 0) - (positions[vertex * 3 + c] ?? 0)) ** 2;
+    for (const [, channel] of channels) for (let c = 0; c < channel.itemSize; c++) {
+      const value = channel.values[vertex * channel.itemSize + c] ?? 0, rounded = Math.fround(value);
+      data[vertex * stride + offset++] = rounded; squared += (value - rounded) ** 2;
+    }
+    quantization = Math.max(quantization, Math.sqrt(squared));
+  }
+  const allowance = quantization * 2, target = Math.max(3, Math.floor(indices.length / 3 * targetRatio) * 3);
+  let selected = Uint32Array.from(indices), errorMetres = 0;
+  if (target < indices.length && allowance < maxErrorMetres) {
+    if (!MeshoptSimplifier.supported) throw new Error('Native L1 WASM is unavailable');
+    await MeshoptSimplifier.ready;
+    const [output, error] = MeshoptSimplifier.simplifyWithAttributes(indices, positions, 3, data, stride, Array.from({ length: stride }, () => 1), null, target, maxErrorMetres - allowance, ['LockBorder', 'ErrorAbsolute']);
+    if (!Number.isFinite(error) || error < 0 || error + allowance > maxErrorMetres || output.length < 3 || output.length > indices.length || output.length % 3 !== 0) throw new Error('Native L1 invalid simplifier output');
+    selected = Uint32Array.from(output); if (output.length < indices.length) errorMetres = error + allowance;
+  }
+  const remap = new Map<number, number>(), kept: number[] = [];
+  const compactIndices = selected.map(vertex => {
+    let at = remap.get(vertex);
+    if (at === undefined) { at = kept.length; remap.set(vertex, at); kept.push(vertex); }
+    return at;
+  });
+  const copy = (values: Float64Array, width: number): Float64Array => {
+    const output = new Float64Array(kept.length * width);
+    kept.forEach((vertex, at) => output.set(values.subarray(vertex * width, (vertex + 1) * width), at * width));
+    return output;
+  };
+  const outputAttributes: NativeLatticeTile['attributes'] = {};
+  for (const [name, channel] of channels) outputAttributes[name] = { itemSize: channel.itemSize, values: copy(channel.values, channel.itemSize) };
+  return { tile: { ...source, positions: copy(source.positions, 3), indices: compactIndices, attributes: outputAttributes,
+    bounds: { min: [...source.bounds.min], max: [...source.bounds.max] } }, errorMetres, sourceTriangles: indices.length / 3, triangles: selected.length / 3 };
 }
