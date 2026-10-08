@@ -75,8 +75,12 @@ export function installGridHud(host: GridHudHost): () => GridHudState {
   let arrived = false; // the page's own arrival (the late subscriber's first call) shows no card: the reveal named it
   scope.onDispose(cells.onEnter((cell) => {
     if (!arrived) return;
-    const { name, subtitle } = host.title(cell);
-    cardName.textContent = name; cardSub.textContent = subtitle; shownCard = name;
+    const title = host.title(cell);
+    // Shared products can have several independent copies: the stable instance identifies this card.
+    const number = /-(\d+)$/u.exec(cell.instance)?.[1];
+    const copy = number === undefined ? '' : ` · ${number}`;
+    const name = `${title.name}${copy}`;
+    cardName.textContent = name; cardSub.textContent = title.subtitle; shownCard = name;
     card.classList.remove('show'); void card.offsetWidth; card.classList.add('show');
     cardTimer?.();
     let live = true; cardTimer = () => { live = false; };
