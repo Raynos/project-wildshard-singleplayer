@@ -4,7 +4,6 @@
   "prepared": false,
   "remaining": [
     "Native entered cost: three valid cold Simulator entries, every failure retained; relative Simulator evidence only.",
-    "Standalone parent/candidate phone and desktop parity.",
     "Desktop/Simulator frame floor.",
     "SF49-p mechanical runtime relocation and its 19 SF62 findings remain a separate port."
   ],
@@ -23,16 +22,22 @@
       "edgeFallbacks": [],
       "routes": [
         {
-          "name": null,
-          "result": null
+          "name": "north-road-to-lip",
+          "seconds": 8.797400000095367,
+          "from": null,
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "north-board",
+          "seconds": 1.465,
+          "from": "far-reach",
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "north-gate-bridge-island",
+          "seconds": 47.02659999990463,
+          "from": "far-reach",
+          "to": "far-reach"
         }
       ],
       "enteredIslandModelMB": 773.64,
@@ -78,16 +83,22 @@
       "edgeFallbacks": [],
       "routes": [
         {
-          "name": null,
-          "result": null
+          "name": "east-road-to-lip",
+          "seconds": 7.989400000095367,
+          "from": null,
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "east-board",
+          "seconds": 1.4325,
+          "from": "far-reach",
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "east-gate-bridge-island",
+          "seconds": 37.75959999990463,
+          "from": "far-reach",
+          "to": "far-reach"
         }
       ],
       "enteredIslandModelMB": 784.5,
@@ -133,16 +144,22 @@
       "edgeFallbacks": [],
       "routes": [
         {
-          "name": null,
-          "result": null
+          "name": "south-road-to-lip",
+          "seconds": 7.955699999809265,
+          "from": null,
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "south-board",
+          "seconds": 1.4653999996185303,
+          "from": "far-reach",
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "south-gate-bridge-island",
+          "seconds": 31.687800000190734,
+          "from": "far-reach",
+          "to": "far-reach"
         }
       ],
       "enteredIslandModelMB": 766.85,
@@ -188,16 +205,22 @@
       "edgeFallbacks": [],
       "routes": [
         {
-          "name": null,
-          "result": null
+          "name": "west-road-to-lip",
+          "seconds": 7.98210000038147,
+          "from": null,
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "west-board",
+          "seconds": 1.4656999998092652,
+          "from": "far-reach",
+          "to": "far-reach"
         },
         {
-          "name": null,
-          "result": null
+          "name": "west-gate-bridge-island",
+          "seconds": 35.597300000190735,
+          "from": "far-reach",
+          "to": "far-reach"
         }
       ],
       "enteredIslandModelMB": 817.09,
@@ -261,5 +284,13 @@
         "gzipSha256": "b0d16ec271f9ce5ebfea1cca6b493d497da52c128541720eed76646fb8fd7204"
       }
     }
-  ]
+  ],
+  "standaloneParity": {
+    "pass": true,
+    "parent": "bb91db4b0",
+    "current": "82f724fc9",
+    "tiers": 2,
+    "poses": 4,
+    "minSSIM": 0.9999922920249958
+  }
 }
