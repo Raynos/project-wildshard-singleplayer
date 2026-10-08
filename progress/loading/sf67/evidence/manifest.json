@@ -1,0 +1,187 @@
+{
+  "matched": {
+    "before": {
+      "captures": {
+        "file": "before-captures.json.gz",
+        "sha256": "b928a106ea890c47625ce11007f0dabe60f563b0199b654ce061d212299c800c",
+        "decodedBytes": 299420
+      },
+      "tasks": {
+        "file": "before-tasks.json.gz",
+        "sha256": "77c8cc78377500da25600e6955396c1058c5e828c9541ba7f26311efb9e709af",
+        "decodedBytes": 618266
+      },
+      "traces": [
+        {
+          "file": "_template-cold.trace.json",
+          "bytes": 95534650,
+          "sha256": "359b883260ecce9e0d776f75cdb9a99c6fbc738a2b243b4f23d6f5e18826e54c"
+        },
+        {
+          "file": "_template-warm.trace.json",
+          "bytes": 63578167,
+          "sha256": "d42d6f55eb2833d3404c636490302a8637a949b9945dbadafe3e17bf23931447"
+        },
+        {
+          "file": "driftwood-isle-cold.trace.json",
+          "bytes": 74541995,
+          "sha256": "09c88c4bd3e2c4c18085aedf8d9c8e7385d531c2074e689591d4e35028806506"
+        },
+        {
+          "file": "driftwood-isle-warm.trace.json",
+          "bytes": 62688624,
+          "sha256": "8ae306ce6f4fe55c4e1cc317e083a66c80a3e743d659183e7efc5168fdb69489"
+        },
+        {
+          "file": "nalati-grasslands-cold.trace.json",
+          "bytes": 93322653,
+          "sha256": "ce37efaed4b3131295769fa5fbad06655d849f151c5ab26de8323f0a8893f991"
+        },
+        {
+          "file": "nalati-grasslands-warm.trace.json",
+          "bytes": 82870959,
+          "sha256": "abd1455db63cda48fb6138154596a3d18a24d8ed7875b96457821725856b9bd9"
+        },
+        {
+          "file": "pine-hollow-cold.trace.json",
+          "bytes": 130292441,
+          "sha256": "f30ff6d0224e25b3050f005bf570e442cf26f26c4675a93e55063de901136cac"
+        },
+        {
+          "file": "pine-hollow-warm.trace.json",
+          "bytes": 118782116,
+          "sha256": "8bd724d0170f327841eaf21b596190204ed75a17de80249489de7a33515397f5"
+        }
+      ]
+    },
+    "after": {
+      "captures": {
+        "file": "after-captures.json.gz",
+        "sha256": "a5b7f05babbe9ba70a4bb0609456643540d3a5a9b9fa492c5219d500794be55f",
+        "decodedBytes": 303561
+      },
+      "tasks": {
+        "file": "after-tasks.json.gz",
+        "sha256": "c7e0dbc5c48a55364ec040e60f763357af85e48a2ded41918fe8fb8f9f254ad5",
+        "decodedBytes": 600098
+      },
+      "traces": [
+        {
+          "file": "_template-cold.trace.json",
+          "bytes": 96532072,
+          "sha256": "3637e3da0e863e5d0a28156849967bc93d7c560800ea36e6784ff28507ed6784"
+        },
+        {
+          "file": "_template-warm.trace.json",
+          "bytes": 60906898,
+          "sha256": "b85a0e3e4ad94599d0a59692964502cfc4420af3e11b7f93af12b828ecc05c34"
+        },
+        {
+          "file": "driftwood-isle-cold.trace.json",
+          "bytes": 77424428,
+          "sha256": "2abdde986b78d6cb2b46db8f3ce48dabcbb8996d5f50bf7c0ceb5a756efdbe18"
+        },
+        {
+          "file": "driftwood-isle-warm.trace.json",
+          "bytes": 66145499,
+          "sha256": "0b8beabbdce19803ed69e53f155e477be89e352885741f5e71929530a5fccd05"
+        },
+        {
+          "file": "nalati-grasslands-cold.trace.json",
+          "bytes": 94297864,
+          "sha256": "4cab9cccc5e95cffaf92dbcc20ac2fb2fb1baddb501e2774c1b0744972d49813"
+        },
+        {
+          "file": "nalati-grasslands-warm.trace.json",
+          "bytes": 79648335,
+          "sha256": "798348f2e8dfd66635347aa422088c85d84985e28d67bdeba6f8dbb01c7e781a"
+        },
+        {
+          "file": "pine-hollow-cold.trace.json",
+          "bytes": 133394258,
+          "sha256": "73490048e5e3469e5f07a581c9cbe0fdba87db2f9cf743e23820ad04c2413391"
+        },
+        {
+          "file": "pine-hollow-warm.trace.json",
+          "bytes": 120663145,
+          "sha256": "42bb40ac411db7aa81325592331565b8e0bdd086f5e85b42d2c43a4ea3293990"
+        }
+      ]
+    }
+  },
+  "exploratory": {
+    "before": {
+      "captures": {
+        "file": "exploratory-before-captures.json.gz",
+        "sha256": "9a02eda0fcdf17630d39a7b21e8ca948b5d335fa4a352aa9b9d67fc61d998be3",
+        "decodedBytes": 293546
+      },
+      "tasks": {
+        "file": "exploratory-before-tasks.json.gz",
+        "sha256": "0ad6b403874eb58b4b51d58590ab3ee8f877f1e74ae58f9501758dafa7c70a44",
+        "decodedBytes": 653987
+      },
+      "status": "accepted playable observations; not primary, batches separated by builds and concurrent machine load"
+    },
+    "after": {
+      "captures": {
+        "file": "exploratory-after-captures.json.gz",
+        "sha256": "1342e0d2049e173a97e3860b9f2a721f8140073e2aae9944b5c4921231a18c6a",
+        "decodedBytes": 302689
+      },
+      "tasks": {
+        "file": "exploratory-after-tasks.json.gz",
+        "sha256": "b9707a03b6c2e68edc2353db407427cc6b5b279fd15f5f2d1c26b857dc92485e",
+        "decodedBytes": 674773
+      },
+      "status": "accepted playable observations; not primary, batches separated by builds and concurrent machine load"
+    }
+  },
+  "tracePolicy": "Full Chromium traces are transient scratch; their hashes identify the analyzed inputs. Committed source-mapped task tables retain every >50 ms task and CPU owner samples; scalar captures retain clocks, progress and resources.",
+  "rejected": {
+    "file": "rejected-harness.json.gz",
+    "sha256": "75fb62e5099794b1319e418caaf3f31ce61d40192f8b39ecf6be7f0535aeece0",
+    "decodedBytes": 16706
+  },
+  "verification": {
+    "fullPin": "11da76006ae289a9096f98ba878801a31e27cc43",
+    "movedModulePin": "ea86348048d1d5a527fda632dbe8b03e2ad7e9ad",
+    "files": {
+      "fullSuite": {
+        "file": "check-clean-vitest.log.gz",
+        "sha256": "69e03b99dbfcb9ac54501bdf99ae28c6e99ab61bf387bf578f778dab6701f52c",
+        "decodedBytes": 65828
+      },
+      "typecheck": {
+        "file": "check-clean-tsc.log.gz",
+        "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+        "decodedBytes": 0
+      },
+      "typedLint": {
+        "file": "check-clean-lint.log.gz",
+        "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+        "decodedBytes": 0
+      },
+      "movedTypecheck": {
+        "file": "check-moved-tsc.log.gz",
+        "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+        "decodedBytes": 0
+      },
+      "movedTypedLint": {
+        "file": "check-moved-lint.log.gz",
+        "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+        "decodedBytes": 0
+      },
+      "movedFocused": {
+        "file": "check-moved-vitest.log.gz",
+        "sha256": "55a824c96c694be6f72af9d2df7502ca2edd78cfb0858ca60dd7da0ffbc3ae2b",
+        "decodedBytes": 628
+      },
+      "fullFolderTypedLint": {
+        "file": "check-final-tool-lint.log.gz",
+        "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+        "decodedBytes": 0
+      }
+    }
+  }
+}

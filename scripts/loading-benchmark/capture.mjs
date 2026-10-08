@@ -11,7 +11,7 @@
 // Writes <out>/<shard>-<cache>.trace.json (raw, scratch) and <out>/<shard>-<cache>.json (steps, long tasks, metrics).
 // analyze.mjs turns those into the ranked long-task table.
 import { mkdirSync, createWriteStream, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve as resolvePath } from 'node:path';
 import { chromium, devices } from 'playwright';
 import { saveFixture } from '../debug-settings.mjs';
 
@@ -24,7 +24,7 @@ if (!VERSION.build?.startsWith(PIN.slice(0, 7))) throw new Error('Preview pin mi
 const SHARDS = arg('shards', 'driftwood-isle').split(',');
 const CACHES = arg('cache', 'cold,warm').split(',');
 const CPU = Number(arg('cpu', '4'));
-const OUT = resolve(arg('out', '.'));
+const OUT = resolvePath(arg('out', '.'));
 const TRACE = arg('trace', '1') === '1';
 const TIMEOUT = Number(arg('timeout', '240')) * 1000;
 mkdirSync(OUT, { recursive: true });
@@ -73,13 +73,13 @@ async function traced(fn, file) {
   let result;
   try { result = await fn(); }
   finally {
-    const done = new Promise((r) => cdpBrowser.once('Tracing.tracingComplete', r));
+    const done = new Promise((resolve) => { cdpBrowser.once('Tracing.tracingComplete', resolve); });
     await cdpBrowser.send('Tracing.end');
     const { stream } = await done;
     const out = createWriteStream(file);
     for (;;) { const { data, eof, base64Encoded } = await cdpBrowser.send('IO.read', { handle: stream, size: 4 << 20 }); out.write(base64Encoded ? Buffer.from(data, 'base64') : data); if (eof) break; }
     await cdpBrowser.send('IO.close', { handle: stream });
-    await new Promise((r) => out.end(r));
+    await new Promise((resolve) => { out.end(resolve); });
   }
   return result;
 }
@@ -92,7 +92,7 @@ for (const shard of SHARDS) {
   if (shard.startsWith('_') || arg('dev', '0') === '1') await saveFixture(ctx, { scope: 'device', key: 'devMode', data: true });
   for (const cache of CACHES) {
     const page = await ctx.newPage();
-    const errors = []; page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 300)));
+    const errors = []; page.on('pageerror', (e) => errors.push(e.message.slice(0, 300)));
     page.on('response', (response) => { if (response.status() >= 400) errors.push(`HTTP ${response.status()}: ${response.url()}`); });
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text().slice(0, 300)}`); });
     const navs = []; page.on('framenavigated', (f) => { if (f === page.mainFrame()) navs.push([Date.now(), f.url()]); });
@@ -107,12 +107,12 @@ for (const shard of SHARDS) {
     // pick the card by its visible name
     const idx = await page.evaluate((name) => { const cards = [...document.querySelectorAll('.ws-menu-card')]; const i = cards.findIndex((c) => (c.querySelector('b')?.textContent ?? '').toLowerCase().includes(name.toLowerCase())); return { i, names: cards.map((c) => c.querySelector('b')?.textContent) }; }, NAMES[shard] ?? shard);
     if (idx.i < 0) { console.error(`${shard}: no card (${idx.names.join(', ')})`); await page.close(); continue; }
-    const file = resolve(OUT, `${shard}-${cache}.trace.json`);
+    const file = resolvePath(OUT, `${shard}-${cache}.trace.json`);
     let status = 'ok'; let tapAt = 0;
     const m = await traced(async () => {
       await page.evaluate((i) => { document.querySelector(`.ws-menu-dots i[data-i="${i}"]`)?.click(); }, idx.i);
       await page.waitForTimeout(600);
-      await page.waitForFunction((i) => document.querySelector('.ws-menu-card.selected')?.getAttribute('data-i') === String(i), idx.i, { timeout: 3000 });
+      await page.waitForFunction((i) => document.querySelector('.ws-menu-card.selected')?.dataset.i === String(i), idx.i, { timeout: 3000 });
       tapAt = Date.now();
       const compiled = page.locator('.ws-menu-shardfile');
       const enter = await compiled.isVisible() && await compiled.isEnabled() ? compiled : page.locator('.ws-menu-play');
@@ -129,7 +129,7 @@ for (const shard of SHARDS) {
       return page.evaluate(COLLECT);
     }, file);
     const rec = { pin: PIN, version: VERSION, shard, cache, cpu: CPU, status, navs, tapAt, tapToOriginMs: m.timeOrigin - tapAt, errors, ...m };
-    writeFileSync(resolve(OUT, `${shard}-${cache}.json`), JSON.stringify(rec, null, 1));
+    writeFileSync(resolvePath(OUT, `${shard}-${cache}.json`), JSON.stringify(rec, null, 1));
     const lt = m.long.filter((l) => l[1] > 50);
     console.log(`${shard} ${cache}: ${status} play=${m.playMs}ms (+${Math.round(m.timeOrigin - tapAt)} nav) long>50=${lt.length} sum=${lt.reduce((s, l) => s + l[1], 0)} max=${Math.max(0, ...lt.map((l) => l[1]))} heap=${m.heapMB}MB progs=${m.programs} errs=${errors.length}`);
     await page.close();

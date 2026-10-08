@@ -67,7 +67,7 @@ function analyze(base) {
     cursor.set(e.id, t);
   }
   samples.sort((a, b) => a[0] - b[0]);
-  const frameKey = (cf) => { const m = mapFrame(cf.url, cf.lineNumber, cf.columnNumber); const fn = cf.functionName || '(anon)';
+  const frameKey = (cf) => { const m = mapFrame(cf.url, cf.lineNumber, cf.columnNumber); const fn = cf.functionName === '' ? '(anon)' : (cf.functionName ?? '(anon)');
     if (m) return `${m.name && m.name !== fn ? `${fn}~${m.name}` : fn} ${m.src}:${m.line}`;
     return cf.url ? `${fn} ${basename(cf.url).slice(0, 40)}:${cf.lineNumber + 1}` : fn; };
   const keyCache = new Map(); const fk = (id) => { if (!keyCache.has(id)) keyCache.set(id, frameKey(nodes.get(id).cf)); return keyCache.get(id); };

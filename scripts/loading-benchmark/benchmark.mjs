@@ -29,7 +29,7 @@ export function loadingReport(pin, device, captures, analyses) {
       if (start < end && next >= start) phases.push({ name, startMs: start, endMs: next, owner: phaseOwner(name, capture.shard) });
     }
     const longTasks = analysis.longTasks.filter(task => task.durMs > 50 && task.atMs < capture.playMs && task.atMs + task.durMs > 0).map(task => {
-      const first = task.appLeaf[0], owner = first?.[0]?.replaceAll(/src\/src\//gu, 'src/') ?? 'unattributed: no app CPU sample in this main-thread task';
+      const first = task.appLeaf[0], owner = first?.[0]?.replaceAll(['src', 'src', ''].join('/'), 'src/') ?? 'unattributed: no app CPU sample in this main-thread task';
       if (!first) missing.push(`${base} task ${task.atMs}ms: app owner unavailable; duration is measured.`);
       return { startMs: Math.max(0, offset + task.atMs), durationMs: task.durMs, owner };
     });

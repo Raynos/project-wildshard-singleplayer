@@ -32,4 +32,4 @@ A separate synthetic four-times CPU diagnostic is retained (6.507 / 6.257 s). CD
 
 Focused checks: 33 first-paint, loading handoff, title-intent, literal-text and product tests; 23 product/content-cache checks after the cache change; root strict and scoped typed lint green. First-paint test executes the actual HTML script with application imports blocked and checks metadata, clock, resource bytes and handoff cleanup. Legacy non-product completion, one-panel adoption and admission byte preservation are covered. The serialized coordinator owns the final gate and push.
 
-E458 progress source is complete locally; the ask closes after its green serialized push. SF67 remains open for measured Simulator loading, long-task attribution and the freezes themselves. No phone chores are assigned to Jake.
+E458 progress source and this receipt are pushed through `b7c71be8a` with green local gates. SF67 remains open for measured Simulator loading and the freezes themselves; its later [matched desktop report](../../loading/sf67/README.md) includes playable Pine cold/warm after the separately owned texture fix. No phone chores are assigned to Jake.

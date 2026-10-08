@@ -1,0 +1,5841 @@
+{
+  "schema": "loading-benchmark/1",
+  "pin": "19e647272191b6e823bd6dd7caf06b71780052f4",
+  "device": "Desktop Chromium/Metal; iPhone 16 Pro 402x874 portrait emulation, DPR 3, 4x CPU; muted",
+  "runs": [
+    {
+      "shard": "_template",
+      "cache": "cold",
+      "timeToPlayableMs": 5793.89990234375,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 121.89990234375,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 121.89990234375,
+          "endMs": 391.89990234375,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "admission.descriptor",
+          "startMs": 391.89990234375,
+          "endMs": 513.89990234375,
+          "owner": "src/game/shardfile/loader.ts"
+        },
+        {
+          "name": "admission.cache-read",
+          "startMs": 513.89990234375,
+          "endMs": 754.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 754.89990234375,
+          "endMs": 775.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 775.89990234375,
+          "endMs": 775.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 775.89990234375,
+          "endMs": 775.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 775.89990234375,
+          "endMs": 775.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 775.89990234375,
+          "endMs": 776.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 776.89990234375,
+          "endMs": 776.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 776.89990234375,
+          "endMs": 780.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 780.89990234375,
+          "endMs": 780.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 780.89990234375,
+          "endMs": 787.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 787.89990234375,
+          "endMs": 787.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 787.89990234375,
+          "endMs": 789.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 789.89990234375,
+          "endMs": 789.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 789.89990234375,
+          "endMs": 789.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 789.89990234375,
+          "endMs": 789.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 789.89990234375,
+          "endMs": 790.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 790.89990234375,
+          "endMs": 790.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 790.89990234375,
+          "endMs": 799.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 799.89990234375,
+          "endMs": 799.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 799.89990234375,
+          "endMs": 799.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 799.89990234375,
+          "endMs": 800.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 800.89990234375,
+          "endMs": 800.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 800.89990234375,
+          "endMs": 800.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 800.89990234375,
+          "endMs": 800.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 800.89990234375,
+          "endMs": 800.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 800.89990234375,
+          "endMs": 806.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 806.89990234375,
+          "endMs": 806.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 806.89990234375,
+          "endMs": 807.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 807.89990234375,
+          "endMs": 807.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 807.89990234375,
+          "endMs": 807.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 807.89990234375,
+          "endMs": 807.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 807.89990234375,
+          "endMs": 808.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 808.89990234375,
+          "endMs": 808.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 808.89990234375,
+          "endMs": 814.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 814.89990234375,
+          "endMs": 814.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 814.89990234375,
+          "endMs": 816.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 816.89990234375,
+          "endMs": 816.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 816.89990234375,
+          "endMs": 818.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 818.89990234375,
+          "endMs": 818.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 818.89990234375,
+          "endMs": 820.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 820.89990234375,
+          "endMs": 820.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 820.89990234375,
+          "endMs": 826.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 826.89990234375,
+          "endMs": 826.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 826.89990234375,
+          "endMs": 827.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 827.89990234375,
+          "endMs": 827.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 827.89990234375,
+          "endMs": 832.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 832.89990234375,
+          "endMs": 832.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 832.89990234375,
+          "endMs": 832.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 832.89990234375,
+          "endMs": 832.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 832.89990234375,
+          "endMs": 839.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 839.89990234375,
+          "endMs": 839.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 839.89990234375,
+          "endMs": 840.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 840.89990234375,
+          "endMs": 841.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 841.89990234375,
+          "endMs": 841.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 841.89990234375,
+          "endMs": 841.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 841.89990234375,
+          "endMs": 841.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 841.89990234375,
+          "endMs": 841.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 841.89990234375,
+          "endMs": 848.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 848.89990234375,
+          "endMs": 848.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 848.89990234375,
+          "endMs": 852.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 852.89990234375,
+          "endMs": 852.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 852.89990234375,
+          "endMs": 854.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 854.89990234375,
+          "endMs": 854.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 854.89990234375,
+          "endMs": 855.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 855.89990234375,
+          "endMs": 855.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 855.89990234375,
+          "endMs": 860.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 860.89990234375,
+          "endMs": 860.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 860.89990234375,
+          "endMs": 861.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 861.89990234375,
+          "endMs": 861.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 861.89990234375,
+          "endMs": 862.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 862.89990234375,
+          "endMs": 862.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 862.89990234375,
+          "endMs": 866.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 866.89990234375,
+          "endMs": 866.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 866.89990234375,
+          "endMs": 871.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 871.89990234375,
+          "endMs": 871.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 871.89990234375,
+          "endMs": 872.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 872.89990234375,
+          "endMs": 872.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 872.89990234375,
+          "endMs": 874.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 874.89990234375,
+          "endMs": 874.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 874.89990234375,
+          "endMs": 875.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 875.89990234375,
+          "endMs": 875.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 875.89990234375,
+          "endMs": 882.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 882.89990234375,
+          "endMs": 882.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 882.89990234375,
+          "endMs": 884.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 884.89990234375,
+          "endMs": 884.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 884.89990234375,
+          "endMs": 887.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 887.89990234375,
+          "endMs": 887.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 887.89990234375,
+          "endMs": 888.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 888.89990234375,
+          "endMs": 888.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 888.89990234375,
+          "endMs": 898.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 898.89990234375,
+          "endMs": 898.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 898.89990234375,
+          "endMs": 899.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 899.89990234375,
+          "endMs": 899.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 899.89990234375,
+          "endMs": 907.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 907.89990234375,
+          "endMs": 907.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 907.89990234375,
+          "endMs": 919.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 919.89990234375,
+          "endMs": 919.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 919.89990234375,
+          "endMs": 926.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 926.89990234375,
+          "endMs": 926.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 926.89990234375,
+          "endMs": 927.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 927.89990234375,
+          "endMs": 927.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 927.89990234375,
+          "endMs": 927.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 927.89990234375,
+          "endMs": 927.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 927.89990234375,
+          "endMs": 929.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 929.89990234375,
+          "endMs": 929.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 929.89990234375,
+          "endMs": 936.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 936.89990234375,
+          "endMs": 936.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 936.89990234375,
+          "endMs": 938.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 938.89990234375,
+          "endMs": 938.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 938.89990234375,
+          "endMs": 939.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 939.89990234375,
+          "endMs": 939.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 939.89990234375,
+          "endMs": 940.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 940.89990234375,
+          "endMs": 940.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 940.89990234375,
+          "endMs": 956.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 956.89990234375,
+          "endMs": 956.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 956.89990234375,
+          "endMs": 956.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 956.89990234375,
+          "endMs": 956.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 956.89990234375,
+          "endMs": 957.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 957.89990234375,
+          "endMs": 957.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 957.89990234375,
+          "endMs": 958.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 958.89990234375,
+          "endMs": 958.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 958.89990234375,
+          "endMs": 966.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 966.89990234375,
+          "endMs": 966.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 966.89990234375,
+          "endMs": 969.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 969.89990234375,
+          "endMs": 969.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 969.89990234375,
+          "endMs": 972.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 972.89990234375,
+          "endMs": 972.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 972.89990234375,
+          "endMs": 973.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 973.89990234375,
+          "endMs": 973.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 973.89990234375,
+          "endMs": 982.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 982.89990234375,
+          "endMs": 982.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 982.89990234375,
+          "endMs": 983.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 983.89990234375,
+          "endMs": 983.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 983.89990234375,
+          "endMs": 983.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 983.89990234375,
+          "endMs": 983.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 983.89990234375,
+          "endMs": 983.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 983.89990234375,
+          "endMs": 983.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 983.89990234375,
+          "endMs": 989.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 989.89990234375,
+          "endMs": 989.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 989.89990234375,
+          "endMs": 989.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 989.89990234375,
+          "endMs": 989.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 989.89990234375,
+          "endMs": 990.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 990.89990234375,
+          "endMs": 991.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 991.89990234375,
+          "endMs": 991.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 991.89990234375,
+          "endMs": 991.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 991.89990234375,
+          "endMs": 998.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 998.89990234375,
+          "endMs": 998.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 998.89990234375,
+          "endMs": 999.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 999.89990234375,
+          "endMs": 999.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 999.89990234375,
+          "endMs": 1003.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1003.89990234375,
+          "endMs": 1003.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1003.89990234375,
+          "endMs": 1006.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1006.89990234375,
+          "endMs": 1006.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1006.89990234375,
+          "endMs": 1015.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1015.89990234375,
+          "endMs": 1015.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1015.89990234375,
+          "endMs": 1015.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1015.89990234375,
+          "endMs": 1015.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1015.89990234375,
+          "endMs": 1015.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1015.89990234375,
+          "endMs": 1015.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1015.89990234375,
+          "endMs": 1016.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1016.89990234375,
+          "endMs": 1016.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1016.89990234375,
+          "endMs": 1021.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1021.89990234375,
+          "endMs": 1021.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1021.89990234375,
+          "endMs": 1023.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1023.89990234375,
+          "endMs": 1023.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1023.89990234375,
+          "endMs": 1023.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1023.89990234375,
+          "endMs": 1023.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1023.89990234375,
+          "endMs": 1024.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1024.89990234375,
+          "endMs": 1024.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1024.89990234375,
+          "endMs": 1032.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1032.89990234375,
+          "endMs": 1032.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1032.89990234375,
+          "endMs": 1032.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1032.89990234375,
+          "endMs": 1032.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1032.89990234375,
+          "endMs": 1033.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1033.89990234375,
+          "endMs": 1033.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1033.89990234375,
+          "endMs": 1033.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1033.89990234375,
+          "endMs": 1033.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1033.89990234375,
+          "endMs": 1042.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1042.89990234375,
+          "endMs": 1042.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1042.89990234375,
+          "endMs": 1042.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1042.89990234375,
+          "endMs": 1042.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1042.89990234375,
+          "endMs": 1043.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1043.89990234375,
+          "endMs": 1043.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1043.89990234375,
+          "endMs": 1043.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1043.89990234375,
+          "endMs": 1043.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1043.89990234375,
+          "endMs": 1054.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1054.89990234375,
+          "endMs": 1054.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1054.89990234375,
+          "endMs": 1055.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1055.89990234375,
+          "endMs": 1056.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1056.89990234375,
+          "endMs": 1056.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1056.89990234375,
+          "endMs": 1056.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1056.89990234375,
+          "endMs": 1057.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1057.89990234375,
+          "endMs": 1057.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1057.89990234375,
+          "endMs": 1066.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1066.89990234375,
+          "endMs": 1066.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1066.89990234375,
+          "endMs": 1067.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1067.89990234375,
+          "endMs": 1067.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1067.89990234375,
+          "endMs": 1070.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1070.89990234375,
+          "endMs": 1070.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1070.89990234375,
+          "endMs": 1070.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1070.89990234375,
+          "endMs": 1070.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1070.89990234375,
+          "endMs": 1075.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1075.89990234375,
+          "endMs": 1075.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1075.89990234375,
+          "endMs": 1076.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1076.89990234375,
+          "endMs": 1076.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1076.89990234375,
+          "endMs": 1083.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1083.89990234375,
+          "endMs": 1083.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1083.89990234375,
+          "endMs": 1084.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1084.89990234375,
+          "endMs": 1084.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1084.89990234375,
+          "endMs": 1090.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1090.89990234375,
+          "endMs": 1090.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1090.89990234375,
+          "endMs": 1091.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1091.89990234375,
+          "endMs": 1091.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1091.89990234375,
+          "endMs": 1092.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1092.89990234375,
+          "endMs": 1092.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1092.89990234375,
+          "endMs": 1092.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1092.89990234375,
+          "endMs": 1092.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1092.89990234375,
+          "endMs": 1104.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1104.89990234375,
+          "endMs": 1104.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1104.89990234375,
+          "endMs": 1104.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1104.89990234375,
+          "endMs": 1104.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1104.89990234375,
+          "endMs": 1105.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1105.89990234375,
+          "endMs": 1105.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1105.89990234375,
+          "endMs": 1106.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1106.89990234375,
+          "endMs": 1106.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1106.89990234375,
+          "endMs": 1115.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1115.89990234375,
+          "endMs": 1115.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1115.89990234375,
+          "endMs": 1117.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1117.89990234375,
+          "endMs": 1117.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1117.89990234375,
+          "endMs": 1117.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1117.89990234375,
+          "endMs": 1117.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1117.89990234375,
+          "endMs": 1127.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1127.89990234375,
+          "endMs": 1128.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1128.89990234375,
+          "endMs": 1139.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1139.89990234375,
+          "endMs": 1139.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1139.89990234375,
+          "endMs": 1139.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1139.89990234375,
+          "endMs": 1139.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1139.89990234375,
+          "endMs": 1141.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1141.89990234375,
+          "endMs": 1141.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1141.89990234375,
+          "endMs": 1144.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1144.89990234375,
+          "endMs": 1144.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1144.89990234375,
+          "endMs": 1156.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1156.89990234375,
+          "endMs": 1156.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1156.89990234375,
+          "endMs": 1157.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1157.89990234375,
+          "endMs": 1157.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1157.89990234375,
+          "endMs": 1158.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1158.89990234375,
+          "endMs": 1158.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1158.89990234375,
+          "endMs": 1165.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1165.89990234375,
+          "endMs": 1165.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1165.89990234375,
+          "endMs": 1172.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1172.89990234375,
+          "endMs": 1172.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1172.89990234375,
+          "endMs": 1172.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1172.89990234375,
+          "endMs": 1172.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1172.89990234375,
+          "endMs": 1174.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1174.89990234375,
+          "endMs": 1175.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1175.89990234375,
+          "endMs": 1175.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1175.89990234375,
+          "endMs": 1175.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1175.89990234375,
+          "endMs": 1211.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1211.89990234375,
+          "endMs": 1211.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1211.89990234375,
+          "endMs": 1212.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1212.89990234375,
+          "endMs": 1212.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1212.89990234375,
+          "endMs": 1212.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1212.89990234375,
+          "endMs": 1212.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1212.89990234375,
+          "endMs": 1216.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1216.89990234375,
+          "endMs": 1216.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1216.89990234375,
+          "endMs": 1239.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1239.89990234375,
+          "endMs": 1239.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1239.89990234375,
+          "endMs": 1240.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1240.89990234375,
+          "endMs": 1240.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1240.89990234375,
+          "endMs": 1248.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1248.89990234375,
+          "endMs": 1248.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1248.89990234375,
+          "endMs": 1249.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1249.89990234375,
+          "endMs": 1249.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1249.89990234375,
+          "endMs": 1255.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1255.89990234375,
+          "endMs": 1255.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1255.89990234375,
+          "endMs": 1255.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1255.89990234375,
+          "endMs": 1255.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1255.89990234375,
+          "endMs": 1257.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1257.89990234375,
+          "endMs": 1257.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1257.89990234375,
+          "endMs": 1257.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1257.89990234375,
+          "endMs": 1257.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1257.89990234375,
+          "endMs": 1265.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1265.89990234375,
+          "endMs": 1265.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1265.89990234375,
+          "endMs": 1266.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1266.89990234375,
+          "endMs": 1266.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1266.89990234375,
+          "endMs": 1269.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1269.89990234375,
+          "endMs": 1269.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1269.89990234375,
+          "endMs": 1270.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1270.89990234375,
+          "endMs": 1270.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1270.89990234375,
+          "endMs": 1277.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1277.89990234375,
+          "endMs": 1277.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1277.89990234375,
+          "endMs": 1281.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1281.89990234375,
+          "endMs": 1281.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1281.89990234375,
+          "endMs": 1282.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1282.89990234375,
+          "endMs": 1282.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1282.89990234375,
+          "endMs": 1283.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1283.89990234375,
+          "endMs": 1283.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1283.89990234375,
+          "endMs": 1290.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1290.89990234375,
+          "endMs": 1290.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1290.89990234375,
+          "endMs": 1291.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1291.89990234375,
+          "endMs": 1291.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1291.89990234375,
+          "endMs": 1291.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1291.89990234375,
+          "endMs": 1291.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1291.89990234375,
+          "endMs": 1293.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1293.89990234375,
+          "endMs": 1293.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1293.89990234375,
+          "endMs": 1308.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1308.89990234375,
+          "endMs": 1309.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1309.89990234375,
+          "endMs": 1309.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1309.89990234375,
+          "endMs": 1309.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1309.89990234375,
+          "endMs": 1309.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1309.89990234375,
+          "endMs": 1309.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1309.89990234375,
+          "endMs": 1310.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1310.89990234375,
+          "endMs": 1310.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1310.89990234375,
+          "endMs": 1319.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1319.89990234375,
+          "endMs": 1319.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1319.89990234375,
+          "endMs": 1319.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1319.89990234375,
+          "endMs": 1319.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1319.89990234375,
+          "endMs": 1320.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1320.89990234375,
+          "endMs": 1320.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1320.89990234375,
+          "endMs": 1320.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1320.89990234375,
+          "endMs": 1320.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1320.89990234375,
+          "endMs": 1325.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1325.89990234375,
+          "endMs": 1325.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1325.89990234375,
+          "endMs": 1326.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1326.89990234375,
+          "endMs": 1326.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1326.89990234375,
+          "endMs": 1326.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1326.89990234375,
+          "endMs": 1326.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1326.89990234375,
+          "endMs": 1329.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1329.89990234375,
+          "endMs": 1330.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1330.89990234375,
+          "endMs": 1335.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1335.89990234375,
+          "endMs": 1335.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1335.89990234375,
+          "endMs": 1336.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1336.89990234375,
+          "endMs": 1336.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1336.89990234375,
+          "endMs": 1336.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1336.89990234375,
+          "endMs": 1336.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1336.89990234375,
+          "endMs": 2090.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.cache",
+          "startMs": 2090.89990234375,
+          "endMs": 3398.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.complete",
+          "startMs": 3398.89990234375,
+          "endMs": 3503.89990234375,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 3503.89990234375,
+          "endMs": 3514.89990234375,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 3514.89990234375,
+          "endMs": 3632.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 3632.89990234375,
+          "endMs": 3684.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 3684.89990234375,
+          "endMs": 3722.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 3722.89990234375,
+          "endMs": 3776.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 3776.89990234375,
+          "endMs": 3804.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 3804.89990234375,
+          "endMs": 3841.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 3841.89990234375,
+          "endMs": 3887.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 3887.89990234375,
+          "endMs": 3902.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 3902.89990234375,
+          "endMs": 3923.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 3923.89990234375,
+          "endMs": 4137.89990234375,
+          "owner": "shard _template: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 4137.89990234375,
+          "endMs": 4190.89990234375,
+          "owner": "shard _template: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 4190.89990234375,
+          "endMs": 4395.89990234375,
+          "owner": "shard _template: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 4395.89990234375,
+          "endMs": 4837.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 4837.89990234375,
+          "endMs": 5293.89990234375,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 5293.89990234375,
+          "endMs": 5545.89990234375,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 5545.89990234375,
+          "endMs": 5793.89990234375,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 403.04390234375,
+          "durationMs": 110.833,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 518.00990234375,
+          "durationMs": 238.052,
+          "owner": "(anon) src/game/shardfile/budget.ts:34"
+        },
+        {
+          "startMs": 1336.56490234375,
+          "durationMs": 755.179,
+          "owner": "(anon) src/game/shardfile/budget.ts:34"
+        },
+        {
+          "startMs": 3455.98690234375,
+          "durationMs": 124.56,
+          "owner": "(anon) src/engine/render/renderer.ts:28"
+        },
+        {
+          "startMs": 3912.65390234375,
+          "durationMs": 202.468,
+          "owner": "Ea src/engine/world/terrainTileView.ts:61"
+        },
+        {
+          "startMs": 4312.40890234375,
+          "durationMs": 51.313,
+          "owner": "fit src/engine/ui/Minimap.ts:497"
+        },
+        {
+          "startMs": 4478.88590234375,
+          "durationMs": 253.146,
+          "owner": "graph src/engine/audio/Audio.ts:172"
+        },
+        {
+          "startMs": 4760.56190234375,
+          "durationMs": 78.21,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        },
+        {
+          "startMs": 5309.20590234375,
+          "durationMs": 60.4,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        }
+      ]
+    },
+    {
+      "shard": "_template",
+      "cache": "warm",
+      "timeToPlayableMs": 4966.5,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 115.5,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 115.5,
+          "endMs": 313.5,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "admission.descriptor",
+          "startMs": 313.5,
+          "endMs": 425.5,
+          "owner": "src/game/shardfile/loader.ts"
+        },
+        {
+          "name": "admission.cache-read",
+          "startMs": 425.5,
+          "endMs": 683.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 683.5,
+          "endMs": 724.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 724.5,
+          "endMs": 724.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 724.5,
+          "endMs": 737.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 737.5,
+          "endMs": 737.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 737.5,
+          "endMs": 741.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 741.5,
+          "endMs": 742.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 742.5,
+          "endMs": 748.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 748.5,
+          "endMs": 748.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 748.5,
+          "endMs": 751.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 751.5,
+          "endMs": 751.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 751.5,
+          "endMs": 755.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 755.5,
+          "endMs": 755.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 755.5,
+          "endMs": 759.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 759.5,
+          "endMs": 759.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 759.5,
+          "endMs": 766.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 766.5,
+          "endMs": 766.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 766.5,
+          "endMs": 771.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 771.5,
+          "endMs": 771.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 771.5,
+          "endMs": 774.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 774.5,
+          "endMs": 774.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 774.5,
+          "endMs": 781.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 781.5,
+          "endMs": 781.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 781.5,
+          "endMs": 785.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 785.5,
+          "endMs": 785.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 785.5,
+          "endMs": 789.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 789.5,
+          "endMs": 789.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 789.5,
+          "endMs": 792.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 792.5,
+          "endMs": 792.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 792.5,
+          "endMs": 799.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 799.5,
+          "endMs": 799.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 799.5,
+          "endMs": 801.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 801.5,
+          "endMs": 801.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 801.5,
+          "endMs": 806.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 806.5,
+          "endMs": 806.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 806.5,
+          "endMs": 808.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 808.5,
+          "endMs": 808.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 808.5,
+          "endMs": 815.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 815.5,
+          "endMs": 815.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 815.5,
+          "endMs": 818.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 818.5,
+          "endMs": 818.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 818.5,
+          "endMs": 821.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 821.5,
+          "endMs": 821.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 821.5,
+          "endMs": 824.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 824.5,
+          "endMs": 824.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 824.5,
+          "endMs": 829.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 829.5,
+          "endMs": 829.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 829.5,
+          "endMs": 832.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 832.5,
+          "endMs": 832.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 832.5,
+          "endMs": 836.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 836.5,
+          "endMs": 836.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 836.5,
+          "endMs": 839.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 839.5,
+          "endMs": 839.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 839.5,
+          "endMs": 841.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 841.5,
+          "endMs": 841.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 841.5,
+          "endMs": 846.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 846.5,
+          "endMs": 846.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 846.5,
+          "endMs": 850.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 850.5,
+          "endMs": 850.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 850.5,
+          "endMs": 853.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 853.5,
+          "endMs": 853.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 853.5,
+          "endMs": 855.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 855.5,
+          "endMs": 855.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 855.5,
+          "endMs": 858.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 858.5,
+          "endMs": 858.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 858.5,
+          "endMs": 864.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 864.5,
+          "endMs": 864.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 864.5,
+          "endMs": 868.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 868.5,
+          "endMs": 868.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 868.5,
+          "endMs": 870.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 870.5,
+          "endMs": 870.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 870.5,
+          "endMs": 873.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 873.5,
+          "endMs": 873.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 873.5,
+          "endMs": 877.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 877.5,
+          "endMs": 877.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 877.5,
+          "endMs": 881.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 881.5,
+          "endMs": 881.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 881.5,
+          "endMs": 884.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 884.5,
+          "endMs": 884.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 884.5,
+          "endMs": 887.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 887.5,
+          "endMs": 887.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 887.5,
+          "endMs": 890.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 890.5,
+          "endMs": 890.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 890.5,
+          "endMs": 892.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 892.5,
+          "endMs": 892.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 892.5,
+          "endMs": 898.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 898.5,
+          "endMs": 898.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 898.5,
+          "endMs": 901.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 901.5,
+          "endMs": 901.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 901.5,
+          "endMs": 904.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 904.5,
+          "endMs": 904.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 904.5,
+          "endMs": 906.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 906.5,
+          "endMs": 906.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 906.5,
+          "endMs": 915.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 915.5,
+          "endMs": 915.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 915.5,
+          "endMs": 919.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 919.5,
+          "endMs": 919.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 919.5,
+          "endMs": 922.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 922.5,
+          "endMs": 922.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 922.5,
+          "endMs": 926.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 926.5,
+          "endMs": 926.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 926.5,
+          "endMs": 931.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 931.5,
+          "endMs": 931.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 931.5,
+          "endMs": 934.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 934.5,
+          "endMs": 934.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 934.5,
+          "endMs": 937.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 937.5,
+          "endMs": 938.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 938.5,
+          "endMs": 940.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 940.5,
+          "endMs": 940.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 940.5,
+          "endMs": 946.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 946.5,
+          "endMs": 946.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 946.5,
+          "endMs": 949.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 949.5,
+          "endMs": 949.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 949.5,
+          "endMs": 952.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 952.5,
+          "endMs": 952.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 952.5,
+          "endMs": 956.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 956.5,
+          "endMs": 956.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 956.5,
+          "endMs": 961.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 961.5,
+          "endMs": 961.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 961.5,
+          "endMs": 965.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 965.5,
+          "endMs": 965.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 965.5,
+          "endMs": 969.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 969.5,
+          "endMs": 969.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 969.5,
+          "endMs": 973.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 973.5,
+          "endMs": 973.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 973.5,
+          "endMs": 979.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 979.5,
+          "endMs": 979.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 979.5,
+          "endMs": 982.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 982.5,
+          "endMs": 982.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 982.5,
+          "endMs": 986.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 986.5,
+          "endMs": 986.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 986.5,
+          "endMs": 989.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 989.5,
+          "endMs": 989.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 989.5,
+          "endMs": 992.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 992.5,
+          "endMs": 992.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 992.5,
+          "endMs": 998.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 998.5,
+          "endMs": 998.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 998.5,
+          "endMs": 1001.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1001.5,
+          "endMs": 1001.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1001.5,
+          "endMs": 1004.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1004.5,
+          "endMs": 1004.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1004.5,
+          "endMs": 1007.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1007.5,
+          "endMs": 1007.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1007.5,
+          "endMs": 1012.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1012.5,
+          "endMs": 1012.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1012.5,
+          "endMs": 1017.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1017.5,
+          "endMs": 1017.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1017.5,
+          "endMs": 1020.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1020.5,
+          "endMs": 1020.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1020.5,
+          "endMs": 1023.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1023.5,
+          "endMs": 1023.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1023.5,
+          "endMs": 1029.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1029.5,
+          "endMs": 1029.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1029.5,
+          "endMs": 1033.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1033.5,
+          "endMs": 1033.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1033.5,
+          "endMs": 1036.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1036.5,
+          "endMs": 1036.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1036.5,
+          "endMs": 1040.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1040.5,
+          "endMs": 1040.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1040.5,
+          "endMs": 1046.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1046.5,
+          "endMs": 1046.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1046.5,
+          "endMs": 1050.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1050.5,
+          "endMs": 1050.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1050.5,
+          "endMs": 1052.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1052.5,
+          "endMs": 1052.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1052.5,
+          "endMs": 1056.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1056.5,
+          "endMs": 1056.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1056.5,
+          "endMs": 1059.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1059.5,
+          "endMs": 1059.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1059.5,
+          "endMs": 1067.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1067.5,
+          "endMs": 1067.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1067.5,
+          "endMs": 1070.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1070.5,
+          "endMs": 1070.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1070.5,
+          "endMs": 1073.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1073.5,
+          "endMs": 1073.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1073.5,
+          "endMs": 1078.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1078.5,
+          "endMs": 1078.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1078.5,
+          "endMs": 1083.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1083.5,
+          "endMs": 1083.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1083.5,
+          "endMs": 1085.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1085.5,
+          "endMs": 1085.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1085.5,
+          "endMs": 1088.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1088.5,
+          "endMs": 1088.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1088.5,
+          "endMs": 1092.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1092.5,
+          "endMs": 1092.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1092.5,
+          "endMs": 1098.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1098.5,
+          "endMs": 1098.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1098.5,
+          "endMs": 1101.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1101.5,
+          "endMs": 1101.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1101.5,
+          "endMs": 1104.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1104.5,
+          "endMs": 1104.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1104.5,
+          "endMs": 1108.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1108.5,
+          "endMs": 1108.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1108.5,
+          "endMs": 1115.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1115.5,
+          "endMs": 1115.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1115.5,
+          "endMs": 1118.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1118.5,
+          "endMs": 1118.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1118.5,
+          "endMs": 1121.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1121.5,
+          "endMs": 1122.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1122.5,
+          "endMs": 1126.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1126.5,
+          "endMs": 1126.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1126.5,
+          "endMs": 1132.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1132.5,
+          "endMs": 1132.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1132.5,
+          "endMs": 1137.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1137.5,
+          "endMs": 1137.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1137.5,
+          "endMs": 1140.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1140.5,
+          "endMs": 1140.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1140.5,
+          "endMs": 1145.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1145.5,
+          "endMs": 1145.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1145.5,
+          "endMs": 1149.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1149.5,
+          "endMs": 1149.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1149.5,
+          "endMs": 1152.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1152.5,
+          "endMs": 1152.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1152.5,
+          "endMs": 1156.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1156.5,
+          "endMs": 1156.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1156.5,
+          "endMs": 1159.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1159.5,
+          "endMs": 1159.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1159.5,
+          "endMs": 1166.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1166.5,
+          "endMs": 1166.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1166.5,
+          "endMs": 1169.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1169.5,
+          "endMs": 1169.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1169.5,
+          "endMs": 1172.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1172.5,
+          "endMs": 1172.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1172.5,
+          "endMs": 1176.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1176.5,
+          "endMs": 1176.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1176.5,
+          "endMs": 1185.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1185.5,
+          "endMs": 1185.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1185.5,
+          "endMs": 1188.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1188.5,
+          "endMs": 1188.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1188.5,
+          "endMs": 1191.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1191.5,
+          "endMs": 1191.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1191.5,
+          "endMs": 1197.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1197.5,
+          "endMs": 1197.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1197.5,
+          "endMs": 1200.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1200.5,
+          "endMs": 1201.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1201.5,
+          "endMs": 1204.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1204.5,
+          "endMs": 1204.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1204.5,
+          "endMs": 1206.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1206.5,
+          "endMs": 1206.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1206.5,
+          "endMs": 1214.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1214.5,
+          "endMs": 1214.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1214.5,
+          "endMs": 1220.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1220.5,
+          "endMs": 1220.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1220.5,
+          "endMs": 1223.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1223.5,
+          "endMs": 1223.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1223.5,
+          "endMs": 1229.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1229.5,
+          "endMs": 1230.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1230.5,
+          "endMs": 1232.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1232.5,
+          "endMs": 1232.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1232.5,
+          "endMs": 1236.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1236.5,
+          "endMs": 1237.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1237.5,
+          "endMs": 1240.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1240.5,
+          "endMs": 1240.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1240.5,
+          "endMs": 1246.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1246.5,
+          "endMs": 1247.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1247.5,
+          "endMs": 1250.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1250.5,
+          "endMs": 1250.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1250.5,
+          "endMs": 1255.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1255.5,
+          "endMs": 1255.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1255.5,
+          "endMs": 1258.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1258.5,
+          "endMs": 1258.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1258.5,
+          "endMs": 1265.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1265.5,
+          "endMs": 1265.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1265.5,
+          "endMs": 1269.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1269.5,
+          "endMs": 1269.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1269.5,
+          "endMs": 1274.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1274.5,
+          "endMs": 1274.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1274.5,
+          "endMs": 1280.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1280.5,
+          "endMs": 1280.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1280.5,
+          "endMs": 1285.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1285.5,
+          "endMs": 1285.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1285.5,
+          "endMs": 1289.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1289.5,
+          "endMs": 1289.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1289.5,
+          "endMs": 1296.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1296.5,
+          "endMs": 1296.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1296.5,
+          "endMs": 1300.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1300.5,
+          "endMs": 1300.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1300.5,
+          "endMs": 1307.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1307.5,
+          "endMs": 1307.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1307.5,
+          "endMs": 1308.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1308.5,
+          "endMs": 1308.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1308.5,
+          "endMs": 1309.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1309.5,
+          "endMs": 1309.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1309.5,
+          "endMs": 1314.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1314.5,
+          "endMs": 1315.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1315.5,
+          "endMs": 1323.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1323.5,
+          "endMs": 1323.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1323.5,
+          "endMs": 1329.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1329.5,
+          "endMs": 1329.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1329.5,
+          "endMs": 1332.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1332.5,
+          "endMs": 1332.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1332.5,
+          "endMs": 1336.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1336.5,
+          "endMs": 1336.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1336.5,
+          "endMs": 1340.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1340.5,
+          "endMs": 1340.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1340.5,
+          "endMs": 1345.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1345.5,
+          "endMs": 1345.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1345.5,
+          "endMs": 1349.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1349.5,
+          "endMs": 1349.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1349.5,
+          "endMs": 1353.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1353.5,
+          "endMs": 1353.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1353.5,
+          "endMs": 1357.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1357.5,
+          "endMs": 1357.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1357.5,
+          "endMs": 1363.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1363.5,
+          "endMs": 1363.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1363.5,
+          "endMs": 1366.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1366.5,
+          "endMs": 1367.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1367.5,
+          "endMs": 1370.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1370.5,
+          "endMs": 1370.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1370.5,
+          "endMs": 1374.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1374.5,
+          "endMs": 1374.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1374.5,
+          "endMs": 1379.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1379.5,
+          "endMs": 1379.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1379.5,
+          "endMs": 1383.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1383.5,
+          "endMs": 1383.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1383.5,
+          "endMs": 1387.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1387.5,
+          "endMs": 1387.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1387.5,
+          "endMs": 1390.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1390.5,
+          "endMs": 1390.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1390.5,
+          "endMs": 1396.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1396.5,
+          "endMs": 1396.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1396.5,
+          "endMs": 1399.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1399.5,
+          "endMs": 1400.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1400.5,
+          "endMs": 1403.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1403.5,
+          "endMs": 1403.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1403.5,
+          "endMs": 1407.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1407.5,
+          "endMs": 1407.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1407.5,
+          "endMs": 1413.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1413.5,
+          "endMs": 1413.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1413.5,
+          "endMs": 1417.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1417.5,
+          "endMs": 1417.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1417.5,
+          "endMs": 1421.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1421.5,
+          "endMs": 1421.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1421.5,
+          "endMs": 1424.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.hash",
+          "startMs": 1424.5,
+          "endMs": 1424.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.assets",
+          "startMs": 1424.5,
+          "endMs": 2121.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.cache",
+          "startMs": 2121.5,
+          "endMs": 2806.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.complete",
+          "startMs": 2806.5,
+          "endMs": 2902.5,
+          "owner": "src/game/shardfile/product.ts"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 2902.5,
+          "endMs": 2909.5,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 2909.5,
+          "endMs": 2992.5,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 2992.5,
+          "endMs": 3056.5,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 3056.5,
+          "endMs": 3079.5,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 3079.5,
+          "endMs": 3111.5,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 3111.5,
+          "endMs": 3121.5,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 3121.5,
+          "endMs": 3159.5,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 3159.5,
+          "endMs": 3196.5,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 3196.5,
+          "endMs": 3209.5,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 3209.5,
+          "endMs": 3232.5,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 3232.5,
+          "endMs": 3439.5,
+          "owner": "shard _template: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 3439.5,
+          "endMs": 3477.5,
+          "owner": "shard _template: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 3477.5,
+          "endMs": 3649.5,
+          "owner": "shard _template: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 3649.5,
+          "endMs": 4077.5,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 4077.5,
+          "endMs": 4471.5,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 4471.5,
+          "endMs": 4699.5,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 4699.5,
+          "endMs": 4966.5,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 316.902,
+          "durationMs": 108.158,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 430.863,
+          "durationMs": 253.29,
+          "owner": "(anon) src/game/shardfile/budget.ts:34"
+        },
+        {
+          "startMs": 1423.948,
+          "durationMs": 697.388,
+          "owner": "(anon) src/game/shardfile/budget.ts:34"
+        },
+        {
+          "startMs": 2859.403,
+          "durationMs": 107.72,
+          "owner": "(anon) src/engine/render/renderer.ts:28"
+        },
+        {
+          "startMs": 3221.79,
+          "durationMs": 194.858,
+          "owner": "Ea src/engine/world/terrainTileView.ts:61"
+        },
+        {
+          "startMs": 3736.515,
+          "durationMs": 246.46,
+          "owner": "restore src/engine/script/lane.ts:104"
+        },
+        {
+          "startMs": 4010.64,
+          "durationMs": 67.354,
+          "owner": "buildComposer src/engine/core/Game.ts:467"
+        },
+        {
+          "startMs": 4478.042,
+          "durationMs": 56.42,
+          "owner": "t.renderBufferDirect src/engine/render/gpuLabels.ts:240"
+        }
+      ]
+    },
+    {
+      "shard": "driftwood-isle",
+      "cache": "cold",
+      "timeToPlayableMs": 7015.39990234375,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 88.39990234375,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 88.39990234375,
+          "endMs": 532.39990234375,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 532.39990234375,
+          "endMs": 591.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 591.39990234375,
+          "endMs": 955.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 955.39990234375,
+          "endMs": 1147.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 1147.39990234375,
+          "endMs": 1168.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 1168.39990234375,
+          "endMs": 1175.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 1175.39990234375,
+          "endMs": 1229.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 1229.39990234375,
+          "endMs": 1267.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 1267.39990234375,
+          "endMs": 1273.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 1273.39990234375,
+          "endMs": 1283.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 1283.39990234375,
+          "endMs": 4799.39990234375,
+          "owner": "shard driftwood-isle: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 4799.39990234375,
+          "endMs": 4994.39990234375,
+          "owner": "shard driftwood-isle: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 4994.39990234375,
+          "endMs": 5164.39990234375,
+          "owner": "shard driftwood-isle: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 5164.39990234375,
+          "endMs": 5759.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 5759.39990234375,
+          "endMs": 6247.39990234375,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 6247.39990234375,
+          "endMs": 6547.39990234375,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 6547.39990234375,
+          "endMs": 7015.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 422.19090234375,
+          "durationMs": 69.133,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 507.56490234375,
+          "durationMs": 72.447,
+          "owner": "(anon) src/engine/boot/shardPrefetch.ts:100"
+        },
+        {
+          "startMs": 612.25190234375,
+          "durationMs": 60.127,
+          "owner": "tv src/engine/physics/navmesh.ts:54"
+        },
+        {
+          "startMs": 809.35890234375,
+          "durationMs": 123.67,
+          "owner": "j src/shards/driftwood-isle/look/stylizedSky.ts:143"
+        },
+        {
+          "startMs": 1343.98890234375,
+          "durationMs": 245.383,
+          "owner": "(anon) src/game/shardfile/budget.ts:34"
+        },
+        {
+          "startMs": 1723.55990234375,
+          "durationMs": 128.206,
+          "owner": "ti src/shards/driftwood-isle/models/pier.ts:235"
+        },
+        {
+          "startMs": 1862.10890234375,
+          "durationMs": 506.441,
+          "owner": "St.world.createCollider src/engine/physics/Physics.ts:43"
+        },
+        {
+          "startMs": 2377.77290234375,
+          "durationMs": 86.63,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 2476.10890234375,
+          "durationMs": 130.862,
+          "owner": "I src/engine/world/lowpolyKit.ts:296"
+        },
+        {
+          "startMs": 2617.68290234375,
+          "durationMs": 162.586,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 2784.35390234375,
+          "durationMs": 187.879,
+          "owner": "build src/shards/driftwood-isle/models/shrine.ts:105"
+        },
+        {
+          "startMs": 3021.83490234375,
+          "durationMs": 160.438,
+          "owner": "es src/shards/driftwood-isle/models/hibiscusBush.ts:151"
+        },
+        {
+          "startMs": 3185.35590234375,
+          "durationMs": 113.461,
+          "owner": "build src/shards/driftwood-isle/models/trailside.ts:53"
+        },
+        {
+          "startMs": 3301.09290234375,
+          "durationMs": 58.144,
+          "owner": "Zs src/shards/driftwood-isle/models/reef.ts:66"
+        },
+        {
+          "startMs": 3360.94690234375,
+          "durationMs": 164.391,
+          "owner": "x src/engine/world/geometryKit.ts:82"
+        },
+        {
+          "startMs": 3527.37590234375,
+          "durationMs": 320.998,
+          "owner": "sc src/shards/driftwood-isle/models/palm.ts:45"
+        },
+        {
+          "startMs": 3939.75590234375,
+          "durationMs": 747.785,
+          "owner": "coverTriangles src/shards/driftwood-isle/world/islandInstances.ts:206"
+        },
+        {
+          "startMs": 4695.67990234375,
+          "durationMs": 93.532,
+          "owner": "m src/engine/core/gpuOnly.ts:47"
+        },
+        {
+          "startMs": 5182.35590234375,
+          "durationMs": 63.386,
+          "owner": "ze src/engine/ui/DebugMenu.ts:52"
+        },
+        {
+          "startMs": 5324.12690234375,
+          "durationMs": 116.311,
+          "owner": "finish src/engine/world/lowpolyKit.ts:126"
+        },
+        {
+          "startMs": 5470.35990234375,
+          "durationMs": 288.922,
+          "owner": "g src/engine/world/shadowChunks.ts:74"
+        },
+        {
+          "startMs": 6182.37490234375,
+          "durationMs": 55.645,
+          "owner": "z src/engine/render/precompile.ts:287"
+        },
+        {
+          "startMs": 6249.47890234375,
+          "durationMs": 113.708,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        }
+      ]
+    },
+    {
+      "shard": "driftwood-isle",
+      "cache": "warm",
+      "timeToPlayableMs": 6644.199951171875,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 94.199951171875,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 94.199951171875,
+          "endMs": 432.199951171875,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 432.199951171875,
+          "endMs": 500.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 500.199951171875,
+          "endMs": 835.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 835.199951171875,
+          "endMs": 993.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 993.199951171875,
+          "endMs": 1016.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 1016.199951171875,
+          "endMs": 1026.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 1026.199951171875,
+          "endMs": 1077.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 1077.199951171875,
+          "endMs": 1115.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 1115.199951171875,
+          "endMs": 1123.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 1123.199951171875,
+          "endMs": 1130.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 1130.199951171875,
+          "endMs": 4538.199951171875,
+          "owner": "shard driftwood-isle: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 4538.199951171875,
+          "endMs": 4721.199951171875,
+          "owner": "shard driftwood-isle: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 4721.199951171875,
+          "endMs": 4849.199951171875,
+          "owner": "shard driftwood-isle: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 4849.199951171875,
+          "endMs": 5416.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 5416.199951171875,
+          "endMs": 5873.199951171875,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 5873.199951171875,
+          "endMs": 6178.199951171875,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 6178.199951171875,
+          "endMs": 6644.199951171875,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 329.408951171875,
+          "durationMs": 67.984,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 406.320951171875,
+          "durationMs": 83.596,
+          "owner": "(anon) src/engine/render/renderer.ts:28"
+        },
+        {
+          "startMs": 545.617951171875,
+          "durationMs": 55.167,
+          "owner": "tv src/engine/physics/navmesh.ts:54"
+        },
+        {
+          "startMs": 715.420951171875,
+          "durationMs": 110.032,
+          "owner": "j src/shards/driftwood-isle/look/stylizedSky.ts:143"
+        },
+        {
+          "startMs": 1209.735951171875,
+          "durationMs": 244.956,
+          "owner": "(anon) src/game/shardfile/budget.ts:34"
+        },
+        {
+          "startMs": 1519.824951171875,
+          "durationMs": 122.094,
+          "owner": "build src/shards/driftwood-isle/world/Ocean.ts:60"
+        },
+        {
+          "startMs": 1645.671951171875,
+          "durationMs": 498.634,
+          "owner": "St.world.createCollider src/engine/physics/Physics.ts:43"
+        },
+        {
+          "startMs": 2149.888951171875,
+          "durationMs": 85.541,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 2243.778951171875,
+          "durationMs": 129.223,
+          "owner": "I src/engine/world/lowpolyKit.ts:296"
+        },
+        {
+          "startMs": 2375.803951171875,
+          "durationMs": 169.737,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 2551.268951171875,
+          "durationMs": 183.456,
+          "owner": "build src/shards/driftwood-isle/models/shrine.ts:105"
+        },
+        {
+          "startMs": 2782.533951171875,
+          "durationMs": 159.442,
+          "owner": "$o src/shards/driftwood-isle/models/hibiscusBush.ts:136"
+        },
+        {
+          "startMs": 2944.820951171875,
+          "durationMs": 105.608,
+          "owner": "(anon) src/shards/driftwood-isle/models/trailside.ts:35"
+        },
+        {
+          "startMs": 3053.747951171875,
+          "durationMs": 57.895,
+          "owner": "Zs src/shards/driftwood-isle/models/reef.ts:66"
+        },
+        {
+          "startMs": 3113.846951171875,
+          "durationMs": 163.798,
+          "owner": "x src/engine/world/geometryKit.ts:82"
+        },
+        {
+          "startMs": 3281.353951171875,
+          "durationMs": 318.202,
+          "owner": "sc src/shards/driftwood-isle/models/palm.ts:45"
+        },
+        {
+          "startMs": 3685.682951171875,
+          "durationMs": 744.478,
+          "owner": "coverTriangles src/shards/driftwood-isle/world/islandInstances.ts:206"
+        },
+        {
+          "startMs": 4437.200951171875,
+          "durationMs": 90.927,
+          "owner": "m src/engine/core/gpuOnly.ts:47"
+        },
+        {
+          "startMs": 4859.583951171875,
+          "durationMs": 58.205,
+          "owner": "ze src/engine/ui/DebugMenu.ts:52"
+        },
+        {
+          "startMs": 4982.966951171875,
+          "durationMs": 116.895,
+          "owner": "finish src/engine/world/lowpolyKit.ts:126"
+        },
+        {
+          "startMs": 5125.561951171875,
+          "durationMs": 290.62,
+          "owner": "g src/engine/world/shadowChunks.ts:74"
+        },
+        {
+          "startMs": 5812.941951171875,
+          "durationMs": 52.099,
+          "owner": "z src/engine/render/precompile.ts:287"
+        },
+        {
+          "startMs": 5880.154951171875,
+          "durationMs": 112.217,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        }
+      ]
+    },
+    {
+      "shard": "nalati-grasslands",
+      "cache": "cold",
+      "timeToPlayableMs": 10180.39990234375,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 90.39990234375,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 90.39990234375,
+          "endMs": 551.39990234375,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 551.39990234375,
+          "endMs": 608.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 608.39990234375,
+          "endMs": 1106.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 1106.39990234375,
+          "endMs": 1759.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 1759.39990234375,
+          "endMs": 1978.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 1978.39990234375,
+          "endMs": 1992.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 1992.39990234375,
+          "endMs": 2051.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 2051.39990234375,
+          "endMs": 2404.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 2404.39990234375,
+          "endMs": 2606.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 2606.39990234375,
+          "endMs": 2635.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 2635.39990234375,
+          "endMs": 7902.39990234375,
+          "owner": "shard nalati-grasslands: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 7902.39990234375,
+          "endMs": 8274.39990234375,
+          "owner": "shard nalati-grasslands: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 8274.39990234375,
+          "endMs": 8601.39990234375,
+          "owner": "shard nalati-grasslands: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 8601.39990234375,
+          "endMs": 8997.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 8997.39990234375,
+          "endMs": 9384.39990234375,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 9384.39990234375,
+          "endMs": 9574.39990234375,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 9574.39990234375,
+          "endMs": 10180.39990234375,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 416.26790234375,
+          "durationMs": 93.267,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 536.8109023437501,
+          "durationMs": 61.704,
+          "owner": "(anon) src/engine/render/renderer.ts:28"
+        },
+        {
+          "startMs": 648.67490234375,
+          "durationMs": 81.203,
+          "owner": "tv src/engine/physics/navmesh.ts:54"
+        },
+        {
+          "startMs": 843.72090234375,
+          "durationMs": 250.865,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 1201.87090234375,
+          "durationMs": 111.226,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 1319.33490234375,
+          "durationMs": 93.757,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 1424.07890234375,
+          "durationMs": 88.682,
+          "owner": "K src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+        },
+        {
+          "startMs": 1523.24690234375,
+          "durationMs": 69.596,
+          "owner": "K src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+        },
+        {
+          "startMs": 1603.93090234375,
+          "durationMs": 70.821,
+          "owner": "K src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+        },
+        {
+          "startMs": 1686.20990234375,
+          "durationMs": 62.812,
+          "owner": "W src/shards/nalati-grasslands/look/terrainPainter.ts:110"
+        },
+        {
+          "startMs": 1820.12990234375,
+          "durationMs": 158.472,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 2241.11090234375,
+          "durationMs": 163.905,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 2865.46790234375,
+          "durationMs": 912.854,
+          "owner": "Ha src/shards/nalati-grasslands/world/granite.ts:11"
+        },
+        {
+          "startMs": 3814.94090234375,
+          "durationMs": 120.474,
+          "owner": "lr src/shards/nalati-grasslands/world/solid.ts:77"
+        },
+        {
+          "startMs": 3977.87990234375,
+          "durationMs": 1190.355,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 5296.81290234375,
+          "durationMs": 70.809,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 5597.86390234375,
+          "durationMs": 90.831,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 5823.06890234375,
+          "durationMs": 67.147,
+          "owner": "w src/engine/world/terrainField.ts:133"
+        },
+        {
+          "startMs": 6035.13090234375,
+          "durationMs": 73.943,
+          "owner": "(anon) src/shards/nalati-grasslands/world/dressing/layer.ts:96"
+        },
+        {
+          "startMs": 6113.37290234375,
+          "durationMs": 413.46,
+          "owner": "E src/engine/world/geometryKit.ts:124"
+        },
+        {
+          "startMs": 7126.08390234375,
+          "durationMs": 725.803,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 8024.52390234375,
+          "durationMs": 234.105,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 8275.22690234375,
+          "durationMs": 231.413,
+          "owner": "Q src/engine/player/nalatiArms.ts:287"
+        },
+        {
+          "startMs": 8613.91790234375,
+          "durationMs": 156.734,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 9385.66390234375,
+          "durationMs": 89.602,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        }
+      ]
+    },
+    {
+      "shard": "nalati-grasslands",
+      "cache": "warm",
+      "timeToPlayableMs": 11755.300048828125,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 115.300048828125,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 115.300048828125,
+          "endMs": 551.300048828125,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 551.300048828125,
+          "endMs": 616.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 616.300048828125,
+          "endMs": 1236.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 1236.300048828125,
+          "endMs": 1961.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 1961.300048828125,
+          "endMs": 2204.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 2204.300048828125,
+          "endMs": 2216.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 2216.300048828125,
+          "endMs": 2285.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 2285.300048828125,
+          "endMs": 2657.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 2657.300048828125,
+          "endMs": 2906.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 2906.300048828125,
+          "endMs": 2935.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 2935.300048828125,
+          "endMs": 8937.300048828125,
+          "owner": "shard nalati-grasslands: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 8937.300048828125,
+          "endMs": 9409.300048828125,
+          "owner": "shard nalati-grasslands: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 9409.300048828125,
+          "endMs": 9803.300048828125,
+          "owner": "shard nalati-grasslands: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 9803.300048828125,
+          "endMs": 10297.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 10297.300048828125,
+          "endMs": 10787.300048828125,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 10787.300048828125,
+          "endMs": 11028.300048828125,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 11028.300048828125,
+          "endMs": 11755.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 339.488048828125,
+          "durationMs": 52.717,
+          "owner": "(anon) src/engine/saves/runtime.ts:29"
+        },
+        {
+          "startMs": 411.150048828125,
+          "durationMs": 107.383,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 532.062048828125,
+          "durationMs": 72.637,
+          "owner": "jO src/engine/core/webglStartup.ts:14"
+        },
+        {
+          "startMs": 692.809048828125,
+          "durationMs": 83.769,
+          "owner": "tv src/engine/physics/navmesh.ts:54"
+        },
+        {
+          "startMs": 928.527048828125,
+          "durationMs": 285.046,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 1362.270048828125,
+          "durationMs": 101.257,
+          "owner": "K src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+        },
+        {
+          "startMs": 1481.281048828125,
+          "durationMs": 103.32,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 1601.264048828125,
+          "durationMs": 95.93,
+          "owner": "K src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+        },
+        {
+          "startMs": 1706.418048828125,
+          "durationMs": 78.287,
+          "owner": "K src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+        },
+        {
+          "startMs": 1792.213048828125,
+          "durationMs": 81.79,
+          "owner": "K src/shards/nalati-grasslands/look/terrainPainter.ts:178"
+        },
+        {
+          "startMs": 1880.459048828125,
+          "durationMs": 67.012,
+          "owner": "W src/shards/nalati-grasslands/look/terrainPainter.ts:110"
+        },
+        {
+          "startMs": 2027.836048828125,
+          "durationMs": 177.341,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 2308.570048828125,
+          "durationMs": 51.061,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 2475.025048828125,
+          "durationMs": 182.698,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 3194.081048828125,
+          "durationMs": 1079.101,
+          "owner": "Ha src/shards/nalati-grasslands/world/granite.ts:11"
+        },
+        {
+          "startMs": 4291.946048828125,
+          "durationMs": 135.656,
+          "owner": "lr src/shards/nalati-grasslands/world/solid.ts:77"
+        },
+        {
+          "startMs": 4483.095048828125,
+          "durationMs": 1371.161,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 6020.824048828125,
+          "durationMs": 77.557,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 6348.829048828125,
+          "durationMs": 102.911,
+          "owner": "get src/engine/core/noise.ts:19"
+        },
+        {
+          "startMs": 6581.489048828125,
+          "durationMs": 78.503,
+          "owner": "w src/engine/world/terrainField.ts:133"
+        },
+        {
+          "startMs": 6745.791048828125,
+          "durationMs": 87.585,
+          "owner": "(anon) src/shards/nalati-grasslands/world/dressing/layer.ts:96"
+        },
+        {
+          "startMs": 6836.611048828125,
+          "durationMs": 473.167,
+          "owner": "D src/engine/world/geometryKit.ts:140"
+        },
+        {
+          "startMs": 8025.942048828125,
+          "durationMs": 849.112,
+          "owner": "a src/engine/world/voxelAO.ts:62"
+        },
+        {
+          "startMs": 9098.085048828125,
+          "durationMs": 290.824,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 9409.749048828126,
+          "durationMs": 275.174,
+          "owner": "Q src/engine/player/nalatiArms.ts:287"
+        },
+        {
+          "startMs": 9816.468048828125,
+          "durationMs": 196.742,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 10178.412048828124,
+          "durationMs": 63.423,
+          "owner": "(anon) src/kit/npc/figureRig.ts:166"
+        },
+        {
+          "startMs": 10246.237048828125,
+          "durationMs": 51.099,
+          "owner": "M src/engine/render/precompile.ts:98"
+        },
+        {
+          "startMs": 10791.954048828125,
+          "durationMs": 109.916,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "cache": "cold",
+      "timeToPlayableMs": 13597.300048828125,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 100.300048828125,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 100.300048828125,
+          "endMs": 497.300048828125,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 497.300048828125,
+          "endMs": 574.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 574.300048828125,
+          "endMs": 1304.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 1304.300048828125,
+          "endMs": 1765.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 1765.300048828125,
+          "endMs": 2257.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 2257.300048828125,
+          "endMs": 2266.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 2266.300048828125,
+          "endMs": 2326.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 2326.300048828125,
+          "endMs": 2607.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 2607.300048828125,
+          "endMs": 2731.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 2731.300048828125,
+          "endMs": 6230.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 6230.300048828125,
+          "endMs": 7036.300048828125,
+          "owner": "shard pine-hollow: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 7036.300048828125,
+          "endMs": 7927.300048828125,
+          "owner": "shard pine-hollow: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 7927.300048828125,
+          "endMs": 8278.300048828125,
+          "owner": "shard pine-hollow: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 8278.300048828125,
+          "endMs": 9429.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 9429.300048828125,
+          "endMs": 12749.300048828125,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 12749.300048828125,
+          "endMs": 13128.300048828125,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 13128.300048828125,
+          "endMs": 13597.300048828125,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 397.317048828125,
+          "durationMs": 69.648,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 487.471048828125,
+          "durationMs": 77.923,
+          "owner": "(anon) src/engine/render/renderer.ts:17"
+        },
+        {
+          "startMs": 597.132048828125,
+          "durationMs": 53.549,
+          "owner": "tv src/engine/physics/navmesh.ts:54"
+        },
+        {
+          "startMs": 1226.831048828125,
+          "durationMs": 61.32,
+          "owner": "t.renderBufferDirect src/engine/render/gpuLabels.ts:240"
+        },
+        {
+          "startMs": 1527.552048828125,
+          "durationMs": 76.787,
+          "owner": "Wi src/engine/world/Terrain.ts:240"
+        },
+        {
+          "startMs": 1858.725048828125,
+          "durationMs": 73.541,
+          "owner": "s src/engine/world/forest/treeSet.ts:46"
+        },
+        {
+          "startMs": 2201.386048828125,
+          "durationMs": 55.828,
+          "owner": "(anon) src/engine/core/bootstrap.ts:84"
+        },
+        {
+          "startMs": 2366.177048828125,
+          "durationMs": 69.89,
+          "owner": "N src/engine/world/waterSurface.ts:253"
+        },
+        {
+          "startMs": 4165.882048828125,
+          "durationMs": 93.323,
+          "owner": "Gs src/shards/pine-hollow/models/logCabin.ts:184"
+        },
+        {
+          "startMs": 4508.596048828125,
+          "durationMs": 98.632,
+          "owner": "(anon) src/engine/models/weld.ts:255"
+        },
+        {
+          "startMs": 6076.148048828125,
+          "durationMs": 58.982,
+          "owner": "St.world.createCollider src/engine/physics/Physics.ts:43"
+        },
+        {
+          "startMs": 6674.449048828125,
+          "durationMs": 125.698,
+          "owner": "l src/engine/app/sceneOwnership.ts:8"
+        },
+        {
+          "startMs": 7648.199048828125,
+          "durationMs": 70.53,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 7928.318048828125,
+          "durationMs": 102.642,
+          "owner": "yn src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:209"
+        },
+        {
+          "startMs": 8073.121048828125,
+          "durationMs": 127.176,
+          "owner": "Q src/engine/player/nalatiArms.ts:287"
+        },
+        {
+          "startMs": 8339.284048828125,
+          "durationMs": 109.403,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 8613.977048828125,
+          "durationMs": 141.883,
+          "owner": "T src/kit/npc/npcRig.ts:252"
+        },
+        {
+          "startMs": 8786.688048828126,
+          "durationMs": 115.043,
+          "owner": "v src/kit/npc/npcRig.ts:143"
+        },
+        {
+          "startMs": 8931.155048828125,
+          "durationMs": 98.071,
+          "owner": "v src/kit/npc/npcRig.ts:143"
+        },
+        {
+          "startMs": 9032.339048828126,
+          "durationMs": 260.977,
+          "owner": "floorHeightAt src/shards/pine-hollow/world/homestead.ts:540"
+        },
+        {
+          "startMs": 9303.874048828126,
+          "durationMs": 126.296,
+          "owner": "g src/engine/world/shadowChunks.ts:74"
+        },
+        {
+          "startMs": 12765.027048828126,
+          "durationMs": 115.508,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        },
+        {
+          "startMs": 12883.119048828125,
+          "durationMs": 59.875,
+          "owner": "t.renderBufferDirect src/engine/render/gpuLabels.ts:240"
+        }
+      ]
+    },
+    {
+      "shard": "pine-hollow",
+      "cache": "warm",
+      "timeToPlayableMs": 13658,
+      "phases": [
+        {
+          "name": "navigation",
+          "startMs": 0,
+          "endMs": 90,
+          "owner": "document navigation and initial shell"
+        },
+        {
+          "name": "admission.modules",
+          "startMs": 90,
+          "endMs": 408,
+          "owner": "src/entry.ts"
+        },
+        {
+          "name": "renderer",
+          "startMs": 408,
+          "endMs": 489,
+          "owner": "src/engine/core/bootstrap.ts: renderer"
+        },
+        {
+          "name": "sky",
+          "startMs": 489,
+          "endMs": 1074,
+          "owner": "src/engine/core/bootstrap.ts: sky"
+        },
+        {
+          "name": "terrain",
+          "startMs": 1074,
+          "endMs": 1558,
+          "owner": "src/engine/core/bootstrap.ts: terrain"
+        },
+        {
+          "name": "cards",
+          "startMs": 1558,
+          "endMs": 2339,
+          "owner": "src/engine/core/bootstrap.ts: cards"
+        },
+        {
+          "name": "forest",
+          "startMs": 2339,
+          "endMs": 2341,
+          "owner": "src/engine/core/bootstrap.ts: forest"
+        },
+        {
+          "name": "physics",
+          "startMs": 2341,
+          "endMs": 2391,
+          "owner": "src/engine/core/bootstrap.ts: physics"
+        },
+        {
+          "name": "edge",
+          "startMs": 2391,
+          "endMs": 2528,
+          "owner": "src/engine/core/bootstrap.ts: edge"
+        },
+        {
+          "name": "grass",
+          "startMs": 2528,
+          "endMs": 2629,
+          "owner": "src/engine/core/bootstrap.ts: grass"
+        },
+        {
+          "name": "cabins",
+          "startMs": 2629,
+          "endMs": 6161,
+          "owner": "src/engine/core/bootstrap.ts: cabins"
+        },
+        {
+          "name": "props",
+          "startMs": 6161,
+          "endMs": 6996,
+          "owner": "shard pine-hollow: props hook"
+        },
+        {
+          "name": "animals",
+          "startMs": 6996,
+          "endMs": 7926,
+          "owner": "shard pine-hollow: animals hook"
+        },
+        {
+          "name": "weapon",
+          "startMs": 7926,
+          "endMs": 8286,
+          "owner": "shard pine-hollow: weapon hook"
+        },
+        {
+          "name": "menu",
+          "startMs": 8286,
+          "endMs": 9463,
+          "owner": "src/engine/core/bootstrap.ts: menu"
+        },
+        {
+          "name": "shaders",
+          "startMs": 9463,
+          "endMs": 12827,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "firstFrame",
+          "startMs": 12827,
+          "endMs": 13201,
+          "owner": "src/engine/render/precompile.ts"
+        },
+        {
+          "name": "audio",
+          "startMs": 13201,
+          "endMs": 13658,
+          "owner": "src/engine/core/bootstrap.ts: audio"
+        }
+      ],
+      "longTasks": [
+        {
+          "startMs": 314.265,
+          "durationMs": 70.889,
+          "owner": "r src/game/shardfile/json.ts:5"
+        },
+        {
+          "startMs": 397.244,
+          "durationMs": 83.883,
+          "owner": "(anon) src/engine/render/renderer.ts:17"
+        },
+        {
+          "startMs": 539.005,
+          "durationMs": 53.331,
+          "owner": "tv src/engine/physics/navmesh.ts:54"
+        },
+        {
+          "startMs": 1001.639,
+          "durationMs": 59.526,
+          "owner": "t.renderBufferDirect src/engine/render/gpuLabels.ts:240"
+        },
+        {
+          "startMs": 1317.702,
+          "durationMs": 74.931,
+          "owner": "Wi src/engine/world/Terrain.ts:240"
+        },
+        {
+          "startMs": 1666.044,
+          "durationMs": 71.126,
+          "owner": "s src/engine/world/forest/treeSet.ts:46"
+        },
+        {
+          "startMs": 2279.082,
+          "durationMs": 59.932,
+          "owner": "(anon) src/engine/core/bootstrap.ts:84"
+        },
+        {
+          "startMs": 2398.757,
+          "durationMs": 68.276,
+          "owner": "N src/engine/world/waterSurface.ts:253"
+        },
+        {
+          "startMs": 4043.164,
+          "durationMs": 95.084,
+          "owner": "Gs src/shards/pine-hollow/models/logCabin.ts:184"
+        },
+        {
+          "startMs": 4412.526,
+          "durationMs": 100.115,
+          "owner": "(anon) src/engine/models/weld.ts:255"
+        },
+        {
+          "startMs": 6000.221,
+          "durationMs": 61.823,
+          "owner": "St.world.createCollider src/engine/physics/Physics.ts:43"
+        },
+        {
+          "startMs": 6624.23,
+          "durationMs": 124.57,
+          "owner": "l src/engine/app/sceneOwnership.ts:8"
+        },
+        {
+          "startMs": 7611.7,
+          "durationMs": 69.954,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 7925.609,
+          "durationMs": 107.033,
+          "owner": "yn src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:209"
+        },
+        {
+          "startMs": 8074.952,
+          "durationMs": 128.302,
+          "owner": "Q src/engine/player/nalatiArms.ts:287"
+        },
+        {
+          "startMs": 8352.441,
+          "durationMs": 114.615,
+          "owner": "P src/engine/entities/species/loft.ts:123"
+        },
+        {
+          "startMs": 8627.076,
+          "durationMs": 162.672,
+          "owner": "v src/kit/npc/npcRig.ts:143"
+        },
+        {
+          "startMs": 8827.818,
+          "durationMs": 98.022,
+          "owner": "v src/kit/npc/npcRig.ts:143"
+        },
+        {
+          "startMs": 8960.117,
+          "durationMs": 92.69,
+          "owner": "v src/kit/npc/npcRig.ts:143"
+        },
+        {
+          "startMs": 9056.898,
+          "durationMs": 263.934,
+          "owner": "floorHeightAt src/shards/pine-hollow/world/homestead.ts:540"
+        },
+        {
+          "startMs": 9332.328,
+          "durationMs": 131.729,
+          "owner": "g src/engine/world/shadowChunks.ts:74"
+        },
+        {
+          "startMs": 12843.698,
+          "durationMs": 118.076,
+          "owner": "(anon) src/engine/render/gpuLabels.ts:229"
+        },
+        {
+          "startMs": 12965.341,
+          "durationMs": 59.308,
+          "owner": "t.renderBufferDirect src/engine/render/gpuLabels.ts:240"
+        }
+      ]
+    }
+  ],
+  "missing": [
+    "iOS Simulator and physical phone timings not measured in this desktop 4x-CPU comparison."
+  ]
+}
