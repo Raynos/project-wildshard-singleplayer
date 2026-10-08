@@ -27,7 +27,37 @@ void test('SF57 loading mutation replay covers blocked timers, resizes, labels a
     'Replay must also reconcile with the actual observed census');
   const native = [{ type: 'sample', phase: 'loading', t: new Date(5000).toISOString(), footprint: 500 }];
   assert.equal(joinSoakSamples(native, [], null, events)[0].gl.totalBytes, 128);
-  assert.equal(joinSoakSamples([{ ...native[0], phase: 'drive' }], [], null, events)[0].gl, undefined, 'Playing still needs the actual one-second census');
+  assert.equal(joinSoakSamples([{ ...native[0], phase: 'drive' }], [], null, events)[0].gl, undefined, 'Playing without an explicit cycle marker stays uncovered');
+});
+
+void test('SF57 fills a blocked drive timer only from complete mutations and explicit cycles, never allocator or settled guesses', () => {
+  const events = [{ at: 0, op: 'begin' },
+    { at: 1, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 64, labelled: true },
+    { at: 2, op: 'cycle', cycle: 0 }, { at: 6, op: 'cycle', cycle: 1 },
+    { at: 7, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 128 },
+    { at: 12, op: 'stop' }].map((row, sequence) => Object.assign(row, { document: 'drive', sequence }));
+  const native = [1, 4, 8, 13].map(seconds => ({ type: 'sample', phase: 'drive', t: new Date(seconds * 1000).toISOString(), footprint: 500 }));
+  const observed = [{ at: 2, totalBytes: 64, unlabelled: 0, reconciled: true, cycle: 0, accountedBytes: 99, settled: true }];
+  const joined = joinSoakSamples(native, observed, null, events);
+  assert.equal(joined[0].gl.accountedBytes, 99, 'Actual contemporaneous observations keep their allocator and settled telemetry');
+  assert.equal(joined[1].gl.totalBytes, 64); assert.equal(joined[1].gl.cycle, 0);
+  assert.equal(joined[2].gl.totalBytes, 128); assert.equal(joined[2].gl.cycle, 1);
+  assert.equal(joined[2].gl.accountedBytes, null); assert.equal(joined[2].gl.settled, undefined);
+  assert.equal(joined[3].gl, undefined, 'Nothing outside explicit journal coverage is reconstructed');
+  assert.equal(joinSoakSamples(native, [], null, events)[0].gl, undefined, 'Playing before the first cycle marker is not covered');
+  for (const incomplete of [events.slice(0, -1), events.filter(row => row.at !== 7),
+    events.map(row => row.op === 'cycle' && row.cycle === 1 ? { ...row, cycle: -1 } : row),
+    events.map(row => row.op === 'cycle' && row.cycle === 1 ? { ...row, cycle: 3 } : row)]) {
+    assert.equal(joinSoakSamples(native, [], null, incomplete).every(row => row.gl === undefined), true);
+  }
+  const mismatch = structuredClone(observed); for (const row of mismatch) row.totalBytes = 65;
+  assert.equal(joinSoakSamples(native, mismatch, null, events)[2].gl, undefined, 'An observed reconciliation failure invalidates all reconstruction');
+  const wrongCycle = structuredClone(observed); for (const row of wrongCycle) row.cycle = 1;
+  assert.equal(joinSoakSamples(native, wrongCycle, null, events)[2].gl, undefined, 'Real samples must agree with explicit journal cycles');
+  const wrongCategory = structuredClone(observed); for (const row of wrongCategory) row.buffers = 0;
+  assert.equal(joinSoakSamples(native, wrongCategory, null, events)[2].gl, undefined, 'The category breakdown must also reconcile');
+  const unlabelled = structuredClone(events); for (const row of unlabelled) if (row.op === 'allocation') row.labelled = false;
+  assert.equal(joinSoakSamples(native, [], null, unlabelled)[2].gl.unlabelled, 1, 'Unlabelled resources remain a sampling failure');
 });
 
 void test('SF57 prepared-cell rehearsal records open coverage and refuses qualifying subset runs', () => {

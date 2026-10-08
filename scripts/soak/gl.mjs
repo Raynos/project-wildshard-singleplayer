@@ -1,4 +1,4 @@
-/** Record loading mutations even when long tasks prevent the one-second timer from running. */
+/** Record exact mutations through boot and drive, including when long tasks block the one-second timer. */
 export function installLoadingGlJournal() {
   const key = 'sf57.loading-gl-journal';
   const documentId = window.__sf57DocumentId ??= `${Date.now()}:${Math.random()}`;
@@ -8,6 +8,11 @@ export function installLoadingGlJournal() {
   const push = row => window.__sf57GLEvents.push({ ...row, document: documentId, sequence: sequence++ });
   push({ op: 'begin', at: Date.now() / 1000 });
   window.__sc_gl_change = push;
+  window.__sf57MarkGLCycle = cycle => {
+    if (window.__sc_gl_change !== push || !Number.isSafeInteger(cycle) || cycle < 0) throw new Error('Invalid GL journal cycle');
+    window.__sf57 = { ...window.__sf57, cycles: cycle };
+    push({ op: 'cycle', at: Date.now() / 1000, cycle });
+  };
   window.__sf57StopGLJournal = () => {
     if (window.__sc_gl_change !== push) return;
     push({ op: 'stop', at: Date.now() / 1000 }); window.__sc_gl_change = null;

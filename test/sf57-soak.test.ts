@@ -83,6 +83,13 @@ describe('SF57 honest drive and native memory gate', () => {
     expect(gradeSoak({ ...witness(), seconds: 1800 }).gatePass).toBe(true);
     for (const patch of [{ seconds: 1799 }, { circuits: 1 }, { evictions: 0 }, { errors: ['WebContent gone'] }, { crossroads: [] }]) expect(gradeSoak({ ...witness(), ...patch }).gatePass).toBe(false);
   });
+  it('accepts reconciled journal GL for memory coverage but requires real settled allocator samples for calibration', () => {
+    const value = witness();
+    const samples = value.samples.map((row) => ({ ...row, gl: { totalBytes: row.gl.totalBytes,
+      reconciled: true, unlabelled: 0, cycle: row.gl.cycle, accountedBytes: null } }));
+    const result = gradeSoak({ ...value, samples });
+    expect(result.sampling).toBe(true); expect(result.calibration).toBe(false); expect(result.memoryPass).toBe(false);
+  });
   it('requires strict picked-cut provenance and retains all remaining gates at minute sixty', () => {
     expect(soakDuration()).toBe(1800); expect(soakDuration(cut)).toBe(3600);
     expect(parseSoakContentCut(cut)).toEqual(cut);

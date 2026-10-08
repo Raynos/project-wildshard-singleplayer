@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { installSoakGl, installSoakWasm, installLoadingGlJournal } from './gl.mjs';
 
-void test('SF57 loading journal survives ordinary navigation, preserves sequence and disables mutations before playing', () => {
+void test('SF57 journal survives boot navigation and records explicit playing cycles until teardown', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map();
   let hide;
   try {
@@ -14,9 +14,14 @@ void test('SF57 loading journal survives ordinary navigation, preserves sequence
     globalThis.window = page('second'); installLoadingGlJournal();
     assert.deepEqual(window.__sf57GLEvents.map(row => [row.document, row.sequence, row.op]),
       [['first', 0, 'begin'], ['first', 1, 'allocation'], ['first', 2, 'end'], ['second', 0, 'begin']]);
+    window.__sf57MarkGLCycle(0); window.__sf57MarkGLCycle(1);
+    assert.equal(window.__sf57.cycles, 1);
+    assert.deepEqual(window.__sf57GLEvents.slice(-2).map(row => [row.sequence, row.op, row.cycle]), [[1, 'cycle', 0], [2, 'cycle', 1]]);
+    assert.throws(() => window.__sf57MarkGLCycle(-1), /Invalid GL journal cycle/u);
     window.__sf57StopGLJournal(); assert.equal(window.__sc_gl_change, null);
     assert.equal(window.__sf57GLEvents.at(-1).op, 'stop');
-    hide(); assert.equal(storage.size, 0, 'Playing navigation does not create a new loading journal');
+    assert.throws(() => window.__sf57MarkGLCycle(2), /Invalid GL journal cycle/u);
+    hide(); assert.equal(storage.size, 0, 'Stopped journal is not persisted again');
   } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
 });
 

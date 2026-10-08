@@ -158,9 +158,9 @@ async function worker() {
     const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
     const first = result.route.plans[0];
     await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify({ ...first, start: result.route.reference })},${JSON.stringify(result.documentOrigin)})`);
-    await driver.evaluate('window.__sf57StopGLJournal();true'); await collectGl();
+    await collectGl();
     result.listenerBaseline = await driver.evaluate('window.__parityResources().listenerDetails');
-    await driver.evaluate('window.__sf57={cycles:0};true');
+    await driver.evaluate('window.__sf57MarkGLCycle(0);true');
     phase('baseline-0'); await measuredWait(10);
     result.gamePid = soakGamePid(readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)));
     const initialStart = Date.now() / 1000; await measuredWait(10);
@@ -170,7 +170,7 @@ async function worker() {
     let complete = false;
     while (!complete) {
       const cycle = result.circuits;
-      await driver.evaluate(`window.__sf57.cycles=${cycle};true`);
+      await driver.evaluate(`window.__sf57MarkGLCycle(${cycle});true`);
       // The first warm-up lap also drives every one of the sixteen crossroads; later laps repeat the exact cell loop.
       const plans = [...result.route.plans, ...(cycle === 0 ? result.route.coveragePlans ?? [] : [])];
       for (const plan of plans) {
@@ -207,9 +207,9 @@ async function worker() {
     result.leak = await driver.evaluate('window.__sf57Leak');
     result.listenerAfter = await driver.evaluate('window.__parityResources().listenerDetails');
     await measuredWait(20);
-    await driver.evaluate('clearInterval(window.__sf57GLTimer);true');
     result.errors = [...new Set([...result.errors, ...await driver.evaluate('window.__sf57Errors')])];
     phase('done'); await samplerClosed; sampler = null;
+    await driver.evaluate('window.__sf57StopGLJournal();clearInterval(window.__sf57GLTimer);true'); await collectGl();
     if (samplerResult.error) throw new Error(samplerResult.error);
   } catch (error) {
     result.failure = String(error.stack ?? error); result.errors.push(result.failure);
@@ -237,6 +237,10 @@ async function worker() {
   }
   const native = existsSync(nativeFile) ? readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => JSON.parse(line)) : [];
   const samples = joinSoakSamples(native, glRows, result.gamePid ?? null, glEvents);
+  result.glSampling = { journal: samples.filter(row => row.gl?.source === 'complete GL allocation journal').length,
+    observed: samples.filter(row => row.gl !== undefined && row.gl.source === undefined).length,
+    missing: samples.filter(row => row.gl === undefined).length,
+    policy: 'Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds.' };
   result.grade = gradeSoak({ samples, windows: result.windows, seconds: result.seconds ?? 0, circuits: result.circuits ?? 0,
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal, leg, contentCut });
