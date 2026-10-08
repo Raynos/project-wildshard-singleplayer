@@ -26,7 +26,8 @@ export const GL_INIT = String.raw`(() => { const W = window;
     changed(gl,resource,'texture',bytes,{width,height,depth,levels,internalFormat}); };
   // Lost contexts have no live allocations. Record the same retirement in the journal as in the census.
   const retire = (gl) => {
-    const r = recOf.get(gl); if (!r) return;
+    const r = recOf.get(gl); if (!r || r.retired) return; r.retired=true;
+    W.__sc_gl_change?.({at:Date.now()/1000,op:'context',context:identity(gl,'context'),state:'lost',canvas:gl.canvas?.id??null});
     for (const [field, kind] of [['tex', 'texture'], ['rb', 'renderbuffer'], ['buf', 'buffer']]) {
       for (const resource of r[field].keys()) changed(gl, resource, kind, null);
       r[field].clear();
@@ -53,7 +54,9 @@ export const GL_INIT = String.raw`(() => { const W = window;
     return w * h * d * texelBytes(ifmt, format, type);
   };
   const recs = []; const recOf = new WeakMap();
-  const rec = (gl) => { let r = recOf.get(gl); if (!r) { r = { gl, tex: new Map(), rb: new Map(), buf: new Map(), compressed: 0, listening: false }; recOf.set(gl, r); recs.push(r); }
+  const rec = (gl) => { let r = recOf.get(gl); if (!r) { r = { gl, tex: new Map(), rb: new Map(), buf: new Map(), compressed: 0, listening: false, retired: false }; recOf.set(gl, r); recs.push(r);
+      W.__sc_gl_change?.({at:Date.now()/1000,op:'context',context:identity(gl,'context'),state:'observed',canvas:gl.canvas?.id??null});
+    } else if(r.retired){r.retired=false;W.__sc_gl_change?.({at:Date.now()/1000,op:'context',context:identity(gl,'context'),state:'restored',canvas:gl.canvas?.id??null});}
     // Observe delivered loss once, rearming only if the restored context allocates again.
     // Never wrap extensions or synchronously query the driver after loseContext().
     if(!r.listening && gl.canvas?.addEventListener){r.listening=true;gl.canvas.addEventListener('webglcontextlost',()=>{r.listening=false;retire(gl);},{once:true});}

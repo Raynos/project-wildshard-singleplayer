@@ -112,7 +112,8 @@ export function loadingGlSamples(events, timestamps, observed = []) {
   if (!first || !last) return result;
   const sequences = new Map(), endings = new Map(), cycles = new Map();
   for (const event of sorted) {
-    if (!Number.isFinite(event.at) || !['begin', 'end', 'stop', 'allocation', 'label', 'cycle'].includes(event.op)) return result;
+    if (!Number.isFinite(event.at) || !['begin', 'end', 'stop', 'allocation', 'label', 'cycle', 'context'].includes(event.op)) return result;
+    if (event.op === 'context' && (typeof event.context !== 'string' || !['observed', 'lost', 'restored'].includes(event.state))) return result;
     const previous = sequences.get(event.document);
     if (previous === undefined ? event.op !== 'begin' || event.sequence !== 0 : event.sequence !== previous + 1) return result;
     if (previous !== undefined && event.op === 'begin') return result;

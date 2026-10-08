@@ -39,6 +39,7 @@ export function summarizePineAllocations(events, uploads, native, before) {
     .map(row => ({ at: row.t, gpuBytes: row.gpu, identities: row.processIdentities ?? null }));
   return { policy: 'API allocation-state peak and five-second storage-call footprint window. Touched footprints count repeats and mip totals; they are NOT transfer bytes. Native GPU process stays separate.',
     through: before, apiPeak: peak, lastFiveSeconds: [...seconds.values()],
+    allocationBearingContexts: events.filter(row => row.op === 'context' && row.at <= before),
     largestGrowth: positive.sort((a, b) => b.increaseBytes - a.increaseBytes).slice(0, 10),
     largestNearEvent: [...window].sort((a, b) => b.bytes - a.bytes).slice(0, 10), nativeNearEvent: processes };
 }

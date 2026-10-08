@@ -178,6 +178,8 @@ it('retires probe allocations on delivered loss without wrapping native extensio
     if(window.__sc_gl()[0].totalBytes!==0 || window.__sc_gl()[0].resources.length)throw Error('Restored context resurrected dead allocations');
     gl.createTexture(); loss.loseContext();
     if(gl.listeners.size || events.filter(e=>e.bytes===null).length!==7)throw Error('Restored allocation did not rearm one-shot loss');
+    const states=events.filter(e=>e.op==='context').map(e=>e.state);
+    if(states.join()!=='observed,lost,restored,lost')throw Error('Context lifecycle missing or duplicated');
     loss.restoreContext(); gl.createTexture(); gl.lost=true; window.__sc_gl();
     if(events.filter(e=>e.bytes===null).length!==8)throw Error('Unrequested loss not reconciled');
     gl.lost=false;

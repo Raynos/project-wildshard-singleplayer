@@ -8,6 +8,21 @@ import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
 
+void test('SF57 context lifecycle metadata never invents bytes and invalid lifecycle records refuse replay', () => {
+  const events = [{ at: 0, op: 'begin' }, { at: 1, op: 'context', context: 'context:1', state: 'observed' },
+    { at: 2, op: 'allocation', id: 'texture:1', kind: 'texture', bytes: 64, labelled: true },
+    { at: 3, op: 'context', context: 'context:1', state: 'lost' },
+    { at: 4, op: 'allocation', id: 'texture:1', kind: 'texture', bytes: null }, { at: 5, op: 'stop' }]
+    .map((row, sequence) => Object.assign(row, { document: 'context-test', sequence }));
+  const replay = loadingGlSamples(events, [2.5, 3.5, 4.5]);
+  assert.deepEqual([...replay.values()].map(row => row.totalBytes), [64, 64, 0], 'Only exact allocation mutations alter the ruler');
+  for (const changed of [{ state: 'unknown' }, { context: 1 }]) {
+    const invalid = structuredClone(events);
+    for (const row of invalid) if (row.op === 'context') Object.assign(row, changed);
+    assert.equal(loadingGlSamples(invalid, [2.5]).size, 0);
+  }
+});
+
 void test('SF57 first-crossing diagnostics cannot run as a full or qualifying soak', () => {
   for (const flags of [[], ['--qualifying'], ['--dry-run', '--qualifying']]) {
     const child = spawnSync(process.execPath, ['scripts/soak/soak.mjs', '--worker', '--diagnostic-first-crossing', ...flags],
