@@ -24,7 +24,7 @@ export function exportTree(root, sha) {
 async function freePort() { const s=createServer();await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(0,'127.0.0.1',()=>resolve(undefined));}); const a=s.address();if(!a || typeof a==='string') throw new Error('no preview port'); await new Promise((resolve,reject)=>{s.close((e)=>{if(e)reject(e);else resolve(undefined);});});return a.port; }
 /** @param {string} tree @param {string} sha @param {boolean} [built] */
 export async function serve(tree,sha,built=false) {
-  if(!built)execFileSync('pnpm',['exec','vite','build'],{cwd:tree,env:{...process.env,VERCEL_GIT_COMMIT_SHA:sha},stdio:'pipe',maxBuffer:16*1024**2});
+  if(!built)buildTree(tree,sha);
   const port=await freePort(), child=spawn('pnpm',['exec','vite','preview','--host','127.0.0.1','--port',String(port),'--strictPort'],{cwd:tree,stdio:['ignore','pipe','pipe'],detached:true});
   let startup='';child.stdout.on('data',(chunk)=>{startup+=String(chunk);});child.stderr.on('data',(chunk)=>{startup+=String(chunk);});
   const url=`http://127.0.0.1:${port}`;
@@ -46,7 +46,7 @@ export function runtimeTree(root,sha) {
     const check=execFileSync('git',['-C',temp,'-c',`core.excludesFile=${join(temp,'ignore')}`,'check-ignore','--no-index','--stdin'],{input:paths.join('\n'),encoding:'utf8'});
     const ignored=new Set(check.trim().split('\n'));
     const inputs=entries.filter((entry)=>{const path=entry.split('\t')[1]??'';return !ignored.has(path)&&!path.startsWith('test/')&&!path.startsWith('scripts/parity/')&&path!=='scripts/parity.mjs';});
-    return createHash('sha256').update(`parity-build-v1\n${process.version}\n${patterns}\n${inputs.join('\n')}`).digest('hex');
+    return createHash('sha256').update(`parity-build-v2-shardfiles\n${process.version}\n${patterns}\n${inputs.join('\n')}`).digest('hex');
   } finally {rmSync(temp,{recursive:true,force:true});}
 }
 
@@ -94,5 +94,8 @@ function readJsonNumber(path) {try{return Number(readFileSync(path,'utf8'));}cat
 
 /** @param {string} tree @param {string} sha */
 function buildTree(tree,sha) {
-  execFileSync('pnpm',['exec','vite','build'],{cwd:tree,env:{...process.env,VERCEL_GIT_COMMIT_SHA:sha},stdio:'pipe',maxBuffer:16*1024**2});
+  const options={cwd:tree,env:{...process.env,VERCEL_GIT_COMMIT_SHA:sha},stdio:'pipe',maxBuffer:16*1024**2};
+  // Historical oracle commits may predate these generators. Current products must exist before Vite copies public/.
+  for(const script of ['scripts/gen.mjs','scripts/build-shardfiles.mjs'])if(existsSync(join(tree,script)))execFileSync('node',[script],options);
+  execFileSync('pnpm',['exec','vite','build'],options);
 }

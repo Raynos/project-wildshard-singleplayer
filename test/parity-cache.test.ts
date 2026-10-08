@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-only harness fixtures use isolated temporary repositories and a browser-API VM.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-only harness fixtures use isolated temporary repositories and a browser-API VM.
-import { mkdtempSync, mkdirSync, readdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-only harness fixtures use isolated temporary repositories and a browser-API VM.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-only harness fixtures use isolated temporary repositories and a browser-API VM.
@@ -24,6 +24,22 @@ function fixture() {
 }
 
 describe('parity build-cache eviction', () => {
+  it('builds a committed declared product before the real build process copies public into its cached output', async () => {
+    const f = fixture(), cache = join(f.root, 'cache');
+    try {
+      f.put('package.json', '{"name":"parity-product-fixture","private":true}');
+      f.put('scripts/gen.mjs', "import {writeFileSync} from 'node:fs'; writeFileSync('generated', 'ready');");
+      f.put('scripts/build-shardfiles.mjs', "import {readFileSync,mkdirSync,writeFileSync} from 'node:fs'; if(readFileSync('generated','utf8')!=='ready')throw Error('missing generation'); mkdirSync('public/shardfiles/a',{recursive:true}); writeFileSync('public/shardfiles/a/shard.json',JSON.stringify({sha:process.env.VERCEL_GIT_COMMIT_SHA}));");
+      f.git('add', 'package.json', 'scripts/gen.mjs', 'scripts/build-shardfiles.mjs'); f.git('commit', '-qm', 'declared product generator');
+      mkdirSync(join(f.root, 'node_modules/.bin'), { recursive: true });
+      writeFileSync(join(f.root, 'node_modules/.bin/vite'), "#!/usr/bin/env node\nconst fs=require('node:fs');fs.mkdirSync('dist');fs.copyFileSync('public/shardfiles/a/shard.json','dist/version.json');\n", { mode: 0o755 });
+      const sha = f.git('rev-parse', 'HEAD'), result = await cachedTree(f.root, sha, cache);
+      try {
+        expect(JSON.parse(readFileSync(join(result.tree, 'dist/version.json'), 'utf8'))).toEqual({ sha });
+        expect(result.hit).toBe(false);
+      } finally { result.cleanup(); }
+    } finally { f.close(); }
+  });
   it('keeps the newest three completed entries by mtime and supports a different limit', () => {
     const root = mkdtempSync(join(tmpdir(), 'parity-eviction-test-'));
     const keys = [1, 2, 3, 4, 5].map((n) => n.toString(16).padStart(64, '0'));

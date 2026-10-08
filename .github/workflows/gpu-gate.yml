@@ -77,6 +77,9 @@ jobs:
         run: git apply "test/parity/plants/${{ inputs.plant }}.patch"
       - run: pnpm gen   # the build-derived *.generated.* tables (gitignored): the facade test's bake imports them directly (E399)
         if: matrix.mode != 'prove'
+      - name: Build declared shardfile products before Vite copies public
+        run: node scripts/build-shardfiles.mjs
+        if: matrix.mode != 'prove'
       - run: pnpm exec vite build
         if: matrix.mode != 'prove'                         # prove builds each part from its own export
       - name: Serve the build
