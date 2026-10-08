@@ -21,8 +21,8 @@ import { GAME_STRINGS } from '../strings';
 export type CellScreenStatus = 'loading' | 'waiting' | 'refused';
 /** Live admission wins over a render-ring metadata snapshot. A declared/active request is loading, never an M3 wait;
  * ready cells wear no screen even if an earlier refusal or canvas snapshot has not been polled again yet. */
-export function cellScreenStatus(input: { ready: boolean; declared: boolean; pending: boolean; waiting: boolean; refusal: ShardRefusal | null }): CellScreenStatus | null {
-  if (input.ready) return null;
+export function cellScreenStatus(input: { ready: boolean; gameplayReady?: boolean; declared: boolean; pending: boolean; waiting: boolean; refusal: ShardRefusal | null }): CellScreenStatus | null {
+  if (input.ready) return input.gameplayReady === false ? 'loading' : null;
   if (input.refusal !== null) return 'refused';
   return input.waiting || (!input.declared && !input.pending) ? 'waiting' : 'loading';
 }

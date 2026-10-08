@@ -300,7 +300,7 @@ export class GridSession {
       this.screens = installCellScreens({ scene: host.scene, admission, time: () => app.clock.real, wall: CHUNK_HALF + 6,
         build: typeof __BUILD_ID__ === 'string' ? __BUILD_ID__ : '', tier: TIER,
         cells: this.neighbours.map((cell) => ({ instance: cell.instance, x: cell.origin.x - home.origin.x, z: cell.origin.z - home.origin.z, art: findShard(cell.slug)?.card.thumb ?? null })),
-        ports: { read: () => this.screenInputs(), ready: id => this.live?.live.ready(id) === true,
+        ports: { read: () => this.screenInputs(), ready: id => this.screenReady(id),
           feet: () => { const at = this.world(); return { x: at.x - home.origin.x, z: at.z - home.origin.z }; } } });
     } catch (error) {
       if (!(error instanceof PlatformRenderAdmissionError)) throw error;
@@ -456,6 +456,7 @@ export class GridSession {
       const id = cell.instance;
       const raw = live?.refusal(id), refusal = this.refusal(id), manifest = findShard(cell.slug);
       const status = cellScreenStatus({ ready: live?.live.ready(id) === true,
+        gameplayReady: live?.live.current() !== id || live.gameplayReady(),
         declared: (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined,
         pending: live?.live.state().pending.includes(id) === true,
         waiting: raw instanceof GridCellWaitingError || (raw !== undefined && classifyRefusal(raw) === null), refusal });
@@ -471,6 +472,11 @@ export class GridSession {
         pageBytes: warning?.playingBytes ?? cost.playing, capBytes: warning?.playingCap ?? CONTENT_CAPS.playing, overBytes: warning?.playingOverBytes ?? 0 });
     }
     return out;
+  }
+  /** A data-ready active region keeps G217 visible until its entered world/kit/play hooks finish. */
+  private screenReady(instance: string): boolean {
+    const live = this.live;
+    return live !== null && live.live.ready(instance) && (live.live.current() !== instance || live.gameplayReady());
   }
   private refusal(instance: string): ShardRefusal | null {
     const live = this.live?.refusal(instance);

@@ -25,6 +25,7 @@ describe('G217: the cell state maps to the loading screen', () => {
     expect(cellScreenStatus({ ...state, waiting: true })).toBe('waiting');
     expect(cellScreenStatus({ ...state, refusal: 'too-big' })).toBe('refused');
     expect(cellScreenStatus({ ...state, ready: true, waiting: true, refusal: 'too-big' })).toBeNull();
+    expect(cellScreenStatus({ ...state, ready: true, gameplayReady: false, waiting: true, refusal: 'too-big' })).toBe('loading');
   });
   it('loading: the real stages, the product admitted, the clock and the memory claim', () => {
     const s = cellScreenContent(base, frame);
