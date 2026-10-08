@@ -141,8 +141,16 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
 
 /** every Pine Hollow rig, loaded (failures are logged: those species stay procedural); a KTX2 rig (its atlas compressed), every baked coat */
 export async function preloadPineCreatures(): Promise<void> {
-  await Promise.all(PINE_CREATURE_RIGS.map((n) => loadPineRig(n).then((rig) => (rig.map instanceof THREE.CompressedTexture ? adoptBakedCoats(n, rig) : undefined))
+  await Promise.all(PINE_CREATURE_RIGS.map((n) => loadPineRig(n).then((rig) => (rig.map instanceof THREE.CompressedTexture ? adoptOnce(n, rig) : undefined))
     .catch((e: unknown) => { console.warn(`[pine-hollow] creature rig ${n} failed`, e); })));
+}
+
+/** each loaded rig's coats are adopted once: a later visit's preload reuses them instead of retaining a fresh set */
+const adopting = new WeakMap<PineRig, Promise<void>>();
+function adoptOnce(name: PineRigName, rig: PineRig): Promise<void> {
+  let p = adopting.get(rig);
+  if (p === undefined) { p = adoptBakedCoats(name, rig); adopting.set(rig, p); }
+  return p;
 }
 
 /**
