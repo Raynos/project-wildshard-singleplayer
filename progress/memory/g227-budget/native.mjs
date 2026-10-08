@@ -169,10 +169,12 @@ try {
     report.enteredCost = report.snapshots.filter(row => row.label.startsWith('sky-') && row.label !== 'sky-road').map(row => {
       const glBytes=row.census.gl.reduce((sum,context)=>sum+context.totalBytes,0);
       const combinedBytes=row.native.medianBytes+glBytes;
-      return {label:row.label,webContentBytes:row.native.medianBytes,labelledGLBytes:glBytes,combinedBytes,withinExplorerCap:combinedBytes<=1e9};
+      const highSampleCombinedBytes=row.native.maxBytes+glBytes;
+      return {label:row.label,webContentBytes:row.native.medianBytes,labelledGLBytes:glBytes,combinedBytes,highSampleCombinedBytes,withinExplorerCap:highSampleCombinedBytes<=1e9};
     });
-    report.enteredPeakBytes = Math.max(...report.enteredCost.map(row=>row.combinedBytes));
-    report.withinExplorerCap = report.enteredPeakBytes <= 1e9;
+    report.enteredSettledWorstBytes = Math.max(...report.enteredCost.map(row=>row.combinedBytes));
+    report.enteredHighSampleBytes = Math.max(...report.enteredCost.map(row=>row.highSampleCombinedBytes));
+    report.withinExplorerCap = report.enteredHighSampleBytes <= 1e9;
     report.leak = await evaluate('window.__wildshard.leak()');
     report.finalGL = await evaluate('window.__sc_gl().map(({gl,...row})=>row)');
     if (report.leak.after.bodies !== 0 || report.leak.after.colliders !== 0 || report.leak.disposalErrors.length !== 0
