@@ -35,6 +35,20 @@ it('keeps native WC, GPU inventory and allocator totals distinct and deduplicate
   expect(pose.missing).toContain('RAM owner attribution unavailable in this historical native audit');
 });
 
+it('measures GL from the fixed ruler\'s same-time totals; a census-free pose keeps its GL, never zero', () => {
+  const fixed = audit(), row = fixed.snapshots.at(0);
+  if (row === undefined) throw new Error('Missing fixture pose');
+  const { census: _census, ...light } = { ...row, light: { gl: [{ totalBytes: 120, reconciled: true, unlabelledBytes: 0 }] } };
+  const pose = nativeMemoryPose({ ...fixed, snapshots: [light] }, 'neutral-road', 'road', 'receipt');
+  expect(pose.measured?.gl).toBe(120);
+  expect(pose.accounted.storageTotals.gpu).toBeNull();
+  const both = nativeMemoryPose({ ...fixed, snapshots: [{ ...row, light: light.light }] }, 'neutral-road', 'road', 'receipt');
+  expect(both.measured?.gl).toBe(120);
+  expect(both.missing).toContain('Owner GPU inventory differs from same-pose live GL; keep the measured ruler separate');
+  const { census: _gone, ...bare } = row;
+  expect(() => nativeMemoryPose({ ...fixed, snapshots: [bare] }, 'neutral-road', 'road', 'receipt')).toThrow('no GL reading');
+});
+
 it('excludes failed audits and refuses stale or cross-process native samples', () => {
   expect(nativeMemoryPose({ ...audit(), failure: 'GPU restart' }, 'neutral-road', 'road', 'receipt').measured).toBeNull();
   expect(nativeMemoryPose({ ...audit(), closed: false }, 'neutral-road', 'road', 'receipt').measured).toBeNull();

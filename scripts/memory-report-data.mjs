@@ -140,9 +140,14 @@ export function nativeMemoryPose(value,label,name,source,attribution=null) {
   const midpoint=Math.floor(measuredWC.length/2), middle=measuredWC.at(midpoint);
   if(middle===undefined)throw new Error('Missing native sample');
   const wc=measuredWC.length%2===1?middle:((measuredWC[midpoint-1]??middle)+middle)/2;
-  const gl=list(object(pose.census).gl).map(object);
-  if(gl.some(row=>row.reconciled!==true))throw new Error('Native GL census does not reconcile');
-  const gpu=gl.reduce((sum,row)=>sum+bytes(row.totalBytes),0);
+  // The fixed ruler (progress/memory/ruler) reads each pose's GL as tracker totals (`light`) before any census; the full
+  // census exists only on the run's last pose, taken after its reading. Measure GL from the same-time totals when present.
+  const census=pose.census===undefined?[]:list(object(pose.census).gl).map(object), light=pose.light===undefined?[]:list(object(pose.light).gl).map(object);
+  const measuredGL=light.length>0?light:census;
+  if(measuredGL.length===0)throw new Error('Native pose has no GL reading');
+  if(measuredGL.some(row=>row.reconciled!==true)||census.some(row=>row.reconciled!==true))throw new Error('Native GL census does not reconcile');
+  const gpu=measuredGL.reduce((sum,row)=>sum+bytes(row.totalBytes),0);
+  const gl=census;
   const midSample=samples.at(midpoint);if(!midSample)throw new Error('Missing native sample timestamp');
   const measured=readMemoryMeasured({wc,gl:gpu,total:wc+gpu,time:midSample.at,source,pid});
   const scalar=attribution??pose.memoryAttribution;
@@ -150,7 +155,7 @@ export function nativeMemoryPose(value,label,name,source,attribution=null) {
   if(scalar!==undefined&&scalar!==null)accounted=readMemoryAttribution(scalar);
   else {
     // Historical GPU records have actual live identities. RAM without the engine ledger stays missing.
-    const hasGpuRows=gl.every(context=>Array.isArray(context.resources));
+    const hasGpuRows=gl.length>0&&gl.every(context=>Array.isArray(context.resources));
     const allocations=hasGpuRows?gl.flatMap((context,index)=>list(context.resources).map(entry=>{
       const resource=object(entry);return allocation({id:`legacy-gl:${index}:${text(String(resource.id))}`,domain:'gpu',kind:resource.kind,bytes:resource.bytes,owner:resource.owner,asset:resource.asset,precision:'exact'});
     })):[];
