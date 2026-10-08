@@ -29,7 +29,7 @@ import type { DryRect } from './sea';
 import { islandKnobs } from '../tiers';
 import { toonUniforms } from '../look/toon';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { ownUniforms, PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { inChunk } from '@wildshard/engine/world/Heightfield';
 import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
@@ -251,6 +251,9 @@ export class Ocean {
             vec3 premul = outgoingLight * a + waterAdd * seaEnd;
             gl_FragColor = vec4(premul / max(a, 1e-3), a);       // PREMULTIPLIED_ALPHA multiplies it back
           }`);
+      // the night tint and the ramp fog's zenith are the look's (look/toon.ts declares them in its chunk patches); in a grid
+      // region under the neutral page shell those patches are absent, so the sea declares and binds them itself (G226)
+      ownUniforms(shader, 'fragment', { uToonNight: { type: 'float', uniform: toonUniforms.uToonNight }, uFogZenith: { type: 'vec3', uniform: toonUniforms.uFogZenith } });
     }, { mode: 'replace', key: 'ocean-v2' });
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);

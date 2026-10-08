@@ -208,3 +208,40 @@ export function patchIds(mat: THREE.Material): string[] {
 
 /** Every patch id used so far, with how many materials took it (Debug, the inventory). */
 export function usedPatchIds(): ReadonlyMap<string, number> { return used; }
+
+/** a uniform a patch reads: its GLSL type and the live uniform object that feeds it */
+export interface OwnUniform { readonly type: string; readonly uniform: THREE.IUniform }
+
+const chunkText: Readonly<Record<string, string | undefined>> = THREE.ShaderChunk;
+const INCLUDE = /^[ \t]*#include +<([\w.]+)>/gmu;
+/** a stage's source with its `#include <chunk>` lines expanded from three's live `ShaderChunk` (as three resolves them) */
+function resolvedSource(source: string, depth = 0): string {
+  if (depth > 8) return source;
+  return source.replace(INCLUDE, (line, name: string) => {
+    const chunk = chunkText[name];
+    return chunk === undefined ? line : resolvedSource(chunk, depth + 1);
+  });
+}
+const declares = (source: string, name: string): boolean => new RegExp(String.raw`\buniform\s[^;{}]*\b${name}\b`, 'u').test(source);
+
+/**
+ * Make a patch self-contained (G226): declare and bind each uniform it reads that the compiled stage would not declare
+ * otherwise. A level's look may declare uniforms in its global chunk patches (`LookStrategy.lighting` / `fog`), and a
+ * material's own patch may read them; standalone those patches are installed before anything compiles, but a region in
+ * the grid's neutral page shell compiles under the page's look, without them, and would fail on an undeclared name.
+ * Call it last in the patch, after the edits that read the names. A name the resolved stage already declares (the look
+ * is installed; a declaration inside an `#if` counts) is left alone, so the standalone program source is unchanged byte
+ * for byte; a missing one is declared just before `void main` and bound to `uniforms[name]`. Returns the names it added.
+ */
+export function ownUniforms(shader: Pick<ShaderSource, 'vertexShader' | 'fragmentShader' | 'uniforms'>, stage: 'vertex' | 'fragment', uniforms: Readonly<Record<string, OwnUniform>>): string[] {
+  const source = stage === 'vertex' ? shader.vertexShader : shader.fragmentShader;
+  const resolved = resolvedSource(source);
+  const added = Object.entries(uniforms).filter(([name]) => !declares(resolved, name));
+  if (added.length === 0) return [];
+  const lines = added.map(([name, own]) => `uniform ${own.type} ${name};`).join('\n');
+  const next = source.replace(/\bvoid\s+main\s*\(/u, (main) => `${lines}\n${main}`);
+  if (next === source) throw new Error(`[shader] ownUniforms: no void main in the ${stage} stage`);
+  if (stage === 'vertex') shader.vertexShader = next; else shader.fragmentShader = next;
+  for (const [name, own] of added) shader.uniforms[name] = own.uniform;
+  return added.map(([name]) => name);
+}

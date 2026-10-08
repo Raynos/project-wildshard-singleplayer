@@ -928,6 +928,7 @@ Every shader patch goes through `patchShader(material, id, order, fn, { scope, m
 | `PATCH_ORDER` | order bands: material 100 · decorate 200 · shadows 900 · view 950 (fog slots: engine 100, stylize 200, a level's 300) |
 | `ShaderSource`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions` | its types |
 | `setProgramKey`, `hasProgramKey`, `setInheritedPatch`, `takeForeignHook` | program-key control and legacy hook adoption |
+| `ownUniforms`, `OwnUniform` | a patch declares and binds the uniforms it reads that the compiled stage lacks (a look's chunk patch is absent, e.g. a region under the grid's neutral page shell); a no-op where the look declares them, so the standalone source is unchanged (G226) |
 
 ```ts
 patchShader(material, 'template.linear-fog', PATCH_ORDER.decorate, (shader) => {
