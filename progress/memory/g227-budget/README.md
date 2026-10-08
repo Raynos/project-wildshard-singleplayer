@@ -75,3 +75,5 @@ The target leaves 28.80 / 40.11 MB modelled margin at these entry poses; it does
 4. Re-measure native WebContent plus matched labelled GL on the resulting same configuration. The current Pine settled/runtime provenance is `8e82ae91f`; Nalati's older `91f97bdfc` single-cold-run provenance remains explicit. No measured total or cap changes in this receipt.
 
 Plan-State: unchanged. G227 remains open; this receipt supplies its numerical acceptance target.
+
+The follow-up [model-versus-actual audit](audit.md) distinguishes labelled world lower bounds, retained runtime residual, and the RGBA-versus-ASTC tile charge.
