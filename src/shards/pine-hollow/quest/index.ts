@@ -9,7 +9,7 @@ import { place as placeModel } from '@wildshard/engine/models/place';
 import { boxInFrame } from '@wildshard/engine/physics/box';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import { QuestLine, type NpcDef } from '@wildshard/engine/quest/core';
+import type { NpcDef } from '@wildshard/engine/quest/core';
 import type { NpcTalk } from '@wildshard/engine/quest/view';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
@@ -28,7 +28,10 @@ import type { Inventory, ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import type { Progress } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import { PineQuestLifetime } from '../runtime/questLifetime';
+import { bindPineFacts } from '../runtime/facts';
+import source from '../shard.config';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
  * Hollow*, PH-C6 the mill hamlet, PH-C7 night play, PH-C8 collectibles + secrets, PH-C10's event achievements, the C9
@@ -125,9 +128,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const beatParam = h.params.get('quest');
   const beat: Beat | null = beatParam !== null && isBeat(beatParam) ? beatParam : null;
   if (beat) { flags.reset(); for (const f of beatFlags(beat)) flags.set(f); }
-  const chapter = new QuestLine(PINE_QUEST_CONTENT.chapters, flags, ctx.app.events, ctx.scope);
-  const quest = chapter.chapters[0];
-  if (quest === undefined) throw new Error("Pine quest chapter is missing");
+  const facts = bindRuntimeLedger(ctx, source, h.chunkId), featFacts = bindPineFacts(ctx, progress, h.chunkId, facts);
+  const quest = bindRuntimeQuest(ctx, source, 'wardens-hollow', { flags, facts }).state;
 
   let sfx: PineHollowSfx | null = null;
   const kitSfx = new InteractSfx(h.audio);
@@ -313,7 +315,10 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   });
 
   // ── the lodge's contract board ──
-  const store = { getItem: (_key: string): string => JSON.stringify(lodgeSave.read('pine-hollow')), setItem: (_key: string, raw: string): void => { lodgeSave.write(v.parse(jsonSchema, JSON.parse(raw) as unknown), 'pine-hollow'); } };
+  const lodge = bindRuntimeState(ctx, source, 'pine.lodge', () => JSON.stringify(lodgeSave.read(h.chunkId)), h.chunkId);
+  const store = { getItem: (_key: string): string => String(lodge.read()), setItem: (_key: string, raw: string): void => {
+    v.parse(jsonSchema, JSON.parse(raw) as unknown); lodge.write(raw);
+  } };
   const board: Board = loadBoard(store);
   const boardUi = ui.view('board', (scope) => {
     const panel = new BoardPanel(() => board, scope);
@@ -326,7 +331,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       saveBoard(board, store);
       kitSfx.interact('chest');
       h.music.sting('pickup');
-      progress.recordEvent('streak', board.streak);
+      featFacts.event('streak', board.streak);
       hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
     };
     panel.onReroll = (i) => { reroll(board, i); saveBoard(board, store); kitSfx.interact('door'); };
@@ -425,8 +430,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     const a = animals.animals.find((animal) => animal.combatActor() === actor);
     if (a === undefined) return;
     if (a.kind === KING_KIND) flags.set('dead:king');
+    featFacts.kill(a.kind, a.variant);
     const thrall = isThrall(a);
-    if (thrall) progress.recordEvent('thrall');
+    if (thrall) featFacts.event('thrall');
     const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(a.kind, a.variant), thrall });
     if (moved.length > 0) {
       saveBoard(board, store);
@@ -537,14 +543,14 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the event achievements, read back from the flags (a save from before an achievement still earns it) ──
   const syncFeats = (): void => {
-    progress.recordEvent('lantern', LANTERN_FLAGS.filter((f) => flags.has(f)).length);
-    progress.recordEvent('resin', resinCount());
-    progress.recordEvent('token', tokenCount());
-    progress.recordEvent('secret', SECRET_FLAGS.filter((f) => flags.has(f)).length);
-    if (flags.has('used:ph-zip')) progress.recordEvent('zipline', 1);
-    if (flags.has('errand:done')) progress.recordEvent('miller', 1);
-    if (flags.has('dead:king')) progress.recordEvent('king', 1);   // an event: the King's species is registered at runtime
-    if (flags.has(QUEST_DONE)) progress.recordEvent('quest', 1);
+    featFacts.event('lantern', LANTERN_FLAGS.filter((f) => flags.has(f)).length);
+    featFacts.event('resin', resinCount());
+    featFacts.event('token', tokenCount());
+    featFacts.event('secret', SECRET_FLAGS.filter((f) => flags.has(f)).length);
+    if (flags.has('used:ph-zip')) featFacts.event('zipline', 1);
+    if (flags.has('errand:done')) featFacts.event('miller', 1);
+    if (flags.has('dead:king')) featFacts.event('king', 1);   // an event: the King's species is registered at runtime
+    if (flags.has(QUEST_DONE)) featFacts.event('quest', 1);
   };
   syncFeats();
   ctx.scope.onDispose(flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); }));
@@ -588,7 +594,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       if (!perfLap.active && hollow && !flags.has('secret:log') && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
         flags.set('secret:log'); hud.toast('Inside the fallen giant. It smells of rain and old resin');
       }
-      if (journalFull()) progress.recordEvent('journal', 1);
+      if (journalFull()) featFacts.event('journal', 1);
     }
   } });
 

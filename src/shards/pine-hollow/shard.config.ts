@@ -1,6 +1,11 @@
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { PINE_AUDIO } from './data/audio';
+import { PINE_ITEMS } from './data/items';
+import { PINE_LEDGER } from './data/ledger';
+import { PINE_QUESTS } from './data/quests';
+import { PINE_RUNTIME_SPAWNS } from './data/spawns';
+import { PINE_STATE } from './data/state';
 import { PINE_EDGE_HEIGHTS } from './data/edges';
 import { PINE_RUNTIME_COST } from './data/runtimeCost';
 
@@ -15,5 +20,6 @@ export default parseShardfile({
   ...emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1337 }),
   accent: 'moss',
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
-  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST }, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
+  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS },
+  quests: PINE_QUESTS, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });

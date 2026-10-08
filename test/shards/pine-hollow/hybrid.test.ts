@@ -8,6 +8,7 @@ import source from '../../../src/shards/pine-hollow/shard.config';
 import { ShardPlugin } from '../../../src/game/shard/plugin';
 import Plugin, { preparePineHybrid } from '../../../src/shards/pine-hollow/plugin';
 import type { prepareHybridShard } from '../../../src/game/shardfile/hybrid';
+import { PINE_RUNTIME_SPAWNS } from '../../../src/shards/pine-hollow/data/spawns';
 import { PINE_RUNTIME_COST } from '../../../src/shards/pine-hollow/data/runtimeCost';
 
 it.each(['legacy', 'shardfile'])('enters Pine as %s from SHARD SELECT (SF65), with identical LEGACY stage contexts and no data admission', async (choice) => {
@@ -38,7 +39,7 @@ it.each(['legacy', 'shardfile'])('enters Pine as %s from SHARD SELECT (SF65), wi
       expect(prepare).toHaveBeenCalledTimes(1);
       expect(prepare).toHaveBeenCalledWith(context);
     }
-    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST });
+    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS });
   } finally { app.engineScope.dispose(); }
   expect(scope.census.disposers).toBe(0);
 });

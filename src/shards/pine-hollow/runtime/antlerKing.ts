@@ -20,7 +20,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 import * as THREE from 'three';
 import type { BossScript, BossState } from '@wildshard/engine/ai/BossBrain';
-import { Boss, type BossDef } from '@wildshard/game/Boss';
+import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
 import { PINE_PHASES } from '../look/dayKeys';
 import { KINGS_CLEARING } from '../layout';
@@ -164,7 +164,7 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
   private readonly parked: Animal[] = [];
   private readonly spawner: Spawner<Animal> | null;
 
-  constructor(protected override readonly ctx: PineCtx, entered?: (install: () => () => void) => void) {
+  constructor(protected override readonly ctx: PineCtx, entered?: (install: () => () => void) => void, private readonly body?: () => Animal) {
     super();
     this.spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => {
       const v = thrallVariant(kind), actor = ctx.animals.spawn(kind, x, z, yaw, v.variant);
@@ -236,7 +236,7 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
   private spawnKing(): Animal {
     const old = this.king;
     if (old) { this.look?.dispose(); retire(this.ctx.animals, old); }
-    const a = this.ctx.animals.spawn(KING_KIND, C.x, C.z, 0, 'warden');
+    const a = this.body === undefined ? this.ctx.animals.spawn(KING_KIND, C.x, C.z, 0, 'warden') : this.body();
     a.herd = -1;
     this.king = a;
     pinBrain(a); inspectBrain(a, () => ({ state: this.mode, picks: [], brainHz: 60, pinned: true }));
@@ -557,6 +557,9 @@ export class AntlerKingFight extends AntlerKingGoals implements BossScript {
 // ─────────────────────────────── the wiring ───────────────────────────────
 
 export interface AntlerKingHost {
+  /** The platform owns encounter records and declared body placement; the fight keeps its native recipe. */
+  persistence?: BossPersistence;
+  body?: () => Animal;
   /** The resident fight remains frozen while these borrowed bindings leave with its entered scope. */
   entered?: (install: () => () => void) => void;
   ctx: PineCtx;
@@ -576,7 +579,7 @@ export class AntlerKing {
 
   constructor(private readonly host: AntlerKingHost) {
     const { ctx } = host;
-    this.fight = new AntlerKingFight(ctx, host.entered);
+    this.fight = new AntlerKingFight(ctx, host.entered, host.body);
     this.fight.prewarm();
     const def: BossDef = {
       ...ANTLER_KING_ENCOUNTER, phases: ANTLER_KING_ENCOUNTER.phases.map(({ at, caption, name }) => ({ at, caption, name })),
@@ -598,7 +601,7 @@ export class AntlerKing {
       skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
       toast: ctx.toast, feed: ctx.feed, pickupHum: host.pickupHum,
       music: (e) => this.music(e),
-    }, this.ui, 'pine-hollow');
+    }, this.ui, 'pine-hollow', host.persistence);
     const scope = app.levelScope;
     if (scope !== null) app.encounters.boss(KING_KIND, this.boss, scope);
     // dev: `?boss=antler-king` — night, you at the stones' N gap; `&bossPhase=2|3` at that checkpoint

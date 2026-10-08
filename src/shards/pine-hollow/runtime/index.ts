@@ -1,5 +1,6 @@
 import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installEnteredPineScore } from './audio/score';
+import { bindPineItems } from './items';
 import { installPineLandmarkUpdate } from './landmarkLifetime';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
@@ -143,7 +144,9 @@ export class PineHollow extends ShardPlugin {
       const rifle = new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, woodFrom: primary.model });
       await macrotask();
       const secondary = new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock });
-      return { primary, rifle, secondary };
+      const weapons = { primary, rifle, secondary };
+      bindPineItems(ctx, weapons);
+      return weapons;
     };
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);

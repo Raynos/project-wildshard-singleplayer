@@ -1,5 +1,6 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
+import { bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import { AMMO_ROWS } from './effects';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -29,7 +30,8 @@ import type { Owned } from '@wildshard/game/loot/Owned';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
 import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, POUCH_MAX, Quiver, boltDamage, type AmmoKind, type BoltKind } from './ammo';
 
-const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, schema: valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) }), initial: () => ({}) });
+const savedSchema = valibot.object({ pitch: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), broadhead: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), rounds: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())), arrows: valibot.optional(valibot.pipe(valibot.number(), valibot.finite())) });
+const savedSlot = saves.define({ key: 'loadout', scope: 'shard', version: 1, schema: savedSchema, initial: () => ({}) });
 
 /**
  * Pine Hollow's LOADOUT (PINE-HOLLOW-REMASTER PH-C11; ranged only, PH-U15): the crossbow (the hero), the lever-action
@@ -110,8 +112,9 @@ export function restoreKept(inventory: Pick<Inventory, 'had'>, owned: Pick<Owned
 
 export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const { weapons, crossbow, rifle, longbow, hud, audio, inventory, owned, params } = h;
-  let saved: Partial<Record<BoltKind | 'rounds' | 'arrows', number>> = {};
-  try { saved = savedSlot.read('pine-hollow'); } catch { /* defaults */ }
+  const state = bindRuntimeState(h.context ?? { app, scope: h.scope }, source, 'pine.loadout', () => JSON.stringify(savedSlot.read('pine-hollow')));
+  let saved: valibot.InferOutput<typeof savedSchema> = {};
+  try { saved = valibot.parse(savedSchema, JSON.parse(String(state.read())) as unknown); } catch { /* defaults */ }
   const quiver = new Quiver({ pitch: saved.pitch ?? 0, broadhead: saved.broadhead ?? 0 });
   const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.round(v)) : null);
   const rounds = num(saved.rounds), arrows = num(saved.arrows);
@@ -150,7 +153,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const save = (): void => {
     if (crossbow) quiver.stash(live());
     kept.rounds = rifle.state.reserve; kept.arrows = longbow.state.bolts;
-    try { savedSlot.write({ pitch: quiver.counts.pitch, broadhead: quiver.counts.broadhead, rounds: kept.rounds, arrows: kept.arrows }, 'pine-hollow'); } catch { /* not persisted */ }
+    try { state.write(JSON.stringify({ pitch: quiver.counts.pitch, broadhead: quiver.counts.broadhead, rounds: kept.rounds, arrows: kept.arrows })); } catch { /* not persisted */ }
     dirty = false;
   };
 
