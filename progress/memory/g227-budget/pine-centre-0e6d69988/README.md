@@ -163,15 +163,16 @@ separate compressed-source readback proof, not inferred from these totals.
 
 The Simulator first-crossing failure occurred on both memo and historical pins.
 Its separate fresh-device warm-up counterfactual found baseline losses 2/5 and
-fixed losses 0/5; this receipt does not attribute that failure to the memo. A
-warm-up-fixed isolated memo A/B is queued, retaining failed native attempts and
-requiring at least three valid cold runs per arm. No native WC saving is credited.
+fixed losses 0/5; this receipt does not attribute that failure to the memo. The
+warm-up-fixed isolated memo A/B completed three valid cold runs per arm, with
+zero failures. See `../pine-ktx2-native-warmfix/README.md`: exact GL reduction
+repeats in every run; overlapping native ranges yield no WC saving credit.
 
 ## Handoff (sp-x5)
 
 Pine remains over cap. Procedural shared-source comparison is zero. The KTX2
 readback/lifetime fixture is exact, and the completed product centre census
 removes 1,569,440 GL bytes across the four identified rock/wood duplicates.
-Warm-up-fixed isolated native A/B is queued after sp-x2; no native WC saving or
-cap pass is claimed. Canvas/Float32 attribution belongs to sp-x1; sp-x2 owns
+Warm-up-fixed isolated native A/B is complete (3/3 valid per arm, zero failures);
+no native WC saving or cap pass is claimed. Canvas/Float32 attribution belongs to sp-x1; sp-x2 owns
 generic music; sp-x4 owns Nalati cuts.

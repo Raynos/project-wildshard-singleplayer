@@ -1,0 +1,159 @@
+{
+  "protocol": "Alternating cold Safari boots, warm-up fix on both arms, Memory saver ON, phone tier, 2x, seed357; at least three valid runs per side. Failed attempts retained.",
+  "arms": [
+    {
+      "arm": "baseline",
+      "pin": "71f385a525bf9d54f4b55ee58df04ee68c3e1e2d",
+      "base": "http://127.0.0.1:4400/",
+      "dist": "/private/tmp/wildshard-serve/20261008-063602-4400/dist",
+      "pid": 35942,
+      "listeners": [
+        "35980"
+      ],
+      "version": {
+        "build": "71f385a-muzgnw2a",
+        "time": "2026-10-08T11:36:28.524Z"
+      },
+      "initialIndexSHA256": "b348ec920b2001b2083c0628ce73eecfea6c68d2b6889c50350555389c389e30"
+    },
+    {
+      "arm": "memo",
+      "pin": "b87c6afd23ba35dbd47c4799a4becf2722ca6c6e",
+      "base": "http://127.0.0.1:4404/",
+      "dist": "/private/tmp/wildshard-serve/20261008-071034-4404/dist",
+      "pid": 46900,
+      "listeners": [
+        "46906"
+      ],
+      "version": {
+        "build": "b87c6af-muzhwr90",
+        "time": "2026-10-08T12:11:21.825Z"
+      },
+      "initialIndexSHA256": "c13d8c02e1a0b04d21dc19a2c8163fc156872b92ce9b4184646da6c16e334897"
+    }
+  ],
+  "harnessSHA256": {
+    "progress/memory/g227-budget/native.mjs": "7169be97be7af6b4b71ccb1546ba5ad08e80210c94e30a811f68cd7ddf01eeae",
+    "progress/memory/g227-budget/inspect.mjs": "eef4debbbb6dc040fa3c05f74520782a66be356ab695fb5da5924acff4cbda59",
+    "progress/memory/g227-budget/native-samples.mjs": "f060b0e4b3badf7f2969cf280c9b3f748eea8785c1ac04bb15b628e15a52eb9f",
+    "scripts/sim-mem-phases.py": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+    "scripts/parity/glbytes.mjs": "7d9df125654bbccb62cd9d56b998c49f1b418933b4c84223cfb1370f0dd5392f",
+    "scripts/frame-floor-grid.mjs": "6b3c14a4a45df0388ccf0bf65b6d3158eea27e89a17d9266b567b579d4de6563",
+    "scripts/debug-settings.mjs": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e"
+  },
+  "attempts": [
+    {
+      "arm": "baseline",
+      "number": 1,
+      "startedUTC": "2026-10-08T12:12:23Z",
+      "out": "baseline-01.json.gz",
+      "exitCode": 0,
+      "valid": true,
+      "failure": null,
+      "stage": "pine-hollow-centre",
+      "webContentBytes": 941150240,
+      "glBytes": 229943160,
+      "combinedBytes": 1171093400
+    },
+    {
+      "arm": "memo",
+      "number": 1,
+      "startedUTC": "2026-10-08T12:14:23Z",
+      "out": "memo-01.json.gz",
+      "exitCode": 0,
+      "valid": true,
+      "failure": null,
+      "stage": "pine-hollow-centre",
+      "webContentBytes": 993513576,
+      "glBytes": 228373720,
+      "combinedBytes": 1221887296
+    },
+    {
+      "arm": "baseline",
+      "number": 2,
+      "startedUTC": "2026-10-08T12:16:26Z",
+      "out": "baseline-02.json.gz",
+      "exitCode": 0,
+      "valid": true,
+      "failure": null,
+      "stage": "pine-hollow-centre",
+      "webContentBytes": 848236600,
+      "glBytes": 229943160,
+      "combinedBytes": 1078179760
+    },
+    {
+      "arm": "memo",
+      "number": 2,
+      "startedUTC": "2026-10-08T12:18:17Z",
+      "out": "memo-02.json.gz",
+      "exitCode": 0,
+      "valid": true,
+      "failure": null,
+      "stage": "pine-hollow-centre",
+      "webContentBytes": 909332560,
+      "glBytes": 228373720,
+      "combinedBytes": 1137706280
+    },
+    {
+      "arm": "baseline",
+      "number": 3,
+      "startedUTC": "2026-10-08T12:20:09Z",
+      "out": "baseline-03.json.gz",
+      "exitCode": 0,
+      "valid": true,
+      "failure": null,
+      "stage": "pine-hollow-centre",
+      "webContentBytes": 898846824,
+      "glBytes": 229943160,
+      "combinedBytes": 1128789984
+    },
+    {
+      "arm": "memo",
+      "number": 3,
+      "startedUTC": "2026-10-08T12:22:05Z",
+      "out": "memo-03.json.gz",
+      "exitCode": 0,
+      "valid": true,
+      "failure": null,
+      "stage": "pine-hollow-centre",
+      "webContentBytes": 910069768,
+      "glBytes": 228373720,
+      "combinedBytes": 1138443488
+    }
+  ],
+  "summaries": {
+    "baseline": {
+      "attempts": 3,
+      "valid": 3,
+      "failed": 0,
+      "medianCombinedBytes": 1128789984,
+      "minCombinedBytes": 1078179760,
+      "maxCombinedBytes": 1171093400,
+      "glBytes": [
+        229943160
+      ]
+    },
+    "memo": {
+      "attempts": 3,
+      "valid": 3,
+      "failed": 0,
+      "medianCombinedBytes": 1138443488,
+      "minCombinedBytes": 1137706280,
+      "maxCombinedBytes": 1221887296,
+      "glBytes": [
+        228373720
+      ]
+    }
+  },
+  "glSavingBytes": 1569440,
+  "nativeSavingCredited": false,
+  "capPassClaimed": false,
+  "closed": true,
+  "sharedFileChangesAfterFinalModuleLoad": [
+    {
+      "path": "progress/memory/g227-budget/native.mjs",
+      "modifiedEpoch": 1791462402.8593516,
+      "note": "Changed after final Node process loaded its static module. All six preboot hash fences passed."
+    }
+  ]
+}

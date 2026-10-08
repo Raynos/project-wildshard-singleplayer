@@ -1,0 +1,79 @@
+diff --git a/src/engine/core/ktx2.ts b/src/engine/core/ktx2.ts
+index 9dd0870cd..39603ab46 100644
+--- a/src/engine/core/ktx2.ts
++++ b/src/engine/core/ktx2.ts
+@@ -6,8 +6,8 @@ import { pageScope } from '../app/resources';
+  *                                 formats (ASTC · BC7 · ETC2 · S3TC …) and starts fetching the Basis transcoder
+  *                                 (/basis/r<three>/, copied from three by vite/basis.ts), so it is warm before the first file
+  *   ktx2Texture(served)           the KTX2 stand-in of a file the tier fetches, as a CompressedTexture — or null (none, or
+- *                                 KTX2 off): the caller then loads the image as before. One transcode per file; each call
+- *                                 gets a clone that SHARES its source, so the same file used twice is one GPU upload
++ *                                 KTX2 off): the caller then loads the image as before. One transcode per file per wave;
++ *                                 Memory saver also shares weak source identity across later waves, without retaining mips
+  *   ktx2Layers(served[], size)    per-file textures for a texture array (the terrain / bark splat), mip-trimmed to `size`
+  *
+  * glTF: every GLTFLoader gets the loader at parse time (the prototype patch below), so a `.glb` / `.gltf` whose textures
+@@ -25,6 +25,8 @@ import { markGpuOnly } from './gpuOnly';
+ import { type Renderer, probeRenderer } from '../render/renderer';
+ import { labelAsset } from '../render/gpuLabels';
+ import { ScopedWorkerPool } from './scopedWorkerPool';
++import { memorySaverOn } from '../render/memorySaver';
++import { Ktx2Sources } from './ktx2Sources';
+ 
+ /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
+ export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
+@@ -101,6 +103,7 @@ export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
+  * dropped a task after it lands, so the mips can be freed once its clones have uploaded — a later ask transcodes again.
+  */
+ const transcoded = new Map<string, Promise<THREE.CompressedTexture>>();
++const sources = new Ktx2Sources();
+ function load(url: string, keep: boolean): Promise<THREE.CompressedTexture> {
+   let p = transcoded.get(url);
+   if (p === undefined) {
+@@ -114,7 +117,9 @@ function load(url: string, keep: boolean): Promise<THREE.CompressedTexture> {
+ }
+ 
+ /**
+- * The KTX2 texture standing in for `served` (a clone sharing one source per file), or null: load the image instead.
++ * The KTX2 texture standing in for `served`, or null: load the image instead. Memory saver keeps a bounded weak
++ * source identity across transcode waves: equal file/mip/format and sampler share a GPU allocation. Fresh mips
++ * remain on every returned texture until upload, including after disposal or for a different sampler.
+  * `maxSize` (the tier's texture cap, as loadImage applies it to a decode): a larger file starts at the first mip that fits.
+  */
+ export async function ktx2Texture(served: string, maxSize = Infinity): Promise<THREE.CompressedTexture | null> {
+@@ -133,6 +138,7 @@ export async function ktx2Texture(served: string, maxSize = Infinity): Promise<T
+   }
+   t.flipY = false;
+   t.generateMipmaps = false;
++  if (memorySaverOn()) sources.share(t, url, Math.max(0, skip));
+   return labelAsset(releaseAfterUpload(t), 'engine/ktx2Texture', url);
+ }
+ 
+diff --git a/src/engine/core/ktx2Sources.ts b/src/engine/core/ktx2Sources.ts
+new file mode 100644
+index 000000000..0b1c4407d
+--- /dev/null
++++ b/src/engine/core/ktx2Sources.ts
+@@ -0,0 +1,22 @@
++import type { CompressedTexture } from 'three';
++
++/** Cross-wave identity only: live textures own the source; this bounded memo owns no pixels or GL handles.
++ * Each caller still supplies freshly transcoded mips, so a new sampler or a disposed upload can be rebuilt. */
++export class Ktx2Sources {
++  private readonly sources = new Map<string, WeakRef<CompressedTexture['source']>>();
++  private readonly limit: number;
++  constructor(limit = 256) { this.limit = limit; }
++
++  share(texture: CompressedTexture, url: string, level: number): void {
++    const key = JSON.stringify([url, level, texture.format, texture.type, texture.image.width, texture.image.height]);
++    const source = this.sources.get(key)?.deref();
++    this.sources.delete(key);
++    if (source) texture.source = source;
++    this.sources.set(key, new WeakRef(texture.source));
++    while (this.sources.size > this.limit) {
++      const oldest = this.sources.keys().next();
++      if (oldest.done) break;
++      this.sources.delete(oldest.value);
++    }
++  }
++}
