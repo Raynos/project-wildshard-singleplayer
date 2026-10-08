@@ -10,7 +10,7 @@ import { Ledger, LedgerEmitter, type LedgerReceipt } from '../ledger';
 import { Purse } from '../loot/Purse';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import type { RuntimeBoundSection } from './runtimeBinds';
-import type { RuntimeBossRow, RuntimeHomeRow } from './runtimeSpawns';
+import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from './runtimeSpawns';
 import type { Shardfile } from './schema';
 import { installRuntimeState, type RuntimeState, type RuntimeStateValue } from './runtimeState';
 
@@ -263,4 +263,27 @@ export function bindRuntimeBoss(ctx: ShardContext, source: Pick<Shardfile, 'runt
       if (a) spawned?.(a); return a;
     },
     retire: (a) => { animals?.retire(a); } };
+}
+
+/** A finite declared body, without home refill or encounter behaviour. Placement timing remains runtime-owned. */
+export interface RuntimeActor {
+  readonly row: RuntimeActorRow;
+  /** The caller may lend native floor/altitude placement; identity follows the binder's policy. */
+  readonly spawn: (placement?: { readonly y?: number; readonly fromY?: number }) => Animal | null;
+  readonly retire: (animal: Animal) => void;
+}
+/**
+ * Bind one `runtime.spawns.actors` row. Default retained identities are declared; `identity: runtime` preserves the
+ * runtime's native allocation order for existing saves. The caller owns when to spawn and retire, with no refill.
+ */
+export function bindRuntimeActor(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, id: string,
+  spawned?: (animal: Animal) => void, options: RuntimeBossOptions = {}): RuntimeActor {
+  const row = runtimeSpawnRows(source).actors?.find((actor) => actor.id === id);
+  if (row === undefined) throw new Error(`Undeclared runtime actor ${id}`);
+  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx) && options.identity !== 'runtime';
+  return { row, spawn: (placement) => {
+    const animal = animals?.spawn(row.kind, row.at[0], row.at[1], row.yaw, row.look, { ...placement, ...(retained ? { entityId: row.id } : {}) }) ?? null;
+    if (animal !== null) spawned?.(animal);
+    return animal;
+  }, retire: (animal) => { animals?.retire(animal); } };
 }

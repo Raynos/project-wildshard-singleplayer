@@ -1898,6 +1898,10 @@ their declared row identity, including retries; `runtime` preserves ordinary
 runtime-assigned identities and allocation order when adopting existing saves.
 Standalone bodies retain their ordinary identities in either mode.
 
+`bindRuntimeActor` binds a finite `runtime.spawns.actors` body with no refill or
+encounter. It accepts the same identity policy as `bindRuntimeBoss`; native
+altitude/floor placement and spawn/retirement timing remain caller-owned.
+
 SF70 adds exact melee/ranged/bow/spear declared input profiles. A hybrid's optional
 `items.runtimeContexts` names existing input definitions, admitted only when its
 runtime binds items; the runtime installer checks `InputService.has` for every
