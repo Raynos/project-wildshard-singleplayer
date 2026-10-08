@@ -7,8 +7,11 @@ import { installScriptLane, type ScriptLanePort } from '@wildshard/engine/script
 import type { EffectRules, ScriptEntity } from '@wildshard/engine/script/effects';
 import { declaredWaterBody } from '@wildshard/engine/world/water/declared';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
-import { installDeclaredPropColliders, type PropColliderPort, type PropColliderState } from '@wildshard/engine/physics/declaredProps';
-import { propColliderDescriptors } from './props';
+import type { PropColliderPort, PropColliderState } from '@wildshard/engine/physics/declaredProps';
+import { floorBelow } from '@wildshard/engine/physics/query';
+import { installShardfileColliders, shardfileColliderIds } from './collisionBindings';
+import { validateMeshCollisionAssets } from './meshCollision';
+import { validateMeshEntryways } from './meshEntryways';
 import { declaredItemScriptEntities } from './items';
 import { syncTargetColliders } from './targets';
 import { scriptPhysicsQueries } from '@wildshard/engine/script/queries';
@@ -63,7 +66,8 @@ export interface ShardfileSimulation {
 }
 /** One declared simulation core, used by the normal browser loader and the headless author validator. */
 export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
-  if (shard.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
+  validateMeshCollisionAssets(shard, assets);
+  validateMeshEntryways(shard, assets);
   const bytes = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
   if (shard.terrain !== null && bytes === undefined) throw new Error('Missing admitted terrain collider');
   const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes);
@@ -72,15 +76,16 @@ export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string,
   const host = createSimHost({ version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed,
     ground: { size: 500, height: 0 }, player: { at: { x: shard.spawn.x, y: shard.spawn.y, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     entities: buildPlatformSpawns(shard.creatures.spawns, speciesResolver(shard.rows), simStrikes(shard.rows)), weapon, quests: [],
-  }, { ...ports, ground: terrain === undefined && socketLiftEntries(shard.entryways).length === 0, heightAt });
+  }, { ...ports, ground: terrain === undefined && shard.meshCollision === null && socketLiftEntries(shard.entryways).length === 0, heightAt });
   return bindShardfileSim(host, shard, assets, ports);
 }
 /** Reinstall matching adapters into a fresh standalone restore host; restoring skips collider allocation and stepping. */
 export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): ShardfileSimulation {
-  if (shard.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
   const levelId = shard.identity.slug;
   if (host.level.id !== levelId || host.level.seed !== shard.identity.seed || host.entities.size !== shard.creatures.spawns.length || shard.creatures.spawns.some((row) => !host.entities.has(row.id))) throw new Error('Shardfile simulation host mismatch');
   try {
+    validateMeshCollisionAssets(shard, assets);
+    validateMeshEntryways(shard, assets);
     const bytes = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
     if (shard.terrain !== null && bytes === undefined) throw new Error('Missing admitted terrain collider');
     const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes);
@@ -90,11 +95,16 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     if (liftEntries.length > 0 && !host.embedded && !ports.restoring && !ports.entrySocketsProvided) installEntrySockets(host.physics, host.scope, [{ x: 0, z: 0 }]);
     const water = ports.water ?? new WaterBodies();
     if (ports.water === undefined) for (const row of [...shard.water].sort((a, b) => Number(a.kind === 'sea') - Number(b.kind === 'sea'))) water.add(declaredWaterBody(row), host.scope);
-    const rows = shard.props === null ? [] : propColliderDescriptors(shard.props);
-    const colliders = ports.colliders ?? installDeclaredPropColliders(rows, () => host.physics, host.scope,
-      ports.restoring ? new Map(rows.map((row) => [row.id, { handles: [] }])) : undefined);
-    if (rows.length !== colliders.size || rows.some((row) => !colliders.has(row.id))) throw new Error('Declared collider port mismatch');
-    if (rows.length > 0) host.onStep('props.declared', () => undefined, {
+    const ids = shardfileColliderIds(shard);
+    const colliders = ports.colliders ?? installShardfileColliders(shard, assets, () => host.physics, host.scope, ports.restoring);
+    if (ids.length !== colliders.size || ids.some(id => !colliders.has(id))) throw new Error('Declared collider port mismatch');
+    if (shard.meshCollision !== null) {
+      // Layered native floors follow each creature's own height, never the top of an overhang above its head.
+      host.setHeightQuery((x, z) => floorBelow(host.physics, x, z, 250, 500) ?? -250);
+      for (const actor of host.entities.values()) actor.groundHeight = (x, z, fromY) => floorBelow(host.physics, x, z, fromY, 500) ?? -250;
+    }
+    let pendingColliders: ReadonlyMap<string, PropColliderState> | undefined;
+    if (ids.length > 0) host.onStep('props.declared', () => undefined, {
       snapshot: () => Object.fromEntries([...colliders].map(([id, port]) => [id, { handles: port.snapshot().handles }])),
       restore: (value: SimValue) => {
         if (value === null || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== colliders.size) throw new Error('Invalid declared collider continuation');
@@ -109,8 +119,16 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
           }
           states.set(id, { handles });
         }
-        for (const [id, state] of states) colliders.get(id)?.restore(state);
+        // The native snapshot replaces the constructor world after adapter.restore. Validate mesh geometry
+        // and reconnect only after that replacement, against the actual saved world rather than its placeholder.
+        if (ports.restoring && shard.meshCollision !== null) pendingColliders = states;
+        else for (const [id, state] of states) colliders.get(id)?.restore(state);
       },
+      ...(ports.restoring && shard.meshCollision !== null ? { physicsRestored: () => {
+        if (pendingColliders === undefined) throw new Error('Missing declared mesh continuation');
+        for (const [id, state] of pendingColliders) colliders.get(id)?.restore(state);
+        pendingColliders = undefined;
+      } } : {}),
     });
     const hooks = ports.hooks ?? shard.hooks;
     const actors = new Map<string, number>(), reverse = new Map<number, string>();
