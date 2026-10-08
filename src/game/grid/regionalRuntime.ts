@@ -160,9 +160,9 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       const skinRows: SkinDef[] = [];
       let localPlay: ShardPlayHost | null = null;
       let localRuntime: ShardRuntime | undefined;
-      let stowed = false;
+      let stowed = false, restored = false;
       const checkpoint = (): boolean => {
-        if (scope.disposed || localPlay === null) return false;
+        if (scope.disposed || localPlay === null || !restored) return false;
         // Attempt all owners even after a refusal; neither gameplay death/reset hooks nor a constant true is a save.
         const progress = localPlay.progress.checkpoint(), inventory = localPlay.inventory.checkpoint(), native = foundation.checkpoint();
         const logical = ports.continuation?.checkpoint(localPlay.animals) ?? true;
@@ -236,6 +236,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               if (localPlay === null) throw new Error('Regional play services are not installed');
               // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
               ports.continuation?.restore(localPlay.animals);
+              restored = true;
               for (const animal of localPlay.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
             },
           };

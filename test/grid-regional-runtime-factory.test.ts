@@ -266,3 +266,24 @@ it('restores a durable play-created creature only after the complete trusted her
     expect(f.allocator.entries()).toEqual([]);
   }
 });
+
+it('refuses every checkpoint after failed strict restore without replacing the last complete roster', async () => {
+  const local = new MemoryStorage(), continuation = regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'pine-hollow', shard: 'pine-hollow' }, 1);
+  const f = fixture(continuation); addBoar(f.animals, 'initial.boar'); addBoar(f.animals, 'missing.encounter');
+  expect(continuation.checkpoint(f.animals)).toBe(true);
+  const wire = (): (string | null)[] => Array.from({ length: local.length }, (_, index) => {
+    const key = local.key(index); return key === null ? null : local.getItem(key);
+  });
+  const before = wire(); f.animals.animals.pop();
+  class Runtime extends ShardPlugin { override kit(ctx: ShardContext): void { emptyKit(ctx); } }
+  const prepared = await f.regional(f.request), session = new HybridRuntimeSession(new Map([['pine-hollow', prepared.resident]]), [
+    { slug: 'pine-hollow', entry: 'runtime/index.ts', load: () => Promise.resolve({ default: Runtime }) },
+  ], f.scope);
+  try {
+    await expect(session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).rejects.toThrow('Missing stable runtime creature');
+    expect(session.state().ready).toBe(false); expect(prepared.checkpoint()).toBe(false);
+    expect(f.nativeCheckpoints()).toBe(0); expect(wire()).toEqual(before);
+    session.leave(); expect(prepared.checkpoint()).toBe(false); expect(wire()).toEqual(before);
+  } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+  expect(wire()).toEqual(before); expect(f.allocator.entries()).toEqual([]);
+});

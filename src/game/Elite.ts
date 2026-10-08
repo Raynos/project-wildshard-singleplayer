@@ -147,6 +147,15 @@ export class Elites {
     });
   }
 
+  /** Materialize eligible lair actors before restoring a rebuilt world, without advancing AI, timers or rewards. */
+  initialize(): void {
+    for (const entry of this.entries) {
+      if (entry.state !== 'absent' || entry.timer > 0 || entry.waitDusk || entry.script.retired?.() === true
+        || !this.host.condition(entry.script.def.rule) || entry.script.canSpawn?.() === false) continue;
+      entry.script.spawn(); entry.state = 'idle';
+    }
+  }
+
   entry(id: string): Entry | undefined { return this.entries.find((e) => e.script.def.id === id); }
   owned(id: string): boolean { return this.saved[id]?.skinTaken ?? false; }
 
