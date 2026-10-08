@@ -307,6 +307,7 @@
     "./world/terrainField": "./world/terrainField.ts",
     "./world/terrainHeight": "./world/terrainHeight.ts",
     "./world/voxelAO": "./world/voxelAO.ts",
+    "./world/geometryBake": "./world/geometryBake.ts",
     "./world/water/body": "./world/water/body.ts",
     "./world/water/view": "./world/water/view.ts",
     "./world/waterSurface": "./world/waterSurface.ts",

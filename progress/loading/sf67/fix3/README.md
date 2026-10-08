@@ -139,3 +139,33 @@ kept). AO = `voxelAO.ts` inclusive time in long tasks (analyze.mjs, source-mappe
 - Driftwood's rocks, bushes and shrine geometry, and Nalati's outcrops, camps, dressing and Kurgan geometry. They
   dominate the props step: about 3.7 to 4.2 s and 5.3 to 6.0 s of long tasks.
 - Nalati's `paint.ts` `shade` (about 40 to 50 ms).
+
+## Slice 4: rocks, blobs and granite blocks baked as geometry (part 4)
+
+- `src/engine/world/geometryBake.ts`: `bakedGeometry(id, inputs, rng, build)` keys a builder call by its id, its inputs
+  (quantised to 2^-30) and the rng state, and answers it from a build-time table (attributes, index, and the rng state
+  after the build). The table is indexed when added and each entry is parsed only when hit (no single parse task).
+- Wrapped: Driftwood's `rockGeometry` (shore boulders, small rocks, cove / wreck / ground-cover rocks), Nalati's
+  `graniteBlock`, the engine's `blob`. The table holds the welded shape only; the load runs the exact arithmetic
+  (smooth normals, unwelding, the facet hint: no trig, so the same bits on every engine).
+- `scripts/bake-geometry.mjs` (`--check` in bake-check, `--verify`): Driftwood 577 / 577 and Nalati 1912 / 1912 calls
+  answered in Node on both tiers. Tables: `public/assets/models/driftwood-blender/geometry.bin` 2.15 MB (1.22 MB brotli),
+  `public/assets/nalati/baked/geometry.bin` 3.40 MB (1.42 MB brotli). One table serves both tiers.
+- Parity: the code path is bit-identical to the old builder (413 rocks, every attribute byte and the rng state after);
+  a hit returns the same bytes. The voxel AO tables still answer every call (their inputs are unchanged).
+- **Not baked, on purpose:** the hibiscus bushes. Their finished geometry is 30 MB over both tiers (687 k vertices) to
+  save about 40 ms at 1x; the paint kits (Nalati `paint.ts` add / shade, the camps, dressing, Kurgan) paint into a shared
+  kit with side effects (flags, smoke, colliders), so they need a recorder of the kit's calls, not of a geometry.
+
+Matched captures (4x CPU, iPhone 16 Pro emulation, muted, SHARD SELECT -> ENTER WORLD). Before `627c5edaf` (HEAD), after
+= HEAD + this change. Order: Driftwood before, after; Nalati after, before. Summaries in `slice4/` (traces not kept).
+
+| Arm (1-min load) | Shard | cold play / props long tasks / max task ms | warm play / props / max ms |
+|---|---|---:|---:|
+| before (31 to 90) | Driftwood | 11 676 / 4 517 / 917 | 11 160 / 4 472 / 956 |
+| after (90 to 69) | Driftwood | 9 581 / 3 132 / 598 | 9 461 / 3 327 / 637 |
+| after (69 to 48) | Nalati | 16 363 / 4 762 / 1 252 | 15 361 / 4 572 / 1 300 |
+| before (48 to 80) | Nalati | 16 745 / 5 626 / 1 530 | 17 775 / 5 654 / 1 565 |
+
+The machine load ran 31 to 90, so the totals are noisy; in the source-mapped samples rockKit's build owner falls from
+about 138 to 43 samples (what is left is the load-time finish) and Nalati's granite owner from about 59 to 0 to 9.

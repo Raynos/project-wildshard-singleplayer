@@ -17,6 +17,7 @@ import { Rifle } from './weapons/Rifle';
 import { NALATI_GRASS_LAYOUT } from '../look/grassFieldLayout';
 import { Vector3 } from 'three';
 import { buildNalatiWorld, type Nalati } from './state';
+import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { buildNalatiLoadout, type NalatiLoadout } from '../weapons/loadout';
 import { AR15, BOW, SABRE, SPEAR } from '../weapons/equipment';
@@ -57,7 +58,7 @@ export class NalatiPlugin extends ShardPlugin {
     shell.overhead.push(grass.group, particles.group);
     shell.hooks.worldUpdate = (dt) => { grass.update(dt, shell.viewer()); particles.update(dt, shell.viewer(), game.camera); };
     await step('cabins', () => undefined);
-    this.rt = await step('props', (progress) => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress)));
+    this.rt = await step('props', (progress) => withGeometryBake('/assets/nalati/baked/geometry.bin', () => withVoxelAOBake('/assets/nalati/baked/voxel-ao.bin', () => buildNalatiWorld(world, ctx, progress))));
     const rt = this.rt;
     // the ramps sit on the live (baked) heightfield the capsule walks, not the analytic TERRAIN field (R2: the analytic
     // heights laid 9 fewer ramps)

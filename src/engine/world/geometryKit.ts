@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
+import { bakedGeometry } from './geometryBake';
 
 /**
  * The engine geometry kit (E357 X5, 10 §X5): the shape builders every model kit shares. Flat-shaded ones (`log`, `beam`,
@@ -120,8 +121,16 @@ export function pole(a: THREE.Vector3, b: THREE.Vector3, r0: number, r1 = r0, si
   return g;
 }
 
-/** a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed */
+/** a smooth lumpy stone: an icosphere (detail 2 = 320 faces, 1 = 80) displaced by seeded noise, squashed. A shard that adds
+ *  a geometry bake (./geometryBake.ts) reads the shape from it; the smooth normals are exact arithmetic, made here */
 export function blob(r: number, rng: Rng, detail = 1, squash = 0.75, rough = 0.22): THREE.BufferGeometry {
+  const g = bakedGeometry('engine/blob', [r, detail, squash, rough], rng, () => blobShape(r, rng, detail, squash, rough));
+  g.computeVertexNormals();
+  return g;
+}
+
+/** the blob's welded, displaced shape: indexed, `position` only */
+function blobShape(r: number, rng: Rng, detail: number, squash: number, rough: number): THREE.BufferGeometry {
   const g = new THREE.IcosahedronGeometry(r, detail);
   const merged = mergeVerticesByPos(g);
   const pos = merged.getAttribute('position');
@@ -132,7 +141,6 @@ export function blob(r: number, rng: Rng, detail = 1, squash = 0.75, rough = 0.2
     const k = 1 + rough * (nz.get(x / r * 1.3 + ox, z / r * 1.3 + y / r + oz) * 0.75 + nz.get(x / r * 3 + oz, y / r * 3 - ox) * 0.25);
     pos.setXYZ(i, x * k, y * k * squash, z * k);
   }
-  merged.computeVertexNormals();
   return merged;
 }
 

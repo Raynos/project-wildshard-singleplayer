@@ -19,6 +19,7 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
 
 /** the shore's boulders (Boulders.ts, Explore's Boulder): beach granite, a shade lighter than the reef */
 export const SHORE_ROCK: RockPalette = {
@@ -52,10 +53,21 @@ export function rockMaterial(sky: Sky): THREE.MeshStandardMaterial {
   return lowPolyMaterial(sky, 'rock-smooth', (m) => { m.flatShading = false; m.roughness = 0.82; });
 }
 
-/** one rock — non-indexed, with `position`, `normal` and `color` */
+/** a palette's bake id: the rock's id and every colour, so a palette edit is a different key */
+const paletteIds = new WeakMap<RockPalette, string>();
+function rockBakeId(pal: RockPalette): string {
+  let id = paletteIds.get(pal);
+  if (id === undefined) { id = `driftwood-isle/rock:${Object.values(pal).join(',')}`; paletteIds.set(pal, id); }
+  return id;
+}
+
+/** one rock — non-indexed, with `position`, `normal` and `color`. Built at `wildshard build` time and read back at load
+ *  (SF67: src/engine/world/geometryBake.ts, scripts/bake-geometry.mjs); built here on a miss */
 export function rockGeometry(r: number, rng: Rng, o: RockOpts = {}): THREE.BufferGeometry {
-  const sq = o.squash ?? 0.7;
-  return smoothPainted(r, sq, o.moss ?? 0.8, o.palette ?? SHORE_ROCK, rng, o.ground ?? -0.3 * r * sq, o.detail ?? 0);
+  const sq = o.squash ?? 0.7, moss = o.moss ?? 0.8, palette = o.palette ?? SHORE_ROCK, ground = o.ground ?? -0.3 * r * sq, detail = o.detail ?? 0;
+  // the bake holds the welded, painted pieces (position, colour, index: a sixth of the finished rock's bytes); the rest is
+  // exact arithmetic (no Math.sin / exp: the same bits on every engine), so it runs at load
+  return finishRock(bakedGeometry(rockBakeId(palette), [r, sq, moss, ground, detail], rng, () => smoothPainted(r, sq, moss, palette, rng, ground, detail)));
 }
 
 
@@ -197,6 +209,19 @@ function facetHint(g: THREE.BufferGeometry, f: number): void {
   }
 }
 
+/** the welded, painted pieces → the finished rock: smooth normals per piece, unwelded, the facet hint */
+function finishRock(welded: THREE.BufferGeometry): THREE.BufferGeometry {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', welded.getAttribute('position'));
+  g.setIndex(welded.getIndex());
+  g.computeVertexNormals();
+  g.setAttribute('color', welded.getAttribute('color'));
+  const ni = g.toNonIndexed();
+  g.dispose(); welded.dispose();
+  facetHint(ni, FACET_HINT);
+  return ni;
+}
+
 /** a welded unit icosphere per detail and each vertex's neighbours — the same topology for every rock, so built once */
 const icoCache = new Map<number, { g: THREE.BufferGeometry; nb: number[][] }>();
 function unitIco(detail: number): { g: THREE.BufferGeometry; nb: number[][] } {
@@ -229,6 +254,7 @@ function parsePalette(pal: RockPalette): Record<keyof RockPalette, THREE.Color> 
   return p;
 }
 
+/** the rock's pieces, welded and painted: indexed, with `position` and `color` (finishRock makes the drawn rock) */
 function smoothPainted(r: number, sq: number, moss: number, palette: RockPalette, rng: Rng, ground: number, lod: number): THREE.BufferGeometry {
   const pal = parsePalette(palette);
   const pebble = r < 0.3;
@@ -340,10 +366,8 @@ function smoothPainted(r: number, sq: number, moss: number, palette: RockPalette
       cols[i * 3] = k.r; cols[i * 3 + 1] = k.g; cols[i * 3 + 2] = k.b;
     }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-    const ni = g.toNonIndexed();
-    g.dispose();
-    facetHint(ni, FACET_HINT);
-    out.push(ni);
+    g.deleteAttribute('normal');   // finishRock computes them again from the same positions and index (the same bits)
+    out.push(g);
   }
   if (out.length === 1) { const only = out[0]; if (only) return only; }
   const merged = mergeGeometries(out, false);
