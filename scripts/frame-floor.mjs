@@ -11,6 +11,7 @@ import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
+import { gridFloorPlans, driveFloorGrid, gridFloorWitnessFailures } from './frame-floor-grid.mjs';
 
 const ROOT = resolvePath(import.meta.dirname, '..');
 const SCRIPT = import.meta.filename;
@@ -22,8 +23,10 @@ const surface = flag('surface', 'both');
 const frames = Number(flag('frames', '120'));
 const settleMs = Number(flag('settle', '2')) * 1000;
 const device = flag('device', 'frame-floor-iphone-17-pro');
+const gridScenario = flag('grid-scenario', 'baseline');
+if (!['baseline', 'template', 'runtime-travel', 'all'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--grid-scenario=baseline|template|runtime-travel|all]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');
@@ -66,15 +69,17 @@ function assess(result, surfaceName) {
   const strictMs = surfaceName === 'desktop' ? 16.7 : 33.3;
   const limitMs = surfaceName === 'desktop' ? 17.5 : 35;
   const medianFpsRounded = Math.round(result.medianFps);
+  const cpuLimitMs = 1000 / floorFps / 4;
+  const cpuPass = result.cpu?.enabled === true && result.cpu.frames === result.frames && result.cpu.owners.length > 0 && result.cpu.owners.every(owner => Number.isFinite(owner.p95Ms) && owner.p95Ms <= cpuLimitMs);
   const valid = result.skipped === 0 && result.contextLost === false;
-  const pass = valid && medianFpsRounded >= floorFps && result.p95Ms <= limitMs;
+  const pass = valid && cpuPass && medianFpsRounded >= floorFps && result.p95Ms <= limitMs;
   const strictP95Pass = result.p95Ms <= strictMs;
   const strictPass = valid && medianFpsRounded >= floorFps && strictP95Pass;
-  const miss = pass ? null : !valid ? 'invalid measurement' : result.p95Ms > limitMs || result.medianFps < floorFps * 0.95 || result.workP95Ms > 1000 / floorFps ? 'frame cost / scheduling' : 'timing quantization';
-  return { floorFps, medianFpsRounded, strictMs, limitMs, pass, strictP95Pass, strictPass, miss };
+  const miss = pass ? null : !valid ? 'invalid measurement' : !cpuPass ? 'content CPU share / missing ownership measurement' : result.p95Ms > limitMs || result.medianFps < floorFps * 0.95 || result.workP95Ms > 1000 / floorFps ? 'frame cost / scheduling' : 'timing quantization';
+  return { floorFps, medianFpsRounded, strictMs, limitMs, cpuLimitMs, cpuPass, pass, strictP95Pass, strictPass, miss };
 }
 function grade(record) {
-  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator' };
+  record.criteria = { medianFps: 'Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained', p95Ms: '<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period', strictP95Ms: '<= 16.7 desktop / <= 33.3 Simulator', cpu: 'Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded' };
   for (const result of record.results) for (const shard of result.rows) {
     for (const row of shard.rows ?? []) Object.assign(row, assess(row, result.surface));
     if (shard.complete) shard.pass = shard.rows.every((row) => row.pass) && shard.errors.length === 0;
@@ -112,9 +117,12 @@ async function cameras() {
   return Object.entries(authored).flatMap(([name, c]) => c.probe ? [{ ...c.probe, name: c.probe.name ?? name }] : c.feet ? [{ name, x: c.feet[0], y: c.feet[1], z: c.feet[2], yaw: -c.yaw * Math.PI / 180, pitch: c.pitch * Math.PI / 180 }] : []);
 }
 function sample(n) {
-  const g = window.__wildshard.world.game;
+  const g = window.__wildshard.world.game, meter = g.app?.cpu;
+  if (!meter) return Promise.reject(new Error('Content CPU meter unavailable; use an SF62-capable pin'));
+  meter.enabled = true;
   return new Promise((resolve, reject) => {
-    const interval = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [];
+    const interval = [], callbackInterval = [], ring = [], work = [], calls = [], triangles = [], cpuOwners = new Map();
+    let cpuFrames = 0, cpuFrame = -1;
     let count = g.frameCount, last = 0, lastCallback = 0, skipped = 0, first = true;
     let raf = 0;
     const timeout = setTimeout(() => { cancelAnimationFrame(raf); reject(new Error(`Drawn-frame sampler stalled (${interval.length}/${n})`)); }, 30000);
@@ -127,6 +135,14 @@ function sample(n) {
           interval.push(timestamp - last); callbackInterval.push(now - lastCallback); skipped += Math.max(0, delta - 1);
           const i = (g.frameI + g.frameMs.length - 1) % g.frameMs.length;
           ring.push(g.frameMs[i]); work.push(g.workMs[i]); calls.push(g.lastFrame.calls); triangles.push(g.lastFrame.triangles);
+          const cpu = meter.snapshot();
+          if (cpu.enabled && cpu.frame > cpuFrame && cpu.owners.length > 0) {
+            cpuFrame = cpu.frame; cpuFrames++;
+            for (const owner of cpu.owners) {
+              if (!cpuOwners.has(owner.id)) cpuOwners.set(owner.id, { ms: [], calls: 0 });
+              const row = cpuOwners.get(owner.id); row.ms.push(owner.ms); row.calls += owner.calls;
+            }
+          }
         }
         first = false; count = g.frameCount; last = timestamp; lastCallback = now;
       }
@@ -139,6 +155,7 @@ function sample(n) {
         callbackP95Ms: round(pct(callbackInterval, 0.95)), callbackP99Ms: round(pct(callbackInterval, 0.99)), callbackMaxMs: round(pct(callbackInterval, 1)),
         gameP95Ms: round(pct(ring, 0.95)), workP95Ms: round(pct(work, 0.95)), calls: pct(calls, 0.5), triangles: pct(triangles, 0.5),
         position: { x: window.__wildshard.world.player.position.x, y: window.__wildshard.world.player.position.y, z: window.__wildshard.world.player.position.z },
+        cpu: { enabled: meter.snapshot().enabled, frames: cpuFrames, owners: [...cpuOwners].map(([id, row]) => ({ id, samples: row.ms.length, p95Ms: pct(row.ms, 0.95), maxMs: pct(row.ms, 1), calls: row.calls })) },
         contextLost: g.renderer.getContext().isContextLost() });
     };
     raf = requestAnimationFrame(tick);
@@ -225,9 +242,32 @@ async function measureShard(driver, shard, deadline) {
       rows.push({ pose, ...result, ...assess(result, surface) });
       console.log(`${surface} ${shard} ${pose.name}: ${result.medianFps} fps, p95 ${result.p95Ms} ms, p99 ${result.p99Ms} ms — ${rows.at(-1).pass ? 'PASS' : 'FAIL'}`);
     }
+    const scenarios = [];
+    if (shard === 'grid' && gridScenario !== 'baseline') {
+      // Standing camera probes did not cross: reset only the initial source pose, then use real input at every seam.
+      const state = await driver.evaluate('window.__wildshard.shard.grid.state()');
+      for (const plan of gridFloorPlans(state, gridScenario)) {
+        if (Date.now() > deadline) throw new Error('Ten-minute run budget exhausted');
+        const moving = (async () => {
+          try { return { value: await driver.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)})`, 160000) }; }
+          catch (error) { return { error: error instanceof Error ? error : new Error('Grid floor drive failed', { cause: error }) }; }
+        })();
+        await sleep(1000);
+        const motion = await driver.evaluate(`(${sample.toString()})(${frames})`);
+        const driven = await moving; if (driven.error) throw driven.error;
+        const witness = driven.value, failures = gridFloorWitnessFailures(witness);
+        if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
+        scenarios.push(witness);
+        rows.push({ pose: { name: `grid-${plan.name}-travel` }, ...motion, ...assess(motion, surface) });
+        await sleep(settleMs);
+        const standing = await driver.evaluate(`(${sample.toString()})(${frames})`);
+        rows.push({ pose: { name: `grid-${plan.name}` }, ...standing, ...assess(standing, surface) });
+        console.log(`${surface} grid ${plan.name}: travel ${motion.medianFps} fps / ${motion.p95Ms} ms; interior ${standing.medianFps} fps / ${standing.p95Ms} ms; residents=${witness.after.live.live.residents.join(',')}`);
+      }
+    }
     const errors = await driver.errors();
     return { shard, complete: true, pass: rows.every((r) => r.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
-      floorMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, errors };
+      floorMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, errors };
   } catch (error) {
     console.error(`${surface} ${shard}: ${errorText(error)}`);
     const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);
@@ -384,7 +424,7 @@ async function main() {
     writeFileSync(helper, html.replace('<head>', `<head><script>window.__wildshardHarness={seed:357,capture:null};${ERROR_SCRIPT}${CONSOLE_SCRIPT}</script>`));
     for (const s of surface === 'both' ? ['desktop', 'sim'] : [surface]) {
       const out = join(scratch, `frame-floor-${s}-${sha.slice(0, 9)}.json`); temporary.push(out);
-      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
+      const workerArgs = [SCRIPT, '--worker', `--surface=${s}`, `--base=${base}`, `--shards=${shards.join(',')}`, `--grid-scenario=${gridScenario}`, `--frames=${frames}`, `--settle=${settleMs / 1000}`, `--deadline=${start + 600000}`, `--worker-out=${out}`, ...settingArgs, ...deviceSaveArgs, ...systemArgs];
       const lane = s === 'desktop' ? ['--max', '10', process.execPath, ...workerArgs] : ['run', '--max', '10', device, process.execPath, ...workerArgs];
       await run(join(ROOT, `scripts/${s === 'desktop' ? 'browser' : 'sim'}-lane.sh`), lane, { cwd: scratch, echo: true });
       results.push(JSON.parse(readFileSync(out, 'utf8')));
@@ -393,7 +433,7 @@ async function main() {
     const complete = results.every((r) => r.rows.every((row) => row.complete));
     const pass = complete && elapsedSeconds < 600 && results.every((r) => r.rows.every((row) => row.pass));
     const record = grade({ schema: 2, sha, runId, device, when: new Date().toISOString(), elapsedSeconds, underTenMinutes: elapsedSeconds < 600,
-      frames, settleMs, shards, surface, settings, deviceSaves, expectedSystems, complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
+      frames, settleMs, shards, surface, settings, deviceSaves, expectedSystems, gridScenario, harnessRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(), complete, pass, desktopCap: 'Settings fps=auto: no game cap; display/vsync remains enabled',
       simulatorCap: `Shipped phone-tier 30 fps cap; Simulator Safari on ${device}`,
       measurement: 'Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.',
       limitations: ['Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.', 'Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.', 'Safari helper HTML adds only live harness pose pins before the byte-identical clean HEAD modules.'], results });
