@@ -12,7 +12,7 @@
  * `src/ui/Feedback.ts`; the pull side is `scripts/inbox-pull.mjs` (`pnpm inbox:pull`). Ported from trials-gauntlet.
  */
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { blobStore, type BlobPage } from './_blobStore';
+import { blobStore, type BlobPage } from './_blobStore.js';
 
 export const MAX_BODY_BYTES = 1024 * 1024;
 export const MAX_NOTE_CHARS = 4000;
