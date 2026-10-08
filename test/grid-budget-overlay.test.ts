@@ -75,7 +75,7 @@ it("shows only in Developer mode, and its numbers are the live allocator's", () 
   const cost = allocator.cost(), head = strip?.querySelector<HTMLElement>('.ws-grid-budget-x');
   expect(Number(attr(head, 'playing'))).toBe(cost.playing);
   expect(Number(attr(head, 'accounted'))).toBe(cost.accounted);
-  expect(head?.textContent).toBe(`XROADS ${Math.round(cost.playing / C.playing * 100)} · ${(Math.round(cost.playing / 1e5) / 10).toFixed(1)}/1000.0 MB`);
+  expect(head?.textContent).toBe(`ALL LOADED ${Math.round(cost.playing / 1e6)} / 1000 MB (${Math.round(cost.playing / C.playing * 100)}%)`);
   // one chip per owner, its bytes the owner's entries summed straight from the allocator's table
   const owned = new Map<string, number>();
   for (const entry of allocator.entries()) owned.set(entry.owner, (owned.get(entry.owner) ?? 0) + entry.bytes);
@@ -85,7 +85,7 @@ it("shows only in Developer mode, and its numbers are the live allocator's", () 
   expect(chips.map((chip) => attr(chip, 'tone'))).toEqual(['red', 'green', 'green', 'none', 'none']);
   // collapsed, only the warned shards show by name; the rest are counted (2 green shards, the page-wide owners' MB)
   expect(chips.map((chip) => chip.hidden)).toEqual([false, true, true, true, true]);
-  expect(strip?.querySelector('.ws-grid-budget-bar')?.textContent).toContain('2 OKPLATFORM 18.0');
+  expect(strip?.querySelector('.ws-grid-budget-bar')?.textContent).toContain('2 SHARDS OKSHARED 18.0 MB');
   // the tap expands the raw bytes per category: the crossroads' section equals the cost model's input
   strip?.click();
   const category = (name: string): number => Number(attr(strip?.querySelector<HTMLElement>(`.ws-grid-budget-sec [data-category="${name}"]`), 'bytes'));

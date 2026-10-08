@@ -6,6 +6,8 @@
   pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; user-select: none; -webkit-user-select: none; }
 .ws-grid-budget[hidden], #hud.intro .ws-grid-budget { display: none; }
 .ws-grid-budget-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 8px; }
+.ws-grid-budget-bar::after { content: '▾'; flex: none; opacity: 0.7; }   /* tap for the raw numbers, like the memory chip */
+.ws-grid-budget[aria-expanded='true'] .ws-grid-budget-bar::after { content: '▴'; }
 .ws-grid-budget-title { flex: none; padding: 0 5px; background: #ffb5ab; color: #180c10; font-weight: 700; letter-spacing: 0.14em; }
 .ws-grid-budget-x { font-weight: 700; }
 .ws-grid-budget-chip, .ws-grid-budget-x { white-space: nowrap; }

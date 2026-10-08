@@ -1,6 +1,6 @@
 /**
- * The points budget overlay (SHARD-PLATFORM SF38, G30): Developer mode only, grid pages only. One line under the top bar
- * scores the crossroads against the 1.0 GB playing cap and each shard (and the road) against its §3.2 budget, green /
+ * The points budget overlay (SHARD-PLATFORM SF38, G30): Developer mode only, grid pages only. One line under the top bar,
+ * in plain words ("MEMORY · ALL LOADED 2331 / 1000 MB (233%) · PINE HOLLOW 749% OF BUDGET · 3 SHARDS OK · SHARED 113 MB"), scores the crossroads against the 1.0 GB playing cap and each shard (and the road) against its §3.2 budget, green /
  * amber / red; a tap expands the raw bytes per category (library, L0 / L1 tiles, sim, road, far, commons, product and the
  * overlap allowance), each shard's tiles and the heaviest tiles. The numbers are `budgetPoints.ts` over the one live
  * residency allocator (SF18b / G144), read once a second, never per frame.
@@ -17,7 +17,7 @@ import './budgetOverlay.css';
 
 /** Developer tooling text (not player-facing; never localized). */
 const TEXT = {
-  title: 'PTS', ok: 'OK', platform: 'PLATFORM', crossroads: 'XROADS', loading: 'LOAD', road: 'ROAD', tiles: 'TILES', worst: 'WORST', measured: 'MEASURED',
+  title: 'MEMORY', ok: 'SHARDS OK', platform: 'SHARED', crossroads: 'ALL LOADED', budget: 'OF BUDGET', loading: 'LOAD', road: 'ROAD', tiles: 'TILES', worst: 'WORST', measured: 'MEASURED',
   category: { library: 'LIBRARY', l0: 'L0 TILES', l1: 'L1 TILES', sim: 'SIM', road: 'ROAD', far: 'FAR', commons: 'COMMONS', product: 'PRODUCT' } satisfies Record<BudgetCategory, string>,
   overlap: 'OVERLAP', base: 'ENGINE BASE', factor: 'RESIDENT ×', accounted: 'ACCOUNTED', playing: 'PLAYING',
 } as const;
@@ -73,18 +73,19 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
   const paint = (points: BudgetPoints): void => {
     if (bar === null || detail === null) return;
     const { crossroads } = points;
-    const head = scored('ws-grid-budget-x', `${TEXT.crossroads} ${crossroads.points} · ${megabytes(crossroads.playing)}/${megabytes(crossroads.playingCap)} MB`, crossroads.tone);
+    // plain words (playtest round 2): "ALL LOADED 2331 / 1000 MB (233%)", each shard over its line as "% OF BUDGET"
+    const head = scored('ws-grid-budget-x', `${TEXT.crossroads} ${Math.round(crossroads.playing / 1e6)} / ${Math.round(crossroads.playingCap / 1e6)} MB (${crossroads.points}%)`, crossroads.tone);
     data(head, 'playing', crossroads.playing); data(head, 'accounted', crossroads.accounted);
     // collapsed, the line names only the shards over their warning line; green shards and page-wide owners are counted
     const chip = (shard: BudgetShard, shown: boolean): HTMLElement => {
-      const node = scored('ws-grid-budget-chip', `${label(shard.owner).toUpperCase()} ${shard.points ?? megabytes(shard.total)}`, shard.tone);
+      const node = scored('ws-grid-budget-chip', shard.points === null ? `${label(shard.owner).toUpperCase()} ${megabytes(shard.total)} MB` : `${label(shard.owner).toUpperCase()} ${shard.points}% ${TEXT.budget}`, shard.tone);
       data(node, 'owner', shard.owner); data(node, 'bytes', shard.total); node.hidden = !shown; return node;
     };
     const warned = (shard: BudgetShard): boolean => shard.tone === 'amber' || shard.tone === 'red';
     const green = points.shards.filter((shard) => shard.tone === 'green').length;
     const page = points.shards.filter((shard) => shard.budget === null).reduce((sum, shard) => sum + shard.total, 0);
     bar.replaceChildren(el('b', 'ws-grid-budget-title', TEXT.title), head, ...points.shards.map((shard) => chip(shard, expanded || warned(shard))),
-      ...(expanded ? [] : [scored('ws-grid-budget-chip', `${green} ${TEXT.ok}`, 'green'), scored('ws-grid-budget-chip', `${TEXT.platform} ${megabytes(page)}`, null)]));
+      ...(expanded ? [] : [scored('ws-grid-budget-chip', `${green} ${TEXT.ok}`, 'green'), scored('ws-grid-budget-chip', `${TEXT.platform} ${megabytes(page)} MB`, null)]));
     if (!expanded) { detail.replaceChildren(); return; }
     const cross = el('section', 'ws-grid-budget-sec');
     cross.append(el('h4', 'ws-grid-budget-h', TEXT.crossroads),
