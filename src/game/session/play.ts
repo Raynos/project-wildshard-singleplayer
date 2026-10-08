@@ -101,7 +101,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     ownedHome: session.ownedGridHome === true,
     ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
-    frame: { scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
+    frame: { scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, sunDir: () => game.sky.sunDir, cinematic: () => game.regionCinematic(), slices: () => game.depthSlices, onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
     // other boot loads them when the room comes near: Explore's hub preloads them on open (below), so they are not resident

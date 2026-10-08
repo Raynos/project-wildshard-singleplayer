@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Color, Fog, PerspectiveCamera, Scene, type Uniform } from 'three';
-import { BlendFunction, BloomEffect, BrightnessContrastEffect, Effect, EffectPass, HueSaturationEffect, LookupTexture, LUT3DEffect, VignetteEffect, type EffectComposer } from 'postprocessing';
+import { Color, Fog, PerspectiveCamera, Scene, WebGLRenderTarget, type Uniform } from 'three';
+import { BlendFunction, BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectPass, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, VignetteEffect, type EffectComposer } from 'postprocessing';
+import { VolumetricsEffect } from '../src/engine/core/Volumetrics';
+import { RegionCinematic } from '../src/engine/render/regionCinematic';
 import { GradeEffect, GradeLookEffect } from '../src/engine/core/Grade';
 import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
 import { FrameGradeEffect, GridFrame, chainKnobs, neutralLut, opacityFade, passEffects, swappableLut } from '../src/game/grid/frame';
@@ -278,7 +280,9 @@ describe('SF63: a carried region\'s engine chain knobs (bloom, vignette, god ray
     expect(regionChain(pine, () => null).post).toBeUndefined();
     const post = regionChain(pine, () => null, 'cinematic').post;
     expect(post).toEqual({ kind: 'cinematic', bloomIntensity: pine.lookLayer?.grade.bloomIntensity ?? pine.grade.bloomIntensity,
-      bloomThreshold: pine.lookLayer?.grade.bloomThreshold ?? pine.grade.bloomThreshold, bloomSmoothing: 0.3, vignette: 0.55, rays: 1 });
+      bloomThreshold: pine.lookLayer?.grade.bloomThreshold ?? pine.grade.bloomThreshold, bloomSmoothing: 0.3, vignette: 0.55, rays: 1,
+      volumetric: { strength: pine.atmosphere.volumetric?.strength ?? 0.55, sunColor: pine.atmosphere.volumetricSunColor } });
+    expect(regionChain(pine, () => null, 'clean').post?.volumetric).toBeUndefined();
     expect(ENGINE_CHAIN_TUNING.clean).toEqual({ rays: 0.12, bloomSmoothing: 0.08, vignette: 0.35 });
   });
   it('moves the page\'s knobs toward the region\'s by the weight, keeps what its clock writes into the rays, and restores', () => {
@@ -297,5 +301,61 @@ describe('SF63: a carried region\'s engine chain knobs (bloom, vignette, god ray
     knobs.weight(0); expect(read()).toEqual([0.4, 1, 0.08, 0.35, 0.12]);
     knobs.weight(1); knobs.restore(); expect(read()).toEqual([0.4, 1, 0.08, 0.35, 0.12]);
     bloom.dispose(); vignette.dispose(); rays.dispose();
+  });
+});
+
+describe('SF63 follow-up: a cinematic region\'s shafts, fringe and grain on the clean page shell', () => {
+  const pine = toLevelSpec(PINE_HOLLOW);
+  it('compiled in once at install, neutral; carried by the region\'s weight with its clock on the shafts; parked and neutral on the road', () => {
+    const scope = new Scope('sf63-cine'), scene = new Scene(), camera = new PerspectiveCamera();
+    scene.fog = new Fog(new Color(0.4, 0.5, 0.6), 10, 100);
+    const home = cells[4]; if (home === undefined) throw new Error('Missing home');
+    const feet = { x: 0, z: 0 };
+    const gradeEffect = new GradeEffect(), saturation = new HueSaturationEffect(), contrast = new BrightnessContrastEffect();
+    const bloom = new BloomEffect();
+    const pass = new EffectPass(camera, bloom, saturation, contrast, gradeEffect), recompile = vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
+    const target = new WebGLRenderTarget(200, 100); // the scene target of a page on the depth slices (E142)
+    const frame = new GridFrame({ host: { scene, camera, composer: () => legacyDouble<EffectComposer>({ passes: [pass], inputBuffer: target }),
+      post: () => ({ grade: gradeEffect, saturation, contrast, bloom }), slices: () => true, cinematic: () => new RegionCinematic(camera) }, scope, cells, home, homeIsFrame: false, half, feet: () => feet });
+    const port = frameLookOf(scene); if (port === null) throw new Error('no port');
+    frame.frame(); // install
+    const list = passEffects(pass); if (list === null) throw new Error('no list');
+    const chroma = list.find((e) => e instanceof ChromaticAberrationEffect), vol = list.find((e) => e instanceof VolumetricsEffect), grain = list.find((e) => e instanceof NoiseEffect);
+    const lutFx = list.find((e) => e instanceof LUT3DEffect);
+    if (!(chroma instanceof ChromaticAberrationEffect) || !(vol instanceof VolumetricsEffect) || grain === undefined || lutFx === undefined) throw new Error('the shafts, fringe and grain are compiled in at install');
+    expect(list.indexOf(chroma)).toBe(0); expect(list.indexOf(vol)).toBe(1); expect(list.indexOf(grain)).toBe(list.indexOf(lutFx) + 1);
+    expect(list[list.length - 1]).toBeInstanceOf(FrameGradeEffect);
+    expect(recompile).toHaveBeenCalledTimes(1);
+    pass.setSize(200, 100); // the march target stays parked at 1×1
+    const fx = () => frame.state().chain.fx;
+    expect(fx()).toMatchObject({ carrier: null, weight: 0, vol: [0, 0.55], chroma: 0, grain: 0, target: [1, 1], depth: 'scene', sceneDepth: false });
+    expect(target.depthTexture).toBeNull();
+    // the region's clock drives its own shafts, kept while it does not carry them
+    const post = port.post?.('1,0'), other = port.post?.('-1,0');
+    if (post?.vol === undefined || post.vol === null || other?.vol === undefined || other.vol === null) throw new Error('the port hands each region its shafts');
+    post.vol.setStrength(0.8);
+    expect(vol.strength()).toBe(0.55);
+    const release = port.contribute('1,0', { fog: new Fog(new Color(1, 1, 1), 1, 2), grade: regionGrade(pine), chain: regionChain(pine, () => null, 'cinematic') });
+    feet.x = pitch; frame.frame();
+    const inside = fx(); if (inside === null) throw new Error('no fx');
+    expect(inside).toMatchObject({ carrier: '1,0', weight: 1, vol: [1, 0.8], chroma: 0.0006, grain: 0.12 });
+    expect(inside.target?.[0]).toBeGreaterThan(1); // allocated only now
+    expect(inside.sceneDepth).toBe(true); expect(target.depthTexture).not.toBeNull();
+    post.vol.setStrength(0.3); other.vol.setStrength(2); // a neighbour's clock never reaches the carried shafts
+    expect(vol.strength()).toBe(0.3);
+    feet.x = pitch - half; frame.frame(); // its edge line: half
+    expect(fx()).toMatchObject({ weight: 0.5, vol: [0.5, 0.3], chroma: 0.0003, grain: 0.06 });
+    feet.x = half + 27.5; frame.frame(); // the road: parked, neutral, the march's light back
+    expect(fx()).toMatchObject({ carrier: null, weight: 0, vol: [0, 0.55], chroma: 0, grain: 0, target: [1, 1], sceneDepth: false });
+    expect(target.depthTexture).toBeNull();
+    feet.x = pitch; frame.frame(); expect(fx()).toMatchObject({ carrier: '1,0', vol: [1, 0.3] }); // its last clock write again
+    release(); expect(fx()).toMatchObject({ carrier: null, target: [1, 1] });
+    // a clean-chain region carries none of it
+    const clean = port.contribute('1,0', { fog: null, chain: regionChain(pine, () => null, 'clean') });
+    frame.frame(); expect(fx()).toMatchObject({ carrier: null, weight: 0 }); clean();
+    expect(recompile).toHaveBeenCalledTimes(1); // all of it uniforms
+    scope.dispose();
+    expect(passEffects(pass)).toEqual([bloom, saturation, contrast, gradeEffect]);
+    pass.dispose(); target.dispose();
   });
 });

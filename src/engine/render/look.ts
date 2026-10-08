@@ -59,6 +59,11 @@ export const ENGINE_CHAIN_TUNING: Readonly<Record<EngineChainKind, { readonly ra
   // light vignette
   clean: { rays: 0.12, bloomSmoothing: 0.08, vignette: 0.35 },
 };
+/**
+ * The cinematic chain's fixed fringe and grain (`Game.buildComposer`; a grid page carries them into a cinematic region's
+ * cell from here, `regionCinematic.ts`): the chromatic aberration's offset and radial modulation, the overlay grain's opacity.
+ */
+export const CINEMATIC_FX = { chroma: 0.0006, chromaModulation: 0.35, grain: 0.12 } as const;
 
 export interface LookComposeContext extends LookReplaceContext {
   /** the engine chain's effects: the 'cinematic' chain's unless the compose asked `engineChain('clean')` first */

@@ -19,7 +19,7 @@
  * into (`frameLookOf`), so no layer names the other. Generic game code (E405): no shard is named here.
  */
 import type { Color, Texture } from 'three';
-import { ENGINE_CHAIN_TUNING, type EngineChainKind } from '@wildshard/engine/render/look';
+import { ENGINE_CHAIN_TUNING, type EngineChainKind, type SkyBackdropPost } from '@wildshard/engine/render/look';
 import type { RegionGrade } from './frameModel';
 
 type Rgb = readonly [number, number, number];
@@ -63,12 +63,19 @@ export interface RegionPost {
   readonly bloomIntensity: number; readonly bloomThreshold: number; readonly bloomSmoothing: number;
   readonly vignette: number;
   readonly rays: number;
+  /**
+   * a cinematic chain's volumetric shafts as its level's atmosphere starts them (strength, sun colour): with the fringe and
+   * the grain the page carries them inside its cell (`regionCinematic.ts`, SF63 follow-up); absent on the clean chain
+   */
+  readonly volumetric?: { readonly strength: number; readonly sunColor: Rgb };
 }
 /** What a region's sky clock drives of the page's post while the region carries its chain (`SkyBackdropPost`'s hue). */
 export interface FramePost {
   readonly hueSat: { saturation: number };
   /** the page's god rays when its chain has them (SF63: the region's clock turns their opacity as standalone); else null */
   readonly rays: { readonly blendMode: { readonly opacity: { value: number } } } | null;
+  /** the carried volumetric shafts this region's clock drives (kept per region, live while it carries); null: none */
+  readonly vol: SkyBackdropPost['vol'] | null;
 }
 /** A live region's own sky laid over the frame's one sky (`regionSky.ts`, G223): told its owner's weight each frame. */
 export interface FrameSkyLayer {
@@ -86,7 +93,7 @@ export interface FrameLookPort {
    * saturation, as standalone): non-null only where chains are carried (the page's own grade is a neutral shell); the frame
    * holds the page's values when the region takes the frame and puts them back when it leaves
    */
-  readonly post?: () => FramePost | null;
+  readonly post?: (instance?: string) => FramePost | null;
 }
 
 const ports = new WeakMap<object, FrameLookPort>();
@@ -104,6 +111,8 @@ interface LevelGrade { readonly saturation: number; readonly brightness: number;
 /** The fields a level's grade chain reads (structural). */
 interface ChainLevel {
   readonly grade: ChainGrade & { readonly bloomIntensity: number; readonly bloomThreshold: number };
+  /** its atmosphere's volumetric medium and sun colour (the cinematic chain's shafts) */
+  readonly atmosphere?: { readonly volumetricSunColor: Rgb; readonly volumetric?: { readonly strength: number } | undefined };
   readonly lookLayer?: { readonly grade: Partial<ChainGrade & { readonly bloomIntensity: number; readonly bloomThreshold: number }>; readonly curve: number; readonly vibrance: number } | undefined;
 }
 
@@ -140,7 +149,9 @@ export function regionChain(level: ChainLevel, lut: () => Texture | null, kind?:
     grade: { saturation: g.saturation, brightness: g.brightness, contrast: g.contrast, shadowTint: g.shadowTint, highTint: g.highTint, lift: g.lift, gain: g.gain, gamma: g.gamma },
     look: { curve: level.lookLayer?.curve ?? 0, vibrance: level.lookLayer?.vibrance ?? 0 },
     lut,
-    ...(kind === undefined || tuning === null ? {} : { post: { kind, bloomIntensity: g.bloomIntensity, bloomThreshold: g.bloomThreshold, bloomSmoothing: tuning.bloomSmoothing, vignette: tuning.vignette, rays: tuning.rays } }),
+    ...(kind === undefined || tuning === null ? {} : { post: { kind, bloomIntensity: g.bloomIntensity, bloomThreshold: g.bloomThreshold, bloomSmoothing: tuning.bloomSmoothing, vignette: tuning.vignette, rays: tuning.rays,
+      // the cinematic chain's shafts start from its atmosphere (`Game.buildComposer`: `setMedium`, the sun colour; 0.55 without a medium)
+      ...(kind === 'cinematic' ? { volumetric: { strength: level.atmosphere?.volumetric?.strength ?? 0.55, sunColor: level.atmosphere?.volumetricSunColor ?? [1, 0.7, 0.4] } } : {}) } }),
   };
 }
 /** The engine chain a level's look runs on (SF63): its declared kind, the cinematic chain without one, none for a 'replace' look. */

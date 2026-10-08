@@ -24,12 +24,16 @@
  *   compiled once at install, right after the page's split tone, add its look layer's S-curve and vibrance and its learned
  *   LUT (a neutral LUT until a region brings one; a LUT swap is a uniform, never a recompile). All of it fades with the
  *   owner's weight across the edge band, and the page's values go back when the region leaves the frame.
+ * - **A cinematic region's shafts, fringe and grain** (SF63 follow-up): the shell runs the clean chain, so the three
+ *   effects only the cinematic chain has are compiled into its colour pass at install, neutral (`regionCinematic.ts`); a
+ *   carried region on the cinematic chain turns them on by its weight, its clock drives the shafts, and the march's target
+ *   is allocated only while it carries them.
  * - **Owner stacks** (`FrameStack`): each owner may hang a stack on the frame that is told its weight every frame. The
  *   home's grade fade is the first; SF59's per-shard post stacks (catalogue effects as data) hang here the same way.
  * Select a shard never builds this (grid page mode only).
  */
-import { Color, Data3DTexture, NoColorSpace, SRGBColorSpace, Uniform, UnsignedByteType, Vector3, type Camera, type Scene, type Texture } from 'three';
-import { BlendFunction, Effect, EffectPass, LookupTexture, LUT3DEffect, type EffectComposer } from 'postprocessing';
+import { Color, Data3DTexture, NoColorSpace, SRGBColorSpace, Uniform, UnsignedByteType, Vector3, WebGLRenderTarget, type Camera, type Scene, type Texture } from 'three';
+import { BlendFunction, Effect, EffectAttribute, EffectPass, LookupTexture, LUT3DEffect, type EffectComposer } from 'postprocessing';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { GradeLookEffect, type GradeEffect } from '@wildshard/engine/core/Grade';
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
@@ -46,6 +50,12 @@ export interface GridFrameHost {
   readonly composer: () => EffectComposer;
   /** the engine chain's grade effects (null for a level whose look builds its own chain) */
   readonly post: () => FramePostEffects | null;
+  /** the one sun's direction (a carried cinematic region's shafts start from it; absent: they wait for its clock) */
+  readonly sunDir?: () => Vector3;
+  /** a cinematic chain's shafts, fringe and grain for the shell's colour pass (the engine's `RegionCinematic`; absent: none) */
+  readonly cinematic?: () => FrameCinematic;
+  /** the page's scene pass draws into the depth slices (E142): its scene target's depth is the world's */
+  readonly slices?: () => boolean;
 }
 /** The engine chain's grade effects the frame fades, and on a neutral shell writes a region's grade into (G232). */
 export interface FramePostEffects {
@@ -56,6 +66,25 @@ export interface FramePostEffects {
   readonly bloom?: Effect & { intensity: number; readonly luminanceMaterial: { threshold: number; smoothing: number } };
   readonly vignette?: Effect & { darkness: number };
   readonly rays?: Effect | null;
+}
+
+/** The carried shafts, fringe and grain (the engine's `RegionCinematic`, `regionCinematic.ts`), as the frame drives them. */
+export interface FrameCinematic {
+  readonly place: (effects: Effect[], grainAfter: Effect, hasConvolution: boolean) => () => void;
+  readonly depthFrom: (source: { readonly pass: Texture | null; readonly scene: WebGLRenderTarget | null }) => void;
+  readonly warm: () => void;
+  readonly port: (instance: string) => NonNullable<FramePost['vol']>;
+  readonly forget: (instance: string) => void;
+  readonly take: (instance: string, start: { readonly strength: number; readonly sunColor: readonly [number, number, number]; readonly sunDir?: Vector3 | undefined; readonly fog?: Color | undefined }) => void;
+  readonly weight: (w: number) => void;
+  readonly release: () => void;
+  readonly state: () => FrameCinematicState;
+  readonly dispose: () => void;
+}
+/** Its readout: carrier, weight, shafts' opacity and strength, fringe offset, grain opacity, march target, depth source. */
+export interface FrameCinematicState {
+  readonly carrier: string | null; readonly weight: number; readonly vol: readonly [number, number]; readonly chroma: number; readonly grain: number;
+  readonly target: readonly [number, number] | null; readonly depth: 'pass' | 'scene' | 'none'; readonly sceneDepth: boolean;
 }
 
 /** The frame's readout (tests, the harness, the board). */
@@ -80,7 +109,9 @@ export interface GridFrameState {
    */
   readonly chain: { readonly owner: string | null; readonly weight: number; readonly lut: boolean; readonly values: readonly [number, number, number, number, number];
     /** SF63: the page chain's knobs as drawn: bloom intensity, threshold, smoothing, vignette darkness, god rays' opacity (−1: none) */
-    readonly post: readonly [number, number, number, number, number] };
+    readonly post: readonly [number, number, number, number, number];
+    /** SF63 follow-up: a cinematic region's shafts, fringe and grain in the page's colour pass (null: not installed) */
+    readonly fx: FrameCinematicState | null };
 }
 
 /**
@@ -236,6 +267,8 @@ export class GridFrame {
   private carrier: { readonly instance: string; readonly chain: RegionChain; readonly restore: () => void; readonly knobs: ((w: number) => void) | null } | null = null;
   private chainWeight = 0;
   private chainLut = false;
+  /** SF63 follow-up: a cinematic region's shafts, fringe and grain, compiled into the shell's colour pass at install */
+  private cine: FrameCinematic | null = null;
   private readonly roadSky = new RoadSky();
   private readonly restore: (() => void)[] = [];
   private faded = 0;
@@ -259,10 +292,12 @@ export class GridFrame {
     this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
     this.lookEffect.blendMode.opacity.value = 0; this.lutEffect.blendMode.opacity.value = 0;
     const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer),
-      post: (): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation, rays: this.chainPost.rays ?? null }) });
+      post: (instance?: string): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation, rays: this.chainPost.rays ?? null,
+        vol: instance === undefined || this.cine === null ? null : this.cine.port(instance) }) });
     scope.onDispose(() => {
       unbind(); this.live.clear(); this.skies.clear();
       host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); this.lookEffect.dispose(); this.lutEffect.dispose(); this.neutral.dispose();
+      this.cine?.dispose(); this.cine = null;
       detachSky(); this.roadSky.dispose();
       for (const set of this.stacks.values()) for (const stack of set) stack.dispose?.();
       this.stacks.clear();
@@ -290,6 +325,7 @@ export class GridFrame {
       if (this.live.get(instance) !== look) return;
       this.live.delete(instance);
       if (this.carrier?.instance === instance) this.drop(); // at once: its LUT may be freed right after
+      this.cine?.forget(instance);
     };
   }
 
@@ -355,9 +391,12 @@ export class GridFrame {
         this.chainFade = carried; this.chainPost = post;
         const at = Math.max(...own.map((effect) => effects.indexOf(effect))) + 1;
         effects.splice(at, 0, this.lookEffect, this.lutEffect);
+        // SF63 follow-up: a cinematic region's shafts, fringe and grain, neutral until one carries them
+        const unplace = this.placeCinematic(composer, pass, effects);
         unstack = () => {
           this.drop(); this.chainPost = null; this.chainFade = null; carried.dispose(); rest.dispose();
           for (const effect of [this.lookEffect, this.lutEffect]) { const i = effects.indexOf(effect); if (i !== -1) effects.splice(i, 1); }
+          unplace();
         };
       } else {
         const fade = opacityFade(home);
@@ -368,6 +407,22 @@ export class GridFrame {
       pass.recompile();
       return;
     }
+  }
+
+  /**
+   * The cinematic chain's shafts, fringe and grain in the shell's colour pass (`regionCinematic.ts`): placed now, compiled by
+   * the install's one recompile, the march's program warmed. Returns the removal.
+   */
+  private placeCinematic(composer: EffectComposer, pass: EffectPass, effects: Effect[]): () => void {
+    const cine = this.host.cinematic?.();
+    if (cine === undefined) return () => undefined;
+    const convolution = effects.some((effect) => (effect.getAttributes() & EffectAttribute.CONVOLUTION) !== 0);
+    const unplace = cine.place(effects, this.lutEffect, convolution);
+    const scene: unknown = this.host.slices?.() === true ? composer.inputBuffer : null;
+    cine.depthFrom({ pass: pass.getDepthTexture(), scene: scene instanceof WebGLRenderTarget ? scene : null });
+    cine.warm();
+    this.cine = cine;
+    return () => { unplace(); cine.release(); };
   }
 
   /** the owners' grades: a live region's own over its declared one; neutral for one whose whole chain is carried */
@@ -394,6 +449,7 @@ export class GridFrame {
     this.chainWeight = top;
     this.chainFade?.weight(top);
     this.carrier?.knobs?.(top);
+    this.cine?.weight(top);
     this.lookEffect.blendMode.opacity.value = top;
     const lut = this.carrier?.chain.lut() ?? null, drawn = lut !== null && swappableLut(lut);
     this.lutUniform(drawn ? lut : this.neutral);
@@ -417,6 +473,9 @@ export class GridFrame {
     post.grade.set({ shadowTint: rgb(g.shadowTint), highTint: rgb(g.highTint), lift: rgb(g.lift), gain: rgb(g.gain), gamma: g.gamma });
     this.lookEffect.set(chain.look);
     const knobs = chainKnobs(post, chain.post);
+    // SF63 follow-up: a cinematic chain's shafts, fringe and grain, its clock driving the shafts
+    const volumetric = chain.post?.volumetric;
+    if (volumetric !== undefined) this.cine?.take(instance, { strength: volumetric.strength, sunColor: volumetric.sunColor, sunDir: this.host.sunDir?.(), fog: this.live.get(instance)?.fog?.color });
     this.carrier = { instance, chain, knobs: knobs?.weight ?? null, restore: () => {
       knobs?.restore();
       post.saturation.saturation = saturation; post.contrast.brightness = brightness; post.contrast.contrast = contrast; undoGrade();
@@ -429,6 +488,7 @@ export class GridFrame {
     if (carrier === null) return;
     this.carrier = null;
     carrier.restore();
+    this.cine?.release();
     this.lookEffect.set({ curve: 0, vibrance: 0 }); this.lookEffect.blendMode.opacity.value = 0;
     this.lutUniform(this.neutral); this.lutEffect.blendMode.opacity.value = 0;
     this.chainFade?.weight(0); this.chainWeight = 0; this.chainLut = false;
@@ -485,7 +545,7 @@ export class GridFrame {
       grade: [round(g.exposure), round(g.saturation), round(g.contrast), round(g.tint[0]), round(g.tint[1]), round(g.tint[2])],
       roadSky: round(this.roadSky.drawn),
       skies: Object.fromEntries([...this.skies].map(([k, layer]) => [k, layer.state()])),
-      chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues(), post: this.postValues() },
+      chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues(), post: this.postValues(), fx: this.cine?.state() ?? null },
     };
   }
 }

@@ -76,11 +76,14 @@ export class VolumetricsEffect extends Effect {
    * @param steps  ray-march steps (14 desktop, 8 phone)
    * @param scale  < 1 → the march runs in a separate render target of this scale (phone: 0.5) and the
    *               effect only composites it; 1 → the march runs in the effect's own fragment (desktop, as before)
+   * @param options `prepass`: the separate target at any scale (a page that parks the march: `setParked`); `parked`: start
+   *               parked (no march, a 1×1 target)
    */
-  constructor(camera: PerspectiveCamera, blueNoise: Texture, steps = 14, scale = 1) {
+  constructor(camera: PerspectiveCamera, blueNoise: Texture, steps = 14, scale = 1, options: { readonly prepass?: boolean; readonly parked?: boolean } = {}) {
     // held as our own typed uniform: the Effect's uniform map is typed loosely (postprocessing's bare `Uniform`)
     const scatter = new Uniform<Texture | null>(null);
-    super('VolumetricsEffect', scale < 1
+    const separate = scale < 1 || options.prepass === true;
+    super('VolumetricsEffect', separate
       ? /* glsl */`
         uniform sampler2D tScatter;
         void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
@@ -92,9 +95,10 @@ export class VolumetricsEffect extends Effect {
         }`, {
       blendFunction: BlendFunction.SRC,
       attributes: EffectAttribute.DEPTH,
-      uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', scatter]] : []),
+      uniforms: new Map<string, Uniform>(separate ? [['tScatter', scatter]] : []),
     });
     this.scale = scale;
+    this.parked = separate && options.parked === true;
     this.camera = camera;
     this.nearU = new Uniform(camera.near); this.farU = new Uniform(camera.far);
     this.marchUniforms = {
@@ -112,7 +116,7 @@ export class VolumetricsEffect extends Effect {
       uNoise: new Uniform(blueNoise),
       uFrame: new Uniform(0),
     };
-    if (scale < 1) {
+    if (separate) {
       this.rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
       scatter.value = this.rt.texture;
       this.marchMat = new ShaderMaterial({
@@ -156,11 +160,16 @@ export class VolumetricsEffect extends Effect {
   private quad: Mesh | null = null;
   private marchScene: Scene | null = null;
   private marchCam = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  /** parked: no march and a 1×1 target (WebGL zero-fills it: the composite adds nothing); `setParked` */
+  private parked = false;
+  private readonly size = { width: 1, height: 1 };
 
   setSun(dir: Vector3, color: Color): void { this.marchUniforms.uSunDir.value.copy(dir); this.marchUniforms.uSunColor.value.copy(color); }
   setFogColor(c: Color): void { this.marchUniforms.uFogColor.value.copy(c); }
   /** the in-scatter's strength (0.55 by default; Pine Hollow's day / night clock keys it) */
   setStrength(s: number): void { this.marchUniforms.uStrength.value = s; }
+  /** the in-scatter's strength now */
+  strength(): number { return this.marchUniforms.uStrength.value; }
   /** the scattering medium (`ChunkAtmosphere.volumetric`): densest below `height` m, `falloff` per metre above it, overall `strength` */
   setMedium(m: { height: number; falloff: number; density: number; strength: number }): void {
     const u = this.marchUniforms;
@@ -186,10 +195,29 @@ export class VolumetricsEffect extends Effect {
   }
 
   override setSize(width: number, height: number): void {
+    this.size.width = width; this.size.height = height;
+    if (this.parked) return;
     this.rt?.setSize(Math.max(1, Math.round(width * this.scale)), Math.max(1, Math.round(height * this.scale)));
   }
 
-  override update(renderer: Renderer): void {
+  /**
+   * Park the separate march (true): it stops running and its target shrinks to 1×1, freeing its memory (three reallocates a
+   * target whose size changes); false sizes it to the last `setSize` again. Nothing recompiles either way.
+   */
+  setParked(parked: boolean): void {
+    if (this.rt === null || this.parked === parked) return;
+    this.parked = parked;
+    if (parked) this.rt.setSize(1, 1);
+    else this.setSize(this.size.width, this.size.height);
+  }
+  /** the separate march's target size (null: the march runs in place) */
+  targetSize(): readonly [number, number] | null { return this.rt === null ? null : [this.rt.width, this.rt.height]; }
+  /** Compile the separate march's program now (a page that adds this effect late warms it at install, not at first use). */
+  warm(renderer: Renderer): void { if (this.marchScene !== null) renderer.compile(this.marchScene, this.marchCam); }
+
+  override update(renderer: Renderer, inputBuffer?: WebGLRenderTarget): void {
+    // an effect added to a pass after its last resize (a page's late install) takes its size from the frame it composites
+    if (inputBuffer !== undefined && (inputBuffer.width !== this.size.width || inputBuffer.height !== this.size.height)) this.setSize(inputBuffer.width, inputBuffer.height);
     const cam = this.camera, u = this.marchUniforms;
     u.uInvView.value.copy(cam.matrixWorld);
     u.uInvProj.value.copy(cam.projectionMatrixInverse);
@@ -200,7 +228,7 @@ export class VolumetricsEffect extends Effect {
     u.uFalloff.value = volumetricFog.falloff ?? fogUniforms.fogHeightFalloff.value;
     u.uDensity.value = DENSITY;
     u.uFrame.value = (this.frame++ % 64);
-    if (this.rt && this.marchMat && this.marchScene) {
+    if (this.rt && this.marchMat && this.marchScene && !this.parked) {
       this.nearU.value = cam.near; this.farU.value = cam.far;
       const prev = renderer.getRenderTarget();
       renderer.setRenderTarget(this.rt);

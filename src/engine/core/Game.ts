@@ -15,7 +15,8 @@ import {
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { retried } from '../boot/retry';
-import { ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
+import { RegionCinematic } from '../render/regionCinematic';
+import { CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
 import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec';
 import { installAtmosphere } from '../world/Atmosphere';
 import { installFogPatch } from '../render/fogPatches';
@@ -556,9 +557,9 @@ export class Game {
       if (!clean) this.grade = split;
       this.post = { grade: split, saturation: grade, contrast, bloom, vignette, rays: raysOn ? godRays : null };
       if (!clean) {
-        const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
+        const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(CINEMATIC_FX.chroma, CINEMATIC_FX.chroma), radialModulation: true, modulationOffset: CINEMATIC_FX.chromaModulation });
         const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
-        grain.blendMode.opacity.value = 0.12;
+        grain.blendMode.opacity.value = CINEMATIC_FX.grain;
         this.sky.attachPost({ vol, rays: godRays, hueSat: grade }); // Pine Hollow's clock (PH-L2) turns the shafts, the rays and the saturation with the hour; a fixed sky ignores it
         // a PBR shard's learned LUT (lut.ts, per shard — PINE-HOLLOW PH-L4) ends its grade, before the grain; no file = no
         // LUT, the chain as before
@@ -679,6 +680,10 @@ export class Game {
   hitStop(seconds: number): void { this.stopLeft = Math.max(this.stopLeft, seconds); }
   /** skip n8ao's depth-free transparency pre-pass (buildComposer; PH-P2) — a live switch for A/B captures */
   aoLeanTransparency = true;
+  /** A cinematic chain's shafts, fringe and grain for a page that runs another chain (`regionCinematic.ts`; the grid's frame). */
+  regionCinematic(): RegionCinematic { return new RegionCinematic(this.camera, this.renderer); }
+  /** the scene pass draws the viewmodels into the depth slices (E142): the scene target's own depth is the world's */
+  get depthSlices(): boolean { return this.renderPass instanceof WorldRenderPass && this.renderPass.slices; }
   /** the PBR chain's split-tone / look grade (buildComposer; its uniforms are live — the look loop tunes them in place) */
   grade: GradeEffect | null = null;
 

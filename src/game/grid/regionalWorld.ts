@@ -201,8 +201,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
                 // its clock turns the page's saturation with its hour as standalone, where the page carries its chain
-                const post = look.post?.() ?? null;
-                if (post !== null) layered.backdrop.attachPost({ vol: NO_VOL, rays: post.rays, hueSat: post.hueSat });
+                // and its shafts where the page carries a cinematic chain's (SF63 follow-up)
+                const post = look.post?.(cell.instance) ?? null;
+                if (post !== null) layered.backdrop.attachPost({ vol: post.vol ?? NO_VOL, rays: post.rays, hueSat: post.hueSat });
                 return layered;
               } });
               // its LUT: the drawn backdrop's (it loaded the level's), else the level's own file when it has no backdrop
