@@ -68,6 +68,7 @@ import { clientMaterials } from '../shardfile/clientMaterials';
 import { clientTileViews, type ClientTileViews } from '../shardfile/clientViews';
 import type { ClientSkin } from '../shardfile/clientSkins';
 import { NeighbourLife, type NeighbourLifeCell } from './neighbourLife';
+import { copyMarks } from './copyIdentity';
 import { admittedMapImage, ProductMinimaps } from './minimapBlend';
 import { crossingSaveStatus, installBorderShimmer, type BorderShimmerState, type CrossingSaveStatus } from './borderShimmer';
 import { GAME_STRINGS } from '../strings';
@@ -333,6 +334,9 @@ export class GridSession {
       // shows its baked far proxy shifted by the same amount, as its own bake installs; absent, the root sits at road height
       const root = new Group(); root.name = `grid-cell:${cell.instance}`; root.position.set(cell.origin.x - home.origin.x, findShard(cell.slug)?.ground.terrain?.datum ?? 0, cell.origin.z - home.origin.z);
       root.updateMatrixWorld(); host.scene.add(root); roots.set(cell.instance, root);
+      // playtest 1: a shared product's copy wears its own number panels (copyIdentity.ts)
+      const marks = copyMarks(cell.instance, cell.identity);
+      if (marks !== null) { root.add(marks.object); marks.object.updateMatrixWorld(true); host.scope.onDispose(marks.dispose); }
     }
     const far = farRingPorts({
       root: (id) => { const root = roots.get(id); if (root === undefined) throw new Error(`No grid cell root ${id}`); return root; },

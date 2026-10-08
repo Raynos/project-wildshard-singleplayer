@@ -1,11 +1,13 @@
 import catalogue from './singleplayer.json' with { type: 'json' };
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { parseGridCatalogue, type GridMode } from './catalogue';
+import { parseGridCatalogue, type CopyIdentity, type GridMode } from './catalogue';
 
 /** A world-space or cell-local point; authoritative simulations only receive the latter. */
 export interface GridPoint { x: number; y: number; z: number }
 /** Stable instance identity with its independent cell placement and derived rendering translation. */
-export interface GridCell { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly origin: Readonly<GridPoint> }
+export interface GridCell { readonly instance: string; readonly slug: string; readonly cell: readonly [number, number]; readonly origin: Readonly<GridPoint>;
+  /** a shared product's copy identity, when the placement declares one (copyIdentity.ts) */
+  readonly identity?: CopyIdentity }
 /**
  * G198 / G219: an open plot. A platform cell with no shard: the platform draws its floor, its four entry showrooms and its
  * centrepiece (`openPlot.ts`) and owns its colliders, so it is road-like ground (never in `cells`, never a sim, a save
@@ -39,7 +41,8 @@ export class GridAssembly {
     if (new Set([...selected.values()].map((row) => row.instance)).size !== selected.size) throw new Error('Duplicate assembled grid identity');
     this.pitch = data.pitch;
     this.cells = Object.freeze([...selected.values()].map((row): GridCell => Object.freeze({ instance: row.instance, slug: row.slug,
-      cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }) })));
+      cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }),
+      ...(row.identity === undefined ? {} : { identity: row.identity }) })));
     this.plots = Object.freeze(data.plots.filter((row) => !selected.has(row.cell.join(','))).map((row): GridPlot => Object.freeze({ instance: row.instance,
       cell: Object.freeze([row.cell[0], row.cell[1]] as const), origin: Object.freeze({ x: row.cell[0] * data.pitch, y: 0, z: row.cell[1] * data.pitch }) })));
     this.byInstance = new Map(this.cells.map((row) => [row.instance, row])); this.byCell = new Map(this.cells.map((row) => [row.cell.join(','), row]));

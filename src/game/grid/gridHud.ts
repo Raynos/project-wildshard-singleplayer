@@ -18,6 +18,7 @@ import type { GridCellEvents, GridCellRef } from './boot';
 import { GAME_STRINGS } from '../strings';
 import { accentVars, ROAD_ACCENT } from '../shardfile/accent';
 import { setHudAccent } from '../session/hudAccent';
+import { copyAccent } from './copyIdentity';
 import './gridHud.css';
 
 export interface GridHudHost {
@@ -97,7 +98,8 @@ export function installGridHud(host: GridHudHost): () => GridHudState {
     if (hex === null) { for (const name of vars) hudRoot.style.removeProperty(name); return; }
     for (const [name, value] of Object.entries(accentVars(hex))) hudRoot.style.setProperty(name, value);
   };
-  scope.onDispose(cells.onEnter((cell) => { setAccent(host.accent(cell)); }));
+  // a shared product's copy declares its own accent (copyIdentity.ts), so each template cell reads distinct
+  scope.onDispose(cells.onEnter((cell) => { setAccent(copyAccent(cell.instance) ?? host.accent(cell)); }));
   scope.onDispose(cells.onLeave(() => { setAccent(null); }));
   scope.onDispose(() => { setAccent(null); });
 

@@ -1,9 +1,18 @@
 import * as v from 'valibot';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
+import { AccentSchema } from '../shardfile/accent';
 
 const id = v.pipe(v.string(), v.regex(/^_?[a-z0-9]+(?:-[a-z0-9]+)*$/u));
 const signed = v.pipe(v.number(), v.integer(), v.minValue(-1), v.maxValue(1));
-const placement = v.strictObject({ instance: id, slug: id, cell: v.tuple([signed, signed]) });
+const local = v.pipe(v.number(), v.finite(), v.minValue(-250), v.maxValue(250));
+/** one number panel: a cell-local spot (metres, x east, y up, z north) on the copy's own structures, facing `yaw` (0 = +z) */
+const mark = v.strictObject({ x: local, y: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(250)), z: local, yaw: v.pipe(v.number(), v.finite()), size: v.pipe(v.number(), v.minValue(0.5), v.maxValue(12)) });
+/**
+ * Playtest 1 (SF52 / G220): a shared product's copy identity, data only. Its HUD accent inside the cell and where its
+ * number stands (copyIdentity.ts); the copies keep sharing one product's bytes.
+ */
+const identity = v.strictObject({ accent: AccentSchema, marks: v.pipe(v.array(mark), v.maxLength(8)) });
+const placement = v.strictObject({ instance: id, slug: id, cell: v.tuple([signed, signed]), identity: v.optional(identity) });
 /** G198 / G219: an open plot, a platform cell with no shard (the void floor, four entry showrooms and a centrepiece). */
 const plot = v.strictObject({ instance: id, cell: v.tuple([signed, signed]) });
 const channel = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1));
@@ -23,6 +32,8 @@ export const GridCatalogueSchema = v.pipe(v.strictObject({ version: v.literal(0)
 }, 'unique stable instance identities and complete signed cell layout'));
 /** Admitted assembly input; a cell remains a mutable placement attribute, never a save namespace. */
 export type GridCatalogue = v.InferOutput<typeof GridCatalogueSchema>;
+/** A copy's declared identity: its accent and its number panels (copyIdentity.ts). */
+export type CopyIdentity = v.InferOutput<typeof identity>;
 /** Catalogue placement before its render origin is derived. */
 export type GridPlacement = GridCatalogue['cells'][number];
 /** An open plot's placement (G198): no shard, so no slug, no save namespace and no simulation. */
