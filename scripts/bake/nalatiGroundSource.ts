@@ -1,6 +1,6 @@
-import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMaterial, Vector3 } from 'three';
 import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSource, type NativeLatticeTile } from '@wildshard/sdk/bake/nativeLattice';
-import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
 import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
 import { parseBakedTerrain, bakedSamplers } from '../../src/engine/world/BakedTerrain';
 import { buildPainterlyGeometry } from '../../src/shards/nalati-grasslands/look/terrainPainter';
@@ -10,6 +10,22 @@ const CHANNELS = { normal: 3, color: 3, surf: 4, rdir: 2, zone: 3 } as const;
 const CUSTOM = { _SURF: 'surf', _RDIR: 'rdir', _ZONE: 'zone' } as const;
 /** Unpacked ground geometry: the shared SDK visitor owns later hash/file/tile row composition. */
 export interface NalatiGroundTile { tile: NativeLatticeTile; bytes: Uint8Array; cost: AssetCost }
+/** Already clipped, world-local static props; borrowed geometry/materials remain caller-owned. */
+export interface NalatiStaticTile { lod: 0 | 1; x: number; z: number; primitives: readonly GlbPrimitive[] }
+
+function combinedBounds(tile: NativeLatticeTile, props: readonly GlbPrimitive[]): NativeLatticeTile['bounds'] {
+  const bounds = { min: [...tile.bounds.min] as [number, number, number], max: [...tile.bounds.max] as [number, number, number] }, point = new Vector3();
+  for (const primitive of props) {
+    const position = primitive.geometry.getAttribute('position');
+    if (!primitive.geometry.hasAttribute('position') || position.itemSize !== 3) throw new Error('Nalati static tile needs positions');
+    for (const transform of primitive.instances ?? [undefined]) for (let i = 0; i < position.count; i++) {
+      point.fromBufferAttribute(position, i); if (transform !== undefined) point.applyMatrix4(transform);
+      if (![point.x, point.y, point.z].every(Number.isFinite) || point.x < bounds.min[0] || point.x > bounds.max[0] || point.z < bounds.min[2] || point.z > bounds.max[2]) throw new Error('Nalati static props must be clipped to their final tile address');
+      bounds.min[1] = Math.min(bounds.min[1], point.y); bounds.max[1] = Math.max(bounds.max[1], point.y);
+    }
+  }
+  return bounds;
+}
 
 /** Drain today's unchanged painter over the committed WSTR256 samplers and the actual authored trails.
  * This allocates geometry only: no textures, renderer, physics world, scene or gameplay installer.
@@ -49,20 +65,27 @@ export function nalatiGroundSource(bytes: Uint8Array): NativeLatticeSource {
 /** Preserve clipped native triangles and all painterly channels in render-only props GLBs.
  * L1 retains native detail until a separately measured simplification is admitted. Physics stays on the native bake.
  */
-export function bakeNalatiGround(source: NativeLatticeSource): NalatiGroundTile[] {
+export function bakeNalatiGround(source: NativeLatticeSource, staticTiles: readonly NalatiStaticTile[] = []): NalatiGroundTile[] {
+  const props = new Map<string, readonly GlbPrimitive[]>();
+  for (const entry of staticTiles) {
+    const key = `${entry.lod}/${entry.x}/${entry.z}`, count = entry.lod === 0 ? 8 : 4;
+    if (props.has(key) || ![0, 1].includes(entry.lod) || !Number.isInteger(entry.x) || !Number.isInteger(entry.z) || entry.x < 0 || entry.x >= count || entry.z < 0 || entry.z >= count) throw new Error('Nalati static tile address must be unique and in bounds');
+    props.set(key, entry.primitives);
+  }
   const material = new MeshStandardMaterial({ color: 0xffffff, metalness: 0, roughness: 1 });
   material.name = 'nalati.ground';
   try {
     return [0, 1].flatMap(lod => sliceNativeLattice(source, lod === 0 ? 0 : 1).map(tile => {
+      const additions = props.get(`${tile.lod}/${tile.x}/${tile.z}`) ?? [], bounds = combinedBounds(tile, additions);
       const geometry = new BufferGeometry();
       let bytes: Uint8Array;
       try {
         geometry.setAttribute('position', new Float32BufferAttribute(tile.positions, 3));
         for (const [name, channel] of Object.entries(tile.attributes)) geometry.setAttribute(name, new Float32BufferAttribute(channel.values, channel.itemSize));
         geometry.setIndex(new BufferAttribute(tile.indices, 1));
-        bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }], `nalati.ground.l${tile.lod}.${tile.x}.${tile.z}`);
+        bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }, ...additions], `nalati.ground.l${tile.lod}.${tile.x}.${tile.z}`);
       } finally { geometry.dispose(); }
-      return { tile, bytes, cost: parseGlb(bytes) };
+      return { tile: { ...tile, bounds }, bytes, cost: parseGlb(bytes) };
     }));
   } finally { material.dispose(); }
 }
