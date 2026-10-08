@@ -20,9 +20,9 @@ export interface MemoryOwnerSubtotal {
 /** Agreeing shared identities count once; disagreement refuses instead of inventing ownership. */
 export function memoryOwnerInventory(allocations: readonly MemoryAllocation[]): MemoryOwnerSubtotal[];
 /** Preserve every byte and owner while splitting each subtotal into <=50 MB bricks. */
-export function memoryBlocks(owners: readonly Pick<MemoryOwnerSubtotal, 'owner' | 'domain' | 'bytes'>[]): Array<{
+export function memoryBlocks(owners: readonly Pick<MemoryOwnerSubtotal, 'owner' | 'domain' | 'bytes'>[]): {
   owner: string;
   domain: 'ram' | 'gpu';
   bytes: number;
   part: number;
-}>;
+}[];
