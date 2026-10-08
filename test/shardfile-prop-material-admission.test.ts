@@ -1,5 +1,4 @@
 import { Document, NodeIO } from '@gltf-transform/core';
-import sharp from 'sharp';
 import * as v from 'valibot';
 import { beforeAll, expect, it } from 'vitest';
 import { emptyShardfile } from '../src/sdk/author';
@@ -13,7 +12,8 @@ import { assetCost } from '../src/game/shardfile/assets';
 
 let texture: Uint8Array;
 beforeAll(async () => {
-  const png = await sharp({ create: { width: 2, height: 2, channels: 4, background: { r: 30, g: 90, b: 100, alpha: 1 } } }).png().toBuffer();
+  // Exact 2x2 RGBA PNG fixture; image decoding remains owned by the SDK dependency.
+  const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR4nGOQi0r5D8IMMAYAPYQHbeGDBAUAAAAASUVORK5CYII='), character => character.charCodeAt(0));
   texture = await bakeWorldTexture(png, 'srgb');
 });
 function model(name: string, nodeName = 'Door'): Promise<Uint8Array> {
