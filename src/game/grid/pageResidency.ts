@@ -49,14 +49,22 @@ export class PageResidency {
    * 300 MB engine base (G226 full-loop receipt). Split that credit out; any larger current composer is additional. */
   bindComposer(game: Pick<Game, 'observeComposerAllocation'>, rendererScope: Scope): void {
     if (this.composerBound || this.closed || rendererScope.disposed) throw new Error('Page composer requires one live renderer');
+    // WebGLState creates one RGBA texel for 2D/array/3D and six cube faces: 36 bytes, until renderer retirement.
+    // These are present in the same calibrated baseline, separately from the composer's render targets.
+    const initialization = this.allocator.reservePageComponent('page:renderer-initialization', 36, 36);
+    if (initialization === null) throw new Error('Renderer initialization admission deferred by the shared budget');
     let lease: ResidencyLease | null = null;
-    const detach = game.observeComposerAllocation(bytes => {
-      const next = this.allocator.reservePageComponent('page:composer', bytes, 13_140_576);
-      if (next === null) throw new Error('Composer admission deferred by the shared budget');
-      const previous = lease; lease = next; previous?.release();
-    });
+    const release = (): void => { lease?.release(); initialization.release(); };
+    let detach: () => void;
+    try {
+      detach = game.observeComposerAllocation(bytes => {
+        const next = this.allocator.reservePageComponent('page:composer', bytes, 13_140_576);
+        if (next === null) throw new Error('Composer admission deferred by the shared budget');
+        const previous = lease; lease = next; previous?.release();
+      });
+    } catch (error) { release(); throw error; }
     this.composerBound = true;
-    rendererScope.onDispose(() => { detach(); lease?.release(); });
+    rendererScope.onDispose(() => { detach(); release(); });
   }
 
   constructor(allocator = new ResidencyAllocator()) { this.allocator = allocator; }

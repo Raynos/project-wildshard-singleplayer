@@ -58,12 +58,14 @@ it('evicts the unused home cache while keeping the calibrated composer until ren
   page.bindComposer({ observeComposerAllocation: read => { resize = read; read(13_140_576); return () => { resize = undefined; }; } }, renderer);
   expect(page.allocator.cost().playing).toBe(before);
   resize?.(20_000_000);
-  expect(page.allocator.entries().filter(entry => entry.category === 'page')).toMatchObject([{ bytes: 20_000_000, refs: 1 }]);
+  expect(page.allocator.entries().filter(entry => entry.category === 'page')).toMatchObject([
+    { id: 'page:composer', bytes: 20_000_000, refs: 1 }, { id: 'page:renderer-initialization', bytes: 36, refs: 1 },
+  ]);
   expect(page.allocator.cost().playing).toBe(before + 6_859_424);
   level.dispose(); page.dispose();
   expect(page.allocator.cost().input.sims).toBe(0);
   expect(page.allocator.cost().input.commons).toBe(0);
-  expect(page.allocator.cost().input.page).toBe(20_000_000);
+  expect(page.allocator.cost().input.page).toBe(20_000_036);
   renderer.dispose(); expect(page.allocator.entries()).toEqual([]); expect(resize).toBeUndefined();
 });
 
@@ -85,4 +87,14 @@ it('uses the closest runtime owner rather than a borrowed ancestor and keeps the
     expect(page.allocator.cost().input.commons).toBe(0);
     home.dispose(); page.dispose(); renderer.dispose(); expect(page.allocator.entries()).toEqual([]);
   }
+});
+
+it('releases both calibrated renderer components if composer observation fails during installation', async () => {
+  const { PageResidency } = await import('../src/game/grid/pageResidency');
+  const page = new PageResidency(), renderer = new Scope('renderer'), before = page.allocator.cost().playing;
+  expect(() => page.bindComposer({ observeComposerAllocation: read => {
+    read(13_140_576); throw new Error('failed observer');
+  } }, renderer)).toThrow('failed observer');
+  expect(page.allocator.entries()).toEqual([]); expect(page.allocator.cost().playing).toBe(before);
+  renderer.dispose(); page.dispose();
 });

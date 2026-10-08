@@ -55,19 +55,22 @@ try {
  for(const value of report.damage){const saved=report.saved['wildshard.save.v2.'+value.instance]?.keys?.['platform.runtime-logical']?.data;if(!saved?.actors?.some(actor=>actor.id===value.id&&actor.hp===value.after))throw Error('Durable creature HP missing for '+value.instance);}
  await snapshot('home-returned-durable');await page.evaluate(()=>{window.__retainedLedger=window.__wildshard.shard.grid.residency;});report.leak=await page.evaluate(()=>window.__wildshard.leak());
  report.finalGL=await page.evaluate(()=>window.__sc_gl().map(({gl,...r})=>r));
- report.finalResidency=await page.evaluate(()=>window.__retainedLedger());
+ report.finalResidency=await page.evaluate(()=>{const value=window.__retainedLedger();delete window.__retainedLedger;return value;});
+ report.debugRoots=await page.evaluate(()=>({probePresent:typeof window.__wildshard==='object',worldUndefined:window.__wildshard.world===undefined,physicsAbsent:window.__physics===undefined,heightfieldAbsent:window.__hf===undefined,perfHudAbsent:window.__perfHud===undefined,skyAbsent:window.__skyV2===undefined,bakeAbsent:window.__bake===undefined}));
  const resources=report.finalGL.flatMap(row=>row.resources), claims=report.finalResidency.claims;
  const rawComposer=resources.filter(row=>row.asset.includes('EffectComposer')).reduce((sum,row)=>sum+row.bytes,0);
- const rawGL=resources.reduce((sum,row)=>sum+row.bytes,0), rawCaches=rawGL-rawComposer;
+ const rawRendererInitialization=resources.filter(row=>row.asset==='builtin/renderer-initialization').reduce((sum,row)=>sum+row.bytes,0);
+ const rawGL=resources.reduce((sum,row)=>sum+row.bytes,0), rawCaches=rawGL-rawComposer-rawRendererInitialization;
+ const chargedRendererInitialization=claims.filter(row=>row.id==='page:renderer-initialization').reduce((sum,row)=>sum+row.accountedBytes,0);
  const chargedComposer=claims.filter(row=>row.id==='page:composer').reduce((sum,row)=>sum+row.accountedBytes,0);
  const cachedGPU=claims.filter(row=>row.category==='commons'&&row.id.startsWith('commons:retained:')&&row.id.endsWith(':gpu')).reduce((sum,row)=>sum+row.accountedBytes,0);
  const cachedCPU=claims.filter(row=>row.category==='commons'&&row.id.startsWith('commons:retained:')&&row.id.endsWith(':cpu')).reduce((sum,row)=>sum+row.accountedBytes,0);
- report.reconciliation={rawGL,rawComposer,rawCaches,chargedComposer,cachedGPU,cachedCPU,uncoveredGPU:rawCaches-cachedGPU,engineBase:report.finalResidency.cost.input.engineBase,
+ report.reconciliation={rawGL,rawComposer,rawRendererInitialization,chargedRendererInitialization,rawCaches,chargedComposer,cachedGPU,cachedCPU,uncoveredGPU:rawCaches-cachedGPU,engineBase:report.finalResidency.cost.input.engineBase,
    noRuntimeClaims:claims.every(row=>row.category!=='sim'),allCachesUncovered:claims.filter(row=>row.id.startsWith('commons:retained:')).every(row=>row.accountedBytes===row.bytes),
-   composerMatches:rawComposer===chargedComposer,retainedGPUSafelyCharged:cachedGPU>=rawCaches};
- if(!report.reconciliation.noRuntimeClaims||!report.reconciliation.allCachesUncovered||!report.reconciliation.composerMatches||!report.reconciliation.retainedGPUSafelyCharged)throw Error('Retained GL residency reconciliation failed');
- report.pass=report.errors.length===0&&report.consoleErrors.length===0&&report.leak.disposalErrors.length===0&&report.leak.after.bodies===0&&report.leak.after.colliders===0&&Object.values(report.leak.scope).every(value=>value===0)&&report.routes.every(r=>r.failures.length===0)&&report.documents.length===report.bootDocuments;
- if(!report.pass)throw Error('Final errors/native/scope/document checks failed');
+   rendererInitializationMatches:rawRendererInitialization===chargedRendererInitialization,composerMatches:rawComposer===chargedComposer,retainedGPUSafelyCharged:cachedGPU>=rawCaches};
+ report.accountingPass=report.reconciliation.noRuntimeClaims&&report.reconciliation.allCachesUncovered&&report.reconciliation.composerMatches&&report.reconciliation.rendererInitializationMatches&&report.reconciliation.retainedGPUSafelyCharged;
+ report.pass=report.accountingPass&&Object.values(report.debugRoots).every(Boolean)&&report.errors.length===0&&report.consoleErrors.length===0&&report.leak.disposalErrors.length===0&&report.leak.after.bodies===0&&report.leak.after.colliders===0&&Object.values(report.leak.scope).every(value=>value===0)&&report.routes.every(r=>r.failures.length===0)&&report.documents.length===report.bootDocuments;
+ if(!report.pass)throw Error(report.accountingPass?'Final debug/errors/native/scope/document checks failed':'Retained GL residency reconciliation failed');
  await context.close();
 } catch(error){report.pass=false;report.failure=String(error.stack??error);if(page&&!page.isClosed()){report.lastState=await page.evaluate(()=>window.__wildshard?.shard?.grid?.state()).catch(()=>null);report.failedLeak=await page.evaluate(()=>window.__wildshard?.leak()).catch(error=>String(error));}} finally {await browser.close();report.seconds=(Date.now()-started)/1000;save();console.log(JSON.stringify({pass:report.pass,failure:report.failure,seconds:report.seconds}));}
 if(!report.pass)process.exitCode=1;
