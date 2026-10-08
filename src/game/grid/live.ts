@@ -241,7 +241,14 @@ export class LiveGridHost {
         // Runtime admission has checked the same measured source and manifest. Transfer only that exact whole cost;
         // until then the boot owner retains its sole reference and can abort without any regional world existing.
         lease = this.ports.home.residency.handoff(admitted.bytes); this.initialHomePending = false;
-      } else lease = this.claim(instance, admitted.bytes, true);
+      } else {
+        if (this.initialHomePending && this.ports.home.mode === 'owned') {
+          // Road recovery may enter another opaque runtime first. No home content has been allocated, so retire its
+          // unused boot reservation before requesting the destination budget; a future home visit is ordinary admission.
+          this.ports.home.residency.releasePending(); this.initialHomePending = false;
+        }
+        lease = this.claim(instance, admitted.bytes, true);
+      }
       let region: LiveGridRegion | undefined;
       try {
         const prior = this.saved.read(instance) ?? this.ports.read?.(instance);

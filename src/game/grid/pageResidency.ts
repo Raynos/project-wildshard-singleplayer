@@ -10,6 +10,8 @@ export interface HomeResidencyClaim {
   /** Transfer the sole boot reference once, after verifying the admitted whole runtime's exact cost.
    * Runtime callers supply regionalRuntimeAccountedBytes from the matching source and manifest; platform extras stay separate. */
   readonly handoff: (wholeRuntimeBytes: number) => ResidencyLease;
+  /** Road-start recovery abandons only an unused sole boot reference, before allocating a different first region. */
+  readonly releasePending: () => void;
 }
 
 /**
@@ -47,13 +49,15 @@ export class PageResidency {
       return lease;
     };
     this.bootLease = reserve();
-    let handedOff = false;
+    let handedOff = false, releasedPending = false;
     const retain = (): ResidencyLease => {
       if (handedOff) throw new Error('Home residency has been handed off');
+      if (releasedPending) throw new Error('Home residency preclaim has been released');
       return reserve();
     };
     const handoff = (wholeRuntimeBytes: number): ResidencyLease => {
       if (this.closed) throw new Error('Page residency is disposed');
+      if (releasedPending) throw new Error('Home residency preclaim has been released');
       const lease = this.bootLease;
       if (handedOff || lease === undefined) throw new Error('Home residency has already been handed off');
       if (wholeRuntimeBytes !== bytes) throw new Error('Home residency differs from the admitted whole-runtime cost');
@@ -62,7 +66,15 @@ export class PageResidency {
       handedOff = true; this.bootLease = undefined;
       return lease;
     };
-    this.claim = Object.freeze({ instance, bytes, allocator: this.allocator, retain, handoff });
+    const releasePending = (): void => {
+      if (this.closed) throw new Error('Page residency is disposed');
+      if (handedOff) throw new Error('Cannot release a handed-off home runtime');
+      if (releasedPending) return;
+      const entry = this.allocator.entries().find(row => row.id === id);
+      if (entry?.refs !== 1) throw new Error('Home preclaim release requires its sole boot reference');
+      this.bootLease?.release(); this.bootLease = undefined; releasedPending = true;
+    };
+    this.claim = Object.freeze({ instance, bytes, allocator: this.allocator, retain, handoff, releasePending });
     return this.claim;
   }
 

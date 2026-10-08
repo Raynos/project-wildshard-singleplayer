@@ -154,3 +154,21 @@ it('checks the admitted whole-runtime bytes before the home claim handoff or wor
     f.owner.dispose(); expect(f.owner.allocator.entries()).toEqual([]);
   } finally { f.finish(); }
 });
+
+it('releases the unused home preclaim before road recovery allocates a different first opaque runtime', async () => {
+  const f = await open((_id, fallback) => {
+    const admission = fallback();
+    return Promise.resolve({ ...admission, create: (saved, lease) => {
+      expect(f.owner.allocator.has('sim:driftwood-isle')).toBe(false);
+      expect(f.owner.allocator.entries()).toMatchObject([{ id: 'sim:pine-hollow' }, { id: 'sim:platform.highway' }]);
+      return admission.create(saved, lease);
+    } });
+  });
+  try {
+    expect(f.owner.allocator.has('sim:driftwood-isle')).toBe(true);
+    const prepared = await f.registry.prepare(null, 'pine-hollow'); prepared.commit();
+    expect(f.registry.current()).toBe('pine-hollow'); expect(f.creates).toEqual(['pine-hollow']);
+    expect(() => f.owner.home().retain()).toThrow('preclaim has been released');
+    f.registry.dispose(); expect(f.owner.allocator.entries()).toEqual([]);
+  } finally { f.finish(); }
+});

@@ -98,4 +98,17 @@ describe('early page residency', () => {
     const runtime = home.handoff(home.bytes); runtime.release(); owner.dispose();
     expect(owner.allocator.entries()).toEqual([]);
   });
+
+  it('abandons an unused road-start preclaim without releasing a retained or handed-off runtime', () => {
+    const owner = new PageResidency(), home = owner.admitHome('home', 20_000_000), retained = home.retain();
+    expect(() => home.releasePending()).toThrow('sole boot reference'); retained.release();
+    home.releasePending(); home.releasePending();
+    expect(owner.allocator.entries()).toEqual([]);
+    expect(() => home.retain()).toThrow('preclaim has been released');
+    expect(() => home.handoff(home.bytes)).toThrow('preclaim has been released'); owner.dispose();
+    const activeOwner = new PageResidency(), active = activeOwner.admitHome('home', 20_000_000), runtime = active.handoff(active.bytes);
+    expect(() => active.releasePending()).toThrow('handed-off home runtime');
+    expect(activeOwner.allocator.entries()).toMatchObject([{ id: 'sim:home', bytes: active.bytes, refs: 1 }]);
+    runtime.release(); activeOwner.dispose();
+  });
 });
