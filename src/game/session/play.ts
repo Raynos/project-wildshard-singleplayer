@@ -571,7 +571,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     unmark();
   }, 'main.world');
   app.addSystem({ id: 'engine.creatures.update', phase: 'update', after: ['main.world'], before: ['main.equipment'], run: (dt, t) => {
-    const homeActive = grid === null || gridLive === null || gridLive.live.current() === grid.home.instance;
+    const homeActive = grid === null || gridLive === null || (session.ownedGridHome !== true && gridLive.live.current() === grid.home.instance);
     aimList.length = 0;
     if (homeActive) {
       animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera);

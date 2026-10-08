@@ -128,6 +128,7 @@ it('retires each owned runtime before the next foundation and rebuilds its durab
     expect(regions).toHaveLength(0); expect([worlds, plays]).toEqual([0, 0]);
     await session.enterInitialHome();
     expect(session.live.current()).toBe(home.instance); expect([worlds, plays]).toEqual([1, 1]);
+    expect(session.aimAnimals()).toBe(herds[0]?.animals);
     const first = herds[0]?.animals[0]; if (first === undefined) throw new Error('Missing first native herd');
     first.hp = 55; first.position.set(12, 0, 34);
     expect(session.live.checkpoint(home.instance)).toBe(true);
