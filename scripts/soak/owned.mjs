@@ -1,8 +1,9 @@
 /** Owned-shell SF57 plans share the floor driver's controls and document/frame fences.
  * @param {Pick<import('../frame-floor-grid.mjs').FloorGridState, 'home' | 'cells'>} state
  * @param {'cells' | 'road'} leg
+ * @param {'catalogue' | 'prepared'} routeScope
  */
-export function ownedSoakPlans(state, leg = 'cells') {
+export function ownedSoakPlans(state, leg = 'cells', routeScope = 'catalogue') {
   const pitch = 555, half = pitch / 2, inset = 230;
   const home = state.cells.find(cell => cell.instance === state.home);
   if (home?.slug !== 'driftwood-isle') throw new Error('Soak requires the Driftwood owned home');
@@ -20,7 +21,8 @@ export function ownedSoakPlans(state, leg = 'cells') {
   }
   const pine = state.cells.find(cell => cell.slug === 'pine-hollow'), nalati = state.cells.find(cell => cell.slug === 'nalati-grasslands');
   if (!pine || !nalati) throw new Error('Soak requires Pine and Nalati');
-  const remaining = state.cells.filter(cell => ![home.instance, pine.instance, nalati.instance].includes(cell.instance))
+  const omitted = routeScope === 'prepared' ? state.cells.filter(cell => !['driftwood-isle', 'pine-hollow', 'nalati-grasslands', '_template'].includes(cell.slug)).map(cell => cell.instance) : [];
+  const remaining = state.cells.filter(cell => ![home.instance, pine.instance, nalati.instance, ...omitted].includes(cell.instance))
     .sort((a, b) => Number(b.slug === '_template') - Number(a.slug === '_template') || a.instance.localeCompare(b.instance));
   const sequence = [pine, nalati, ...remaining, home], plans = [];
   let source = home, portal = { x: h.x, z: h.z + half };
@@ -52,7 +54,14 @@ export function ownedSoakPlans(state, leg = 'cells') {
     waypoints: [{ x: h.x, z: h.z + half }, { x: first.x, z: h.z + half }, first], requiredResidents: [], retiredResidents: [home.instance] },
     ...road.plans, { name: 'road-tour-to-home', from: null, to: home.instance, movement: 'road-hover', hoverMaxSpeed: 30,
       waypoints: [{ x: half, z: h.z + half }, { x: h.x, z: h.z + half }, reference], requiredResidents: [home.instance] }];
-  return { reference, plans, coveragePlans };
+  return { reference, plans, coveragePlans, omitted };
+}
+
+/** A prepared-cell functional rehearsal cannot claim the full-catalogue memory gate. */
+export function soakRouteScope(/** @type {string} */ value = 'catalogue', /** @type {boolean} */ qualifying = false) {
+  if (value !== 'catalogue' && value !== 'prepared') throw new Error('Unknown soak route scope');
+  if (value === 'prepared' && qualifying) throw new Error('Prepared-cell subset is rehearsal only');
+  return value;
 }
 
 /** A dry run never widens or substitutes for the thirty-minute gate. */

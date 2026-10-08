@@ -2,10 +2,21 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
+
+void test('SF57 prepared-cell rehearsal records open coverage and refuses qualifying subset runs', () => {
+  const cells = soakCatalogue(catalogue, 'dev');
+  const route = ownedSoakPlans({ cells, home: 'driftwood-isle' }, 'cells', soakRouteScope('prepared'));
+  assert.deepEqual(route.plans.map(plan => plan.to), ['pine-hollow', 'nalati-grasslands', 'template-2', 'driftwood-isle']);
+  assert.deepEqual([...route.omitted].sort((a, b) => a.localeCompare(b)), ['far-reach', 'sunscar-dunes']);
+  assert.equal(new Set(route.coveragePlans.map(plan => plan.crossroads).filter(Boolean)).size, 16);
+  assert.throws(() => soakRouteScope('prepared', true), /rehearsal only/u);
+  assert.throws(() => soakRouteScope('typo'), /Unknown soak route/u);
+  assert.equal(soakRouteScope('catalogue', true), 'catalogue');
+});
 
 void test('SF57 borrowed previews survive cleanup; owned previews all stop even after one refusal', async () => {
   const bases = [{ base: 'http://127.0.0.1:4401/' }, { base: 'http://127.0.0.1:4402/' }];

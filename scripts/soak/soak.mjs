@@ -7,6 +7,7 @@
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
 // --borrowed-preview with --prepared retains another owner's explicitly shared preview after cleanup.
+// --route-scope=prepared rehearses D/P/N/templates only; omitted catalogue coverage remains open, never qualifying.
 // A long-lived parent retains both previews. --prepare writes its manifest and waits for <directory>/GO.
 // No document navigation, manual eviction or GC is allowed between drive start and the final leak census.
 import { spawn, execFileSync } from 'node:child_process';
@@ -18,7 +19,7 @@ import { installSoakGl, installSoakWasm } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope } from './owned.mjs';
 import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -88,6 +89,7 @@ async function worker() {
   const contentCut = flag('content-cut-data') === '' ? null : parseSoakContentCut(JSON.parse(flag('content-cut-data')));
   const policy = soakRunPolicy(process.argv.includes('--dry-run'), contentCut);
   const rehearsal = policy.dryRun || !process.argv.includes('--qualifying');
+  const routeScope = soakRouteScope(flag('route-scope', 'catalogue'), process.argv.includes('--qualifying'));
   const duration = policy.seconds;
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
   const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
@@ -141,7 +143,9 @@ async function worker() {
     const catalogue = JSON.parse(execFileSync('git', ['show', `${sha}:src/game/grid/singleplayer.json`], { cwd: root, encoding: 'utf8' })).grid;
     if (layout !== 'shipped' && layout !== 'dev') throw new Error('Unknown soak layout');
     if (!validateSoakCatalogue(cells, soakCatalogue(catalogue, layout))) throw new Error(`Wrong ${layout} catalogue: ${result.catalogue}`);
-    result.route = ownedSoakPlans(result.metadata.state, leg);
+    result.routeScope = routeScope;
+    result.route = ownedSoakPlans(result.metadata.state, leg, routeScope);
+    result.openCoverage = result.route.omitted ?? [];
     result.documentOrigin = await driver.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
     result.documentId = await driver.evaluate('window.__sf57DocumentId');
     const page = { evaluate: soakAsyncEvaluator(expression => driver.evaluate(expression), collectGl) };
@@ -231,13 +235,14 @@ async function worker() {
 }
 async function drivePrepared(manifest) {
   const { sha, out, bases } = manifest;
+  const routeScope = soakRouteScope(manifest.routeScope ?? 'catalogue', manifest.rehearsal === false);
   const contentCut = manifest.contentCut === null || manifest.contentCut === undefined ? null : parseSoakContentCut(manifest.contentCut);
   while (!existsSync(join(out, 'GO'))) await sleep(1000);
   const policy = soakRunPolicy(manifest.dryRun === true, contentCut);
   for (const { layout, base } of bases) {
     for (const leg of manifest.legs ?? ['cells', 'road']) {
       await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), `sf57-sp-x3-${layout}-${process.pid}`, process.execPath, import.meta.filename,
-        '--worker', ...(policy.dryRun ? ['--dry-run'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
+        '--worker', ...(policy.dryRun ? ['--dry-run'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, `--route-scope=${routeScope}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
     }
   }
   console.log(`SF57 DONE ${out}`);
@@ -269,7 +274,8 @@ async function prepare() {
     execFileSync('git', ['cat-file', '-e', `${sha}:${contentCut.receipt}`], { cwd: root });
     execFileSync('git', ['merge-base', '--is-ancestor', contentCut.sourceRevision, sha], { cwd: root });
   }
-  const bases = [], manifest = { sha, out, bases, contentCut, dryRun: process.argv.includes('--dry-run'), legs: flag('legs', 'cells,road').split(','), rehearsal: process.argv.includes('--dry-run') ? true : !process.argv.includes('--qualifying') };
+  const routeScope = soakRouteScope(flag('route-scope', 'catalogue'), process.argv.includes('--qualifying'));
+  const bases = [], manifest = { sha, out, bases, contentCut, routeScope, dryRun: process.argv.includes('--dry-run'), legs: flag('legs', 'cells,road').split(','), rehearsal: process.argv.includes('--dry-run') ? true : !process.argv.includes('--qualifying') };
   if (manifest.legs.length === 0 || new Set(manifest.legs).size !== manifest.legs.length || manifest.legs.some(leg => leg !== 'cells' && leg !== 'road')) throw new Error('Select cells and/or road legs');
   const layouts = flag('layouts', 'dev,shipped').split(',');
   if (layouts.length === 0 || new Set(layouts).size !== layouts.length || layouts.some((layout) => layout !== 'shipped' && layout !== 'dev')) throw new Error('Select shipped and/or dev layouts');
