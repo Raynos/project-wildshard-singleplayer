@@ -8,11 +8,11 @@
  * The layout is `roadLayout.ts`; sign text comes from the catalogue's slugs through the shard registry.
  */
 import {
-  BufferAttribute, BufferGeometry, CanvasTexture, Color, Group, LinearMipmapLinearFilter, Matrix4, Mesh,
-  MeshLambertMaterial, type Object3D, Quaternion, RepeatWrapping, SRGBColorSpace, Vector3,
+  BufferAttribute, BufferGeometry, CanvasTexture, Color, DataTexture, Group, LinearFilter, LinearMipmapLinearFilter, Matrix4, Mesh,
+  MeshLambertMaterial, NoColorSpace, type Object3D, Quaternion, RepeatWrapping, RGFormat, SRGBColorSpace, type Texture, UnsignedByteType, Vector3,
 } from 'three';
 import type { GridCell } from './assembly';
-import { gpuOnlyTextureBytes, uniformPart, type SolidPart } from './roadSolid';
+import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
 import { bytePlan, cullInto, gpuOnlyRoad, meshBytes, type CullSource, type RoadCuller } from './roadCull';
 import type { PlatformRenderAdmission, PlatformRenderBytePlan } from './renderResidency';
 import {
@@ -304,8 +304,24 @@ function streetlights(layout: RoadLayout, home: GridCell): { poles: SolidPart; h
   return { poles: place(pole, false), heads: place(head, true) };
 }
 
-/** Sign text atlas: one cell per unique line (white on sign green), plus green / grey / white swatches for boards and posts. */
-const LINE_W = 512, LINE_H = 64;
+/**
+ * Sign text atlas: one cell per unique line (white on sign green), plus green / white swatches for boards and rims.
+ *
+ * G227 (platform atlas): every texel the signs sample is SIGN_GREEN, WHITE or the canvas's antialiased blend of the two, so
+ * two channels carry it. The atlas was an sRGB RGBA8 canvas: the GPU decodes each texel to linear light, then filters
+ * (mips, trilinear, anisotropic) in linear light. It is now an RG8 array (half of RGBA8) of linear-light coverage: per
+ * texel the fraction t of the way from green to white of its red channel and of its green channel, in linear light, so
+ * every filter the GPU runs on t is the same linear-light filter it ran on the decoded colour (colour = mix(green, white,
+ * t) per channel is affine in t). Blue rides on red and green (`SIGN_BLUE_FROM_RED`); a texel lands within 1 LSB of the
+ * canvas in green, 1.4 in blue and 4 in red at the dark end. The atlas is exactly as tall as its rows (WebGL2 mips any
+ * size), not the next power of two. The grey posts and board backs sample no texel: their uv sits on a sentinel row past
+ * v = 1 that the material paints SIGN_GREY (a constant uv always read the swatch's one texel at level 0, so the grey is
+ * unchanged). progress/shard-platform/platform-atlas/ holds the before / after captures.
+ */
+const LINE_W = 512, LINE_H = 64, SIGN_GREY = '#6f7378', GREY_V = 2;
+/** Blue's coverage as red's and green's blend (least worst over every green-to-white canvas blend: within 1.4 LSB). */
+const SIGN_BLUE_FROM_RED = 0.45;
+const signCoverage = (): CoverageColours => ({ from: SIGN_GREEN, to: WHITE, blueFromRed: SIGN_BLUE_FROM_RED, sentinel: { v: GREY_V - 0.5, colour: SIGN_GREY } });
 function lineKey(line: SignLine): string { return `${line.arrow}|${line.names.join(' · ')}|${line.metres === null ? '' : String(line.metres)}`; }
 /** The atlas's layout, pure (its size and every uv), so the sign mesh and its byte plan never need the canvas. */
 interface SignAtlasLayout {
@@ -317,7 +333,7 @@ interface SignAtlasLayout {
 function signAtlasLayout(signs: readonly RoadSign[]): SignAtlasLayout {
   const keys = [...new Set(signs.flatMap((s) => s.lines.map(lineKey)))], lines = new Map<string, SignLine>();
   for (const s of signs) for (const l of s.lines) lines.set(lineKey(l), l);
-  const W = 1024, perRow = W / LINE_W, rows = Math.ceil((keys.length + 1) / perRow), H = 2 ** Math.ceil(Math.log2(Math.max(64, rows * LINE_H)));
+  const W = 1024, perRow = W / LINE_W, rows = Math.ceil((keys.length + 1) / perRow), H = rows * LINE_H;
   const slot = (k: number): [number, number] => [(k % perRow) * LINE_W, Math.floor(k / perRow) * LINE_H];
   const [sx, sy] = slot(keys.length); // swatches in the last cell
   const uv = (px: number, py: number): readonly [number, number] => [px / W, 1 - py / H];
@@ -325,10 +341,10 @@ function signAtlasLayout(signs: readonly RoadSign[]): SignAtlasLayout {
   return {
     keys, lines, width: W, height: H, slot,
     cell: (line) => { const [x, y] = slot(index.get(lineKey(line)) ?? 0); return [x / W, 1 - (y + LINE_H) / H, (x + LINE_W) / W, 1 - y / H]; },
-    swatch: { green: uv(sx + 32, sy + LINE_H / 2), grey: uv(sx + 96, sy + LINE_H / 2), white: uv(sx + 160, sy + LINE_H / 2) },
+    swatch: { green: uv(sx + 32, sy + LINE_H / 2), grey: [0.5, GREY_V], white: uv(sx + 160, sy + LINE_H / 2) },
   };
 }
-function signAtlasTexture(atlas: SignAtlasLayout): CanvasTexture {
+function signAtlasTexture(atlas: SignAtlasLayout): DataTexture {
   const { keys, lines, slot, width: W, height: H } = atlas, { el, g } = canvas(W, H);
   g.fillStyle = SIGN_GREEN; g.fillRect(0, 0, W, H);
   keys.forEach((key, k) => {
@@ -346,9 +362,17 @@ function signAtlasTexture(atlas: SignAtlasLayout): CanvasTexture {
     g.save(); g.translate(left, mid); g.scale(Math.min(1, room / Math.max(1, tw)), 1); g.textAlign = 'left'; g.fillText(text, 0, 2); g.restore();
     g.textAlign = 'right'; g.fillText(dist, right, 2);
   });
-  const [sx, sy] = slot(keys.length); // swatches in the last cell
-  g.fillStyle = '#6f7378'; g.fillRect(sx + 64, sy, 64, LINE_H); g.fillStyle = WHITE; g.fillRect(sx + 128, sy, 64, LINE_H);
-  return texture(el, false);
+  const [sx, sy] = slot(keys.length); // swatches in the last cell (the grey is the material's sentinel, not a texel)
+  g.fillStyle = WHITE; g.fillRect(sx + 128, sy, 64, LINE_H);
+  const pixels = g.getImageData(0, 0, W, H).data; el.width = 1; el.height = 1;
+  const colours = signCoverage(), red = coverageTable(colours, 0), green = coverageTable(colours, 1), data = new Uint8Array(W * H * 2);
+  for (let y = 0; y < H; y++) { // texture row 0 is the canvas's bottom row (what a canvas upload's flipY did)
+    const from = (H - 1 - y) * W * 4, to = y * W * 2;
+    for (let x = 0; x < W; x++) { data[to + x * 2] = red[pixels[from + x * 4] ?? 0] ?? 0; data[to + x * 2 + 1] = green[pixels[from + x * 4 + 1] ?? 0] ?? 0; }
+  }
+  const t = new DataTexture(data, W, H, RGFormat, UnsignedByteType);
+  t.colorSpace = NoColorSpace; t.generateMipmaps = true; t.minFilter = LinearMipmapLinearFilter; t.magFilter = LinearFilter; t.anisotropy = 8; t.needsUpdate = true;
+  return t;
 }
 /** Every sign: two posts, a white-rimmed green board, a quad per line on its face. One mesh, one material. */
 function signMesher(signs: readonly RoadSign[], home: GridCell, atlas: SignAtlasLayout): Mesher {
@@ -380,17 +404,24 @@ const ROAD_FLOATS = 8;
 /** A mesher's triangles as the cull count reads them (positions exactly as its Float32 geometry will store them). */
 function mesherSource(m: Mesher): CullSource { return { vertices: m.p.length / 3, position: (k) => Math.fround(m.p[k] ?? 0), indices: m.i }; }
 /** One textured road mesh before it is built: its triangles, its canvas's size and how to paint it. */
-interface TexturedSource { readonly id: string; readonly name: string; readonly mesher: Mesher; readonly width: number; readonly height: number; readonly paint: () => CanvasTexture; readonly overlay: boolean }
+interface TexturedSource {
+  readonly id: string; readonly name: string; readonly mesher: Mesher; readonly width: number; readonly height: number; readonly paint: () => Texture;
+  readonly overlay: boolean;
+  /** GPU bytes per texel (4: an RGBA8 canvas; 2: the sign atlas's RG8 array) and what holds the texels until upload */
+  readonly texelBytes: number; readonly source: 'canvas' | 'data';
+  readonly material: (map: Texture) => MeshLambertMaterial;
+}
+const overlayMaterial = (map: Texture): MeshLambertMaterial => new MeshLambertMaterial({ map, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 function texturedSources(layout: RoadLayout, home: GridCell): TexturedSource[] {
   const atlas = signAtlasLayout(layout.signs);
   return [
-    { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: roadTexture, overlay: true },
-    { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: junctionTexture, overlay: true },
-    { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => signAtlasTexture(atlas), overlay: false },
+    { id: 'road.asphalt', name: 'grid-asphalt', mesher: asphalt(layout, home), width: 1024, height: 512, paint: roadTexture, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
+    { id: 'road.junctions', name: 'grid-junctions', mesher: junctionAsphalt(layout, home), width: 1024, height: 1024, paint: junctionTexture, overlay: true, texelBytes: 4, source: 'canvas', material: overlayMaterial },
+    { id: 'road.signs', name: 'grid-signs', mesher: signMesher(layout.signs, home, atlas), width: atlas.width, height: atlas.height, paint: () => signAtlasTexture(atlas), overlay: false, texelBytes: 2, source: 'data', material: (map) => coverageMaterial(map, signCoverage(), 'g227-grid-sign-cover') },
   ];
 }
 function texturedPlan(source: TexturedSource, cull: RoadCuller | undefined): PlatformRenderBytePlan {
-  return bytePlan(source.id, meshBytes([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }, true), gpuOnlyTextureBytes(source.width, source.height));
+  return bytePlan(source.id, meshBytes([mesherSource(source.mesher)], ROAD_FLOATS, cull === undefined ? undefined : { pitch: cull.pitch }, true), gpuOnlyTextureBytes(source.width, source.height, 1, source.source, source.texelBytes));
 }
 /**
  * G144's preflight for the boulevard: per textured mesh (asphalt, junctions, signs) the exact retained bytes its admitted
@@ -419,7 +450,7 @@ export function installRoadLook(input: RoadLookInput): RoadLookState {
   scope.onDispose(() => { group.removeFromParent(); });
   for (const source of sources) {
     const build = (owner: LookScope): Mesh => {
-      const map = source.paint(), material = source.overlay ? new MeshLambertMaterial({ map, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }) : new MeshLambertMaterial({ map });
+      const map = source.paint(), material = source.material(map);
       const mesh = new Mesh(source.mesher.geometry(), material);
       owner.onDispose(() => { mesh.removeFromParent(); mesh.geometry.dispose(); map.dispose(); material.dispose(); });
       mesh.name = source.name; if (source.overlay) mesh.receiveShadow = true;

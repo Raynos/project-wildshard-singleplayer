@@ -1,0 +1,182 @@
+{
+ "a": "before",
+ "b": "after4",
+ "rows": [
+  {
+   "pose": "cell-spawn-heading-full",
+   "ssim": 0.986847,
+   "maxChannelDiff": 202,
+   "pixelsDiffering": 656997,
+   "pixelsOver2": 259023,
+   "pixels": 2463858
+  },
+  {
+   "pose": "cell-spawn-heading-signs",
+   "ssim": 0.999966,
+   "maxChannelDiff": 122,
+   "pixelsDiffering": 250,
+   "pixelsOver2": 178,
+   "pixels": 2463858
+  },
+  {
+   "pose": "cell-spawn-to-sign-full",
+   "ssim": 0.985066,
+   "maxChannelDiff": 231,
+   "pixelsDiffering": 847742,
+   "pixelsOver2": 610001,
+   "pixels": 2463858
+  },
+  {
+   "pose": "cell-spawn-to-sign-signs",
+   "ssim": 1.0,
+   "maxChannelDiff": 5,
+   "pixelsDiffering": 161,
+   "pixelsOver2": 7,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign0-22m-full",
+   "ssim": 0.999946,
+   "maxChannelDiff": 43,
+   "pixelsDiffering": 37225,
+   "pixelsOver2": 1638,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign0-22m-signs",
+   "ssim": 0.999999,
+   "maxChannelDiff": 16,
+   "pixelsDiffering": 1181,
+   "pixelsOver2": 44,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign0-70m-full",
+   "ssim": 0.999873,
+   "maxChannelDiff": 75,
+   "pixelsDiffering": 38218,
+   "pixelsOver2": 2916,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign0-70m-signs",
+   "ssim": 1.0,
+   "maxChannelDiff": 9,
+   "pixelsDiffering": 250,
+   "pixelsOver2": 15,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign0-7m-full",
+   "ssim": 0.999967,
+   "maxChannelDiff": 23,
+   "pixelsDiffering": 37727,
+   "pixelsOver2": 385,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign0-7m-signs",
+   "ssim": 0.999987,
+   "maxChannelDiff": 38,
+   "pixelsDiffering": 16295,
+   "pixelsOver2": 567,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign1-22m-full",
+   "ssim": 0.999604,
+   "maxChannelDiff": 73,
+   "pixelsDiffering": 146338,
+   "pixelsOver2": 10207,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign1-22m-signs",
+   "ssim": 1.0,
+   "maxChannelDiff": 8,
+   "pixelsDiffering": 1390,
+   "pixelsOver2": 35,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign1-70m-full",
+   "ssim": 0.999245,
+   "maxChannelDiff": 105,
+   "pixelsDiffering": 114407,
+   "pixelsOver2": 13581,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign1-70m-signs",
+   "ssim": 1.0,
+   "maxChannelDiff": 10,
+   "pixelsDiffering": 357,
+   "pixelsOver2": 6,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign1-7m-full",
+   "ssim": 0.999756,
+   "maxChannelDiff": 67,
+   "pixelsDiffering": 132392,
+   "pixelsOver2": 6267,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign1-7m-signs",
+   "ssim": 0.999998,
+   "maxChannelDiff": 19,
+   "pixelsDiffering": 6538,
+   "pixelsOver2": 156,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign2-22m-full",
+   "ssim": 0.999367,
+   "maxChannelDiff": 69,
+   "pixelsDiffering": 151885,
+   "pixelsOver2": 16037,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign2-22m-signs",
+   "ssim": 1.0,
+   "maxChannelDiff": 16,
+   "pixelsDiffering": 618,
+   "pixelsOver2": 14,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign2-70m-full",
+   "ssim": 0.999229,
+   "maxChannelDiff": 73,
+   "pixelsDiffering": 161038,
+   "pixelsOver2": 26314,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign2-70m-signs",
+   "ssim": 0.999714,
+   "maxChannelDiff": 140,
+   "pixelsDiffering": 4204,
+   "pixelsOver2": 1117,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign2-7m-full",
+   "ssim": 0.999638,
+   "maxChannelDiff": 68,
+   "pixelsDiffering": 62967,
+   "pixelsOver2": 12657,
+   "pixels": 2463858
+  },
+  {
+   "pose": "sign2-7m-signs",
+   "ssim": 0.999995,
+   "maxChannelDiff": 20,
+   "pixelsDiffering": 6400,
+   "pixelsOver2": 88,
+   "pixels": 2463858
+  }
+ ]
+}

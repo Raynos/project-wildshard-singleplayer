@@ -10,8 +10,8 @@
  * uv, and flags the old unlit materials (the cyan rails, the lamp heads), which skip lighting exactly as `MeshBasicMaterial`
  * did. Parts never share a vertex across materials, so a triangle's layer is constant.
  */
-import { BufferAttribute, BufferGeometry, Color, DataArrayTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, Uint32BufferAttribute } from 'three';
-import { patchShader } from '@wildshard/engine/render/shaderPatches';
+import { BufferAttribute, BufferGeometry, Color, DataArrayTexture, Float32BufferAttribute, LinearFilter, LinearMipmapLinearFilter, MeshLambertMaterial, RepeatWrapping, SRGBColorSpace, type Texture, Uint32BufferAttribute } from 'three';
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 
 /** The texture array's layers, in order. */
 export const GRAIN_LAYERS = ['gravel', 'stone', 'strata', 'riprap', 'white'] as const;
@@ -119,6 +119,49 @@ export function solidMaterial(grain: DataArrayTexture): MeshLambertMaterial {
   return material;
 }
 
+/**
+ * G227: a two-colour atlas (every texel `from`, `to` or a canvas blend of the two, the road signs' green and white) held as
+ * RG8 linear-light coverage: per texel how far its red and its green channel sit from `from` to `to`, in linear light. The
+ * colour is affine in that coverage, so the GPU's mips and trilinear / anisotropic filtering of it equal the linear-light
+ * filtering an sRGB RGBA8 texture of the same pixels got (decode, then filter), at half the bytes. Blue's coverage is
+ * `blueFromRed` of red's plus the rest of green's. A `sentinel` uv row (v above `sentinel.v`) paints one flat colour
+ * without a texel.
+ */
+export interface CoverageColours {
+  readonly from: string; readonly to: string; readonly blueFromRed: number;
+  readonly sentinel: { readonly v: number; readonly colour: string };
+}
+/** sRGB-encoded [0, 1] to linear light (the GPU's sRGB decode). */
+function srgbToLinear(c: number): number { return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }
+/** A '#rrggbb' colour's linear-light channels. */
+function linearRgb(hex: string): readonly [number, number, number] {
+  const n = Number.parseInt(hex.slice(1), 16), c = (k: number): number => srgbToLinear(((n >> k) & 255) / 255);
+  return [c(16), c(8), c(0)];
+}
+/** Per 8-bit value of `channel` (0 red, 1 green), its linear-light coverage from `from` to `to` as a byte. */
+export function coverageTable(colours: CoverageColours, channel: 0 | 1): Uint8Array {
+  const g = linearRgb(colours.from)[channel], w = linearRgb(colours.to)[channel], out = new Uint8Array(256);
+  for (let v = 0; v < 256; v++) out[v] = Math.round(Math.min(1, Math.max(0, (srgbToLinear(v / 255) - g) / (w - g))) * 255);
+  return out;
+}
+/** A GLSL vec3 of three numbers. */
+function vec3(c: readonly [number, number, number]): string { return `vec3(${c.map((v) => v.toFixed(9)).join(', ')})`; }
+/** Lambert with a coverage `map`: the map's coverage turned back into the linear colour (`from` + (`to` − `from`) × t per
+ *  channel), the sentinel row flat. The edit chains after the inherited hooks (the scene's fog). */
+export function coverageMaterial(map: Texture, colours: CoverageColours, id: string): MeshLambertMaterial {
+  const material = new MeshLambertMaterial({ map });
+  patchShader(material, id, PATCH_ORDER.material, (shader): void => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#ifdef USE_MAP
+  if ( vMapUv.y > ${colours.sentinel.v.toFixed(3)} ) diffuseColor.rgb *= ${vec3(linearRgb(colours.sentinel.colour))};
+  else {
+    vec2 coverage = texture2D( map, vMapUv ).rg;
+    diffuseColor.rgb *= mix( ${vec3(linearRgb(colours.from))}, ${vec3(linearRgb(colours.to))}, vec3( coverage, mix( coverage.y, coverage.x, ${colours.blueFromRed.toFixed(3)} ) ) );
+  }
+#endif`);
+  }, { key: (before) => `${before}|${id}` });
+  return material;
+}
+
 /** Linear colour of a hex (three converts sRGB hex to the linear working space). */
 export const linear = (hex: number): Color => new Color(hex);
 
@@ -138,9 +181,10 @@ export function rgbaTextureBytes(width: number, height: number, layers = 1): { r
   return { jsBytes: width * height * 4 * layers, gpuBytes: mipTexels(width, height) * 4 * layers };
 }
 /** G144: the same texture once `gpuOnlyTexture` let its source go on upload: a canvas shrinks to one RGBA pixel, a data
- *  array empties; the GPU copy is unchanged. */
-export function gpuOnlyTextureBytes(width: number, height: number, layers = 1, source: 'canvas' | 'data' = 'canvas'): { readonly jsBytes: number; readonly gpuBytes: number } {
-  return { jsBytes: source === 'canvas' ? 4 : 0, gpuBytes: rgbaTextureBytes(width, height, layers).gpuBytes };
+ *  array empties; the GPU copy is unchanged. `texelBytes` is the GPU format's bytes per texel (4 for RGBA8, 1 for an R8
+ *  canvas upload such as the sign atlas). */
+export function gpuOnlyTextureBytes(width: number, height: number, layers = 1, source: 'canvas' | 'data' = 'canvas', texelBytes = 4): { readonly jsBytes: number; readonly gpuBytes: number } {
+  return { jsBytes: source === 'canvas' ? 4 : 0, gpuBytes: mipTexels(width, height) * texelBytes * layers };
 }
 
 /** A solid part as `solidGeometry` will store it (Float32 positions, its one grain layer and unlit flag), for the cull count. */

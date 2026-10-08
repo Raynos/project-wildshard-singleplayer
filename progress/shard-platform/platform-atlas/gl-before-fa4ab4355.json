@@ -1,0 +1,167 @@
+{
+ "version": {
+  "build": "fa4ab43-muza5aqx",
+  "time": "2026-10-08T08:34:03.548Z"
+ },
+ "gl": {
+  "totalMB": 194.729067,
+  "textureMB": 93.558088,
+  "atlases": [
+   {
+    "asset": "generated/Group/grid-signs/map/Texture",
+    "MB": 22.369628,
+    "level0": {
+     "face": 0,
+     "level": 0,
+     "w": 1024,
+     "h": 4096,
+     "d": 1,
+     "ifmt": 35907,
+     "bytes": 16777216
+    }
+   },
+   {
+    "asset": "generated/Group/grid-open-plot-billboards/map/Texture",
+    "MB": 13.107172,
+    "level0": {
+     "face": 0,
+     "level": 0,
+     "w": 1280,
+     "h": 1920,
+     "d": 1,
+     "ifmt": 35907,
+     "bytes": 9830400
+    }
+   },
+   {
+    "asset": "generated/Group/grid-open-plot-signs/map/Texture",
+    "MB": 4.1943,
+    "level0": {
+     "face": 0,
+     "level": 0,
+     "w": 1024,
+     "h": 768,
+     "d": 1,
+     "ifmt": 35907,
+     "bytes": 3145728
+    }
+   }
+  ]
+ },
+ "frame": {
+  "origin": {
+   "x": 0,
+   "z": 0
+  },
+  "worldFeet": {
+   "x": -7.184669748028227e-09,
+   "y": -0.8486315795127304,
+   "z": -193.99999981351232
+  },
+  "current": "driftwood-isle",
+  "home": {
+   "x": -7.184669748028227e-09,
+   "z": -193.99999981351232,
+   "yaw": 3.141592653589793
+  },
+  "d0": {
+   "x": 0,
+   "z": -1
+  },
+  "d90": {
+   "x": -1,
+   "z": -2.220446049250313e-16
+  }
+ },
+ "poses": [
+  {
+   "name": "sign0-7m",
+   "x": 143,
+   "z": -267.8,
+   "yaw": -1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign0-22m",
+   "x": 128,
+   "z": -267.8,
+   "yaw": -1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign0-70m",
+   "x": 80,
+   "z": -267.8,
+   "yaw": -1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign1-7m",
+   "x": -143,
+   "z": -287.2,
+   "yaw": 1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign1-22m",
+   "x": -128,
+   "z": -287.2,
+   "yaw": 1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign1-70m",
+   "x": -80,
+   "z": -287.2,
+   "yaw": 1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign2-7m",
+   "x": -207,
+   "z": -267.8,
+   "yaw": -1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign2-22m",
+   "x": -222,
+   "z": -267.8,
+   "yaw": -1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "sign2-70m",
+   "x": -270,
+   "z": -267.8,
+   "yaw": -1.5707963267948966,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "cell-spawn-heading",
+   "x": -7.184669748028227e-09,
+   "z": -193.99999981351232,
+   "yaw": 3.141592653589793,
+   "pitch": 0,
+   "signMeshes": 1
+  },
+  {
+   "name": "cell-spawn-to-sign",
+   "x": -7.184669748028227e-09,
+   "z": -193.99999981351232,
+   "yaw": -1.1135691743350864,
+   "pitch": 0,
+   "signMeshes": 1
+  }
+ ],
+ "errors": []
+}

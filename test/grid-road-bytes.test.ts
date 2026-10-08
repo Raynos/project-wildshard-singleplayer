@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { BufferAttribute, type BufferGeometry, DataArrayTexture, Group, Mesh, type Material, type Object3D, Texture } from 'three';
+import { BufferAttribute, type BufferGeometry, DataArrayTexture, DataTexture, Group, Mesh, type Material, type Object3D, RGFormat, Texture } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { generatePlatform, type GeneratedStrip, type PlatformCell } from '../src/engine/sim/strips';
 import { GridAssembly } from '../src/game/grid/assembly';
@@ -51,9 +51,23 @@ async function realPlatform(): Promise<{ assembly: GridAssembly; strips: readonl
 
 /** Texels of a full mip chain, counted level by level (WebGL2's texStorage allocation). */
 function chain(w: number, h: number): number { let n = 0; for (let level = 0; level <= Math.floor(Math.log2(Math.max(w, h))); level++) n += Math.max(1, w >> level) * Math.max(1, h >> level); return n; }
-const mapOf = (material: Material | Material[]): { image: { width: number; height: number } } | null => {
+const mapOf = (material: Material | Material[]): Texture | null => {
   const m = Array.isArray(material) ? material[0] : material;
-  return m !== undefined && 'map' in m && m.map !== null && typeof m.map === 'object' && 'image' in m.map ? m.map as { image: { width: number; height: number } } : null;
+  return m !== undefined && 'map' in m && m.map instanceof Texture ? m.map : null;
+};
+/** GPU bytes per texel as three uploads the map: RG8 for an RGFormat array (the sign atlas), RGBA8 for a canvas. */
+const texelBytes = (map: Texture): number => (map.format === RGFormat ? 2 : 4);
+/** What the map's source keeps on the CPU: a data array's bytes, or a canvas's RGBA backing store. */
+const sourceBytes = (map: Texture | null): number => {
+  if (map === null) return 0;
+  if (map instanceof DataTexture) return map.image.data?.byteLength ?? 0;
+  const image: unknown = map.image;
+  return image !== null && typeof image === 'object' && 'width' in image && 'height' in image && typeof image.width === 'number' && typeof image.height === 'number' ? image.width * image.height * 4 : 0;
+};
+/** The map's size (its source's, kept after the source is released). */
+const sizeOf = (map: Texture | null): { w: number; h: number } => {
+  const image: unknown = map?.image;
+  return image !== null && typeof image === 'object' && 'width' in image && 'height' in image && typeof image.width === 'number' && typeof image.height === 'number' ? { w: image.width, h: image.height } : { w: 0, h: 0 };
 };
 /** What a built mesh really holds once drawn: every attribute and index array as uploaded to the GPU, and what stays on the
  *  CPU after three's upload hooks ran (an admitted mesh lets its vertex arrays and canvas go, `gpuOnlyRoad`), the cull's
@@ -64,10 +78,9 @@ function measured(mesh: Mesh, plan: CullPlan | undefined): { jsBytes: number; gp
     for (const name of Object.keys(geometry.attributes)) n += geometry.getAttribute(name).array.byteLength;
     return n + (geometry.getIndex()?.array.byteLength ?? 0);
   };
-  const map = mapOf(mesh.material), w = map?.image.width ?? 0, h = map?.image.height ?? 0, gpu = arrays();
+  const map = mapOf(mesh.material), { w, h } = sizeOf(map), gpu = arrays();
   uploaded(mesh);
-  const left = mapOf(mesh.material), lw = left?.image.width ?? 0, lh = left?.image.height ?? 0;
-  return { jsBytes: arrays() + (plan?.source.byteLength ?? 0) + lw * lh * 4, gpuBytes: gpu + (map === null ? 0 : chain(w, h) * 4) };
+  return { jsBytes: arrays() + (plan?.source.byteLength ?? 0) + sourceBytes(mapOf(mesh.material)), gpuBytes: gpu + (map === null ? 0 : chain(w, h) * texelBytes(map)) };
 }
 const isTexture = (v: unknown): v is Texture => v instanceof Texture;
 /** three's first upload of a mesh: each attribute's (and the index's) onUpload hook, each map's onUpdate */
