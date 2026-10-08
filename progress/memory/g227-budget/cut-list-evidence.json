@@ -1,0 +1,307 @@
+{
+  "protocol": "Owner/class attribution from distinct recorded pins; nested totals and native mappings overlap. Not a native saving or additive bill.",
+  "pine": {
+    "heapPin": "0e6d69988",
+    "heapAnalysisSha256": "c3040eca909d0f563a57803ec1967ccbe49562918c9d64777533236c95f1b635",
+    "heapClassesAtLeast5MB": [
+      {
+        "class": "WebGL2RenderingContext",
+        "bytes": 1452199711
+      },
+      {
+        "class": "ArrayBuffer",
+        "bytes": 151522625
+      },
+      {
+        "class": "AudioBuffer",
+        "bytes": 112106585
+      },
+      {
+        "class": "Float32Array",
+        "bytes": 62774168
+      },
+      {
+        "class": "FunctionCodeBlock",
+        "bytes": 30474316
+      },
+      {
+        "class": "Object",
+        "bytes": 27823631
+      },
+      {
+        "class": "CanvasRenderingContext2D",
+        "bytes": 25432802
+      },
+      {
+        "class": "string",
+        "bytes": 10003391
+      },
+      {
+        "class": "UnlinkedFunctionCodeBlock",
+        "bytes": 7409140
+      },
+      {
+        "class": "Uint32Array",
+        "bytes": 7201440
+      },
+      {
+        "class": "e",
+        "bytes": 5518834
+      }
+    ],
+    "nativePin": "0e6d69988",
+    "nativeWCBytes": 939495360,
+    "nativeGLBytes": 245671812,
+    "passiveCategoryRangeBytes": {
+      "javascript": {
+        "min": 550061400,
+        "max": 729377146
+      },
+      "jit": {
+        "min": 46120960,
+        "max": 46202880
+      },
+      "images": {
+        "min": 9125888,
+        "max": 9125888
+      },
+      "layers": {
+        "min": 0,
+        "max": 0
+      },
+      "page": {
+        "min": 382980998,
+        "max": 594453160
+      },
+      "other": {
+        "min": 101122048,
+        "max": 101122048
+      }
+    },
+    "vmmapSha256": "2f15bebdd9b0ce0e298508b055faab2328dffa5325c40369ec248e95ce0732de",
+    "vmmapDirtyBytes": {
+      "CG raster data": 11534336,
+      "JS JIT generated code": 43306189,
+      "JS VM Gigacage": 167667302,
+      "MALLOC_SMALL": 7536640,
+      "VM_ALLOCATE (graphics)": 19084083,
+      "WebKit Malloc": 645188813,
+      "__DATA": 6907904,
+      "__DATA_CONST": 12163482,
+      "dyld private memory": 17720934,
+      "owned unmapped (graphics)": 4718592
+    },
+    "cpuUsersAtLeast5MB": [
+      {
+        "users": [
+          "Scene/region:pine-hollow/region-scene:pine-hollow/Group/cabin-cluster/Mesh"
+        ],
+        "bytes": 6525256
+      },
+      {
+        "users": [
+          "Scene/PerspectiveCamera/Group/Group/Mesh",
+          "Scene/region:pine-hollow/region-scene:pine-hollow/pine-drops-parked/Group/Mesh"
+        ],
+        "bytes": 6194756
+      },
+      {
+        "users": [
+          "Scene/region:pine-hollow/pine-crags"
+        ],
+        "bytes": 5980872
+      }
+    ],
+    "glPin": "cdad59776",
+    "glBytes": 228777182,
+    "glGroupsAtLeast5MB": [
+      {
+        "group": "platform/grid",
+        "bytes": 57216910
+      },
+      {
+        "group": "engine/scene",
+        "bytes": 51725882
+      },
+      {
+        "group": "composer/post targets",
+        "bytes": 29879328
+      },
+      {
+        "group": "sky/PMREM",
+        "bytes": 21643264
+      },
+      {
+        "group": "engine/ktx2Texture",
+        "bytes": 12242408
+      },
+      {
+        "group": "engine/loadPBRArray",
+        "bytes": 8167608
+      },
+      {
+        "group": "engine/loadGLTF",
+        "bytes": 7232978
+      },
+      {
+        "group": "pine-crags-crag-cliff",
+        "bytes": 6002764
+      },
+      {
+        "group": "engine/loadRigFile",
+        "bytes": 5844320
+      },
+      {
+        "group": "other render targets",
+        "bytes": 5242880
+      }
+    ]
+  },
+  "nalati": {
+    "heapPin": "0e6d69988",
+    "heapClassesAtLeast5MB": [
+      {
+        "class": "WebGL2RenderingContext",
+        "bytes": 305387277
+      },
+      {
+        "class": "ArrayBuffer",
+        "bytes": 140811329
+      },
+      {
+        "class": "AudioBuffer",
+        "bytes": 68354945
+      },
+      {
+        "class": "ImageBitmap",
+        "bytes": 56033576
+      },
+      {
+        "class": "Float32Array",
+        "bytes": 38275704
+      },
+      {
+        "class": "FunctionCodeBlock",
+        "bytes": 31341872
+      },
+      {
+        "class": "Object",
+        "bytes": 24441885
+      },
+      {
+        "class": "CanvasRenderingContext2D",
+        "bytes": 19776930
+      },
+      {
+        "class": "string",
+        "bytes": 9747177
+      },
+      {
+        "class": "UnlinkedFunctionCodeBlock",
+        "bytes": 7464620
+      }
+    ],
+    "cpuUsersAtLeast5MB": [
+      {
+        "users": [
+          "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/kurgan-dungeon/kurgan-interior"
+        ],
+        "bytes": 12022128
+      },
+      {
+        "users": [
+          "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/nalati-outcrops"
+        ],
+        "bytes": 5926752
+      },
+      {
+        "users": [
+          "Scene/PerspectiveCamera/Group/Group/Mesh"
+        ],
+        "bytes": 5676100
+      }
+    ],
+    "glBytes": 292245264,
+    "glOwnersAtLeast5MB": [
+      {
+        "owner": "engine/scene",
+        "bytes": 229233696
+      },
+      {
+        "owner": "engine/render-target",
+        "bytes": 38846736
+      },
+      {
+        "owner": "engine/loadTexture",
+        "bytes": 11184804
+      },
+      {
+        "owner": "engine/loadRigFile",
+        "bytes": 8388600
+      }
+    ],
+    "glResourcesAtLeast5MB": [
+      {
+        "id": "texture:37",
+        "bytes": 22369628,
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-signs/map/Texture"
+      },
+      {
+        "id": "texture:1382",
+        "bytes": 16683348,
+        "owner": "engine/scene",
+        "asset": "generated/Group/sky-dome-v2/uniform/tPano/nalati-panorama/Texture"
+      },
+      {
+        "id": "texture:38",
+        "bytes": 13107172,
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-billboards/map/Texture"
+      },
+      {
+        "id": "texture:1892",
+        "bytes": 11184808,
+        "owner": "engine/scene",
+        "asset": "generated/Group/grass-v2-ring0/uniform/tBakeContact/Texture"
+      },
+      {
+        "id": "texture:1247",
+        "bytes": 8760384,
+        "owner": "engine/render-target",
+        "asset": "EffectComposer.Buffer/color/Texture"
+      },
+      {
+        "id": "texture:28",
+        "bytes": 8760384,
+        "owner": "engine/render-target",
+        "asset": "EffectComposer.Buffer/color/Texture"
+      },
+      {
+        "id": "buffer:1482",
+        "bytes": 5926752,
+        "owner": "engine/scene",
+        "asset": "generated/Group/nalati-outcrops/color"
+      },
+      {
+        "id": "buffer:1481",
+        "bytes": 5926752,
+        "owner": "engine/scene",
+        "asset": "generated/Group/nalati-outcrops/normal"
+      },
+      {
+        "id": "buffer:1480",
+        "bytes": 5926752,
+        "owner": "engine/scene",
+        "asset": "generated/Group/nalati-outcrops/position"
+      },
+      {
+        "id": "texture:36",
+        "bytes": 5592404,
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-junctions/map/Texture"
+      }
+    ]
+  },
+  "nativeSavingCreditedBytes": 0
+}
