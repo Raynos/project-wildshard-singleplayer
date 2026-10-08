@@ -1,0 +1,3880 @@
+{
+  "protocol": "WC kernel physical footprint plus separately labelled GL. Direct scene arrays are a subset of WC, never added again. vmmap resident regions can alias and are not summed into footprint. Decimal MB; vmmap source K/M/G is binary.",
+  "reports": [
+    {
+      "file": "native-f47f33199.json",
+      "version": {
+        "build": "f47f331-muz5i51g",
+        "time": "2026-10-08T06:24:04.848Z"
+      },
+      "failure": "Error: Error: Grid floor document or API changed during travel (navigation or graphics recovery)",
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 535268880,
+          "webContentMinBytes": 533401080,
+          "webContentMaxBytes": 537775656,
+          "gpuBytes": 208491987,
+          "combinedBytes": 743760867,
+          "modelBytes": 905230911,
+          "directlyHeldSceneArrayBufferBytes": 56550274,
+          "wasm": null,
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 14575206,
+              "residentBytes": 3260416,
+              "dirtyBytes": 3260416,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 557056,
+              "dirtyBytes": 491520,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 20971520,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 33449574,
+              "dirtyBytes": 32820429,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 658505728,
+              "residentBytes": 331035443,
+              "dirtyBytes": 198600294,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4187593114,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 262144,
+              "dirtyBytes": 262144,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 28626125,
+              "residentBytes": 14050918,
+              "dirtyBytes": 6242304,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 9158656,
+              "residentBytes": 917504,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 17825792,
+              "residentBytes": 1064960,
+              "dirtyBytes": 1064960,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 17511219,
+              "residentBytes": 15728640,
+              "dirtyBytes": 15728640,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 12582912,
+              "residentBytes": 12582912,
+              "dirtyBytes": 12582912,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9663676416,
+              "residentBytes": 734317773,
+              "dirtyBytes": 229428429,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 540672,
+              "residentBytes": 540672,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4187593114,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 136000307,
+              "residentBytes": 2490368,
+              "dirtyBytes": 1785856,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17720934,
+              "dirtyBytes": 17720934,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 258369126,
+              "residentBytes": 13736346,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 4194304,
+              "residentBytes": 4194304,
+              "dirtyBytes": 4194304,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2494464,
+              "residentBytes": 2494464,
+              "dirtyBytes": 2494464,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "pine-hollow-entry",
+          "webContentBytes": 828526456,
+          "webContentMinBytes": 827494264,
+          "webContentMaxBytes": 834342776,
+          "gpuBytes": 240307416,
+          "combinedBytes": 1068833872,
+          "modelBytes": 1082195295,
+          "directlyHeldSceneArrayBufferBytes": 73335900,
+          "wasm": null,
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 22858957,
+              "residentBytes": 11534336,
+              "dirtyBytes": 11534336,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 557056,
+              "dirtyBytes": 507904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 25794970,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 43725619,
+              "dirtyBytes": 41418752,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 707264512,
+              "residentBytes": 470286336,
+              "dirtyBytes": 311846502,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 3972844749,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 262144,
+              "dirtyBytes": 262144,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 33344717,
+              "residentBytes": 17720934,
+              "dirtyBytes": 7651328,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 8601600,
+              "residentBytes": 737280,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59139686,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 23488102,
+              "residentBytes": 1769472,
+              "dirtyBytes": 1769472,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 18664653,
+              "residentBytes": 14784922,
+              "dirtyBytes": 14784922,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 25690112,
+              "residentBytes": 25690112,
+              "dirtyBytes": 25690112,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 907647386,
+              "dirtyBytes": 373922202,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4187593114,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 169974170,
+              "residentBytes": 3620864,
+              "dirtyBytes": 2359296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17720934,
+              "dirtyBytes": 17720934,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 259837133,
+              "residentBytes": 13946061,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 4194304,
+              "residentBytes": 4194304,
+              "dirtyBytes": 4194304,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2723840,
+              "residentBytes": 2723840,
+              "dirtyBytes": 2723840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "pine-hollow-centre",
+          "webContentBytes": 899469200,
+          "webContentMinBytes": 899403664,
+          "webContentMaxBytes": 899501968,
+          "gpuBytes": 238167212,
+          "combinedBytes": 1137636412,
+          "modelBytes": 1075919348,
+          "directlyHeldSceneArrayBufferBytes": 73560276,
+          "wasm": null,
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 22858957,
+              "residentBytes": 11534336,
+              "dirtyBytes": 11534336,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 557056,
+              "dirtyBytes": 507904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 19188941,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 44564480,
+              "dirtyBytes": 42047898,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 841482240,
+              "residentBytes": 482135245,
+              "dirtyBytes": 324114842,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 3865470566,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 262144,
+              "dirtyBytes": 262144,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 33344717,
+              "residentBytes": 17720934,
+              "dirtyBytes": 7651328,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 8601600,
+              "residentBytes": 802816,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59139686,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 21810381,
+              "residentBytes": 1359872,
+              "dirtyBytes": 1359872,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 18664653,
+              "residentBytes": 14784922,
+              "dirtyBytes": 14784922,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 19084083,
+              "residentBytes": 19084083,
+              "dirtyBytes": 19084083,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 908276531,
+              "dirtyBytes": 440297062,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4187593114,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 136419738,
+              "residentBytes": 3211264,
+              "dirtyBytes": 2408448,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17720934,
+              "dirtyBytes": 17720934,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 259837133,
+              "residentBytes": 13946061,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 4194304,
+              "residentBytes": 4194304,
+              "dirtyBytes": 4194304,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2740224,
+              "residentBytes": 2740224,
+              "dirtyBytes": 2740224,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        }
+      ],
+      "heap": null
+    },
+    {
+      "file": "native-nalati-direct-f47f33199.json",
+      "version": {
+        "build": "f47f331-muz5i51g",
+        "time": "2026-10-08T06:24:04.848Z"
+      },
+      "failure": null,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 563678760,
+          "webContentMinBytes": 561827368,
+          "webContentMaxBytes": 564153896,
+          "gpuBytes": 208491987,
+          "combinedBytes": 772170747,
+          "modelBytes": 905230911,
+          "directlyHeldSceneArrayBufferBytes": 56550274,
+          "wasm": null,
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 14575206,
+              "residentBytes": 3260416,
+              "dirtyBytes": 3260416,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 589824,
+              "dirtyBytes": 524288,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 20971520,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 33239859,
+              "dirtyBytes": 32610714,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 446798234,
+              "residentBytes": 164207002,
+              "dirtyBytes": 72351744,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4402341478,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 327680,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 29255270,
+              "residentBytes": 15099494,
+              "dirtyBytes": 7569408,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 8536064,
+              "residentBytes": 737280,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 17301504,
+              "residentBytes": 983040,
+              "dirtyBytes": 983040,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16777216,
+              "residentBytes": 4374528,
+              "dirtyBytes": 4374528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 12582912,
+              "residentBytes": 12582912,
+              "dirtyBytes": 12582912,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9771050598,
+              "residentBytes": 868954931,
+              "dirtyBytes": 392691712,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 557056,
+              "residentBytes": 557056,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135685734,
+              "residentBytes": 2146304,
+              "dirtyBytes": 1687552,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17720934,
+              "dirtyBytes": 17720934,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 258683699,
+              "residentBytes": 14155776,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 4194304,
+              "residentBytes": 4194304,
+              "dirtyBytes": 4194304,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2494464,
+              "residentBytes": 2494464,
+              "dirtyBytes": 2494464,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 844320464,
+          "webContentMinBytes": 841666256,
+          "webContentMaxBytes": 845041360,
+          "gpuBytes": 305647052,
+          "combinedBytes": 1149967516,
+          "modelBytes": 1070055894,
+          "directlyHeldSceneArrayBufferBytes": 111870850,
+          "wasm": null,
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 18769510,
+              "residentBytes": 7421952,
+              "dirtyBytes": 7421952,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 589824,
+              "dirtyBytes": 524288,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 22858957,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 40579891,
+              "dirtyBytes": 38063309,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 581015962,
+              "residentBytes": 257005978,
+              "dirtyBytes": 201221734,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4187593114,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 31457280,
+              "residentBytes": 17091789,
+              "dirtyBytes": 8110080,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 6324224,
+              "residentBytes": 720896,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 19503514,
+              "residentBytes": 1474560,
+              "dirtyBytes": 1474560,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16043213,
+              "residentBytes": 4374528,
+              "dirtyBytes": 4374528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 18664653,
+              "residentBytes": 18664653,
+              "dirtyBytes": 18664653,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 973288243,
+              "dirtyBytes": 516318822,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 540672,
+              "residentBytes": 540672,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135685734,
+              "residentBytes": 2326528,
+              "dirtyBytes": 1982464,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17720934,
+              "dirtyBytes": 17720934,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 259103130,
+              "residentBytes": 14155776,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 10485760,
+              "residentBytes": 10485760,
+              "dirtyBytes": 10485760,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2609152,
+              "residentBytes": 2609152,
+              "dirtyBytes": 2609152,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 917786368,
+          "webContentMinBytes": 917769984,
+          "webContentMaxBytes": 917917440,
+          "gpuBytes": 302153224,
+          "combinedBytes": 1219939592,
+          "modelBytes": 1063675114,
+          "directlyHeldSceneArrayBufferBytes": 112049410,
+          "wasm": null,
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 16148070,
+              "residentBytes": 4800512,
+              "dirtyBytes": 4800512,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 589824,
+              "dirtyBytes": 540672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 16252928,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 41628467,
+              "dirtyBytes": 38482739,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 581015962,
+              "residentBytes": 283639808,
+              "dirtyBytes": 228065280,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4187593114,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 29989274,
+              "residentBytes": 16043213,
+              "dirtyBytes": 8126464,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 7798784,
+              "residentBytes": 1818624,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 18454938,
+              "residentBytes": 1261568,
+              "dirtyBytes": 1261568,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16043213,
+              "residentBytes": 4374528,
+              "dirtyBytes": 4374528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 9469952,
+              "residentBytes": 9469952,
+              "dirtyBytes": 9469952,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 977587405,
+              "dirtyBytes": 578813952,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 540672,
+              "residentBytes": 540672,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135685734,
+              "residentBytes": 2342912,
+              "dirtyBytes": 2064384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17720934,
+              "dirtyBytes": 17720934,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 259103130,
+              "residentBytes": 14260634,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 10485760,
+              "residentBytes": 10485760,
+              "dirtyBytes": 10485760,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2641920,
+              "residentBytes": 2641920,
+              "dirtyBytes": 2641920,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 925208368,
+          "webContentMinBytes": 925159216,
+          "webContentMaxBytes": 925241136,
+          "gpuBytes": 178756678,
+          "combinedBytes": 1103965046,
+          "modelBytes": 525852910,
+          "directlyHeldSceneArrayBufferBytes": 9608974,
+          "wasm": null,
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 18769510,
+              "residentBytes": 7421952,
+              "dirtyBytes": 7421952,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 589824,
+              "dirtyBytes": 540672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 15309210,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 42467328,
+              "dirtyBytes": 38587597,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 581015962,
+              "residentBytes": 283639808,
+              "dirtyBytes": 228065280,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4187593114,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 29989274,
+              "residentBytes": 16043213,
+              "dirtyBytes": 8126464,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 7798784,
+              "residentBytes": 1818624,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 19503514,
+              "residentBytes": 1212416,
+              "dirtyBytes": 1212416,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16043213,
+              "residentBytes": 4374528,
+              "dirtyBytes": 4374528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 11114906,
+              "residentBytes": 11114906,
+              "dirtyBytes": 11114906,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 1037880525,
+              "dirtyBytes": 581645107,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 557056,
+              "residentBytes": 557056,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135685734,
+              "residentBytes": 2441216,
+              "dirtyBytes": 2113536,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17720934,
+              "dirtyBytes": 17720934,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 259103130,
+              "residentBytes": 14260634,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 10485760,
+              "residentBytes": 10485760,
+              "dirtyBytes": 10485760,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2674688,
+              "residentBytes": 2674688,
+              "dirtyBytes": 2674688,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        }
+      ],
+      "heap": null
+    },
+    {
+      "file": "native-nalati-direct-cc2371ac6.json",
+      "version": {
+        "build": "cc2371a-muz6daey",
+        "time": "2026-10-08T06:48:18.340Z"
+      },
+      "failure": null,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 599166504,
+          "webContentMinBytes": 598756904,
+          "webContentMaxBytes": 623283776,
+          "gpuBytes": 211555187,
+          "combinedBytes": 810721691,
+          "modelBytes": 934896463,
+          "directlyHeldSceneArrayBufferBytes": 57886242,
+          "wasm": [
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 655360
+            },
+            {
+              "source": "instantiateStreaming",
+              "name": "memory",
+              "bytes": 30736384
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 1310720
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            }
+          ],
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 14575206,
+              "residentBytes": 3260416,
+              "dirtyBytes": 3260416,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 540672,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 20971520,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 34078720,
+              "dirtyBytes": 33659290,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 560254157,
+              "residentBytes": 153826099,
+              "dirtyBytes": 62075699,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4294967296,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 327680,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 30408704,
+              "residentBytes": 15309210,
+              "dirtyBytes": 7405568,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 7290880,
+              "residentBytes": 458752,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 17825792,
+              "residentBytes": 1048576,
+              "dirtyBytes": 1048576,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16986931,
+              "residentBytes": 15309210,
+              "dirtyBytes": 15309210,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 12582912,
+              "residentBytes": 12582912,
+              "dirtyBytes": 12582912,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 1031693926,
+              "dirtyBytes": 439458202,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135895450,
+              "residentBytes": 2441216,
+              "dirtyBytes": 1900544,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17616077,
+              "dirtyBytes": 17616077,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 250295091,
+              "residentBytes": 12163482,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 4718592,
+              "residentBytes": 4718592,
+              "dirtyBytes": 4718592,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2510848,
+              "residentBytes": 2510848,
+              "dirtyBytes": 2510848,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 921472672,
+          "webContentMinBytes": 921243296,
+          "webContentMaxBytes": 921521824,
+          "gpuBytes": 310108352,
+          "combinedBytes": 1231581024,
+          "modelBytes": 1143313166,
+          "directlyHeldSceneArrayBufferBytes": 111870850,
+          "wasm": [
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 655360
+            },
+            {
+              "source": "instantiateStreaming",
+              "name": "memory",
+              "bytes": 51904512
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 1310720
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            }
+          ],
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 17196646,
+              "residentBytes": 5849088,
+              "dirtyBytes": 5849088,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 540672,
+              "dirtyBytes": 376832,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 17825792,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 41209037,
+              "dirtyBytes": 39007027,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 694471885,
+              "residentBytes": 214119219,
+              "dirtyBytes": 177419059,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 30198989,
+              "residentBytes": 15938355,
+              "dirtyBytes": 7946240,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 7585792,
+              "residentBytes": 1343488,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59139686,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 20656947,
+              "residentBytes": 1540096,
+              "dirtyBytes": 1540096,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16357786,
+              "residentBytes": 14575206,
+              "dirtyBytes": 14575206,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 12058624,
+              "residentBytes": 12058624,
+              "dirtyBytes": 12058624,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 1073741824,
+              "dirtyBytes": 618240410,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135790592,
+              "residentBytes": 2342912,
+              "dirtyBytes": 2015232,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17616077,
+              "dirtyBytes": 17616077,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 250714522,
+              "residentBytes": 12268339,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 11010048,
+              "residentBytes": 11010048,
+              "dirtyBytes": 11010048,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2576384,
+              "residentBytes": 2576384,
+              "dirtyBytes": 2576384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 979373776,
+          "webContentMinBytes": 971853520,
+          "webContentMaxBytes": 979488464,
+          "gpuBytes": 306614524,
+          "combinedBytes": 1285988300,
+          "modelBytes": 1128784955,
+          "directlyHeldSceneArrayBufferBytes": 112049410,
+          "wasm": [
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 655360
+            },
+            {
+              "source": "instantiateStreaming",
+              "name": "memory",
+              "bytes": 52297728
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 1310720
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            }
+          ],
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 17196646,
+              "residentBytes": 5849088,
+              "dirtyBytes": 5849088,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 540672,
+              "dirtyBytes": 393216,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 16252928,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 42257613,
+              "dirtyBytes": 39531315,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 694471885,
+              "residentBytes": 240648192,
+              "dirtyBytes": 204157747,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 30408704,
+              "residentBytes": 16043213,
+              "dirtyBytes": 7962624,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 7323648,
+              "residentBytes": 1179648,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 19503514,
+              "residentBytes": 1392640,
+              "dirtyBytes": 1392640,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16357786,
+              "residentBytes": 14575206,
+              "dirtyBytes": 14575206,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 10485760,
+              "residentBytes": 10485760,
+              "dirtyBytes": 10485760,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9878424781,
+              "residentBytes": 1073741824,
+              "dirtyBytes": 643091661,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 557056,
+              "residentBytes": 557056,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135895450,
+              "residentBytes": 2473984,
+              "dirtyBytes": 2113536,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17616077,
+              "dirtyBytes": 17616077,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 250714522,
+              "residentBytes": 12268339,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 11010048,
+              "residentBytes": 11010048,
+              "dirtyBytes": 11010048,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2609152,
+              "residentBytes": 2609152,
+              "dirtyBytes": 2609152,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 975638272,
+          "webContentMinBytes": 975605504,
+          "webContentMaxBytes": 975638272,
+          "gpuBytes": 160961638,
+          "combinedBytes": 1136599910,
+          "modelBytes": 588246941,
+          "directlyHeldSceneArrayBufferBytes": 9608974,
+          "wasm": [
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 655360
+            },
+            {
+              "source": "instantiateStreaming",
+              "name": "memory",
+              "bytes": 52297728
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 1310720
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            }
+          ],
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 19818086,
+              "residentBytes": 8470528,
+              "dirtyBytes": 8470528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 540672,
+              "dirtyBytes": 393216,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 15309210,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 42781901,
+              "dirtyBytes": 39636173,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 694471885,
+              "residentBytes": 240648192,
+              "dirtyBytes": 204157747,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 30198989,
+              "residentBytes": 15938355,
+              "dirtyBytes": 7979008,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 7520256,
+              "residentBytes": 1294336,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 19503514,
+              "residentBytes": 1196032,
+              "dirtyBytes": 1196032,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16357786,
+              "residentBytes": 14575206,
+              "dirtyBytes": 14575206,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 12163482,
+              "residentBytes": 12163482,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 9985798963,
+              "residentBytes": 1181116006,
+              "dirtyBytes": 642147942,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 557056,
+              "residentBytes": 557056,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135895450,
+              "residentBytes": 2621440,
+              "dirtyBytes": 2293760,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17616077,
+              "dirtyBytes": 17616077,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 250714522,
+              "residentBytes": 12268339,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 11010048,
+              "residentBytes": 11010048,
+              "dirtyBytes": 11010048,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2641920,
+              "residentBytes": 2641920,
+              "dirtyBytes": 2641920,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        },
+        {
+          "label": "neutral-road-after-heap",
+          "webContentBytes": 966168608,
+          "webContentMinBytes": 965120032,
+          "webContentMaxBytes": 966299680,
+          "gpuBytes": 160961638,
+          "combinedBytes": 1127130246,
+          "modelBytes": 588246941,
+          "directlyHeldSceneArrayBufferBytes": 9608974,
+          "wasm": [
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 655360
+            },
+            {
+              "source": "instantiateStreaming",
+              "name": "memory",
+              "bytes": 52297728
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "instantiate",
+              "name": "memory",
+              "bytes": 1310720
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            },
+            {
+              "source": "Instance",
+              "name": "memory",
+              "bytes": 65536
+            }
+          ],
+          "regions": [
+            {
+              "name": "Activity Tracing",
+              "virtualBytes": 262144,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CG raster data",
+              "virtualBytes": 19818086,
+              "residentBytes": 8470528,
+              "dirtyBytes": 8470528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "ColorSync",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "CoreServices",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Dispatch continuations",
+              "virtualBytes": 18874368,
+              "residentBytes": 540672,
+              "dirtyBytes": 393216,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Foundation",
+              "virtualBytes": 16384,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Image IO",
+              "virtualBytes": 15309210,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS JIT generated code",
+              "virtualBytes": 536870912,
+              "residentBytes": 42886758,
+              "dirtyBytes": 39741030,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage",
+              "virtualBytes": 694471885,
+              "residentBytes": 240648192,
+              "dirtyBytes": 204157747,
+              "swappedBytes": 0
+            },
+            {
+              "name": "JS VM Gigacage (reserved)",
+              "virtualBytes": 4080218931,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Kernel Alloc Once",
+              "virtualBytes": 32768,
+              "residentBytes": 16384,
+              "dirtyBytes": 16384,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC (empty)",
+              "virtualBytes": 10695475,
+              "residentBytes": 278528,
+              "dirtyBytes": 278528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC guard page",
+              "virtualBytes": 32768,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC metadata",
+              "virtualBytes": 770048,
+              "residentBytes": 344064,
+              "dirtyBytes": 311296,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL",
+              "virtualBytes": 30198989,
+              "residentBytes": 15938355,
+              "dirtyBytes": 7979008,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_SMALL (empty)",
+              "virtualBytes": 7520256,
+              "residentBytes": 1294336,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "MALLOC_TINY",
+              "virtualBytes": 4194304,
+              "residentBytes": 163840,
+              "dirtyBytes": 163840,
+              "swappedBytes": 0
+            },
+            {
+              "name": "STACK GUARD",
+              "virtualBytes": 59034829,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack",
+              "virtualBytes": 18454938,
+              "residentBytes": 999424,
+              "dirtyBytes": 999424,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack (reserved)",
+              "virtualBytes": 557056,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "Stack Guard",
+              "virtualBytes": 16384,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE",
+              "virtualBytes": 16357786,
+              "residentBytes": 14575206,
+              "dirtyBytes": 14575206,
+              "swappedBytes": 0
+            },
+            {
+              "name": "VM_ALLOCATE (graphics)",
+              "virtualBytes": 12163482,
+              "residentBytes": 12163482,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc",
+              "virtualBytes": 10415295693,
+              "residentBytes": 1503238554,
+              "dirtyBytes": 631767040,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (empty)",
+              "virtualBytes": 557056,
+              "residentBytes": 557056,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc (reserved)",
+              "virtualBytes": 4294967296,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "WebKit Malloc metadata",
+              "virtualBytes": 135790592,
+              "residentBytes": 2572288,
+              "dirtyBytes": 2277376,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__AUTH_CONST",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA",
+              "virtualBytes": 55993958,
+              "residentBytes": 31666995,
+              "dirtyBytes": 6907904,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_CONST",
+              "virtualBytes": 122263962,
+              "residentBytes": 95630131,
+              "dirtyBytes": 12163482,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__DATA_DIRTY",
+              "virtualBytes": 158720,
+              "residentBytes": 158720,
+              "dirtyBytes": 158720,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__FONT_DATA",
+              "virtualBytes": 2352,
+              "residentBytes": 0,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__LINKEDIT",
+              "virtualBytes": 748158976,
+              "residentBytes": 49492787,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RO",
+              "virtualBytes": 58300826,
+              "residentBytes": 52743373,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__OBJC_RW",
+              "virtualBytes": 2387968,
+              "residentBytes": 2371584,
+              "dirtyBytes": 28672,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TEXT",
+              "virtualBytes": 1181116006,
+              "residentBytes": 592760013,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "__TPRO_CONST",
+              "virtualBytes": 167936,
+              "residentBytes": 69632,
+              "dirtyBytes": 69632,
+              "swappedBytes": 0
+            },
+            {
+              "name": "dyld private memory",
+              "virtualBytes": 3221225472,
+              "residentBytes": 17616077,
+              "dirtyBytes": 17616077,
+              "swappedBytes": 0
+            },
+            {
+              "name": "mapped file",
+              "virtualBytes": 250714522,
+              "residentBytes": 12268339,
+              "dirtyBytes": 0,
+              "swappedBytes": 0
+            },
+            {
+              "name": "owned unmapped (graphics)",
+              "virtualBytes": 11010048,
+              "residentBytes": 11010048,
+              "dirtyBytes": 11010048,
+              "swappedBytes": 0
+            },
+            {
+              "name": "page table in kernel",
+              "virtualBytes": 2838528,
+              "residentBytes": 2838528,
+              "dirtyBytes": 2838528,
+              "swappedBytes": 0
+            },
+            {
+              "name": "shared memory",
+              "virtualBytes": 32768,
+              "residentBytes": 32768,
+              "dirtyBytes": 32768,
+              "swappedBytes": 0
+            },
+            {
+              "name": "unused but dirty shlib __DATA",
+              "virtualBytes": 28730982,
+              "residentBytes": 25899827,
+              "dirtyBytes": 4204544,
+              "swappedBytes": 0
+            }
+          ]
+        }
+      ],
+      "heap": {
+        "path": "progress/memory/g227-budget/native-nalati-direct-cc2371ac6.heap.json",
+        "timestamp": 0
+      }
+    }
+  ]
+}

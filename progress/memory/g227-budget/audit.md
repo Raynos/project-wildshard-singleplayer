@@ -2,7 +2,7 @@
 
 **No runtime discount is proved. Pine’s proposed RGBA texture charge materially overstates the ASTC GPU storage; Nalati’s current world textures in this run are not ASTC. Neither correction can be subtracted from the measured whole-runtime claims.**
 
-Source pin `f47f33199`, desktop build `f47f331-muz4sw1c`: one cold, muted Chromium/Metal iPhone 16 Pro route, Developer ON, phone tier, Auto textures, 2× render scale. Real input entered Pine and then Nalati, with the previous opaque runtime retired; entry and centre were sampled. Zero page errors or console warnings/errors; all GPU census sums reconcile exactly. The simulator follow-up is pending after the serialized-push quiet window. Its first startup-only clock-quantization report is retained separately; no entered Simulator result is claimed here.
+Source pin `f47f33199`, desktop build `f47f331-muz4sw1c`: one cold, muted Chromium/Metal iPhone 16 Pro route, Developer ON, phone tier, Auto textures, 2× render scale. Real input entered Pine and then Nalati, with the previous opaque runtime retired; entry and centre were sampled. Zero page errors or console warnings/errors; all GPU census sums reconcile exactly. The completed Simulator allocation controls, cold routes and post-retirement heap audit are in [native-audit.md](native-audit.md). The first startup-only clock-quantization report remains retained separately.
 
 ## What is actually measured
 

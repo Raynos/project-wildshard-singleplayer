@@ -48,6 +48,7 @@ def decide(uses, shard):
 def analyze(report, surface):
     poses = []
     for snapshot in report['snapshots'][1:]:
+        if snapshot['label'].startswith('neutral-road'): continue
         shard = snapshot['label'].rsplit('-', 1)[0]
         census = snapshot['census']
         resources = [r for context in census['gl'] for r in context['resources']]
@@ -131,7 +132,7 @@ def analyze(report, surface):
                                'directlyMatchedGpuBytes': sum(r['bytes'] for r in matched) if matched else None,
                                'actualTotalBytes': None, 'note': 'GL is not total owner residency; unmatched is unknown, not zero.'})
         poses.append({'pose': snapshot['label'], 'surface': surface, 'model': snapshot['residency']['cost'],
-                      'native': snapshot.get('native'), 'allGpuBytes': actual_gpu, 'allDirectCpuArrayBufferBytes': direct_cpu,
+                      'native': snapshot.get('native'), 'routeComplete': not bool(report.get('failure')), 'routeFailure': report.get('failure'), 'allGpuBytes': actual_gpu, 'allDirectCpuArrayBufferBytes': direct_cpu,
                       'groups': groups, 'definiteWorld': world, 'definiteWorldDirectBytes': sum(world.values()),
                       'allRegionDirectCpuArrayBufferBytes': region_cpu, 'regionBitmapDimensionUpperBytes': bitmap_upper,
                       'topClaims': top_claims,
@@ -148,10 +149,13 @@ reports = [('chromium', ROOT / ('census-f47f33199.json' if (ROOT / 'census-f47f3
 native = ROOT / ('native-f47f33199.json' if (ROOT / 'native-f47f33199.json').exists() else 'native-f47f33199.json.gz')
 if native.exists():
     reports.append(('simulator', native))
+nalati = ROOT / ('native-nalati-direct-f47f33199.json' if (ROOT / 'native-nalati-direct-f47f33199.json').exists() else 'native-nalati-direct-f47f33199.json.gz')
+if nalati.exists():
+    reports.append(('simulator-direct', nalati))
 result = {'version': 1, 'note': 'Measured GL + direct scene ArrayBuffers. No claim of an isolated total-process world split.', 'poses': []}
 for surface, path in reports:
     report = load(path)
-    if report.get('failure') or not report.get('closed'):
+    if not report.get('closed'):
         print('Skipping incomplete', surface, report.get('failure'))
         continue
     result['poses'].extend(analyze(report, surface))
