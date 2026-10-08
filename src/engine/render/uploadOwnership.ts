@@ -1,5 +1,5 @@
 import { BufferGeometry, Material, Texture, WebGLRenderTarget, InstancedMesh, BatchedMesh, type WebGLRenderer } from 'three';
-import { sceneResourceOwner } from '../app/sceneOwnership';
+import { ownSceneResource, sceneObjectOwner, sceneResourceOwner } from '../app/sceneOwnership';
 import type { Scope } from '../app/scope';
 import type { AssetService } from '../app/assets';
 
@@ -16,12 +16,17 @@ export class UploadOwnership {
   private readonly live = new Set<Resource>();
   private readonly level: Scope;
   private readonly assets: AssetService;
+  private drawOwner: Scope | null = null;
   constructor(level: Scope, assets: AssetService) { this.level = level; this.assets = assets; }
   resources(): ReadonlySet<object> { return this.live; }
   observe(value: unknown): void {
     if (this.level.disposed || !(value instanceof BufferGeometry || value instanceof Material || value instanceof Texture ||
-      value instanceof WebGLRenderTarget || value instanceof InstancedMesh || value instanceof BatchedMesh) || this.live.has(value)) return;
+      value instanceof WebGLRenderTarget || value instanceof InstancedMesh || value instanceof BatchedMesh)) return;
     const resource = value;
+    // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
+    // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
+    if (this.drawOwner !== null && !this.assets.isAcquired(resource)) ownSceneResource(resource, this.drawOwner);
+    if (this.live.has(resource)) return;
     this.live.add(resource);
     let forget = () => { /* Bound after registration. */ };
     const released = (): void => { this.live.delete(resource); eventMethod(resource, 'removeEventListener', released); forget(); };
@@ -37,8 +42,12 @@ export class UploadOwnership {
     renderer.properties.get = (object) => { this.observe(object); return get(object); };
     const draw = renderer.renderBufferDirect.bind(renderer);
     renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
-      this.observe(geometry); this.observe(material); this.observe(object);
-      draw(camera, scene, geometry, material, object, group);
+      const prior = this.drawOwner; this.drawOwner = sceneObjectOwner(object);
+      try {
+        // A batch must claim its private aggregate geometry/textures before renderer property reads observe them.
+        this.observe(object); this.observe(geometry); this.observe(material);
+        draw(camera, scene, geometry, material, object, group);
+      } finally { this.drawOwner = prior; }
     };
   }
 }

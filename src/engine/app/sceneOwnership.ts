@@ -33,6 +33,21 @@ const resourceOwners = new WeakMap<object, Scope>();
 /** Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. */
 export function sceneResourceOwner(resource: object): Scope | null { return resourceOwners.get(resource) ?? null; }
 
+/** Nearest explicitly owned scene subtree, including meshes drawn through a shared page renderer. */
+export function sceneObjectOwner(node: Object3D): Scope | null {
+  for (let parent: Object3D | null = node; parent !== null; parent = parent.parent) {
+    const delegated = delegatedScenes.get(parent);
+    if (delegated !== undefined) return delegated.scope;
+  }
+  return null;
+}
+
+/** Adopt an otherwise unowned resource. Existing owners (including batch-private allocations) stay authoritative. */
+export function ownSceneResource(resource: Disposable3, scope: Scope): void {
+  if (resourceOwners.has(resource)) return;
+  markResourceOwner(resource, scope); scope.own(resource);
+}
+
 function markResourceOwner(resource: Disposable3, scope: Scope): void {
   resourceOwners.set(resource, scope);
   if (resource instanceof BatchedMesh) {
@@ -50,7 +65,7 @@ export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetSer
   if (scope.disposed || delegatedScenes.has(root)) throw new Error('Scene subtree requires one live owner');
   const capture = (): void => {
     for (const resource of sceneResources(root, scope)) if (!assets.isAcquired(resource)) {
-      markResourceOwner(resource, scope); scope.own(resource);
+      ownSceneResource(resource, scope);
     }
     for (const child of root.children) captureDelegatedScenes(child);
   };
@@ -126,7 +141,7 @@ export class SceneOwnership {
       }
       for (const resource of sceneResources(node)) {
         if (this.assets.isAcquired(resource)) this.acquire(resource);
-        else { markResourceOwner(resource, this.level); this.level.own(resource); }
+        else ownSceneResource(resource, this.level);
       }
     };
     for (const child of this.scene.children) visit(child);

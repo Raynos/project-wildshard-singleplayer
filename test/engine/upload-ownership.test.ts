@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
-import { BatchedMesh, BoxGeometry, Group, MeshBasicMaterial, Scene, Texture } from 'three';
+import { BatchedMesh, BoxGeometry, Group, MeshBasicMaterial, Scene, Texture, PerspectiveCamera, WebGLRenderTarget, type WebGLRenderer } from 'three';
 import { app } from '../../src/engine/app/runtime';
 import { AssetService } from '../../src/engine/app/assets';
 import { SceneOwnership, ownSceneTree } from '../../src/engine/app/sceneOwnership';
 import { Scope } from '../../src/engine/app/scope';
 import { enterOwner } from '../../src/engine/app/ownership';
+import { legacyDouble } from '../fake/FakeGame';
 import { UploadOwnership } from '../../src/engine/render/uploadOwnership';
 
 it('frees uploaded orphan resources while preserving named acquisitions and already-disposed resources', () => {
@@ -41,4 +42,40 @@ it('keeps delegated uploaded batches in the actual owner census until one real d
   expect(() => { page.dispose(); }).not.toThrow();
   expect(dispose).toHaveBeenCalledOnce(); expect(geometryDispose).toHaveBeenCalledOnce();
   expect(uploads.resources().size).toBe(0); expect(scene.children).toEqual([]);
+});
+
+
+it('retires detached uniform uploads with each drawn resident, keeping shared acquisitions and batch-private ownership', () => {
+  const page = new Scope('page'), assets = new AssetService(), uploads = new UploadOwnership(page, assets);
+  const scene = new Scene(), camera = new PerspectiveCamera(), shared = new Texture();
+  assets.register('shared', shared); assets.acquire('shared');
+  const sharedDispose = vi.spyOn(shared, 'dispose');
+  let samplers: readonly Texture[] = [], target: WebGLRenderTarget | null = null;
+  const renderer = legacyDouble<WebGLRenderer>({
+    properties: legacyDouble<WebGLRenderer['properties']>({ get: () => ({}) }),
+    renderBufferDirect: () => { for (const sampler of samplers) renderer.properties.get(sampler); if (target !== null) renderer.properties.get(target); },
+  });
+  uploads.attach(renderer);
+  for (let visit = 0; visit < 3; visit++) {
+    const resident = page.child(`resident:${visit}`), root = new Group(); scene.add(root); ownSceneTree(root, resident, assets);
+    const material = new MeshBasicMaterial(), batch = new BatchedMesh(1, 24, 36, material), source = new BoxGeometry();
+    batch.addInstance(batch.addGeometry(source)); source.dispose(); root.add(batch);
+    const detached = new Texture(); target = new WebGLRenderTarget(16, 16); samplers = [detached, shared];
+    const detachedDispose = vi.spyOn(detached, 'dispose'), targetDispose = vi.spyOn(target, 'dispose');
+    const batchDispose = vi.spyOn(batch, 'dispose'), geometryDispose = vi.spyOn(batch.geometry, 'dispose');
+    // Async setup may allocate a texture before its scene exists; drawing must adopt that already observed upload.
+    renderer.properties.get(detached);
+    renderer.renderBufferDirect(camera, scene, batch.geometry, material, batch, { start: 0, count: 36, materialIndex: 0 });
+    renderer.properties.get(batch.geometry);
+    expect(uploads.resources().has(detached)).toBe(true);
+    expect(resident.census).toMatchObject({ textures: 1, renderTargets: 1, resources: 1, geometries: 0 });
+    resident.dispose();
+    expect(detachedDispose).toHaveBeenCalledOnce(); expect(targetDispose).toHaveBeenCalledOnce();
+    expect(batchDispose).toHaveBeenCalledOnce(); expect(geometryDispose).toHaveBeenCalledOnce();
+    expect(sharedDispose).not.toHaveBeenCalled();
+    expect(uploads.resources()).toEqual(new Set([shared]));
+    expect(scene.children).toEqual([]);
+  }
+  page.dispose(); expect(sharedDispose).not.toHaveBeenCalled();
+  assets.release('shared'); expect(sharedDispose).toHaveBeenCalledOnce(); expect(uploads.resources().size).toBe(0);
 });
