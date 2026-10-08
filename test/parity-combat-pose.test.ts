@@ -18,7 +18,7 @@ it('grounds a distant firing pose at its own terrain, rather than beneath the hi
   const bow = { id: 'bow' }, weapons = { list: [bow], current: { id: 'sabre' }, unlock: () => undefined };
   const target = { position: new Vector3(0, -8, 0), dims: { bodyY: 0.66 }, scale: 0.85 };
   const game = { level: { ground: { structures: false } } };
-  vi.stubGlobal('window', { performance, __wildshard: { world: { player, weapons, game }, combat: {
+  vi.stubGlobal('window', { performance, __wildshard: { requireWorld: () => ({ player, weapons, game }), combat: {
     equip: (id: string) => { weapons.current = { id }; }, target: () => target,
   } } });
   try {

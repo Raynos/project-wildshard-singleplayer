@@ -30,7 +30,7 @@ describe('budget rollout and report', () => {
       renderer: { info: { render, programs: [1, 2], reset: (): void => { render.calls = 0; render.triangles = 0; } } },
       composer: { render: (): void => { render.calls += 7; render.triangles += 31; } } };
     const priorWindow: unknown = Reflect.get(globalThis, 'window');
-    vi.stubGlobal('window', { __wildshard: { world: { game }, budgets: () => ({}) }, __wildshardHarness: { gpuBytes: () => ({ total: 4 * 2 ** 20 }) } });
+    vi.stubGlobal('window', { __wildshard: { requireWorld: () => ({ game }), budgets: () => ({}) }, __wildshardHarness: { gpuBytes: () => ({ total: 4 * 2 ** 20 }) } });
     const page = legacyDouble<Page>({ evaluate: (fn: (value: unknown) => unknown, value: unknown) => Promise.resolve(fn(value)) });
     try {
       expect(await budgetViews(page)).toEqual({});
@@ -46,7 +46,7 @@ describe('budget rollout and report', () => {
       shardFrame: vi.fn(), renderer: { info: { render, programs: [1], reset: (): void => { render.calls = 0; render.triangles = 0; } } },
       composer: { render: (): void => { render.calls += 9; render.triangles += 53; } } };
     const priorWindow: unknown = Reflect.get(globalThis, 'window');
-    vi.stubGlobal('window', { __wildshard: { world: { game }, budgets: () => ({ current: {} }) }, __wildshardHarness: { gpuBytes: () => ({ total: 5 * 2 ** 20 }) } });
+    vi.stubGlobal('window', { __wildshard: { requireWorld: () => ({ game }), budgets: () => ({ current: {} }) }, __wildshardHarness: { gpuBytes: () => ({ total: 5 * 2 ** 20 }) } });
     const page = legacyDouble<Page>({ evaluate: (fn: (value: unknown) => unknown, value: unknown) => Promise.resolve(fn(value)) });
     try { expect(await budgetViews(page)).toEqual({ current: { draws: 9, tris: 53, programs: 1, gpuMB: 5 } }); }
     finally { vi.stubGlobal('window', priorWindow); }

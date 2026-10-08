@@ -126,7 +126,8 @@ describe('P1 capture-frame driver', () => {
       wait?: (n: number) => Promise<void>; observe?: (fn: () => void) => () => void } = {
       free: false, remaining: 0, cpu: 0, on: false, advance: () => Promise.reject(new Error('not ready')),
     };
-    const window = { __parity: control, __wildshard: { world: { game: { get frameNo() { return frameNo; } } } },
+    const world = { game: { get frameNo() { return frameNo; } } };
+    const window = { __parity: control, __wildshard: { requireWorld: () => world },
       setTimeout: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
       setInterval: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
       clearTimeout: (id?: number) => { if (id !== undefined) wallTimers.delete(id); },
