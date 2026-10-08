@@ -1,5 +1,5 @@
 import { loadRigFile, bindRig } from '../anim/rig';
-import { retainCachedResources } from '../app/cachedAssets';
+import { cacheUntilDisposed, retainCachedResources } from '../app/cachedAssets';
 /** The three local TRELLIS.2 figures, skinned in Blender and shared by the arena and Model Explorer. */
 import * as THREE from 'three';
 import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -19,6 +19,7 @@ function template(variant: DummyVariant): Promise<THREE.Group> {
   let promise = templates.get(variant);
   if (!promise) {
     promise = loadRigFile(URLS[variant]).then((gltf) => retainCachedResources(gltf.scene));
+    const pending = promise; void cacheUntilDisposed(pending, () => { if (templates.get(variant) === pending) templates.delete(variant); });
     templates.set(variant, promise);
     void promise.catch(() => { templates.delete(variant); }); // a failed fetch can retry on the next open
   }

@@ -1,5 +1,5 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
-import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 /**
@@ -81,6 +81,7 @@ export interface PineHull {
   fur?: { rim: RGB; sheenColor: RGB };
 }
 
+const adopting = new WeakMap<PineRig, Promise<void>>();
 const loading = new Map<PineRigName, Promise<PineRig>>();
 const ready = new Map<PineRigName, PineRig>();
 const isSkinned = (o: THREE.Object3D): o is THREE.SkinnedMesh => (o as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true;
@@ -131,6 +132,10 @@ export function loadPineRig(name: PineRigName): Promise<PineRig> {
       const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
       const out: PineRig = { geometry, map, normalMap, joints, flap };
       retainCachedResources(out);
+      cacheUntilDisposed(out, () => {
+        if (ready.get(name) === out) { ready.delete(name); loading.delete(name); }
+        adopting.delete(out);
+      });
       ready.set(name, out);
       return out;
     });
@@ -146,7 +151,6 @@ export async function preloadPineCreatures(): Promise<void> {
 }
 
 /** each loaded rig's coats are adopted once: a later visit's preload reuses them instead of retaining a fresh set */
-const adopting = new WeakMap<PineRig, Promise<void>>();
 function adoptOnce(name: PineRigName, rig: PineRig): Promise<void> {
   let p = adopting.get(rig);
   if (p === undefined) { p = adoptBakedCoats(name, rig); adopting.set(rig, p); }
@@ -167,6 +171,7 @@ async function adoptBakedCoats(name: PineRigName, rig: PineRig): Promise<void> {
     if (tex === null) return;
     tex.flipY = map.flipY; tex.anisotropy = map.anisotropy; tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
     tex.name = `${map.name}:${name}:${kv}`;
+    cacheUntilDisposed(tex, () => { adopting.delete(rig); });
     adoptPineCoat(`${name}:${kv}`, retainCachedResources(tex));
   }));
 }

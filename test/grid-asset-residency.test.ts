@@ -2,37 +2,50 @@ import { expect, it } from 'vitest';
 import { BoxGeometry, BufferGeometry, DataTexture } from 'three';
 import { cachedResourceAllocations } from '../src/engine/render/textureBytes';
 import { AssetService } from '../src/engine/app/assets';
+import { withOwner } from '../src/engine/app/ownership';
 import { Scope } from '../src/engine/app/scope';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { AssetResidencyBridge } from '../src/game/grid/assetResidency';
 
-it('keeps real shared geometry/texture allocations charged once through three runtime owners and final retirement', () => {
+it('evicts retired module caches after the last runtime, preserving simultaneous users and shared allocation identities', () => {
   const allocator = new ResidencyAllocator(), assets = new AssetService(), page = new Scope('renderer');
   const bridge = new AssetResidencyBridge(allocator, cachedResourceAllocations), detach = assets.bindResidency(bridge);
+  const first = page.child('first'), second = page.child('second');
+  const reserve = (id: string, scope: Scope) => {
+    const lease = allocator.reserve({ id, owner: id, category: 'sim', bytes: 1_000_000, distance: 0, needed: true });
+    if (lease === null) throw new Error('fixture admission'); bridge.cover(scope, lease); return lease;
+  };
+  const firstLease = reserve('sim:first', first), secondLease = reserve('sim:second', second);
   const geometry = new BoxGeometry(), alias = new BufferGeometry(); alias.attributes = geometry.attributes; alias.index = geometry.index;
-  const texture = new DataTexture(new Uint8Array(64), 4, 4), textureClone = texture.clone();
-  assets.register('geometry', geometry, { retain: true, cache: true }); assets.register('alias', alias, { retain: true, cache: true });
-  assets.register('texture', texture, { retain: true, cache: true }); assets.register('textureClone', textureClone, { retain: true, cache: true });
-  const cached = allocator.cost().accounted, count = allocator.entries().length;
-  expect(cached).toBeGreaterThan(64); expect(count).toBe(10); // four shared GPU buffers, four CPU stores, one source/sampler + one pixel store
-  for (let visit = 0; visit < 3; visit++) {
-    const resident = page.child(`resident:${String(visit)}`);
-    const runtime = allocator.reserve({ id: 'sim:runtime', owner: 'runtime', category: 'sim', bytes: 1_000_000, distance: 0, needed: true });
-    if (runtime === null) throw new Error('fixture admission');
-    bridge.cover(resident, runtime);
-    for (const resource of [geometry, alias, texture, textureClone]) assets.observeResidency(resource, resident);
-    expect(allocator.cost().accounted).toBe(1_000_000); expect(allocator.entries().filter(entry => entry.category === 'commons').every(entry => entry.accountedBytes === 0)).toBe(true);
-    resident.dispose(); runtime.release();
-    expect(allocator.cost().accounted).toBe(cached); expect(allocator.entries()).toHaveLength(count);
-  }
-  // A module cache remains charged while its data survives level unload. Only real renderer retirement detaches it.
-  page.dispose(); expect(allocator.cost().accounted).toBe(cached);
-  assets.forgetDisposed('geometry'); assets.forgetDisposed('texture'); expect(allocator.cost().accounted).toBe(cached);
-  assets.forgetDisposed('alias'); assets.forgetDisposed('textureClone'); expect(allocator.cost().accounted).toBe(0);
-  detach(); bridge.dispose(); expect(allocator.entries()).toEqual([]);
+  const texture = new DataTexture(new Uint8Array(64), 4, 4), clone = texture.clone();
+  withOwner(first, () => {
+    for (const [key, resource] of [['geometry', geometry], ['alias', alias], ['texture', texture], ['clone', clone]] as const)
+      assets.register(key, resource, { retain: true, cache: true });
+  });
+  expect(allocator.entries().filter(entry => entry.category === 'commons')).toHaveLength(10);
+  for (const resource of [geometry, alias, texture, clone]) assets.observeResidency(resource, second);
+  assets.acquire('texture'); // A page consumer outside the runtime also keeps the real resource alive.
+  first.dispose(); firstLease.release(); expect(assets.retained()).toHaveLength(4);
+  second.dispose(); secondLease.release();
+  expect(assets.retained().map(row => row.key)).toEqual(['texture']);
+  expect(allocator.cost().accounted).toBe(128); // One source upload and one CPU backing store, not both clones.
+  assets.release('texture'); expect(assets.retained()).toEqual([]); expect(allocator.entries()).toEqual([]);
+  detach(); bridge.dispose(); page.dispose();
 });
 
-it('keeps renderer cache and calibrated composer claims after level unload, then frees them with the renderer', async () => {
+it('keeps a real page draw alive while evicting unused sources from a retired runtime', () => {
+  const allocator = new ResidencyAllocator(), assets = new AssetService(), page = new Scope('page'), resident = page.child('resident');
+  const bridge = new AssetResidencyBridge(allocator, cachedResourceAllocations); assets.bindResidency(bridge);
+  const lease = allocator.reserve({ id: 'sim:runtime', owner: 'runtime', category: 'sim', bytes: 1_000_000, distance: 0, needed: true });
+  if (lease === null) throw new Error('fixture admission'); bridge.cover(resident, lease);
+  const shared = new DataTexture(new Uint8Array(64), 4, 4), unused = new DataTexture(new Uint8Array(64), 4, 4);
+  withOwner(resident, () => { assets.register('shared', shared, { retain: true, cache: true }); assets.register('unused', unused, { retain: true, cache: true }); });
+  assets.observeResidency(shared, page); resident.dispose(); lease.release();
+  expect(assets.retained().map(row => row.key)).toEqual(['shared']); expect(allocator.cost().accounted).toBe(128);
+  page.dispose(); expect(assets.evictCached('shared')).toBe(true); expect(allocator.entries()).toEqual([]); bridge.dispose();
+});
+
+it('evicts the unused home cache while keeping the calibrated composer until renderer retirement', async () => {
   const { PageResidency } = await import('../src/game/grid/pageResidency');
   const page = new PageResidency(), renderer = new Scope('renderer'), level = renderer.child('level'), assets = new AssetService();
   page.admitHome('home', 1_000_000);
@@ -47,7 +60,7 @@ it('keeps renderer cache and calibrated composer claims after level unload, then
   expect(page.allocator.cost().playing).toBe(before + 6_859_424);
   level.dispose(); page.dispose();
   expect(page.allocator.cost().input.sims).toBe(0);
-  expect(page.allocator.cost().input.commons).toBe(128);
+  expect(page.allocator.cost().input.commons).toBe(0);
   expect(page.allocator.cost().input.page).toBe(20_000_000);
   renderer.dispose(); expect(page.allocator.entries()).toEqual([]); expect(resize).toBeUndefined();
 });

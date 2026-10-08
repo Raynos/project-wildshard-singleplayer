@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
 import { variantDef } from '@wildshard/engine/entities/species/registry';
 /**
@@ -117,6 +118,7 @@ export function skyMarkedAtlas(map: THREE.Texture, blue: THREE.Color, white: THR
   a.ctx.putImageData(a.data, 0, 0);
   const tex = atlasTexture(a.canvas, map, `${map.name}:sky-marked`);
   cache.set(key, tex);
+  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); });
   return tex;
 }
 
@@ -163,7 +165,8 @@ export function isOwnCoat(spec: CoatSpec, tint: Readonly<Record<string, RGB>> | 
  * canvas under the same key: the rigs adopt them as they load (hulls.ts), so `coatAtlas` returns the baked texture and
  * never paints at entry. A coat the bake doesn't hold is painted as before.
  */
-export function adoptCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex); }
+export function adoptCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex);
+  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); }); }
 
 /**
  * The hull's atlas in the coat `tint` (cached by `key`): a baked coat when one was adopted, else painted here
@@ -181,6 +184,7 @@ export function coatAtlas(key: string, spec: CoatSpec, geometry: THREE.BufferGeo
   tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
   tex.name = `${map.name}:${key}`;
   cache.set(key, tex);
+  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); });
   return tex;
 }
 

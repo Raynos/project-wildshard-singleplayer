@@ -1,3 +1,4 @@
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 /**
  * pineCoats — one rigged Pine Hollow hull, every coat (PINE-HOLLOW-REMASTER PH-M1 / PH-M2): the hull's photoreal atlas
  * recoloured per variant, plus the marks a recolour cannot make, painted onto the atlas by where each texel sits on the
@@ -322,7 +323,8 @@ function boneAt(bones: readonly BoneDef[], name: string): THREE.Vector3 | null {
  * it as KTX2) stands in for the canvas under the same key; the KTX2 path adopts them at preload (hulls.ts), so
  * pineCoatAtlas returns the compressed texture and never reads the hull's pixels.
  */
-export function adoptPineCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex); }
+export function adoptPineCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex);
+  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); }); }
 
 /**
  * The hull's atlas in variant `v`'s coat (cached by `key`). `bones` are the rest joints the rig is bound to (they place
@@ -540,5 +542,6 @@ export function pineCoatAtlas(key: string, spec: CoatSpec, rig: CoatRig, v: Vari
   tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
   tex.name = `${map.name}:${key}`;
   cache.set(key, tex);
+  cacheUntilDisposed(tex, () => { if (cache.get(key) === tex) cache.delete(key); });
   return tex;
 }

@@ -1,7 +1,7 @@
 import type { ClipChannel } from '@wildshard/engine/anim/channel';
 import { AnimMachine } from '@wildshard/engine/anim/machine';
 import { loadRigFile, bindRig, type RigContract, type RigBake } from '@wildshard/engine/anim/rig';
-import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { app } from '@wildshard/engine/app/runtime';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { ARM_CLIPS, SWIM_CLIPS, armClipNames } from './armClips';
@@ -48,6 +48,7 @@ async function rigScene(url: string): Promise<{ scene: Object3D; animations: Ani
   let p = parsed.get(url);
   if (p === undefined) {
     p = loadRigFile(url).then((g) => ({ scene: retainCachedResources(g.scene), animations: g.animations }));
+    const pending = p; void cacheUntilDisposed(pending, () => { if (parsed.get(url) === pending) parsed.delete(url); });
     parsed.set(url, p);
     void p.catch(() => { parsed.delete(url); }); // a failed fetch can retry
   }

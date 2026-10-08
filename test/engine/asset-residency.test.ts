@@ -22,7 +22,17 @@ it('captures synchronous registration ownership and rolls back a refused bridge 
   const detach = assets.bindResidency({ register });
   expect(() => withOwner(scope, () => assets.register('cached', resource, { retain: true, cache: true }))).toThrow('refused');
   expect(assets.has('cached')).toBe(false); expect(assets.isAcquired(resource)).toBe(false);
-  expect(register).toHaveBeenCalledWith('cached', resource, scope);
+  expect(register).toHaveBeenCalledWith('cached', resource, scope, expect.any(Function));
   detach(); assets.register('cached', resource, { retain: true, cache: true });
   expect(assets.has('cached')).toBe(true); expect(resource.dispose).not.toHaveBeenCalled();
+});
+
+it('refuses eviction while acquired and keeps a failed native disposal charged', () => {
+  const assets = new AssetService(), release = vi.fn<() => void>(), dispose = vi.fn<() => void>();
+  assets.bindResidency({ register: () => ({ observe: () => undefined, release }) });
+  const resource = { dispose }; assets.register('cache', resource, { retain: true, cache: true });
+  assets.acquire('cache'); expect(assets.evictCached('cache')).toBe(false); expect(dispose).not.toHaveBeenCalled();
+  assets.release('cache'); dispose.mockImplementationOnce(() => { throw new Error('native failed'); });
+  expect(() => assets.evictCached('cache')).toThrow('native failed'); expect(assets.has('cache')).toBe(true); expect(release).not.toHaveBeenCalled();
+  expect(assets.evictCached('cache')).toBe(true); expect(assets.has('cache')).toBe(false); expect(release).toHaveBeenCalledOnce();
 });

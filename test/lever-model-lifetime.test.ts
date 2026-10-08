@@ -39,3 +39,24 @@ it('keeps the cached rifle atlases alive across complete regional retirement and
     expect(load).toHaveBeenCalledOnce();
   } finally { page.dispose(); load.mockRestore(); }
 });
+
+it('reloads the real module memo after cache eviction instead of re-uploading released atlases', async () => {
+  for (const row of app.assets.retained()) app.assets.evictCached(row.key);
+  const load = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => {
+    const root = new Group(), plane = () => new CompressedTexture([{ data: new Uint8Array(16), width: 4, height: 4 }], 4, 4, RGBA_S3TC_DXT5_Format);
+    const material = new MeshStandardMaterial({ map: plane(), normalMap: plane(), roughnessMap: plane() });
+    for (const name of ['steel', 'forend', 'stock', 'lever', 'hammer', 'bolt']) {
+      const mesh = new Mesh(new BoxGeometry(), material); mesh.name = name; root.add(mesh);
+    }
+    return Promise.resolve({ scene: root, scenes: [root], cameras: [], animations: [], asset: { version: '2.0' }, parser: legacyDouble<GLTF['parser']>({}), userData: {} });
+  });
+  let previous: object | undefined;
+  try {
+    for (let visit = 0; visit < 3; visit++) {
+      const model = await preloadLeverModel(); if (model === null) throw new Error('Model parse failed');
+      expect(model).not.toBe(previous); previous = model; expect(await preloadLeverModel()).toBe(model);
+      expect(load).toHaveBeenCalledTimes(visit + 1);
+      for (const row of app.assets.retained()) app.assets.evictCached(row.key);
+    }
+  } finally { load.mockRestore(); }
+});

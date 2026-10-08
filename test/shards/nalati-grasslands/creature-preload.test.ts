@@ -22,6 +22,25 @@ function rig(): GLTF {
   return { scene, scenes: [scene], animations: [], cameras: [], asset: { version: '2.0' }, parser: {} as GLTF['parser'], userData: {} };
 }
 
+it('rebuilds actual creature sources and baked coats after retirement invalidates the completed preload', async () => {
+  const load = vi.fn(() => Promise.resolve(rig())), coats: Texture[] = [];
+  const loadCoat = vi.fn(() => { const texture = new Texture(); coats.push(texture); return Promise.resolve(texture); });
+  const rigs = new CreatureRigs(load, loadCoat);
+  let previous: object | undefined;
+  for (let visit = 0; visit < 3; visit++) {
+    await rigs.preload();
+    const source = await rigs.load('wolf');
+    expect(source.geometry).not.toBe(previous); previous = source.geometry;
+    const requests = load.mock.calls.length, coatRequests = loadCoat.mock.calls.length;
+    await rigs.preload(); expect(load).toHaveBeenCalledTimes(requests); expect(loadCoat).toHaveBeenCalledTimes(coatRequests);
+    expect(coatRequests).toBeGreaterThan(0);
+    for (const texture of coats.splice(0)) expect(app.assets.evictCached(`scene:${texture.uuid}`)).toBe(true);
+    expect(app.assets.evictCached(`scene:${source.geometry.uuid}`)).toBe(true);
+    if (source.map !== null) expect(app.assets.evictCached(`scene:${source.map.uuid}`)).toBe(true);
+    await rigs.preload(); expect(load.mock.calls.length).toBeGreaterThan(requests); expect(loadCoat.mock.calls.length).toBeGreaterThan(coatRequests);
+  }
+});
+
 // each case builds its own creature rigs with its own file loader and no baked coats (no module reset, no loader spy, E422)
 describe('Nalati creature boot barrier (E357 R9)', () => {
   it.each([false, true])('factory.ready waits for every rig, including when the last file fails (%s)', async (failLast) => {

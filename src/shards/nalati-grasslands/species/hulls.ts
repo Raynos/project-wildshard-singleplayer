@@ -1,5 +1,5 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
-import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
+import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { fetchImage, tierUrl } from '@wildshard/engine/boot/bytes';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
@@ -160,6 +160,7 @@ export class CreatureRigs {
       const out: RigAsset = { geometry, map, joints };
       retainCachedResources(out);
       await this.adoptCoats(name, out);
+      cacheUntilDisposed(out, () => { if (this.ready.get(name) === out) { this.ready.delete(name); this.loading.delete(name); this.preloaded = null; } });
       this.ready.set(name, out);
       return out;
     });
@@ -181,6 +182,9 @@ export class CreatureRigs {
       tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
       tex.wrapS = map.wrapS; tex.wrapT = map.wrapT; tex.name = `${map.name}:${name}:${kind}:${variant}`;
       tex.needsUpdate = true;
+      cacheUntilDisposed(tex, () => {
+        if (this.ready.get(name) === rig) { this.ready.delete(name); this.loading.delete(name); this.preloaded = null; }
+      });
       adoptCoat(`${name}:${kind}:${variant}`, retainCachedResources(tex));
     }));
   }
