@@ -8256,6 +8256,54 @@
         "from": "@wildshard/engine/render/families/measure"
       },
       {
+        "name": "applyPaintedTerrain",
+        "kind": "function",
+        "doc": "Patch a painterly family material with the painted-terrain layer (`compilePainterly` calls it for a surface that",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
+        "name": "bindPaintedTerrainBake",
+        "kind": "function",
+        "doc": "Share a live bake with a painted terrain material: its five inputs become `bake`'s uniform objects (so whatever renders",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
+        "name": "fillPaintedTerrainAttributes",
+        "kind": "function",
+        "doc": "Give a mesh drawn with a painted terrain the custom attributes it lacks, filled with plain base ground (no track, no",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
+        "name": "PaintedTerrainBake",
+        "kind": "interface",
+        "doc": "The live bake inputs a painted terrain reads (shared by reference with whatever renders the bake).",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
+        "name": "paintedTerrainBakeOff",
+        "kind": "function",
+        "doc": "A bake input set that is off (1 = lit, no contact shade) until something binds or fills it.",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
+        "name": "paintedTerrainBakesKey",
+        "kind": "function",
+        "doc": "Whether a layer's key light is shadowed by the bake on this tier.",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
+        "name": "paintedTerrainUniforms",
+        "kind": "function",
+        "doc": "a painted terrain material's own uniforms, or null when `m` carries no painted-terrain layer",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
+        "name": "PaintedTerrainUniforms",
+        "kind": "interface",
+        "doc": "The painted terrain's own uniforms (what a runtime adapter may move without a program change).",
+        "from": "@wildshard/engine/render/families/paintedTerrain"
+      },
+      {
         "name": "compilePainterly",
         "kind": "function",
         "doc": "Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer).",
@@ -8412,6 +8460,42 @@
         "from": "@wildshard/engine/render/families/params"
       },
       {
+        "name": "PAINTED_TERRAIN_ATTRIBUTES",
+        "kind": "const",
+        "doc": "The per-vertex inputs a painted-terrain mesh carries besides position, normal and colour (a baked tile keeps them",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PAINTED_TERRAIN_LAYERS",
+        "kind": "const",
+        "doc": "The five painted layers, in their uniform order.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PaintedTerrainLayerName",
+        "kind": "type",
+        "doc": "One painted layer's name.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PaintedTerrainParams",
+        "kind": "type",
+        "doc": "A painted-terrain layer with every default filled.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "PaintedTerrainSchema",
+        "kind": "const",
+        "doc": "The painted-terrain layer of a painterly surface.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "paintedTerrainTextureRefs",
+        "kind": "function",
+        "doc": "The painted layer's five texture references, in layer order.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
         "name": "PainterlyLookParams",
         "kind": "type",
         "doc": "A painterly look with every default filled.",
@@ -8451,6 +8535,12 @@
         "name": "parseGroundLayer",
         "kind": "function",
         "doc": "Validate a ground layer and fill its defaults.",
+        "from": "@wildshard/engine/render/families/params"
+      },
+      {
+        "name": "parsePaintedTerrain",
+        "kind": "function",
+        "doc": "Validate a painted-terrain layer and fill its defaults; throws a readable error on bad data.",
         "from": "@wildshard/engine/render/families/params"
       },
       {
@@ -16066,6 +16156,30 @@
         "kind": "function",
         "doc": "Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything.",
         "from": "@wildshard/game/shardfile/movers"
+      },
+      {
+        "name": "NativeGround",
+        "kind": "type",
+        "doc": "The immutable native payload; resolution, seed and landscape identity derive from admitted bytes.",
+        "from": "@wildshard/game/shardfile/nativeGround"
+      },
+      {
+        "name": "nativeGroundRules",
+        "kind": "function",
+        "doc": "Native ground is an independent critical root with one trusted collision owner, never another compiled collider.",
+        "from": "@wildshard/game/shardfile/nativeGround"
+      },
+      {
+        "name": "NativeGroundSchema",
+        "kind": "const",
+        "doc": "Original native WSTR terrain retained by a trusted world-only hybrid; this declaration never installs collision.",
+        "from": "@wildshard/game/shardfile/nativeGround"
+      },
+      {
+        "name": "validateNativeGround",
+        "kind": "function",
+        "doc": "Parse the same original payload as the live terrain after bounding its header, then witness every native sample and entry.",
+        "from": "@wildshard/game/shardfile/nativeGround"
       },
       {
         "name": "parsePlumbing",

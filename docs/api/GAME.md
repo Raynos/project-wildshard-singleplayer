@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-634 members; 112 without a doc line (—).
+638 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -501,6 +501,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `moverScriptEntities` | function | @wildshard/game/shardfile/movers | Merge these handles into the host's entity catalogue before its one script lane is constructed. |
 | `MoversSchema` | const | @wildshard/game/shardfile/movers | Physics owns the primitive; an admitted script owns its pose/activation. All colliders are numeric, local boxes. |
 | `parseMovers` | function | @wildshard/game/shardfile/movers | Admission proves identity, primitive shape and aggregate solver/body limits before allocating anything. |
+| `NativeGround` | type | @wildshard/game/shardfile/nativeGround | The immutable native payload; resolution, seed and landscape identity derive from admitted bytes. |
+| `nativeGroundRules` | function | @wildshard/game/shardfile/nativeGround | Native ground is an independent critical root with one trusted collision owner, never another compiled collider. |
+| `NativeGroundSchema` | const | @wildshard/game/shardfile/nativeGround | Original native WSTR terrain retained by a trusted world-only hybrid; this declaration never installs collision. |
+| `validateNativeGround` | function | @wildshard/game/shardfile/nativeGround | Parse the same original payload as the live terrain after bounding its header, then witness every native sample and entry. |
 | `parsePlumbing` | function | @wildshard/game/shardfile/plumbing | Compile TypeScript author plumbing into validated data with no callback closures. |
 | `PlumbingData` | type | @wildshard/game/shardfile/plumbing | Serialisable scoped input actions, tier values and Debug choices with named admitted script hooks. |
 | `plumbingRules` | function | @wildshard/game/shardfile/plumbing | Semantic identities stay in the owning namespace; Debug defaults and touch actions must exist. |

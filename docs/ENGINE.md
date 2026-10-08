@@ -1846,7 +1846,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2164 exports, grouped by the module to import them from.
+2179 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2089,8 +2089,9 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/families/emissive`: `compileEmissive`, `EMISSIVE_PROGRAM_KEY`, `EmissiveLook`, `EmissiveLookUniforms`, `injectEmissive`
 - `@wildshard/engine/render/families/ground`: `applyGround`, `GROUND_POOLS`, `GROUND_PROGRAM_KEY`, `GroundPool`, `injectGround`, `setGroundPools`, `updateGround`
 - `@wildshard/engine/render/families/measure`: `applyMeasure`, `MEASURE_PROGRAM_KEY`
+- `@wildshard/engine/render/families/paintedTerrain`: `applyPaintedTerrain`, `bindPaintedTerrainBake`, `fillPaintedTerrainAttributes`, `PaintedTerrainBake`, `paintedTerrainBakeOff`, `paintedTerrainBakesKey`, `paintedTerrainUniforms`, `PaintedTerrainUniforms`
 - `@wildshard/engine/render/families/painterly`: `compilePainterly`, `gradeRgb`, `injectPainterly`, `PAINTERLY_PROGRAM_KEY`, `PainterlyLook`, `PainterlyLookUniforms`, `PainterlyMaterialUniforms`
-- `@wildshard/engine/render/families/params`: `EmissiveLookParams`, `EmissiveLookSchema`, `EmissiveMaterialParams`, `EmissiveMaterialSchema`, `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `GradeParams`, `GradeSchema`, `GroundLayerParams`, `GroundLayerSchema`, `MEASURE_SLOT`, `MeasureLayerParams`, `MeasureLayerSchema`, `MeasureRole`, `measureUv`, `NeonTubeSchema`, `PainterlyLookParams`, `PainterlyLookSchema`, `PainterlyMaterialParams`, `PainterlyMaterialSchema`, `parseEmissiveLook`, `parseFamilyMaterial`, `parseGroundLayer`, `parsePainterlyLook`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `SkyDomeSchema`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
+- `@wildshard/engine/render/families/params`: `EmissiveLookParams`, `EmissiveLookSchema`, `EmissiveMaterialParams`, `EmissiveMaterialSchema`, `FAMILY_IDS`, `FamilyId`, `FamilyMaterialInput`, `FamilyMaterialParams`, `FamilyMaterialSchema`, `GradeParams`, `GradeSchema`, `GroundLayerParams`, `GroundLayerSchema`, `MEASURE_SLOT`, `MeasureLayerParams`, `MeasureLayerSchema`, `MeasureRole`, `measureUv`, `NeonTubeSchema`, `PAINTED_TERRAIN_ATTRIBUTES`, `PAINTED_TERRAIN_LAYERS`, `PaintedTerrainLayerName`, `PaintedTerrainParams`, `PaintedTerrainSchema`, `paintedTerrainTextureRefs`, `PainterlyLookParams`, `PainterlyLookSchema`, `PainterlyMaterialParams`, `PainterlyMaterialSchema`, `parseEmissiveLook`, `parseFamilyMaterial`, `parseGroundLayer`, `parsePaintedTerrain`, `parsePainterlyLook`, `parseToonLook`, `PbrMaterialParams`, `PbrMaterialSchema`, `Rgb`, `SkyDomeSchema`, `ToonLookParams`, `ToonLookSchema`, `ToonMaterialParams`, `ToonMaterialSchema`
 - `@wildshard/engine/render/families/pbr`: `compilePbr`, `pbrFillers`, `TextureResolver`, `TextureUse`
 - `@wildshard/engine/render/families/registry`: `familyCompileJobs`, `FamilyContext`, `familyMaterial`, `familyVariant`, `liveFamilyMaterials`
 - `@wildshard/engine/render/families/toon`: `compileToon`, `injectToon`, `TOON_PROGRAM_KEY`, `ToonLook`, `ToonLookUniforms`
@@ -2220,7 +2221,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-634 exports, grouped by the module to import them from.
+638 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2311,6 +2312,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/migrations`: `assertMigrationCompatibility`, `DeclaredMigrations`, `LogicalState`, `LogicalStateSchema`, `migrateLogicalState`, `MigrationFieldDeclaration`, `migrationRules`, `MigrationsSchema`, `parseMigrations`
 - `@wildshard/game/shardfile/moverRuntime`: `createMoverHost`, `installDeclaredMovers`, `MoverBodyState`, `MoverInstallation`, `MoverPorts`, `moverQueries`, `MoverRuntime`, `MoverView`
 - `@wildshard/game/shardfile/movers`: `MOVER_FIELD_RANGES`, `MOVER_FIELDS`, `MoverData`, `moverScriptEntities`, `MoversSchema`, `parseMovers`
+- `@wildshard/game/shardfile/nativeGround`: `NativeGround`, `nativeGroundRules`, `NativeGroundSchema`, `validateNativeGround`
 - `@wildshard/game/shardfile/plumbing`: `parsePlumbing`, `PlumbingData`, `plumbingRules`, `PlumbingSchema`
 - `@wildshard/game/shardfile/portalLink`: `parsePortalLink`, `PortalLink`, `portalLinkEntries`, `PortalLinkEntry`, `portalLinkRules`, `PortalLinkSchema`
 - `@wildshard/game/shardfile/portalLinkProof`: `PortalLinkProof`, `provePortalLinks`

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2181 members; 830 without a doc line (—).
+2196 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1381,6 +1381,14 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `updateGround` | function | @wildshard/engine/render/families/ground | Move some of a ground layer's parameters on a live material (a runtime adapter: Signal Dunes' dusk). Validated; |
 | `applyMeasure` | function | @wildshard/engine/render/families/measure | Add a measure layer to a PBR family material (the PBR compiler calls it; the program becomes the measure program). |
 | `MEASURE_PROGRAM_KEY` | const | @wildshard/engine/render/families/measure | the program-cache key of every PBR material with a measure layer |
+| `applyPaintedTerrain` | function | @wildshard/engine/render/families/paintedTerrain | Patch a painterly family material with the painted-terrain layer (`compilePainterly` calls it for a surface that |
+| `bindPaintedTerrainBake` | function | @wildshard/engine/render/families/paintedTerrain | Share a live bake with a painted terrain material: its five inputs become `bake`'s uniform objects (so whatever renders |
+| `fillPaintedTerrainAttributes` | function | @wildshard/engine/render/families/paintedTerrain | Give a mesh drawn with a painted terrain the custom attributes it lacks, filled with plain base ground (no track, no |
+| `PaintedTerrainBake` | interface | @wildshard/engine/render/families/paintedTerrain | The live bake inputs a painted terrain reads (shared by reference with whatever renders the bake). |
+| `paintedTerrainBakeOff` | function | @wildshard/engine/render/families/paintedTerrain | A bake input set that is off (1 = lit, no contact shade) until something binds or fills it. |
+| `paintedTerrainBakesKey` | function | @wildshard/engine/render/families/paintedTerrain | Whether a layer's key light is shadowed by the bake on this tier. |
+| `paintedTerrainUniforms` | function | @wildshard/engine/render/families/paintedTerrain | a painted terrain material's own uniforms, or null when `m` carries no painted-terrain layer |
+| `PaintedTerrainUniforms` | interface | @wildshard/engine/render/families/paintedTerrain | The painted terrain's own uniforms (what a runtime adapter may move without a program change). |
 | `compilePainterly` | function | @wildshard/engine/render/families/painterly | Compile a painterly surface under `look` to a three.js material (WebGL v1 renderer). |
 | `gradeRgb` | function | @wildshard/engine/render/families/painterly | The grade on the CPU, scene-linear → display-linear (the same maths as the shader): to check a colour a look will |
 | `injectPainterly` | function | @wildshard/engine/render/families/painterly | The painterly light model (and, with `graded`, the per-pixel grade) injected into a MeshLambert source. |
@@ -1407,6 +1415,12 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `MeasureRole` | type | @wildshard/engine/render/families/params | The measure layer's surface roles: 1 = structure (orange), 2 = trim (grey). |
 | `measureUv` | function | @wildshard/engine/render/families/params | The first-UV pair a measure-layer surface carries at one vertex: `role`, the vertex's metres across (`u`) and up |
 | `NeonTubeSchema` | const | @wildshard/engine/render/families/params | A neon tube drawn from a distance field (R: the glyph's fill, 0.5 on its edge; G: the distance to its skeleton): a |
+| `PAINTED_TERRAIN_ATTRIBUTES` | const | @wildshard/engine/render/families/params | The per-vertex inputs a painted-terrain mesh carries besides position, normal and colour (a baked tile keeps them |
+| `PAINTED_TERRAIN_LAYERS` | const | @wildshard/engine/render/families/params | The five painted layers, in their uniform order. |
+| `PaintedTerrainLayerName` | type | @wildshard/engine/render/families/params | One painted layer's name. |
+| `PaintedTerrainParams` | type | @wildshard/engine/render/families/params | A painted-terrain layer with every default filled. |
+| `PaintedTerrainSchema` | const | @wildshard/engine/render/families/params | The painted-terrain layer of a painterly surface. |
+| `paintedTerrainTextureRefs` | function | @wildshard/engine/render/families/params | The painted layer's five texture references, in layer order. |
 | `PainterlyLookParams` | type | @wildshard/engine/render/families/params | A painterly look with every default filled. |
 | `PainterlyLookSchema` | const | @wildshard/engine/render/families/params | The painterly family's look (Nalati Grasslands, style B): soft cel bands, shade painted with a sky tint, a warm |
 | `PainterlyMaterialParams` | type | @wildshard/engine/render/families/params | A painterly material entry with every default filled. |
@@ -1414,6 +1428,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `parseEmissiveLook` | function | @wildshard/engine/render/families/params | Validate the emissive look and fill its defaults. |
 | `parseFamilyMaterial` | function | @wildshard/engine/render/families/params | Validate a material entry and fill the family's defaults; throws a readable error on bad data. |
 | `parseGroundLayer` | function | @wildshard/engine/render/families/params | Validate a ground layer and fill its defaults. |
+| `parsePaintedTerrain` | function | @wildshard/engine/render/families/params | Validate a painted-terrain layer and fill its defaults; throws a readable error on bad data. |
 | `parsePainterlyLook` | function | @wildshard/engine/render/families/params | Validate the painterly look and fill its defaults. |
 | `parseToonLook` | function | @wildshard/engine/render/families/params | Validate the toon look and fill its defaults. |
 | `PbrMaterialParams` | type | @wildshard/engine/render/families/params | A PBR material entry with every default filled. |
