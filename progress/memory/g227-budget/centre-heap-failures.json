@@ -1,0 +1,104 @@
+{
+  "protocol": "Failed diagnostics only. No heap snapshot or retainer result produced. Original native samples were taken before Heap.snapshot; no post-collection replacement. Resources closed after each attempt. Desktop local WebKit will supply attribution separately.",
+  "attempts": [
+    {
+      "source": "native-nalati-centre-da39b8ced.json",
+      "version": {
+        "build": "da39b8c-muz7gf6f",
+        "time": "2026-10-08T07:18:43.303Z"
+      },
+      "routeMode": "nalati-centre-heap",
+      "heap": {
+        "error": "Error: Web Inspector timed out: Heap.snapshot",
+        "pose": "nalati-grasslands-centre"
+      },
+      "closed": true,
+      "failure": null,
+      "snapshotOnlyFrameGate": false,
+      "transport": "ios_webkit_debug_proxy; Node builtin WebSocket",
+      "poseSamples": [
+        {
+          "label": "home-settled",
+          "wc": 534744592,
+          "gl": 211842683
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "wc": 818515616,
+          "gl": 310395848
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "wc": 828001976,
+          "gl": 306902020
+        }
+      ]
+    },
+    {
+      "source": "native-nalati-centre-65106ea87.json",
+      "version": {
+        "build": "65106ea-muz7o6gx",
+        "time": "2026-10-08T07:24:45.352Z"
+      },
+      "routeMode": "nalati-centre-heap",
+      "heap": {
+        "error": "Error: Web Inspector timed out: Heap.snapshot",
+        "pose": "nalati-grasslands-centre"
+      },
+      "closed": true,
+      "failure": null,
+      "snapshotOnlyFrameGate": false,
+      "transport": "ios_webkit_debug_proxy; Node builtin WebSocket",
+      "poseSamples": [
+        {
+          "label": "home-settled",
+          "wc": 588140120,
+          "gl": 211842683
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "wc": 816647864,
+          "gl": 306900604
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "wc": 828165864,
+          "gl": 306902020
+        }
+      ]
+    },
+    {
+      "source": "native-nalati-centre-paused-65106ea87.json",
+      "version": {
+        "build": "65106ea-muz7o6gx",
+        "time": "2026-10-08T07:24:45.352Z"
+      },
+      "routeMode": "nalati-centre-heap",
+      "heap": {
+        "error": "Error: Inspector socket closed 1006: ",
+        "pose": "nalati-grasslands-centre"
+      },
+      "closed": true,
+      "failure": null,
+      "snapshotOnlyFrameGate": true,
+      "transport": "ios_webkit_debug_proxy; ws maxPayload512MB",
+      "poseSamples": [
+        {
+          "label": "home-settled",
+          "wc": 628002392,
+          "gl": 211842683
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "wc": 888229632,
+          "gl": 306900604
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "wc": 886918936,
+          "gl": 306902020
+        }
+      ]
+    }
+  ]
+}

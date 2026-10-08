@@ -21,7 +21,7 @@ Both routes have **zero page errors/rejections, no document recovery, and no Mem
 
 - Reading `attribute.array` restores a released CPU copy from GL. The census now reads only data descriptors, records released getters without invoking them, and deduplicates shared backing buffers. A real-expression regression also covers interleaved attributes.
 - Reusing a preview had left an older OFF init after the new ON seed. The first requested-ON trial actually observed OFF and is **invalid as ON evidence**. It is excluded from the table and summary. The sampler now removes only its own prior inline fixture and refuses any observed setting mismatch. Regression retains the production module script while removing old tagged and legacy harness seeds.
-- Centre heap snapshots with the game drawing timed out at 120 and 300 seconds; neither produced a heap, so no new centre class/retainer table is invented. A separate snapshot-only frame-gated diagnostic is in progress; original pose measurements remain untouched. Existing road retainer evidence stays in `native-audit.md` / `audio-retirement.md`.
+- Centre heap snapshots with the game drawing timed out at 120 and 300 seconds; neither produced a heap, so no new centre class/retainer table is invented. A third snapshot-only frame-gated diagnostic using a 512 MB WebSocket payload limit also failed (Inspector socket close 1006). `centre-heap-failures.json` records all three failures and resource closure; original pose measurements remain untouched. Desktop Playwright WebKit at the same phone tier will provide retainer attribution separately, never replacement native totals. Existing road retainer evidence stays in `native-audit.md` / `audio-retirement.md`.
 
 ## Reproduction
 
@@ -35,4 +35,4 @@ node progress/memory/g227-budget/census-regression.mjs
 python3 progress/memory/g227-budget/centreSummary.py
 ```
 
-Compressed full reports and sampling JSONL, original vmmap summaries and `memory-saver-centre-summary.json` retain exact version, settings, native samples, GL labels, largest direct arrays, warnings and final empty residency. All measurement browsers/Inspector proxies/Simulator runs are closed before reporting. The subsequent centre-only diagnostic has its own lane and evidence, not a substituted reading.
+Compressed full reports and sampling JSONL, original vmmap summaries and `memory-saver-centre-summary.json` retain exact version, settings, native samples, GL labels, largest direct arrays, warnings and final empty residency. All measurement browsers/Inspector proxies/Simulator runs are closed before reporting. The subsequent centre-only diagnostics used their own lane and evidence; all three closed without producing a heap, and none substitutes a reading.
