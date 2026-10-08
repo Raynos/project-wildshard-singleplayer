@@ -1,4 +1,4 @@
-import { hoverSpeed } from './hoverSpeed';
+import { hoverCoastDecel, hoverSpeed } from './hoverSpeed';
 import type { AimCommand, PlayerCommand } from '../input/commands';
 import type { InputService } from '../input/InputService';
 import type { Events } from '../events/events';
@@ -32,7 +32,6 @@ const GRAVITY = 22;
 // ── hoverboard (toggle: H / the HOVER touch button) ──
 export const HOVER_TOP = 14;          // m/s cruise
 const HOVER_ACCEL = 12;               // m/s² with input → 0 → top in ~1.2 s
-const HOVER_DECEL = 3;                // m/s² gliding with no input (25 % of accel)
 const HOVER_LAT_DRAG = 3.5;           // /s — sideways velocity (relative to the heading) bleeds off faster than forward: carve, not shopping cart
 const HOVER_HEIGHT = 0.45;            // m above the terrain / platform
 const HOVER_SPRING_K = 70;            // spring to the ride height (ω ≈ 8.4 rad/s) …
@@ -545,7 +544,7 @@ export class Player {
       const top = hoverSpeed(this.hoverSpeedLimit?.());
       const tx = wantMove ? mx * top : 0, tz = wantMove ? mz * top : 0;
       const dx = tx - v.x, dz = tz - v.z, dl = Math.hypot(dx, dz);
-      const rate = (wantMove ? HOVER_ACCEL : HOVER_DECEL) * grip;
+      const rate = (wantMove ? HOVER_ACCEL : hoverCoastDecel(Math.hypot(v.x, v.z))) * grip; // coast: speed-dependent decay (hoverSpeed.ts)
       const stepV = Math.min(dl, rate * dt);
       const vfx = v.x, vfz = v.z;
       if (dl > 1e-6) { v.x += dx / dl * stepV; v.z += dz / dl * stepV; }

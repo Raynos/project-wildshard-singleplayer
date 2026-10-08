@@ -9,7 +9,7 @@ import { CombatPipeline } from '../src/engine/combat/pipeline';
 import { AnimalSim } from '../src/engine/entities/AnimalSim';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import { Player } from '../src/engine/player/Player';
-import { hoverSpeed } from '../src/engine/player/hoverSpeed';
+import { hoverCoastDecel, hoverSpeed } from '../src/engine/player/hoverSpeed';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier } from '../src/engine/physics/rapier';
@@ -63,6 +63,26 @@ describe('grid traversal rules', () => {
       } finally { scope.dispose(); player.motor.dispose(); ph.dispose(); }
     }
     expect(hoverSpeed()).toBe(14); expect(() => hoverSpeed(Number.NaN)).toThrow();
+  });
+  it('coasts a released board to a believable stop: ~70 m from the 30 m/s deck, the old 33 m glide from 14 (SF20d)', async () => {
+    expect(hoverCoastDecel(0)).toBe(3); expect(hoverCoastDecel(14)).toBe(3); expect(hoverCoastDecel(30)).toBe(19);
+    expect(() => hoverCoastDecel(-1)).toThrow(); expect(() => hoverCoastDecel(Number.NaN)).toThrow();
+    for (const top of [undefined, 30]) {
+      const ph = await physics(), scope = new Scope('coast');
+      const player = new Player(new PerspectiveCamera(), ph, legacyDouble<HTMLCanvasElement>({}), { waterLine: { update: () => undefined, setHint: () => undefined } });
+      try {
+        if (top !== undefined) installGridHoverSpeed(player, scope, () => ({ local: point(275), shardCap: 14, onHighwayDeck: true }));
+        player.setHover(true); player.locked = true; player.keys.add('KeyW');
+        for (let tick = 0; tick < 600; tick++) { player.input(1 / 60); ph.step(); player.step(1 / 60); }
+        expect(Math.hypot(player.velocity.x, player.velocity.z)).toBeCloseTo(top ?? 14, 4);
+        player.keys.delete('KeyW');
+        const x0 = player.position.x, z0 = player.position.z;
+        let ticks = 0;
+        while (Math.hypot(player.velocity.x, player.velocity.z) > 0.05 && ticks < 1200) { player.input(1 / 60); ph.step(); player.step(1 / 60); ticks++; }
+        const glide = Math.hypot(player.position.x - x0, player.position.z - z0);
+        if (top === 30) { expect(glide).toBeGreaterThan(55); expect(glide).toBeLessThan(80); } else { expect(glide).toBeGreaterThan(28); expect(glide).toBeLessThan(36); }
+      } finally { scope.dispose(); player.motor.dispose(); ph.dispose(); }
+    }
   });
   it('keeps non-deck neighbouring water at the shard cap and restores scoped speed ownership', () => {
     const scope = new Scope('water'), player = { hoverSpeedLimit: null as (() => number) | null };
