@@ -1,0 +1,56 @@
+{
+  "protocol": "Pure bounded reader versus ffprobe on every compressed packet offset, size, presentation timestamp and priming edit. No native decoded memory saving claim.",
+  "results": [
+    {
+      "genre": "piano",
+      "path": "public/assets/music/piano/title-3d1f713a.m4a",
+      "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+      "packets": 2921,
+      "primingFrames": 1024,
+      "mediaFrames": 2990937,
+      "metadataBytes": 23373,
+      "description": [
+        17,
+        144,
+        86,
+        229,
+        0
+      ],
+      "exact": true
+    },
+    {
+      "genre": "folk",
+      "path": "public/assets/music/folk/title-50001128.m4a",
+      "sourceSha256": "e4a2970e875b93c0dc6a4f962bbe602c59be4f9204df90ca9124391d17f9f879",
+      "packets": 3095,
+      "primingFrames": 1024,
+      "mediaFrames": 3169181,
+      "metadataBytes": 24765,
+      "description": [
+        17,
+        144,
+        86,
+        229,
+        0
+      ],
+      "exact": true
+    },
+    {
+      "genre": "orchestral",
+      "path": "public/assets/music/orchestral/title-b47c8a52.m4a",
+      "sourceSha256": "022e1dc4936bb15827226113160dbd90627482d13f18dbefc77ad1e0e39e2e1a",
+      "packets": 2149,
+      "primingFrames": 1024,
+      "mediaFrames": 2200127,
+      "metadataBytes": 17197,
+      "description": [
+        17,
+        144,
+        86,
+        229,
+        0
+      ],
+      "exact": true
+    }
+  ]
+}
