@@ -66,7 +66,10 @@ describe('one-call quest presentation', () => {
     const runtime = legacyDouble<ShardRuntime>({
       world: legacyDouble<World>({ player: legacyDouble<World['player']>(h.runtime.world.player),
         sky: legacyDouble<World['sky']>({ dayNight: legacyDouble<NonNullable<World['sky']['dayNight']>>(h.runtime.world.sky.dayNight) }) }),
-      play: legacyDouble<Play>({ hud: legacyDouble<Play['hud']>(h.runtime.play.hud), music: legacyDouble<Play['music']>(h.runtime.play.music),
+      play: legacyDouble<Play>({ hud: legacyDouble<Play['hud']>(h.runtime.play.hud), music: legacyDouble<Play['music']>({ sting: name => {
+        if (name !== 'chunk') throw new Error(`Unexpected presentation sting: ${name}`);
+        h.sting(name);
+      } }),
         weapons: legacyDouble<Play['weapons']>(h.weapons), fullMap: legacyDouble<Play['fullMap']>(h.runtime.play.fullMap),
         minimap: { ...h.runtime.play.minimap, setMarks: () => undefined } }),
       interactables: h.runtime.interactables,
