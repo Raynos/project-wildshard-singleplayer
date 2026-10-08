@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2218 members; 830 without a doc line (—).
+2224 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -739,7 +739,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `BASIS_PATH` | const | @wildshard/engine/core/ktx2 | where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two |
 | `initKtx2` | function | @wildshard/engine/core/ktx2 | detect the GPU's formats and start the transcoder download (idempotent) |
 | `ktx2Layers` | function | @wildshard/engine/core/ktx2 | The files of one texture array as KTX2 textures of one format (their `#layer` twins, baked unflipped), their mip chains trimmed so level 0 is `size` (the |
-| `ktx2Texture` | function | @wildshard/engine/core/ktx2 | The KTX2 texture standing in for `served` (a clone sharing one source per file), or null: load the image instead. |
+| `ktx2Texture` | function | @wildshard/engine/core/ktx2 | The KTX2 texture standing in for `served`, or null: load the image instead. Memory saver keeps a bounded weak |
 | `layerArrayMips` | function | @wildshard/engine/core/ktx2 | Concatenate same-format compressed layers into one array texture's mip chain (E157): each layer's chain from its level |
 | `readTexturePixels` | function | @wildshard/engine/core/ktx2 | Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h |
 | `releaseAfterUpload` | function | @wildshard/engine/core/ktx2 | Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the |
@@ -1503,6 +1503,12 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TerrainPainter` | interface | @wildshard/engine/render/look | a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) |
 | `fetchLut` | function | @wildshard/engine/render/lut | the LUT file's bytes; null (and a warning) when it is missing, unreadable or the wrong size |
 | `LUT_SIZE` | const | @wildshard/engine/render/lut | The one colour-LUT loader (10 §X5): a fitted 33³ RGB lookup, `scripts/fit-lut.py`'s format — 33³ × RGBA8, index |
+| `dropOutputDepth` | function | @wildshard/engine/render/memorySaver | The composer's output buffer loses its depth buffer when no pass draws geometry into it (every pass after the scene |
+| `halfLuminance` | function | @wildshard/engine/render/memorySaver | bloom's luminance (the threshold pass the mip blur reads) at half resolution: −6.6 MB at the phone's frame |
+| `installMemorySaver` | function | @wildshard/engine/render/memorySaver | The renderer's hooks: every texture is looked at when three first asks for its properties (before its upload), every |
+| `memorySaverOn` | function | @wildshard/engine/render/memorySaver | the row, read once per page (a reload row) |
+| `releaseOnUpload` | function | @wildshard/engine/render/memorySaver | assets.ts: a texture file's source; `done` runs once it is on the GPU (the image cache lets go of the image) |
+| `shadowLights` | function | @wildshard/engine/render/memorySaver | Game's shadow pass: after three made a light's map, its colour texture goes (shadowVariants.ts) |
 | `EngineDirectionalLightNode` | class | @wildshard/engine/render/nodes/cascadeLightNode | three's directional light node, gated as a cascade where the sky rig registered the light as one |
 | `engineFog` | function | @wildshard/engine/render/nodes/engineFog | fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off) |
 | `EngineNodesHandler` | class | @wildshard/engine/render/nodes/engineNodesHandler | three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` |

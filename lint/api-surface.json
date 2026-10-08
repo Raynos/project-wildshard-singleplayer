@@ -4399,7 +4399,7 @@
       {
         "name": "ktx2Texture",
         "kind": "function",
-        "doc": "The KTX2 texture standing in for `served` (a clone sharing one source per file), or null: load the image instead.",
+        "doc": "The KTX2 texture standing in for `served`, or null: load the image instead. Memory saver keeps a bounded weak",
         "from": "@wildshard/engine/core/ktx2"
       },
       {
@@ -8986,6 +8986,42 @@
         "kind": "const",
         "doc": "The one colour-LUT loader (10 §X5): a fitted 33³ RGB lookup, `scripts/fit-lut.py`'s format — 33³ × RGBA8, index",
         "from": "@wildshard/engine/render/lut"
+      },
+      {
+        "name": "dropOutputDepth",
+        "kind": "function",
+        "doc": "The composer's output buffer loses its depth buffer when no pass draws geometry into it (every pass after the scene",
+        "from": "@wildshard/engine/render/memorySaver"
+      },
+      {
+        "name": "halfLuminance",
+        "kind": "function",
+        "doc": "bloom's luminance (the threshold pass the mip blur reads) at half resolution: −6.6 MB at the phone's frame",
+        "from": "@wildshard/engine/render/memorySaver"
+      },
+      {
+        "name": "installMemorySaver",
+        "kind": "function",
+        "doc": "The renderer's hooks: every texture is looked at when three first asks for its properties (before its upload), every",
+        "from": "@wildshard/engine/render/memorySaver"
+      },
+      {
+        "name": "memorySaverOn",
+        "kind": "function",
+        "doc": "the row, read once per page (a reload row)",
+        "from": "@wildshard/engine/render/memorySaver"
+      },
+      {
+        "name": "releaseOnUpload",
+        "kind": "function",
+        "doc": "assets.ts: a texture file's source; `done` runs once it is on the GPU (the image cache lets go of the image)",
+        "from": "@wildshard/engine/render/memorySaver"
+      },
+      {
+        "name": "shadowLights",
+        "kind": "function",
+        "doc": "Game's shadow pass: after three made a light's map, its colour texture goes (shadowVariants.ts)",
+        "from": "@wildshard/engine/render/memorySaver"
       },
       {
         "name": "EngineDirectionalLightNode",
