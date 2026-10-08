@@ -95,6 +95,7 @@ export class SimHost {
   private playerMotor: CharacterMotor | undefined;
   private externalPlayer: { value: SimExternalPlayer; health: PlayerHealth; scope: Scope } | undefined;
   private heightAt: (x: number, z: number) => number;
+  private floorQuery: ((x: number, z: number, fromY: number, maxDrop: number) => number | undefined) | undefined;
 
   constructor(level: SimLevel, ports: SimHostPorts) {
     if (level.version !== SIM_API_VERSION) throw new RangeError('Unsupported simulation level version');
@@ -133,6 +134,7 @@ export class SimHost {
     for (const spawn of level.entities) {
       const entity = new AnimalSim(spawn.spec, spawn.seed, spawn.scale, spawn.id, {
         heightAt: (x, z) => this.heightAt(x, z), now: () => this.clock.now * 1000,
+        floorBelow: (x, z, fromY, maxDrop) => this.floorQuery === undefined ? this.heightAt(x, z) : this.floorQuery(x, z, fromY, maxDrop),
         random: () => this.rng.stream('gameplay').next(), hit: (req) => this.combat.hit(req),
       });
       entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
@@ -160,6 +162,10 @@ export class SimHost {
   }
   /** Reinstall the admitted terrain height query before a fresh host's same-engine continuation resumes. */
   setHeightQuery(heightAt: (x: number, z: number) => number): void { this.heightAt = heightAt; }
+  /** Opt into layered native ground queries, including flight, after admitted colliders install or reconnect.
+   * The default keeps the existing analytic height reader; a missing native floor stays undefined over a void.
+   */
+  setFloorQuery(query: (x: number, z: number, fromY: number, maxDrop: number) => number | undefined): void { this.floorQuery = query; }
   /** Read admitted frame-local terrain without decoding a second copy for the page traveller. */
   groundHeightAt(x: number, z: number): number {
     if (!Number.isFinite(x) || !Number.isFinite(z)) throw new RangeError('Invalid regional ground query');

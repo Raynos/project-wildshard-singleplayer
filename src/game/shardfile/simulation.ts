@@ -12,6 +12,7 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { installShardfileColliders, shardfileColliderIds } from './collisionBindings';
 import { validateMeshCollisionAssets } from './meshCollision';
 import { validateMeshEntryways } from './meshEntryways';
+import { clientGround } from './clientGround';
 import { declaredItemScriptEntities } from './items';
 import { syncTargetColliders } from './targets';
 import { scriptPhysicsQueries } from '@wildshard/engine/script/queries';
@@ -71,7 +72,8 @@ export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string,
   const bytes = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
   if (shard.terrain !== null && bytes === undefined) throw new Error('Missing admitted terrain collider');
   const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes);
-  const heightAt = terrain === undefined ? () => 0 : (x: number, z: number) => terrainTileHeight(terrain, x, z);
+  const heightAt = shard.meshCollision === null ? terrain === undefined ? () => 0 : (x: number, z: number) => terrainTileHeight(terrain, x, z)
+    : clientGround(shard, assets).heightAt;
   const weapon = ports.weapon ?? { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] };
   const host = createSimHost({ version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed,
     ground: { size: 500, height: 0 }, player: { at: { x: shard.spawn.x, y: shard.spawn.y, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
@@ -100,7 +102,8 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
     if (ids.length !== colliders.size || ids.some(id => !colliders.has(id))) throw new Error('Declared collider port mismatch');
     if (shard.meshCollision !== null) {
       // Layered native floors follow each creature's own height, never the top of an overhang above its head.
-      host.setHeightQuery((x, z) => floorBelow(host.physics, x, z, 250, 500) ?? -250);
+      host.setHeightQuery(clientGround(shard, assets).heightAt);
+      host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
       for (const actor of host.entities.values()) actor.groundHeight = (x, z, fromY) => floorBelow(host.physics, x, z, fromY, 500) ?? -250;
     }
     let pendingColliders: ReadonlyMap<string, PropColliderState> | undefined;

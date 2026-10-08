@@ -74,3 +74,29 @@ export function meshCollisionCost(data: MeshCollisionData): { decoded: number; g
   const vertices = data.vertices.length / 3, triangles = data.indices.length / 3;
   return { decoded: counts(vertices, data.indices.length) * 2 + vertices * 64 + triangles * 256, gpu: 0, triangles: 0, draws: 0 };
 }
+
+/** Lowest projected authored surface for the legacy two-dimensional terrain fallback, undefined over a void.
+ * This metadata lookup never creates a heightfield or selects a creature/player contact layer; native floor
+ * queries from the actor's actual height own stacked floors, decks and overhangs. Input was decoded/admitted.
+ */
+export function lowestMeshHeight(data: MeshCollisionData, x: number, z: number): number | undefined {
+  if (!Number.isFinite(x) || !Number.isFinite(z)) throw new RangeError('Invalid mesh terrain query');
+  let lowest: number | undefined;
+  for (let i = 0; i < data.indices.length; i += 3) {
+    const a = data.indices[i], b = data.indices[i + 1], c = data.indices[i + 2];
+    if (a === undefined || b === undefined || c === undefined) throw new Error('Missing mesh height triangle');
+    const ax = data.vertices[a * 3], ay = data.vertices[a * 3 + 1], az = data.vertices[a * 3 + 2];
+    const bx = data.vertices[b * 3], by = data.vertices[b * 3 + 1], bz = data.vertices[b * 3 + 2];
+    const cx = data.vertices[c * 3], cy = data.vertices[c * 3 + 1], cz = data.vertices[c * 3 + 2];
+    if (ax === undefined || ay === undefined || az === undefined || bx === undefined || by === undefined || bz === undefined || cx === undefined || cy === undefined || cz === undefined) throw new Error('Missing mesh height vertex');
+    if (x < Math.min(ax, bx, cx) || x > Math.max(ax, bx, cx) || z < Math.min(az, bz, cz) || z > Math.max(az, bz, cz)) continue;
+    const determinant = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz);
+    if (determinant === 0) continue; // A vertical wall has no projected terrain area.
+    const u = ((bz - cz) * (x - cx) + (cx - bx) * (z - cz)) / determinant;
+    const v = ((cz - az) * (x - cx) + (ax - cx) * (z - cz)) / determinant;
+    if (u < -1e-12 || v < -1e-12 || u + v > 1 + 1e-12) continue;
+    const height = ay * u + by * v + cy * (1 - u - v);
+    if (lowest === undefined || height < lowest) lowest = height;
+  }
+  return lowest;
+}

@@ -68,6 +68,27 @@ it('restores one combined prop/mesh collider map without duplicate allocation an
     expect(snapshotSimHost(fresh)).toEqual(snapshotSimHost(sim.host));
   } finally { sim.dispose(); fresh?.dispose(); }
 });
+it('samples flying creatures from their own height under and above a bridge, including after native restoration', () => {
+  const { source, assets } = fixture(true);
+  source.rows.species = source.rows.species.map(row => row.id === 'grey-blob'
+    ? { ...row, flight: { altitude: 1, above: 'ground', climbRate: 6, diveRate: 6 } } : row);
+  source.creatures.spawns = source.creatures.spawns.map((row, index) => ({ ...row, at: [20, index === 0 ? -1 : 5, 0] }));
+  const sim = createShardfileSim(source, assets, { rapier });
+  let restored: ReturnType<typeof restoreSimHost> | undefined;
+  try {
+    expect(sim.host.groundHeightAt(20, 0)).toBe(-2);
+    for (let tick = 0; tick < 100; tick++) sim.host.step();
+    expect(sim.host.entities.get('blob.0')?.position.y).toBeCloseTo(-1);
+    expect(sim.host.entities.get('blob.1')?.position.y).toBeCloseTo(5);
+    restored = restoreSimHost(sim.host.level, { rapier }, snapshotSimHost(sim.host), host => {
+      bindShardfileSim(host, source, assets, { rapier, restoring: true });
+    });
+    for (let tick = 0; tick < 200; tick++) { sim.host.step(); restored.step(); }
+    expect(snapshotSimHost(restored)).toEqual(snapshotSimHost(sim.host));
+    expect(restored.entities.get('blob.0')?.position.y).toBeCloseTo(-1);
+    expect(restored.entities.get('blob.1')?.position.y).toBeCloseTo(5);
+  } finally { sim.dispose(); restored?.dispose(); }
+});
 it('borrows the normal client physics/player, installs only scoped mesh content, and steps once per existing driver tick', () => {
   const { source, assets } = fixture(), owner = createSimHost({ version: 1, id: 'owner', seed: 1, ground: { size: 500, height: 0 }, player: { at: { x: 0, y: 0, z: 0 }, yaw: 0, speed: 3 }, entities: [],
     weapon: { id: 'none', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.1, cooldown: 1, range: 1, damage: 0, tags: [] }, quests: [] }, { rapier, ground: false });
