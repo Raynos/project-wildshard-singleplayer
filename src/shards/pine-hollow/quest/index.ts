@@ -623,9 +623,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   };
   ctx.debug.expose('pine.quest', debug);
   ctx.debug.expose(`harness.quest.${ctx.manifest.slug}`, () => flags.all.slice().sort());
-  if (!ui.exposeBrowser('__pineQuest', debug)) Object.assign(window, { __pineQuest: debug });
+  if (!ui.exposeBrowser('__pineQuest', debug)) ctx.scope.expose(window, '__pineQuest', debug);
   ctx.scope.onDispose(() => {
-    if (Reflect.get(window, '__pineQuest') === debug) Reflect.deleteProperty(window, '__pineQuest');
     objective.root.remove(); reward.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
     ui.cancelTimer(holdTimer);

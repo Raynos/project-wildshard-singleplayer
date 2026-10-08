@@ -177,7 +177,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     pineElites.update(dt, t);
     king.update(dt, t);
   } }, () => { if (app.player !== null) app.effects?.remove(app.player, 'effect.stun'); player.carried = false; });
-  if (entered === undefined) Object.assign(window, { __pineElites: pineElites, __antlerKing: king });
+  if (entered === undefined) { for (const [name, observer] of Object.entries({ __pineElites: pineElites, __antlerKing: king })) game.levelScope.expose(window, name, observer); }
   else installPineCombatObservers(entered, { elites: pineElites, king });
   const lap = { game, player, animals, music: h.music, hud: h.hud, elites, king };
   if (entered === undefined) registerPineLap(lap); // E350 F-J1: the fps panel's PERF LAP

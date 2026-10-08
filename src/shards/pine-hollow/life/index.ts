@@ -854,11 +854,6 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     beat: () => beatT,
   };
   h.ctx.debug.expose('pineLife', probe);
-  if (retained) installEnteredRuntimeObserver(h.ctx, '__pineLife', probe);
-  else {
-    const previous: unknown = Reflect.get(window, '__pineLife');
-    Reflect.set(window, '__pineLife', probe);
-    h.ctx.scope.onDispose(() => { if (Reflect.get(window, '__pineLife') === probe) { if (previous === undefined) Reflect.deleteProperty(window, '__pineLife'); else Reflect.set(window, '__pineLife', previous); } });
-  }
+  installEnteredRuntimeObserver(h.ctx, '__pineLife', probe);
   return life;
 }

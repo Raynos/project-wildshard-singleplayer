@@ -118,6 +118,6 @@ export function installPineAudio(h: PineAudioHost): void {
     });
   } else {
     game.app.addSystem(system, game.levelScope);
-    Object.assign(window, { __pineAudio: diagnostic });
+    game.levelScope.expose(window, '__pineAudio', diagnostic);
   }
 }

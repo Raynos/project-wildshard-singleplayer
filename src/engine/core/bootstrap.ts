@@ -147,7 +147,7 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
     forest.update(dt, world.freeCamera ? game.camera.position : player.position); // Explore's free camera: LOD around the eye, not the parked player
   }, 'player.update');
   installCrashFlag(game, params); // ?crash=system|fatal|window|boot — dev builds / unlocked reviewers only (E133)
-  (window as unknown as { __hf: unknown }).__hf = Heightfield;
+  game.levelScope.expose(window, '__hf', Heightfield);
   game.beginLevelSystems();
   return world;
 }

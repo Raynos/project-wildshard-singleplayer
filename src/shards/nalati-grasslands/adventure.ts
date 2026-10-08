@@ -271,6 +271,6 @@ export function installNalatiAdventure<A extends { kind: string; combatActor: ()
 
   const adventure: NalatiAdventure = { flags, line, people, kokpar, places, get dialogue() { return currentDialogue(); }, chip, markers };
   const debug = { ...adventure, get dialogue() { return currentDialogue(); }, kokparGoals: KOKPAR_GOALS, carving, talk: (id: PersonId) => { talks.find((x) => x.id === id)?.talk.talk(); } };
-  if (w.ctx === undefined) Object.assign(window, { __nalatiQuest: debug }); else w.ctx.debug.expose('nalati.quest', debug);
+  if (w.ctx === undefined) scope.expose(window, '__nalatiQuest', debug); else w.ctx.debug.expose('nalati.quest', debug);
   return adventure;
 }

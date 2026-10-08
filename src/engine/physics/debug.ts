@@ -16,7 +16,7 @@ export function installPhysicsDebug(physics: Physics, scene: THREE.Scene, params
   if (params.get('navmesh') === 'debug') installNavmeshDebug(scene);
   if (params.get('physics') !== 'debug') return;
   // for probes: which collider (and whose, what material) a query hit — `window.__physics.tagOf(collider)`
-  (window as unknown as { __physics: unknown }).__physics = { physics, tagOf };
+  (app.levelScope ?? app.engineScope).expose(window, '__physics', { physics, tagOf });
   const geo = new THREE.BufferGeometry();
   const lines = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.85, fog: false }));
   lines.frustumCulled = false;
