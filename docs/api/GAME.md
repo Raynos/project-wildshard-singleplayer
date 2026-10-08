@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-661 members; 112 without a doc line (—).
+662 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -200,6 +200,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `OwnedId` | type | @wildshard/game/loot/Owned | — |
 | `OwnedKind` | type | @wildshard/game/loot/Owned | — |
 | `installLoot` | function | @wildshard/game/loot/runtime | Any coin-enabled manifest gets the same scoped coin and shop mechanism. |
+| `installRuntimeLoot` | function | @wildshard/game/loot/runtime | Install ordinary loot against the admitted world services without exposing a raw scene to runtime content. |
 | `LootBody` | interface | @wildshard/game/loot/runtime | — |
 | `LootPresentation` | interface | @wildshard/game/loot/runtime | — |
 | `LootShop` | interface | @wildshard/game/loot/runtime | — |

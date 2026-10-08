@@ -2237,7 +2237,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-661 exports, grouped by the module to import them from.
+662 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2277,7 +2277,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/game/loot/coinModel`: `coinModel`, `installCoinModel`
 - `@wildshard/game/loot/deaths`: `CreatureDeathSource`, `DEATH_ORDER`, `onCreatureDeath`
 - `@wildshard/game/loot/Owned`: `CosmeticId`, `isCosmetic`, `isOwnedId`, `Owned`, `OWNED`, `OwnedId`, `OwnedKind`
-- `@wildshard/game/loot/runtime`: `installLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
+- `@wildshard/game/loot/runtime`: `installLoot`, `installRuntimeLoot`, `LootBody`, `LootPresentation`, `LootShop`, `ScopedLoot`, `ScopedLootHost`
 - `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
 - `@wildshard/game/loot/ui/ShopPanel`: `ShopCost`, `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
 - `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`

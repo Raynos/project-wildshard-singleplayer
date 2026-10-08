@@ -14526,6 +14526,12 @@
         "from": "@wildshard/game/loot/runtime"
       },
       {
+        "name": "installRuntimeLoot",
+        "kind": "function",
+        "doc": "Install ordinary loot against the admitted world services without exposing a raw scene to runtime content.",
+        "from": "@wildshard/game/loot/runtime"
+      },
+      {
         "name": "LootBody",
         "kind": "interface",
         "doc": "",
