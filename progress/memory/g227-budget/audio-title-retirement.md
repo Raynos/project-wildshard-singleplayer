@@ -14,6 +14,18 @@ The source-identified Pine-centre Mac heap on `0e6d69988` contained **23,920,672
 
 Focused Node tests: three reuse tests (concurrency/content identity, retry/bounded metadata, weak retirement), three score-residency tests, five Deck lifecycle tests, one plugin lifecycle test. Typed source/test lint passes.
 
-## Native proof status
+## Isolated native comparison
 
-Paired Simulator reading is queued after the current Nalati and corrected SF57 rehearsal slots. The accepted before baseline (`baseline-detail-0e6d69988`, sp-x5) is Memory saver ON: Pine centre WC939.495360 + labelled GL245.671812 = **1185.167172 MB**. Its live audio clock was INTERRUPTED at0, while the Mac attribution clock was RUNNING at42.8s. Keep those conditions distinct; no native saving is credited yet.
+The [raw comparison](audio-title-native-964988732/comparison.json) preserves the accepted before and after plus compressed after JSON, native journal, sampler log and each pose’s vmmap / footprint. Candidate `964988732` is parent `0e6d69988` plus **only Music.ts and preload.ts from `8b0801cd4`**. No other concurrent cut or cost-model change. Phone / 2x / Auto / Memory saver ON / Developer ON / volume0 / seed357, cold boot and the same home→Pine-centre route.
+
+| Pose | Before WC + GL MB | After WC + GL MB | Combined change MB |
+|---|---:|---:|---:|
+| home-settled | 761.999835 | 647.770731 | -114.229104 |
+| pine-hollow-entry | 1120.429768 | 1082.348068 | -38.081700 |
+| pine-hollow-centre | 1185.167172 | 1208.449028 | +23.281856 |
+
+**Pine centre: 1185.167172 → 1208.449028 MB, +23.281856 MB WC; labelled GL identical at245.671812 MB. No native footprint saving is credited.** One cold run per side cannot establish a native saving; the three samples per pose are only within-run samples. The source-identified27.770984 MB redundant-buffer attribution is separate from this whole-page result. Neither allocator cost nor runtimeCost is reduced.
+
+Both native live audio clocks were **INTERRUPTED at0**; the prior Mac attribution clock was RUNNING at42.8s. Do not merge these regimes or infer a timed fade leak from the interrupted clock. WebKit may retain freed malloc pages, but this pair does not isolate the cause of its increase. Every pose has three distinct fresh sample timestamps at the fixed admitted game PID. After: errors=[], samplerexit0, no GC/heap command before WC+GL, browser/Inspector/proxy/sampler closed. Simulator released to the next owner.
+
+Plan-State: unchanged. Native saving remains unproved; see the README A/B rule before crediting a later paired measurement.

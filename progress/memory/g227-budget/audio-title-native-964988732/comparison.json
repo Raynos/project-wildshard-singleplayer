@@ -1,0 +1,355 @@
+{
+  "protocol": "One cold run per side; three fresh settled samples per pose are within-run samples, not three independent cold runs. Retainer evidence is separate. No native saving credited.",
+  "sourceCandidate": "96498873272ca4dc55129633693d648dac008512",
+  "parent": "0e6d69988e4a78c546d691b57c49b8a509cef046",
+  "sourceFrom": "8b0801cd4a6be45cc23b46b3e9966a596d1b97d2",
+  "onlyChangedPaths": [
+    "src/engine/audio/Music.ts",
+    "src/engine/audio/preload.ts"
+  ],
+  "beforeEvidence": "progress/memory/g227-budget/pine-centre-0e6d69988/native.json.gz",
+  "beforeVersion": {
+    "build": "0e6d699-muz9oi4a",
+    "time": "2026-10-08T08:20:59.850Z"
+  },
+  "afterVersion": {
+    "build": "9649887-muzaxxz3",
+    "time": "2026-10-08T08:56:20.499Z"
+  },
+  "conditions": "Cold phone / 2x / Auto / Memory saver ON / Developer ON / volume 0 / seed 357; real grid home to Pine centre. Both native live AudioContexts interrupted at time 0. Mac running-clock retainer capture is not merged with this native pair.",
+  "rows": [
+    {
+      "pose": "home-settled",
+      "before": {
+        "webContentBytes": 565825088,
+        "webContentMinBytes": 565579328,
+        "webContentMaxBytes": 575082072,
+        "glBytes": 196174747,
+        "combinedBytes": 761999835,
+        "modelledPlayingBytes": 923415343,
+        "audioContexts": [
+          {
+            "kind": "AudioContext",
+            "state": "interrupted",
+            "currentTime": 0,
+            "sampleRate": 48000
+          },
+          {
+            "kind": "OfflineAudioContext",
+            "state": "suspended",
+            "currentTime": 0,
+            "sampleRate": 48000
+          }
+        ],
+        "sampleTimes": [
+          "2026-10-08T08:36:45.860140+00:00",
+          "2026-10-08T08:36:46.995993+00:00",
+          "2026-10-08T08:36:48.120972+00:00"
+        ],
+        "settings": {
+          "tier": "phone",
+          "fps": "auto",
+          "tex": "auto",
+          "memorySaver": "on",
+          "volume": 0
+        },
+        "devicePicks": {
+          "debug.plugin.pine-hollow.pineMemoryTrim": null,
+          "debug.plugin.pine-hollow.pineHybrid": null,
+          "debug.plugin.nalati-grasslands.nalatiHybrid": null
+        }
+      },
+      "after": {
+        "webContentBytes": 451595984,
+        "webContentMinBytes": 448089808,
+        "webContentMaxBytes": 454037200,
+        "glBytes": 196174747,
+        "combinedBytes": 647770731,
+        "modelledPlayingBytes": 923415343,
+        "audioContexts": [
+          {
+            "kind": "AudioContext",
+            "state": "interrupted",
+            "currentTime": 0,
+            "sampleRate": 48000
+          },
+          {
+            "kind": "OfflineAudioContext",
+            "state": "suspended",
+            "currentTime": 0,
+            "sampleRate": 48000
+          }
+        ],
+        "sampleTimes": [
+          "2026-10-08T08:57:54.682071+00:00",
+          "2026-10-08T08:57:55.795979+00:00",
+          "2026-10-08T08:57:56.986305+00:00"
+        ],
+        "settings": {
+          "tier": "phone",
+          "fps": "auto",
+          "tex": "auto",
+          "memorySaver": "on",
+          "volume": 0
+        },
+        "devicePicks": {
+          "debug.plugin.pine-hollow.pineMemoryTrim": null,
+          "debug.plugin.pine-hollow.pineHybrid": null,
+          "debug.plugin.nalati-grasslands.nalatiHybrid": null
+        }
+      },
+      "delta": {
+        "webContentBytes": -114229104,
+        "glBytes": 0,
+        "combinedBytes": -114229104,
+        "modelledPlayingBytes": 0
+      }
+    },
+    {
+      "pose": "pine-hollow-entry",
+      "before": {
+        "webContentBytes": 872009640,
+        "webContentMinBytes": 870043584,
+        "webContentMaxBytes": 872026048,
+        "glBytes": 248420128,
+        "combinedBytes": 1120429768,
+        "modelledPlayingBytes": 1145612160,
+        "audioContexts": [
+          {
+            "kind": "AudioContext",
+            "state": "interrupted",
+            "currentTime": 0,
+            "sampleRate": 48000
+          },
+          {
+            "kind": "OfflineAudioContext",
+            "state": "suspended",
+            "currentTime": 0,
+            "sampleRate": 48000
+          }
+        ],
+        "sampleTimes": [
+          "2026-10-08T08:37:11.508818+00:00",
+          "2026-10-08T08:37:12.653737+00:00",
+          "2026-10-08T08:37:13.702251+00:00"
+        ],
+        "settings": {
+          "tier": "phone",
+          "fps": "auto",
+          "tex": "auto",
+          "memorySaver": "on",
+          "volume": 0
+        },
+        "devicePicks": {
+          "debug.plugin.pine-hollow.pineMemoryTrim": null,
+          "debug.plugin.pine-hollow.pineHybrid": null,
+          "debug.plugin.nalati-grasslands.nalatiHybrid": null
+        }
+      },
+      "after": {
+        "webContentBytes": 837423184,
+        "webContentMinBytes": 837308496,
+        "webContentMaxBytes": 837488720,
+        "glBytes": 244924884,
+        "combinedBytes": 1082348068,
+        "modelledPlayingBytes": 1145612160,
+        "audioContexts": [
+          {
+            "kind": "AudioContext",
+            "state": "interrupted",
+            "currentTime": 0,
+            "sampleRate": 48000
+          },
+          {
+            "kind": "OfflineAudioContext",
+            "state": "suspended",
+            "currentTime": 0,
+            "sampleRate": 48000
+          }
+        ],
+        "sampleTimes": [
+          "2026-10-08T08:58:35.568172+00:00",
+          "2026-10-08T08:58:36.827391+00:00",
+          "2026-10-08T08:58:37.945003+00:00"
+        ],
+        "settings": {
+          "tier": "phone",
+          "fps": "auto",
+          "tex": "auto",
+          "memorySaver": "on",
+          "volume": 0
+        },
+        "devicePicks": {
+          "debug.plugin.pine-hollow.pineMemoryTrim": null,
+          "debug.plugin.pine-hollow.pineHybrid": null,
+          "debug.plugin.nalati-grasslands.nalatiHybrid": null
+        }
+      },
+      "delta": {
+        "webContentBytes": -34586456,
+        "glBytes": -3495244,
+        "combinedBytes": -38081700,
+        "modelledPlayingBytes": 0
+      }
+    },
+    {
+      "pose": "pine-hollow-centre",
+      "before": {
+        "webContentBytes": 939495360,
+        "webContentMinBytes": 939167680,
+        "webContentMaxBytes": 939577280,
+        "glBytes": 245671812,
+        "combinedBytes": 1185167172,
+        "modelledPlayingBytes": 1139336213,
+        "audioContexts": [
+          {
+            "kind": "AudioContext",
+            "state": "interrupted",
+            "currentTime": 0,
+            "sampleRate": 48000
+          },
+          {
+            "kind": "OfflineAudioContext",
+            "state": "suspended",
+            "currentTime": 0,
+            "sampleRate": 48000
+          }
+        ],
+        "sampleTimes": [
+          "2026-10-08T08:37:42.599019+00:00",
+          "2026-10-08T08:37:43.646686+00:00",
+          "2026-10-08T08:37:44.780496+00:00"
+        ],
+        "settings": {
+          "tier": "phone",
+          "fps": "auto",
+          "tex": "auto",
+          "memorySaver": "on",
+          "volume": 0
+        },
+        "devicePicks": {
+          "debug.plugin.pine-hollow.pineMemoryTrim": null,
+          "debug.plugin.pine-hollow.pineHybrid": null,
+          "debug.plugin.nalati-grasslands.nalatiHybrid": null
+        }
+      },
+      "after": {
+        "webContentBytes": 962777216,
+        "webContentMinBytes": 962695296,
+        "webContentMaxBytes": 963022976,
+        "glBytes": 245671812,
+        "combinedBytes": 1208449028,
+        "modelledPlayingBytes": 1139336213,
+        "audioContexts": [
+          {
+            "kind": "AudioContext",
+            "state": "interrupted",
+            "currentTime": 0,
+            "sampleRate": 48000
+          },
+          {
+            "kind": "OfflineAudioContext",
+            "state": "suspended",
+            "currentTime": 0,
+            "sampleRate": 48000
+          }
+        ],
+        "sampleTimes": [
+          "2026-10-08T08:59:23.396845+00:00",
+          "2026-10-08T08:59:24.591566+00:00",
+          "2026-10-08T08:59:25.668160+00:00"
+        ],
+        "settings": {
+          "tier": "phone",
+          "fps": "auto",
+          "tex": "auto",
+          "memorySaver": "on",
+          "volume": 0
+        },
+        "devicePicks": {
+          "debug.plugin.pine-hollow.pineMemoryTrim": null,
+          "debug.plugin.pine-hollow.pineHybrid": null,
+          "debug.plugin.nalati-grasslands.nalatiHybrid": null
+        }
+      },
+      "delta": {
+        "webContentBytes": 23281856,
+        "glBytes": 0,
+        "combinedBytes": 23281856,
+        "modelledPlayingBytes": 0
+      }
+    }
+  ],
+  "afterErrors": "[]",
+  "afterClosed": true,
+  "sampler": {
+    "pid": 67837,
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "log": "/private/tmp/claude-501/sp-builders/sp-x2/audio-after-964988732.json.sampler.log"
+  },
+  "creditedNativeSavingBytes": 0,
+  "artifacts": [
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/native-after.json.gz",
+      "uncompressedBytes": 6154174,
+      "sha256": "697fa6c39a559b3086da33cd8c6933654c8e7097a960de475c42241815fe89bd"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/native-after.jsonl.gz",
+      "uncompressedBytes": 159283,
+      "sha256": "bcd354bdaa74855bbc02ff4395361de8b0397229652f77c3704d09f5bf822c3e"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/sampler.log.gz",
+      "uncompressedBytes": 1046,
+      "sha256": "0db0d3e824591fc146b703a8b9d09ecdf7c87ab2cff86c1e90717e6901c511c1"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/home-settled.vmmap.txt.gz",
+      "uncompressedBytes": 7864,
+      "sha256": "f622724cd4ce6252aca1b423f7f78110b6c90de6bbdde86135f368a863b96eab"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/home-settled.vmmapVerbose.txt.gz",
+      "uncompressedBytes": 1370377,
+      "sha256": "d6a57dd9b937c94af461aee61f867d50ea172e3a69440b5e60878edf2c525bcc"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/home-settled.footprint.txt.gz",
+      "uncompressedBytes": 2646,
+      "sha256": "c7a26d48d49c27e8e253aa03b4431158573d338f108d7d90a0e5a8e0fb3cbff9"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/pine-hollow-entry.vmmap.txt.gz",
+      "uncompressedBytes": 8497,
+      "sha256": "cf0a3dfac79d77384f87ab08a617f254c33cb4e5b2afd276ae09840b8098cfab"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/pine-hollow-entry.vmmapVerbose.txt.gz",
+      "uncompressedBytes": 1394760,
+      "sha256": "4cfdb61c490caf3869f298ec422eecdb79e05cee75b227dec9f332426375f318"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/pine-hollow-entry.footprint.txt.gz",
+      "uncompressedBytes": 2717,
+      "sha256": "0c6d5e70204bf761cbd0c20f2648d1708fd2997f99b60568bb644cde035d7ede"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/pine-hollow-centre.vmmap.txt.gz",
+      "uncompressedBytes": 8495,
+      "sha256": "c23ed24cd65e2df13a67fc406b40e5f057eaa5b8207c02cba76c39f9c35bf4aa"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/pine-hollow-centre.vmmapVerbose.txt.gz",
+      "uncompressedBytes": 1395353,
+      "sha256": "54641ae86801771520f5c5584ffd42194b5fade21b0e898e89edaf7ea702b245"
+    },
+    {
+      "path": "progress/memory/g227-budget/audio-title-native-964988732/pine-hollow-centre.footprint.txt.gz",
+      "uncompressedBytes": 2717,
+      "sha256": "99a6f0f866924bde8b84ef732838266e8ea0079ddd463e23cc0d89deda366468"
+    }
+  ]
+}
