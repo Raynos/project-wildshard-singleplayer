@@ -143,10 +143,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         scope, ground: foundation.ground });
       const foundationWorld = foundation.world(view);
       let enteredContext: ShardContext | null = null, anonymous = 0;
-      const onUpdate: ShardWorld['game']['onUpdate'] = (run, label, core = false) => {
+      const onUpdate: ShardWorld['game']['onUpdate'] = (run, label, core) => {
         if (enteredContext === null) throw new Error('Regional callback registered before its interior context');
         const id = `grid.runtime.${request.cell.instance}.callback.${label ?? String(anonymous++)}`;
-        installEnteredRuntimeService(enteredContext, entry => { app.addSystem({ id, phase: 'update', run, core }, entry); });
+        installEnteredRuntimeService(enteredContext, entry => { app.addSystem({ id, phase: 'update', run, ...(core === undefined ? {} : { core }) }, entry); });
       };
       // Content keeps the same renderer/player, but its stable scope and callback registration belong to this region.
       // The home Game's fields are never overwritten, even across yielded hooks or while this resident is parked.
