@@ -10,6 +10,7 @@ import { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
 import { Physics } from '../src/engine/physics/Physics';
 import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
+import type { SimHost } from '../src/engine/sim';
 import { activeLevel, configureLevel } from '../src/engine/level/selection';
 import { heightAt } from '../src/engine/world/Heightfield';
 import type { TerrainField } from '../src/engine/level/data';
@@ -78,6 +79,30 @@ function fixture() {
   const foundation = createRegionalWorldFoundation({ rapier, level: () => region, terrain: drawnGround, pause: () => Promise.resolve(), checkpoint: () => { saves++; return true; } });
   return { app, scope, game, world, homePhysics, homeRegistry, request, claim, allocator, foundation, home, region, saves: () => saves };
 }
+
+it('yields between collision, terrain, tree and forest batches without rebinding the page', async () => {
+  const f = fixture(), levels: string[] = [];
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => f.region, terrain: drawnGround,
+    pause: () => { levels.push(activeLevel().id); expect(f.game.scene).toBe(f.game.rootScene); return Promise.resolve(); }, checkpoint: () => true });
+  try {
+    const prepared = await foundation(f.request);
+    expect(levels).toEqual(['home', 'home', 'home', 'home', 'home']);
+    expect(prepared.region.host.hasPlayerMotor).toBe(false);
+    prepared.region.dispose();
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
+it('retires partial native allocation if a presentation boundary cancels the foundation', async () => {
+  const f = fixture(); let host: SimHost | undefined, batches = 0;
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => f.region, terrain: drawnGround,
+    install: created => { host = created; }, pause: () => { if (++batches === 2) f.scope.dispose(); return Promise.resolve(); }, checkpoint: () => true });
+  try {
+    await expect(foundation(f.request)).rejects.toThrow('building its collision');
+    if (host === undefined) throw new Error('Missing allocated native batch');
+    expect(host.scope.disposed).toBe(true); expect(host.physics.world.colliders).toBeUndefined();
+    expect(f.homePhysics.world.colliders.len()).toBe(0);
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
 
 it('owns a bodyless destination, its terrain collider and a scene subtree that game.scene resolves only while entered', async () => {
   const f = fixture();

@@ -116,6 +116,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     ownSceneTree(scene, resident, app.assets);
     try {
       const navmesh = ports.navmesh === undefined ? null : await ports.navmesh(level);
+      await ports.pause();
       if (left()) throw new Error('Regional world left while loading its navmesh');
       const water = ports.water?.(level) ?? new WaterBodies();
       const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water });
@@ -125,16 +126,22 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       // The real ground of the region's level, sampled from its own bound heightfield (never the home's).
       frame.run(app, () => { addTerrain(host.physics); });
       ports.install?.(host, request);
+      await ports.pause();
+      if (left()) throw new Error('Regional world left while building its collision');
       const terrain = await (ports.terrain ?? regionalTerrain)(level, resident, frame.terrain);
+      await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');
       terrain.group.traverse((node: Object3D) => { const material: unknown = node instanceof Mesh ? node.material : null; if (isMaterial(material)) sky.setupMaterial(material); });
       scene.add(terrain.group);
       const trees = level.trees?.factory;
       const factory = typeof trees === 'function' ? await (await trees())(game.renderer, sky) : new TreeFactory(game.renderer).buildEmpty();
+      await ports.pause();
       if (left()) throw new Error('Regional world left while building its trees');
       const forest = frame.run(app, () => new Forest(factory, sky).build({ drawnBy: level.trees?.drawnBy ?? 'self' }));
       if (forest.trees.length === 0) forest.group.visible = false; else scene.add(forest.group);
       terrain.applyCanopy(forest.canopyMap);
+      await ports.pause();
+      if (left()) throw new Error('Regional world left while building its forest');
       const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
       let world: ShardWorld | null = null;
       // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
