@@ -1,24 +1,28 @@
-# sp-x3 handoff — 2026-10-08, active after un-throttle
+# sp-x3 handoff — 2026-10-08, active soak retry
 
-- Signal Dunes floor complete on origin `e632fe913`: 426.104 s, aggregate RED,
-  20/22 cadence rows pass. Desktop home spawn p95 33.3 ms; Simulator Sun re-entry
-  travel p95 36 ms. All four route witnesses per surface complete, errors0,
-  context loss0, CPU checks all pass. No graphical edits. Raw JSON and receipt:
-  `progress/frame-floor/e632fe913-68305-1791477955945.json` and
-  `progress/shard-platform/sf50-sun-floor-e632fe913.md`.
-- Next: one queued current-origin preview for SF57 Developer subset D/P/N/template,
-  light c132 observer/coalesced exact-state journal, raw tracing/stacks OFF.
-  Five-minute rehearsal then 30-minute failure-inclusive soak under coordinator
-  GPU quiet, after the queued loading audit releases the Simulator. No rendering,
-  shader or look fixes in this lane; report those to wildshard-new.
-- Pine P0 proven by sp-x4: `d77c83b84` + `f9e50f6fb`, standalone/grid WebKit
-  actual D→road→Pine green. Both are included in e632. Prior failed soak artifacts
-  remain committed; full-catalogue, road-only and shipped coverage stay open.
-- HOVER E459 shipped: `8f1918525`, receipt `c932ce846`, actual touch4/4 and
-  focused7/7. SF57 shipped route fix `cef43b993` shipped, route tests15/15.
-- No owned browser/Simulator/live preview or queued heavy job after Sun floor.
-  The harness stopped its own :4401; any later :4401 is foreign.
-- Scratch: `/private/tmp/claude-501/sp-builders/sp-x3/sun-floor-e632fe913/run.log`;
-  completed E459 scratch remains expendable (its rm-rf cleanup was rejected).
-- Shared source files clean/released. Private-index CAS only; coordinator pushes,
-  no plan edits, never message wildshard-v.
+- Sun floor receipt `2ed39b862` shipped: pin e632, 426.104 s, 20/22 cadence
+  rows pass, aggregate RED. Desktop home p95 33.3 ms; Simulator Sun reentry
+  travel p95 36 ms. All eight route witnesses complete, CPU passes, no errors/loss.
+  `progress/shard-platform/sf50-sun-floor-e632fe913.md` has exact raw JSON link.
+- SF57 dry5 FUNCTIONAL PASS316.270s, actual D→P→N→template→D, errors0/loss0,
+  sampling/calibration/leakZero pass, peak WC+GL993.183MB. Partial warm-up lap,
+  no qualifying/full-catalogue clearance. Durable raw data/summary/receipt under
+  `progress/memory/sf57/e632fe913-dev-subset/`.
+- THIRTY-MINUTE driver is active through sim-lane after an intervening template
+  floor. Fresh owned device `sf57-sp-x3-dev-e632-soak`, unified session59725.
+  Scratch `/private/tmp/claude-501/sp-builders/sp-x3/sf57-e632fe913-retry/soak`.
+  User authorized dry5 then30; Developer prepared D/P/N/template subset only,
+  light observer/coalesced journal, raw OFF. No graphical fixes: report to owner.
+- ONE owned preview :4401, PID/PGID10061, HTTP/disk e632fe9-muzs3wpn; root
+  `/private/tmp/claude-501/sp-builders/sp-x3/sf57-e632fe913-retry/serve/20261008-115519-4401`.
+  Both parents use --borrowed-preview to retain this own server between runs;
+  explicitly stop :4401 after final capture. Expiry18:57UTC, enough for current run.
+- Machine load logger session72038/PID71214, 10-second samples. Finish by creating
+  scratch `STOP_LOAD`, then preserve machine-load.jsonl and note desktop overlap.
+- Next: preserve full30 result and all failures with gzip hashes, report per-lap
+  WC+GL, allocator and GPU separately; commit exact evidence+receipt by private
+  index/CAS/hooks and verify ancestry. Coordinator alone pushes. Clean only own
+  clients/preview/scratch; never touch another preview occupying a reused port.
+- Pine P0 proven d77c83b84+f9e50f6fb (both in e632). HOVER shipped8f1918525
+  +c932ce846, touch4/4. SF57 shipped route fix cef43b993, route tests15/15.
+- No source WIP owned; no plan edits; never message wildshard-v.

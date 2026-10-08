@@ -1,0 +1,216 @@
+{
+  "sha": "e632fe9132d626335143155841236e8898f66a76",
+  "layout": "dev",
+  "leg": "cells",
+  "routeScope": "prepared",
+  "rehearsal": null,
+  "driveStarted": "2026-10-08T17:09:54.065Z",
+  "seconds": 316.27,
+  "functionalPass": true,
+  "failure": null,
+  "errors": [],
+  "circuits": 0,
+  "entries": [
+    {
+      "cycle": 0,
+      "instance": "pine-hollow",
+      "admitted": true,
+      "feet": {
+        "x": 0.0029481963430340596,
+        "y": 0.019999712830438,
+        "z": 323.6011288102254
+      }
+    },
+    {
+      "cycle": 0,
+      "instance": "nalati-grasslands",
+      "admitted": true,
+      "feet": {
+        "x": 323.64837517239533,
+        "y": 0.02038400667516499,
+        "z": 0.009925413507517078
+      }
+    },
+    {
+      "cycle": 0,
+      "instance": "template-2",
+      "admitted": true,
+      "feet": {
+        "x": 554.9849248343897,
+        "y": 0.019955943419491196,
+        "z": 323.71434525001894
+      }
+    },
+    {
+      "cycle": 0,
+      "instance": "driftwood-isle",
+      "admitted": true,
+      "feet": {
+        "x": 0.010990513216825093,
+        "y": 0.5136161572472038,
+        "z": 231.32470286874525
+      }
+    }
+  ],
+  "crossroads": [
+    "-832.5,-832.5",
+    "-277.5,-832.5",
+    "277.5,-832.5",
+    "832.5,-832.5"
+  ],
+  "grade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 993182920,
+    "loadingPeakBytes": 700239295,
+    "phoneEstimateBytes": 1390456088,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791479383.973,
+        "end": 1791479394.065,
+        "samples": 10,
+        "bytes": 612396699
+      }
+    ],
+    "baselineDeltaBytes": [
+      null
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": false,
+        "peakBytes": 993182920,
+        "troughBytes": 516088830
+      }
+    ],
+    "recovery": false,
+    "calibration": true,
+    "ratios": [],
+    "missingGlSamples": 0,
+    "sampling": true,
+    "leakZero": true,
+    "admitted": [
+      "pine-hollow",
+      "template-2",
+      "driftwood-isle",
+      "nalati-grasslands"
+    ],
+    "refused": [
+      "sunscar-dunes",
+      "far-reach"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 4,
+    "rehearsal": true,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46\u201348."
+  },
+  "glSampling": {
+    "journal": 38,
+    "observed": 354,
+    "missing": 0,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "perLap": [
+    {
+      "cycle": 0,
+      "complete": false,
+      "samples": 314,
+      "peakBytes": 993182920,
+      "troughBytes": 516088830,
+      "webContentPeakBytes": 879760016,
+      "allWebContentPeakBytes": 852352176,
+      "glPeakBytes": 284229772,
+      "accountedPeakBytes": 710874943,
+      "gpuProcessPeakBytes": 293915480,
+      "wasmPeakBytes": 70516736,
+      "overCapBytes": 0
+    }
+  ],
+  "nativeSummary": {
+    "type": "summary",
+    "t": "2026-10-08T17:15:31.225620+00:00",
+    "phases": {
+      "loading": {
+        "samples": 38,
+        "seconds": 37.2,
+        "gamePid": 76607,
+        "gameHighGB": 0.481,
+        "gameSampledGB": 0.477,
+        "allWebContentGB": 0.623,
+        "gpuProcessGB": 0.178
+      },
+      "baseline-0": {
+        "samples": 20,
+        "seconds": 19.2,
+        "gamePid": 76607,
+        "gameHighGB": 0.457,
+        "gameSampledGB": 0.454,
+        "allWebContentGB": 0.496,
+        "gpuProcessGB": 0.172
+      },
+      "drive": {
+        "samples": 314,
+        "seconds": 315.3,
+        "gamePid": 76607,
+        "gameHighGB": 0.88,
+        "gameSampledGB": 0.813,
+        "allWebContentGB": 0.919,
+        "gpuProcessGB": 0.299
+      },
+      "unloaded": {
+        "samples": 20,
+        "seconds": 19.1,
+        "gamePid": 76607,
+        "gameHighGB": 0.533,
+        "gameSampledGB": 0.533,
+        "allWebContentGB": 0.573,
+        "gpuProcessGB": 0.272
+      }
+    },
+    "lost": [
+      {
+        "pid": 76737,
+        "phase": "loading",
+        "elapsed": 2
+      },
+      {
+        "pid": 76735,
+        "phase": "loading",
+        "elapsed": 3
+      },
+      {
+        "pid": 76851,
+        "phase": "loading",
+        "elapsed": 4
+      },
+      {
+        "pid": 76849,
+        "phase": "loading",
+        "elapsed": 5
+      },
+      {
+        "pid": 76854,
+        "phase": "loading",
+        "elapsed": 5
+      },
+      {
+        "pid": 76883,
+        "phase": "loading",
+        "elapsed": 5
+      }
+    ]
+  },
+  "engineBase": 300000000,
+  "cleanupError": null,
+  "previewVersion": {
+    "build": "e632fe9-muzs3wpn",
+    "time": "2026-10-08T16:56:52.276Z"
+  },
+  "routeCount": 9,
+  "rawUploadBytes": 0,
+  "qualifying": false,
+  "limitation": "Prepared D/P/N/template subset only; omitted Sky Reach and Signal Dunes are untested, not failed admissions. Five-minute dry run cannot establish lap stability or close SF57."
+}

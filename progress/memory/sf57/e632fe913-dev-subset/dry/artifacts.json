@@ -1,0 +1,58 @@
+[
+  {
+    "source": "dev-cells.json",
+    "rawBytes": 3028666,
+    "rawSha256": "17e0eaf206354f84398f6fada6587beba5d3198329cff49fccebf3a1c644ff22",
+    "artifact": "dev-cells.json.gz",
+    "compressedBytes": 130660,
+    "compressedSha256": "a25863780df55091270c2e3b0f60a4c6df94c4ff1535a28b6a6701ae6200a5f8"
+  },
+  {
+    "source": "dev-cells-gl.jsonl",
+    "rawBytes": 21468199,
+    "rawSha256": "02260a1ce5840b644bf376e352c46615772d69a4d06572516c07b0b6bd5dc44b",
+    "artifact": "dev-cells-gl.jsonl.gz",
+    "compressedBytes": 1249763,
+    "compressedSha256": "f73bb5f6462d4288067c0b2d28b20aec23fc091962b85e88c1a4bf5948547969"
+  },
+  {
+    "source": "dev-cells-gl-events.jsonl",
+    "rawBytes": 6383023,
+    "rawSha256": "fe57fb3f0dc53f3ca35cb419634c2244833a9c619910b53f57cc1f576e5807f8",
+    "artifact": "dev-cells-gl-events.jsonl.gz",
+    "compressedBytes": 257153,
+    "compressedSha256": "47be1eb634f092909be4dc2569faa0872362792e2389ebfc387186dd893d3f82"
+  },
+  {
+    "source": "dev-cells-native.jsonl",
+    "rawBytes": 95373,
+    "rawSha256": "41782f191d81d3e7ec166de898f9fb274aedca9aa308d0da28eee1cfc846c993",
+    "artifact": "dev-cells-native.jsonl.gz",
+    "compressedBytes": 14516,
+    "compressedSha256": "0da8a84abf1a69705422916624234df214745c26ae77d1f7e0e9576a3ff00975"
+  },
+  {
+    "source": "dev-cells-gl-uploads.jsonl",
+    "rawBytes": 0,
+    "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifact": "dev-cells-gl-uploads.jsonl.gz",
+    "compressedBytes": 20,
+    "compressedSha256": "ac73670af3abed54ac6fb4695131f4099be9fbe39d6076c5d0264a6bbdae9d83"
+  },
+  {
+    "source": "driver.log",
+    "rawBytes": 3479,
+    "rawSha256": "fabd2415416aebd5735ed28cec170d36c14332a597c44935233242f4db03f750",
+    "artifact": "driver.log.gz",
+    "compressedBytes": 1271,
+    "compressedSha256": "435b4c019e20a524d7698c7bed79439c92e7c05b890de722ef00f884aeac18b4"
+  },
+  {
+    "source": "manifest.json",
+    "rawBytes": 528,
+    "rawSha256": "63e0524f1d7ff3512b5c4d6f350a684341806dafde34a15154779c9382c0c9a0",
+    "artifact": "manifest.json.gz",
+    "compressedBytes": 334,
+    "compressedSha256": "864f560634dde0a575cb5ad9c207e439fbcf1e1e20b65f9849a63ede95a76f57"
+  }
+]
