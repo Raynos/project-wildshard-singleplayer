@@ -1,0 +1,953 @@
+{
+  "protocol": "Three cold Simulator Safari runs per side, interleaved B1/A1/B2/A2/B3/A3. Three fresh fixed-PID native samples per pose. Relative evidence only.",
+  "summary": {
+    "home-settled": {
+      "before": {
+        "webContentBytes": {
+          "median": 549162536,
+          "min": 542690880,
+          "max": 578801240,
+          "spread": 36110360,
+          "runs": [
+            549162536,
+            542690880,
+            578801240
+          ]
+        },
+        "glBytes": {
+          "median": 196174747,
+          "min": 196174747,
+          "max": 196174747,
+          "spread": 0,
+          "runs": [
+            196174747,
+            196174747,
+            196174747
+          ]
+        },
+        "sumBytes": {
+          "median": 745337283,
+          "min": 738865627,
+          "max": 774975987,
+          "spread": 36110360,
+          "runs": [
+            745337283,
+            738865627,
+            774975987
+          ]
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "median": 551276240,
+          "min": 474304136,
+          "max": 620105352,
+          "spread": 145801216,
+          "runs": [
+            474304136,
+            551276240,
+            620105352
+          ]
+        },
+        "glBytes": {
+          "median": 196174747,
+          "min": 196174747,
+          "max": 196174747,
+          "spread": 0,
+          "runs": [
+            196174747,
+            196174747,
+            196174747
+          ]
+        },
+        "sumBytes": {
+          "median": 747450987,
+          "min": 670478883,
+          "max": 816280099,
+          "spread": 145801216,
+          "runs": [
+            670478883,
+            747450987,
+            816280099
+          ]
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": 2113704,
+        "glBytes": 0,
+        "sumBytes": 2113704
+      }
+    },
+    "nalati-grasslands-entry": {
+      "before": {
+        "webContentBytes": {
+          "median": 782388896,
+          "min": 768822992,
+          "max": 811732616,
+          "spread": 42909624,
+          "runs": [
+            811732616,
+            782388896,
+            768822992
+          ]
+        },
+        "glBytes": {
+          "median": 296386436,
+          "min": 296386436,
+          "max": 296386436,
+          "spread": 0,
+          "runs": [
+            296386436,
+            296386436,
+            296386436
+          ]
+        },
+        "sumBytes": {
+          "median": 1078775332,
+          "min": 1065209428,
+          "max": 1108119052,
+          "spread": 42909624,
+          "runs": [
+            1108119052,
+            1078775332,
+            1065209428
+          ]
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "median": 829198152,
+          "min": 712134448,
+          "max": 831409920,
+          "spread": 119275472,
+          "runs": [
+            712134448,
+            829198152,
+            831409920
+          ]
+        },
+        "glBytes": {
+          "median": 295297388,
+          "min": 292891192,
+          "max": 296386436,
+          "spread": 3495244,
+          "runs": [
+            296386436,
+            295297388,
+            292891192
+          ]
+        },
+        "sumBytes": {
+          "median": 1124301112,
+          "min": 1008520884,
+          "max": 1124495540,
+          "spread": 115974656,
+          "runs": [
+            1008520884,
+            1124495540,
+            1124301112
+          ]
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": 46809256,
+        "glBytes": -1089048,
+        "sumBytes": 45525780
+      }
+    },
+    "nalati-grasslands-centre": {
+      "before": {
+        "webContentBytes": {
+          "median": 822628024,
+          "min": 812846800,
+          "max": 844664504,
+          "spread": 31817704,
+          "runs": [
+            822628024,
+            844664504,
+            812846800
+          ]
+        },
+        "glBytes": {
+          "median": 292892608,
+          "min": 292892608,
+          "max": 292892608,
+          "spread": 0,
+          "runs": [
+            292892608,
+            292892608,
+            292892608
+          ]
+        },
+        "sumBytes": {
+          "median": 1115520632,
+          "min": 1105739408,
+          "max": 1137557112,
+          "spread": 31817704,
+          "runs": [
+            1115520632,
+            1137557112,
+            1105739408
+          ]
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "median": 846450480,
+          "min": 831311688,
+          "max": 915672832,
+          "spread": 84361144,
+          "runs": [
+            846450480,
+            831311688,
+            915672832
+          ]
+        },
+        "glBytes": {
+          "median": 292892608,
+          "min": 291803560,
+          "max": 292892608,
+          "spread": 1089048,
+          "runs": [
+            292892608,
+            291803560,
+            292892608
+          ]
+        },
+        "sumBytes": {
+          "median": 1139343088,
+          "min": 1123115248,
+          "max": 1208565440,
+          "spread": 85450192,
+          "runs": [
+            1139343088,
+            1123115248,
+            1208565440
+          ]
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": 23822456,
+        "glBytes": 0,
+        "sumBytes": 23822456
+      }
+    },
+    "neutral-road": {
+      "before": {
+        "webContentBytes": {
+          "median": 822103808,
+          "min": 808161024,
+          "max": 833703656,
+          "spread": 25542632,
+          "runs": [
+            833703656,
+            822103808,
+            808161024
+          ]
+        },
+        "glBytes": {
+          "median": 118928178,
+          "min": 118928178,
+          "max": 118928178,
+          "spread": 0,
+          "runs": [
+            118928178,
+            118928178,
+            118928178
+          ]
+        },
+        "sumBytes": {
+          "median": 941031986,
+          "min": 927089202,
+          "max": 952631834,
+          "spread": 25542632,
+          "runs": [
+            952631834,
+            941031986,
+            927089202
+          ]
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "median": 854183800,
+          "min": 847433592,
+          "max": 866389808,
+          "spread": 18956216,
+          "runs": [
+            854183800,
+            847433592,
+            866389808
+          ]
+        },
+        "glBytes": {
+          "median": 118928178,
+          "min": 118928178,
+          "max": 118928178,
+          "spread": 0,
+          "runs": [
+            118928178,
+            118928178,
+            118928178
+          ]
+        },
+        "sumBytes": {
+          "median": 973111978,
+          "min": 966361770,
+          "max": 985317986,
+          "spread": 18956216,
+          "runs": [
+            973111978,
+            966361770,
+            985317986
+          ]
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": 32079992,
+        "glBytes": 0,
+        "sumBytes": 32079992
+      }
+    }
+  },
+  "runs": [
+    {
+      "side": "before",
+      "number": 1,
+      "build": {
+        "build": "0e6d699-muz9oi4a",
+        "time": "2026-10-08T08:20:59.850Z"
+      },
+      "gamePID": 99749,
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 544,
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 549162536,
+          "glBytes": 196174747,
+          "sumBytes": 745337283,
+          "sampleTimestamps": [
+            "2026-10-08T10:03:06.792122+00:00",
+            "2026-10-08T10:03:07.987796+00:00",
+            "2026-10-08T10:03:09.027651+00:00"
+          ],
+          "panorama": []
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 811732616,
+          "glBytes": 296386436,
+          "sumBytes": 1108119052,
+          "sampleTimestamps": [
+            "2026-10-08T10:03:44.020480+00:00",
+            "2026-10-08T10:03:45.099968+00:00",
+            "2026-10-08T10:03:46.220208+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "ImageBitmap",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 822628024,
+          "glBytes": 292892608,
+          "sumBytes": 1115520632,
+          "sampleTimestamps": [
+            "2026-10-08T10:04:15.743069+00:00",
+            "2026-10-08T10:04:16.871981+00:00",
+            "2026-10-08T10:04:17.926965+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "ImageBitmap",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 833703656,
+          "glBytes": 118928178,
+          "sumBytes": 952631834,
+          "sampleTimestamps": [
+            "2026-10-08T10:05:53.920516+00:00",
+            "2026-10-08T10:05:55.044808+00:00",
+            "2026-10-08T10:05:56.094251+00:00"
+          ],
+          "panorama": []
+        }
+      ],
+      "rawReportSha256": "6e71b563bb574cf59ccef90aadd820b94be098543a7582e51b7497089bd36bf2",
+      "machineActivityAtStart": {
+        "active": [
+          {
+            "resource": "full-test",
+            "command": [
+              "bash",
+              "/private/tmp/claude-501/sp-builders/sp-x2/aac-clean-full.sh"
+            ]
+          },
+          {
+            "resource": "build",
+            "command": [
+              "bash",
+              "-c",
+              "node scripts/gen.mjs && node scripts/build-shardfiles.mjs && pnpm exec vite build --mode \"$1\" --config \"$2\"",
+              "bash",
+              "production",
+              "/private/tmp/wildshard-serve/20261008-050139-4403/vite.serve.mjs"
+            ]
+          }
+        ],
+        "queuedJobs": 0
+      }
+    },
+    {
+      "side": "after",
+      "number": 1,
+      "build": {
+        "build": "7f263d6-muzd9j4z",
+        "time": "2026-10-08T10:01:20.361Z"
+      },
+      "gamePID": 28026,
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 28822,
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 474304136,
+          "glBytes": 196174747,
+          "sumBytes": 670478883,
+          "sampleTimestamps": [
+            "2026-10-08T10:07:14.540379+00:00",
+            "2026-10-08T10:07:15.780079+00:00",
+            "2026-10-08T10:07:16.809224+00:00"
+          ],
+          "panorama": []
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 712134448,
+          "glBytes": 296386436,
+          "sumBytes": 1008520884,
+          "sampleTimestamps": [
+            "2026-10-08T10:07:48.905503+00:00",
+            "2026-10-08T10:07:49.906768+00:00",
+            "2026-10-08T10:07:51.060033+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "Object",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 846450480,
+          "glBytes": 292892608,
+          "sumBytes": 1139343088,
+          "sampleTimestamps": [
+            "2026-10-08T10:08:20.380533+00:00",
+            "2026-10-08T10:08:21.496831+00:00",
+            "2026-10-08T10:08:22.526817+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "Object",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 854183800,
+          "glBytes": 118928178,
+          "sumBytes": 973111978,
+          "sampleTimestamps": [
+            "2026-10-08T10:09:52.698758+00:00",
+            "2026-10-08T10:09:53.880103+00:00",
+            "2026-10-08T10:09:54.930678+00:00"
+          ],
+          "panorama": []
+        }
+      ],
+      "rawReportSha256": "fb7342320ee2d3eda3972ba190e9b596e42b2e445e2de2e05dfdc3eb11f4473e",
+      "machineActivityAtStart": {
+        "active": [
+          {
+            "resource": "full-test",
+            "command": [
+              "bash",
+              "/Users/raynos/projects/games/wildshard-singleplayer/scripts/vercel-tree-gate.sh",
+              "e3c6177e42bf390c9df7b2a8caca01b1afc86d7b"
+            ]
+          },
+          {
+            "resource": "build",
+            "command": [
+              "bash",
+              "/Users/raynos/projects/games/wildshard-singleplayer/scripts/vercel-tree-gate.sh",
+              "e3c6177e42bf390c9df7b2a8caca01b1afc86d7b"
+            ]
+          }
+        ],
+        "queuedJobs": 0
+      }
+    },
+    {
+      "side": "before",
+      "number": 2,
+      "build": {
+        "build": "0e6d699-muz9oi4a",
+        "time": "2026-10-08T08:20:59.850Z"
+      },
+      "gamePID": 50399,
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 50828,
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 542690880,
+          "glBytes": 196174747,
+          "sumBytes": 738865627,
+          "sampleTimestamps": [
+            "2026-10-08T10:11:19.269771+00:00",
+            "2026-10-08T10:11:20.375929+00:00",
+            "2026-10-08T10:11:21.497637+00:00"
+          ],
+          "panorama": []
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 782388896,
+          "glBytes": 296386436,
+          "sumBytes": 1078775332,
+          "sampleTimestamps": [
+            "2026-10-08T10:11:52.859239+00:00",
+            "2026-10-08T10:11:53.949852+00:00",
+            "2026-10-08T10:11:55.006057+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "ImageBitmap",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 844664504,
+          "glBytes": 292892608,
+          "sumBytes": 1137557112,
+          "sampleTimestamps": [
+            "2026-10-08T10:12:29.727489+00:00",
+            "2026-10-08T10:12:30.778844+00:00",
+            "2026-10-08T10:12:31.923547+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "ImageBitmap",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 822103808,
+          "glBytes": 118928178,
+          "sumBytes": 941031986,
+          "sampleTimestamps": [
+            "2026-10-08T10:14:07.828343+00:00",
+            "2026-10-08T10:14:08.871417+00:00",
+            "2026-10-08T10:14:10.012202+00:00"
+          ],
+          "panorama": []
+        }
+      ],
+      "rawReportSha256": "d6eb06718aa806df0d17e3d932eeca6bbbeb5f30d78d4a60aab4259441873202",
+      "machineActivityAtStart": {
+        "active": [
+          {
+            "resource": "full-test",
+            "command": [
+              "bash",
+              "/Users/raynos/projects/games/wildshard-singleplayer/scripts/vercel-tree-gate.sh",
+              "ab74d8ba3ebdf9be5d4d77fcdd8b42e35b4927d4"
+            ]
+          },
+          {
+            "resource": "build",
+            "command": [
+              "bash",
+              "/Users/raynos/projects/games/wildshard-singleplayer/scripts/vercel-tree-gate.sh",
+              "ab74d8ba3ebdf9be5d4d77fcdd8b42e35b4927d4"
+            ]
+          }
+        ],
+        "queuedJobs": 0
+      }
+    },
+    {
+      "side": "after",
+      "number": 2,
+      "build": {
+        "build": "7f263d6-muzd9j4z",
+        "time": "2026-10-08T10:01:20.361Z"
+      },
+      "gamePID": 71806,
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 74234,
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 551276240,
+          "glBytes": 196174747,
+          "sumBytes": 747450987,
+          "sampleTimestamps": [
+            "2026-10-08T10:15:28.097945+00:00",
+            "2026-10-08T10:15:29.231257+00:00",
+            "2026-10-08T10:15:30.256305+00:00"
+          ],
+          "panorama": []
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 829198152,
+          "glBytes": 295297388,
+          "sumBytes": 1124495540,
+          "sampleTimestamps": [
+            "2026-10-08T10:16:02.505426+00:00",
+            "2026-10-08T10:16:03.507288+00:00",
+            "2026-10-08T10:16:04.682000+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "Object",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 831311688,
+          "glBytes": 291803560,
+          "sumBytes": 1123115248,
+          "sampleTimestamps": [
+            "2026-10-08T10:16:34.266448+00:00",
+            "2026-10-08T10:16:35.298453+00:00",
+            "2026-10-08T10:16:36.438281+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "Object",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 847433592,
+          "glBytes": 118928178,
+          "sumBytes": 966361770,
+          "sampleTimestamps": [
+            "2026-10-08T10:18:06.299248+00:00",
+            "2026-10-08T10:18:07.480249+00:00",
+            "2026-10-08T10:18:08.520768+00:00"
+          ],
+          "panorama": []
+        }
+      ],
+      "rawReportSha256": "325f9bd0b55bdefbcb378f1c237b044c489cf64b9d7d6b0bea487fe2f6a39499",
+      "machineActivityAtStart": {
+        "active": [
+          {
+            "resource": "full-test",
+            "command": [
+              "bash",
+              "/Users/raynos/projects/games/wildshard-singleplayer/scripts/vercel-tree-gate.sh",
+              "88753834d639d818fe73bae79aefdbbdbf591a23"
+            ]
+          },
+          {
+            "resource": "build",
+            "command": [
+              "bash",
+              "/Users/raynos/projects/games/wildshard-singleplayer/scripts/vercel-tree-gate.sh",
+              "88753834d639d818fe73bae79aefdbbdbf591a23"
+            ]
+          }
+        ],
+        "queuedJobs": 0
+      }
+    },
+    {
+      "side": "before",
+      "number": 3,
+      "build": {
+        "build": "0e6d699-muz9oi4a",
+        "time": "2026-10-08T08:20:59.850Z"
+      },
+      "gamePID": 91564,
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 91996,
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 578801240,
+          "glBytes": 196174747,
+          "sumBytes": 774975987,
+          "sampleTimestamps": [
+            "2026-10-08T10:19:07.563813+00:00",
+            "2026-10-08T10:19:08.721771+00:00",
+            "2026-10-08T10:19:09.758389+00:00"
+          ],
+          "panorama": []
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 768822992,
+          "glBytes": 296386436,
+          "sumBytes": 1065209428,
+          "sampleTimestamps": [
+            "2026-10-08T10:19:33.680885+00:00",
+            "2026-10-08T10:19:34.821397+00:00",
+            "2026-10-08T10:19:35.847048+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "ImageBitmap",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 812846800,
+          "glBytes": 292892608,
+          "sumBytes": 1105739408,
+          "sampleTimestamps": [
+            "2026-10-08T10:20:04.639054+00:00",
+            "2026-10-08T10:20:05.691146+00:00",
+            "2026-10-08T10:20:06.844027+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "ImageBitmap",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 808161024,
+          "glBytes": 118928178,
+          "sumBytes": 927089202,
+          "sampleTimestamps": [
+            "2026-10-08T10:21:36.799456+00:00",
+            "2026-10-08T10:21:37.922408+00:00",
+            "2026-10-08T10:21:39.099978+00:00"
+          ],
+          "panorama": []
+        }
+      ],
+      "rawReportSha256": "dc9fa862a6b92cdf7398dc97ce340b08bbc37bce13d81fa1a070d95e52ade5bf",
+      "machineActivityAtStart": {
+        "active": [],
+        "queuedJobs": 0
+      }
+    },
+    {
+      "side": "after",
+      "number": 3,
+      "build": {
+        "build": "7f263d6-muzd9j4z",
+        "time": "2026-10-08T10:01:20.361Z"
+      },
+      "gamePID": 8318,
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 8959,
+        "exitCode": 0,
+        "signal": null,
+        "error": null
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 620105352,
+          "glBytes": 196174747,
+          "sumBytes": 816280099,
+          "sampleTimestamps": [
+            "2026-10-08T10:22:50.689303+00:00",
+            "2026-10-08T10:22:51.852151+00:00",
+            "2026-10-08T10:22:52.911791+00:00"
+          ],
+          "panorama": []
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 831409920,
+          "glBytes": 292891192,
+          "sumBytes": 1124301112,
+          "sampleTimestamps": [
+            "2026-10-08T10:23:17.861378+00:00",
+            "2026-10-08T10:23:18.909737+00:00",
+            "2026-10-08T10:23:20.059741+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "Object",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 915672832,
+          "glBytes": 292892608,
+          "sumBytes": 1208565440,
+          "sampleTimestamps": [
+            "2026-10-08T10:23:48.817081+00:00",
+            "2026-10-08T10:23:50.004839+00:00",
+            "2026-10-08T10:23:51.036692+00:00"
+          ],
+          "panorama": [
+            {
+              "name": "nalati-panorama",
+              "uses": [
+                "Scene/region:nalati-grasslands/region-scene:nalati-grasslands/sky-dome-v2"
+              ],
+              "imageKind": "Object",
+              "width": 4128,
+              "height": 758
+            }
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 866389808,
+          "glBytes": 118928178,
+          "sumBytes": 985317986,
+          "sampleTimestamps": [
+            "2026-10-08T10:25:20.712235+00:00",
+            "2026-10-08T10:25:21.875272+00:00",
+            "2026-10-08T10:25:22.936908+00:00"
+          ],
+          "panorama": []
+        }
+      ],
+      "rawReportSha256": "7bab003bf647680396e3e65390e9a63f6987175522fca6da3b6b40b3b19c1b64",
+      "machineActivityAtStart": {
+        "active": [],
+        "queuedJobs": 0
+      }
+    }
+  ],
+  "beforeCommit": "0e6d69988",
+  "afterTree": "7f263d646ff4996a88127029fdc8155055305413",
+  "sourceVerdict": {
+    "pixelBytesRetired": 12516096,
+    "heapOwnerBytesIncludingHeader": 12516128,
+    "panoramaGpuBytesPerSide": 16683348,
+    "nativeSavingCreditedBytes": 0,
+    "nativeVerdict": "No native saving demonstrated; AFTER centre median is 23,822,456 bytes higher with wider cold-run spread."
+  },
+  "limitations": [
+    "Simulator-relative evidence, not physical-iPhone cap proof.",
+    "Only three cold runs per side; native allocator/page variation is large.",
+    "Early samples overlapped local push gates, a full suite and a preview build; activity recorded below.",
+    "GL differences are reported without credit. One AFTER centre has 1,089,048 fewer camera-attached mesh-buffer bytes; panorama GPU allocation is unchanged.",
+    "Earlier failed AFTER from the old sampler remains rejected and is not included or overwritten."
+  ]
+}

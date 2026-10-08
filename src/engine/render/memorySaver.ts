@@ -56,7 +56,11 @@ const bitmapRelease = new WeakMap<THREE.TextureSource<unknown>, () => void>();
 let placeholder: THREE.TextureSource<unknown> | null = null;
 let warned = false;
 
-/** assets.ts: a texture file's source; `done` runs once it is on the GPU (the image cache lets go of the image) */
+/** Register an exclusively owned, immutable decoded texture source for Memory saver retirement.
+ * With Memory saver enabled, `done` runs after its first upload and the source retains only dimensions;
+ * release a private bitmap or relinquish the image cache there. No CPU reader or different-sampler clone
+ * may use those pixels afterward. The existing GPU-only context-loss recovery reloads the page.
+ * Registration alone does not release an image when Memory saver is off; the owner also handles disposal. */
 export function releaseOnUpload(source: THREE.TextureSource<unknown>, done: () => void): void { bitmapRelease.set(source, done); }
 
 function decodedImage(im: unknown): im is ImageBitmap | HTMLImageElement {

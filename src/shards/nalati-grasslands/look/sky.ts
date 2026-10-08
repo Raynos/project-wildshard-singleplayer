@@ -24,6 +24,7 @@
  */
 import type { Scope } from '@wildshard/engine/app/scope';
 import * as THREE from 'three';
+import { releaseOnUpload } from '@wildshard/engine/render/memorySaver';
 import { fetchImage } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture, readTexturePixels } from '@wildshard/engine/core/ktx2';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -200,6 +201,17 @@ export class SkyDomeV2 {
         zenith.setRGB(r / n / 255, gg / n / 255, b / n / 255, THREE.SRGBColorSpace);
       }
     } catch { /* keep the default */ }
+    // This decode is private to the dome. Memory saver can retire it after upload;
+    // ordinary mode keeps it until this owner retires, including an unload before first draw.
+    let released = false;
+    const releaseImage = (): void => {
+      if (released) return;
+      released = true;
+      if (typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) image.close();
+      else if (typeof HTMLImageElement !== 'undefined' && image instanceof HTMLImageElement) image.removeAttribute('src');
+    };
+    releaseOnUpload(tex.source, releaseImage);
+    scope.onDispose(releaseImage);
     return new SkyDomeV2(tex, image.width, fogLut, zenith, scope);
   }
 
