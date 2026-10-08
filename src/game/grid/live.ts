@@ -262,6 +262,7 @@ export class LiveGridHost {
         if (bundle.hybridWireBytes > 0 && admitted.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
         if (this.ports.home.mode !== 'owned') await admitted.prepareRuntime?.();
         this.assertAlive(); this.readiness.complete(ticket, 'runtime');
+        this.assertAlive();
         region = await admitted.create(prior, lease); this.checkRegion(region);
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
@@ -330,6 +331,14 @@ export class LiveGridHost {
     for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
       if (distance <= estimate.distance && !this.issues.has(cell.instance)) void this.prefetch([cell.instance]).catch(() => undefined);
+    }
+    // In owned mode prefetch never constructs a world. On the neutral road, start the one destination just before
+    // its radius-adjusted readiness wall; otherwise the wall stops the feet before target() can reach its 6m band.
+    // Source departure/disposal and the whole claim must already be complete. Frame commit thresholds stay 6/10m.
+    if (this.ports.home.mode === 'owned' && this.active === null && this.residents.size === 0) {
+      const approach = nearby[0];
+      const reach = 6 + this.ports.player.motor.opts.radius + 0.5 + this.ports.readiness.link.speed / 60;
+      if (approach !== undefined && this.distance(approach) <= reach && !this.issues.has(approach.instance)) void this.ensure(approach.instance).catch(() => undefined);
     }
     const walls = this.ports.home.mode !== 'owned' && this.active === this.ports.home.instance ? this.ports.home.walls
       : this.active === null ? this.highway.walls : this.region(this.active)?.walls;

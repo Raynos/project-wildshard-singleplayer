@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { Scope } from '../src/engine/app/scope';
 import { loadRapier } from '../src/engine/physics/rapier';
+import { ReadinessWalls } from '../src/engine/physics/readinessWalls';
 import { createSimHost, type SimHost } from '../src/engine/sim';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { GridCrossing } from '../src/game/grid/crossing';
@@ -143,6 +144,34 @@ it('keeps every neighbour product/module-only at boot and while the owned home i
     expect(f.registry.state().residents).toEqual(['driftwood-isle']);
     expect(f.owner.allocator.entries().filter(row => neighbours.includes(row.owner))).toEqual([]);
     expect(f.modules).toEqual([...new Set([...neighbours].sort().concat('driftwood-isle'))]);
+  } finally { f.finish(); }
+});
+
+it('materializes only the approached road destination before its capsule reaches the closed readiness wall', async () => {
+  const f = await open(), cell = f.registry.assembly.cell('pine-hollow');
+  const walls = new ReadinessWalls(f.shell.physics, [{ instance: cell.instance, x: cell.origin.x, z: cell.origin.z - 256,
+    axis: 'z', halfLength: 250, floor: 0 }], f.platform);
+  try {
+    f.player.position.set(cell.origin.x, 0.5, cell.origin.z - 260);
+    await f.registry.prefetch(['pine-hollow', 'nalati-grasslands']);
+    expect(f.creates).toEqual([]);
+    let observed = false;
+    for (let tick = 0; tick < 100 && f.registry.target(f.registry.worldFeet()) === null; tick++) {
+      f.registry.beforeFixed(); walls.sync(f.registry.readiness);
+      f.player.motor.move(f.player.position, { x: 0, y: -0.05, z: 0.25 }); f.shell.physics.step();
+      await Promise.resolve();
+      if (!observed && f.creates.length > 0) {
+        observed = true;
+        expect(f.registry.target(f.registry.worldFeet())).toBeNull(); // starts before contact, never shifts the commit band
+        expect(f.registry.current()).toBeNull();
+      }
+    }
+    expect(observed).toBe(true); expect(f.creates).toEqual(['pine-hollow']);
+    expect(f.registry.target(f.registry.worldFeet())).toBe('pine-hollow');
+    expect(f.registry.ready('pine-hollow')).toBe(true); expect(f.registry.current()).toBeNull();
+    const prepared = await f.registry.prepare(null, 'pine-hollow'); prepared.commit();
+    expect(f.registry.current()).toBe('pine-hollow');
+    expect(f.owner.allocator.has('sim:nalati-grasslands')).toBe(false);
   } finally { f.finish(); }
 });
 
