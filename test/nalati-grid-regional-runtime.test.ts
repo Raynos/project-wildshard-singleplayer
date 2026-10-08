@@ -101,6 +101,9 @@ it('enters Nalati twice through the generic factory, keeps one player/renderer a
       expect(world.physics).not.toBe(f.homePhysics); expect(activeLevel().id).toBe(NALATI_GRASSLANDS.slug);
       ctx.piece({ id: 'fixture.nalati.exit', name: 'Exit', category: 'props', file: 'runtime/index.ts',
         colliders: [{ kind: 'box', x: 0, y: 1, z: 232, hx: 1, hy: 0.5, hz: 1 }] });
+      expect(ctx.scope.belongsTo(world.game.registrationScope)).toBe(true);
+      expect(world.game.registrationScope).not.toBe(f.scope);
+      expect(f.game.registrationScope).toBe(f.scope);
       bindEnteredEnvironment(ctx, { grassHeightAt: () => 2, grassStandingAt: () => 3, trample: () => undefined,
         wetAt: () => false, onEvent: () => undefined, onKnockdown: () => undefined });
       return Promise.resolve();
@@ -131,18 +134,21 @@ it('enters Nalati twice through the generic factory, keeps one player/renderer a
     for (let visit = 0; visit < 2; visit++) {
       expect(await session.enter({ instance: f.request.cell.instance, slug: NALATI_GRASSLANDS.slug })).toBe(true);
       expect(scene?.visible).toBe(true); expect(activeLevel().id).toBe(NALATI_GRASSLANDS.slug);
+      expect(f.app.species.get('wolf')?.kind).toBe('wolf');
       expect(f.game.scene).not.toBe(f.game.rootScene); expect(f.app.registry).not.toBe(f.homeRegistry);
       expect(prepared.queries.heightAt(0, 232)).toBeCloseTo(f.region.ground.terrain?.heightAt(0, 232) ?? 0, 1);
       const entered = ticks;
       const tick = f.app.systemsByPhase().update.find(system => system.id === 'fixture.nalati.tick');
       if (tick === undefined) throw new Error('Entered system missing'); tick.run(1 / 60, visit);
       expect(ticks).toBe(entered + 1); expect(prepared.checkpoint()).toBe(true);
+      expect(f.app.systemsByPhase().update.some(system => system.id === `grid.runtime.${f.request.cell.instance}.callback.world.impacts`)).toBe(true);
       expect(prepared.region.host.physics.world.colliders.len()).toBeGreaterThan(initialColliders);
       prepared.loadout.stow(); session.leave();
       expect(scene?.visible).toBe(false); expect(activeLevel()).toBe(f.home);
       expect(f.game.scene).toBe(f.game.rootScene); expect(f.app.registry).toBe(f.homeRegistry);
       expect(Object.getOwnPropertyDescriptors(wildEnv)).toEqual(beforeEnv);
       expect(f.app.systemsByPhase().update.some(system => system.id === 'fixture.nalati.tick')).toBe(false);
+      expect(f.app.systemsByPhase().update.some(system => system.id.startsWith(`grid.runtime.${f.request.cell.instance}.callback.`))).toBe(false);
     }
     expect(builds).toBe(1); expect(ticks).toBe(2); expect(f.saves()).toBe(2);
     if (equipment.play === null) throw new Error('Regional equipment never entered');
