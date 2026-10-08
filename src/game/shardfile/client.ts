@@ -40,6 +40,7 @@ import { portalTransitioning } from './portalTraversal';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
+import { withoutRuntimeRows } from './hybridRows';
 import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from './simulation';
 import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
@@ -110,7 +111,9 @@ export class ShardfileClient {
       const home = bindings.residency.home();
       if (home.instance !== bindings.instance || home.allocator !== bindings.allocator) throw new Error('Shardfile client requires its early page home residency');
     }
-    this.source = source; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(source, bindings.audioOwner, bindings.worldOwner);
+    // M3: a trusted runtime's bound sections (runtime.binds) are its own to install (hybridRows.ts); the data client never installs them
+    const data = bindings.trustedRuntime === true ? withoutRuntimeRows(source) : source;
+    this.source = data; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(data, bindings.audioOwner, bindings.worldOwner);
     if (!this.emptyTrustedData) bindings.onSimulationExpected?.();
   }
 

@@ -22,7 +22,7 @@ import { toLevelSpec } from '../../../src/game/shard/spec';
 import { SUNSCAR_DUNES } from '../../../src/shards/sunscar-dunes/manifest';
 import { installCreatures, RESPAWN } from '../../../src/shards/sunscar-dunes/combat/creatures';
 import { installMatriarch } from '../../../src/shards/sunscar-dunes/combat/matriarch';
-import { FLAG } from '../../../src/shards/sunscar-dunes/world/build';
+import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
 import { DUNE_RAY, DUNE_RAY_LOOK } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from '../../../src/shards/sunscar-dunes/species/skitterer';
 import { DUNE_STRIDER, DUNE_STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/species/strider';

@@ -1,0 +1,23 @@
+{
+  "url": "http://127.0.0.1:4401/",
+  "device": "iPhone 16 Pro",
+  "bootMs": 7472,
+  "result": {
+    "whip": "on",
+    "whipId": "sunscar-whip",
+    "current": "sunscar-whip",
+    "quest": {
+      "id": "sunscar.signal",
+      "index0": 0,
+      "afterScout": 1,
+      "afterWaymarks": 4,
+      "chip": null
+    },
+    "crack": {
+      "before": -1,
+      "after": 0,
+      "cooldown": 0.45
+    }
+  },
+  "errors": []
+}

@@ -12,9 +12,7 @@ import { buildDressing } from './dressing';
 import { buildButtes } from './buttes';
 import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
-
-/** The quest's flags (persisted per shard by `Flags`). */
-export const FLAG = { logbook: 'sunscar.logbook', oil: 'sunscar.oil', brazier: (i: number): string => `sunscar.brazier.${String(i)}`, lit: 'sunscar.lit' } as const;
+import { FLAG } from '../data/flags';
 
 /** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
 export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }

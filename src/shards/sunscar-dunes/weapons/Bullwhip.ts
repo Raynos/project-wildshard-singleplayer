@@ -6,6 +6,7 @@ import type { Targets } from '@wildshard/engine/combat/types';
 import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 import { CatmullRomCurve3, Mesh, TubeGeometry, Vector2, Vector3 } from 'three';
 import { WHIP_ROW } from './rows';
+import { WHIP_ITEM } from '../data/items';
 import { braidedMaterial, buildWhipModel, type WhipParts } from './whipModel';
 import type { Crackable } from '../world/build';
 
@@ -18,8 +19,10 @@ const CHEST = 0.9, BODY = 0.7;
 /** The wrap round a caught lever (metres, seconds): coil radius, height, turns, cord, how long it holds. */
 const WRAP = { r: 0.06, h: 0.24, turns: 4, cord: 0.018, hold: 0.9 } as const;
 
-export const CRACK = { reach: 7, heavyReach: 8, width: 0.9, light: 18, heavy: 16, cooldown: 0.45, heavyCooldown: 0.9,
-  unroll: 0.12, second: 0.32, show: 0.42, charge: 0.6, stagger: 0.8, pull: 16, pullMaxHp: 40 } as const;
+/** Reach, width, damage, cooldowns and charge are the declared item row's (data/items.ts, SF50-p); the lash's timing is the runtime's own. */
+export const CRACK = { reach: WHIP_ITEM.light.range, heavyReach: WHIP_ITEM.heavy.range, width: WHIP_ITEM.light.width, light: WHIP_ITEM.light.damage, heavy: WHIP_ITEM.heavy.damage,
+  cooldown: WHIP_ITEM.light.cooldown, heavyCooldown: WHIP_ITEM.heavy.cooldown, charge: WHIP_ITEM.charge,
+  unroll: 0.12, second: 0.32, show: 0.42, stagger: 0.8, pull: 16, pullMaxHp: 40 } as const;
 
 /**
  * The bullwhip (rung 3, `extends Weapon`): a light crack is one long, narrow lash to the crosshair; the heavy is a

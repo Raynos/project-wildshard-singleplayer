@@ -72,6 +72,26 @@ Build output goes in git-ignored `public/shardfiles/`. Placement is platform dat
 `src/game/grid/singleplayer.json`, attached by `scripts/gen-shards.mjs`; source manifests
 and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 grid.
 
+**Hybrid shards bind declared behaviour rows (SHARD-PLATFORM M3, the runtime-owner binding).** A hybrid shard (a
+shardfile plus its trusted `runtime/` chunk) keeps its runtime as the owner of the world and the play scope, and still
+moves behaviour into `shard.config.ts` as data. `runtime.binds` declares which sections the runtime binds
+(`src/game/shardfile/runtimeBinds.ts`: `quests`, `ledger`, `items`). A bound section is validated like every row; its
+rows do not make the shardfile "non-empty", so the hybrid stays on its own runtime instead of the full shardfile loader,
+and the data client never installs it (`withoutRuntimeRows`). An unbound behaviour row still sends the shard down the
+full loader. The runtime calls the platform installers from `@wildshard/game/shardfile/hybridRows`, which put the rows
+into its play scope (the entered `runtime:<instance>` scope in a grid cell, disposed or parked on leaving; the level scope
+standalone), through the template's own installers:
+
+| Section | Installer | The runtime lends |
+|---|---|---|
+| `ledger` | `bindRuntimeLedger(ctx, source, instance)` → `(fact, entity) => receipt` (the platform `Ledger`; tick 0, told apart by entity, granted once) | the first-party placement id |
+| `quests` | `bindRuntimeQuest(ctx, source, id, { flags, facts, place, chip })` → `QuestState` over its flags; emits the `onComplete` fact | its `Flags`, each world-piece marker's built spot, a chip the format cannot carry |
+| `items` | `bindRuntimeItems(ctx, source, { families, icon })` in `buildEquipment` → `installDeclaredItems`; `bindRuntimeItemContexts(ctx, source)` in play | its own families, named `<slug>.<name>` (never shadowing `kit.*`); contexts register entered-only for a retained home |
+
+A runtime-bound item carries no script hook (no simulation lane runs there). Signal Dunes is the first: its quest, its
+two ledger facts and the bullwhip row live in `shard.config.ts`; the runtime resolves `sunscar-dunes.whip` to its
+`Bullwhip`, which reads its crack numbers from the row.
+
 To start a shard, copy `src/shards/_template/` to a fresh project folder, install
 `@wildshard/sdk`, and edit the identity in `shard.config.ts`. Run `wildshard build
 <folder>` and `wildshard validate <folder>`. The config imports only SDK modules;

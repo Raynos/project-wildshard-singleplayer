@@ -11,8 +11,7 @@ import type { AimCommand } from '@wildshard/engine/input/commands';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { ScriptEntity } from '@wildshard/engine/script/effects';
 
-const name = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));
-const weaponId = v.custom<`weapon.${string}`>((value) => typeof value === 'string' && /^weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(value) && value.length <= 128);
+const name = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.-]*$/u), v.maxLength(128));const weaponId = v.custom<`weapon.${string}`>((value) => typeof value === 'string' && /^weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(value) && value.length <= 128);
 const toolId = v.custom<`tool.${string}`>((value) => typeof value === 'string' && /^tool\.[a-z][a-zA-Z0-9.-]*$/u.test(value) && value.length <= 128);
 const slot = v.custom<`declared.weapon.${string}`>((value) => typeof value === 'string' && /^declared\.weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(value) && value.length <= 128);
 const text = v.pipe(v.string(), v.maxLength(4096));
@@ -72,6 +71,21 @@ export interface DeclaredItemPorts {
   scope: Scope; actorId: string; input: Pick<InputService, 'bind' | 'held' | 'register'>; aim: () => AimCommand;
   families: ReadonlyMap<string, ItemFamily>; icon: (name: string) => EquipmentIcon;
   runtime: (row: ShardItems['rows'][number]) => ItemPorts;
+  /** A trusted shard's own families (M3): each named `<slug>.<name>`, never shadowing a kit family; resolved like the kit's. */
+  shardFamilies?: { readonly slug: string; readonly families: ReadonlyMap<string, ItemFamily> };
+  /** `runtime`: a hybrid runtime registers the declared input contexts through its own entered-input path (hybridRows.ts). */
+  contexts?: 'install' | 'runtime';
+}
+/** Merge a trusted shard's own item families over the kit's, refusing a foreign or shadowing name. */
+export function shardItemFamilies(kit: ReadonlyMap<string, ItemFamily>, shard: NonNullable<DeclaredItemPorts['shardFamilies']>): ReadonlyMap<string, ItemFamily> {
+  if (!/^[a-z][a-z0-9-]*$/u.test(shard.slug)) throw new Error('Shard item families need a shard slug');
+  const merged = new Map(kit);
+  for (const [id, family] of shard.families) {
+    if (!id.startsWith(`${shard.slug}.`) || id.length <= shard.slug.length + 1 || !v.is(name, id)) throw new Error(`Shard item family ${id} must be named ${shard.slug}.<name>`);
+    if (merged.has(id)) throw new Error(`Shard item family ${id} shadows a registered family`);
+    merged.set(id, family);
+  }
+  return merged;
 }
 /** Normal equipment factory result plus authoritative fixed-step runtimes, scoped to the one session. */
 export interface DeclaredItems {
@@ -81,7 +95,8 @@ export interface DeclaredItems {
 /** Resolve every family before construction, register baseline contexts, and expose the normal buildEquipment handoff. */
 export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): DeclaredItems {
   const data = parseItems(input);
-  const families = data.rows.map((row) => { const family = ports.families.get(row.family); if (family?.kind !== row.kind) throw new Error(`Unresolved item family ${row.family}`); return family; });
+  const resolved = ports.shardFamilies === undefined ? ports.families : shardItemFamilies(ports.families, ports.shardFamilies);
+  const families = data.rows.map((row) => { const family = resolved.get(row.family); if (family?.kind !== row.kind) throw new Error(`Unresolved item family ${row.family}`); return family; });
   const icons = data.rows.map((row) => ports.icon(row.ui.icon));
   const runtimePorts = data.rows.map((row) => {
     const deps = ports.runtime(row);
@@ -92,7 +107,7 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
   const scope = ports.scope.child('declared-items');
   const weapons = new Map<string, Weapon>(), tools = new Map<string, Tool>(), runtimes = new Map<string, ItemRuntime>();
   try {
-    for (const ctx of data.contexts) ports.input.register({ id: ctx.id, actions: ctx.actions, keysFrom: ctx.keysFrom, touch: { mode: ctx.touch, lockable: ctx.lockable, relabel: {} } }, scope);
+    if (ports.contexts !== 'runtime') for (const ctx of data.contexts) ports.input.register({ id: ctx.id, actions: ctx.actions, keysFrom: ctx.keysFrom, touch: { mode: ctx.touch, lockable: ctx.lockable, relabel: {} } }, scope);
     for (const [index, declaration] of data.rows.entries()) {
       const family = families[index], icon = icons[index]; if (family === undefined || icon === undefined) throw new Error('Missing resolved item');
       const deps = runtimePorts[index]; if (deps === undefined) throw new Error('Missing resolved runtime');

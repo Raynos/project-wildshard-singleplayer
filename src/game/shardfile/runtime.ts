@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type { ShardPlugin } from '../shard/plugin';
 import { RuntimeCostSchema, runtimeAccountedBytes } from '../grid/runtimeCost';
+import { RuntimeBindsSchema } from './runtimeBinds';
 
 const cost = v.pipe(RuntimeCostSchema, v.check((row) => {
   try { runtimeAccountedBytes(row); return true; } catch { return false; }
@@ -10,6 +11,8 @@ const cost = v.pipe(RuntimeCostSchema, v.check((row) => {
 export const RuntimeSchema = v.strictObject({
   entry: v.pipe(v.string(), v.maxLength(160), v.regex(/^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u)),
   cost: v.optional(cost),
+  /** Behaviour sections this runtime binds in its own play scope (./runtimeBinds.ts); absent = none. */
+  binds: v.optional(RuntimeBindsSchema),
 });
 /** Serializable declaration of the trusted TypeScript that remains during an 80/20 conversion. */
 export type RuntimeDeclaration = v.InferOutput<typeof RuntimeSchema>;

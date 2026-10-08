@@ -2,7 +2,8 @@ import { declaredDuneRows } from './runtime/brains';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { bindRuntimeItemContexts, bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
 import { installSilentScore } from '@wildshard/kit/audio/forest';
 import source from './shard.config';
 import { Vector3 } from 'three';
@@ -10,7 +11,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { STRINGS } from './strings';
-import { buildWorld, FLAG, type SignalFire, type SignalWorld } from './world/build';
+import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
 import { setDusk, stepDusk } from './look/dusk';
@@ -18,10 +19,10 @@ import { fitSkirtToCube } from './look/cube';
 import { preloadDuneMeshes } from './world/meshes';
 import { DUNE_RAY, DUNE_RAY_LOOK } from './species/duneRay';
 import { Bullwhip } from './weapons/Bullwhip';
-import { WHIP_ROW } from './weapons/rows';
+import { WHIP_ROW, whipIcon } from './weapons/rows';
 import { installQuest } from './quest/install';
 import { FACT, MATRIARCH_FLAG } from './quests/signal';
-import { SCOUT_FLAG } from './quest/scout';
+import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';
 import { SAND_SKITTERER, SAND_SKITTERER_LOOK } from './species/skitterer';
@@ -91,18 +92,23 @@ export class SignalDunesPlugin extends ShardPlugin {
       { ...DUNE_STRIDER, ...this.brainPolicies.rows[2] }, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
     ctx.rows.encounter([{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }]);
     const rt = ctx.game.runtime;
+    // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.
     if (rt) rt.buildEquipment = (targets) => {
-      this.whip = new Bullwhip(ctx.app, targets);
-      this.whip.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(WHIP_ROW, 'heavy'); else rt.play?.cues.fire(WHIP_ROW); };
-      return Promise.resolve({ primary: this.whip, secondary: null, rifle: null, install: () => undefined });
+      const items = bindRuntimeItems(ctx, source, { icon: whipIcon, families: new Map([['sunscar-dunes.whip', { kind: 'weapon', create: () => {
+        const whip = new Bullwhip(ctx.app, targets); this.whip = whip;
+        whip.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(WHIP_ROW, 'heavy'); else rt.play?.cues.fire(WHIP_ROW); };
+        return whip;
+      } }]]) });
+      const primary = items.primary; if (primary === null) throw new Error('Signal Dunes declares its whip as the primary');
+      return Promise.resolve({ primary, secondary: null, rifle: null, install: () => undefined });
     };
   }
   override play(ctx: ShardContext): void {
     const host = ctx.app.equipmentHost, whip = this.whip;
     // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
     if (host !== null && whip !== null) { host.viewmodel.add(whip.model); lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); }
-    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, { id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } }, { rows: [] });
-    else ctx.inputContext({ id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
+    // the whip's declared input context (shard.config.ts items.contexts): while the cell is entered for a retained home
+    bindRuntimeItemContexts(ctx, source);
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
     if (rt?.play) {
       const play = rt.play;
@@ -119,7 +125,7 @@ export class SignalDunesPlugin extends ShardPlugin {
     const onCoin = loot?.purse ? (share: number): void => { loot.purse?.add(share); } : undefined;
     if (places) {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
-      const installed = installQuest(ctx, position, places, source.identity.revision, onCoin), facts = installed.facts;
+      const installed = installQuest(ctx, position, places, onCoin), facts = installed.facts;
       this.quest = installed.quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const matriarch = installMatriarch(ctx, position, () => places.fire.lit, onCoin, () => { places.flags.set(MATRIARCH_FLAG); facts(FACT.matriarch, 'sunscar.matriarch'); }); this.matriarch = matriarch.boss;

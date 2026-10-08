@@ -1,4 +1,4 @@
-import { QuestState, type QuestMarker } from '@wildshard/engine/quest/core';
+import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
 import { boxDesc } from '@wildshard/engine/world/registry';
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from '@wildshard/game/quest/presentation';
@@ -7,15 +7,16 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as v from 'valibot';
 import { Scene, type Vector3 } from 'three';
-import { FLAG, type SignalWorld } from '../world/build';
+import type { SignalWorld } from '../world/build';
 import { BASIN, CARAVAN, SPAWN, WELL, TOWER } from '../layout';
 import { STRINGS } from '../strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
-import { SCOUT_AT, SCOUT_FLAG, scout, scoutNpc } from './scout';
-import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG, SIGNAL_QUESTS } from '../quests/signal';
-import { signalFacts, type SignalFacts } from './facts';
-import { SIGNAL_LEDGER } from '../data/ledger';
+import { scout, scoutNpc } from './scout';
+import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
+import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../quests/signal';
+import { bindRuntimeLedger, bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
+import source from '../shard.config';
 
 
 /** The old reward record (SHARDS §10): read once to carry a current save over to PAID_FLAG (C26), never written again. */
@@ -40,10 +41,11 @@ const at = (p: Vector3, dy = 0): QuestMarker['at'] => ({ poi: 'world', x: p.x, y
  * tab carries the quest card, the places toast as they are found, and the Matriarch is the last step: the 5-coin
  * signal reward pays after her fall.
  */
-export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, revision: number, onCoin?: (share: number) => void): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null; facts: SignalFacts } {
+export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, onCoin?: (share: number) => void): { quest: QuestState; burst: CoinBurst; view: QuestPresentation | null; facts: RuntimeFacts } {
   const { flags } = world, saves = ctx.app.saves, legacy = saves.define(LEGACY_SIGNAL);
-  // SF14: Signal Dunes' feats are ledger facts (quests/signal.ts, data/ledger.ts); the platform grants each achievement once.
-  const slug = ctx.manifest.slug, facts = signalFacts(saves, { instance: slug, shard: slug, revision }, SIGNAL_LEDGER);
+  // SF14 / M3: Signal Dunes' feats are its shardfile's ledger rows (runtime.binds); the platform grants each achievement once.
+  // The instance is the first-party placement id (the slug: Select a shard, explore and the grid share it).
+  const slug = ctx.manifest.slug, facts = bindRuntimeLedger(ctx, source, slug);
   const groundAt = (x: number, z: number): number => ctx.manifest.ground.terrain?.heightAt(x, z) ?? 0;
   // C26: a current save that recorded the paid reward in the old shard save carries it over as the quest flag.
   if (!flags.has(PAID_FLAG) && legacy.read(slug)) flags.set(PAID_FLAG);
@@ -56,16 +58,12 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     logbook: at(world.logbook.position, 0.4), well: at(world.well.spot.position, 0.6), tower: at(world.fire.brazier.position, 1),
     ...Object.fromEntries(world.braziers.map((b, i) => [`waymark.${String(i)}`, at(b.spot.position, 0.8)])),
   };
-  const declared = SIGNAL_QUESTS.quests[0];
-  if (declared === undefined) throw new Error('Signal Dunes declares its quest');
-  const reward = declared.onComplete?.coins ?? 0, fact = declared.onComplete?.fact;
-  // The format caps a chip at 18 characters; the scout step's chip names the quest's goal (21), so it is added here.
-  const quest = new QuestState({ id: declared.id, title: declared.title, completeFlag: declared.completeFlag, steps: declared.steps.map((step) => ({ ...step,
-    ...(step.id === 'scout' ? { chip: STRINGS.chipScout } : {}),
-    ...(step.markers === undefined ? {} : { markers: step.markers.map((marker) => ({ ...marker, at: placed[marker.id] ?? marker.at })) }) })) }, flags, ctx.app.events, ctx.scope);
-  // SF14: the quest's feat is a ledger fact; a save that finished it before facts existed emits it now (granted once).
-  const witness = (): void => { if (fact !== undefined) facts(fact, declared.id); };
-  if (quest.isComplete) witness();
+  // The declared quest (shard.config.ts, bound by this runtime): the platform builds its state over the world's flags and
+  // emits its fact (on completion, and on load for a save that finished it before facts existed). The format caps a chip at
+  // 18 characters; the scout step's chip names the quest's goal (21), so this runtime supplies it (an SF50-p format gap).
+  const bound = bindRuntimeQuest(ctx, source, 'sunscar.signal', { flags, facts, place: (marker) => placed[marker.id],
+    chip: (step) => (step.id === 'scout' ? STRINGS.chipScout : undefined) });
+  const quest = bound.state, reward = bound.reward.coins;
   const purse = shardSave(purseSave, slug);
   const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene);
   const alreadyPaid = flags.has(PAID_FLAG);
@@ -93,8 +91,8 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } };
   const entered = live !== null && retainsRuntimeServices(ctx) ? installEnteredQuestPresentation(ctx, quest, presentation) : null;
   const view = live === null || entered !== null ? null : installQuestPresentation(ctx, quest, presentation);
-  // The feat's fact on completion; headless (no play host: tests, a node bake) the reward also pays at once.
-  ctx.scope.onDispose(quest.observe({ complete: () => { witness(); if (live === null) pay(); } }));
+  // Headless (no play host: tests, a node bake) the reward pays at once on completion.
+  ctx.scope.onDispose(quest.observe({ complete: () => { if (live === null) pay(); } }));
   // On the first frame the goal is on screen: the chip, and a toast that names the quest.
   if (!quest.isComplete) ctx.game.runtime?.play?.hud.toast(`${STRINGS.newQuest} · ${STRINGS.quest}`);
   ctx.system({ id: 'sunscar.reward', phase: 'update', run: (dt) => { burst.update(dt, player); } });
