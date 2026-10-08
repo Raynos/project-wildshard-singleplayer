@@ -11,7 +11,7 @@ it('admits an over-budget Developer home with its exact cost and releases every 
   developer = true;
   const home = page.admitHome('pine', 800_000_000), registry = home.retain();
   expect(page.memory).toBe(memory);
-  expect(allocator.entries()).toEqual([{ id: 'sim:pine', category: 'sim', bytes: 800_000_000, owner: 'pine', distance: 0, needed: true, refs: 2, holds: 0 }]);
+  expect(allocator.entries()).toEqual([{ id: 'sim:pine', category: 'sim', bytes: 800_000_000, accountedBytes: 800_000_000, owner: 'pine', distance: 0, needed: true, refs: 2, holds: 0 }]);
   expect(allocator.cost().playing).toBe(1_268_000_001);
   expect(memory.reports()[0]).toMatchObject({ claimedBytes: 800_000_000, accountedBytes: 800_000_000, playingBytes: allocator.cost().playing, playingCap: 1_000_000_000 });
   developer = false;
