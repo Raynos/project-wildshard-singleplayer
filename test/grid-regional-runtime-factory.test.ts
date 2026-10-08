@@ -59,6 +59,8 @@ function fixture() {
   const host = createSimHost({ ...SIM_LEVEL, id: 'pine-hollow', entities: [], quests: [], ground: { size: 500, height: 0 } }, { rapier, playerBody: false });
   const region = { host, dispose: () => { destroyed = true; host.dispose(); } };
   const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon', render: { waitForModels: false, lowPoly: true, furRim: false, tintRange: 0, oneMaterial: true } });
+  // Foundation double supplies no blood/rig build; the real shell updates its built manager on entered ticks.
+  vi.spyOn(animals, 'update').mockImplementation(noop);
   const calls: string[] = [], regional = createRegionalRuntimeFactory({ home: { x: 0, z: 0 }, prepareFoundation: prepared => Promise.resolve({ region,
     ground: { heightAt: () => 0, waterSurfaceAt: () => null },
     world: view => {

@@ -51,20 +51,22 @@ export class GridCombatRules {
  * damage to the traveller uses the same gate. Terminal CombatPipeline.fall deliberately has its separate G129 path.
  * Regional actor objects (not repeated ids) provide local provenance; neighbours cannot damage another world's actors.
  */
-export function installGridTravellerCombat(events: Events, scope: Scope, traveller: Actor, instance: string,
-  cellAtTraveller: () => string | null, actors?: ReadonlyMap<Actor, Readonly<GridPoint>>): void {
+export function installGridTravellerCombat(events: Events, scope: Scope, traveller: Actor, instance: string | (() => string | null),
+  cellAtTraveller: () => string | null, actors?: ReadonlyMap<Actor, Readonly<GridPoint>> | (() => ReadonlyMap<Actor, Readonly<GridPoint>> | undefined)): void {
   if (scope.disposed) return;
   events.answer('damage.admit', request => {
     if (request === null) return null;
     const source = request.source === traveller || (request.source === 'env' && request.sourceTags.includes('actor.player'));
     const target = request.target === traveller;
-    if (!source && !target && actors === undefined) return request; // Preserve the page's independent local combat.
-    if (cellAtTraveller() !== instance) return null;
-    if (actors !== undefined) {
-      const localTarget = target ? undefined : actors.get(request.target);
+    const local = typeof actors === 'function' ? actors() : actors;
+    if (!source && !target && local === undefined) return request; // Preserve the page's independent local combat.
+    const expected = typeof instance === 'function' ? instance() : instance;
+    if (expected === null || cellAtTraveller() !== expected) return null;
+    if (local !== undefined) {
+      const localTarget = target ? undefined : local.get(request.target);
       if (!target && (localTarget === undefined || gridZone(localTarget) !== 'shard')) return null;
       if (!source && request.source !== 'env') {
-        const localSource = actors.get(request.source);
+        const localSource = local.get(request.source);
         if (localSource === undefined || gridZone(localSource) !== 'shard') return null;
       }
     }

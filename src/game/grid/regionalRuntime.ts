@@ -6,6 +6,7 @@ import { authoredTargets } from '@wildshard/engine/combat/targets';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { PlayerFrameQueries } from '@wildshard/engine/player/Player';
+import { gridCreatureConstraint } from '@wildshard/engine/physics/gridBorders';
 import { shardContext, type ShardContext } from '../shard/context';
 import type { ShardManifest } from '../shard/manifest';
 import type { ShardPlayHost, ShardRuntime } from '../shard/runtime';
@@ -76,15 +77,17 @@ export interface PreparedRegionalRuntime {
   readonly queries: PlayerFrameQueries;
   readonly resident: HybridResident;
   readonly loadout: GridLoadout;
-  /** Flush authored runtime progress and native continuation; false keeps the traveller in the source frame. */
+  /** Flush authored runtime progress and its admitted continuation; false keeps the traveller in the source frame. */
   readonly checkpoint: () => boolean;
+  /** Actual actor-object provenance in the retained region; repeated IDs in parked neighbours grant no permission. */
+  readonly combatActors: () => ReadonlyMap<ReturnType<AnimalManager['animals'][number]['combatActor']>, Readonly<{ x: number; y: number; z: number }>>;
 }
 
 /** Trusted composition-root adapter. Module admission precedes this call; world/kit/play remain interior-only. */
 export type RegionalRuntimeFactory = (request: RegionalRuntimeRequest) => Promise<PreparedRegionalRuntime>;
 
 /**
- * TODO SF47 engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine
+ * Required engine binding: a real destination world, never the home's terrain, forest or AnimalManager. The engine
  * adapter supplies per-region Heightfield, level, baked terrain, navmesh and water bindings, restored on each leave.
  * Keeping this port required prevents an unfinished foundation from silently becoming an enterable empty world.
  */
@@ -99,7 +102,7 @@ export interface RegionalRuntimeFoundation {
   readonly afterKit: (context: ShardContext, world: ShardWorld) => Promise<{
     animals: AnimalManager; wearSkin: (equipment: EquipmentService, skin: SkinDef) => void;
   }>;
-  /** Real opaque-runtime continuation, local purse/ownership and encounter writes; refusal keeps the source frame. */
+  /** Real runtime continuation, local purse/ownership and encounter writes; refusal keeps the source frame. */
   readonly checkpoint: () => boolean;
 }
 
@@ -107,6 +110,8 @@ export interface RegionalRuntimeFoundation {
 export interface RegionalRuntimeFactoryPorts {
   readonly home: Readonly<{ x: number; z: number }>;
   readonly prepareFoundation?: (request: RegionalRuntimeRequest) => Promise<RegionalRuntimeFoundation>;
+  /** Validated logical continuation for a rebuilt opaque runtime; supplied by the live instance owner. */
+  readonly continuation?: { restore: (animals: AnimalManager) => void; checkpoint: (animals: AnimalManager) => boolean };
 }
 
 /** Compose the trusted regional stages without changing discovery, module admission or the fixed crossing driver. */
@@ -128,8 +133,9 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       scope.onDispose(foundation.region.dispose);
       const host = foundation.region.host;
       if (host.embedded || host.hasPlayerMotor || host.physics === request.page.world.physics) throw new Error('Regional factory requires an owned bodyless destination');
-      const app = request.page.context.app, parent = request.page.context.game.runtime;
+      const app = request.page.context.app, parent = request.page.context.game.runtime, pageScope = app.levelScope;
       if (parent === undefined) throw new Error('Regional factory requires the page runtime');
+      if (pageScope === null) throw new Error('Regional factory requires the page level scope');
       const view = createRegionalView({ cell: request.cell, home: ports.home, scene: request.page.world.game.rootScene,
         physics: host.physics, slot: app, assets: app.assets, allocator: request.allocator, claim: request.claim,
         scope, ground: foundation.ground });
@@ -143,7 +149,8 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
         if (scope.disposed || localPlay === null) return false;
         // Attempt all owners even after a refusal; neither gameplay death/reset hooks nor a constant true is a save.
         const progress = localPlay.progress.checkpoint(), inventory = localPlay.inventory.checkpoint(), native = foundation.checkpoint();
-        return progress && inventory && native;
+        const logical = ports.continuation?.checkpoint(localPlay.animals) ?? true;
+        return progress && inventory && native && logical;
       };
       const resident: HybridResident = { instance: request.cell.instance, slug: request.cell.slug, declaration, firstParty: true,
         scope, runtime: parent, retainRuntime: true, context: (owner, runtime) => {
@@ -164,7 +171,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           } } };
           return { ...installation, context,
             beforeWorld: entered => { installEnteredRuntimeService(entered, entry => {
-              foundation.enter(entry); view.enter(entry);
+              foundation.enter(entry); app.bindPlayerServices(pageScope, entry); view.enter(entry);
               app.addSystem({ id: `grid.runtime.${request.cell.instance}.pieces`, phase: 'fixed.pre', run: () => { view.sync(); } }, entry);
             }); },
             afterWorld: entered => foundation.afterWorld?.(entered, world),
@@ -172,7 +179,10 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const left = (): boolean => owner.disposed;
               const regional = await foundation.afterKit(entered, world);
               if (left()) throw new Error('Regional runtime left while building creatures');
+              for (const animal of regional.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
+              ports.continuation?.restore(regional.animals);
               runtime.hooks.animalsReady?.(regional.animals);
+              app.effects?.registerDefinitions(app.levelRegistrations.list('effect'));
               const targets = authoredTargets(app.events, regional.animals, () => null);
               const build = runtime.buildEquipment;
               if (build === undefined) throw new Error('Regional kit did not install its equipment factory');
@@ -196,6 +206,11 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                   disposeRifleDrop: () => { runtime.hooks.disposeRifleDrop?.(); } };
                 runtime.play = localPlay;
                 installEnteredRuntimeService(entered, entry => {
+                  app.addSystem({ id: `grid.runtime.${request.cell.instance}.animals`, phase: 'update', run: (dt, t) => {
+                    regional.animals.update(dt, t, world.player.position, world.player.sprinting, world.player.position, world.game.camera);
+                    localPlay?.progress.addPlay(dt);
+                    weapons.update(dt, t);
+                  } }, entry);
                   weapons.enabled = true; weapons.visible = !stowed; weapons.stowed = stowed;
                   entry.onDispose(() => { weapons.enabled = false; weapons.visible = false; weapons.adsHeld = false; weapons.altHeld = false; });
                 });
@@ -204,6 +219,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
           };
         } };
       return { resident, region: { ...foundation.region, dispose: () => { scope.dispose(); } }, queries: view.queries, checkpoint,
+        combatActors: () => new Map((localPlay?.animals.animals ?? []).map(animal => [animal.combatActor(), animal.position])),
         loadout: { checkpoint, stow: () => {
           stowed = true;
           if (localPlay !== null) { localPlay.weapons.stowed = true; localPlay.weapons.visible = false; localPlay.weapons.adsHeld = false; localPlay.weapons.altHeld = false; }

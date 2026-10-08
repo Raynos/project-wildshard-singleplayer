@@ -47,7 +47,7 @@ import { stowGridMount, type GridLoadout } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
-import { gridHomeSim, type GridHomeSimulation } from './boot';
+import { gridHomeSim, gridCells, type GridHomeSimulation } from './boot';
 import { findShard } from '../shard/registry';
 import { gridShardfileProduct } from './products';
 import { gridRecovery, type GridRecoveryReason, type GridRecoveryRecord } from './recovery';
@@ -55,6 +55,13 @@ import { RoadRecovery, onRoad, type RoadPoint, type RoadRecoveryCell } from './r
 import { GridCellWaitingError } from './refusal';
 import { scriptDisabledNotice, type ScriptNoticePorts } from '../shardfile/scriptNotice';
 import { bindShardfileSim, createShardfileSim, type ShardfileSimulation } from '../shardfile/simulation';
+import { loadNavmesh } from '@wildshard/engine/physics/navmesh';
+import { macrotask } from '@wildshard/engine/boot/plan';
+import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
+import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../shardfile/runtime';
+import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
+import { createRegionalWorldFoundation } from './regionalWorld';
+import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';
 
 /** The page traveller the live host rebinds (the existing Player; never a second capsule). */
 export interface LiveTraveller {
@@ -70,6 +77,8 @@ export interface LiveTraveller {
 }
 /** What the live wiring reads from the page once the player's health and equipment exist. */
 export interface LiveGridPage {
+  /** Actual staged services; a neighbour never constructs another page shell. */
+  readonly runtimePage?: () => RegionalRuntimePage | null;
   readonly traveller: LiveTraveller;
   readonly health: PlayerHealth;
   readonly equipment: EquipmentService;
@@ -163,6 +172,11 @@ export class LiveGridSession {
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
   private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation }>();
   private homeSim: GridHomeSimulation | null = null;
+  private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
+  private readonly runtimeResidents = new Map<string, HybridResident>();
+  private readonly runtimeEntries: TrustedRuntimeEntry[] = [];
+  private readonly hybrid: HybridRuntimeSession;
+  private readonly startedRuntimes = new Set<string>();
   private checkpointsSuppressed = false;
   /** G101: the last road point, where a fall that began from the road recovers */
   private readonly road: RoadRecovery;
@@ -174,6 +188,14 @@ export class LiveGridSession {
     this.framePhysics = ports.physics;
     const { assembly, home, scope } = ports, rapier = ports.physics.R;
     const traveller = page.traveller;
+    this.hybrid = new HybridRuntimeSession(this.runtimeResidents, this.runtimeEntries, scope);
+    scope.onDispose(gridCells.onLeave(() => { this.hybrid.leave(); }));
+    scope.onDispose(gridCells.onEnter(cell => {
+      if (!this.runtimeResidents.has(cell.instance)) return;
+      this.startedRuntimes.add(cell.instance);
+      const enter = async (): Promise<void> => { try { await this.hybrid.enter(cell); } catch (error) { console.error('Regional runtime entry failed', error); } };
+      void enter();
+    }));
     const transferScope = scope.child('grid.transfer.home');
     const transferLease = ports.allocator.reserve({ id: `sim-transfer:${home.instance}`, category: 'sim', owner: home.instance,
       bytes: TRANSFER_WALL_BYTES, distance: 0, needed: true });
@@ -213,18 +235,24 @@ export class LiveGridSession {
         } catch (error) { host.dispose(); throw error; }
       } },
       admit: (cell) => this.admit(cell),
-      prefetchable: (cell) => findShard(cell.slug)?.shardfile !== undefined,
+      prefetchable: (cell) => { const manifest = findShard(cell.slug); return (manifest?.shardfile ?? manifest?.gridShardfile) !== undefined; },
       save: (instance, snapshot) => this.regionSave(instance).checkpoint(snapshot),
       bindFrame: (frame) => { this.bind(frame); },
-      gameplayReady: () => true, // a template copy has no entered hooks; Driftwood's hybrid stays default-off (its fence is SF46's)
+      gameplayReady: () => this.gameplayReady(),
       readiness: { link: LINK, bundle: (cell) => this.bundle(cell) },
     }); } catch (error) { transferScope.dispose(); throw error; }
     scope.onDispose(() => { this.live.dispose(); });
     this.loadout = homeLoadout(page.equipment, scope, page.checkpoint, () => { stowGridMount(traveller); });
     this.crossing = this.installCrossing();
-    installGridTravellerCombat(page.events, scope, page.health, home.instance, () => {
+    installGridTravellerCombat(page.events, scope, page.health, () => {
+      const active = this.hybrid.state();
+      return active.ready ? active.instance : home.instance;
+    }, () => {
       const feet = this.live.worldFeet();
       return assembly.at(feet.x, feet.z)?.instance ?? null;
+    }, () => {
+      const active = this.hybrid.state();
+      return active.instance === null ? undefined : this.runtimeRegions.get(active.instance)?.combatActors();
     });
     // SF20d: 30 m/s on the deck, easing to the shard's 14 over the strip (the cell nearest the feet; the outer ring is deck too)
     installGridHoverSpeed(traveller, scope, () => {
@@ -284,7 +312,7 @@ export class LiveGridSession {
         const readiness = this.page.crossingSaveReady?.(instance) ?? true;
         return readiness === true ? this.live.checkpoint(instance) : readiness;
       }, target: (feet) => this.live.target(feet) },
-    this.ports.assembly, (instance) => instance === this.ports.home.instance ? this.loadout : {
+    this.ports.assembly, (instance) => instance === this.ports.home.instance ? this.loadout : this.runtimeRegions.get(instance)?.loadout ?? {
       checkpoint: () => this.regionSave(instance).flush(), stow: () => { stowGridMount(this.page.traveller); }, interior: () => undefined,
     }, this.ports.scope);
   }
@@ -385,6 +413,8 @@ export class LiveGridSession {
   refusal(instance: string): unknown { return this.live.refusal(instance); }
 
   private bundle(cell: GridCell): ReadinessBundle {
+    const manifest = findShard(cell.slug);
+    if (manifest?.gridShardfile !== undefined && manifest.trustedRuntime !== undefined) return { criticalWireBytes: 2_000_000, hybridWireBytes: 2_000_000, decodeSeconds: 1, runtimeParseSeconds: 1 };
     return { criticalWireBytes: findShard(cell.slug)?.shardfile === undefined ? 0 : 2_000_000, hybridWireBytes: 0, decodeSeconds: 1, runtimeParseSeconds: 0 };
   }
 
@@ -395,7 +425,7 @@ export class LiveGridSession {
     const retained = await pending, { source, assets } = retained.admitted;
     let releaseProduct = retained.release;
     try {
-    if (source.runtime !== null) throw new GridCellWaitingError(`${cell.slug} declares a hybrid runtime (M3)`);
+    if (source.runtime !== null) return await this.admitRuntime(cell, retained);
     let durability = this.durability.get(cell.instance);
     if (durability === undefined) {
       durability = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, source, this.page.catalogue);
@@ -468,11 +498,73 @@ export class LiveGridSession {
     } catch (error) { releaseProduct(); throw error; }
   }
 
+  private async admitRuntime(cell: GridCell, retained: Awaited<NonNullable<ReturnType<typeof gridShardfileProduct>>>): Promise<LiveGridAdmission> {
+    const manifest = findShard(cell.slug), declaration = retained.admitted.source.runtime;
+    if (manifest === undefined || declaration === null || manifest.trustedRuntime === undefined) throw new GridCellWaitingError('Missing declared trusted regional entry');
+    const page = this.page.runtimePage?.();
+    if (page === undefined || page === null) throw new GridCellWaitingError('Regional page services are not ready');
+    const load = manifest.load;
+    if (load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
+    const registered = manifest.trustedRuntime;
+    const entry: TrustedRuntimeEntry = { ...registered, load: () => load(registered.entry) }, bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest);
+    await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
+    const { slug: identity } = entry;
+    if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);
+    const saved = new GridRegionDurability(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source, this.page.catalogue);
+    this.durability.set(cell.instance, saved);
+    let closed = false;
+    const release = (): void => { if (closed) return; closed = true; this.durability.delete(cell.instance); retained.release(); };
+    return { bytes, reloadsCheckpoint: true, cancel: release, prepareRuntime: async () => { await prepareTrustedRuntime(declaration, cell.slug, true, [entry]); }, create: async (_prior, claim) => {
+      const factory = createRegionalRuntimeFactory({ home: this.ports.home.origin,
+        continuation: regionalRuntimeCheckpoint(this.page.saves, { id: cell.instance, shard: cell.slug }, retained.admitted.source.identity.revision),
+        prepareFoundation: createRegionalWorldFoundation({ rapier: this.ports.physics.R, navmesh: level => loadNavmesh(level.id), pause: macrotask,
+          install: host => {
+            for (const strip of this.ports.strips) for (const row of strip.duplicates) if (row.instance === cell.instance) installStripCollider(host.physics, row.mesh, host.scope);
+            installEntrySockets(host.physics, host.scope, [{ x: 0, z: 0 }], 'backstop');
+            installGridBorders(host.physics, host.scope);
+            this.transferWalls.set(cell.instance, regionTransferWalls(host, this.page.traveller.motor.opts.radius));
+            saved.bind(host);
+          }, checkpoint: () => saved.flush(),
+        }),
+      });
+      let prepared: PreparedRegionalRuntime;
+      try { prepared = await factory({ cell, admitted: retained.admitted, manifest, page, allocator: this.ports.allocator, claim, scope: this.ports.scope }); }
+      catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
+      this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
+      this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });
+      try { await this.hybrid.prepare(cell.instance); }
+      catch (error) {
+        this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
+        try { prepared.region.dispose(); } finally { saved.unbind(); }
+        throw error;
+      }
+      return { ...prepared.region, checkpoint: () => !this.startedRuntimes.has(cell.instance) ? saved.flush()
+        : this.hybrid.state().instance === cell.instance && !this.hybrid.state().ready ? false : prepared.checkpoint(), dispose: () => {
+        this.startedRuntimes.delete(cell.instance);
+        this.runtimeRegions.delete(cell.instance); this.runtimeResidents.delete(cell.instance); this.transferWalls.delete(cell.instance);
+        try { prepared.region.dispose(); } finally { saved.unbind(); release(); }
+      } };
+    } };
+  }
+
+  /** Admission opens the strip first; hooks freeze gameplay only after the committed traveller reaches the interior. */
+  gameplayReady(): boolean {
+    const current = this.live.current();
+    if (current === null || !this.runtimeRegions.has(current)) return true;
+    const feet = this.live.worldFeet();
+    if (this.ports.assembly.at(feet.x, feet.z)?.instance !== current) return true;
+    const state = this.hybrid.state(); return state.instance === current && state.ready;
+  }
+
   /** The fixed-boundary rebind: the page's stepped world, the player's motor and the render origin. */
   private bind(frame: LiveGridFrame): void {
     this.framePhysics = frame.physics;
     const home = frame.instance === this.ports.home.instance;
-    this.page.traveller.bindFrame(frame.physics, frame.motor, home ? null : frame.instance === null ? HIGHWAY_QUERIES : this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
+    const runtime = frame.instance === null ? undefined : this.runtimeRegions.get(frame.instance);
+    const runtimeQueries = runtime === undefined ? undefined : { ...runtime.queries,
+      heightAt: (x: number, z: number) => Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? runtime.queries.heightAt(x, z) : 0,
+      waterSurfaceAt: (x: number, z: number) => Math.max(Math.abs(x), Math.abs(z)) <= CHUNK_HALF ? runtime.queries.waterSurfaceAt(x, z) : null };
+    this.page.traveller.bindFrame(frame.physics, frame.motor, home ? null : frame.instance === null ? HIGHWAY_QUERIES : runtimeQueries ?? this.regions.get(frame.instance)?.queries ?? HIGHWAY_QUERIES);
     this.page.setPhysics(frame.physics);
     this.offset.set(frame.origin.x - this.ports.home.origin.x, 0, frame.origin.z - this.ports.home.origin.z);
     if (this.homeSim?.disposed() === true) this.homeSim = null;
@@ -494,6 +586,8 @@ export class LiveGridSession {
     if (current === this.ports.home.instance) return null;
     const p = this.page.traveller.position;
     if (current === null) return { x: p.x, y: 0.5, z: p.z, yaw: this.page.traveller.yaw };
+    const runtime = this.runtimeRegions.get(current);
+    if (runtime !== undefined) { const start = runtime.region.host.level.player; return { x: start.at.x, y: start.at.y, z: start.at.z, yaw: start.yaw }; }
     return this.regions.get(current)?.spawn ?? { x: 0, y: undefined, z: 0, yaw: 0 };
   }
   /** The geometric region's kill floor, independent of the 6/10 m motor-frame hysteresis. */

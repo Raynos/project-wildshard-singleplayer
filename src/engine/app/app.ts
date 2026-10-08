@@ -101,6 +101,21 @@ export class App {
   registerEquipmentHost(host: EquipmentHost, scope: Scope): void {
     this.equipmentHosts.set(scope, host); scope.onDispose(() => { this.equipmentHosts.delete(scope); this.input.clear(); });
   }
+  /** Lend the current player's services to an entered level frame, without constructing a second player or effect loop. */
+  bindPlayerServices(source: Scope, entered: Scope): void {
+    const destination = this.levelScope;
+    if (destination === null || source.disposed || entered.disposed || destination.disposed) throw new Error('Player services require live level frames');
+    const lend = <T>(services: WeakMap<Scope, T>): void => {
+      const value = services.get(source), previous = services.get(destination);
+      if (value === undefined) return;
+      services.set(destination, value);
+      entered.onDispose(() => {
+        if (services.get(destination) !== value) return;
+        if (previous === undefined) services.delete(destination); else services.set(destination, previous);
+      });
+    };
+    lend(this.players); lend(this.effectsByLevel); lend(this.equipmentHosts);
+  }
   readonly engineScope = new Scope('engine');
   levelScope: Scope | null = null;
   private sorted: SystemsByPhase | null = null;

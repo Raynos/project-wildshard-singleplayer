@@ -11,11 +11,23 @@ declare module '../../events/maps' {
   }
 }
 
-/** Bind player-owned movement channels and periodic damage for the same lifetime as the player. */
+const playerBindings = new WeakMap<EffectService, WeakMap<Actor, { movement: object; scope: Scope }>>();
+
+/** Bind player-owned movement channels and periodic damage once for the same player/service lifetime. */
 export function bindPlayerEffects(o: { effects: EffectService; target: Actor;
   movement: { effectMoveLocked: boolean; effectMoveScale: number };
   combat: CombatPipeline; position: () => Vector3; scope: Scope }): void {
   const { effects, target, movement, scope } = o;
+  let targets = playerBindings.get(effects);
+  if (targets === undefined) { targets = new WeakMap(); playerBindings.set(effects, targets); }
+  const prior = targets.get(target);
+  if (prior !== undefined && !prior.scope.disposed) {
+    if (prior.movement !== movement) throw new Error('Player effects already use another movement owner');
+    return;
+  }
+  const binding = { movement, scope }; targets.set(target, binding);
+  const active = targets;
+  scope.onDispose(() => { if (active.get(target) === binding) active.delete(target); });
   effects.setBase(target, 'moveLocked', 0);
   effects.setBase(target, 'moveSpeedMul', 1);
   effects.bind(target, () => {
@@ -54,6 +66,21 @@ export class EffectService {
       this.definitions.set(def.id, def);
     }
     scope?.onDispose(() => { for (const target of this.targets.keys()) this.clear(target); this.disposed = true; });
+  }
+
+  /** Admit another level's effect declarations into the shared player service; conflicting IDs refuse before mutation. */
+  registerDefinitions(defs: readonly EffectDef[]): void {
+    if (this.disposed) throw new Error('Effect service is disposed');
+    const staged = new Map<EffectId, EffectDef>();
+    for (const def of defs) {
+      const prior = staged.get(def.id) ?? this.definitions.get(def.id);
+      if (prior !== undefined && JSON.stringify(prior) !== JSON.stringify(def)) throw new Error(`Conflicting effect ${def.id}`);
+      if (def.kind === 'timed' && (def.duration === undefined || def.duration <= 0)) throw new Error(`Effect ${def.id} needs a duration`);
+      if (typeof def.stacking === 'object' && (!Number.isInteger(def.stacking.max) || def.stacking.max < 1)) throw new Error(`Invalid effect stacks ${def.id}`);
+      if (def.period !== undefined && def.period <= 0) throw new Error(`Invalid effect period ${def.id}`);
+      staged.set(def.id, def);
+    }
+    for (const [id, def] of staged) if (!this.definitions.has(id)) this.definitions.set(id, def);
   }
   private state(target: EffectTarget): TargetState {
     let state = this.targets.get(target);
