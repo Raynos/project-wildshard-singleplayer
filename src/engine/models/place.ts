@@ -25,7 +25,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Rng } from '../core/rng';
 import type { ColliderDesc, DrawnAs, ModelEntry, WorldRegistry } from '../world/registry';
 import { withTier } from '../explore/tiers';
-import { paramsOf, seedOf, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
+import { paramsOf, seedOf, type ModelBuild, type ModelBuildVisit, type ModelContext, type ModelDef, type ModelPart, type Placement } from './model';
 import { drawnHullOwn, drawnHullWorld, placeCollider, poseGeometry, poseOf, type Pose } from './colliders';
 import { BatchedCull, CelledCopiesCull, CellCull, InstancedCull, SetCull, UntilCull, WeldCull, type BatchedSlot, type CullOptions, type HostedSet, type InstancedSink } from './cull';
 import { UnitParts, nearProxy, weldAcross, type WeldBuild } from './weld';
@@ -347,16 +347,27 @@ const levelsOf = <P extends object>(def: ModelDef<P>): number[] => [0, ...(def.l
 /** each level's dissolve band before its start (`ModelLod.fade`; level 0 has none) */
 const fadesOf = <P extends object>(def: ModelDef<P>): number[] => [0, ...(def.lods ?? []).map((l) => l.fade ?? 0)];
 
+/** A callback belongs to one place call, so nested builders cannot mix their copies. */
+type BuildOptions<P extends object> = PlaceOptions & { readonly visitBuild?: (build: ModelBuildVisit<P>) => void };
+
+function buildModel<P extends object>(def: ModelDef<P>, o: BuildOptions<P>, params: P, rng: Rng, placements: readonly Placement<P>[], level = 0): ModelBuild {
+  const lod = def.lods?.[level - 1];
+  if (level !== 0 && lod === undefined) throw new Error(`place: '${def.id}' has no level ${level}`);
+  const built = lod === undefined ? def.build(o.ctx, params, rng) : lod.build(o.ctx, params, rng);
+  o.visitBuild?.({ kind: 'model', built, params, placements, level });
+  return built;
+}
+
 /** the parts of every level for one set of params (each LOD level draws from its own rng stream, never the copies') */
-function levelParts<P extends object>(def: ModelDef<P>, o: PlaceOptions, params: P, rng: Rng): (readonly ModelPart[])[] {
-  const out: (readonly ModelPart[])[] = [partsOf(def.build(o.ctx, params, rng), def.id, o.draw)];
-  (def.lods ?? []).forEach((lod, l) => { out.push(lod.build(o.ctx, params, new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)))); });
+function levelParts<P extends object>(def: ModelDef<P>, o: BuildOptions<P>, params: P, rng: Rng, placements: readonly Placement<P>[]): (readonly ModelPart[])[] {
+  const out: (readonly ModelPart[])[] = [partsOf(buildModel(def, o, params, rng, placements), def.id, o.draw)];
+  (def.lods ?? []).forEach((_, l) => { out.push(partsOf(buildModel(def, o, params, new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)), placements, l + 1), def.id, o.draw)); });
   return out;
 }
 
 // ── merged: every copy welded into one mesh per material (per cell, per LOD level) ──
 
-function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Drawn {
   const rng = new Rng(seedOf(def));
   const lodRngs = (def.lods ?? []).map((_, l) => new Rng(seedOf(def) ^ Math.imul(l + 1, 0x9e3779b9)));
   const levels = levelsOf(def).length;
@@ -371,7 +382,7 @@ function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<
   pls.forEach((pl, i) => {
     const pose = poses[i], p = params[i];
     if (pose === undefined || p === undefined) return;
-    const parts = partsOf(def.build(o.ctx, p, rng), def.id, 'merged');
+    const parts = partsOf(buildModel(def, o, p, rng, [pl]), def.id, 'merged');
     const posed = parts.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; });
     collideCopy(def, p, pose, posed, posed, colliders, o.ctx);
     writeBox(boxes, i, geometryBox(posed, _box));
@@ -391,10 +402,10 @@ function drawMerged<P extends object>(def: ModelDef<P>, pls: readonly Placement<
       });
     };
     add(0, parts, posed);
-    (def.lods ?? []).forEach((lod, l) => {
+    (def.lods ?? []).forEach((_, l) => {
       const lr = lodRngs[l];
       if (!lr) return;
-      const lp = lod.build(o.ctx, p, lr);
+      const lp = partsOf(buildModel(def, o, p, lr, [pl], l + 1), def.id, o.draw);
       add(l + 1, lp, lp.map((part) => { const g = own(part.geometry); poseGeometry(g, pl); return g; }));
     });
   });
@@ -446,7 +457,7 @@ function variantKeys<P extends object>(pls: readonly Placement<P>[]): { keys: (s
   return { keys, of };
 }
 
-function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Drawn {
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
   // 'set': every copy written once per level, the levels shown / hidden whole (SetCull); else per copy when anything culls
@@ -459,7 +470,7 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
   const colors = tinted ? new Float32Array(n * 3) : null;
   const tint = new THREE.Color();
   // every variant's parts, built once (instanced copies share their variant's shape)
-  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
+  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
   const perVariant = keys.map((_, v) => of.reduce((c, x) => c + (x === v ? 1 : 0), 0));
   pls.forEach((pl, i) => {
     const pose = poses[i], p = params[i], parts = built[of[i] ?? 0]?.[0] ?? [];
@@ -530,14 +541,14 @@ function drawInstanced<P extends object>(def: ModelDef<P>, pls: readonly Placeme
 
 // ── instanced, culled by the shard (`PlaceOptions.culler`): per part, level 0 with every copy, each LOD its own mesh ──
 
-function drawHanded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions, culler: InstancedCuller): Drawn {
+function drawHanded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>, culler: InstancedCuller): Drawn {
   const { keys, of } = variantKeys(pls);
   const from = levelsOf(def), n = pls.length;
   const colliders: ColliderDesc[] = [];
   const boxes = new Float32Array(n * 6);
   const tinted = pls.some((pl) => pl.color !== undefined);
   const tint = new THREE.Color();
-  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
+  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
   poses.forEach((pose, i) => {
     const p = params[i], parts = built[of[i] ?? 0]?.[0] ?? [];
     if (p === undefined) return;
@@ -578,12 +589,12 @@ function drawHanded<P extends object>(def: ModelDef<P>, pls: readonly Placement<
 
 // ── batched: one BatchedMesh per material (WEBGL_multi_draw; never facade geometry — E271 / E272) ──
 
-function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Drawn {
   const renderer = o.ctx.renderer;
   if (o.batch === undefined && (renderer === null || !renderer.extensions.has('WEBGL_multi_draw'))) return drawInstanced(def, pls, poses, params, o);
   const { keys, of } = variantKeys(pls);
   const levels = levelsOf(def).length, n = pls.length;
-  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def))));
+  const built = keys.map((k) => levelParts(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)));
   // one batch per material: every (variant, level) part with that material is one of its geometries
   const byMat = new Map<THREE.Material, { part: ModelPart; geos: { v: number; l: number; g: THREE.BufferGeometry; until: number | undefined }[] }>();
   built.forEach((lvls, v) => { lvls.forEach((parts, l) => { for (const part of parts) {
@@ -649,14 +660,14 @@ function drawBatched<P extends object>(def: ModelDef<P>, pls: readonly Placement
 
 // ── single: one object per copy (THREE.LOD when the model has LODs) ──
 
-function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions): Drawn {
+function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>): Drawn {
   const rng = new Rng(seedOf(def));
   const colliders: ColliderDesc[] = [];
   const boxes = new Float32Array(pls.length * 6);
   const copies = poses.map((pose, i) => {
     const p = params[i];
     if (p === undefined) return new THREE.Group();
-    const built = def.build(o.ctx, p, rng);
+    const built = buildModel(def, o, p, rng, pls.slice(i, i + 1));
     const own: THREE.BufferGeometry[] = [];
     let obj: THREE.Object3D;
     if (Array.isArray(built)) {
@@ -671,7 +682,7 @@ function drawSingle<P extends object>(def: ModelDef<P>, pls: readonly Placement<
       const lod = new THREE.LOD();
       lod.addLevel(obj, 0);
       (def.lods ?? []).forEach((l, k) => {
-        const lp = l.build(o.ctx, p, new Rng(seedOf(def) ^ Math.imul(k + 1, 0x9e3779b9)));
+        const lp = partsOf(buildModel(def, o, p, new Rng(seedOf(def) ^ Math.imul(k + 1, 0x9e3779b9)), pls.slice(i, i + 1), k + 1), def.id, o.draw);
         lod.addLevel(lp.length === 0 ? new THREE.Object3D() : wrap(lp.map((x) => meshOf(x)), `${def.id}:lod${k + 1}`), l.from);
       });
       obj = lod;
@@ -827,7 +838,7 @@ export function weld(options: WeldOptions): Weld { return new Weld(options); }
 /** Draw a weld's shared meshes, start its bands, and register its copies' pieces (in the order they were placed). */
 export function finishWeld(w: Weld): void { w.finish(); }
 
-function drawWelded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions, w: Weld): Drawn {
+function drawWelded<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>, w: Weld): Drawn {
   const build = def.weld;
   if (build === undefined) throw new Error(`place: '${def.id}' has no weld build (ModelDef.weld)`);
   const colliders: ColliderDesc[] = [];
@@ -837,6 +848,7 @@ function drawWelded<P extends object>(def: ModelDef<P>, pls: readonly Placement<
     const pose = poses[i];
     if (pose === undefined) return;
     const b = build(o.ctx, p);
+    o.visitBuild?.({ kind: 'weld', built: b, params: p, placements: pls.slice(i, i + 1), level: 0 });
     collideCopy(def, p, pose, null, [], colliders, o.ctx);
     colliders.push(...b.colliders);
     roots.push(b.root);
@@ -847,12 +859,12 @@ function drawWelded<P extends object>(def: ModelDef<P>, pls: readonly Placement<
 }
 
 /** instanced copies hosted by a weld's copies: one InstancedMesh per part (per variant) with room for all, drawn by the weld */
-function drawHosted<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: PlaceOptions, w: Weld): Drawn {
+function drawHosted<P extends object>(def: ModelDef<P>, pls: readonly Placement<P>[], poses: readonly Pose[], params: readonly P[], o: BuildOptions<P>, w: Weld): Drawn {
   const { keys, of } = variantKeys(pls);
   const n = pls.length;
   const colliders: ColliderDesc[] = [];
   const boxes = new Float32Array(n * 6);
-  const built = keys.map((k) => partsOf(def.build(o.ctx, paramsOf(def, k, undefined), new Rng(seedOf(def))), def.id, 'instanced'));
+  const built = keys.map((k) => partsOf(buildModel(def, o, paramsOf(def, k, undefined), new Rng(seedOf(def)), o.visitBuild === undefined ? pls : pls.filter((pl) => pl.variant === k)), def.id, 'instanced'));
   const units = pls.map((pl) => {
     if (pl.host === undefined) throw new Error(`place: '${def.id}' is instanced into a weld — every copy needs its host`);
     return w.unitOf(pl.host);
@@ -1018,12 +1030,18 @@ export function place<P extends object>(def: ModelDef<P>, placements: readonly P
   const params = placements.map((pl) => paramsOf(def, pl.variant, pl.params));
   const w = o.weld;
   if (w !== undefined && o.draw !== 'merged' && o.draw !== 'instanced') throw new Error(`place: '${def.id}' — a weld takes merged or instanced copies (asked for '${o.draw}')`);
+  const visitBuild = o.ctx.visitPlacement?.({
+    model: def.id, placements, draw: o.draw, moving: o.piece?.follows !== undefined,
+    ...(o.piece?.id === undefined ? {} : { pieceId: o.piece.id }),
+    ...(o.drawnInto === undefined ? {} : { drawnInto: o.drawnInto.object }),
+  });
+  const buildOptions: BuildOptions<P> = visitBuild === undefined ? o : { ...o, visitBuild };
   const drawn = o.drawnInto !== undefined ? drawnElsewhere(def, poses, params, o, o.drawnInto)
-    : w !== undefined ? (o.draw === 'merged' ? drawWelded(def, placements, poses, params, o, w) : drawHosted(def, placements, poses, params, o, w))
-    : o.draw === 'merged' ? drawMerged(def, placements, poses, params, o)
-    : o.draw === 'instanced' ? (o.culler ? drawHanded(def, placements, poses, params, o, o.culler) : drawInstanced(def, placements, poses, params, o))
-      : o.draw === 'batched' ? drawBatched(def, placements, poses, params, o)
-        : drawSingle(def, placements, poses, params, o);
+    : w !== undefined ? (o.draw === 'merged' ? drawWelded(def, placements, poses, params, buildOptions, w) : drawHosted(def, placements, poses, params, buildOptions, w))
+    : o.draw === 'merged' ? drawMerged(def, placements, poses, params, buildOptions)
+    : o.draw === 'instanced' ? (o.culler ? drawHanded(def, placements, poses, params, buildOptions, o.culler) : drawInstanced(def, placements, poses, params, buildOptions))
+      : o.draw === 'batched' ? drawBatched(def, placements, poses, params, buildOptions)
+        : drawSingle(def, placements, poses, params, buildOptions);
   const { boxes } = drawn;
   // where each copy stands, for `nearest` (float64: exact) — the placements themselves are not kept alive
   const points = new Float64Array(placements.length * 3);

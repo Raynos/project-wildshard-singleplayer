@@ -94,17 +94,52 @@ export interface ModelContext {
   readonly renderer: Renderer | null;
   /** one value per key for this shard: shared materials, textures, loaded GLB geometry */
   once: <T>(key: string, make: () => T) => T;
+  /** Scoped build-time observer, before culling. Absent in ordinary play; never invokes another model build. */
+  readonly visitPlacement?: ModelPlacementVisitor | undefined;
+}
+
+/** One actual builder result, observed synchronously before transforms, merging or culling mutate it.
+ * Copy geometry/objects during the callback if they must outlive it. Materials and attributes are authored originals. */
+export type ModelBuildVisit<P extends object> = {
+  readonly placements: readonly Placement<P>[];
+  readonly params: P;
+  readonly level: number;
+} & ({ readonly kind: 'model'; readonly built: ModelBuild } | { readonly kind: 'weld'; readonly built: WeldBuild });
+
+/** A placement call's original ordered copies, including copies initially hidden by culling. */
+export interface ModelPlacementVisit<P extends object> {
+  readonly model: string;
+  readonly placements: readonly Placement<P>[];
+  readonly draw: 'single' | 'merged' | 'instanced' | 'batched';
+  readonly moving: boolean;
+  readonly pieceId?: string;
+  /** Existing caller-owned geometry; drawn-elsewhere placements never invoke the model builder. */
+  readonly drawnInto?: THREE.Object3D;
+}
+
+/** Opt-in observer on one model context. Its returned callback captures that call's actual builds, once each. */
+export type ModelPlacementVisitor = <P extends object>(placement: ModelPlacementVisit<P>) => ((build: ModelBuildVisit<P>) => void) | undefined;
+
+const placementVisitors = new WeakMap<Sky, ModelPlacementVisitor>();
+
+/** Observe contexts belonging to one owned world's sky during an asynchronous bake. Always removes the binding,
+ * including on rejection. Other worlds and contexts are unaffected; ordinary imports install no observer. */
+export async function withModelPlacementVisitor<T>(sky: Sky, visitor: ModelPlacementVisitor, build: () => Promise<T>): Promise<T> {
+  if (placementVisitors.has(sky)) throw new Error('Model placement visitor already bound to this world');
+  placementVisitors.set(sky, visitor);
+  try { return await build(); } finally { placementVisitors.delete(sky); }
 }
 
 /**
  * A context for one shard (its sky, and the renderer when there is one). A structure shard has no engine Sky (Nine
  * Dragon, E306 M4): pass null — its models take their look from `once`, and reading `sky` throws.
  */
-export function modelContext(sky: Sky | null, renderer: Renderer | null = null): ModelContext {
+export function modelContext(sky: Sky | null, renderer: Renderer | null = null, visitPlacement?: ModelPlacementVisitor): ModelContext {
   const memo = new Map<string, unknown>();
   return {
     get sky(): Sky { if (sky === null) throw new Error('modelContext: this level has no Sky (its models take their look from `once`)'); return sky; },
     renderer,
+    get visitPlacement(): ModelPlacementVisitor | undefined { return visitPlacement ?? (sky === null ? undefined : placementVisitors.get(sky)); },
     once: <T>(key: string, make: () => T): T => {
       if (memo.has(key)) return memo.get(key) as T;
       const v = make();
