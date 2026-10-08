@@ -1,0 +1,1650 @@
+{
+  "runtimeSha": "b24f8c36b31f40d6584e3639209a0b401c69c844",
+  "driveStarted": "2026-10-08T13:46:22.900Z",
+  "failureStage": "driftwood-isle-to-pine-hollow",
+  "documentBefore": "1791467127002:0.68876803528856",
+  "replacementDiagnostic": {
+    "url": "http://127.0.0.1:4406/",
+    "documentId": "1791467206954:0.5297206873820435",
+    "errors": [],
+    "body": "BACK\nSHARD SELECT\n\nEXPLORE WORLD\nFLY \u00b7 INSPECT\n\nLOAD\nDRIFTWOOD ISLE\nLOW-POLY ISLAND, OPEN OCEAN\n\nLOADEARLY ACCESS\nPINE HOLLOW\nBOREAL PINE FOREST\n\nLOADEARLY ACCESS\nNALATI GRASSLANDS\nALPINE STEPPE\n\nLOADEXPERIMENTAL\nNINE DRAGON STACK\nVERTICAL NEON CITY\n\nLOADEXPERIMENTAL\nSIGNAL DUNES\nDESERT DUNES AT DUSK\n\nLOADEXPERIMENTAL\nSKY REACH\nFLOATING ISLANDS ABOVE THE CLOUDS\n\nLOADDEVELOPER ONLY\nTEMPLATE SHARD\nGREY-BOX TEACHING LEVEL\n\nDRAFT \u00b7 P6\nTHIN ICE\nTHE FERRY IS GONE AND THE FJORD HAS FROZEN.\nDRIFTWOOD ISLE \u00b7 0 FEATS\nWILDSHARD \u00b7 0 FEATS\n\nENTER WORLD\nLOADS DRIFTWOOD ISLE\nSETTINGS\nWILDSHARD\n\nWHAT'S NEW \u00b7 5 CHANGES\nB24F8C3\n\nSHARD SELECT\n\nINFINITE WILDSHARD\nSETTINGS\n\nB24F8C3 \u00b7 RELOAD"
+  },
+  "lastOriginalCensusBeforeNativeFault": {
+    "at": 1791467205.487,
+    "totalBytes": 113621402,
+    "textures": 88379160,
+    "renderbuffers": 4936512,
+    "buffers": 20305730,
+    "unlabelled": 0,
+    "reconciled": true,
+    "journal": {
+      "document": "1791467127002:0.68876803528856",
+      "sequence": 5277
+    },
+    "assets": [
+      {
+        "owner": "engine/render-target",
+        "asset": "EffectComposer.Buffer/color/Texture",
+        "bytes": 18369792,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-billboards/map/Texture",
+        "bytes": 13107172,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/Mesh[0]/uniform/tA/hdri/qwantani_late_afternoon_puresky_2k.key.jpg + gain.png/Texture",
+        "bytes": 8388608,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/Mesh[0]/uniform/tB/hdri/qwantani_mid_morning_puresky_2k.key.jpg + gain.png/Texture",
+        "bytes": 8388608,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-signs/map/Texture",
+        "bytes": 6640976,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-junctions/map/Texture",
+        "bytes": 5592404,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "EffectComposer.Buffer/Depthbuffer",
+        "bytes": 4592448,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "PMREM.cubeUv/color/Texture",
+        "bytes": 4521984,
+        "resources": 4
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "generated/render-target/1024x1024/depth/Texture",
+        "bytes": 4194304,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-signs/map/Texture",
+        "bytes": 4194300,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-deck/index",
+        "bytes": 3289872,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-deck/grainUv",
+        "bytes": 3199312,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-asphalt/map/Texture",
+        "bytes": 2796204,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-deck/color",
+        "bytes": 2399484,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-deck/normal",
+        "bytes": 2399484,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-deck/position",
+        "bytes": 2399484,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "Downsampling.Mipmap0/color/Texture",
+        "bytes": 2296224,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[2]/uniform/e0Map/Upsampling.Mipmap0/Texture",
+        "bytes": 2296224,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "LuminancePass.Target/color/Texture",
+        "bytes": 2296224,
+        "resources": 1
+      },
+      {
+        "owner": "engine/texture",
+        "asset": "generated/texture/Texture",
+        "bytes": 1747620,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "generated/render-target/512x256/color/Texture",
+        "bytes": 1048576,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "Downsampling.Mipmap1/color/Texture",
+        "bytes": 574056,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "Upsampling.Mipmap1/color/Texture",
+        "bytes": 574056,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/cloud-sea/uniform/tNoise/Texture",
+        "bytes": 349524,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Sprite[4]/map/Texture",
+        "bytes": 349524,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "PMREM.cubeUv/Depthbuffer",
+        "bytes": 344064,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid/position",
+        "bytes": 321048,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-solid/position",
+        "bytes": 320352,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-solid/position",
+        "bytes": 316464,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:boar/position",
+        "bytes": 237456,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:boar/skinIndex",
+        "bytes": 237456,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/skinWeight",
+        "bytes": 208608,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/color",
+        "bytes": 156456,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/normal",
+        "bytes": 156456,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/position",
+        "bytes": 156456,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-solid/index",
+        "bytes": 155616,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid/index",
+        "bytes": 155520,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-solid/index",
+        "bytes": 153168,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "Downsampling.Mipmap2/color/Texture",
+        "bytes": 144632,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "Upsampling.Mipmap2/color/Texture",
+        "bytes": 144632,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/Mesh[0]/uniform/e7Lut/grid-frame-neutral-lut/Texture",
+        "bytes": 143748,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/Mesh[0]/uniform/e7Lut/pine-hollow-lut/Texture",
+        "bytes": 143748,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/skinWeight",
+        "bytes": 111744,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/skinIndex",
+        "bytes": 104304,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/uv",
+        "bytes": 104304,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/skinWeight",
+        "bytes": 96096,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:far-reach/far-proxy/index",
+        "bytes": 94164,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-signs/normal",
+        "bytes": 87168,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-signs/position",
+        "bytes": 87168,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/color",
+        "bytes": 83808,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/normal",
+        "bytes": 83808,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/position",
+        "bytes": 83808,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-solid/color",
+        "bytes": 80262,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-solid/color",
+        "bytes": 80088,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-solid/color",
+        "bytes": 79116,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:driftwood-isle/far-proxy/index",
+        "bytes": 74040,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:nalati-grasslands/far-proxy/index",
+        "bytes": 73728,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:pine-hollow/far-proxy/index",
+        "bytes": 73728,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/far-proxy/index",
+        "bytes": 73728,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:template-2/far-proxy/index",
+        "bytes": 73728,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/color",
+        "bytes": 72072,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/normal",
+        "bytes": 72072,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/position",
+        "bytes": 72072,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:far-reach/far-proxy/color",
+        "bytes": 70872,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:far-reach/far-proxy/normal",
+        "bytes": 70872,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:far-reach/far-proxy/position",
+        "bytes": 70872,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-signs/uv",
+        "bytes": 58112,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/skinIndex",
+        "bytes": 55872,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/uv",
+        "bytes": 55872,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/furLen",
+        "bytes": 52152,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/skinIndex",
+        "bytes": 48048,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/uv",
+        "bytes": 48048,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:far-reach/far-proxy/uv",
+        "bytes": 47248,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:driftwood-isle/far-proxy/color",
+        "bytes": 45552,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:driftwood-isle/far-proxy/normal",
+        "bytes": 45552,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:driftwood-isle/far-proxy/position",
+        "bytes": 45552,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:nalati-grasslands/far-proxy/color",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:nalati-grasslands/far-proxy/normal",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:nalati-grasslands/far-proxy/position",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:pine-hollow/far-proxy/color",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:pine-hollow/far-proxy/normal",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:pine-hollow/far-proxy/position",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/far-proxy/color",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/far-proxy/normal",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/far-proxy/position",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:template-2/far-proxy/color",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:template-2/far-proxy/normal",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:template-2/far-proxy/position",
+        "bytes": 44928,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-signs/index",
+        "bytes": 43584,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-border-shimmer-line/position",
+        "bytes": 37440,
+        "resources": 1
+      },
+      {
+        "owner": "engine/render-target",
+        "asset": "Downsampling.Mipmap3/color/Texture",
+        "bytes": 36720,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[1]/normal",
+        "bytes": 31848,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[1]/position",
+        "bytes": 31848,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:driftwood-isle/far-proxy/uv",
+        "bytes": 30368,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:nalati-grasslands/far-proxy/uv",
+        "bytes": 29952,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:pine-hollow/far-proxy/uv",
+        "bytes": 29952,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/far-proxy/uv",
+        "bytes": 29952,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:template-2/far-proxy/uv",
+        "bytes": 29952,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/furLen",
+        "bytes": 27936,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/pine-sky-dome/normal",
+        "bytes": 25740,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/pine-sky-dome/position",
+        "bytes": 25740,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-border-shimmer-line/uv",
+        "bytes": 24960,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/furLen",
+        "bytes": 24024,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/pine-sky-dome/index",
+        "bytes": 23808,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:grey-blob/position",
+        "bytes": 20400,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:grey-blob/skinIndex",
+        "bytes": 20400,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[3]/normal",
+        "bytes": 20172,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[3]/position",
+        "bytes": 20172,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-lines/position",
+        "bytes": 19056,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-border-shimmer-line/index",
+        "bytes": 18432,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[0]/normal",
+        "bytes": 17880,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[0]/position",
+        "bytes": 17880,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-lines/position",
+        "bytes": 17832,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[5]/normal",
+        "bytes": 17616,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[5]/position",
+        "bytes": 17616,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[0]/color",
+        "bytes": 17304,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[5]/color",
+        "bytes": 17304,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/pine-sky-dome/uv",
+        "bytes": 17160,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-seam-curtain/position",
+        "bytes": 16512,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-lines/position",
+        "bytes": 15600,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:boar/index",
+        "bytes": 13968,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[0]/skeleton/bones/Texture",
+        "bytes": 13824,
+        "resources": 6
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[5]/skeleton/bones/Texture",
+        "bytes": 13824,
+        "resources": 6
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[3]/uv",
+        "bytes": 13448,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[1]/color",
+        "bytes": 12984,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[1]/uv",
+        "bytes": 12576,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-asphalt/normal",
+        "bytes": 10944,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-asphalt/position",
+        "bytes": 10944,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-seam-curtain/index",
+        "bytes": 10464,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-lines/position",
+        "bytes": 10224,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-lines/position",
+        "bytes": 10224,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-lines/position",
+        "bytes": 10224,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[0]/index",
+        "bytes": 8784,
+        "resources": 3
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[5]/index",
+        "bytes": 8784,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Mesh/outputDirection",
+        "bytes": 7776,
+        "resources": 18
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Mesh/position",
+        "bytes": 7776,
+        "resources": 18
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-junctions/normal",
+        "bytes": 7680,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-junctions/position",
+        "bytes": 7680,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-asphalt/uv",
+        "bytes": 7296,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/road-sky/normal",
+        "bytes": 6732,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/road-sky/position",
+        "bytes": 6732,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-asphalt/index",
+        "bytes": 6624,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[3]/index",
+        "bytes": 6624,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[1]/index",
+        "bytes": 6480,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/copy-layout/normal",
+        "bytes": 6048,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/copy-layout/position",
+        "bytes": 6048,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/road-sky/index",
+        "bytes": 5760,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-junctions/index",
+        "bytes": 5664,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Points[3]/map/Texture",
+        "bytes": 5460,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-junctions/uv",
+        "bytes": 5120,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[2]/normal",
+        "bytes": 5040,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[2]/position",
+        "bytes": 5040,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Points[3]/position",
+        "bytes": 4608,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/road-sky/uv",
+        "bytes": 4488,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[2]/uv",
+        "bytes": 3360,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/copy-identity-number/position",
+        "bytes": 2880,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:boar/skeleton/bones/Texture",
+        "bytes": 2304,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/SkinnedMesh[4]/skeleton/bones/Texture",
+        "bytes": 2304,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/copy-layout/color",
+        "bytes": 2016,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[4]/normal",
+        "bytes": 1776,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[4]/position",
+        "bytes": 1776,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/copy-layout/index",
+        "bytes": 1512,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:grey-blob/index",
+        "bytes": 1200,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[4]/uv",
+        "bytes": 1184,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-soft-wall/position",
+        "bytes": 1152,
+        "resources": 1
+      },
+      {
+        "owner": "engine/texture",
+        "asset": "generated/texture/DFG_LUT/Texture",
+        "bytes": 1024,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-cards/position",
+        "bytes": 768,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-soft-wall/uv",
+        "bytes": 768,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-cards/position",
+        "bytes": 768,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-cards/position",
+        "bytes": 768,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/copy-identity-plate/position",
+        "bytes": 576,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-signs/position",
+        "bytes": 576,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[4]/index",
+        "bytes": 576,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-signs/position",
+        "bytes": 576,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-signs/position",
+        "bytes": 576,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-cards/uv",
+        "bytes": 512,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:grey-blob/skeleton/bones/Texture",
+        "bytes": 512,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-cards/uv",
+        "bytes": 512,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-cards/uv",
+        "bytes": 512,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/templatedoor/color",
+        "bytes": 432,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/templatedoor/normal",
+        "bytes": 432,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/templatedoor/position",
+        "bytes": 432,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-billboards/position",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-cards/index",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-signs/uv",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-soft-wall/aClosed",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[0]/uv",
+        "bytes": 384,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-billboards/position",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-hologram/grid-open-plot-holo-cards/index",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-signs/uv",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-billboards/position",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-hologram/grid-open-plot-holo-cards/index",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-signs/uv",
+        "bytes": 384,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-glass/normal",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-glass/position",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-signs/index",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-soft-wall/index",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/templatedoor/uv",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-signs/index",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-signs/index",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/normal",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/position",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/normal",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/position",
+        "bytes": 288,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-billboards/uv",
+        "bytes": 256,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-billboards/uv",
+        "bytes": 256,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-billboards/uv",
+        "bytes": 256,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[5]/uv",
+        "bytes": 208,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-billboards/index",
+        "bytes": 192,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-glass/uv",
+        "bytes": 192,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/haze-band/position",
+        "bytes": 192,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-billboards/index",
+        "bytes": 192,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-billboards/index",
+        "bytes": 192,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/uv",
+        "bytes": 192,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/uv",
+        "bytes": 192,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/templatedoor/index",
+        "bytes": 144,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/haze-band/uv",
+        "bytes": 128,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-void-floor/position",
+        "bytes": 96,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Sprite[4]/position",
+        "bytes": 80,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/client-script-particles/aColour",
+        "bytes": 72,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/client-script-particles/position",
+        "bytes": 72,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-holo-glass/index",
+        "bytes": 72,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/Mesh[0]/position",
+        "bytes": 72,
+        "resources": 2
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[3]/index",
+        "bytes": 72,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/PerspectiveCamera[0]/Group[1]/Mesh[4]/index",
+        "bytes": 72,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/cloud-sea/normal",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/cloud-sea/position",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-floor/position",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-scan/normal",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-scan/position",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-void-floor/index",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/normal",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/position",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell:sunscar-dunes/haze-band/index",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-floor/position",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-floor/position",
+        "bytes": 48,
+        "resources": 1
+      },
+      {
+        "owner": "engine/renderer",
+        "asset": "builtin/renderer-initialization",
+        "bytes": 36,
+        "resources": 4
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/cloud-sea/uv",
+        "bytes": 32,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-scan/uv",
+        "bytes": 32,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/uv",
+        "bytes": 32,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/client-script-particles/aAlpha",
+        "bytes": 24,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/client-script-particles/aSize",
+        "bytes": 24,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-floor/index",
+        "bytes": 24,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-se/grid-open-plot-floor/index",
+        "bytes": 24,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-open-plot:open-plot-sw/grid-open-plot-floor/index",
+        "bytes": 24,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/Mesh[0]/uv",
+        "bytes": 24,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/cloud-sea/index",
+        "bytes": 12,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/grid-open-plot-scan/index",
+        "bytes": 12,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Sprite[4]/index",
+        "bytes": 12,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/index",
+        "bytes": 12,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/Mesh[2]/map/Texture",
+        "bytes": 4,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:grey-blob/map/family:pbr-filler/Texture",
+        "bytes": 4,
+        "resources": 1
+      },
+      {
+        "owner": "engine/scene",
+        "asset": "generated/Group/neighbour-creature:grey-blob/normalMap/family:pbr-filler/Texture",
+        "bytes": 4,
+        "resources": 1
+      }
+    ],
+    "accountedBytes": 710603195,
+    "current": "pine-hollow",
+    "inside": "pine-hollow",
+    "residents": [
+      "pine-hollow"
+    ],
+    "wasm": [
+      {
+        "name": "memory",
+        "source": "instantiate",
+        "bytes": 655360
+      },
+      {
+        "name": "memory",
+        "source": "instantiateStreaming",
+        "bytes": 34799616
+      },
+      {
+        "name": "memory",
+        "source": "Instance",
+        "bytes": 65536
+      },
+      {
+        "name": "memory",
+        "source": "instantiate",
+        "bytes": 1310720
+      },
+      {
+        "name": "memory",
+        "source": "Instance",
+        "bytes": 65536
+      },
+      {
+        "name": "memory",
+        "source": "Instance",
+        "bytes": 65536
+      },
+      {
+        "name": "memory",
+        "source": "instantiate",
+        "bytes": 16777216
+      }
+    ],
+    "settled": false,
+    "cycle": 0
+  },
+  "contextEvents": [
+    {
+      "at": 1791467123.991,
+      "op": "context",
+      "context": "context:1",
+      "state": "observed",
+      "canvas": "game",
+      "document": "1791467123367:0.10580645687868684",
+      "sequence": 1
+    },
+    {
+      "at": 1791467133.142,
+      "op": "context",
+      "context": "context:1",
+      "state": "observed",
+      "canvas": "game",
+      "document": "1791467127002:0.68876803528856",
+      "sequence": 1
+    },
+    {
+      "at": 1791467194.637,
+      "op": "context",
+      "context": "context:1332",
+      "state": "observed",
+      "canvas": "",
+      "document": "1791467127002:0.68876803528856",
+      "sequence": 5159
+    },
+    {
+      "at": 1791467194.64,
+      "op": "context",
+      "context": "context:1332",
+      "state": "lost",
+      "canvas": "",
+      "document": "1791467127002:0.68876803528856",
+      "sequence": 5177
+    },
+    {
+      "at": 1791467206.662,
+      "op": "context",
+      "context": "context:1",
+      "state": "lost",
+      "canvas": "game",
+      "document": "1791467127002:0.68876803528856",
+      "sequence": 9308
+    },
+    {
+      "at": 1791467206.934,
+      "op": "context",
+      "context": "context:1",
+      "state": "restored",
+      "canvas": "game",
+      "document": "1791467127002:0.68876803528856",
+      "sequence": 10491
+    }
+  ],
+  "nativeCrashSecondsAfterDriveStart": 23.76259994506836,
+  "completedRouteWitnesses": 0,
+  "completedLaps": 0,
+  "interpretation": "A matching GPU process segfault and connected WebGL context loss preceded document replacement during first Pine crossing. The native stack identifies compressed 2D upload, not one texture. Raw upload tracing and call-site stacks were OFF. Last actual GL census is a lagging observation, not the fault-time allocation peak. No completion, cap pass, leak-zero, native saving or causal texture identity is claimed."
+}

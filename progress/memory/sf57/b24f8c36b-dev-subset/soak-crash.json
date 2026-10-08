@@ -1,0 +1,165 @@
+{
+  "source": "/Users/raynos/Library/Logs/DiagnosticReports/com.apple.WebKit.GPU-2026-10-08-084648.ips",
+  "sourceBytes": 61222,
+  "sourceSha256": "8fb99d724fd80b89069c6eeff39d05826a3b8119bb658db9d93151cfd5c72f31",
+  "captureTime": "2026-10-08 08:46:46.6626 -0500",
+  "pid": 70471,
+  "exception": {
+    "codes": "0x0000000000000001, 0x000000011f878000",
+    "rawCodes": [
+      1,
+      4823941120
+    ],
+    "type": "EXC_BAD_ACCESS",
+    "signal": "SIGSEGV",
+    "subtype": "KERN_INVALID_ADDRESS at 0x000000011f878000"
+  },
+  "termination": {
+    "flags": 0,
+    "code": 11,
+    "namespace": "SIGNAL",
+    "indicator": "Segmentation fault: 11",
+    "byProc": "exc handler",
+    "byPid": 70471
+  },
+  "faultingThread": {
+    "index": 3,
+    "name": "RemoteGraphicsContextGL work queue",
+    "frames": [
+      {
+        "symbol": "_platform_memmove",
+        "symbolLocation": 236,
+        "imageOffset": 12700,
+        "image": "libsystem_platform.dylib",
+        "imageUuid": "0831b8d2-190f-31fc-9eb6-ea8ba11fe47b"
+      },
+      {
+        "symbol": "rx::(anonymous namespace)::UploadTextureContents(gl::Context const*, angle::Format const&, MTLRegion const&, gl::LevelIndexWrapper<unsigned int> const&, unsigned int, unsigned char const*, unsigned long, unsigned long, bool, std::__1::shared_ptr<rx::mtl::Texture> const&)",
+        "symbolLocation": 740,
+        "imageOffset": 1948944,
+        "image": "libANGLE-shared.dylib",
+        "imageUuid": "b936867b-8e72-3af3-9d85-5536eb2c9139"
+      },
+      {
+        "symbol": "rx::TextureMtl::setPerSliceSubImage(gl::Context const*, int, MTLRegion const&, gl::InternalFormat const&, unsigned int, angle::Format const&, unsigned long, unsigned long, gl::Buffer*, unsigned char const*, rx::ImageDefinitionMtl const&)",
+        "symbolLocation": 524,
+        "imageOffset": 1954432,
+        "image": "libANGLE-shared.dylib",
+        "imageUuid": "b936867b-8e72-3af3-9d85-5536eb2c9139"
+      },
+      {
+        "symbol": "rx::TextureMtl::setSubImageImpl(gl::Context const*, gl::ImageIndex const&, gl::Box const&, gl::InternalFormat const&, unsigned int, gl::PixelUnpackState const&, gl::Buffer*, unsigned char const*)",
+        "symbolLocation": 532,
+        "imageOffset": 1939408,
+        "image": "libANGLE-shared.dylib",
+        "imageUuid": "b936867b-8e72-3af3-9d85-5536eb2c9139"
+      },
+      {
+        "symbol": "rx::TextureMtl::setCompressedSubImage(gl::Context const*, gl::ImageIndex const&, gl::Box const&, unsigned int, gl::PixelUnpackState const&, unsigned long, unsigned char const*)",
+        "symbolLocation": 100,
+        "imageOffset": 1939736,
+        "image": "libANGLE-shared.dylib",
+        "imageUuid": "b936867b-8e72-3af3-9d85-5536eb2c9139"
+      },
+      {
+        "symbol": "gl::Texture::setCompressedSubImage(gl::Context const*, gl::PixelUnpackState const&, gl::TextureTarget, int, gl::Box const&, unsigned int, unsigned long, unsigned char const*)",
+        "symbolLocation": 204,
+        "imageOffset": 1919616,
+        "image": "libANGLE-shared.dylib",
+        "imageUuid": "b936867b-8e72-3af3-9d85-5536eb2c9139"
+      },
+      {
+        "symbol": "gl::Context::compressedTexSubImage2D(gl::TextureTarget, int, int, int, int, int, unsigned int, int, void const*)",
+        "symbolLocation": 184,
+        "imageOffset": 199080,
+        "image": "libANGLE-shared.dylib",
+        "imageUuid": "b936867b-8e72-3af3-9d85-5536eb2c9139"
+      },
+      {
+        "symbol": "GL_CompressedTexSubImage2DRobustANGLE",
+        "symbolLocation": 220,
+        "imageOffset": 575688,
+        "image": "libANGLE-shared.dylib",
+        "imageUuid": "b936867b-8e72-3af3-9d85-5536eb2c9139"
+      },
+      {
+        "symbol": "WebCore::GraphicsContextGLANGLE::compressedTexSubImage2D(unsigned int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>)",
+        "symbolLocation": 172,
+        "imageOffset": 2068640,
+        "image": "WebCore",
+        "imageUuid": "8d58434a-b799-3cdd-81b1-7941f178f589"
+      },
+      {
+        "symbol": "WebKit::RemoteGraphicsContextGL::compressedTexSubImage2D0(unsigned int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)",
+        "symbolLocation": 64,
+        "imageOffset": 6010852,
+        "image": "WebKit",
+        "imageUuid": "d627190a-da4c-3a8e-a608-022203bb8ca9"
+      },
+      {
+        "symbol": "void IPC::handleMessage<Messages::RemoteGraphicsContextGL::CompressedTexSubImage2D0, IPC::StreamServerConnection, WebKit::RemoteGraphicsContextGL, WebKit::RemoteGraphicsContextGL, void (unsigned int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)>(IPC::StreamServerConnection&, IPC::Decoder&, WebKit::RemoteGraphicsContextGL*, void (WebKit::RemoteGraphicsContextGL::*)(unsigned int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&))",
+        "symbolLocation": 268,
+        "imageOffset": 3264728,
+        "image": "WebKit",
+        "imageUuid": "d627190a-da4c-3a8e-a608-022203bb8ca9"
+      },
+      {
+        "symbol": "WebKit::RemoteGraphicsContextGL::didReceiveStreamMessage(IPC::StreamServerConnection&, IPC::Decoder&)",
+        "symbolLocation": 5456,
+        "imageOffset": 3256180,
+        "image": "WebKit",
+        "imageUuid": "d627190a-da4c-3a8e-a608-022203bb8ca9"
+      },
+      {
+        "symbol": "IPC::StreamServerConnection::dispatchStreamMessage(IPC::Decoder&, IPC::StreamMessageReceiver&)",
+        "symbolLocation": 48,
+        "imageOffset": 16448116,
+        "image": "WebKit",
+        "imageUuid": "d627190a-da4c-3a8e-a608-022203bb8ca9"
+      },
+      {
+        "symbol": "IPC::StreamConnectionWorkQueue::processStreams()",
+        "symbolLocation": 1364,
+        "imageOffset": 16443796,
+        "image": "WebKit",
+        "imageUuid": "d627190a-da4c-3a8e-a608-022203bb8ca9"
+      },
+      {
+        "symbol": "WTF::Detail::CallableWrapper<IPC::StreamConnectionWorkQueue::startProcessingThread()::$_0, void>::call()",
+        "symbolLocation": 56,
+        "imageOffset": 16452428,
+        "image": "WebKit",
+        "imageUuid": "d627190a-da4c-3a8e-a608-022203bb8ca9"
+      },
+      {
+        "symbol": "WTF::Thread::entryPoint(WTF::Thread::NewThreadContext*)",
+        "symbolLocation": 280,
+        "imageOffset": 717400,
+        "image": "JavaScriptCore",
+        "imageUuid": "20c06bb8-b3a6-3c6d-9da8-44f6ee53c396"
+      },
+      {
+        "symbol": "WTF::wtfThreadEntryPoint(void*)",
+        "symbolLocation": 12,
+        "imageOffset": 731328,
+        "image": "JavaScriptCore",
+        "imageUuid": "20c06bb8-b3a6-3c6d-9da8-44f6ee53c396"
+      },
+      {
+        "symbol": "_pthread_start",
+        "symbolLocation": 104,
+        "imageOffset": 26172,
+        "image": "libsystem_pthread.dylib",
+        "imageUuid": "1e522024-387b-3d18-81ca-f4559198954b"
+      },
+      {
+        "symbol": "thread_start",
+        "symbolLocation": 8,
+        "imageOffset": 6708,
+        "image": "libsystem_pthread.dylib",
+        "imageUuid": "1e522024-387b-3d18-81ca-f4559198954b"
+      }
+    ]
+  },
+  "privacy": "Only matching exception, symbols and image identities retained; personal crash report headers excluded."
+}

@@ -276,6 +276,140 @@
           }
         ]
       }
+    },
+    {
+      "name": "soak",
+      "sha": "b24f8c36b31f40d6584e3639209a0b401c69c844",
+      "purpose": "REHEARSAL: conversions not prepared",
+      "device": "28F80221-7EEF-491C-A267-FD011B3E2625",
+      "driveStarted": "2026-10-08T13:46:22.900Z",
+      "circuits": 0,
+      "stage": "driftwood-isle-to-pine-hollow",
+      "failure": "Error: Soak document changed (navigation or graphics recovery)\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:199:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:194:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:342:40",
+      "errors": [
+        "WebGL context lost",
+        "Error: Soak document changed (navigation or graphics recovery)\n    at Object.evaluate (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/owned.mjs:199:43)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async worker (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:194:25)\n    at async file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:342:40"
+      ],
+      "entries": [],
+      "evictions": [
+        {
+          "at": 1791467191.52,
+          "cycle": 0,
+          "instance": "driftwood-isle",
+          "residents": []
+        }
+      ],
+      "crossroads": [],
+      "openCoverage": [
+        "sunscar-dunes",
+        "far-reach"
+      ],
+      "glSampling": {
+        "journal": 39,
+        "observed": 44,
+        "missing": 0,
+        "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+      },
+      "uploadOverflow": 0,
+      "grade": {
+        "contentCut": null,
+        "requiredSeconds": 1800,
+        "memoryPass": false,
+        "gatePass": false,
+        "peakBytes": 678398394,
+        "loadingPeakBytes": 669287855,
+        "phoneEstimateBytes": 949757751.5999999,
+        "baselines": [
+          {
+            "cycle": 0,
+            "start": 1791467172.831,
+            "end": 1791467182.9,
+            "samples": 10,
+            "bytes": 587441779
+          }
+        ],
+        "baselineDeltaBytes": [
+          null
+        ],
+        "loops": [
+          {
+            "cycle": 0,
+            "complete": false,
+            "peakBytes": 678398394,
+            "troughBytes": 485492962
+          }
+        ],
+        "recovery": false,
+        "calibration": true,
+        "ratios": [],
+        "missingGlSamples": 0,
+        "sampling": true,
+        "leakZero": false,
+        "admitted": [],
+        "refused": [
+          "pine-hollow",
+          "template-2",
+          "sunscar-dunes",
+          "driftwood-isle",
+          "nalati-grasslands",
+          "far-reach"
+        ],
+        "attemptedEveryCell": false,
+        "crossroads": 0,
+        "rehearsal": true,
+        "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+      },
+      "functionalPass": false,
+      "perLap": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "samples": 24,
+          "peakBytes": 678398394,
+          "troughBytes": 485492962,
+          "webContentPeakBytes": 564776992,
+          "allWebContentPeakBytes": 567401024,
+          "glPeakBytes": 180402095,
+          "accountedPeakBytes": 710603195,
+          "gpuProcessPeakBytes": 246713152,
+          "wasmPeakBytes": 53739520,
+          "overCapBytes": 0
+        }
+      ],
+      "nativeSummary": {
+        "type": "summary",
+        "t": "2026-10-08T13:46:47.402676+00:00",
+        "phases": {
+          "loading": {
+            "samples": 39,
+            "seconds": 38.3,
+            "gamePid": 70466,
+            "gameHighGB": 0.589,
+            "gameSampledGB": 0.489,
+            "allWebContentGB": 0.632,
+            "gpuProcessGB": 0.164
+          },
+          "baseline-0": {
+            "samples": 20,
+            "seconds": 19.1,
+            "gamePid": 70466,
+            "gameHighGB": 0.431,
+            "gameSampledGB": 0.43,
+            "allWebContentGB": 0.47,
+            "gpuProcessGB": 0.161
+          },
+          "drive": {
+            "samples": 24,
+            "seconds": 23.2,
+            "gamePid": 70466,
+            "gameHighGB": 0.565,
+            "gameSampledGB": 0.528,
+            "allWebContentGB": 0.604,
+            "gpuProcessGB": 0.301
+          }
+        },
+        "lost": []
+      }
     }
   ],
   "interpretation": "Failure-inclusive Developer D/P/N/template-2 subset. Full catalogue, road-only and shipped coverage remain open. GPU process is separate; no phone-cap or native-saving claim."
