@@ -2046,7 +2046,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/input/InputService`: `Action`, `ActionCommand`, `ActionMap`, `DeclaredAction`, `InputService`, `InputState`, `TouchStack`, `TouchVerb`, `TouchVerbSpec`
 - `@wildshard/engine/input/weaponActions`: `weaponActionGate`
 - `@wildshard/engine/level/context`: `ContentRow`, `ContentRowMap`, `CreatureMaterialFactory`, `DebugRowSpec`, `EngineRows`, `HudVerbs`, `InputContextDef`, `LevelAdapters`, `LevelContext`, `LevelHooks`, `PlaygroundSpec`, `ResidentMemory`, `RowVerb`, `StringTable`, `TierKnobSchema`, `VerbSlotOpts`
-- `@wildshard/engine/level/data`: `AtmosphereSpec`, `CabinSite`, `CompareTarget`, `exploreArt`, `ExploreArt`, `ExploreSpec`, `FaunaKind`, `ForestSpec`, `GradeLook`, `GradeSpec`, `HerdPlan`, `HorizonBand`, `HorizonRing`, `HorizonSpec`, `HudSpec`, `LevelAssets`, `MapLook`, `MinimapSpec`, `PoiSpec`, `PondDef`, `RGB`, `SkySpec`, `SpawnPose`, `TerrainField`, `TerrainNoise`, `TerrainSpec`, `TreeSpec`, `Vec2`
+- `@wildshard/engine/level/data`: `AtmosphereSpec`, `CabinSite`, `CompareTarget`, `exploreArt`, `ExploreArt`, `ExploreSpec`, `FaunaKind`, `ForestSpec`, `GradeLook`, `GradeSpec`, `HerdPlan`, `HorizonBand`, `HorizonRing`, `HorizonSpec`, `HudSpec`, `LevelAssets`, `MinimapSpec`, `PoiSpec`, `PondDef`, `RGB`, `SkySpec`, `SpawnPose`, `TerrainField`, `TerrainNoise`, `TerrainSpec`, `TreeSpec`, `Vec2`
 - `@wildshard/engine/level/frame`: `LevelFrameBinding`, `LevelFrameHost`, `LevelFrameOptions`
 - `@wildshard/engine/level/installation`: `createLevelInstallation`, `LevelInstallation`
 - `@wildshard/engine/level/load`: `LevelDriver`, `LevelLoader`, `LevelLoadError`, `LevelStage`
@@ -2184,7 +2184,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/ui/layers`: `UiHandle`, `UiLayer`, `UiLayers`, `UiView`
 - `@wildshard/engine/ui/Loading`: `beginLoading`, `Loading`, `LoadingAdmission`
 - `@wildshard/engine/ui/LockOn`: `LockOn`
-- `@wildshard/engine/ui/Map`: `FullMap`, `MapPoi`, `MapQuest`, `MapZone`
+- `@wildshard/engine/ui/Map`: `FullMap`, `levelPins`, `MapPoi`, `MapQuest`, `MapZone`
 - `@wildshard/engine/ui/Menu`: `GameMenu`, `GameMenuOptions`, `KitEntry`, `MenuGroup`, `MenuTab`, `SkinRow`
 - `@wildshard/engine/ui/Minimap`: `LAYER_PPM`, `MapExtraImage`, `MapExtraLabel`, `MapExtraRect`, `MapExtras`, `MapFeatures`, `MapMark`, `MapOverlay`, `MapPoi`, `mapPois`, `Minimap`, `MinimapAnimal`, `MinimapPalette`
 - `@wildshard/engine/ui/ownership`: `mountUi`, `uiScope`
@@ -2308,7 +2308,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/game/shard/declaredPlumbing`: `installDeclaredPlumbing`, `PlumbingHandles`, `PlumbingPorts`
 - `@wildshard/game/shard/declaredRows`: `declaredCompendium`, `declaredDay`, `declaredLootPresentation`, `declaredSpeciesLook`, `declaredWeather`
 - `@wildshard/game/shard/declaredUi`: `DeclaredUiPorts`, `mountDeclaredUi`
-- `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardEntries`, `ShardEntryMode`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
+- `@wildshard/game/shard/manifest`: `bakedMapUrl`, `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `OceanDef`, `PondDef`, `RGB`, `ShardEntries`, `ShardEntryMode`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeAttachment`, `installEnteredRuntimeInput`, `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `installEnteredRuntimeUpdate`, `installRetainedPlayerEffects`, `RetainedRuntimeHooks`, `retainsRuntimeServices`

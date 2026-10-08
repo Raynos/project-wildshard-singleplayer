@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-666 members; 113 without a doc line (—).
+666 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -273,6 +273,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `declaredWeather` | function | @wildshard/game/shard/declaredRows | Expand a table of authored outputs into the existing seeded weather mechanism. |
 | `DeclaredUiPorts` | interface | @wildshard/game/shard/declaredUi | the engine's HUD ports plus the shard's Bag |
 | `mountDeclaredUi` | function | @wildshard/game/shard/declaredUi | SF7f: draw a shardfile's `ui` declarations. Markers, counters, boss panels and relabels go to the engine's shared HUD; |
+| `bakedMapUrl` | function | @wildshard/game/shard/manifest | The URL the maps fetch for a shard's baked map image (`ChunkMapDef.image`), versioned by the build: /assets is cached as |
 | `CabinSite` | interface | @wildshard/game/shard/manifest | — |
 | `ChunkAssets` | interface | @wildshard/game/shard/manifest | Texture / model ids under `public/assets/` (see `scripts/fetch-assets.mjs`). |
 | `ChunkAtmosphere` | interface | @wildshard/game/shard/manifest | Height + distance fog (`src/engine/world/Atmosphere.ts`) and the volumetric sun shafts. |
@@ -281,7 +282,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ChunkHorizon` | interface | @wildshard/game/shard/manifest | A shard-specific horizon (`src/engine/world/Horizon.ts`): rings near → far; replaces the default three ridge rings. |
 | `ChunkHud` | interface | @wildshard/game/shard/manifest | the optional pieces of the ONE base HUD a shard switches on (E154) — the layout, the controls and the status column are |
 | `ChunkLook` | interface | @wildshard/game/shard/manifest | A shard's look-loop grade (PINE-HOLLOW PH-L1 / L4), laid over `grade` and the day clock |
-| `ChunkMapDef` | interface | @wildshard/game/shard/manifest | The built world on the maps (E130, src/engine/ui/Minimap.ts): flat silhouettes in the map's own style, read from the real layout — |
+| `ChunkMapDef` | interface | @wildshard/game/shard/manifest | The shard on the maps (src/engine/ui/Minimap.ts, Map.ts). The ground is the map baked from the world (SF66, G246 / G247: |
 | `ChunkPoi` | interface | @wildshard/game/shard/manifest | a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) |
 | `ChunkSky` | interface | @wildshard/game/shard/manifest | Lighting rig (`src/engine/world/Sky.ts`). |
 | `ChunkStructures` | interface | @wildshard/game/shard/manifest | A structure-first shard (Nine Dragon Stack's fragment, NINE-DRAGON-STACK P0-5c): its world is built floors on colliders, |
@@ -297,7 +298,6 @@ The game layer's public modules (src/game/package.json `exports`).
 | `HorizonBand` | interface | @wildshard/game/shard/manifest | One azimuth band of a horizon ring (`ChunkHorizon`): a bump in the ring's height profile centred on a compass |
 | `HorizonRing` | interface | @wildshard/game/shard/manifest | A painted horizon ring: radius (m), base height (m, relative to y = 0), colours (linear), snow above `snowLine` of its height (0..1, > 1 = none), haze 0..1 |
 | `KnownChunkStyle` | type | @wildshard/game/shard/manifest | How the shard is rendered: textured PBR (Pine Hollow), faceted flat-shaded vertex colours with no textures |
-| `MapLook` | type | @wildshard/game/shard/manifest | — |
 | `OceanDef` | interface | @wildshard/game/shard/manifest | Open water covering the whole shard (Driftwood Isle). The terrain's `waterLevel()` returns |
 | `PondDef` | interface | @wildshard/game/shard/manifest | — |
 | `RGB` | type | @wildshard/game/shard/manifest | linear-space RGB triple, 0..1 (values above 1 are allowed for HDR sun colours) |

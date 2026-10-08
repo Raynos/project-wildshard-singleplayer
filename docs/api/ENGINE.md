@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2239 members; 834 without a doc line (—).
+2239 members; 833 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1027,7 +1027,6 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `HorizonSpec` | interface | @wildshard/engine/level/data | — |
 | `HudSpec` | interface | @wildshard/engine/level/data | — |
 | `LevelAssets` | interface | @wildshard/engine/level/data | — |
-| `MapLook` | type | @wildshard/engine/level/data | — |
 | `MinimapSpec` | interface | @wildshard/engine/level/data | — |
 | `PoiSpec` | interface | @wildshard/engine/level/data | — |
 | `PondDef` | interface | @wildshard/engine/level/data | — |
@@ -1791,6 +1790,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `LoadingAdmission` | interface | @wildshard/engine/ui/Loading | Renderer-independent admission facts; the caller owns its phases and actual byte counter. |
 | `LockOn` | class | @wildshard/engine/ui/LockOn | — |
 | `FullMap` | class | @wildshard/engine/ui/Map | — |
+| `levelPins` | function | @wildshard/engine/ui/Map | the pins a level shows when its shard sets none (`setPois`): its listed places (LevelSpec.pois), else the cabins and the |
 | `MapPoi` | interface | @wildshard/engine/ui/Map | a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond); |
 | `MapQuest` | interface | @wildshard/engine/ui/Map | the quest in full for the MAP tab's quest card (the HUD only shows its short chip, E51): chapter title, objective, sub-steps |
 | `MapZone` | interface | @wildshard/engine/ui/Map | a zone's name on the full map (setZones) |

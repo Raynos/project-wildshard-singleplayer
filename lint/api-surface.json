@@ -6129,12 +6129,6 @@
         "from": "@wildshard/engine/level/data"
       },
       {
-        "name": "MapLook",
-        "kind": "type",
-        "doc": "",
-        "from": "@wildshard/engine/level/data"
-      },
-      {
         "name": "MinimapSpec",
         "kind": "interface",
         "doc": "",
@@ -10720,6 +10714,12 @@
         "from": "@wildshard/engine/ui/Map"
       },
       {
+        "name": "levelPins",
+        "kind": "function",
+        "doc": "the pins a level shows when its shard sets none (`setPois`): its listed places (LevelSpec.pois), else the cabins and the",
+        "from": "@wildshard/engine/ui/Map"
+      },
+      {
         "name": "MapPoi",
         "kind": "interface",
         "doc": "a point on the full map: a discovered place (named), an undiscovered one (\"?\"), or a live quest marker (pulsing diamond);",
@@ -15048,6 +15048,12 @@
         "from": "@wildshard/game/shard/declaredUi"
       },
       {
+        "name": "bakedMapUrl",
+        "kind": "function",
+        "doc": "The URL the maps fetch for a shard's baked map image (`ChunkMapDef.image`), versioned by the build: /assets is cached as",
+        "from": "@wildshard/game/shard/manifest"
+      },
+      {
         "name": "CabinSite",
         "kind": "interface",
         "doc": "",
@@ -15098,7 +15104,7 @@
       {
         "name": "ChunkMapDef",
         "kind": "interface",
-        "doc": "The built world on the maps (E130, src/engine/ui/Minimap.ts): flat silhouettes in the map's own style, read from the real layout —",
+        "doc": "The shard on the maps (src/engine/ui/Minimap.ts, Map.ts). The ground is the map baked from the world (SF66, G246 / G247:",
         "from": "@wildshard/game/shard/manifest"
       },
       {
@@ -15189,12 +15195,6 @@
         "name": "KnownChunkStyle",
         "kind": "type",
         "doc": "How the shard is rendered: textured PBR (Pine Hollow), faceted flat-shaded vertex colours with no textures",
-        "from": "@wildshard/game/shard/manifest"
-      },
-      {
-        "name": "MapLook",
-        "kind": "type",
-        "doc": "",
         "from": "@wildshard/game/shard/manifest"
       },
       {
