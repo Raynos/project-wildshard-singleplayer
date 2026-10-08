@@ -36,8 +36,8 @@ try {
   // Diagnostic-only local protocol: in-process Playwright exposes its WebKit page delegate.
   // Fail closed if a future Playwright changes this seam; never fall back to a different engine.
   const impl = page._connection.toImpl?.(page);
-  if (!impl?._delegate) throw new Error('Playwright local WebKit delegate unavailable');
-  const send = (method, params) => impl._delegate._session.send(method, params);
+  if (!impl?.delegate) throw new Error('Playwright local WebKit delegate unavailable');
+  const send = (method, params) => impl.delegate._session.send(method, params);
   report.stage = 'local-protocol'; save();
   await page.goto(new URL('?touch=1&tier=phone&mute=1', base).href);
   const probe = await send('Runtime.evaluate', { expression: '1+1', returnByValue: true });
