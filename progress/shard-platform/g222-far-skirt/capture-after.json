@@ -1,0 +1,195 @@
+{
+  "base": "http://127.0.0.1:4401",
+  "tag": "after",
+  "poses": [
+    {
+      "pose": {
+        "name": "nalati-south",
+        "x": 705,
+        "z": -277.5,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.12
+      },
+      "data": [
+        {
+          "cell": "grid-cell:pine-hollow",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 60.3
+        },
+        {
+          "cell": "grid-cell:template-2",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 0.5
+        },
+        {
+          "cell": "grid-cell:sunscar-dunes",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 11.5
+        },
+        {
+          "cell": "grid-cell:nalati-grasslands",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 99.7
+        },
+        {
+          "cell": "grid-cell:far-reach",
+          "visible": true,
+          "triangles": 7847,
+          "cliffVertices": 64,
+          "borderTop": -8
+        }
+      ]
+    },
+    {
+      "pose": {
+        "name": "nalati-west",
+        "x": 277.5,
+        "z": -150,
+        "yaw": 3.141592653589793,
+        "pitch": 0.12
+      },
+      "data": [
+        {
+          "cell": "grid-cell:pine-hollow",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 60.3
+        },
+        {
+          "cell": "grid-cell:template-2",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 0.5
+        },
+        {
+          "cell": "grid-cell:sunscar-dunes",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 11.5
+        },
+        {
+          "cell": "grid-cell:nalati-grasslands",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 99.7
+        },
+        {
+          "cell": "grid-cell:far-reach",
+          "visible": true,
+          "triangles": 7847,
+          "cliffVertices": 64,
+          "borderTop": -8
+        }
+      ]
+    },
+    {
+      "pose": {
+        "name": "pine-north",
+        "x": -150,
+        "z": 832.5,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.12
+      },
+      "data": [
+        {
+          "cell": "grid-cell:pine-hollow",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 60.3
+        },
+        {
+          "cell": "grid-cell:template-2",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 0.5
+        },
+        {
+          "cell": "grid-cell:sunscar-dunes",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 11.5
+        },
+        {
+          "cell": "grid-cell:nalati-grasslands",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 99.7
+        },
+        {
+          "cell": "grid-cell:far-reach",
+          "visible": true,
+          "triangles": 7847,
+          "cliffVertices": 64,
+          "borderTop": -8
+        }
+      ]
+    },
+    {
+      "pose": {
+        "name": "pine-north-face",
+        "x": 0,
+        "z": 836,
+        "yaw": 0,
+        "pitch": 0.18
+      },
+      "data": [
+        {
+          "cell": "grid-cell:pine-hollow",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 60.3
+        },
+        {
+          "cell": "grid-cell:template-2",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 0.5
+        },
+        {
+          "cell": "grid-cell:sunscar-dunes",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 11.5
+        },
+        {
+          "cell": "grid-cell:nalati-grasslands",
+          "visible": true,
+          "triangles": 6144,
+          "cliffVertices": 416,
+          "borderTop": 99.7
+        },
+        {
+          "cell": "grid-cell:far-reach",
+          "visible": true,
+          "triangles": 7847,
+          "cliffVertices": 64,
+          "borderTop": -8
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "version": {
+    "build": "3ee42f9-muyv119z",
+    "time": "2026-10-08T01:30:51.027Z"
+  }
+}

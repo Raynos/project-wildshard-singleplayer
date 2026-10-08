@@ -9,5 +9,7 @@ export const farLook = {
     const k = 0.94 + 0.06 * Math.sin(x * 0.05) * Math.cos(z * 0.05);
     return [0.36 * k, 0.4 * k, 0.36 * k];
   },
+  // G222: its exposed boundary is a darker grey of its own ground (a new shard declares its own rock)
+  cliff: { lip: [0.3, 0.32, 0.3], foot: [0.2, 0.21, 0.2] },
   haze: { colour: [0.6, 0.65, 0.7], near: 450, far: 2600, max: 0.55 },
 } as const;

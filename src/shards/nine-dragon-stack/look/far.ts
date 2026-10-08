@@ -50,6 +50,8 @@ export const farLook = {
     const base = slope < 0.08 ? ROOF : INK;
     return [base[0] + WINDOW[0] * glow, base[1] + WINDOW[1] * glow, base[2] + WINDOW[2] * glow];
   },
+  // G222: its exposed boundary is the stack's granite footing going to ink, never a pale wall
+  cliff: { lip: GRANITE, foot: INK },
   haze: { colour: [0.6, 0.56, 0.64], near: 300, far: 2200, max: 0.65 },
   // SF19b / G95 (Jake: "C Dusk + border fog"): under the grid's one sky the stack keeps its dusk through a dusky violet
   // grade on its own pixels and a pale silk fog rising from the strip at its border; no second sky

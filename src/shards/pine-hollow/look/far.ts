@@ -17,5 +17,7 @@ export const farLook = {
     return [ground[0] + (pine[0] - ground[0]) * c, ground[1] + (pine[1] - ground[1]) * c, ground[2] + (pine[2] - ground[2]) * c];
   },
   canopyAt: (_x: number, _z: number, h: number, slope: number, w: Splat): number => h < -3 ? 0 : 17 * canopy(w, slope),
+  // G222: its exposed boundary (the ~62 m north ridge) is its splat's crag rock, shading darker toward the foot
+  cliff: { lip: [0.26, 0.25, 0.23], foot: [0.14, 0.135, 0.125] },
   haze: { colour: [0.55, 0.62, 0.68], near: 400, far: 2400, max: 0.6 },
 } as const;

@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
-import { buildFarProxy, FAR_QUADS, FAR_REGIONS, FAR_RING, farRingCatalogue, type FarLookSource } from '../src/game/grid/farProxy';
+import { buildFarProxy, FAR_EDGE_FLOOR, FAR_QUADS, FAR_REGIONS, FAR_RING, farRingCatalogue, type FarLookSource } from '../src/game/grid/farProxy';
 import { RenderRings, type RingCell, type RingLevel, type RingView } from '../src/game/grid/rings';
 
 const SHARDS = ['_template', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'sunscar-dunes', 'far-reach'] as const;
@@ -21,6 +21,8 @@ function glb(bytes: Buffer): { json: { meshes: { primitives: { attributes: Recor
   const jsonLength = bytes.readUInt32LE(12), json = JSON.parse(bytes.subarray(20, 20 + jsonLength).toString('utf8')) as ReturnType<typeof glb>['json'];
   return { json, bin: bytes.subarray(28 + jsonLength) };
 }
+
+const ROCK = { lip: [0.46, 0.41, 0.35], foot: [0.3, 0.27, 0.25] } as const;
 
 describe('SF23 far proxies', () => {
   it.each([...SHARDS, 'nine-dragon-stack'])('%s: baked, inside the far caps, one draw, all 16 regions', (slug) => {
@@ -41,7 +43,7 @@ describe('SF23 far proxies', () => {
   });
 
   it('keeps each region inside its L1 footprint, skirted', () => {
-    const look: FarLookSource = { family: 'toon', colourAt: () => [0.5, 0.5, 0.5], haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
+    const look: FarLookSource = { family: 'toon', colourAt: () => [0.5, 0.5, 0.5], cliff: ROCK, haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
     const res = 33, mesh = buildFarProxy({ res, size: 500, heights: new Float32Array(res * res).fill(4), splat: null }, look);
     const size = 500 / FAR_REGIONS;
     for (let v = 0; v < mesh.region.length; v++) {
@@ -53,8 +55,29 @@ describe('SF23 far proxies', () => {
     expect(Math.min(...mesh.positions.filter((_, i) => i % 3 === 1))).toBeLessThan(4);
   });
 
+  it('G222: draws the cell boundary as a rock cliff (own lip, outward normals, flagged), the inner skirts as ground', () => {
+    const look: FarLookSource = { family: 'painterly', colourAt: () => [0.9, 0.92, 0.97], cliff: ROCK, haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
+    const res = 33, heights = new Float32Array(res * res).fill(4);
+    for (let i = 0; i < res; i++) heights[i] = 100; // the south row (−z) stands 100 m, as Nalati's snow berm does
+    const mesh = buildFarProxy({ res, size: 500, heights, splat: null }, look), lips: number[] = [], feet: number[] = [];
+    mesh.cliff.forEach((c, v) => { if (c === 1) lips.push(v); else if (c === 2) feet.push(v); });
+    expect(lips).toHaveLength(4 * FAR_REGIONS * (FAR_QUADS + 1)); expect(feet).toHaveLength(lips.length);
+    for (const v of [...lips, ...feet]) {
+      const x = mesh.positions[v * 3] ?? 0, z = mesh.positions[v * 3 + 2] ?? 0;
+      expect(Math.max(Math.abs(x), Math.abs(z))).toBeCloseTo(250, 6); // only the cell's outer edge
+      expect(Math.abs(mesh.normals[v * 3 + 1] ?? 1)).toBeLessThan(1e-6); // faceted: outward, never the ground's normal
+      expect(mesh.colours[v * 3] ?? 1).toBeLessThanOrEqual(ROCK.lip[0] + 1e-6); // rock, never the snow lip
+    }
+    // the true edge height is kept: the south lip stands at 100 m and its foot reaches the edge floor
+    const south = lips.filter((v) => (mesh.positions[v * 3 + 2] ?? 0) < -249.9 && Math.abs(mesh.positions[v * 3] ?? 0) < 249.9);
+    expect(Math.min(...south.map((v) => mesh.positions[v * 3 + 1] ?? 0))).toBeCloseTo(100, 3);
+    expect(Math.min(...feet.map((v) => mesh.positions[v * 3 + 1] ?? 0))).toBeCloseTo(FAR_EDGE_FLOOR, 6);
+    expect(mesh.triangles).toBe(16 * (FAR_QUADS * FAR_QUADS * 2 + 4 * FAR_QUADS * 2)); // same triangles as before
+    expect(() => buildFarProxy({ res, size: 500, heights, splat: null }, { ...look, cliff: { lip: [1.2, 0, 0], foot: [0, 0, 0] } })).toThrow(/cliff palette/u);
+  });
+
   it('SF49: merges model parts into the one mesh, each riding the region under its centre', () => {
-    const look: FarLookSource = { family: 'toon', quads: 1, colourAt: () => [0.5, 0.5, 0.5], haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
+    const look: FarLookSource = { family: 'toon', quads: 1, colourAt: () => [0.5, 0.5, 0.5], cliff: ROCK, haze: { colour: [1, 1, 1], near: 1, far: 2, max: 0.5 } };
     const grid = { res: 2, size: 500, heights: new Float32Array(4).fill(-40), splat: null };
     // a floating triangle over region (2, 1) = 6, straddling into region 7 at one corner
     const part = { positions: Float32Array.from([10, 30, -100, 140, 32, -100, 20, 40, -60]), colours: new Float32Array(9).fill(0.4), index: Uint32Array.from([0, 2, 1]) }; // counter-clockwise from above: faces up

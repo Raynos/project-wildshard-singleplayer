@@ -14,5 +14,10 @@ export const farLook = {
     const grass: [number, number, number] = [0.16 + 0.2 * gold + 0.04 * patch, 0.33 + 0.08 * gold + 0.05 * patch, 0.07 + 0.02 * patch];
     return [grass[0] * w[0] + 0.4 * w[1] + 0.33 * w[2] + 0.88 * w[3], grass[1] * w[0] + 0.37 * w[1] + 0.33 * w[2] + 0.91 * w[3], grass[2] * w[0] + 0.3 * w[1] + 0.34 * w[2] + 0.97 * w[3]];
   },
+  // G222: its exposed boundary is the native slab's granite (look/terrainPainter.ts rockMid → deep), not the snow ring's
+  // white, scaled to how this painterly proxy draws in the grid's daylight: a sun-facing face renders ~4× its colour
+  // (measured on the west road face: ×1 → sRGB 159, ×0.5 → 145, ×0.25 → 109, ×0.125 → 67), so rockMid ×0.3 lands
+  // on the warm grey-brown of the seam's rock instead of clipping to white
+  cliff: { lip: [0.09, 0.081, 0.075], foot: [0.04, 0.04, 0.048] },
   haze: { colour: [0.62, 0.78, 0.98], near: 500, far: 2800, max: 0.5 },
 } as const;

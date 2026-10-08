@@ -8,7 +8,10 @@
  * under the shard's water level. Every vertex carries its region (0..15, x + 4z from the cell's −x −z corner, the rings'
  * mask numbering), so the renderer hides a refined region in the same single draw (`farView.ts`). Colour comes from the
  * shard's own far look (`src/shards/<slug>/look/far.ts`): its palette by height, slope and splat, an optional canopy
- * lift (a forest reads as a dark mass above the ground, not painted on it) and its haze. Node-safe; no three.js.
+ * lift (a forest reads as a dark mass above the ground, not painted on it) and its haze. The cell's outer skirt is its
+ * exposed boundary seen from the road (G222): a rocky cliff in the look's declared `cliff` palette, its own vertices with
+ * outward (faceted) normals and flagged in TEXCOORD_0.y (1 lip, 2 foot), so the renderer draws strata on it; the short inner skirts that
+ * hide the cracks between regions keep the ground's colour. Node-safe; no three.js.
  */
 import { CHUNK_HALF, CONTENT_CAPS } from '@wildshard/engine/core/config';
 
@@ -28,6 +31,8 @@ export interface FarLookSource {
   /** metres of canopy above the ground (forests), 0 for open ground */
   readonly canopyAt?: (x: number, z: number, h: number, slope: number, splat: readonly [number, number, number, number]) => number;
   readonly water?: { readonly level: number; readonly colour: FarRgb };
+  /** the rock its exposed cell boundary shows (G222), from its own terrain's rock, never its snow or grass */
+  readonly cliff: FarCliff;
   readonly haze: FarHaze;
   /**
    * quads per region side in its terrain lattice (default `FAR_QUADS`): a shard whose ground is one sheet (a cloud sea
@@ -39,6 +44,12 @@ export interface FarLookSource {
   /** a haze band at its border under the one frame (SF19b, G94) */
   readonly band?: FarBand;
 }
+/**
+ * G222: the rock palette of a shard's exposed boundary face (linear RGB): `lip` at the true edge height, easing to `foot`
+ * at the edge floor. The far material lays strata over it (`farView.ts`, `FAR_STRATA`), so the face reads as the same
+ * banded rock family as the seam's cliffs in front of it instead of a smooth wall of the lip's ground colour.
+ */
+export interface FarCliff { readonly lip: FarRgb; readonly foot: FarRgb }
 /**
  * A shard's declared grade under SF19a's one frame, applied to the whole frame while the player stands in its cell (G158;
  * after the camera's tone mapping; neutral when absent):
@@ -62,8 +73,11 @@ export interface FarGrid { readonly res: number; readonly size: number; readonly
  * rings hide it with that region; normals come from its faces.
  */
 export interface FarPart { readonly positions: Float32Array; readonly colours: Float32Array; readonly index: Uint32Array }
-/** An indexed proxy mesh; `region` is per vertex. */
-export interface FarProxyMesh { positions: Float32Array; normals: Float32Array; colours: Float32Array; region: Float32Array; index: Uint32Array; triangles: number }
+/**
+ * An indexed proxy mesh; `region` and `cliff` are per vertex. `cliff` marks the outer boundary face (G222): 1 on its lip,
+ * 2 on its foot (the renderer steps the foot in, `FAR_SKIRT_INSET`), 0 elsewhere.
+ */
+export interface FarProxyMesh { positions: Float32Array; normals: Float32Array; colours: Float32Array; region: Float32Array; cliff: Float32Array; index: Uint32Array; triangles: number }
 
 /** Regions per side (one per L1 tile) and quads per region side. */
 export const FAR_REGIONS = 4, FAR_QUADS = 12;
@@ -111,7 +125,7 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
   const quads = look.quads ?? FAR_QUADS;
   if (!Number.isInteger(quads) || quads < 1) throw new RangeError('Invalid far lattice');
   const sample = sampler(grid), regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / quads, n = quads + 1;
-  const positions: number[] = [], normals: number[] = [], colours: number[] = [], region: number[] = [], index: number[] = [];
+  const positions: number[] = [], normals: number[] = [], colours: number[] = [], region: number[] = [], cliff: number[] = [], index: number[] = [];
   const clamp = (c: number): number => Math.min(1, Math.max(0, c));
   // the surface the proxy shows: ground + canopy, its slope from the ground alone (a canopy is not a cliff)
   const ground = (x: number, z: number): { h: number; top: number; slope: number; normal: [number, number, number]; rgb: FarRgb } => {
@@ -121,10 +135,14 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
     if (!Number.isFinite(h) || !Number.isFinite(canopy) || rgb.some((c) => !Number.isFinite(c))) throw new RangeError('Invalid far look sample');
     return { h, top: h + canopy, slope, normal, rgb: [clamp(rgb[0]), clamp(rgb[1]), clamp(rgb[2])] };
   };
-  const vertex = (x: number, y: number, z: number, normal: readonly number[], rgb: FarRgb, r: number): number => {
-    positions.push(x, y, z); normals.push(normal[0] ?? 0, normal[1] ?? 1, normal[2] ?? 0); colours.push(...rgb); region.push(r);
+  const vertex = (x: number, y: number, z: number, normal: readonly number[], rgb: FarRgb, r: number, face = 0): number => {
+    positions.push(x, y, z); normals.push(normal[0] ?? 0, normal[1] ?? 1, normal[2] ?? 0); colours.push(...rgb); region.push(r); cliff.push(face);
     return region.length - 1;
   };
+  const { lip, foot } = look.cliff;
+  if ([...lip, ...foot].some((c) => !Number.isFinite(c) || c < 0 || c > 1)) throw new RangeError('Invalid far cliff palette');
+  // G222: the boundary face's rock by height, from the lip (at the true edge, up to the cell's tallest ~105 m) to the foot
+  const rock = (y: number, top: number): FarRgb => { const t = top - FAR_EDGE_FLOOR > 0 ? Math.min(1, Math.max(0, (top - y) / (top - FAR_EDGE_FLOOR))) : 1; return [lip[0] + (foot[0] - lip[0]) * t, lip[1] + (foot[1] - lip[1]) * t, lip[2] + (foot[2] - lip[2]) * t]; };
   for (let rz = 0; rz < FAR_REGIONS; rz++) for (let rx = 0; rx < FAR_REGIONS; rx++) {
     const r = rx + rz * FAR_REGIONS, x0 = -CHUNK_HALF + rx * regionSize, z0 = -CHUNK_HALF + rz * regionSize, base = region.length, edge: number[][] = [[], [], [], []];
     let low = Infinity;
@@ -136,15 +154,24 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
       const a = base + j * n + i, b = a + 1, c = a + n, d = c + 1;
       index.push(a, c, b, b, c, d);
     }
-    // skirts: each edge vertex drops FAR_SKIRT (on the cell's border, to FAR_EDGE_FLOOR), darkened; wound outward (south
-    // edge faces −z, east +x, north +z, west −x)
+    // skirts: each edge vertex drops FAR_SKIRT, darkened; wound outward (south edge faces −z, east +x, north +z, west −x).
+    // On the cell's border the skirt is the exposed boundary face (G222): it drops to FAR_EDGE_FLOOR as a rock cliff, with
+    // its own lip vertices (the outward normal, not the ground's smooth one, and the cliff palette, not the snow or grass
+    // of the lip) flagged as cliff for the renderer's strata. Same triangles either way.
     const border = [rz === 0, rx === FAR_REGIONS - 1, rz === FAR_REGIONS - 1, rx === 0];
     const outward = [[0, 0, -1], [1, 0, 0], [0, 0, 1], [-1, 0, 0]] as const;
     edge.forEach((ids, side) => {
-      const drop = (y: number): number => border[side] === true ? Math.min(y - FAR_SKIRT, FAR_EDGE_FLOOR) : y - FAR_SKIRT;
-      const bottom = ids.map((id) => vertex(positions[id * 3] ?? 0, drop(positions[id * 3 + 1] ?? 0), positions[id * 3 + 2] ?? 0, outward[side] ?? [0, 1, 0], [(colours[id * 3] ?? 0) * 0.7, (colours[id * 3 + 1] ?? 0) * 0.7, (colours[id * 3 + 2] ?? 0) * 0.7], r));
+      const normal = outward[side] ?? [0, 1, 0], at = (id: number, k: number): number => positions[id * 3 + k] ?? 0;
+      let top: number[], bottom: number[];
+      if (border[side] === true) {
+        top = ids.map((id) => vertex(at(id, 0), at(id, 1), at(id, 2), normal, rock(at(id, 1), at(id, 1)), r, 1));
+        bottom = ids.map((id) => { const y = Math.min(at(id, 1) - FAR_SKIRT, FAR_EDGE_FLOOR); return vertex(at(id, 0), y, at(id, 2), normal, rock(y, at(id, 1)), r, 2); });
+      } else {
+        top = ids;
+        bottom = ids.map((id) => vertex(at(id, 0), at(id, 1) - FAR_SKIRT, at(id, 2), normal, [(colours[id * 3] ?? 0) * 0.7, (colours[id * 3 + 1] ?? 0) * 0.7, (colours[id * 3 + 2] ?? 0) * 0.7], r));
+      }
       for (let k = 0; k + 1 < ids.length; k++) {
-        const a = ids[k] ?? 0, b = ids[k + 1] ?? 0, c = bottom[k] ?? 0, d = bottom[k + 1] ?? 0;
+        const a = top[k] ?? 0, b = top[k + 1] ?? 0, c = bottom[k] ?? 0, d = bottom[k + 1] ?? 0;
         // south / east run with +x / +z along the edge, north / west too: flip the winding for the sides facing −
         if (side === 0 || side === 1) index.push(a, b, c, b, d, c); else index.push(a, c, b, b, c, d);
       }
@@ -156,14 +183,14 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
       index.push(a, c, b, b, c, d);
     }
   }
-  for (const part of parts) addPart(part, regionSize, { positions, normals, colours, region, index });
+  for (const part of parts) addPart(part, regionSize, { positions, normals, colours, region, cliff, index });
   const triangles = index.length / 3;
   if (triangles > CONTENT_CAPS.far.triangles) throw new RangeError(`Far proxy has ${triangles} triangles, over the ${CONTENT_CAPS.far.triangles} cap`);
-  return { positions: Float32Array.from(positions), normals: Float32Array.from(normals), colours: Float32Array.from(colours), region: Float32Array.from(region), index: Uint32Array.from(index), triangles };
+  return { positions: Float32Array.from(positions), normals: Float32Array.from(normals), colours: Float32Array.from(colours), region: Float32Array.from(region), cliff: Float32Array.from(cliff), index: Uint32Array.from(index), triangles };
 }
 
 /** Append a model part: its region from its centre, area-weighted vertex normals from its faces. */
-function addPart(part: FarPart, regionSize: number, out: { positions: number[]; normals: number[]; colours: number[]; region: number[]; index: number[] }): void {
+function addPart(part: FarPart, regionSize: number, out: { positions: number[]; normals: number[]; colours: number[]; region: number[]; cliff: number[]; index: number[] }): void {
   const { positions: p, colours: c, index: idx } = part, count = p.length / 3;
   if (!Number.isInteger(count) || c.length !== p.length || idx.length % 3 !== 0) throw new RangeError('Invalid far part');
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
@@ -188,7 +215,7 @@ function addPart(part: FarPart, regionSize: number, out: { positions: number[]; 
     out.positions.push(p[v * 3] ?? 0, p[v * 3 + 1] ?? 0, p[v * 3 + 2] ?? 0);
     if (len > 0) out.normals.push(nx / len, ny / len, nz / len); else out.normals.push(0, 1, 0);
     out.colours.push(Math.min(1, Math.max(0, c[v * 3] ?? 0)), Math.min(1, Math.max(0, c[v * 3 + 1] ?? 0)), Math.min(1, Math.max(0, c[v * 3 + 2] ?? 0)));
-    out.region.push(r);
+    out.region.push(r); out.cliff.push(0);
   }
   for (const i of idx) out.index.push(base + i);
 }
