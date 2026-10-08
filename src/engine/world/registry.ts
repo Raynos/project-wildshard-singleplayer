@@ -180,6 +180,12 @@ export interface Piece {
   /** what the colliders are made of, unless a desc says otherwise */
   surface?: Material;
   /**
+   * The stable id its colliders answer to in physics queries (`tagOf(collider).owner`), in place of the piece itself:
+   * a level whose static floors are also declared data (a collider row a traversal binds by id, `canStandAt`'s
+   * `floorOwner`) registers them under that id. Absent: the piece is the owner.
+   */
+  colliderOwner?: string;
+  /**
    * The piece's floor as a function (decks, terraces, stairs as a ramp): placement (quest props, spawns) and footsteps
    * read it through `registry.floorAt`. Unless `solidFloor`, the player also stands on it (the P2 bridge).
    */

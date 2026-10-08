@@ -1,7 +1,7 @@
 /**
  * A registered piece's `ColliderDesc`s (src/engine/world/registry.ts) as Rapier colliders — the one place engine-neutral
- * collider data becomes Rapier (PHYSICS.md P2b). Each collider is tagged with its material and the piece as owner, so
- * a query hit knows it touched "the hut, planks".
+ * collider data becomes Rapier (PHYSICS.md P2b). Each collider is tagged with its material and the piece as owner (or the
+ * piece's declared `colliderOwner` id), so a query hit knows it touched "the hut, planks".
  */
 import type { Collider, ColliderDesc as RapierDesc, RigidBody } from '@dimforge/rapier3d-simd';
 import * as THREE from 'three';
@@ -81,7 +81,7 @@ export function addPiece(physics: Physics, piece: Piece, frame?: THREE.Object3D)
         else if (d.yaw !== undefined && d.yaw !== 0) desc.setRotation({ x: 0, y: Math.sin(d.yaw / 2), z: 0, w: Math.cos(d.yaw / 2) });
         const c = world.createCollider(desc, body ?? undefined);
         const material: Material = d.surface ?? raw.surface ?? piece.surface ?? 'wood';
-        tagCollider(c, material, piece);
+        tagCollider(c, material, piece.colliderOwner ?? piece);
         out.push(c);
       }
     }

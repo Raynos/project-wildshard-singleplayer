@@ -15,9 +15,14 @@ import { fragmentColliders, fragmentGrappleGuard } from '../../../src/shards/nin
 import type { NineDragonWorld } from '../../../src/shards/nine-dragon-stack/world/build';
 import { FakeGame } from '../../fake/FakeGame';
 import { WorldRegistry } from '../../../src/engine/world/registry';
-import { entryDeckColliders, entryDeckFloor } from '../../../src/shards/nine-dragon-stack/world/entries';
+import { entryDeckColliders, entryDeckFloor, portalFloorRows } from '../../../src/shards/nine-dragon-stack/world/entries';
+import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { withDecks } from '../../../src/shards/nine-dragon-stack/world/install';
 import { Y0 } from '../../../src/shards/nine-dragon-stack/layout';
+
+/** SF8c (G224): the pieces the portal links' declared floors register as (world/install.ts) */
+const PIECE_OF = (id: string): string => `nds-${id}`;
+const PORTAL_PIECES = ['deck.north', 'deck.east', 'deck.south', 'deck.west', 'square'].map(PIECE_OF);
 
 const noop = (): void => { /* No GPU work in this node contract. */ };
 const loaded = new Set<App>();
@@ -47,11 +52,15 @@ describe('Nine Dragon world hook', () => {
     expect(() => ndRuntime()).toThrow('world hook');
     const { app, world, plugin, fake, context } = setup();
     await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(context(ctx)) });
-    expect(app.registry.pieces.map((p) => p.id)).toEqual(['nds-floors', 'nds-fronts', 'nds-grapple-guard', 'nds-crossings']);
+    expect(app.registry.pieces.map((p) => p.id)).toEqual(['nds-floors', ...PORTAL_PIECES, 'nds-fronts', 'nds-grapple-guard', 'nds-crossings']);
     const floors = app.registry.get('nds-floors');
     expect(floors).toMatchObject({ name: 'Lantern Square', category: 'buildings', surface: 'stone', solidFloor: true });
     expect(floors?.object).toBe(world.root); expect(floors?.floor).toBe(withDecks);
-    expect(floors?.colliders).toEqual([...fragmentColliders().floors, ...entryDeckColliders()]);
+    const fragment = fragmentColliders();
+    expect(floors?.colliders).toEqual(fragment.floors.filter((d) => d !== fragment.square));
+    // SF8c (G224): the floors the portal links bind are their own pieces, colliding as the declared rows under their ids
+    for (const row of portalFloorRows()) expect(app.registry.get(PIECE_OF(row.id))).toMatchObject({ colliders: row.shapes, colliderOwner: row.id, surface: 'stone' });
+    expect(portalFloorRows()).toEqual(source.props?.colliders);
     expect(app.registry.get('nds-fronts')?.colliders).toEqual(fragmentColliders().fronts);
     const guard = app.registry.get('nds-grapple-guard');
     expect(guard?.colliders).toEqual(fragmentGrappleGuard());
@@ -86,7 +95,7 @@ describe('Nine Dragon world hook', () => {
     // standalone (no grid cube): the decks get their balustrade caps
     expect(built).toEqual([true]);
     const floors = one.app.registry.get('nds-floors');
-    expect(one.app.registry.pieces).toHaveLength(4);
+    expect(one.app.registry.pieces).toHaveLength(4 + PORTAL_PIECES.length);
     expect(floors?.floor).toBe(withDecks);
     expect(one.app.registry.get('nds-fronts')?.colliders).toEqual(fragmentColliders().fronts);
     expect(withDecks(0, 240)).toBe(0); expect(withDecks(5, 0)).toBe(Y0); expect(withDecks(6, -200)).toBeUndefined();

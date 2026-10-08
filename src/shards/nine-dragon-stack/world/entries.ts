@@ -5,7 +5,7 @@
 // walls the footprint admits), and a stone end wall with a cinnabar band closes each deck. G224 (Jake): the way on is a
 // floating portal on each deck to Lantern Square (world/portalPlan.ts, portals.ts, portalRide.ts), so the decks are
 // always built (the `nineDragonEntries` row went with the lantern lift it waited for).
-import { ENTRY_ASPHALT, ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
+import { ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { ShardCube } from '@wildshard/game/shard/context';
 import { SURF } from '../look/paint';
@@ -86,21 +86,24 @@ const box = (b: ReturnType<typeof inFrame>): ColliderDesc => ({ kind: 'box', x: 
 /** the four decks' collision: the slabs (tops at y = 0), the parapets and the end walls; with `caps` (standalone, G200)
  *  the balustrade, its brazier's pedestal and the two lantern pillars across each deck's open end */
 export function entryDeckColliders(caps = false): ColliderDesc[] {
-  const cap = (f: Frame): ColliderDesc[] => { if (!caps) return []; const c = capParts(f); return [box(c.rail), box(c.pedestal), ...c.pillars.map(box)]; };
-  return FRAMES.flatMap((f) => { const p = parts(f); return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box), ...cap(f)]; });
+  return [...FRAMES.flatMap((f) => portalDeckColliders(f.edge)), ...entryCapColliders(caps)];
+}
+/** the decks' standalone balustrades (G200), each deck's in the same order; none in a grid cell (the socket continues) */
+export function entryCapColliders(caps: boolean): ColliderDesc[] {
+  if (!caps) return [];
+  return FRAMES.flatMap((f) => { const c = capParts(f); return [box(c.rail), box(c.pedestal), ...c.pillars.map(box)]; });
 }
 
 /**
- * SF8c (G224): the floor a deck's road portal stands on, as the shardfile declares it (`deck.<edge>`, shard.config.ts):
- * the deck from a metre inside the socket's inner line (where the ring stands) to its end wall, the same boxes
- * entryDeckColliders installs cut short there (the platform's socket covers the rest of the deck, and a shardfile
- * collider stays clear of the cell's edge).
+ * SF8c (G224): a deck's collision as the shardfile declares it (`deck.<edge>`, shard.config.ts), the named floor its road
+ * portal stands on: the whole deck from the cell's edge to its end wall, so it covers the canonical 8 × 15 m socket at
+ * y = 0 (the format's portal-floor proof), its two parapets and its end wall. These are the very boxes the world installs
+ * (world/install.ts registers each deck as its own piece answering to this id), never a second copy.
  */
 export function portalDeckColliders(edge: ShardEdge): ColliderDesc[] {
   const f = FRAMES.find((row) => row.edge === edge); if (f === undefined) throw new Error(`No landing deck on the ${edge} edge`);
-  const h = ENTRY_WIDTH / 2, a0 = ENTRY_ASPHALT - 1, p = parts(f);
-  return [box(inFrame(f, a0, DECK_DEPTH, -h - RAIL_T, h + RAIL_T, -SLAB, 0)), box(inFrame(f, a0, DECK_DEPTH, -h - RAIL_T, -h, 0, RAIL_H)),
-    box(inFrame(f, a0, DECK_DEPTH, h, h + RAIL_T, 0, RAIL_H)), ...p.walls.map(box)];
+  const p = parts(f);
+  return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box)];
 }
 /** SF8c (G224): the floors the portal nodes stand on as shardfile collider rows: the four decks' and the square's */
 export function portalFloorRows(): { id: string; panel: null; initialActive: true; shapes: ColliderDesc[] }[] {

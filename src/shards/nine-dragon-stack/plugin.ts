@@ -12,7 +12,7 @@ import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { STRINGS } from './strings';
-import { installPortals, type PortalRide } from './world/portalRide';
+import { installPortals, playerRider, type PortalRide } from './world/portalRide';
 import { entryCapsFor } from './world/entries';
 
 
@@ -53,9 +53,9 @@ export class NdPlugin extends ShardPlugin {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
     equipment.add(new FeiZhua(ctx), { locked: false });
-    // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the move under the dark)
-    const player = this.shell?.world?.player, slot = this.ndWorld?.portal;
-    if (player !== undefined && slot !== undefined) this.portals = installPortals(slot, player);
+    // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the checked transfer under the dark)
+    const world = this.shell?.world, slot = this.ndWorld?.portal;
+    if (world !== undefined && world !== null && slot !== undefined) this.portals = installPortals(slot, playerRider(world.player, () => world.physics));
     return Promise.resolve();
   }
   /** G224: the portals while they run (captures read them through the shard handle) */

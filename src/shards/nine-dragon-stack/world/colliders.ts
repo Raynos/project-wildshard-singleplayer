@@ -28,7 +28,11 @@ const WALL_H = 40, SLAB = 1.2;
 
 /** the fragment's own collision in two pieces (their looks on the maps: floors stone, fronts rock); the balustrade over
  *  the Well and the props collide as their models (their looks on the maps: the balustrade rock, the props timber, def.ts) */
-export interface FragmentColliders { floors: ColliderDesc[]; fronts: ColliderDesc[] }
+export interface FragmentColliders {
+  floors: ColliderDesc[]; fronts: ColliderDesc[];
+  /** SF8c (G224): the square's slab, one of `floors` (the same object): the world installs it under its declared id */
+  readonly square: ColliderDesc;
+}
 
 /** a building front's depth behind its line (it is a solid block to the map; the player never reaches its back) */
 const DEEP = 6;
@@ -42,7 +46,8 @@ export function fragmentColliders(): FragmentColliders {
   const floors: ColliderDesc[] = [], fronts: ColliderDesc[] = [];
   let out = floors;
   // ── floors ──
-  out.push(squareFloor());                                                                              // the square
+  const square = squareFloor();
+  out.push(square);                                                                                     // the square
   const streetEnd = STREET_END - 1;
   out.push(span(STREET.x0, Y0 - SLAB, streetEnd, STREET.x1, Y0, PLAZA.z0));                             // the street north
   // the stair starts at the square's east edge (STAIR.x0 = PLAZA.x1): its first tread sits on the square's slab
@@ -78,7 +83,7 @@ export function fragmentColliders(): FragmentColliders {
   // ── props you would walk into: every one collides as its model, placed with its copies (E315: the paifang's posts,
   // the banyan's planter, the shrine, the stele, the stalls, the market's booths, parasol tables and pavilions, the
   // stair-street landings' planters — models/, src/engine/models/place.ts) ──
-  return { floors, fronts };
+  return { floors, fronts, square };
 }
 
 /** Invisible upper cap of the south Well rail, and the square's parapet south of GUARD_Z0; a kinematic piece can disable

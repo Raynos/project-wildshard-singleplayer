@@ -14,10 +14,16 @@ export const RING = { r: 2.1, tube: 0.16, lift: 2.75 } as const;
 /** how far in from the cell edge a deck's portal stands: on the socket's last metre (SF8c: a road portal stands 0.5 to
  *  14.5 m in), two metres in front of the 16 m deck's end wall; it has no collider, so the road stays clear */
 export const DECK_PORTAL_A = ENTRY_ASPHALT - 1;
-/** the walk-in trigger: from this far in front of the ring's plane to this far behind it (m), and the ring's inner width */
-const TRIGGER_FRONT = 0.7, TRIGGER_BACK = 1.4, TRIGGER_HALF = RING.r - RING.tube;
-/** where a ride out of the square lands on a deck: this far in from the edge (on the socket), facing the road */
-export const DECK_ARRIVAL_A = 10;
+/**
+ * the walk-in trigger: from this far in front of the ring's plane to this far behind it (m), this far either side of its
+ * centre line, feet on the ring's floor. The format's checked traversal admits a transfer only from within 1.25 m of the
+ * declared portal node with the feet within 0.15 m of its floor (src/game/shardfile/portalTraversal.ts), so the trigger
+ * is the middle of the ring (the body passes through its opening, under its top arc), every corner inside that reach.
+ */
+const TRIGGER_FRONT = 0.6, TRIGGER_BACK = 0.6, TRIGGER_HALF = 1, TRIGGER_FEET = 0.15;
+/** the format's reach round a portal node (portalTraversal.ts): a ride can only start where a transfer is admitted */
+export const PORTAL_REACH = 1.25;
+export const TRIGGER_ADMITTED = Math.hypot(Math.max(TRIGGER_FRONT, TRIGGER_BACK), TRIGGER_HALF) < PORTAL_REACH;
 
 /** one portal: where its ring stands (feet height `y`), the unit normal its face looks along (the way you walk in) */
 export interface Portal {
@@ -58,11 +64,13 @@ export const yawAlong = (dx: number, dz: number): number => Math.atan2(-dx, -dz)
  */
 export const SQUARE_ARRIVAL: Pose = { x: 0.95, y: Y0, z: 7.5, yaw: -12 * (Math.PI / 180) };
 
-/** arriving on a deck from the square: on its socket, DECK_ARRIVAL_A in from the edge, facing out along the road */
-export function deckArrival(p: DeckPortal): Pose {
-  const ix = p.nx, iz = p.nz;
-  return { x: p.mx + ix * DECK_ARRIVAL_A, y: 0, z: p.mz + iz * DECK_ARRIVAL_A, yaw: yawAlong(-ix, -iz) };
-}
+/**
+ * arriving on a deck from the square: the format binds the square's exit back to the deck's road portal node, so you come
+ * out of the deck's own ring, facing out along the road (the ring re-arms once you have stepped out of it)
+ */
+export function deckArrival(p: DeckPortal): Pose { return { x: p.x, y: p.y, z: p.z, yaw: yawAlong(-p.nx, -p.nz) }; }
+/** the declared exit node in the square bound back to a deck's road (one per entry, all at the square's one ring) */
+export const squareExitId = (edge: ShardEdge): string => `portal.square.${edge}`;
 
 /**
  * Which deck the square's one portal sends you to (deterministic): back to the deck you came in by, as the format's
@@ -75,10 +83,10 @@ export function exitDeck(entered: ShardEdge | null): DeckPortal {
   return p;
 }
 
-/** whether feet at (x, y, z) are inside a portal's walk-in volume (inside the ring, crossing its plane) */
+/** whether feet at (x, y, z) are inside a portal's walk-in volume (through the ring's middle, crossing its plane, on its floor) */
 export function inPortal(p: Portal, x: number, y: number, z: number): boolean {
   const dx = x - p.x, dz = z - p.z, along = dx * p.nx + dz * p.nz, across = -dx * p.nz + dz * p.nx;
-  return along >= -TRIGGER_FRONT && along <= TRIGGER_BACK && Math.abs(across) <= TRIGGER_HALF && y >= p.y - 0.5 && y <= p.y + RING.lift + RING.r;
+  return along >= -TRIGGER_FRONT && along <= TRIGGER_BACK && Math.abs(across) <= TRIGGER_HALF && Math.abs(y - p.y) <= TRIGGER_FEET;
 }
 
 type V3 = [number, number, number];
@@ -97,9 +105,9 @@ export const SQUARE_ROUTE: readonly V3[] = [v(SQUARE_ARRIVAL.x, Y0, SQUARE_ARRIV
  */
 export function portalLinks(): { edge: ShardEdge; portal: { road: { id: string; at: V3; floor: string; yaw: number }; destination: { id: string; at: V3; floor: string; yaw: number }; exit: { id: string; at: V3; floor: string; yaw: number }; links: { from: string; to: string }[]; route: V3[] } }[] {
   return DECK_PORTALS.map((p) => {
-    const road = { id: p.id, at: v(p.x, p.y, p.z), floor: deckFloorId(p.edge), yaw: yawAlong(p.nx, p.nz) };
+    const road = { id: p.id, at: v(p.x, p.y, p.z), floor: deckFloorId(p.edge), yaw: deckArrival(p).yaw };
     const destination = { id: 'portal.square.arrival', at: v(SQUARE_ARRIVAL.x, SQUARE_ARRIVAL.y, SQUARE_ARRIVAL.z), floor: SQUARE_FLOOR, yaw: SQUARE_ARRIVAL.yaw };
-    const exit = { id: `portal.square.${p.edge}`, at: v(SQUARE_PORTAL.x, SQUARE_PORTAL.y, SQUARE_PORTAL.z), floor: SQUARE_FLOOR, yaw: yawAlong(SQUARE_PORTAL.nx, SQUARE_PORTAL.nz) };
+    const exit = { id: squareExitId(p.edge), at: v(SQUARE_PORTAL.x, SQUARE_PORTAL.y, SQUARE_PORTAL.z), floor: SQUARE_FLOOR, yaw: yawAlong(SQUARE_PORTAL.nx, SQUARE_PORTAL.nz) };
     return { edge: p.edge, portal: { road, destination, exit, links: [{ from: road.id, to: destination.id }, { from: exit.id, to: road.id }], route: SQUARE_ROUTE.map((q) => v(...q)) } };
   });
 }
