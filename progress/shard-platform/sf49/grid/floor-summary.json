@@ -1,0 +1,66 @@
+{
+  "pin": "82f724fc9f54b41cb5bc433571cd113f0fec7491",
+  "complete": true,
+  "pass": true,
+  "elapsedSeconds": 115.882,
+  "settings": {
+    "memorySaver": "on",
+    "renderScale": 2
+  },
+  "rows": [
+    {
+      "surface": "desktop",
+      "pose": "spawn",
+      "medianFps": 59.88,
+      "p95Ms": 16.8,
+      "p99Ms": 16.8,
+      "pass": true
+    },
+    {
+      "surface": "desktop",
+      "pose": "spawn",
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "p99Ms": 16.8,
+      "pass": true
+    },
+    {
+      "surface": "desktop",
+      "pose": "hover",
+      "medianFps": 59.88,
+      "p95Ms": 16.7,
+      "p99Ms": 16.8,
+      "pass": true
+    },
+    {
+      "surface": "sim",
+      "pose": "spawn",
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 35,
+      "pass": true
+    },
+    {
+      "surface": "sim",
+      "pose": "spawn",
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 34,
+      "pass": true
+    },
+    {
+      "surface": "sim",
+      "pose": "hover",
+      "medianFps": 30.303,
+      "p95Ms": 34,
+      "p99Ms": 34,
+      "pass": true
+    }
+  ],
+  "artifact": {
+    "path": "../../../frame-floor/82f724fc9-51426-1791464988489.json",
+    "bytes": 24685,
+    "sha256": "cef6303e9f295751921ebfeac7c78efc090d054709bfae5b38049b925d28a347"
+  },
+  "scope": "Standalone spawn and two heaviest standing parity cameras, both surfaces. No Sky-specific grid FPS scenario exists; four separate cold grid input routes pass. Simulator FPS is Mac-backed relative evidence."
+}
