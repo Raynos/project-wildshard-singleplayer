@@ -10,11 +10,12 @@ import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
 import { installResources } from '../../../scripts/parity/resources.mjs';
 import { soakBootPoll } from '../../../scripts/soak/owned.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
-import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute } from '../../../scripts/frame-floor-grid.mjs';
+import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute, gridFloorWitnessFailures } from '../../../scripts/frame-floor-grid.mjs';
 import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from '../../../scripts/public-grid.mjs';
 
-const [base, out, dist, routeMode = 'full', memorySaver = 'off'] = process.argv.slice(2), udid = process.env.SIM_UDID;
+const [base, out, dist, routeMode = 'full', memorySaver = 'off', entryEdge = 'north'] = process.argv.slice(2), udid = process.env.SIM_UDID;
 const publicGrid = routeMode === 'public-grid';
+if (routeMode === 'sun-entry' && !['north', 'east', 'south', 'west'].includes(entryEdge)) throw new Error('Unknown Sun entry edge');
 if (publicGrid && memorySaver !== 'off') throw new Error('Public grid measures the shipping Memory saver default OFF');
 if (!['off', 'on'].includes(memorySaver)) throw new Error('Memory saver must be off or on');
 if (!dist) throw new Error('Pass the owned preview dist directory for the preboot diagnostic helper');
@@ -27,8 +28,8 @@ const helper = new URL('g227-safari.html', base).href;
 // A preview may serve several cold variants. Remove only this harness's earlier inline fixture before reseeding.
 const builtHtml = readFileSync(dist + '/index.html','utf8').replace(/<script(?: data-g227-fixture)?>([\s\S]*?)<\/script>/gu,
   (tag, body) => body.includes('window.__g227Errors=[];') ? '' : tag);
-const resourceFixture = routeMode === 'sky-entry' ? `(${installResources.toString()})();` : '';
-const resourcePort = routeMode === 'sky-entry' ? ',resources:()=>window.__parityResources()' : '';
+const resourceFixture = ['sky-entry', 'sun-entry'].includes(routeMode) ? `(${installResources.toString()})();` : '';
+const resourcePort = ['sky-entry', 'sun-entry'].includes(routeMode) ? ',resources:()=>window.__parityResources()' : '';
 const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixture>' + resourceFixture + GL_INIT + ';' + WASM_INIT + ';' + AUDIO_INIT + ';' + fixtures + ';' + (publicGrid ? publicGridIntentCode({instance:'driftwood-isle',slug:'driftwood-isle'}) : '') + ';window.__wildshardHarness={seed:357,capture:null'+resourcePort+'};window.__gridAdmissionLongTasks=[];window.__g227Errors=[];window.__g227Warnings=[];{const warn=console.warn;console.warn=(...args)=>{if(window.__g227Warnings.length<100)window.__g227Warnings.push(args.map(String).join(" "));warn.apply(console,args);};}window.addEventListener("error",e=>window.__g227Errors.push(String(e.message)));window.addEventListener("unhandledrejection",e=>window.__g227Errors.push(String(e.reason)));<\/script>');
 writeFileSync(dist + '/index.html', documentHtml);
 writeFileSync(dist + '/g227-safari.html', documentHtml);
@@ -153,6 +154,67 @@ try {
     report.publicWitness = await evaluate(`(${readPublicGridWitness.toString()})()`);
     const failures = publicGridWitnessFailures(report.publicWitness,true);
     if (failures.length > 0) throw new Error(failures.join('; '));
+  } else if (routeMode === 'sun-entry') {
+    const sun = state.cells.find(cell => cell.slug === 'sunscar-dunes');
+    if (!sun) throw new Error('Missing Developer Signal Dunes cell');
+    const ox = sun.cell[0] * 555, oz = sun.cell[1] * 555;
+    const normal = { north: [0, 1], east: [1, 0], south: [0, -1], west: [-1, 0] }[entryEdge];
+    report.sunEntry = { edge: entryEdge, instance: sun.instance };
+    report.identity = await evaluate('({build:window.__wildshard.boot.build,tier:window.__wildshard.fingerprint().tier})');
+    if (report.identity.build !== report.version.build || report.identity.tier !== 'phone') throw new Error('Sun entered ruler has the wrong build or tier');
+    // One initial road pose only. Entry, native-terrain walk to the authored spawn, return and re-entry use real input.
+    await evaluate(`(async () => { const api=window.__wildshard, live=api.shard.grid.state().live.live, player=api.requireWorld().player;
+      await api.pose({x:${ox + normal[0] * 277.5}-(live.worldFeet.x-player.position.x),y:.55,z:${oz + normal[1] * 277.5}-(live.worldFeet.z-player.position.z),yaw:0,pitch:-.08});return true;})()`);
+    await until("window.__wildshard.shard.grid.state().live.live.current===null && window.__wildshard.shard.grid.state().inside===null && window.__wildshard.shard.grid.state().live.live.gameplayReady");
+    await evaluate(`(() => { const player=window.__wildshard.requireWorld().player, spawn=player.spawn; window.__sunNativeRecoveries=[];
+      player.spawn=function(...args){window.__sunNativeRecoveries.push({time:performance.now(),args});return Reflect.apply(spawn,this,args);};return true;})()`);
+    await snapshot('sun-road');
+    const drive = async (name, from, to, points) => {
+      report.stage = 'route:' + name; writeFileSync(phaseFile, report.stage); save();
+      const result = await runFloorGridRoute(page, { name, from, to, movement: 'road-hover',
+        waypoints: points.map(point => ({ x: ox + point.x, z: oz + point.z })), requiredResidents: to === null ? [] : [sun.instance] }, documentOrigin);
+      report.routes.push(result); save();
+      const failures = gridFloorWitnessFailures(result);
+      if (failures.length !== 0) throw new Error(failures.join('; '));
+    };
+    const entry = { x: normal[0] * 210, z: normal[1] * 210 };
+    await drive('sun-road-entry', null, sun.instance, [entry]);
+    await snapshot('sun-entry');
+    await drive('sun-authored-spawn', sun.instance, sun.instance, [{ x: 0, z: 70 }]);
+    // Natural camera rotation before the settled reading exposes every direction; no geometry/creature hold or heap collection.
+    for (let turn = 0; turn < 12; turn++) {
+      await evaluate('(window.__wildshard.requireWorld().player.yaw+=Math.PI/6,true)'); await sleep(100);
+    }
+    await snapshot('sun-spawn');
+    await drive('sun-road-return', sun.instance, null, [entry, { x: normal[0] * 277.5, z: normal[1] * 277.5 }]);
+    await snapshot('sun-road-return');
+    await drive('sun-reentry', null, sun.instance, [entry]);
+    await snapshot('sun-reentry');
+    report.recoveries = await evaluate('window.__sunNativeRecoveries');
+    const gameErrors = await evaluate('window.__g227Errors');
+    const edgeFallbacks = await evaluate("window.__g227Warnings.filter(message=>/edges stay at road level|platform keeps road-level edges|edge.*fallback|fallback.*edge/iu.test(message))");
+    if (report.recoveries.length !== 0 || gameErrors.length !== 0 || edgeFallbacks.length !== 0) throw new Error('Sun route had a recovery, game error or edge fallback');
+    report.enteredCost = report.snapshots.filter(row => ['sun-entry', 'sun-spawn', 'sun-reentry'].includes(row.label)).map(row => {
+      const contexts = row.census.gl, resources = contexts.flatMap(context => context.resources);
+      const glBytes = contexts.reduce((sum, context) => sum + context.totalBytes, 0);
+      if (contexts.length === 0 || glBytes <= 0 || !contexts.every(context => context.reconciled) || resources.some(resource => !resource.labelled && resource.bytes > 0)) throw new Error('Sun entered GL census is missing, unreconciled or unlabelled');
+      const combinedBytes = row.native.medianBytes + glBytes, highSampleCombinedBytes = row.native.maxBytes + glBytes;
+      return { label: row.label, webContentBytes: row.native.medianBytes, labelledGLBytes: glBytes, combinedBytes, highSampleCombinedBytes, withinExplorerCap: highSampleCombinedBytes <= 1e9 };
+    });
+    report.enteredSettledWorstBytes = Math.max(...report.enteredCost.map(row => row.combinedBytes));
+    report.enteredHighSampleBytes = Math.max(...report.enteredCost.map(row => row.highSampleCombinedBytes));
+    report.withinExplorerCap = report.enteredHighSampleBytes <= 1e9;
+    report.leak = await evaluate('window.__wildshard.leak()');
+    report.finalGL = await evaluate('window.__sc_gl().map(({gl,...row})=>row)');
+    if (JSON.stringify(report.leak.before) !== JSON.stringify(report.leak.after) || report.leak.disposalErrors.length !== 0
+      || Object.values(report.leak.scope).some(count => count !== 0)) throw new Error('Sun final unload failed its exact baseline census or scope fence');
+    writeFileSync(phaseFile, 'sun-unloaded'); report.unloadedSamples = [];
+    for (let sampleIndex = 0; sampleIndex < 3; sampleIndex++) {
+      await sleep(1100);
+      report.unloadedSamples.push(await waitNativeSample(() => readFileSync(nativeFile, 'utf8'), () => samplerState,
+        { phase: 'sun-unloaded', pid: gamePID, after: report.unloadedSamples.at(-1)?.at }));
+    }
+    save();
   } else if (routeMode === 'sky-entry') {
     const sky = state.cells.find(cell => cell.slug === 'far-reach');
     if (!sky) throw new Error('Missing Developer Sky Reach cell');

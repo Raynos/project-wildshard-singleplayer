@@ -19,7 +19,7 @@ const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=meta
 const snapshot = page => page.evaluate(() => {
   const api = window.__wildshard, grid = api.shard.grid, world = api.requireWorld();
   return { state: grid.state(), residency: grid.residency(), gl: window.__sc_gl().map(({ gl, ...row }) => row),
-    position: { ...world.player.position }, accent: document.querySelector('#hud')?.style.getPropertyValue('--ws-cyan'),
+    position: { ...world.player.position }, contextLost: world.game.renderer.getContext().isContextLost(), accent: document.querySelector('#hud')?.style.getPropertyValue('--ws-cyan'),
     actors: api.shard.sunscar?.creatures?.all().map(actor => ({ id: actor.entityId, kind: actor.kind, hp: actor.hp, alive: actor.alive })),
     // Read existing geometry metadata and matrices only; no released attribute accessor is touched.
     presentation: (() => { const bands = [], planes = []; world.game.scene.traverse(object => {
@@ -54,6 +54,8 @@ try {
       const state = await page.evaluate(() => window.__wildshard.shard.grid.state());
       const cell = state.cells.find(cell => cell.slug === 'sunscar-dunes'); if (!cell) throw new Error('Missing Developer Signal Dunes cell');
       row.cell = cell; const ox = cell.cell[0] * 555, oz = cell.cell[1] * 555;
+      row.identity = await page.evaluate(() => ({ build: window.__wildshard.boot.build, tier: window.__wildshard.fingerprint().tier }));
+      if (row.identity.build !== report.version.build || row.identity.tier !== 'phone') throw new Error('Wrong browser build or tier');
       const normal = { north: [0, 1], east: [1, 0], south: [0, -1], west: [-1, 0] }[edge];
       // Initial staging only: checkpoint the boot home through the normal crossing onto the target road frame.
       const start = { x: ox + normal[0] * 277.5, z: oz + normal[1] * 277.5 };
@@ -83,14 +85,15 @@ try {
         await page.waitForTimeout(1500);
         const reading = await snapshot(page);
         const unlabelledBytes = reading.gl.flatMap(context => context.resources).filter(resource => !resource.labelled).reduce((sum, resource) => sum + resource.bytes, 0);
-        if (!reading.gl.every(context => context.reconciled) || unlabelledBytes !== 0) throw new Error('Unreconciled or unlabelled GL at route stop');
+        if (reading.contextLost || reading.gl.length === 0 || reading.gl.reduce((sum, context) => sum + context.totalBytes, 0) <= 0 || !reading.gl.every(context => context.reconciled) || unlabelledBytes !== 0) throw new Error('Unreconciled or unlabelled GL at route stop');
         row.snapshots.push({ label: name, ...reading }); save();
         await shot(name);
         return reading;
       };
       // The original native terrain stays flat through the authored 15 m entry footprint and onward to this playable pose.
       const entered = await drive('entry', null, cell.instance, 210);
-      await drive('road-return', cell.instance, null, 277.5);
+      const returned = await drive('road-return', cell.instance, null, 277.5);
+      row.roadCyan = returned.accent?.toLowerCase() === '#8fe3ff';
       const reentered = await drive('reentry', null, cell.instance, 210);
       row.authoredIdentityPreserved = JSON.stringify(entered.actors?.map(actor => actor.id).sort()) === JSON.stringify(reentered.actors?.map(actor => actor.id).sort());
       row.enteredActorsPresent = entered.actors?.length > 0 && reentered.actors?.length === entered.actors.length;
@@ -100,9 +103,9 @@ try {
       row.leak = await page.evaluate(() => window.__wildshard.leak());
       row.finalGL = await page.evaluate(() => window.__sc_gl().map(({ gl, ...row }) => row));
       row.edgeFallbacks = row.warnings.filter(message => /edges stay at road level|platform keeps road-level edges|edge.*fallback|fallback.*edge/iu.test(message));
-      row.pass = row.edgeFallbacks.length === 0 && row.recoveries.length === 0 && row.authoredIdentityPreserved && row.enteredActorsPresent && row.orchid && row.warmBandPresent
+      row.pass = row.edgeFallbacks.length === 0 && row.recoveries.length === 0 && row.authoredIdentityPreserved && row.enteredActorsPresent && row.orchid && row.roadCyan && row.warmBandPresent
         && row.errors.length === 0 && row.consoleErrors.length === 0 && row.documents.length === row.bootDocuments
-        && row.leak.disposalErrors.length === 0 && row.leak.after.bodies === 0 && row.leak.after.colliders === 0
+        && row.leak.disposalErrors.length === 0 && JSON.stringify(row.leak.before) === JSON.stringify(row.leak.after)
         && Object.values(row.leak.scope).every(count => count === 0);
       save(); console.log(JSON.stringify({ edge, pass: row.pass, errors: row.errors, consoleErrors: row.consoleErrors, playingMB: reentered.state.playingMB }));
       if (!row.pass) throw new Error('Entry/return/reentry/unload conjunction failed');
