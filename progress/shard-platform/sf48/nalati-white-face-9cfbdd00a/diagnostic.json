@@ -1,0 +1,848 @@
+{
+  "base": "http://127.0.0.1:4404",
+  "poses": [
+    {
+      "pose": {
+        "name": "south",
+        "x": 705,
+        "z": -277.5,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.12
+      },
+      "data": {
+        "grid": {
+          "home": "driftwood-isle",
+          "inside": null,
+          "feet": {
+            "x": 705,
+            "z": -277.5
+          },
+          "cells": [
+            {
+              "instance": "pine-hollow",
+              "slug": "pine-hollow",
+              "cell": [
+                0,
+                1
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-2",
+              "slug": "_template",
+              "cell": [
+                1,
+                1
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "sunscar-dunes",
+              "slug": "sunscar-dunes",
+              "cell": [
+                -1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "driftwood-isle",
+              "slug": "driftwood-isle",
+              "cell": [
+                0,
+                0
+              ],
+              "shows": "frozen"
+            },
+            {
+              "instance": "nalati-grasslands",
+              "slug": "nalati-grasslands",
+              "cell": [
+                1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "far-reach",
+              "slug": "far-reach",
+              "cell": [
+                0,
+                -1
+              ],
+              "shows": "far proxy"
+            }
+          ],
+          "strips": 40,
+          "road": {
+            "segments": 24,
+            "junctions": 16,
+            "roundabouts": 4,
+            "signs": 124,
+            "lights": 364,
+            "draws": 3
+          },
+          "seams": {
+            "triangles": 100388,
+            "draws": 5,
+            "buckets": {
+              "ground": 85364,
+              "stone": 7876,
+              "rock": 6428,
+              "rail": 360,
+              "curtain": 360
+            }
+          },
+          "softWalls": {
+            "closed": 16
+          },
+          "shimmer": {
+            "borders": 24,
+            "status": null
+          },
+          "screens": {
+            "shown": [],
+            "draws": 16
+          },
+          "plots": {
+            "plots": [
+              {
+                "instance": "open-plot-nw",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "sky-race",
+                    "demo": "alien-plain"
+                  },
+                  "east": {
+                    "billboard": "night-market",
+                    "demo": "desert-ruin"
+                  },
+                  "south": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "west": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-sw",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "east": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  },
+                  "south": {
+                    "billboard": "desert-ruin",
+                    "demo": "canyon-railway"
+                  },
+                  "west": {
+                    "billboard": "ink-valley",
+                    "demo": "coral-reef"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-se",
+                "visible": true,
+                "entries": {
+                  "north": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "east": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  },
+                  "south": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "west": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  }
+                }
+              }
+            ],
+            "pictures": 8,
+            "draws": 27,
+            "triangles": 32010
+          },
+          "ringsReady": true,
+          "residentMB": 941.02,
+          "playingMB": 1424.54,
+          "accountedBytes": 941024052,
+          "rings": {
+            "far": 5,
+            "l1": 0,
+            "l0": 0,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0
+          },
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": null,
+            "highway": 1,
+            "weights": {},
+            "air": [
+              0.523,
+              0.693,
+              0.843
+            ],
+            "grade": [
+              0,
+              0.8,
+              1,
+              0.95,
+              0.99,
+              1.07
+            ],
+            "roadSky": 1
+          },
+          "live": {
+            "live": {
+              "current": null,
+              "worldFeet": {
+                "x": 705.0000304432367,
+                "y": 0.0194428619829705,
+                "z": -277.4999915179899
+              },
+              "crossings": 1,
+              "transitions": [
+                {
+                  "from": "driftwood-isle",
+                  "to": null
+                }
+              ],
+              "residents": [
+                "nalati-grasslands"
+              ],
+              "pending": [],
+              "issues": {},
+              "gameplayReady": true,
+              "continuations": {
+                "entries": 0,
+                "storedChars": 0,
+                "capacityChars": 0,
+                "claimedBytes": 0
+              }
+            },
+            "crossing": {
+              "current": null,
+              "target": null,
+              "phase": "settled",
+              "issue": null
+            },
+            "stowed": true,
+            "renderOrigin": {
+              "x": 0,
+              "z": 0
+            },
+            "hoverCap": 30,
+            "homeActive": null
+          },
+          "life": [
+            {
+              "instance": "template-2",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 2,
+                "capacity": 6,
+                "tick": 696
+              },
+              "failed": null
+            }
+          ]
+        },
+        "objects": [
+          {
+            "uuid": "9aa8ffb8-71c6-40ed-98df-ddcd3cb38fab",
+            "visible": true,
+            "parents": [
+              "grid-cell:pine-hollow",
+              ""
+            ],
+            "at": [
+              0,
+              0,
+              555
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                60.95783233642578,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 60.286102294921875
+          },
+          {
+            "uuid": "fc5a3099-effd-4fd6-b82c-abbf1b1173f1",
+            "visible": true,
+            "parents": [
+              "grid-cell:template-2",
+              ""
+            ],
+            "at": [
+              555,
+              0,
+              555
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                0.49833011627197266,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 0.48272809386253357
+          },
+          {
+            "uuid": "85b386a2-a818-4f6a-b77e-b3057c2df0f6",
+            "visible": true,
+            "parents": [
+              "grid-cell:sunscar-dunes",
+              ""
+            ],
+            "at": [
+              -555,
+              0,
+              0
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                26.013504028320312,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 11.474982261657715
+          },
+          {
+            "uuid": "c6f602d1-70b6-4b6c-a4fe-1d039d500d5e",
+            "visible": true,
+            "parents": [
+              "grid-cell:nalati-grasslands",
+              ""
+            ],
+            "at": [
+              555,
+              0,
+              0
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                104.52330780029297,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 99.67973327636719
+          },
+          {
+            "uuid": "144fe598-e6a8-4ded-93c9-c2cf7dc0b88d",
+            "visible": true,
+            "parents": [
+              "grid-cell:far-reach",
+              ""
+            ],
+            "at": [
+              0,
+              0,
+              -555
+            ],
+            "box": {
+              "min": [
+                -250,
+                -48,
+                -250
+              ],
+              "max": [
+                250,
+                89.50347137451172,
+                250
+              ]
+            },
+            "borderFeet": 56,
+            "borderTop": -8
+          }
+        ]
+      },
+      "changed": [
+        {
+          "uuid": "c6f602d1-70b6-4b6c-a4fe-1d039d500d5e",
+          "at": [
+            555,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "pose": {
+        "name": "west",
+        "x": 277.5,
+        "z": -150,
+        "yaw": 3.141592653589793,
+        "pitch": 0.12
+      },
+      "data": {
+        "grid": {
+          "home": "driftwood-isle",
+          "inside": null,
+          "feet": {
+            "x": 277.5,
+            "z": -150
+          },
+          "cells": [
+            {
+              "instance": "pine-hollow",
+              "slug": "pine-hollow",
+              "cell": [
+                0,
+                1
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-2",
+              "slug": "_template",
+              "cell": [
+                1,
+                1
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "sunscar-dunes",
+              "slug": "sunscar-dunes",
+              "cell": [
+                -1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "driftwood-isle",
+              "slug": "driftwood-isle",
+              "cell": [
+                0,
+                0
+              ],
+              "shows": "frozen"
+            },
+            {
+              "instance": "nalati-grasslands",
+              "slug": "nalati-grasslands",
+              "cell": [
+                1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "far-reach",
+              "slug": "far-reach",
+              "cell": [
+                0,
+                -1
+              ],
+              "shows": "far proxy"
+            }
+          ],
+          "strips": 40,
+          "road": {
+            "segments": 24,
+            "junctions": 16,
+            "roundabouts": 4,
+            "signs": 124,
+            "lights": 364,
+            "draws": 3
+          },
+          "seams": {
+            "triangles": 100388,
+            "draws": 5,
+            "buckets": {
+              "ground": 85364,
+              "stone": 7876,
+              "rock": 6428,
+              "rail": 360,
+              "curtain": 360
+            }
+          },
+          "softWalls": {
+            "closed": 12
+          },
+          "shimmer": {
+            "borders": 24,
+            "status": null
+          },
+          "screens": {
+            "shown": [
+              {
+                "instance": "far-reach",
+                "status": "waiting"
+              }
+            ],
+            "draws": 26
+          },
+          "plots": {
+            "plots": [
+              {
+                "instance": "open-plot-nw",
+                "visible": true,
+                "entries": {
+                  "north": {
+                    "billboard": "sky-race",
+                    "demo": "alien-plain"
+                  },
+                  "east": {
+                    "billboard": "night-market",
+                    "demo": "desert-ruin"
+                  },
+                  "south": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "west": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-sw",
+                "visible": true,
+                "entries": {
+                  "north": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "east": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  },
+                  "south": {
+                    "billboard": "desert-ruin",
+                    "demo": "canyon-railway"
+                  },
+                  "west": {
+                    "billboard": "ink-valley",
+                    "demo": "coral-reef"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-se",
+                "visible": true,
+                "entries": {
+                  "north": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "east": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  },
+                  "south": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "west": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  }
+                }
+              }
+            ],
+            "pictures": 8,
+            "draws": 27,
+            "triangles": 32010
+          },
+          "ringsReady": true,
+          "residentMB": 1751.82,
+          "playingMB": 2324.52,
+          "accountedBytes": 1751821323,
+          "rings": {
+            "far": 5,
+            "l1": 0,
+            "l0": 0,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0
+          },
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": null,
+            "highway": 1,
+            "weights": {},
+            "air": [
+              0.523,
+              0.693,
+              0.843
+            ],
+            "grade": [
+              0,
+              0.8,
+              1,
+              0.95,
+              0.99,
+              1.07
+            ],
+            "roadSky": 1
+          },
+          "live": {
+            "live": {
+              "current": null,
+              "worldFeet": {
+                "x": 277.50000992704094,
+                "y": 0.01994696047724574,
+                "z": -150.00000786424349
+              },
+              "crossings": 1,
+              "transitions": [
+                {
+                  "from": "driftwood-isle",
+                  "to": null
+                }
+              ],
+              "residents": [
+                "nalati-grasslands",
+                "pine-hollow"
+              ],
+              "pending": [],
+              "issues": {},
+              "gameplayReady": true,
+              "continuations": {
+                "entries": 0,
+                "storedChars": 0,
+                "capacityChars": 0,
+                "claimedBytes": 0
+              }
+            },
+            "crossing": {
+              "current": null,
+              "target": null,
+              "phase": "settled",
+              "issue": null
+            },
+            "stowed": true,
+            "renderOrigin": {
+              "x": 0,
+              "z": 0
+            },
+            "hoverCap": 30,
+            "homeActive": null
+          },
+          "life": [
+            {
+              "instance": "template-2",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 2,
+                "capacity": 6,
+                "tick": 1024
+              },
+              "failed": null
+            }
+          ]
+        },
+        "objects": [
+          {
+            "uuid": "9aa8ffb8-71c6-40ed-98df-ddcd3cb38fab",
+            "visible": true,
+            "parents": [
+              "grid-cell:pine-hollow",
+              ""
+            ],
+            "at": [
+              0,
+              0,
+              555
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                60.95783233642578,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 60.286102294921875
+          },
+          {
+            "uuid": "fc5a3099-effd-4fd6-b82c-abbf1b1173f1",
+            "visible": true,
+            "parents": [
+              "grid-cell:template-2",
+              ""
+            ],
+            "at": [
+              555,
+              0,
+              555
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                0.49833011627197266,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 0.48272809386253357
+          },
+          {
+            "uuid": "85b386a2-a818-4f6a-b77e-b3057c2df0f6",
+            "visible": true,
+            "parents": [
+              "grid-cell:sunscar-dunes",
+              ""
+            ],
+            "at": [
+              -555,
+              0,
+              0
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                26.013504028320312,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 11.474982261657715
+          },
+          {
+            "uuid": "c6f602d1-70b6-4b6c-a4fe-1d039d500d5e",
+            "visible": true,
+            "parents": [
+              "grid-cell:nalati-grasslands",
+              ""
+            ],
+            "at": [
+              555,
+              0,
+              0
+            ],
+            "box": {
+              "min": [
+                -250,
+                -20,
+                -250
+              ],
+              "max": [
+                250,
+                104.52330780029297,
+                250
+              ]
+            },
+            "borderFeet": 208,
+            "borderTop": 99.67973327636719
+          },
+          {
+            "uuid": "144fe598-e6a8-4ded-93c9-c2cf7dc0b88d",
+            "visible": true,
+            "parents": [
+              "grid-cell:far-reach",
+              ""
+            ],
+            "at": [
+              0,
+              0,
+              -555
+            ],
+            "box": {
+              "min": [
+                -250,
+                -48,
+                -250
+              ],
+              "max": [
+                250,
+                89.50347137451172,
+                250
+              ]
+            },
+            "borderFeet": 56,
+            "borderTop": -8
+          }
+        ]
+      },
+      "changed": [
+        {
+          "uuid": "c6f602d1-70b6-4b6c-a4fe-1d039d500d5e",
+          "at": [
+            555,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "version": {
+    "build": "9cfbdd0-muyupu2f",
+    "time": "2026-10-08T01:22:13.945Z"
+  }
+}
