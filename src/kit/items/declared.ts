@@ -57,7 +57,7 @@ class DeclaredMelee extends Weapon {
 }
 class DeclaredLantern extends Tool {
   readonly id: `tool.${string}`;
-  readonly slot = 'offhand'; readonly actions: readonly Extract<ItemSpec, { kind: 'tool' }>['action'][];
+  readonly slot = 'offhand'; readonly actions: readonly NonNullable<Extract<ItemSpec, { kind: 'tool' }>['action']>[];
   readonly model: Group; readonly light: PointLight;
   holster = 0; enabled = true;
   private readonly ports: ItemFamilyPorts;
@@ -65,6 +65,7 @@ class DeclaredLantern extends Tool {
   constructor(row: EquipmentRow, spec: Extract<ItemSpec, { kind: 'tool' }>, ports: ItemFamilyPorts) {
     super(row);
     if (!row.id.startsWith('tool.')) throw new Error('Tool id required');
+    if (spec.action === null) throw new Error('Declared lantern requires its toggle action');
     this.id = `tool.${row.id.slice(5)}`; this.actions = [spec.action]; this.spec = spec; this.ports = ports; this.model = itemMesh(ports);
     this.light = new PointLight(0xffe1aa, 0, 8); this.model.add(this.light);
     ports.scope.onDispose(() => { this.light.dispose(); });

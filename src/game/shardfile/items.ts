@@ -106,9 +106,12 @@ export interface DeclaredItems {
 function bindToolAction(spec: Extract<ItemSpec, { kind: 'tool' }>, ports: DeclaredItemPorts, runtime: ItemRuntime, scope: Scope, instance: Tool): void {
   if (spec.action !== null) ports.input.bind(spec.action, () => { runtime.queue(3); }, scope, () => instance.enabled);
 }
+/** A native controller is admitted only through a runtime-owned items installation. */
+function nativeTool(spec: ItemSpec): boolean { return spec.kind === 'tool' && spec.action === null; }
 /** Resolve every family before construction, register baseline contexts, and expose the normal buildEquipment handoff. */
 export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): DeclaredItems {
   const data = parseItems(input);
+  if (data.rows.some(nativeTool) && ports.contexts !== 'runtime') throw new Error('Native tools require runtime-owned items');
   const runtimeContexts = data.runtimeContexts ?? [];
   if (runtimeContexts.length > 0 && ports.contexts !== 'runtime') throw new Error('Existing runtime input contexts require a runtime-owned items installer');
   for (const id of runtimeContexts) if (!ports.input.has(id)) throw new Error(`Unresolved runtime input context ${id}`);
