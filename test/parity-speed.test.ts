@@ -171,10 +171,10 @@ describe('P1 capture-frame driver', () => {
     retired = true;
     expect(() => window.__wildshard.requireWorld()).toThrow('retired');
     let censusFinished = false;
-    // oxlint-disable-next-line promise/prefer-await-to-callbacks -- Reproduce the browser census API's nested RAF callbacks after level retirement.
     window.requestAnimationFrame(() => { window.requestAnimationFrame(() => { censusFinished = true; }); });
     for (let n = 0; n < 2; n++) {
       const batch = [...native.values()]; native.clear();
+      // oxlint-disable-next-line promise/prefer-await-to-callbacks -- This fixture delivers the browser RAF callbacks after retirement.
       for (const callback of batch) callback(n);
     }
     expect(censusFinished).toBe(true); expect(frameNo).toBe(4);
