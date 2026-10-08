@@ -11,6 +11,6 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
   "$(git rev-parse --show-toplevel)/scripts/vercel-tree-gate.sh" "$local_sha" || exit 1
   gated=1
 done
-# E161: files under public/ that nothing references — a warning, never a refusal (node scripts/unused-assets.mjs lists them)
-if [ "${gated:-0}" = 1 ]; then node "$(git rev-parse --show-toplevel)/scripts/unused-assets.mjs" --warn >&2 || true; fi
+# E161's unused-asset warning (node scripts/unused-assets.mjs) is run by hand, not here: it hung pushes for up to 81 min
+# past GitHub's connection timeout while warning only (E454: pre-push is at most 2 minutes).
 exit 0
