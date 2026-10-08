@@ -1,15 +1,17 @@
 // G227 one cold Simulator grid route, kernel footprint and labelled GL at entered poses.
 import { spawn, execFileSync } from 'node:child_process';
+import WebSocket from 'ws';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute } from '../../../scripts/frame-floor-grid.mjs';
 
-const [base, out, dist, routeMode = 'full'] = process.argv.slice(2), udid = process.env.SIM_UDID;
+const [base, out, dist, routeMode = 'full', memorySaver = 'off'] = process.argv.slice(2), udid = process.env.SIM_UDID;
+if (!['off', 'on'].includes(memorySaver)) throw new Error('Memory saver must be off or on');
 if (!dist) throw new Error('Pass the owned preview dist directory for the preboot diagnostic helper');
 const fixtures = [
-  {scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex:'auto',memorySaver:'off',volume:0},merge:true},
+  {scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex:'auto',memorySaver,volume:0},merge:true},
   {scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}},
   {scope:'device',key:'devMode',data:true},
 ].map(saveFixtureCode).join(';');
@@ -21,11 +23,14 @@ const WASM_INIT = `(() => {
  WebAssembly.Instance=new Proxy(Original,{construct(target,args,newTarget){const instance=Reflect.construct(target,args,newTarget);record(instance,'Instance');return instance;}});
 })();`;
 const helper = new URL('g227-safari.html', base).href;
-const documentHtml = readFileSync(dist + '/index.html','utf8').replace('<head>', '<head><script>' + GL_INIT + ';' + WASM_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];window.__g227Errors=[];window.addEventListener("error",e=>window.__g227Errors.push(String(e.message)));window.addEventListener("unhandledrejection",e=>window.__g227Errors.push(String(e.reason)));<\/script>');
+// A preview may serve several cold variants. Remove only this harness's earlier inline fixture before reseeding.
+const builtHtml = readFileSync(dist + '/index.html','utf8').replace(/<script(?: data-g227-fixture)?>([\s\S]*?)<\/script>/gu,
+  (tag, body) => body.includes('window.__g227Errors=[];') ? '' : tag);
+const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixture>' + GL_INIT + ';' + WASM_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];window.__g227Errors=[];window.__g227Warnings=[];{const warn=console.warn;console.warn=(...args)=>{if(window.__g227Warnings.length<100)window.__g227Warnings.push(args.map(String).join(" "));warn.apply(console,args);};}window.addEventListener("error",e=>window.__g227Errors.push(String(e.message)));window.addEventListener("unhandledrejection",e=>window.__g227Errors.push(String(e.reason)));<\/script>');
 writeFileSync(dist + '/index.html', documentHtml);
 writeFileSync(dist + '/g227-safari.html', documentHtml);
 if (!udid) throw new Error('Run through sim-lane.sh');
-const report = { version: await (await fetch(new URL('version.json', base))).json(),
+const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver,
   protocol: 'One cold Safari Simulator route. Three settled one-second kernel physical-footprint samples per pose; live labelled GL at the same pose. Relative evidence, not physical-phone cap proof.',
   snapshots: [], routes: [] };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
@@ -41,7 +46,16 @@ const snapshotExpression = `(() => {
         if (object.isMesh && object.name.startsWith('grid-')) roots.push({ name: object.name, visible: object.visible,
           vertices: object.geometry?.attributes.position?.count, indices: object.geometry?.index?.count });
       });
-      const allocations = new Map(), textures = new Map(); let next = 0;
+      const allocations = new Map(), textures = new Map(), releasedAttributes = []; let next = 0;
+      // Memory saver's array getter restores CPU storage from GL. Observe data descriptors only: the census must not undo the cut.
+      const attributeArray = (attribute, user, role) => {
+        if (!attribute) return;
+        const own = Object.getOwnPropertyDescriptor(attribute, 'array');
+        if (own && 'value' in own) return own.value;
+        if (own?.get) { releasedAttributes.push({user,role,count:attribute.count,itemSize:attribute.itemSize}); return; }
+        const data = Object.getOwnPropertyDescriptor(attribute, 'data')?.value;
+        return data ? Object.getOwnPropertyDescriptor(data, 'array')?.value : undefined;
+      };
       const addArray = (value, user, role) => {
         if (!ArrayBuffer.isView(value)) return;
         const buffer = value.buffer;
@@ -57,10 +71,10 @@ const snapshotExpression = `(() => {
         while (parent) { names.unshift(parent.name || parent.type); parent = parent.parent; }
         const user = names.join('/');
         if (object.geometry) {
-          for (const [role, attribute] of Object.entries(object.geometry.attributes)) addArray(attribute.array ?? attribute.data?.array, user, role);
-          addArray(object.geometry.index?.array, user, 'index');
+          for (const [role, attribute] of Object.entries(object.geometry.attributes)) addArray(attributeArray(attribute, user, role), user, role);
+          addArray(attributeArray(object.geometry.index, user, 'index'), user, 'index');
         }
-        addArray(object.instanceMatrix?.array, user, 'instanceMatrix'); addArray(object.instanceColor?.array, user, 'instanceColor');
+        addArray(attributeArray(object.instanceMatrix, user, 'instanceMatrix'), user, 'instanceMatrix'); addArray(attributeArray(object.instanceColor, user, 'instanceColor'), user, 'instanceColor');
         for (const material of (Array.isArray(object.material) ? object.material : [object.material])) {
           if (!material) continue;
           const values = [...Object.values(material), ...Object.values(material.uniforms ?? {}).map(uniform => uniform?.value)].flat();
@@ -93,9 +107,10 @@ const snapshotExpression = `(() => {
           if (tag) window.__sc_label_gl(textureHandles.get(uuid), tag.owner, tag.asset);
         }
       }
-      const census = { gl: linked, cpuAllocations: [...allocations.values()], textures: [...textures.values()],
+      const census = { gl: linked, cpuAllocations: [...allocations.values()], releasedAttributes, textures: [...textures.values()],
         note: 'GPU allocations plus deduplicated directly retained scene ArrayBuffers. ImageBitmap/canvas/native costs are not inferred from dimensions.' };
       return { census, state: grid.state(), residency: grid.residency(), road: grid.roadResident(), roots, longTasks: window.__gridAdmissionLongTasks,
+        settings: JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.settings?.data,
         runtime: { texture: api.world.game.level.assets?.texture, level: api.world.game.level.id },
         wasm: (window.__g227Wasm ?? []).map(({source,name,memory})=>({source,name,bytes:memory.deref()?.buffer.byteLength ?? 0})), reveal: window.__wsReveal, originDrift: window.__frameFloorGridOriginDrift };
 })()`;
@@ -113,7 +128,7 @@ try {
   let evaluate = await connect(`${base}version.json`);
   report.stage = 'cold-reset'; save();
   await evaluate(`(async () => {for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();for(const k of await caches.keys()) await caches.delete(k);localStorage.clear();sessionStorage.clear();return true;})()`);
-  await evaluate(`(() => {${saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver: 'off' }, merge: true })};${saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};return true;})()`);
+  await evaluate(`(() => {${saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver }, merge: true })};${saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};return true;})()`);
   sampler = spawn('python3', ['scripts/sim-mem-phases.py', '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--max', '1200'], { stdio: 'ignore' });
   if (routeMode === 'control') {
     await evaluate(`(() => { ${GL_INIT}; return true; })()`);
@@ -152,6 +167,7 @@ try {
       samples.push({ at: latest.t, pid: Number(pid), footprintBytes: values[0], intervalPeakBytes: values[1], gpuProcessBytes: latest.gpu });
     }
     const value = await evaluate(snapshotExpression);
+    if (value.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + value.settings?.memorySaver);
     const sorted = samples.map(s => s.footprintBytes).sort((a, b) => a - b);
     const vmmapPath = out.replace(/\.json$/u, '') + '.' + label + '.vmmap.txt';
     let vmmap;
@@ -177,6 +193,27 @@ try {
       waypoints: [{ x: cell.cell[0] * 555, z: cell.cell[1] * 555 }], requiredResidents: [plan.to] }, documentOrigin));
     await snapshot(plan.to + '-centre');
   }
+  const heapAt = async label => {
+    // Collection happens only after the original pose's footprint/GL sample, in its own experiment.
+    report.stage='heap-snapshot';save();
+    try {
+      await inspector.raw('(() => {const game=window.__wildshard.requireWorld().game;window.__g227SavedFrameGate=game.frameGate;game.frameGate=()=>false;return true;})()');
+      await inspector.send('Heap.enable');
+      const heap=await inspector.send('Heap.snapshot');
+      const path=out.replace(/\.json$/u,'')+'.heap.json';writeFileSync(path,heap.snapshotData);
+      report.heap={path,timestamp:heap.timestamp,pose:label};save();
+      if (routeMode === 'nalati-centre-heap') {
+        const metadata = await heapOwners(inspector, JSON.parse(heap.snapshotData));
+        const metadataPath = out.replace(/\.json$/u,'')+'.heap-owners.json';
+        writeFileSync(metadataPath,JSON.stringify(metadata,null,2)+'\n');report.heap.ownersPath=metadataPath;save();
+      }
+      await snapshot(label+'-after-heap');
+    } catch(error){report.heap={error:String(error),pose:label};save();}
+    finally {await inspector.raw('(() => {const game=window.__wildshard?.world?.game;if(game && window.__g227SavedFrameGate)game.frameGate=window.__g227SavedFrameGate;delete window.__g227SavedFrameGate;return true;})()').catch(()=>null);}
+  };
+  if (routeMode === 'nalati-centre-heap') {
+    await heapAt('nalati-grasslands-centre');
+  } else {
   // A real-input road-only counterfactual, far beyond the former source's retained ring.
   // It measures the page/platform/cache remainder after owned runtime retirement, not hidden meshes.
   const nalati = state.cells.find(cell => cell.slug === 'nalati-grasslands');
@@ -187,24 +224,58 @@ try {
   await until('window.__wildshard.shard.grid.state().live.live.residents.length === 0',90000);
   await snapshot('neutral-road');
   if(routeMode === 'nalati-heap') {
-    // Do not force collection before any original route pose. The post-route heap snapshot/GC is a separate experiment.
-    report.stage='heap-snapshot';save();
-    try {
-      await inspector.send('Heap.enable');
-      const heap=await inspector.send('Heap.snapshot');
-      const path=out.replace(/\.json$/u,'')+'.heap.json';writeFileSync(path,heap.snapshotData);
-      report.heap={path,timestamp:heap.timestamp};save();
-      await snapshot('neutral-road-after-heap');
-    } catch(error){report.heap={error:String(error)};save();}
-  } else { report.glFootprintControl = await footprintControl(evaluate); save(); }
+    await heapAt('neutral-road');
+  } else if (routeMode !== 'nalati-route') { report.glFootprintControl = await footprintControl(evaluate); save(); }
+  }
   }
 } catch (error) { report.diagnostic = await inspector?.raw('JSON.stringify({url:location.href,origin:performance.timeOrigin,token:window.__frameFloorGridDocumentToken,stop:window.__frameFloorGridStop,body:document.body.innerText.slice(-4000)})').catch(() => null); report.failure = String(error); process.exitCode = 1; console.error(report.failure); }
 finally {
   report.errors = await inspector?.raw('JSON.stringify(window.__g227Errors ?? [])').catch(() => null);
+  report.warnings = await inspector?.raw('JSON.stringify(window.__g227Warnings ?? [])').catch(() => null);
   inspector?.close(); proxy?.kill('SIGTERM'); writeFileSync(phaseFile, 'done');
   if (sampler) { await Promise.race([new Promise(resolve => sampler.once('exit', resolve)), sleep(3000)]); if (sampler.exitCode === null) sampler.kill('SIGTERM'); }
   try { simctl(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Already exited. */ }
   report.closed = true; save();
+}
+
+async function heapOwners(connection, heap) {
+  const targets = [], classes = new Set(['ArrayBuffer','ImageBitmap','Float32Array','HTMLCanvasElement','AudioBuffer']);
+  for(let i=0;i<heap.nodes.length;i+=4) {
+    const className=heap.nodeClassNames[heap.nodes[i+2]], bytes=heap.nodes[i+1];
+    if(classes.has(className) && bytes>=500000) targets.push({id:heap.nodes[i],className,bytes});
+  }
+  targets.sort((a,b)=>b.bytes-a.bytes);
+  const rows=[],objectGroup='g227-centre-owner-audit';
+  try {
+    for(const target of targets.slice(0,64)) {
+      try {
+        const remote=await connection.send('Heap.getRemoteObject',{heapObjectId:target.id,objectGroup});
+        if(!remote.result.objectId) {rows.push({...target,remote:remote.result});continue;}
+        const details=await connection.send('Runtime.callFunctionOn',{objectId:remote.result.objectId,returnByValue:true,
+          functionDeclaration:`function(){
+            const target=this,matches=[],api=window.__wildshard;
+            const attributeArray=a=>{const own=a && Object.getOwnPropertyDescriptor(a,'array');if(own && 'value' in own)return own.value;const data=a && Object.getOwnPropertyDescriptor(a,'data')?.value;return data ? Object.getOwnPropertyDescriptor(data,'array')?.value : undefined;};
+            const add=(value,owner,role)=>{if(value===target || (ArrayBuffer.isView(value)&&value.buffer===target)) matches.push({owner,role,viewBytes:value?.byteLength});};
+            api?.world?.game?.rootScene?.traverse(object=>{
+              const names=[];let parent=object;while(parent){names.unshift(parent.name||parent.type);parent=parent.parent;}const owner=names.join('/');
+              if(object.geometry){for(const [role,attribute] of Object.entries(object.geometry.attributes)) add(attributeArray(attribute),owner,role);add(attributeArray(object.geometry.index),owner,'index');}
+              add(attributeArray(object.instanceMatrix),owner,'instances');add(attributeArray(object.instanceColor),owner,'instance-colours');
+              for(const material of (Array.isArray(object.material)?object.material:[object.material])){
+                if(!material)continue;
+                for(const texture of [...Object.values(material),...Object.values(material.uniforms??{}).map(u=>u?.value)].flat()){
+                  if(!texture?.isTexture)continue;add(texture.image,owner,'texture-image:'+texture.uuid);add(texture.source?.data,owner,'texture-source:'+texture.uuid);add(texture.image?.data,owner,'texture-data:'+texture.uuid);
+                  for(const mip of texture.mipmaps??[])add(mip.data,owner,'texture-mip:'+texture.uuid);
+                }
+              }
+            });
+            for(const row of window.__g227Wasm??[]){const memory=row.memory.deref();if(memory?.buffer===target)matches.push({owner:'WASM:'+row.source+':'+row.name,role:'memory',viewBytes:memory.buffer.byteLength});}
+            return {kind:target.constructor?.name,byteLength:target.byteLength??null,length:target.length??null,width:target.width??null,height:target.height??null,duration:target.duration??null,matches};
+          }`});
+        rows.push({...target,details:details.result?.value,thrown:details.wasThrown??false});
+      } catch(error){rows.push({...target,error:String(error)});}
+    }
+  } finally {await connection.send('Runtime.releaseObjectGroup',{objectGroup});}
+  return {protocol:'Exact object-identity match through Heap.getRemoteObject + Runtime.callFunctionOn against active scene attributes/textures and weak WASM memory registrations. Strong remote handles released before the post-heap footprint. Unmatched objects require retainer paths; no owner is inferred from equal sizes.',rows};
 }
 
 function evaluator(raw, observe = () => undefined) {
@@ -229,9 +300,10 @@ function evaluator(raw, observe = () => undefined) {
   };
 }
 function webkit(wsUrl) {
-  const ws = new WebSocket(wsUrl), pending = new Map();
+  const ws = new WebSocket(wsUrl, { maxPayload: 512 * 1024 * 1024 }), pending = new Map();
   let seq = 0, target = null;
   const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
+  ws.addEventListener('close', event => { for (const [id, waiter] of pending) { clearTimeout(waiter.timer); waiter.reject(new Error(`Inspector socket closed ${event.code}: ${event.reason}`)); pending.delete(id); } });
   const inner = (message) => {
     const waiter = pending.get(message.id);
     if (waiter) { pending.delete(message.id); clearTimeout(waiter.timer); if (message.error) waiter.reject(new Error(message.error.message)); else waiter.done(message.result); }
@@ -245,7 +317,7 @@ function webkit(wsUrl) {
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => {
     const id = ++seq;
-    const timer = setTimeout(() => { pending.delete(id); reject(new Error(`Web Inspector timed out: ${method}`)); }, method === 'Heap.snapshot' ? 120000 : 10000);
+    const timer = setTimeout(() => { pending.delete(id); reject(new Error(`Web Inspector timed out: ${method}`)); }, method === 'Heap.snapshot' ? 300000 : 10000);
     pending.set(id, { done: resolve, reject, timer });
     const message = { id, method, params };
     ws.send(JSON.stringify(target ? { id: ++seq, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } } : message));
