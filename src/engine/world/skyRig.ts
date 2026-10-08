@@ -68,10 +68,11 @@ class WeakShaderMap<V> {
   has(material: object): boolean { const ref = this.index.get(material); return ref !== undefined && this.refs.has(ref); }
   delete(material: object): boolean { const ref = this.index.get(material); return ref !== undefined && this.refs.delete(ref); }
   clear(): void { this.refs.clear(); }
-  forEach(fn: (value: V, material: object, map: this) => void): void {
+  /** Map.forEach's contract, thisArg included: CSM calls `shaders.forEach(function () { this._getExtendedBreaks… }, this)`. */
+  forEach(fn: (this: unknown, value: V, material: object, map: this) => void, thisArg?: unknown): void {
     for (const [ref, value] of this.refs) {
       const material = ref.deref();
-      if (material === undefined) this.refs.delete(ref); else fn(value, material, this);
+      if (material === undefined) this.refs.delete(ref); else fn.call(thisArg, value, material, this);
     }
   }
 }
