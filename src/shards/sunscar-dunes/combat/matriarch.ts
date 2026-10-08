@@ -5,6 +5,7 @@ import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere'
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import { bossesSave, purseSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { Color, Mesh, Scene, SphereGeometry, Vector3 } from 'three';
 import { BASIN } from '../layout';
 import { STRINGS } from '../strings';
@@ -34,7 +35,7 @@ export class DuneMatriarch extends BossBrain {
   /** The storm's strength 0..1 and the Matriarch's body while she is up (captures and tests read them). */
   readonly weather: { storm: number };
   readonly body: () => Animal | null;
-  constructor(ctx: ShardContext, player: Vector3, spawn: () => Animal | null, retire: (a: Animal) => void, onCoin?: (share: number) => void, onDown?: () => void) {
+  constructor(ctx: ShardContext, player: Vector3, spawn: (retired?: Animal) => Animal | null, retire: (a: Animal) => void, onCoin?: (share: number) => void, onDown?: () => void) {
     const at = new Vector3(BASIN.x, BASIN_FLOOR, BASIN.z), focus = new Vector3();
     let animal: Animal | null = null, invulnerable = false, stormGoal = 0;
     const weather = { storm: 0 };
@@ -51,7 +52,7 @@ export class DuneMatriarch extends BossBrain {
       ctx.scope.own(shell.geometry); ctx.scope.own(shell.material); ctx.scope.onDispose(() => { shell.removeFromParent(); });
       return shell;
     });
-    const fresh = (): Animal | null => { if (animal) retire(animal); animal = spawn(); if (animal) { animal.mem['fight'] = 0; animal.mem['rise'] = 0; animal.mem['phase'] = 0; } return animal; };
+    const fresh = (): Animal | null => { const previous = animal; if (previous) retire(previous); animal = spawn(previous ?? undefined); if (animal) { animal.mem['fight'] = 0; animal.mem['rise'] = 0; animal.mem['phase'] = 0; } return animal; };
     const script: BossScript = {
       // The fire's light is the summons (review R7): she rises while the player is anywhere from the bowl to the tower
       // deck (78 m from its centre), so the lighting player sees it.
@@ -111,7 +112,12 @@ export class DuneMatriarch extends BossBrain {
 /** Arms the Matriarch once the signal fire is lit (now, or on a later visit); answers the death checkpoint. */
 export function installMatriarch(ctx: ShardContext, player: Vector3, lit: () => boolean, onCoin?: (share: number) => void, onDown?: () => void): { boss: DuneMatriarch; summon: () => void } {
   const animals = ctx.game.runtime?.play?.animals;
-  const boss = ctx.app.encounters.boss(ID, new DuneMatriarch(ctx, player, () => { const a = animals?.spawn('duneMatriarch', BASIN.x, BASIN.z, 0, 'matriarch') ?? null; if (a) lastLightAll(a.mesh, ctx.scope); return a; },
+  const retained = retainsRuntimeServices(ctx);
+  const boss = ctx.app.encounters.boss(ID, new DuneMatriarch(ctx, player, previous => {
+    const a = retained && previous !== undefined ? animals?.replace(previous, BASIN.x, BASIN.z, 0, 'matriarch', {}) ?? null
+      : animals?.spawn('duneMatriarch', BASIN.x, BASIN.z, 0, 'matriarch', retained ? { entityId: 'sunscar.matriarch' } : undefined) ?? null;
+    if (a) lastLightAll(a.mesh, ctx.scope); return a;
+  },
     (a) => { animals?.retire(a); }, onCoin, onDown), ctx.scope);
   const summon = (): void => { if (boss.state === 'dormant') { boss.arm(); ctx.game.runtime?.play?.hud.toast(STRINGS.summoned); } };
   if (lit()) boss.arm();
