@@ -1,0 +1,311 @@
+{
+  "schema": 1,
+  "sourceSha": "0690fca6aba45cbed6303d9cf1dc68c46fcc1a5e",
+  "browser": "agent-browser 0.37.1 / Chrome 153 / ANGLE Metal",
+  "device": "iPhone 16 Pro emulation, phone tier, muted",
+  "capture": "Existing parity RNG / 30Hz game-frame fixture; native rAF; Developer ON; snapshot402; independent page per Memory saver pick",
+  "proof": "Native KurganBoss.enter(false) invoked via debug handle; normal app frames drive entry fade, teleport and construction. This is not a door walk or a physical-device/native memory measurement.",
+  "verdict": "exact centre and entry pixels; static allocation deferred until opaque entry; same mesh on reentry; no errors",
+  "resourcesClosed": true,
+  "nativeSavingCreditedBytes": 0,
+  "runs": {
+    "off": {
+      "beforeBlack": {
+        "fadeT": 0.006666666666666696,
+        "inside": false,
+        "present": true
+      },
+      "beforeEntry": {
+        "position": [
+          0.0011709336740750589,
+          25.587643419057713,
+          0.0003298235324109555
+        ],
+        "present": true,
+        "trigger": "native KurganBoss.enter(false) via debug handle; normal app frames advance fade and install"
+      },
+      "build": {
+        "build": "0690fca-muzeyyxv",
+        "time": "2026-10-08T10:49:07.270Z"
+      },
+      "centre": {
+        "bytes": 12022128,
+        "clock": 1.0333333333333332,
+        "frame": 31,
+        "pixels": {
+          "h": 874,
+          "hash": "d66ca778d2408de0c217cbce163206fdf729113a4bb27a0603bb2da030ab7fa9",
+          "w": 402
+        },
+        "position": [
+          0.0011709336740750589,
+          25.587643419057713,
+          0.0003298235324109555
+        ],
+        "present": true,
+        "repeat": {
+          "h": 874,
+          "hash": "d66ca778d2408de0c217cbce163206fdf729113a4bb27a0603bb2da030ab7fa9",
+          "w": 402
+        }
+      },
+      "entered": {
+        "bytes": 12022128,
+        "inside": true,
+        "present": true,
+        "programs": 98,
+        "wallMs": 314.5
+      },
+      "entry": {
+        "clock": 2.033333333333336,
+        "frame": 61,
+        "pixels": {
+          "h": 874,
+          "hash": "15d749417a3cf459192a171fc94355a24ff56ec86ea00f1472af82cda1b5cb33",
+          "w": 402
+        },
+        "position": [
+          -39.99998356278413,
+          140.0043999998161,
+          -74.6999987320061
+        ],
+        "repeat": {
+          "h": 874,
+          "hash": "15d749417a3cf459192a171fc94355a24ff56ec86ea00f1472af82cda1b5cb33",
+          "w": 402
+        }
+      },
+      "errors": [],
+      "events": [
+        {
+          "gameTime": 1.0333333333333332,
+          "ms": 220,
+          "on": true,
+          "type": "fade"
+        },
+        {
+          "fadeOpacity": "1",
+          "gameTime": 1.3000000000000007,
+          "hadStatic": true,
+          "hasStatic": true,
+          "ms": 0,
+          "on": true,
+          "type": "setVisible"
+        },
+        {
+          "gameTime": 1.3000000000000007,
+          "ms": 420,
+          "on": false,
+          "type": "fade"
+        },
+        {
+          "fadeOpacity": "0",
+          "gameTime": 2.033333333333336,
+          "hadStatic": true,
+          "hasStatic": true,
+          "ms": 0.20000028610229492,
+          "on": false,
+          "type": "setVisible"
+        },
+        {
+          "gameTime": 2.033333333333336,
+          "ms": 220,
+          "on": true,
+          "type": "fade"
+        },
+        {
+          "fadeOpacity": "1",
+          "gameTime": 2.3000000000000016,
+          "hadStatic": true,
+          "hasStatic": true,
+          "ms": 0.10000038146972656,
+          "on": true,
+          "type": "setVisible"
+        },
+        {
+          "gameTime": 2.3000000000000016,
+          "ms": 420,
+          "on": false,
+          "type": "fade"
+        }
+      ],
+      "fatal": null,
+      "initial": {
+        "bytes": 12022128,
+        "colliders": 2776,
+        "present": true
+      },
+      "reentry": {
+        "bytes": 12022128,
+        "inside": true,
+        "sameMesh": true
+      },
+      "settings": {
+        "memorySaver": "off",
+        "time": "midday",
+        "volume": 0,
+        "weather": "clear"
+      },
+      "triggered": {
+        "fadeT": 0.2066666666666667,
+        "inside": false,
+        "present": true
+      },
+      "viewport": [
+        402,
+        874,
+        3
+      ],
+      "rawSha256": "a577c9a2df277481541be75a0798f46040ed8548580dfdd64c9fe328cc30d583"
+    },
+    "on": {
+      "beforeBlack": {
+        "fadeT": 0.006666666666666696,
+        "inside": false,
+        "present": false
+      },
+      "beforeEntry": {
+        "position": [
+          0.0011709336740750589,
+          25.587643419057713,
+          0.0003298235324109555
+        ],
+        "present": false,
+        "trigger": "native KurganBoss.enter(false) via debug handle; normal app frames advance fade and install"
+      },
+      "build": {
+        "build": "0690fca-muzeyyxv",
+        "time": "2026-10-08T10:49:07.270Z"
+      },
+      "centre": {
+        "bytes": 0,
+        "clock": 1.0333333333333332,
+        "frame": 31,
+        "pixels": {
+          "h": 874,
+          "hash": "d66ca778d2408de0c217cbce163206fdf729113a4bb27a0603bb2da030ab7fa9",
+          "w": 402
+        },
+        "position": [
+          0.0011709336740750589,
+          25.587643419057713,
+          0.0003298235324109555
+        ],
+        "present": false,
+        "repeat": {
+          "h": 874,
+          "hash": "d66ca778d2408de0c217cbce163206fdf729113a4bb27a0603bb2da030ab7fa9",
+          "w": 402
+        }
+      },
+      "entered": {
+        "bytes": 12022128,
+        "inside": true,
+        "present": true,
+        "programs": 98,
+        "wallMs": 460.90000009536743
+      },
+      "entry": {
+        "clock": 2.033333333333336,
+        "frame": 61,
+        "pixels": {
+          "h": 874,
+          "hash": "15d749417a3cf459192a171fc94355a24ff56ec86ea00f1472af82cda1b5cb33",
+          "w": 402
+        },
+        "position": [
+          -39.99998356278413,
+          140.0043999998161,
+          -74.6999987320061
+        ],
+        "repeat": {
+          "h": 874,
+          "hash": "15d749417a3cf459192a171fc94355a24ff56ec86ea00f1472af82cda1b5cb33",
+          "w": 402
+        }
+      },
+      "errors": [],
+      "events": [
+        {
+          "gameTime": 1.0333333333333332,
+          "ms": 220,
+          "on": true,
+          "type": "fade"
+        },
+        {
+          "fadeOpacity": "1",
+          "gameTime": 1.3000000000000007,
+          "hadStatic": false,
+          "hasStatic": true,
+          "ms": 203.7000002861023,
+          "on": true,
+          "type": "setVisible"
+        },
+        {
+          "gameTime": 1.3000000000000007,
+          "ms": 420,
+          "on": false,
+          "type": "fade"
+        },
+        {
+          "fadeOpacity": "0",
+          "gameTime": 2.033333333333336,
+          "hadStatic": true,
+          "hasStatic": true,
+          "ms": 0.19999980926513672,
+          "on": false,
+          "type": "setVisible"
+        },
+        {
+          "gameTime": 2.033333333333336,
+          "ms": 220,
+          "on": true,
+          "type": "fade"
+        },
+        {
+          "fadeOpacity": "1",
+          "gameTime": 2.3000000000000016,
+          "hadStatic": true,
+          "hasStatic": true,
+          "ms": 0.10000038146972656,
+          "on": true,
+          "type": "setVisible"
+        },
+        {
+          "gameTime": 2.3000000000000016,
+          "ms": 420,
+          "on": false,
+          "type": "fade"
+        }
+      ],
+      "fatal": null,
+      "initial": {
+        "bytes": 0,
+        "colliders": 2776,
+        "present": false
+      },
+      "reentry": {
+        "bytes": 12022128,
+        "inside": true,
+        "sameMesh": true
+      },
+      "settings": {
+        "memorySaver": "on",
+        "time": "midday",
+        "volume": 0,
+        "weather": "clear"
+      },
+      "triggered": {
+        "fadeT": 0.2066666666666667,
+        "inside": false,
+        "present": false
+      },
+      "viewport": [
+        402,
+        874,
+        3
+      ],
+      "rawSha256": "f8cec78b7106d1251b23b3957dd9268836820d42b4ee39b17f1d389447369144"
+    }
+  }
+}
