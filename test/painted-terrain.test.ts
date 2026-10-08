@@ -10,7 +10,7 @@ import { ToonLook } from '../src/engine/render/families/toon';
 import { materialTextureRefs } from '../src/game/shardfile/materials';
 import { painterlyMaterial } from '../src/engine/world/painterly';
 import { applyTerrainSurface } from '../src/shards/nalati-grasslands/terrainSurface';
-import { NALATI_TERRAIN_SURFACE } from '../src/shards/nalati-grasslands/look/terrainTiles';
+import { NALATI_TERRAIN_SURFACE } from '../src/shards/nalati-grasslands/look/terrainLayer';
 import { TEX_MEAN, TEX_METRES } from '../src/shards/nalati-grasslands/look/nalatiTextures';
 import { GLACIER, SNOW_LINE } from '../src/shards/nalati-grasslands/layout';
 

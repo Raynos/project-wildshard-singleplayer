@@ -21,9 +21,6 @@ function terrain(): NonNullable<typeof def.ground.terrain> {
   return t;
 }
 
-/** the last painted terrain and its field (held weakly: the probe and the lattice read it, nothing keeps it alive) */
-let built: WeakRef<Terrain> | null = null;
-const fields = new WeakMap<Terrain, PainterField>();
 export const NALATI_TERRAIN_PAINTER: TerrainPainter = { build: buildPainterly };
 
 /**
@@ -47,62 +44,11 @@ async function buildPainterly(t: Terrain, f: PainterField): Promise<void> {
   const slab = new THREE.Mesh(buildPainterlySlab(f), mat); // the same material: painted granite walls, a grassy lip
   slab.receiveShadow = true;
   t.group.add(slab);
-  built = new WeakRef(t); fields.set(t, f);
-}
-
-interface PaintArrays { pos: Float32Array; nrm: Float32Array; col: Float32Array; surf: Float32Array; rdir: Float32Array; zone: Float32Array; out: [number, number, number]; road: [number, number, number]; zw: [number, number, number] }
-const paintArrays = (count: number): PaintArrays => ({
-  pos: new Float32Array(count * 3), nrm: new Float32Array(count * 3), col: new Float32Array(count * 3),
-  surf: new Float32Array(count * 4), rdir: new Float32Array(count * 2), zone: new Float32Array(count * 3),
-  out: [0, 0, 0], road: [0, 0, 0], zw: [0, 0, 0],
-});
-
-/**
- * Paint vertex `i` at (x, y, z) whose unnormalised normal is (nx, ny, nz): position, normal, the def's ground colour and
- * the surface-detail masks (terrainSurface.ts): road across · gravel · snow · rock, the road's direction, layout v2's zones.
- */
-function paintVertex(v: PaintArrays, segs: Seg[], i: number, x: number, z: number, y: number, nx: number, ny: number, nz: number): void {
-  const { pos, nrm, col, surf, rdir, zone, out, road, zw } = v;
-  pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
-  const l = Math.hypot(nx, ny, nz);
-  nrm[i * 3] = nx / l; nrm[i * 3 + 1] = ny / l; nrm[i * 3 + 2] = nz / l;
-  const slope = 1 - ny / l;
-  def.groundColor?.(x, z, y, slope, terrain(), out); // the manifest always paints (groundColor)
-  col[i * 3] = out[0]; col[i * 3 + 1] = out[1]; col[i * 3 + 2] = out[2];
-  const [gravel = 0, rock = 0, snow = 0] = def.surfaceAt?.(x, z, y, slope) ?? [];
-  signedTrailDistance(segs, x, z, 9, road); rdir[i * 2] = road[1]; rdir[i * 2 + 1] = road[2];
-  surf[i * 4] = road[0]; surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
-  zoneWeights(x, z, y, slope, zw); zone[i * 3] = zw[0]; zone[i * 3 + 1] = zw[1]; zone[i * 3 + 2] = zw[2];
-}
-
-/** the terrain the painter built last, or null (G227's tile probe) */
-export function builtTerrain(): Terrain | null { return built?.deref() ?? null; }
-
-/**
- * One terrain tile on a res × res lattice from (x0, z0), `size` metres square, painted by the same per-vertex functions as
- * the live grid (positions, normals from the field's heights a lattice step either side, colours and the masks as `surf` /
- * `rdir` / `zone`), no index: what a bake writes for a 62.5 m L0 tile (G227).
- */
-export function paintTerrainLattice(x0: number, z0: number, size: number, res: number): THREE.BufferGeometry {
-  const t = built?.deref(), f = t === undefined ? undefined : fields.get(t);
-  if (f === undefined) throw new Error('Nalati terrain lattice: the painter has not built');
-  const d = size / (res - 1), v = paintArrays(res * res), segs = trailSegments(f);
-  for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) {
-    const x = x0 + ix * d, z = z0 + iz * d;
-    paintVertex(v, segs, iz * res + ix, x, z, f.heightAt(x, z), f.heightAt(x - d, z) - f.heightAt(x + d, z), 2 * d, f.heightAt(x, z - d) - f.heightAt(x, z + d));
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(v.pos, 3));
-  geo.setAttribute('normal', new THREE.BufferAttribute(v.nrm, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(v.col, 3));
-  geo.setAttribute('surf', new THREE.BufferAttribute(v.surf, 4));
-  geo.setAttribute('rdir', new THREE.BufferAttribute(v.rdir, 2));
-  geo.setAttribute('zone', new THREE.BufferAttribute(v.zone, 3));
-  return geo;
 }
 
 /** the painted terrain grid (G227: public so a bake runs the one painter on its native samplers; no behaviour change) */
 export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.BufferGeometry, undefined> {
+  const paint = def.groundColor;
   const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
   const hs = new Float32Array(res * res);
   for (let iz = 0; iz < res; iz++) {
@@ -111,15 +57,31 @@ export function* buildPainterlyGeometry(f: PainterField): Generator<void, THREE.
   }
   yield;
   const H = (ix: number, iz: number) => hs[Math.min(n, Math.max(0, iz)) * res + Math.min(n, Math.max(0, ix))] ?? 0;
-  const v = paintArrays(res * res), segs = trailSegments(f);
+  const pos = new Float32Array(res * res * 3), nrm = new Float32Array(res * res * 3), col = new Float32Array(res * res * 3);
+  const surf = new Float32Array(res * res * 4), rdir = new Float32Array(res * res * 2);
+  const zone = new Float32Array(res * res * 3), zw: [number, number, number] = [0, 0, 0]; // layout v2's zones (src/shards/nalati-grasslands/look/zones.ts)
+  const road: [number, number, number] = [0, 0, 0];
+  const out: [number, number, number] = [0, 0, 0];
+  const segs = trailSegments(f);
   for (let iz = 0; iz < res; iz++) {
     if (iz > 0 && iz % 48 === 0) yield;
     for (let ix = 0; ix < res; ix++) {
-      const nx = H(ix - 1, iz) - H(ix + 1, iz), nz = H(ix, iz - 1) - H(ix, iz + 1);
-      paintVertex(v, segs, iz * res + ix, -CHUNK_HALF + ix * d, -CHUNK_HALF + iz * d, H(ix, iz), nx, 2 * d, nz);
+      const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
+      const y = H(ix, iz);
+      pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+      const nx = H(ix - 1, iz) - H(ix + 1, iz), nz = H(ix, iz - 1) - H(ix, iz + 1), ny = 2 * d;
+      const l = Math.hypot(nx, ny, nz);
+      nrm[i * 3] = nx / l; nrm[i * 3 + 1] = ny / l; nrm[i * 3 + 2] = nz / l;
+      const slope = 1 - ny / l;
+      paint?.(x, z, y, slope, terrain(), out); // the manifest always paints (groundColor)
+      col[i * 3] = out[0]; col[i * 3 + 1] = out[1]; col[i * 3 + 2] = out[2];
+      // the surface-detail masks (src/shards/nalati-grasslands/terrainSurface.ts): road across · gravel · snow · rock
+      const [gravel = 0, rock = 0, snow = 0] = def.surfaceAt?.(x, z, y, slope) ?? [];
+      signedTrailDistance(segs, x, z, 9, road); rdir[i * 2] = road[1]; rdir[i * 2 + 1] = road[2];
+      surf[i * 4] = road[0]; surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
+      zoneWeights(x, z, y, slope, zw); zone[i * 3] = zw[0]; zone[i * 3 + 1] = zw[1]; zone[i * 3 + 2] = zw[2];
     }
   }
-  const { pos, nrm, col, surf, rdir, zone } = v;
   const idx = new Uint32Array(n * n * 6);
   let k = 0;
   for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {

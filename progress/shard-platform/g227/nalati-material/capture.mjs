@@ -1,5 +1,6 @@
 // G227 (E435): today's Nalati terrain vs the same terrain redrawn as 62.5 m tiles with the painterly family's painted-terrain
-// layer (look/terrainTiles.ts, the probe's `shard.terrainTiles` handle). iPhone 16 Pro portrait, muted, fixed poses, both
+// layer (the probe's `shard.terrainTiles` handle: look/terrainTiles.ts at e2fa752de, taken out of the shard after the
+// capture so the shard keeps no test-only engine edges; re-apply it from that commit to re-run). iPhone 16 Pro portrait, muted, fixed poses, both
 // tiers. Per pose: today twice (the noise floor: grass, clouds and water move), `slice` (vertex-identical tiles) and
 // `lattice` (each tile resampled on the 33 × 33 L0 lattice, as the bake writes it); pixel diffs against the first frame.
 //   scripts/browser-lane.sh node progress/shard-platform/g227/nalati-material/capture.mjs --url=<served build> --tier=desktop|phone
