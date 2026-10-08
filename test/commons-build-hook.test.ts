@@ -27,7 +27,8 @@ export default shard;
     const hash = contentHash(new Uint8Array([1, 2, 3]));
     expect(first.requires.commons).toEqual([hash]); expect(first.requires.commonsCosts[hash]?.decoded).toBe(3);
     expect(first).toEqual(second); expect(readFileSync(join(root, 'one/shard.json'))).toEqual(readFileSync(join(root, 'two/shard.json')));
-    expect(readdirSync(join(root, 'one')).sort()).toEqual([hash, 'shard.json'].sort());
+    expect(readdirSync(join(root, 'one')).sort()).toEqual([hash, 'shard.json', 'validation.json'].sort());
+    expect(readFileSync(join(root, 'one/validation.json'))).toEqual(readFileSync(join(root, 'two/validation.json')));
     expect([...readFileSync(join(root, 'one', hash))]).toEqual([1, 2, 3]);
     const config = readFileSync(join(project, 'shard.config.ts'), 'utf8').replace('export const commons=', 'const commons=');
     for (const [label, assets] of [['missing', 'new Map()'], ['changed', `new Map([['${hash}',new Uint8Array([3,2,1])]])`]] as const) {

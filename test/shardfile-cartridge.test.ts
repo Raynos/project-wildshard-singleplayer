@@ -45,7 +45,7 @@ it('builds only shard data and declared hash-addressed assets, retaining a selec
     writeFileSync(join(root, 'assets', hash), bytes); writeFileSync(join(root, 'runtime/index.ts'), 'throw new Error("author TypeScript must never enter the cartridge");');
     writeFileSync(join(root, 'shard.config.ts'), `export default ${JSON.stringify(source)};\n`);
     const output = join(root, 'output'); await buildProject(root, output, { client: null });
-    expect(readdirSync(output).sort()).toEqual([hash, 'shard.json'].sort());
+    expect(readdirSync(output).sort()).toEqual([hash, 'shard.json', 'validation.json'].sort());
     const admitted = parseShardfile(JSON.parse(readFileSync(join(output, 'shard.json'), 'utf8')));
     expect(admitted.runtime).toEqual({ entry: 'runtime/index.ts' });
     expect(new Uint8Array(readFileSync(join(output, hash)))).toEqual(bytes);
