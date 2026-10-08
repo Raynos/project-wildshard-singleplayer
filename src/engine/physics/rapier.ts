@@ -11,6 +11,7 @@
 import RAPIER from '@dimforge/rapier3d-simd';
 import * as bindings from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.js';
 import { RAPIER_WASM_URL } from './wasmUrl';
+import { observeWasmMemory } from '../render/memoryResources';
 
 /** Initialized Rapier bindings supplied to a physics world or renderer-free simulation host. */
 export type Rapier = typeof RAPIER;
@@ -25,6 +26,8 @@ export function loadRapier(bytes?: BufferSource): Promise<Rapier> {
       ? await WebAssembly.instantiateStreaming(fetch(RAPIER_WASM_URL), imports)
       : await WebAssembly.instantiate(bytes, imports);
     bindings.__wbg_set_wasm(instance.exports);
+    const memory = instance.exports['memory'];
+    if (memory instanceof WebAssembly.Memory) observeWasmMemory(memory, { owner: 'engine/physics', asset: RAPIER_WASM_URL });
     return RAPIER;
   })();
   return loading;

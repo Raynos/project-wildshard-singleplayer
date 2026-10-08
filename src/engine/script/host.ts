@@ -2,6 +2,8 @@ import { SCRIPT_ABI } from './abi';
 import { admitScript, type ScriptAdmission } from './admission';
 import { SCRIPT_OP, type ScriptEffect, type ScriptEvent, type ScriptWorld } from './effects';
 import { scriptFailure } from './strings';
+import { observeWasmMemory } from '../render/memoryResources';
+import { currentOwner } from '../app/ownership';
 
 /** Per-level tick allowances shared by every module and entity, not reset by individual calls. */
 export interface ScriptLimits { instances: number; memoryBytes: number; effects: number; spawns: number; events: number; queries: number; fuelPerCall: number; fuelPerTick: number; failures: number }
@@ -71,6 +73,7 @@ export class ScriptHost {
   }
   private instantiate(state: ModuleState, saved?: ScriptSnapshot): Running {
     const memory = new WebAssembly.Memory({ initial: saved ? saved.memory.length / 65536 : state.admission.initialPages, maximum: state.maximumPages });
+    observeWasmMemory(memory, { owner: currentOwner()?.name ?? 'engine/script', asset: `script/entity:${state.entity}` });
     const instance = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array(state.bytes)), { env: {
       memory,
       enter: () => { this.charge(state, 1); if (++state.depth > SCRIPT_ABI.callDepth) throw new Error('Script call-depth exhausted'); },

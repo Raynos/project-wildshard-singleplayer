@@ -1,6 +1,10 @@
 import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Material, Object3D, Skeleton, Texture, WebGLRenderTarget } from 'three';
 import type { Renderer } from './renderer';
 import { arrayReleased } from './releasedArrays';
+import { isDev } from '../core/devMode';
+import { memoryAttribution, withMemoryLabel } from './memoryAttribution';
+import { observeImageMemory } from './memoryResources';
+import { sceneObjectOwner, sceneResourceOwner } from '../app/sceneOwnership';
 
 interface Label { owner: string; asset: string; priority: number }
 const labels = new WeakMap<object, Label>();
@@ -11,8 +15,9 @@ const isMaterial = (value: unknown): value is Material => value instanceof Mater
 const isObject = (value: unknown): value is Object3D => value instanceof Object3D;
 const isTarget = (value: unknown): value is WebGLRenderTarget => value instanceof WebGLRenderTarget;
 function hook(name: string): unknown { return typeof window === 'undefined' ? undefined : Reflect.get(window, name); }
-function enabled(): boolean { return typeof hook('__sc_label_gl') === 'function'; }
+function enabled(): boolean { return isDev() || typeof hook('__sc_label_gl') === 'function'; }
 function emit(name: string, resource: object, label: Label, identity?: object): void {
+  if (name === '__sc_label_gl' && label.priority > 0) memoryAttribution.label(resource, label);
   const fn = hook(name);
   if (typeof fn === 'function') Reflect.apply(fn, window, [resource, label.owner, label.asset, identity]);
 }
@@ -20,26 +25,26 @@ function remember(resource: object, label: Label): Label {
   const previous = labels.get(resource);
   if (previous && previous.priority >= label.priority) return previous;
   labels.set(resource, label);
+  if (label.priority > 0) memoryAttribution.label(resource, label);
   return label;
 }
-/** Only a census-enabled page retains metadata; normal gameplay does no label walks or renderer wrapping. */
+/** Asset labels are weak scalar metadata; full scene walks remain Developer/census-only. */
 export function labelAsset<T extends object>(resource: T, owner: string, asset: string): T {
-  if (enabled()) {
-    const label = remember(resource, { owner, asset: asset.split('?')[0] ?? asset, priority: 3 });
-    if (isTexture(resource)) markTexture(resource, label);
-  }
+  const label = remember(resource, { owner, asset: asset.split('?')[0] ?? asset, priority: 3 });
+  if (enabled() && isTexture(resource)) markTexture(resource, label);
   return resource;
 }
 /** Texture clones retain the resolved file identity, including a KTX2 stand-in's actual URL. */
 export function labelClone<T extends object>(resource: T, source: object, owner: string, asset: string): T {
-  if (enabled()) remember(resource, labels.get(source) ?? { owner, asset, priority: 3 });
+  remember(resource, labels.get(source) ?? { owner, asset, priority: 3 });
   return resource;
 }
 export function labelledCreation<T>(owner: string, asset: string, create: () => T): T {
   const fn = hook('__sc_gl_scope');
-  return typeof fn === 'function' ? Reflect.apply(fn, window, [owner, asset, create]) as T : create();
+  return withMemoryLabel({ owner, asset }, () => typeof fn === 'function' ? Reflect.apply(fn, window, [owner, asset, create]) as T : create());
 }
 function data(source: unknown, label: Label, identity?: object): void {
+  observeImageMemory(source, label);
   if (source !== null && typeof source === 'object') emit('__sc_label_source', source, remember(source, label), identity);
 }
 function markTexture(texture: Texture, fallback: Label): Label {
@@ -112,14 +117,16 @@ function resourceLabel(value: unknown): Label {
   if (value !== null && typeof value === 'object') {
     const known = labels.get(value);
     if (known) return known;
-    if (isTexture(value)) return markTexture(value, { owner: 'engine/texture', asset: 'generated/texture', priority: 0 });
-    if (isTarget(value)) return { owner: 'engine/render-target', asset: value.texture.name || `generated/render-target/${value.width}x${value.height}`, priority: 1 };
+    if (isTexture(value)) {
+      const owner = sceneResourceOwner(value);
+      return markTexture(value, { owner: owner?.name ?? 'unattributed', asset: 'generated/texture', priority: owner === null ? 0 : 2 });
+    }
+    if (isTarget(value)) return { owner: sceneResourceOwner(value)?.name ?? 'engine/render-target', asset: value.texture.name || `generated/render-target/${value.width}x${value.height}`, priority: 1 };
   }
   return { owner: 'engine/renderer', asset: 'renderer-internal', priority: 0 };
 }
-/** Bridge Three's CPU resource identity to the GL object at allocation/upload, solely for the census harness. */
+/** Bridge Three resource identity to native uploads for the debugger and the independent census harness. */
 export function installGpuLabels(renderer: Renderer): void {
-  if (!enabled()) return;
   // Bone textures are allocated inside Three after the scene walk, including one-shot warm draws and pooled rigs.
   // Tag that allocation immediately: a later scene walk cannot recover models that already left the visible tree.
   if (!skeletonBridgeInstalled) {
@@ -168,14 +175,16 @@ export function installGpuLabels(renderer: Renderer): void {
     const original: unknown = Reflect.get(renderer, method);
     if (typeof original !== 'function') continue;
     Reflect.set(renderer, method, function labelledRender(this: Renderer, ...args: unknown[]): unknown {
-      if (isObject(args[0])) tree(args[0], 'engine/scene', `generated/${args[0].name || args[0].type}`, 1);
+      if (enabled() && isObject(args[0])) tree(args[0], 'engine/scene', `generated/${args[0].name || args[0].type}`, 1);
       const result: unknown = Reflect.apply(original, this, args);
       return result;
     });
   }
   const draw = renderer.renderBufferDirect.bind(renderer);
   renderer.renderBufferDirect = (camera, scene, geo, mat, object, group) => {
-    const label = labels.get(object) ?? { owner: 'engine/draw', asset: `generated/${mat.name || mat.type}`, priority: 1 };
+    const owner = sceneObjectOwner(object);
+    const label = owner === null ? labels.get(object) ?? { owner: 'unattributed', asset: `generated/${mat.name || mat.type}`, priority: 0 }
+      : { owner: owner.name, asset: labels.get(object)?.asset ?? `generated/${object.name || mat.name || mat.type}`, priority: 2 };
     markGeometry(geo, label); markMaterial(mat, label);
     draw(camera, scene, geo, mat, object, group);
   };

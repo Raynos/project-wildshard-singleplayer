@@ -3,6 +3,7 @@ import type { App } from '@wildshard/engine/app/app';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Game } from '@wildshard/engine/core/Game';
 import { AssetResidencyBridge, type AssetAllocationReader } from './assetResidency';
+import { memoryAttribution } from '@wildshard/engine/render/memoryAttribution';
 
 /** An admitted home claim, shared by the early boot and the later live registry without charging it twice. */
 export interface HomeResidencyClaim {
@@ -42,7 +43,8 @@ export class PageResidency {
     try { detach = assets.bindResidency(bridge); }
     catch (error) { bridge.dispose(); throw error; }
     this.assetsBound = true;
-    rendererScope.onDispose(() => { detach(); bridge.dispose(); });
+    const stopAccounting = memoryAttribution.bindAccounting(() => this.allocator.cost().accounted);
+    rendererScope.onDispose(() => { stopAccounting(); detach(); bridge.dispose(); });
   }
 
   /** Calibration: the 804×1362 phone census owns 8-byte colour + 4-byte depth + 60-byte fullscreen triangle = 13,140,636 bytes in the measured

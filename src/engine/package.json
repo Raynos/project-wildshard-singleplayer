@@ -228,6 +228,7 @@
     "./render/renderer": "./render/renderer.ts",
     "./render/shaderPatches": "./render/shaderPatches.ts",
     "./render/textureBytes": "./render/textureBytes.ts",
+    "./render/memoryAttribution": "./render/memoryAttribution.ts",
     "./render/viewmodelFeel": "./render/viewmodelFeel.ts",
     "./saves/runtime": "./saves/runtime.ts",
     "./saves/slots": "./saves/slots.ts",

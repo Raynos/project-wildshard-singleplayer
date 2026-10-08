@@ -2525,3 +2525,18 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 ### Scoped level installation
 
 `@wildshard/engine/level/installation` provides `createLevelInstallation(app, scope, adapters, progress)`. It constructs the same scope-bound context used by `LevelLoader`, without starting another load or changing the active level. `openKit()` and `closeKit()` delimit the row-registration window. The caller owns the supplied scope and disposes it to remove its systems, events, content rows, scene root and adapter contributions.
+
+### Allocation memory diagnostics (SF64)
+
+`@wildshard/engine/render/memoryAttribution` defines `MemoryAttribution`, the shared `memoryAttribution` ledger and scalar
+`MemorySnapshot` v1. Native GPU handles are counted by allocation storage (compressed blocks, faces, mip levels, array
+layers, buffers and multisample targets), using the existing upload labels and scene owners. Subuploads add no bytes.
+CPU rows count shared array backing stores once, decoded PCM and Wasm linear capacity; image/canvas RGBA backing is
+explicitly estimated. Weak references and finalization never retain retired content; disposal/context loss removes GPU
+storage and resize/growth updates the original identity. Unknown labels remain an explicit unattributed part of totals.
+
+The live probe's `memory()` returns only scalars, even after level retirement. `snapshot()` keeps allocation totals,
+allocator `accountedBytes`, and optional provenance-bearing native `measured` (WebContent plus labelled GPU) SEPARATE.
+Capacity is not dirty resident RAM: never add the RAM census to WebContent or call its difference physical attribution.
+`measurement()` accepts a native ruler receipt; absent readings stay null. `bindAccounting()` borrows the existing
+allocator reader and returns an exact detach; it creates no admission claims.

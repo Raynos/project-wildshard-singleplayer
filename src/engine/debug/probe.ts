@@ -19,6 +19,7 @@ import { ExternalTimerBaseline } from './timerBaseline';
 import { poseBudgets } from '../render/budgetReport';
 import { scopeRegistrations, registrationTimerIds, disposalErrorMessages, type ScopeCensus, type Scope } from '../app/scope';
 import type { AppState, Phase } from '../app/systems';
+import { memoryAttribution, type MemorySnapshot } from '../render/memoryAttribution';
 
 declare const __BUILD_ID__: string;
 export interface Vec3 { x: number; y: number; z: number }
@@ -115,6 +116,8 @@ export interface ProbeApp {
   readonly census: Readonly<{ engine: Readonly<ScopeCensus>; level: Readonly<ScopeCensus> }>;
 }
 export interface EngineProbe<W extends ProbeWorld = ProbeWorld> {
+  /** Scalar allocation storage and native-ruler provenance; available independently of a retired level. */
+  memory?: () => MemorySnapshot;
   version: 1; world: W | undefined; shard: { slug: string } & Record<string, unknown>; boot: Fingerprint;
   /** Active-level access for controls; throws once the world has retired. */
   requireWorld: () => W;
@@ -357,7 +360,7 @@ export function installProbe<W extends ProbeWorld>(world: W, deps: ProbeDeps): E
       get rngSeed() { return app.rng.seedValue; },
       get census() { return Object.freeze({ engine: Object.freeze(app.engineScope.census), level: Object.freeze(game.levelScope.census) }); },
     }),
-    version: 1, world, requireWorld: () => world, get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
+    version: 1, world, requireWorld: () => world, memory: () => memoryAttribution.snapshot(), get shard() { return { ...handles, ...app.debug.scopedSnapshot(), slug: world.game.level.id }; },
     boot: fingerprint(world, deps, saves), fingerprint: () => fingerprint(world, deps, saves), pose, nav,
     budgets: (poses = []) => poseBudgets(world.game.level.id, TIER, world.game.level.budgets, poses),
     leak: async () => {
@@ -444,7 +447,7 @@ function scopedProbe<W extends ProbeWorld>(source: EngineProbe<W>, scope: Scope)
     return live;
   };
   return {
-    version: 1, boot,
+    version: 1, boot, memory: () => memoryAttribution.snapshot(),
     get world() { return live?.world; },
     requireWorld: () => read().requireWorld(),
     get shard() { return live?.shard ?? { slug }; },

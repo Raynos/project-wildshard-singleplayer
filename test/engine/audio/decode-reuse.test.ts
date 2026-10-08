@@ -10,7 +10,7 @@ afterAll(() => { vi.unstubAllGlobals(); });
 
 describe('exact decoded-audio reuse', () => {
   it('shares a recording across concurrent boot/runtime wrappers and distinguishes different content', async () => {
-    const decoder = vi.fn((): Promise<AudioBuffer> => Promise.resolve({ duration: 12 } as AudioBuffer)); decode = decoder;
+    const decoder = vi.fn((): Promise<AudioBuffer> => Promise.resolve({ duration: 12, length: 576000, numberOfChannels: 2 } as AudioBuffer)); decode = decoder;
     const [boot, runtime] = await Promise.all([decodeBytes(bytes(17)), decodeBytes(bytes(17))]);
     expect(runtime).toBe(boot); expect(decoder).toHaveBeenCalledTimes(1);
     expect(await decodeBytes(bytes(17))).toBe(boot);
@@ -20,7 +20,7 @@ describe('exact decoded-audio reuse', () => {
   it('retries failed work and bounds the completed weak-cache metadata', async () => {
     let fail = true;
     const decoder = vi.fn((): Promise<AudioBuffer> => fail ? Promise.reject(new Error('Broken audio'))
-      : Promise.resolve({ duration: 12 } as AudioBuffer)); decode = decoder;
+      : Promise.resolve({ duration: 12, length: 576000, numberOfChannels: 2 } as AudioBuffer)); decode = decoder;
     await expect(decodeBytes(bytes(29))).rejects.toThrow('Broken audio');
     fail = false;
     const first = await decodeBytes(bytes(29));
@@ -37,7 +37,7 @@ describe('exact decoded-audio reuse', () => {
       constructor(private readonly value: object) {}
       deref(): object | undefined { return collected ? undefined : this.value; }
     });
-    const decoder = vi.fn((): Promise<AudioBuffer> => Promise.resolve({ duration: 12 } as AudioBuffer)); decode = decoder;
+    const decoder = vi.fn((): Promise<AudioBuffer> => Promise.resolve({ duration: 12, length: 576000, numberOfChannels: 2 } as AudioBuffer)); decode = decoder;
     const first = await decodeBytes(bytes(54));
     expect(await decodeBytes(bytes(54))).toBe(first);
     collected = true;

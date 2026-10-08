@@ -18,7 +18,8 @@ import { resourceScope } from '../app/resources';
 // 48 kHz AAC: decodeAudioData resamples to its context's rate, and at the files' own rate it resamples nothing.
 import type { AmbientBed, LoopName, SampleLoop } from './Audio';
 import { sfxDir } from '../boot/audioFiles';
-import { onOwnerDispose } from '../app/ownership';
+import { currentOwner, onOwnerDispose } from '../app/ownership';
+import { observeAudioMemory } from '../render/memoryResources';
 
 export const DECODE_RATE = 48000;
 let offline: OfflineAudioContext | undefined;
@@ -33,6 +34,7 @@ const decoding = new Map<string, Promise<AudioBuffer>>();
 const DECODE_ENTRIES = 256;
 /** Decode at 48 kHz, sharing identical live recordings without retaining retired PCM (the bytes are detached on decode). */
 export async function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> {
+  const owner = currentOwner()?.name ?? 'engine/audio';
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
   const key = Array.from(digest, value => value.toString(16).padStart(2, '0')).join('');
   const live = decoded.get(key)?.deref();
@@ -42,7 +44,7 @@ export async function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> {
   const work = decodeContext().decodeAudioData(bytes);
   decoding.set(key, work);
   try {
-    const buffer = await work;
+    const buffer = observeAudioMemory(await work, { owner, asset: `audio/sha256:${key}` });
     decoded.delete(key); decoded.set(key, new WeakRef(buffer));
     while (decoded.size > DECODE_ENTRIES) {
       const first = decoded.keys().next().value;
