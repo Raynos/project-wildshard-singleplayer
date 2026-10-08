@@ -13192,9 +13192,27 @@
         "from": "@wildshard/engine/world/TreeFactory"
       },
       {
+        "name": "addVoxelAOBake",
+        "kind": "function",
+        "doc": "Add a baked table (scripts/bake-voxel-ao.mjs's bytes) for the builds that follow; the returned function drops it again.",
+        "from": "@wildshard/engine/world/voxelAO"
+      },
+      {
         "name": "aoTint",
         "kind": "function",
         "doc": "pull each sampled vertex's colour toward `tint × scale` by its darkening `k` (`c (1 - k) + c tint scale k`)",
+        "from": "@wildshard/engine/world/voxelAO"
+      },
+      {
+        "name": "decodeVoxelAOBake",
+        "kind": "function",
+        "doc": "A baked table's entries, or null when the bytes are not one (the bake's tier merge reads it too).",
+        "from": "@wildshard/engine/world/voxelAO"
+      },
+      {
+        "name": "encodeVoxelAOBake",
+        "kind": "function",
+        "doc": "The table's bytes, entries in key order (a byte-stable bake).",
         "from": "@wildshard/engine/world/voxelAO"
       },
       {
@@ -13216,9 +13234,21 @@
         "from": "@wildshard/engine/world/voxelAO"
       },
       {
+        "name": "recordVoxelAO",
+        "kind": "function",
+        "doc": "The native bake's recorder: every `voxelAO` result from now until `stop()`, keyed by its inputs' hash.",
+        "from": "@wildshard/engine/world/voxelAO"
+      },
+      {
         "name": "voxelAO",
         "kind": "function",
         "doc": "each vertex's darkening (0..1; NaN where a sample was skipped: a degenerate normal)",
+        "from": "@wildshard/engine/world/voxelAO"
+      },
+      {
+        "name": "voxelAOBakeStats",
+        "kind": "function",
+        "doc": "how many `voxelAO` calls the bake answered and how many marched since the page loaded (the load benchmark reads it)",
         "from": "@wildshard/engine/world/voxelAO"
       },
       {

@@ -30,6 +30,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [bake-textures.mjs](./bake-textures.mjs)
 - [bake-viewmodel-sets.json](./bake-viewmodel-sets.json)
 - [bake-viewmodel-sets.mjs](./bake-viewmodel-sets.mjs)
+- [bake-voxel-ao.mjs](./bake-voxel-ao.mjs)
 - [king-rig-bake.mjs](./king-rig-bake.mjs)
 - [simplify-models.mjs](./simplify-models.mjs)
 - [tex-tiers.cache.json](./tex-tiers.cache.json)

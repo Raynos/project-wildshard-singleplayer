@@ -1908,7 +1908,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2230 exports, grouped by the module to import them from.
+2235 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2276,7 +2276,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/world/terrainTileData`: `decodeTerrainTile`, `encodeTerrainTile`, `isTerrainTileData`, `terrainTileCost`, `TerrainTileData`, `terrainTileHeight`
 - `@wildshard/engine/world/terrainTileView`: `installTerrainTile`, `maskTerrainTile`
 - `@wildshard/engine/world/TreeFactory`: `FadeBand`, `forestFade`, `patchFade`, `patchWind`, `TreeFactory`, `TreeMaterial`, `TreeVariant`, `windUniforms`
-- `@wildshard/engine/world/voxelAO`: `aoTint`, `HemiDir`, `HemiRing`, `hemisphere`, `voxelAO`, `VoxelAOParams`
+- `@wildshard/engine/world/voxelAO`: `addVoxelAOBake`, `aoTint`, `decodeVoxelAOBake`, `encodeVoxelAOBake`, `HemiDir`, `HemiRing`, `hemisphere`, `recordVoxelAO`, `voxelAO`, `voxelAOBakeStats`, `VoxelAOParams`
 - `@wildshard/engine/world/water/body`: `basinBody`, `swellBody`, `WaterBodies`, `WaterBody`
 - `@wildshard/engine/world/water/declared`: `declaredWaterBody`, `dryEntryContains`, `DryEntryEdge`, `WaterDeclaration`
 - `@wildshard/engine/world/water/view`: `surfaceReflect`, `waterView`, `WaterView`

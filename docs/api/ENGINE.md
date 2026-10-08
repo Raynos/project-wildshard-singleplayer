@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2247 members; 834 without a doc line (—).
+2252 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -2203,11 +2203,16 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TreeMaterial` | type | @wildshard/engine/world/TreeFactory | — |
 | `TreeVariant` | interface | @wildshard/engine/world/TreeFactory | — |
 | `windUniforms` | const | @wildshard/engine/world/TreeFactory | `uTime` IS wind.ts's clock (PH-L6, one wind: Forest.update advances it with updateWind); `uWindStrength` scales the |
+| `addVoxelAOBake` | function | @wildshard/engine/world/voxelAO | Add a baked table (scripts/bake-voxel-ao.mjs's bytes) for the builds that follow; the returned function drops it again. |
 | `aoTint` | function | @wildshard/engine/world/voxelAO | pull each sampled vertex's colour toward `tint × scale` by its darkening `k` (`c (1 - k) + c tint scale k`) |
+| `decodeVoxelAOBake` | function | @wildshard/engine/world/voxelAO | A baked table's entries, or null when the bytes are not one (the bake's tier merge reads it too). |
+| `encodeVoxelAOBake` | function | @wildshard/engine/world/voxelAO | The table's bytes, entries in key order (a byte-stable bake). |
 | `HemiDir` | type | @wildshard/engine/world/voxelAO | — |
 | `HemiRing` | type | @wildshard/engine/world/voxelAO | a ring of hemisphere directions: [cos of the angle from the normal, how many round it] |
 | `hemisphere` | function | @wildshard/engine/world/voxelAO | fixed hemisphere directions in a +Z-up tangent frame, ring by ring, each ring turned by `cz × twist` (deterministic bakes) |
+| `recordVoxelAO` | function | @wildshard/engine/world/voxelAO | The native bake's recorder: every `voxelAO` result from now until `stop()`, keyed by its inputs' hash. |
 | `voxelAO` | function | @wildshard/engine/world/voxelAO | each vertex's darkening (0..1; NaN where a sample was skipped: a degenerate normal) |
+| `voxelAOBakeStats` | function | @wildshard/engine/world/voxelAO | how many `voxelAO` calls the bake answered and how many marched since the page loaded (the load benchmark reads it) |
 | `VoxelAOParams` | interface | @wildshard/engine/world/voxelAO | — |
 | `basinBody` | function | @wildshard/engine/world/water/body | A still basin cut into the terrain (a pond, a river channel): water wherever the terrain's |
 | `swellBody` | function | @wildshard/engine/world/water/body | A body whose surface rides the engine's Gerstner swell (../waves.ts) over a flat rest level: an open sea. |
