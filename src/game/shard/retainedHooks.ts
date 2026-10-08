@@ -34,6 +34,17 @@ export function installEnteredRuntimeService(context: ShardContext, install: (sc
   if (entered === undefined) install(context.scope); else entered(install);
 }
 
+/** Register a retained kit's input definition and binding labels only while its cell is entered. */
+export function installEnteredRuntimeInput(context: ShardContext, definition: Parameters<ShardContext['inputContext']>[0],
+  description: Parameters<ShardContext['app']['input']['bindings']['describe']>[0]): void {
+  if (!retainsRuntimeServices(context)) throw new Error('Entered input needs a retained context');
+  installEnteredRuntimeService(context, scope => {
+    const input = scope.child(`input.${definition.id}`);
+    context.app.input.register(definition, input);
+    context.app.input.bindings.describe(description, input);
+  });
+}
+
 /** Register entered-only updates on a clock that does not advance while the resident is parked. */
 export function installEnteredRuntimeUpdate(context: ShardContext, spec: Parameters<ShardContext['system']>[0]): void {
   if (!retainsRuntimeServices(context)) throw new Error('Entered clock needs a retained context');

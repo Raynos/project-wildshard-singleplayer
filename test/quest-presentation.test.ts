@@ -10,7 +10,14 @@ import type { MapMark } from '../src/engine/ui/Minimap';
 import { Flags } from '../src/engine/world/interact/flags';
 import type { Interactable } from '../src/engine/world/interact/types';
 import { QuestState } from '../src/engine/quest/core';
-import { installQuestPresentation, presentQuest, type QuestPresentationContext, type PresentedQuestDef } from '../src/game/quest/presentation';
+import { installEnteredQuestPresentation, installQuestPresentation, presentQuest, type QuestPresentationContext, type PresentedQuestDef } from '../src/game/quest/presentation';
+import { createLevelInstallation } from '../src/engine/level/installation';
+import { shardContext } from '../src/game/shard/context';
+import type { ShardRuntime } from '../src/game/shard/runtime';
+import { RetainedRuntimeHooks, installEnteredRuntimeInput } from '../src/game/shard/retainedHooks';
+import { emptyShardfileSource } from '../src/game/shardfile/loader';
+import { emptyShardfile } from '../src/sdk/author';
+import { legacyDouble } from './fake/FakeGame';
 import { DRIFTWOOD_QUEST } from '../src/shards/driftwood-isle/quest/questLine';
 
 const scopes: Scope[] = [];
@@ -45,6 +52,57 @@ const definition = (): PresentedQuestDef => ({ id: 'bells', title: 'The Bells', 
 ] });
 
 describe('one-call quest presentation', () => {
+  it('recreates entered quest/input bindings twice while state persists and 600 parked ticks leave no presentation', () => {
+    const h = host(), previous = app.levelAdapters;
+    app.levelAdapters = { ...previous, hud: {
+      widget: () => () => undefined, disc: () => ({ button: document.createElement('button'), dispose: () => undefined }),
+      verb: () => () => undefined, relabel: () => () => undefined,
+      pin: (at, root) => { h.pins.push({ at, root }); document.body.append(root); return () => { root.remove(); }; },
+    } };
+    const manifest = emptyShardfileSource(emptyShardfile({ slug: 'fixture', name: 'Fixture', author: 'Fixture', seed: 1, revision: 1 }));
+    const base = createLevelInstallation(app, h.scope, app.levelAdapters, () => ({ set: () => undefined, detail: () => undefined }));
+    type World = NonNullable<ShardRuntime['world']>;
+    type Play = NonNullable<ShardRuntime['play']>;
+    const runtime = legacyDouble<ShardRuntime>({
+      world: legacyDouble<World>({ player: legacyDouble<World['player']>(h.runtime.world.player),
+        sky: legacyDouble<World['sky']>({ dayNight: legacyDouble<NonNullable<World['sky']['dayNight']>>(h.runtime.world.sky.dayNight) }) }),
+      play: legacyDouble<Play>({ hud: legacyDouble<Play['hud']>(h.runtime.play.hud), music: legacyDouble<Play['music']>(h.runtime.play.music),
+        weapons: legacyDouble<Play['weapons']>(h.weapons), fullMap: legacyDouble<Play['fullMap']>(h.runtime.play.fullMap),
+        minimap: { ...h.runtime.play.minimap, setMarks: () => undefined } }),
+      interactables: h.runtime.interactables,
+    });
+    const hooks = new RetainedRuntimeHooks(shardContext(base.context, manifest, { shard: manifest, rows: new Map(),
+      bag: { tab: () => () => undefined, fragment: () => () => undefined }, runtime }));
+    const quest = new QuestState({ id: 'entered', title: 'Entered', completeFlag: 'entered.done', steps: [{ id: 'first', objective: 'First',
+      done: { all: ['first.done'] }, markers: [{ id: 'first', label: 'First', at: { poi: 'world', x: 0, y: 4, z: -12 } }] }] }, new Flags('entered', false));
+    const read = installEnteredQuestPresentation(hooks.context, quest, { reward: false });
+    installEnteredRuntimeInput(hooks.context, { id: 'entered.test', actions: ['far.gust'], keys: { 'far.gust': ['KeyG'] } },
+      { rows: [{ group: 'combat', id: 'far.gust', label: 'Gust', actions: ['far.gust'] }] });
+    try {
+      let previousView: ReturnType<typeof read> = null;
+      for (let visit = 0; visit < 2; visit++) {
+        hooks.activate(); const view = read(); if (view === null) throw new Error('Missing entered presentation');
+        expect(view).not.toBe(previousView); previousView = view;
+        expect(view.quest).toBe(quest); expect(view.chip.line.root.isConnected).toBe(true);
+        expect(h.marks.size).toBe(1); expect(h.card()?.title).toBe('Entered');
+        app.input.push('entered.test', h.scope); expect(app.input.allowed('far.gust')).toBe(true);
+        const updates = app.systemsByPhase().update.filter(system => system.id === 'game.quest.entered');
+        expect(updates).toHaveLength(1);
+        updates[0]?.run(1 / 60, visit);
+        hooks.deactivate();
+        expect(read()).toBeNull(); expect(view.chip.line.root.isConnected).toBe(false);
+        expect(h.pins.every(pin => !pin.root.isConnected)).toBe(true);
+        expect(h.marks.size).toBe(0); expect(h.pois.size).toBe(0); expect(h.card()).toBeUndefined();
+        expect(() => app.input.push('entered.test', h.scope)).toThrow('Unknown input context');
+        expect(app.systemsByPhase().update.some(system => system.id === 'game.quest.entered')).toBe(false);
+        const toasts = h.toast.mock.calls.length;
+        for (let tick = 0; tick < 600; tick++) for (const system of app.systemsByPhase().update) system.run(1 / 60, tick);
+        expect(h.toast.mock.calls).toHaveLength(toasts);
+        expect(h.scope.census.listeners).toBe(0); expect(h.scope.census.timers).toBe(0);
+      }
+      quest.flags.set('first.done'); expect(quest.isComplete).toBe(true);
+    } finally { h.scope.dispose(); quest.dispose(); app.levelAdapters = previous; }
+  });
   it('drives the chip, active diamonds, styled world pin and MAP card from the same target', () => {
     const h = host(), view = installQuestPresentation(h.ctx, definition(), { reward: false });
     view.update(0.1, 1);

@@ -12,6 +12,9 @@ import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildsha
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from './reward';
+import { createLevelInstallation } from '@wildshard/engine/level/installation';
+import type { ShardContext } from '../shard/context';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import './presentation.css';
 
 export interface QuestTarget {
@@ -200,4 +203,18 @@ export function installQuestPresentation(ctx: QuestPresentationContext, source: 
     presentation.dispose = () => { disposeView(); quest.dispose(); };
   }
   return presentation;
+}
+
+/** Keep quest state resident while rebuilding its ordinary presentation and input in each entered cell scope. */
+export function installEnteredQuestPresentation(context: ShardContext, quest: QuestState, options: QuestPresentationOptions = {}): () => QuestPresentation | null {
+  if (!retainsRuntimeServices(context)) throw new Error('Entered quest presentation needs a retained context');
+  let current: QuestPresentation | null = null;
+  installEnteredRuntimeService(context, scope => {
+    // A fresh ordinary installation binds pins and systems to this entry without registering new retained installers.
+    const installation = createLevelInstallation(context.app, scope, context.app.levelAdapters, () => context.progress);
+    const presentation = installQuestPresentation({ ...context, ...installation.context }, quest, options);
+    current = presentation;
+    scope.onDispose(() => { presentation.dispose(); if (current === presentation) current = null; });
+  });
+  return () => current;
 }
