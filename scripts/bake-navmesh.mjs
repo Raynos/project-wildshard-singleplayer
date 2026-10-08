@@ -22,6 +22,7 @@ import { byteWriter, outputHash, jsonBytes } from './bake-output.mjs';
 import { resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
+import { visitAuthoredWorld } from './bake/worldHost.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const check = process.argv.includes('--check');
@@ -94,75 +95,13 @@ const { SHARDS } = await src('shards.generated.ts');
 const HF = await src('engine/world/Heightfield.ts');
 const BT = await src('engine/world/BakedTerrain.ts');
 const { TERRAIN_RES, CHUNK_SIZE } = await src('engine/core/config.ts');
-const { terrainGrid } = await src('engine/physics/terrain.ts');
 const { treadBoxes } = await src('engine/physics/pieces.ts');
-const { pathRampDescs } = await src('engine/physics/paths.ts');
-const { Forest } = await src('engine/world/forest/Forest.ts');
 
 const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.DirectionalLight()], update: noop }, hemi: new THREE.HemisphereLight(), sunDisc: new THREE.Mesh(new THREE.SphereGeometry(), new THREE.MeshBasicMaterial()), planet: new THREE.Group(), clouds: null, dayNight: null, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
   { get: (t, k) => k in t ? t[k] : typeof k === 'string' && k.endsWith('Color') ? new THREE.Color(1, 1, 1) : typeof k === 'string' && k.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
 
-// Run the manifest's world hook with the engine's normal context/registry. Only rendering is inert:
-// asset geometry, model placement, terrain cuts and collider construction use the production code.
-async function shardColliders(def) {
-  const { app } = await src('engine/app/runtime.ts');
-  (await src('engine/world/registry.ts')).installWorldRegistry(); // the bake builds a level, as the session does (E434)
-  const { toLevelSpec } = await src('game/shard/spec.ts');
-  const { shardContext } = await src('game/shard/context.ts');
-  const { TreeFactory } = await src('engine/world/TreeFactory.ts');
-  const { Physics } = await src('engine/physics/Physics.ts');
-  const { loadRapier } = await src('engine/physics/rapier.ts');
-  const { addTerrain: registerTerrain } = await src('engine/physics/terrain.ts');
-  const { needsTerrainCollider } = await src('engine/level/spec.ts');
-  const renderer = new Proxy({ capabilities: { getMaxAnisotropy: () => 1 }, extensions: { has: () => false, get: () => null },
-    domElement: el(), shadowMap: {}, info: { render: {}, memory: {} }, getRenderTarget: () => null,
-    getSize: (v) => v.set(1, 1), getDrawingBufferSize: (v) => v.set(1, 1), getViewport: (v) => v.set(0, 0, 1, 1),
-    getScissor: (v) => v.set(0, 0, 1, 1), getClearColor: (v) => v.set(0), getClearAlpha: () => 1,
-    compileAsync: () => Promise.resolve() }, { get: (t, k) => k in t ? t[k] : noop });
-  const spec = toLevelSpec(def), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
-  const physics = new Physics(await loadRapier(readFileSync(resolve(ROOT, 'node_modules/@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm'))));
-  const ground = terrainGrid();
-  if (needsTerrainCollider(spec)) registerTerrain(physics, ground);
-  const factory = typeof def.trees.factory === 'function' ? await (await def.trees.factory())(renderer, sky) : new TreeFactory(renderer).buildEmpty();
-  const forest = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' });
-  const terrain = { mesh: new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2)), punch: noop };
-  const player = { position: new THREE.Vector3(def.spawn.x, def.spawn.y ?? HF.heightAt(def.spawn.x, def.spawn.z), def.spawn.z), platforms: [] };
-  const game = { app, scene, camera, renderer, level: spec, tier: 'desktop', onUpdate: noop, onFixed: noop, onLate: noop, onInput: noop,
-    onRender: noop, onDispose: noop, hold: false, look: null };
-  const world = { game, sky, forest, terrain, player, physics, registry: app.registry, chunk: def, params: new URLSearchParams(), freeCamera: false };
-  const runtime = { world, step: (_name, fn) => Promise.resolve(fn({ detail: noop, set: noop })), play: null,
-    interactables: [], overhead: [], objects: {}, hooks: {}, viewer: () => player.position, horizonVeil: null };
-  const services = { runtime, shard: def, rows: new Map(), bag: { tab: () => noop, fragment: () => noop } };
-  const addPaths = () => app.registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
-    colliders: pathRampDescs(HF.TRAILS, HF.heightAt, (x, z) => HF.normalAt(x, z)[1], { carried: (x, z) => app.registry.floorAt(x, z) !== undefined }) });
-  app.levelAdapters = { debugRow: () => noop, playground: () => noop };
-  app.levelDriver = { progress: () => ({ detail: noop, set: noop }), data: noop,
-    world: (_spec, ctx) => {
-      game.levelScope = ctx.scope;
-      if (forest.trees.length > 0 && forest.drawer === 'self') ctx.piece({ id: 'forest', name: 'Forest', category: 'nature', file: 'src/engine/world/forest/Forest.ts', colliders: forest.colliderDescs() });
-      if (def.ground.paths !== 'plugin' && def.ground.structures === undefined) addPaths();
-    }, kit: noop, loadout: noop, play: noop, finish: noop };
-  app.render = game; app.scene = scene; app.physics = physics;
-  const { default: Plugin } = await def.load();
-  const plugin = new Plugin();
-  try {
-    await app.loadLevel(spec, { world: (ctx) => plugin.world?.(shardContext(ctx, def, services)) });
-    const colliders = [], counts = {};
-    for (const piece of app.registry.pieces) {
-      if (piece.follows || piece.active?.() === false || !piece.colliders) continue;
-      if (piece.colliders.length > 0) counts[piece.id] = piece.colliders.length;
-      colliders.push(...piece.colliders);
-    }
-    return { colliders, ground: needsTerrainCollider(spec) ? ground : null, counts };
-  } finally {
-    await app.unloadLevel();
-    app.registry.pieces.length = 0;
-    app.registry.picks.length = 0;
-    app.registry.sets.length = 0;
-    app.render = null; app.scene = null; app.physics = null;
-    physics.dispose();
-  }
-}
+// The shared owned world seam is also used by authored-world extraction.
+const shardColliders = (def) => visitAuthoredWorld(def, { root: ROOT, sky, element: el });
 
 // ── triangles ────────────────────────────────────────────────────────────────────────────────────────────────────────
 class Soup {
