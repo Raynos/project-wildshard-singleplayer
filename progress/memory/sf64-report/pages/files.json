@@ -1,0 +1,47 @@
+[
+  {
+    "pose": "road",
+    "svg": "01-road.svg",
+    "jpeg": "01-road.jpg"
+  },
+  {
+    "pose": "driftwood-isle-centre",
+    "svg": "02-driftwood-isle-centre.svg",
+    "jpeg": "02-driftwood-isle-centre.jpg"
+  },
+  {
+    "pose": "pine-hollow-centre",
+    "svg": "03-pine-hollow-centre.svg",
+    "jpeg": "03-pine-hollow-centre.jpg"
+  },
+  {
+    "pose": "nalati-grasslands-centre",
+    "svg": "04-nalati-grasslands-centre.svg",
+    "jpeg": "04-nalati-grasslands-centre.jpg"
+  },
+  {
+    "pose": "_template-centre",
+    "svg": "05-_template-centre.svg",
+    "jpeg": "05-_template-centre.jpg"
+  },
+  {
+    "pose": "sunscar-dunes-centre",
+    "svg": "06-sunscar-dunes-centre.svg",
+    "jpeg": "06-sunscar-dunes-centre.jpg"
+  },
+  {
+    "pose": "far-reach-centre",
+    "svg": "07-far-reach-centre.svg",
+    "jpeg": "07-far-reach-centre.jpg"
+  },
+  {
+    "pose": "nine-dragon-stack-centre",
+    "svg": "08-nine-dragon-stack-centre.svg",
+    "jpeg": "08-nine-dragon-stack-centre.jpg"
+  },
+  {
+    "pose": "worst-crossing",
+    "svg": "09-worst-crossing.svg",
+    "jpeg": "09-worst-crossing.jpg"
+  }
+]

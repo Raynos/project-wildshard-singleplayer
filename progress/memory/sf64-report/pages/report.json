@@ -1,0 +1,2993 @@
+{
+  "schema": "memory-report/1",
+  "pin": "historical mixed pins; see each pose",
+  "device": "iPhone 16 Pro Simulator",
+  "settings": {
+    "tier": "phone",
+    "renderScale": 2,
+    "textures": "Auto/KTX2",
+    "developer": true,
+    "memorySaver": true,
+    "muted": true,
+    "coldRuns": 1,
+    "provenance": "Reuses ../itemized-2026-10-08/itemized.json; other-process RAM rows remain estimates."
+  },
+  "cap": {
+    "bytes": 1000000000
+  },
+  "poses": [
+    {
+      "name": "road",
+      "measured": {
+        "wc": 812797744,
+        "gl": 120407894,
+        "total": 933205638,
+        "time": "2026-10-08T07:39:01.765063+00:00",
+        "source": "../g227-budget/native-nalati-saver-on-verified-65106ea87.json.gz#neutral-road",
+        "pid": 76367
+      },
+      "accounted": {
+        "total": 162724026,
+        "allocations": [
+          {
+            "id": "itemized:5-road-after-nalati:0",
+            "domain": "gpu",
+            "owner": "Platform / road sign atlas",
+            "asset": "road sign atlas",
+            "kind": "road sign atlas",
+            "precision": "exact",
+            "bytes": 22645660
+          },
+          {
+            "id": "itemized:5-road-after-nalati:1",
+            "domain": "gpu",
+            "owner": "Platform / open plots (billboards & signs)",
+            "asset": "open plots (billboards & signs)",
+            "kind": "open plots (billboards & signs)",
+            "precision": "exact",
+            "bytes": 19058694
+          },
+          {
+            "id": "itemized:5-road-after-nalati:2",
+            "domain": "gpu",
+            "owner": "Engine & game / post-processing targets at 2x",
+            "asset": "post-processing targets at 2x",
+            "kind": "post-processing targets at 2x",
+            "precision": "exact",
+            "bytes": 31325008
+          },
+          {
+            "id": "itemized:5-road-after-nalati:3",
+            "domain": "gpu",
+            "owner": "Platform / road junctions",
+            "asset": "road junctions",
+            "kind": "road junctions",
+            "precision": "exact",
+            "bytes": 5618548
+          },
+          {
+            "id": "itemized:5-road-after-nalati:4",
+            "domain": "gpu",
+            "owner": "Engine & game / depth targets (likely shadow maps)",
+            "asset": "depth targets (likely shadow maps)",
+            "kind": "depth targets (likely shadow maps)",
+            "precision": "exact",
+            "bytes": 4194304
+          },
+          {
+            "id": "itemized:5-road-after-nalati:5",
+            "domain": "gpu",
+            "owner": "Platform / cell screens",
+            "asset": "cell screens",
+            "kind": "cell screens",
+            "precision": "exact",
+            "bytes": 10485872
+          },
+          {
+            "id": "itemized:5-road-after-nalati:6",
+            "domain": "gpu",
+            "owner": "Platform / road deck & asphalt",
+            "asset": "road deck & asphalt",
+            "kind": "road deck & asphalt",
+            "precision": "exact",
+            "bytes": 16836824
+          },
+          {
+            "id": "itemized:5-road-after-nalati:7",
+            "domain": "gpu",
+            "owner": "unattributed",
+            "asset": "GL label has no owner",
+            "kind": "GL label has no owner",
+            "precision": "exact",
+            "bytes": 5698652
+          },
+          {
+            "id": "itemized:5-road-after-nalati:8",
+            "domain": "gpu",
+            "owner": "Engine & game / PMREM environment map",
+            "asset": "PMREM environment map",
+            "kind": "PMREM environment map",
+            "precision": "exact",
+            "bytes": 1720320
+          },
+          {
+            "id": "itemized:5-road-after-nalati:9",
+            "domain": "gpu",
+            "owner": "Platform / grid sky & grade",
+            "asset": "grid sky & grade",
+            "kind": "grid sky & grade",
+            "precision": "exact",
+            "bytes": 739304
+          },
+          {
+            "id": "itemized:5-road-after-nalati:10",
+            "domain": "gpu",
+            "owner": "Platform / neighbour template creatures",
+            "asset": "neighbour template creatures",
+            "kind": "neighbour template creatures",
+            "precision": "exact",
+            "bytes": 533696
+          },
+          {
+            "id": "itemized:5-road-after-nalati:11",
+            "domain": "gpu",
+            "owner": "Platform / far proxies",
+            "asset": "far proxies",
+            "kind": "far proxies",
+            "precision": "exact",
+            "bytes": 1549324
+          },
+          {
+            "id": "itemized:5-road-after-nalati:12",
+            "domain": "gpu",
+            "owner": "Kit & player / held items, hands & drops",
+            "asset": "held items, hands & drops",
+            "kind": "held items, hands & drops",
+            "precision": "exact",
+            "bytes": 1688
+          },
+          {
+            "id": "itemized:5-road-after-nalati:13",
+            "domain": "ram",
+            "owner": "Engine & game / Rapier physics WASM heap",
+            "asset": "Rapier physics WASM heap",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 52232192
+          },
+          {
+            "id": "itemized:5-road-after-nalati:14",
+            "domain": "ram",
+            "owner": "Engine & game / other small WASM modules",
+            "asset": "other small WASM modules",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 2162688
+          },
+          {
+            "id": "itemized:5-road-after-nalati:15",
+            "domain": "ram",
+            "owner": "Kit & player / CPU copies: held items, hands & drops",
+            "asset": "CPU copies: held items, hands & drops",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 73208
+          },
+          {
+            "id": "itemized:5-road-after-nalati:16",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "CPU copies: GL label has no owner",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1280496
+          },
+          {
+            "id": "itemized:5-road-after-nalati:17",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: grid sky & grade",
+            "asset": "CPU copies: grid sky & grade",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 65096
+          },
+          {
+            "id": "itemized:5-road-after-nalati:18",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road deck & asphalt",
+            "asset": "CPU copies: road deck & asphalt",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 3386952
+          },
+          {
+            "id": "itemized:5-road-after-nalati:19",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road junctions",
+            "asset": "CPU copies: road junctions",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 5664
+          },
+          {
+            "id": "itemized:5-road-after-nalati:20",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road sign atlas",
+            "asset": "CPU copies: road sign atlas",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 43584
+          },
+          {
+            "id": "itemized:5-road-after-nalati:21",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: cell screens",
+            "asset": "CPU copies: cell screens",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 60
+          },
+          {
+            "id": "itemized:5-road-after-nalati:22",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: open plots (billboards & signs)",
+            "asset": "CPU copies: open plots (billboards & signs)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1513740
+          },
+          {
+            "id": "itemized:5-road-after-nalati:23",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: far proxies",
+            "asset": "CPU copies: far proxies",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1049492
+          },
+          {
+            "id": "itemized:5-road-after-nalati:24",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "audio PCM still live after Nalati",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 37902201
+          },
+          {
+            "id": "itemized:5-road-after-nalati:25",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "decoded images still live, no owner traced",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 62324968
+          },
+          {
+            "id": "itemized:5-road-after-nalati:26",
+            "domain": "ram",
+            "owner": "Engine & game / canvases (screens, maps, paint roots)",
+            "asset": "canvases (screens, maps, paint roots)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 22919734
+          },
+          {
+            "id": "itemized:5-road-after-nalati:27",
+            "domain": "ram",
+            "owner": "Engine & game / JS compiled-code metadata (all layers)",
+            "asset": "JS compiled-code metadata (all layers)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 35543677
+          },
+          {
+            "id": "itemized:5-road-after-nalati:28",
+            "domain": "ram",
+            "owner": "Engine & game / JS objects & strings (all layers)",
+            "asset": "JS objects & strings (all layers)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 40292573
+          }
+        ],
+        "storageTotals": {
+          "ram": 260796325,
+          "gpu": 120407894
+        },
+        "unattributed": {
+          "ram": 101507665,
+          "gpu": 5698652
+        }
+      },
+      "missing": [
+        "Historical report has only per-pose fixed PID; no cross-pose game-PID witness",
+        "RAM owner attribution unavailable in this historical native audit",
+        "RAM storage capacity is not resident WC; native owner/region attribution remains separate",
+        "Historical RAM rows are capacity/heap estimates, not resident owner measurements. Itemized WC remainder 423167678 bytes stays unassigned; vmmap dirty regions overlap and are not added."
+      ],
+      "evidence": {
+        "native": {
+          "samples": [
+            {
+              "at": "2026-10-08T07:39:00.693087+00:00",
+              "pid": 76367,
+              "footprintBytes": 812732208,
+              "intervalPeakBytes": 812814128,
+              "gpuProcessBytes": 215960312
+            },
+            {
+              "at": "2026-10-08T07:39:01.765063+00:00",
+              "pid": 76367,
+              "footprintBytes": 812797744,
+              "intervalPeakBytes": 812830512,
+              "gpuProcessBytes": 215960312
+            },
+            {
+              "at": "2026-10-08T07:39:02.918685+00:00",
+              "pid": 76367,
+              "footprintBytes": 812863280,
+              "intervalPeakBytes": 812945200,
+              "gpuProcessBytes": 215960312
+            }
+          ],
+          "medianBytes": 812797744,
+          "minBytes": 812732208,
+          "maxBytes": 812863280,
+          "vmmapPath": "progress/memory/g227-budget/native-nalati-saver-on-verified-65106ea87.neutral-road.vmmap.txt",
+          "vmmapError": null
+        },
+        "wasm": [
+          {
+            "source": "instantiate",
+            "name": "memory",
+            "bytes": 655360
+          },
+          {
+            "source": "instantiateStreaming",
+            "name": "memory",
+            "bytes": 52232192
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          },
+          {
+            "source": "instantiate",
+            "name": "memory",
+            "bytes": 1310720
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          }
+        ],
+        "attribution": null,
+        "pin": "65106ea87",
+        "itemized": {
+          "source": "../itemized-2026-10-08/itemized.json",
+          "situation": {
+            "wcBytes": 812797744,
+            "glBytes": 120407894,
+            "totalBytes": 933205638,
+            "vmmapPid": 76367,
+            "vmmapPhysicalBytes": 812856115.2,
+            "vmmapRegionsDirtyBytes": {
+              "WebKit Malloc": 468713472,
+              "JS VM Gigacage": 228694425.6,
+              "JS JIT generated code": 39636172.8,
+              "graphics (VM_ALLOCATE + owned unmapped)": 21076377.6,
+              "CG raster data": 8470528,
+              "everything else (libraries, stacks, system malloc)": 59650662.4
+            },
+            "gpuTypeBytes": {
+              "textures": 60969388,
+              "render targets (2x)": 31325008,
+              "shadow / depth maps": 4194304,
+              "geometry buffers": 21849210,
+              "environment & sky maps": 2069984
+            },
+            "wcMinBytes": 812732208,
+            "wcMaxBytes": 812863280,
+            "blocks": [
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road sign atlas",
+                "conf": "M",
+                "bytes": 22645660
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "open plots (billboards & signs)",
+                "conf": "M",
+                "bytes": 19058694
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "post-processing targets at 2x",
+                "conf": "M",
+                "bytes": 31325008
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road junctions",
+                "conf": "M",
+                "bytes": 5618548
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "depth targets (likely shadow maps)",
+                "conf": "M",
+                "bytes": 4194304
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "cell screens",
+                "conf": "M",
+                "bytes": 10485872
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road deck & asphalt",
+                "conf": "M",
+                "bytes": 16836824
+              },
+              {
+                "side": "GPU",
+                "owner": "Unknown owner",
+                "system": "GL label has no owner",
+                "conf": "M",
+                "bytes": 5698652
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "PMREM environment map",
+                "conf": "M",
+                "bytes": 1720320
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "grid sky & grade",
+                "conf": "M",
+                "bytes": 739304
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "neighbour template creatures",
+                "conf": "M",
+                "bytes": 533696
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "far proxies",
+                "conf": "M",
+                "bytes": 1549324
+              },
+              {
+                "side": "GPU",
+                "owner": "Kit & player",
+                "system": "held items, hands & drops",
+                "conf": "M",
+                "bytes": 1688
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "Rapier physics WASM heap",
+                "conf": "M",
+                "bytes": 52232192
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "other small WASM modules",
+                "conf": "M",
+                "bytes": 2162688
+              },
+              {
+                "side": "RAM",
+                "owner": "Kit & player",
+                "system": "CPU copies: held items, hands & drops",
+                "conf": "M",
+                "bytes": 73208
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "CPU copies: GL label has no owner",
+                "conf": "M",
+                "bytes": 1280496
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: grid sky & grade",
+                "conf": "M",
+                "bytes": 65096
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road deck & asphalt",
+                "conf": "M",
+                "bytes": 3386952
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road junctions",
+                "conf": "M",
+                "bytes": 5664
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road sign atlas",
+                "conf": "M",
+                "bytes": 43584
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: cell screens",
+                "conf": "M",
+                "bytes": 60
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: open plots (billboards & signs)",
+                "conf": "M",
+                "bytes": 1513740
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: far proxies",
+                "conf": "M",
+                "bytes": 1049492
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "audio PCM still live after Nalati",
+                "conf": "E",
+                "bytes": 37902201
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "decoded images still live, no owner traced",
+                "conf": "E",
+                "bytes": 62324968
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "canvases (screens, maps, paint roots)",
+                "conf": "E",
+                "bytes": 22919734
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "JS compiled-code metadata (all layers)",
+                "conf": "E",
+                "bytes": 35543677
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "JS objects & strings (all layers)",
+                "conf": "E",
+                "bytes": 40292573
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "JIT machine code (JavaScriptCore)",
+                "conf": "M",
+                "bytes": 39636172.8
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "WebGL graphics mappings in the tab",
+                "conf": "M",
+                "bytes": 21076377.6
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "CG raster data (image rasters)",
+                "conf": "M",
+                "bytes": 8470528
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "system libraries, stacks, malloc",
+                "conf": "M",
+                "bytes": 59650662.4
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "unattributed WebKit malloc + Gigacage pages",
+                "conf": "U",
+                "bytes": 423167678.2
+              }
+            ],
+            "id": "5-road-after-nalati",
+            "title": "Empty road after Nalati",
+            "subtitle": "Back on the road with no shard resident (residents=[])",
+            "pin": "65106ea87",
+            "build": "65106ea-muz7o6gx",
+            "settings": "iPhone 16 Pro Simulator, Safari, phone tier, 2x, Auto/KTX2, Developer ON, Memory saver ON, muted, one cold run",
+            "heapSource": "Simulator Inspector heap snapshot on the empty road after Nalati, pin 29f650e1e (10 min earlier, separate cold run)"
+          }
+        },
+        "historicalResidentRemainderBytes": 423167678
+      }
+    },
+    {
+      "name": "driftwood-isle-centre",
+      "measured": null,
+      "accounted": {
+        "total": null,
+        "allocations": [],
+        "storageTotals": {
+          "ram": null,
+          "gpu": null
+        },
+        "unattributed": {
+          "ram": null,
+          "gpu": null
+        }
+      },
+      "missing": [
+        "No native source supplied for this required pose"
+      ]
+    },
+    {
+      "name": "pine-hollow-centre",
+      "measured": {
+        "wc": 939495360,
+        "gl": 245671812,
+        "total": 1185167172,
+        "time": "2026-10-08T08:37:43.646686+00:00",
+        "source": "../g227-budget/pine-centre-0e6d69988/native.json.gz#pine-hollow-centre",
+        "pid": 17200
+      },
+      "accounted": {
+        "total": 699029351,
+        "allocations": [
+          {
+            "id": "itemized:2-pine-centre:0",
+            "domain": "gpu",
+            "owner": "Platform / road sign atlas",
+            "asset": "road sign atlas",
+            "kind": "road sign atlas",
+            "precision": "exact",
+            "bytes": 22645660
+          },
+          {
+            "id": "itemized:2-pine-centre:1",
+            "domain": "gpu",
+            "owner": "Platform / open plots (billboards & signs)",
+            "asset": "open plots (billboards & signs)",
+            "kind": "open plots (billboards & signs)",
+            "precision": "exact",
+            "bytes": 19058694
+          },
+          {
+            "id": "itemized:2-pine-centre:2",
+            "domain": "gpu",
+            "owner": "Engine & game / post-processing targets at 2x",
+            "asset": "post-processing targets at 2x",
+            "kind": "post-processing targets at 2x",
+            "precision": "exact",
+            "bytes": 32373584
+          },
+          {
+            "id": "itemized:2-pine-centre:3",
+            "domain": "gpu",
+            "owner": "Pine Hollow / sky",
+            "asset": "sky",
+            "kind": "sky",
+            "precision": "exact",
+            "bytes": 16869664
+          },
+          {
+            "id": "itemized:2-pine-centre:4",
+            "domain": "gpu",
+            "owner": "Platform / road junctions",
+            "asset": "road junctions",
+            "kind": "road junctions",
+            "precision": "exact",
+            "bytes": 5618548
+          },
+          {
+            "id": "itemized:2-pine-centre:5",
+            "domain": "gpu",
+            "owner": "Engine & game / depth targets (likely shadow maps)",
+            "asset": "depth targets (likely shadow maps)",
+            "kind": "depth targets (likely shadow maps)",
+            "precision": "exact",
+            "bytes": 4194304
+          },
+          {
+            "id": "itemized:2-pine-centre:6",
+            "domain": "gpu",
+            "owner": "Platform / cell screens",
+            "asset": "cell screens",
+            "kind": "cell screens",
+            "precision": "exact",
+            "bytes": 6990628
+          },
+          {
+            "id": "itemized:2-pine-centre:7",
+            "domain": "gpu",
+            "owner": "Pine Hollow / signs & boards",
+            "asset": "signs & boards",
+            "kind": "signs & boards",
+            "precision": "exact",
+            "bytes": 3495244
+          },
+          {
+            "id": "itemized:2-pine-centre:8",
+            "domain": "gpu",
+            "owner": "Platform / road deck & asphalt",
+            "asset": "road deck & asphalt",
+            "kind": "road deck & asphalt",
+            "precision": "exact",
+            "bytes": 16836824
+          },
+          {
+            "id": "itemized:2-pine-centre:9",
+            "domain": "gpu",
+            "owner": "Pine Hollow / trees & ground cover",
+            "asset": "trees & ground cover",
+            "kind": "trees & ground cover",
+            "precision": "exact",
+            "bytes": 16722404
+          },
+          {
+            "id": "itemized:2-pine-centre:10",
+            "domain": "gpu",
+            "owner": "Pine Hollow / other props",
+            "asset": "other props",
+            "kind": "other props",
+            "precision": "exact",
+            "bytes": 9249160
+          },
+          {
+            "id": "itemized:2-pine-centre:11",
+            "domain": "gpu",
+            "owner": "Pine Hollow / terrain",
+            "asset": "terrain",
+            "kind": "terrain",
+            "precision": "exact",
+            "bytes": 13359156
+          },
+          {
+            "id": "itemized:2-pine-centre:12",
+            "domain": "gpu",
+            "owner": "unattributed",
+            "asset": "GL label has no owner",
+            "kind": "GL label has no owner",
+            "precision": "exact",
+            "bytes": 10940956
+          },
+          {
+            "id": "itemized:2-pine-centre:13",
+            "domain": "gpu",
+            "owner": "Engine & game / PMREM environment map",
+            "asset": "PMREM environment map",
+            "kind": "PMREM environment map",
+            "precision": "exact",
+            "bytes": 4866048
+          },
+          {
+            "id": "itemized:2-pine-centre:14",
+            "domain": "gpu",
+            "owner": "Pine Hollow / rocks, stones & dressing",
+            "asset": "rocks, stones & dressing",
+            "kind": "rocks, stones & dressing",
+            "precision": "exact",
+            "bytes": 14849538
+          },
+          {
+            "id": "itemized:2-pine-centre:15",
+            "domain": "gpu",
+            "owner": "Kit & player / held items, hands & drops",
+            "asset": "held items, hands & drops",
+            "kind": "held items, hands & drops",
+            "precision": "exact",
+            "bytes": 20010240
+          },
+          {
+            "id": "itemized:2-pine-centre:16",
+            "domain": "gpu",
+            "owner": "Pine Hollow / buildings, camps & small props",
+            "asset": "buildings, camps & small props",
+            "kind": "buildings, camps & small props",
+            "precision": "exact",
+            "bytes": 12395144
+          },
+          {
+            "id": "itemized:2-pine-centre:17",
+            "domain": "gpu",
+            "owner": "Pine Hollow / creatures & NPCs",
+            "asset": "creatures & NPCs",
+            "kind": "creatures & NPCs",
+            "precision": "exact",
+            "bytes": 10044404
+          },
+          {
+            "id": "itemized:2-pine-centre:18",
+            "domain": "gpu",
+            "owner": "Pine Hollow / water & weather",
+            "asset": "water & weather",
+            "kind": "water & weather",
+            "precision": "exact",
+            "bytes": 2329288
+          },
+          {
+            "id": "itemized:2-pine-centre:19",
+            "domain": "gpu",
+            "owner": "Platform / grid sky & grade",
+            "asset": "grid sky & grade",
+            "kind": "grid sky & grade",
+            "precision": "exact",
+            "bytes": 739304
+          },
+          {
+            "id": "itemized:2-pine-centre:20",
+            "domain": "gpu",
+            "owner": "Platform / neighbour template creatures",
+            "asset": "neighbour template creatures",
+            "kind": "neighbour template creatures",
+            "precision": "exact",
+            "bytes": 533696
+          },
+          {
+            "id": "itemized:2-pine-centre:21",
+            "domain": "gpu",
+            "owner": "Platform / far proxies",
+            "asset": "far proxies",
+            "kind": "far proxies",
+            "precision": "exact",
+            "bytes": 1549324
+          },
+          {
+            "id": "itemized:2-pine-centre:22",
+            "domain": "ram",
+            "owner": "Engine & game / Rapier physics WASM heap",
+            "asset": "Rapier physics WASM heap",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 35913728
+          },
+          {
+            "id": "itemized:2-pine-centre:23",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "unidentified 16.8 MB WASM module",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 16777216
+          },
+          {
+            "id": "itemized:2-pine-centre:24",
+            "domain": "ram",
+            "owner": "Engine & game / other small WASM modules",
+            "asset": "other small WASM modules",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 2162688
+          },
+          {
+            "id": "itemized:2-pine-centre:25",
+            "domain": "ram",
+            "owner": "Kit & player / CPU copies: held items, hands & drops",
+            "asset": "CPU copies: held items, hands & drops",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 18048192
+          },
+          {
+            "id": "itemized:2-pine-centre:26",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "CPU copies: GL label has no owner",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1280496
+          },
+          {
+            "id": "itemized:2-pine-centre:27",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: grid sky & grade",
+            "asset": "CPU copies: grid sky & grade",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 65096
+          },
+          {
+            "id": "itemized:2-pine-centre:28",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road deck & asphalt",
+            "asset": "CPU copies: road deck & asphalt",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 3386952
+          },
+          {
+            "id": "itemized:2-pine-centre:29",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road junctions",
+            "asset": "CPU copies: road junctions",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 5664
+          },
+          {
+            "id": "itemized:2-pine-centre:30",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road sign atlas",
+            "asset": "CPU copies: road sign atlas",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 43584
+          },
+          {
+            "id": "itemized:2-pine-centre:31",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: cell screens",
+            "asset": "CPU copies: cell screens",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 60
+          },
+          {
+            "id": "itemized:2-pine-centre:32",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: open plots (billboards & signs)",
+            "asset": "CPU copies: open plots (billboards & signs)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1513740
+          },
+          {
+            "id": "itemized:2-pine-centre:33",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: far proxies",
+            "asset": "CPU copies: far proxies",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1451876
+          },
+          {
+            "id": "itemized:2-pine-centre:34",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: other props",
+            "asset": "CPU copies: other props",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 9738844
+          },
+          {
+            "id": "itemized:2-pine-centre:35",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: trees & ground cover",
+            "asset": "CPU copies: trees & ground cover",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 5310776
+          },
+          {
+            "id": "itemized:2-pine-centre:36",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: water & weather",
+            "asset": "CPU copies: water & weather",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1970268
+          },
+          {
+            "id": "itemized:2-pine-centre:37",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: rocks, stones & dressing",
+            "asset": "CPU copies: rocks, stones & dressing",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 6893980
+          },
+          {
+            "id": "itemized:2-pine-centre:38",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: buildings, camps & small props",
+            "asset": "CPU copies: buildings, camps & small props",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 8857090
+          },
+          {
+            "id": "itemized:2-pine-centre:39",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: signs & boards",
+            "asset": "CPU copies: signs & boards",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 420
+          },
+          {
+            "id": "itemized:2-pine-centre:40",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: creatures & NPCs",
+            "asset": "CPU copies: creatures & NPCs",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 5994264
+          },
+          {
+            "id": "itemized:2-pine-centre:41",
+            "domain": "ram",
+            "owner": "Pine Hollow / CPU copies: sky",
+            "asset": "CPU copies: sky",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 49548
+          },
+          {
+            "id": "itemized:2-pine-centre:42",
+            "domain": "ram",
+            "owner": "Pine Hollow / audio PCM: Pine music calm + tension",
+            "asset": "audio PCM: Pine music calm + tension",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 35450944
+          },
+          {
+            "id": "itemized:2-pine-centre:43",
+            "domain": "ram",
+            "owner": "Pine Hollow / audio PCM: Pine one-shot SFX sprite",
+            "asset": "audio PCM: Pine one-shot SFX sprite",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 30691344
+          },
+          {
+            "id": "itemized:2-pine-centre:44",
+            "domain": "ram",
+            "owner": "Engine & game / audio PCM: title piano track",
+            "asset": "audio PCM: title piano track",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 23920672
+          },
+          {
+            "id": "itemized:2-pine-centre:45",
+            "domain": "ram",
+            "owner": "Engine & game / audio PCM: piano stings",
+            "asset": "audio PCM: piano stings",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 7700624
+          },
+          {
+            "id": "itemized:2-pine-centre:46",
+            "domain": "ram",
+            "owner": "Pine Hollow / audio PCM: Pine ambience bed",
+            "asset": "audio PCM: Pine ambience bed",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 3504032
+          },
+          {
+            "id": "itemized:2-pine-centre:47",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "audio PCM: other, source not traced",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 10838969
+          },
+          {
+            "id": "itemized:2-pine-centre:48",
+            "domain": "ram",
+            "owner": "Engine & game / 2D canvases (signs, screens, maps)",
+            "asset": "2D canvases (signs, screens, maps)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 25432802
+          },
+          {
+            "id": "itemized:2-pine-centre:49",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "decoded images, owner not traced",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 4718728
+          },
+          {
+            "id": "itemized:2-pine-centre:50",
+            "domain": "ram",
+            "owner": "Engine & game / JS compiled-code metadata (all layers)",
+            "asset": "JS compiled-code metadata (all layers)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 37883456
+          },
+          {
+            "id": "itemized:2-pine-centre:51",
+            "domain": "ram",
+            "owner": "Engine & game / JS objects & strings (all layers)",
+            "asset": "JS objects & strings (all layers)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 43345856
+          }
+        ],
+        "storageTotals": {
+          "ram": 342951909,
+          "gpu": 245671812
+        },
+        "unattributed": {
+          "ram": 33615409,
+          "gpu": 10940956
+        }
+      },
+      "missing": [
+        "RAM owner attribution unavailable in this historical native audit",
+        "RAM storage capacity is not resident WC; native owner/region attribution remains separate",
+        "Historical RAM rows are capacity/heap estimates, not resident owner measurements. Itemized WC remainder 456702939 bytes stays unassigned; vmmap dirty regions overlap and are not added."
+      ],
+      "evidence": {
+        "native": {
+          "samples": [
+            {
+              "at": "2026-10-08T08:37:42.599019+00:00",
+              "pid": 17200,
+              "footprintBytes": 939577280,
+              "intervalPeakBytes": 940494784,
+              "gpuProcessBytes": 250760072
+            },
+            {
+              "at": "2026-10-08T08:37:43.646686+00:00",
+              "pid": 17200,
+              "footprintBytes": 939495360,
+              "intervalPeakBytes": 940494784,
+              "gpuProcessBytes": 251071368
+            },
+            {
+              "at": "2026-10-08T08:37:44.780496+00:00",
+              "pid": 17200,
+              "footprintBytes": 939167680,
+              "intervalPeakBytes": 940494784,
+              "gpuProcessBytes": 251300744
+            }
+          ],
+          "medianBytes": 939495360,
+          "minBytes": 939167680,
+          "maxBytes": 939577280,
+          "vmmapPath": "/private/tmp/claude-501/sp-builders/sp-x5/pine-memory/baseline-detail-0e6d69988.pine-hollow-centre.vmmap.txt",
+          "vmmapError": null,
+          "memoryCategories": {
+            "protocol": "Passive Memory.trackingUpdate after original WC/GL samples, no GC. Engine categories, not a JS heap snapshot; external payload may be included. Unsupported/errors are preserved.",
+            "samples": [
+              {
+                "timestamp": 0,
+                "categories": [
+                  {
+                    "type": "javascript",
+                    "size": 729377146
+                  },
+                  {
+                    "type": "jit",
+                    "size": 46120960
+                  },
+                  {
+                    "type": "images",
+                    "size": 9125888
+                  },
+                  {
+                    "type": "layers",
+                    "size": 0
+                  },
+                  {
+                    "type": "page",
+                    "size": 382980998
+                  },
+                  {
+                    "type": "other",
+                    "size": 101122048
+                  }
+                ]
+              },
+              {
+                "timestamp": 0,
+                "categories": [
+                  {
+                    "type": "javascript",
+                    "size": 702269774
+                  },
+                  {
+                    "type": "jit",
+                    "size": 46120960
+                  },
+                  {
+                    "type": "images",
+                    "size": 9125888
+                  },
+                  {
+                    "type": "layers",
+                    "size": 0
+                  },
+                  {
+                    "type": "page",
+                    "size": 430175154
+                  },
+                  {
+                    "type": "other",
+                    "size": 101122048
+                  }
+                ]
+              },
+              {
+                "timestamp": 0,
+                "categories": [
+                  {
+                    "type": "javascript",
+                    "size": 550061400
+                  },
+                  {
+                    "type": "jit",
+                    "size": 46120960
+                  },
+                  {
+                    "type": "images",
+                    "size": 9125888
+                  },
+                  {
+                    "type": "layers",
+                    "size": 0
+                  },
+                  {
+                    "type": "page",
+                    "size": 594453160
+                  },
+                  {
+                    "type": "other",
+                    "size": 101122048
+                  }
+                ]
+              },
+              {
+                "timestamp": 0,
+                "categories": [
+                  {
+                    "type": "javascript",
+                    "size": 693159587
+                  },
+                  {
+                    "type": "jit",
+                    "size": 46120960
+                  },
+                  {
+                    "type": "images",
+                    "size": 9125888
+                  },
+                  {
+                    "type": "layers",
+                    "size": 0
+                  },
+                  {
+                    "type": "page",
+                    "size": 486504029
+                  },
+                  {
+                    "type": "other",
+                    "size": 101122048
+                  }
+                ]
+              },
+              {
+                "timestamp": 0,
+                "categories": [
+                  {
+                    "type": "javascript",
+                    "size": 715787211
+                  },
+                  {
+                    "type": "jit",
+                    "size": 46202880
+                  },
+                  {
+                    "type": "images",
+                    "size": 9125888
+                  },
+                  {
+                    "type": "layers",
+                    "size": 0
+                  },
+                  {
+                    "type": "page",
+                    "size": 462385461
+                  },
+                  {
+                    "type": "other",
+                    "size": 101122048
+                  }
+                ]
+              }
+            ],
+            "errors": []
+          },
+          "vmmapVerbose": {
+            "path": "/private/tmp/claude-501/sp-builders/sp-x5/pine-memory/baseline-detail-0e6d69988.pine-hollow-centre.vmmapVerbose.txt",
+            "pid": 17200
+          },
+          "footprint": {
+            "path": "/private/tmp/claude-501/sp-builders/sp-x5/pine-memory/baseline-detail-0e6d69988.pine-hollow-centre.footprint.txt",
+            "pid": 17200
+          }
+        },
+        "wasm": [
+          {
+            "source": "instantiate",
+            "name": "memory",
+            "bytes": 655360
+          },
+          {
+            "source": "instantiateStreaming",
+            "name": "memory",
+            "bytes": 35913728
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          },
+          {
+            "source": "instantiate",
+            "name": "memory",
+            "bytes": 1310720
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          },
+          {
+            "source": "instantiate",
+            "name": "memory",
+            "bytes": 16777216
+          }
+        ],
+        "attribution": null,
+        "pin": "0e6d69988",
+        "itemized": {
+          "source": "../itemized-2026-10-08/itemized.json",
+          "situation": {
+            "wcBytes": 939495360,
+            "glBytes": 245671812,
+            "totalBytes": 1185167172,
+            "vmmapPid": 17200,
+            "vmmapPhysicalBytes": 939314380.8,
+            "vmmapRegionsDirtyBytes": {
+              "WebKit Malloc": 645188812.8,
+              "JS VM Gigacage": 167667302.4,
+              "JS JIT generated code": 43306188.8,
+              "graphics (VM_ALLOCATE + owned unmapped)": 23802675.2,
+              "CG raster data": 11534336,
+              "everything else (libraries, stacks, system malloc)": 61197312
+            },
+            "gpuTypeBytes": {
+              "textures": 134094088,
+              "render targets (2x)": 32373584,
+              "environment & sky maps": 22085376,
+              "shadow / depth maps": 4194304,
+              "geometry buffers": 52924460
+            },
+            "wcMinBytes": 939167680,
+            "wcMaxBytes": 939577280,
+            "blocks": [
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road sign atlas",
+                "conf": "M",
+                "bytes": 22645660
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "open plots (billboards & signs)",
+                "conf": "M",
+                "bytes": 19058694
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "post-processing targets at 2x",
+                "conf": "M",
+                "bytes": 32373584
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "sky",
+                "conf": "M",
+                "bytes": 16869664
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road junctions",
+                "conf": "M",
+                "bytes": 5618548
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "depth targets (likely shadow maps)",
+                "conf": "M",
+                "bytes": 4194304
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "cell screens",
+                "conf": "M",
+                "bytes": 6990628
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "signs & boards",
+                "conf": "M",
+                "bytes": 3495244
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road deck & asphalt",
+                "conf": "M",
+                "bytes": 16836824
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "trees & ground cover",
+                "conf": "M",
+                "bytes": 16722404
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "other props",
+                "conf": "M",
+                "bytes": 9249160
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "terrain",
+                "conf": "M",
+                "bytes": 13359156
+              },
+              {
+                "side": "GPU",
+                "owner": "Unknown owner",
+                "system": "GL label has no owner",
+                "conf": "M",
+                "bytes": 10940956
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "PMREM environment map",
+                "conf": "M",
+                "bytes": 4866048
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "rocks, stones & dressing",
+                "conf": "M",
+                "bytes": 14849538
+              },
+              {
+                "side": "GPU",
+                "owner": "Kit & player",
+                "system": "held items, hands & drops",
+                "conf": "M",
+                "bytes": 20010240
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "buildings, camps & small props",
+                "conf": "M",
+                "bytes": 12395144
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "creatures & NPCs",
+                "conf": "M",
+                "bytes": 10044404
+              },
+              {
+                "side": "GPU",
+                "owner": "Pine Hollow",
+                "system": "water & weather",
+                "conf": "M",
+                "bytes": 2329288
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "grid sky & grade",
+                "conf": "M",
+                "bytes": 739304
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "neighbour template creatures",
+                "conf": "M",
+                "bytes": 533696
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "far proxies",
+                "conf": "M",
+                "bytes": 1549324
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "Rapier physics WASM heap",
+                "conf": "M",
+                "bytes": 35913728
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "unidentified 16.8 MB WASM module",
+                "conf": "M",
+                "bytes": 16777216
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "other small WASM modules",
+                "conf": "M",
+                "bytes": 2162688
+              },
+              {
+                "side": "RAM",
+                "owner": "Kit & player",
+                "system": "CPU copies: held items, hands & drops",
+                "conf": "M",
+                "bytes": 18048192
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "CPU copies: GL label has no owner",
+                "conf": "M",
+                "bytes": 1280496
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: grid sky & grade",
+                "conf": "M",
+                "bytes": 65096
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road deck & asphalt",
+                "conf": "M",
+                "bytes": 3386952
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road junctions",
+                "conf": "M",
+                "bytes": 5664
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road sign atlas",
+                "conf": "M",
+                "bytes": 43584
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: cell screens",
+                "conf": "M",
+                "bytes": 60
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: open plots (billboards & signs)",
+                "conf": "M",
+                "bytes": 1513740
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: far proxies",
+                "conf": "M",
+                "bytes": 1451876
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: other props",
+                "conf": "M",
+                "bytes": 9738844
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: trees & ground cover",
+                "conf": "M",
+                "bytes": 5310776
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: water & weather",
+                "conf": "M",
+                "bytes": 1970268
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: rocks, stones & dressing",
+                "conf": "M",
+                "bytes": 6893980
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: buildings, camps & small props",
+                "conf": "M",
+                "bytes": 8857090
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: signs & boards",
+                "conf": "M",
+                "bytes": 420
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: creatures & NPCs",
+                "conf": "M",
+                "bytes": 5994264
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "CPU copies: sky",
+                "conf": "M",
+                "bytes": 49548
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "audio PCM: Pine music calm + tension",
+                "conf": "E",
+                "bytes": 35450944
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "audio PCM: Pine one-shot SFX sprite",
+                "conf": "E",
+                "bytes": 30691344
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "audio PCM: title piano track",
+                "conf": "E",
+                "bytes": 23920672
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "audio PCM: piano stings",
+                "conf": "E",
+                "bytes": 7700624
+              },
+              {
+                "side": "RAM",
+                "owner": "Pine Hollow",
+                "system": "audio PCM: Pine ambience bed",
+                "conf": "E",
+                "bytes": 3504032
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "audio PCM: other, source not traced",
+                "conf": "E",
+                "bytes": 10838969
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "2D canvases (signs, screens, maps)",
+                "conf": "E",
+                "bytes": 25432802
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "decoded images, owner not traced",
+                "conf": "E",
+                "bytes": 4718728
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "JS compiled-code metadata (all layers)",
+                "conf": "E",
+                "bytes": 37883456
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "JS objects & strings (all layers)",
+                "conf": "E",
+                "bytes": 43345856
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "JIT machine code (JavaScriptCore)",
+                "conf": "M",
+                "bytes": 43306188.8
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "WebGL graphics mappings in the tab",
+                "conf": "M",
+                "bytes": 23802675.2
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "CG raster data (image rasters)",
+                "conf": "M",
+                "bytes": 11534336
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "system libraries, stacks, malloc",
+                "conf": "M",
+                "bytes": 61197312
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "unattributed WebKit malloc + Gigacage pages",
+                "conf": "U",
+                "bytes": 456702939
+              }
+            ],
+            "id": "2-pine-centre",
+            "title": "Pine Hollow centre",
+            "subtitle": "Standing in Pine Hollow's centre, entered from the grid",
+            "pin": "0e6d69988",
+            "build": "0e6d699-muz9oi4a",
+            "settings": "iPhone 16 Pro Simulator, Safari, phone tier, 2x, Auto/KTX2, Developer ON, Memory saver ON, muted, one cold run",
+            "heapSource": "Mac Playwright WebKit heap snapshot at Pine centre, same pin 0e6d69988 (different process)"
+          }
+        },
+        "historicalResidentRemainderBytes": 456702939
+      }
+    },
+    {
+      "name": "nalati-grasslands-centre",
+      "measured": {
+        "wc": 806653696,
+        "gl": 294372324,
+        "total": 1101026020,
+        "time": "2026-10-08T07:37:32.618025+00:00",
+        "source": "../g227-budget/native-nalati-saver-on-verified-65106ea87.json.gz#nalati-grasslands-centre",
+        "pid": 76367
+      },
+      "accounted": {
+        "total": 679180326,
+        "allocations": [
+          {
+            "id": "itemized:3-nalati-centre:0",
+            "domain": "gpu",
+            "owner": "Platform / road sign atlas",
+            "asset": "road sign atlas",
+            "kind": "road sign atlas",
+            "precision": "exact",
+            "bytes": 22645660
+          },
+          {
+            "id": "itemized:3-nalati-centre:1",
+            "domain": "gpu",
+            "owner": "Nalati / sky",
+            "asset": "sky",
+            "kind": "sky",
+            "precision": "exact",
+            "bytes": 16689492
+          },
+          {
+            "id": "itemized:3-nalati-centre:2",
+            "domain": "gpu",
+            "owner": "Platform / open plots (billboards & signs)",
+            "asset": "open plots (billboards & signs)",
+            "kind": "open plots (billboards & signs)",
+            "precision": "exact",
+            "bytes": 19058694
+          },
+          {
+            "id": "itemized:3-nalati-centre:3",
+            "domain": "gpu",
+            "owner": "Nalati / grass",
+            "asset": "grass",
+            "kind": "grass",
+            "precision": "exact",
+            "bytes": 21424840
+          },
+          {
+            "id": "itemized:3-nalati-centre:4",
+            "domain": "gpu",
+            "owner": "Engine & game / post-processing targets at 2x",
+            "asset": "post-processing targets at 2x",
+            "kind": "post-processing targets at 2x",
+            "precision": "exact",
+            "bytes": 39713616
+          },
+          {
+            "id": "itemized:3-nalati-centre:5",
+            "domain": "gpu",
+            "owner": "Nalati / rock outcrops",
+            "asset": "rock outcrops",
+            "kind": "rock outcrops",
+            "precision": "exact",
+            "bytes": 17780256
+          },
+          {
+            "id": "itemized:3-nalati-centre:6",
+            "domain": "gpu",
+            "owner": "Platform / road junctions",
+            "asset": "road junctions",
+            "kind": "road junctions",
+            "precision": "exact",
+            "bytes": 5618548
+          },
+          {
+            "id": "itemized:3-nalati-centre:7",
+            "domain": "gpu",
+            "owner": "Platform / cell screens",
+            "asset": "cell screens",
+            "kind": "cell screens",
+            "precision": "exact",
+            "bytes": 6990628
+          },
+          {
+            "id": "itemized:3-nalati-centre:8",
+            "domain": "gpu",
+            "owner": "Platform / road deck & asphalt",
+            "asset": "road deck & asphalt",
+            "kind": "road deck & asphalt",
+            "precision": "exact",
+            "bytes": 16836824
+          },
+          {
+            "id": "itemized:3-nalati-centre:9",
+            "domain": "gpu",
+            "owner": "Nalati / signs & boards",
+            "asset": "signs & boards",
+            "kind": "signs & boards",
+            "precision": "exact",
+            "bytes": 2802220
+          },
+          {
+            "id": "itemized:3-nalati-centre:10",
+            "domain": "gpu",
+            "owner": "Nalati / creatures & NPCs",
+            "asset": "creatures & NPCs",
+            "kind": "creatures & NPCs",
+            "precision": "exact",
+            "bytes": 36188660
+          },
+          {
+            "id": "itemized:3-nalati-centre:11",
+            "domain": "gpu",
+            "owner": "Nalati / buildings, camps & small props",
+            "asset": "buildings, camps & small props",
+            "kind": "buildings, camps & small props",
+            "precision": "exact",
+            "bytes": 20772030
+          },
+          {
+            "id": "itemized:3-nalati-centre:12",
+            "domain": "gpu",
+            "owner": "unattributed",
+            "asset": "GL label has no owner",
+            "kind": "GL label has no owner",
+            "precision": "exact",
+            "bytes": 8199702
+          },
+          {
+            "id": "itemized:3-nalati-centre:13",
+            "domain": "gpu",
+            "owner": "Nalati / terrain",
+            "asset": "terrain",
+            "kind": "terrain",
+            "precision": "exact",
+            "bytes": 14929936
+          },
+          {
+            "id": "itemized:3-nalati-centre:14",
+            "domain": "gpu",
+            "owner": "Nalati / rocks, stones & dressing",
+            "asset": "rocks, stones & dressing",
+            "kind": "rocks, stones & dressing",
+            "precision": "exact",
+            "bytes": 18990964
+          },
+          {
+            "id": "itemized:3-nalati-centre:15",
+            "domain": "gpu",
+            "owner": "Kit & player / held items, hands & drops",
+            "asset": "held items, hands & drops",
+            "kind": "held items, hands & drops",
+            "precision": "exact",
+            "bytes": 11546908
+          },
+          {
+            "id": "itemized:3-nalati-centre:16",
+            "domain": "gpu",
+            "owner": "Nalati / other props",
+            "asset": "other props",
+            "kind": "other props",
+            "precision": "exact",
+            "bytes": 3818170
+          },
+          {
+            "id": "itemized:3-nalati-centre:17",
+            "domain": "gpu",
+            "owner": "Nalati / kurgans (incl. hidden interior)",
+            "asset": "kurgans (incl. hidden interior)",
+            "kind": "kurgans (incl. hidden interior)",
+            "precision": "exact",
+            "bytes": 3429648
+          },
+          {
+            "id": "itemized:3-nalati-centre:18",
+            "domain": "gpu",
+            "owner": "Engine & game / depth targets (likely shadow maps)",
+            "asset": "depth targets (likely shadow maps)",
+            "kind": "depth targets (likely shadow maps)",
+            "precision": "exact",
+            "bytes": 1048576
+          },
+          {
+            "id": "itemized:3-nalati-centre:19",
+            "domain": "gpu",
+            "owner": "Engine & game / PMREM environment map",
+            "asset": "PMREM environment map",
+            "kind": "PMREM environment map",
+            "precision": "exact",
+            "bytes": 1720320
+          },
+          {
+            "id": "itemized:3-nalati-centre:20",
+            "domain": "gpu",
+            "owner": "Nalati / trees & ground cover",
+            "asset": "trees & ground cover",
+            "kind": "trees & ground cover",
+            "precision": "exact",
+            "bytes": 1082168
+          },
+          {
+            "id": "itemized:3-nalati-centre:21",
+            "domain": "gpu",
+            "owner": "Platform / grid sky & grade",
+            "asset": "grid sky & grade",
+            "kind": "grid sky & grade",
+            "precision": "exact",
+            "bytes": 739304
+          },
+          {
+            "id": "itemized:3-nalati-centre:22",
+            "domain": "gpu",
+            "owner": "Platform / neighbour template creatures",
+            "asset": "neighbour template creatures",
+            "kind": "neighbour template creatures",
+            "precision": "exact",
+            "bytes": 533696
+          },
+          {
+            "id": "itemized:3-nalati-centre:23",
+            "domain": "gpu",
+            "owner": "Platform / far proxies",
+            "asset": "far proxies",
+            "kind": "far proxies",
+            "precision": "exact",
+            "bytes": 1549324
+          },
+          {
+            "id": "itemized:3-nalati-centre:24",
+            "domain": "gpu",
+            "owner": "Nalati / water & weather",
+            "asset": "water & weather",
+            "kind": "water & weather",
+            "precision": "exact",
+            "bytes": 262140
+          },
+          {
+            "id": "itemized:3-nalati-centre:25",
+            "domain": "ram",
+            "owner": "Engine & game / Rapier physics WASM heap",
+            "asset": "Rapier physics WASM heap",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 52232192
+          },
+          {
+            "id": "itemized:3-nalati-centre:26",
+            "domain": "ram",
+            "owner": "Engine & game / other small WASM modules",
+            "asset": "other small WASM modules",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 2162688
+          },
+          {
+            "id": "itemized:3-nalati-centre:27",
+            "domain": "ram",
+            "owner": "Kit & player / CPU copies: held items, hands & drops",
+            "asset": "CPU copies: held items, hands & drops",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 12029994
+          },
+          {
+            "id": "itemized:3-nalati-centre:28",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "CPU copies: GL label has no owner",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1280404
+          },
+          {
+            "id": "itemized:3-nalati-centre:29",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: water & weather",
+            "asset": "CPU copies: water & weather",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 745072
+          },
+          {
+            "id": "itemized:3-nalati-centre:30",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: grid sky & grade",
+            "asset": "CPU copies: grid sky & grade",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 65096
+          },
+          {
+            "id": "itemized:3-nalati-centre:31",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road deck & asphalt",
+            "asset": "CPU copies: road deck & asphalt",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 3386952
+          },
+          {
+            "id": "itemized:3-nalati-centre:32",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road junctions",
+            "asset": "CPU copies: road junctions",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 5664
+          },
+          {
+            "id": "itemized:3-nalati-centre:33",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: road sign atlas",
+            "asset": "CPU copies: road sign atlas",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 43584
+          },
+          {
+            "id": "itemized:3-nalati-centre:34",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: cell screens",
+            "asset": "CPU copies: cell screens",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 60
+          },
+          {
+            "id": "itemized:3-nalati-centre:35",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: open plots (billboards & signs)",
+            "asset": "CPU copies: open plots (billboards & signs)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1513740
+          },
+          {
+            "id": "itemized:3-nalati-centre:36",
+            "domain": "ram",
+            "owner": "Platform / CPU copies: far proxies",
+            "asset": "CPU copies: far proxies",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1401188
+          },
+          {
+            "id": "itemized:3-nalati-centre:37",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: other props",
+            "asset": "CPU copies: other props",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 6027630
+          },
+          {
+            "id": "itemized:3-nalati-centre:38",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: grass",
+            "asset": "CPU copies: grass",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1852006
+          },
+          {
+            "id": "itemized:3-nalati-centre:39",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: sky",
+            "asset": "CPU copies: sky",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 129816
+          },
+          {
+            "id": "itemized:3-nalati-centre:40",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: rock outcrops",
+            "asset": "CPU copies: rock outcrops",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 5926752
+          },
+          {
+            "id": "itemized:3-nalati-centre:41",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: rocks, stones & dressing",
+            "asset": "CPU copies: rocks, stones & dressing",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 5551212
+          },
+          {
+            "id": "itemized:3-nalati-centre:42",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: buildings, camps & small props",
+            "asset": "CPU copies: buildings, camps & small props",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 6437946
+          },
+          {
+            "id": "itemized:3-nalati-centre:43",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: creatures & NPCs",
+            "asset": "CPU copies: creatures & NPCs",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 6715260
+          },
+          {
+            "id": "itemized:3-nalati-centre:44",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: signs & boards",
+            "asset": "CPU copies: signs & boards",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1920
+          },
+          {
+            "id": "itemized:3-nalati-centre:45",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: kurgans (incl. hidden interior)",
+            "asset": "CPU copies: kurgans (incl. hidden interior)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 15059648
+          },
+          {
+            "id": "itemized:3-nalati-centre:46",
+            "domain": "ram",
+            "owner": "Nalati / CPU copies: trees & ground cover",
+            "asset": "CPU copies: trees & ground cover",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 1041608
+          },
+          {
+            "id": "itemized:3-nalati-centre:47",
+            "domain": "ram",
+            "owner": "Engine & game / audio PCM: 62 s title-length track",
+            "asset": "audio PCM: 62 s title-length track",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 23920672
+          },
+          {
+            "id": "itemized:3-nalati-centre:48",
+            "domain": "ram",
+            "owner": "Nalati / audio PCM: 46 s music pair",
+            "asset": "audio PCM: 46 s music pair",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 26590936
+          },
+          {
+            "id": "itemized:3-nalati-centre:49",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "audio PCM: stings & other buffers",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 17843337
+          },
+          {
+            "id": "itemized:3-nalati-centre:50",
+            "domain": "ram",
+            "owner": "Nalati / decoded sky panorama source image",
+            "asset": "decoded sky panorama source image",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 12516128
+          },
+          {
+            "id": "itemized:3-nalati-centre:51",
+            "domain": "ram",
+            "owner": "Nalati / decoded model & creature texture images",
+            "asset": "decoded model & creature texture images",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 30409632
+          },
+          {
+            "id": "itemized:3-nalati-centre:52",
+            "domain": "ram",
+            "owner": "unattributed",
+            "asset": "decoded images, owner not traced",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 13107816
+          },
+          {
+            "id": "itemized:3-nalati-centre:53",
+            "domain": "ram",
+            "owner": "Engine & game / 2D canvases (signs, screens, maps)",
+            "asset": "2D canvases (signs, screens, maps)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 19776930
+          },
+          {
+            "id": "itemized:3-nalati-centre:54",
+            "domain": "ram",
+            "owner": "Engine & game / JS compiled-code metadata (all layers)",
+            "asset": "JS compiled-code metadata (all layers)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 38806492
+          },
+          {
+            "id": "itemized:3-nalati-centre:55",
+            "domain": "ram",
+            "owner": "Engine & game / JS objects & strings (all layers)",
+            "asset": "JS objects & strings (all layers)",
+            "kind": "historical-storage-estimate",
+            "precision": "estimate",
+            "bytes": 34189062
+          }
+        ],
+        "storageTotals": {
+          "ram": 340771437,
+          "gpu": 294372324
+        },
+        "unattributed": {
+          "ram": 32231557,
+          "gpu": 8199702
+        }
+      },
+      "missing": [
+        "Historical report has only per-pose fixed PID; no cross-pose game-PID witness",
+        "RAM owner attribution unavailable in this historical native audit",
+        "RAM storage capacity is not resident WC; native owner/region attribution remains separate",
+        "Historical RAM rows are capacity/heap estimates, not resident owner measurements. Itemized WC remainder 339378323 bytes stays unassigned; vmmap dirty regions overlap and are not added."
+      ],
+      "evidence": {
+        "native": {
+          "samples": [
+            {
+              "at": "2026-10-08T07:37:31.490983+00:00",
+              "pid": 76367,
+              "footprintBytes": 807227136,
+              "intervalPeakBytes": 808668928,
+              "gpuProcessBytes": 216222456
+            },
+            {
+              "at": "2026-10-08T07:37:32.618025+00:00",
+              "pid": 76367,
+              "footprintBytes": 806653696,
+              "intervalPeakBytes": 808668928,
+              "gpuProcessBytes": 216238840
+            },
+            {
+              "at": "2026-10-08T07:37:33.642311+00:00",
+              "pid": 76367,
+              "footprintBytes": 806473472,
+              "intervalPeakBytes": 808668928,
+              "gpuProcessBytes": 216238840
+            }
+          ],
+          "medianBytes": 806653696,
+          "minBytes": 806473472,
+          "maxBytes": 807227136,
+          "vmmapPath": "progress/memory/g227-budget/native-nalati-saver-on-verified-65106ea87.nalati-grasslands-centre.vmmap.txt",
+          "vmmapError": null
+        },
+        "wasm": [
+          {
+            "source": "instantiate",
+            "name": "memory",
+            "bytes": 655360
+          },
+          {
+            "source": "instantiateStreaming",
+            "name": "memory",
+            "bytes": 52232192
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          },
+          {
+            "source": "instantiate",
+            "name": "memory",
+            "bytes": 1310720
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          },
+          {
+            "source": "Instance",
+            "name": "memory",
+            "bytes": 65536
+          }
+        ],
+        "attribution": null,
+        "pin": "65106ea87",
+        "itemized": {
+          "source": "../itemized-2026-10-08/itemized.json",
+          "situation": {
+            "wcBytes": 806653696,
+            "glBytes": 294372324,
+            "totalBytes": 1101026020,
+            "vmmapPid": 76367,
+            "vmmapPhysicalBytes": 806564659.2,
+            "vmmapRegionsDirtyBytes": {
+              "WebKit Malloc": 461373440,
+              "JS VM Gigacage": 231945011.2,
+              "JS JIT generated code": 39426457.6,
+              "graphics (VM_ALLOCATE + owned unmapped)": 21495808,
+              "CG raster data": 5849088,
+              "everything else (libraries, stacks, system malloc)": 59732582.4
+            },
+            "gpuTypeBytes": {
+              "textures": 145841864,
+              "environment & sky maps": 18987380,
+              "render targets (2x)": 39713616,
+              "geometry buffers": 88780888,
+              "shadow / depth maps": 1048576
+            },
+            "wcMinBytes": 806473472,
+            "wcMaxBytes": 807227136,
+            "blocks": [
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road sign atlas",
+                "conf": "M",
+                "bytes": 22645660
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "sky",
+                "conf": "M",
+                "bytes": 16689492
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "open plots (billboards & signs)",
+                "conf": "M",
+                "bytes": 19058694
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "grass",
+                "conf": "M",
+                "bytes": 21424840
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "post-processing targets at 2x",
+                "conf": "M",
+                "bytes": 39713616
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "rock outcrops",
+                "conf": "M",
+                "bytes": 17780256
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road junctions",
+                "conf": "M",
+                "bytes": 5618548
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "cell screens",
+                "conf": "M",
+                "bytes": 6990628
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "road deck & asphalt",
+                "conf": "M",
+                "bytes": 16836824
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "signs & boards",
+                "conf": "M",
+                "bytes": 2802220
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "creatures & NPCs",
+                "conf": "M",
+                "bytes": 36188660
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "buildings, camps & small props",
+                "conf": "M",
+                "bytes": 20772030
+              },
+              {
+                "side": "GPU",
+                "owner": "Unknown owner",
+                "system": "GL label has no owner",
+                "conf": "M",
+                "bytes": 8199702
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "terrain",
+                "conf": "M",
+                "bytes": 14929936
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "rocks, stones & dressing",
+                "conf": "M",
+                "bytes": 18990964
+              },
+              {
+                "side": "GPU",
+                "owner": "Kit & player",
+                "system": "held items, hands & drops",
+                "conf": "M",
+                "bytes": 11546908
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "other props",
+                "conf": "M",
+                "bytes": 3818170
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "kurgans (incl. hidden interior)",
+                "conf": "M",
+                "bytes": 3429648
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "depth targets (likely shadow maps)",
+                "conf": "M",
+                "bytes": 1048576
+              },
+              {
+                "side": "GPU",
+                "owner": "Engine & game",
+                "system": "PMREM environment map",
+                "conf": "M",
+                "bytes": 1720320
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "trees & ground cover",
+                "conf": "M",
+                "bytes": 1082168
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "grid sky & grade",
+                "conf": "M",
+                "bytes": 739304
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "neighbour template creatures",
+                "conf": "M",
+                "bytes": 533696
+              },
+              {
+                "side": "GPU",
+                "owner": "Platform",
+                "system": "far proxies",
+                "conf": "M",
+                "bytes": 1549324
+              },
+              {
+                "side": "GPU",
+                "owner": "Nalati",
+                "system": "water & weather",
+                "conf": "M",
+                "bytes": 262140
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "Rapier physics WASM heap",
+                "conf": "M",
+                "bytes": 52232192
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "other small WASM modules",
+                "conf": "M",
+                "bytes": 2162688
+              },
+              {
+                "side": "RAM",
+                "owner": "Kit & player",
+                "system": "CPU copies: held items, hands & drops",
+                "conf": "M",
+                "bytes": 12029994
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "CPU copies: GL label has no owner",
+                "conf": "M",
+                "bytes": 1280404
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: water & weather",
+                "conf": "M",
+                "bytes": 745072
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: grid sky & grade",
+                "conf": "M",
+                "bytes": 65096
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road deck & asphalt",
+                "conf": "M",
+                "bytes": 3386952
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road junctions",
+                "conf": "M",
+                "bytes": 5664
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: road sign atlas",
+                "conf": "M",
+                "bytes": 43584
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: cell screens",
+                "conf": "M",
+                "bytes": 60
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: open plots (billboards & signs)",
+                "conf": "M",
+                "bytes": 1513740
+              },
+              {
+                "side": "RAM",
+                "owner": "Platform",
+                "system": "CPU copies: far proxies",
+                "conf": "M",
+                "bytes": 1401188
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: other props",
+                "conf": "M",
+                "bytes": 6027630
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: grass",
+                "conf": "M",
+                "bytes": 1852006
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: sky",
+                "conf": "M",
+                "bytes": 129816
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: rock outcrops",
+                "conf": "M",
+                "bytes": 5926752
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: rocks, stones & dressing",
+                "conf": "M",
+                "bytes": 5551212
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: buildings, camps & small props",
+                "conf": "M",
+                "bytes": 6437946
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: creatures & NPCs",
+                "conf": "M",
+                "bytes": 6715260
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: signs & boards",
+                "conf": "M",
+                "bytes": 1920
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: kurgans (incl. hidden interior)",
+                "conf": "M",
+                "bytes": 15059648
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "CPU copies: trees & ground cover",
+                "conf": "M",
+                "bytes": 1041608
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "audio PCM: 62 s title-length track",
+                "conf": "E",
+                "bytes": 23920672
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "audio PCM: 46 s music pair",
+                "conf": "E",
+                "bytes": 26590936
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "audio PCM: stings & other buffers",
+                "conf": "E",
+                "bytes": 17843337
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "decoded sky panorama source image",
+                "conf": "E",
+                "bytes": 12516128
+              },
+              {
+                "side": "RAM",
+                "owner": "Nalati",
+                "system": "decoded model & creature texture images",
+                "conf": "E",
+                "bytes": 30409632
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "decoded images, owner not traced",
+                "conf": "E",
+                "bytes": 13107816
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "2D canvases (signs, screens, maps)",
+                "conf": "E",
+                "bytes": 19776930
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "JS compiled-code metadata (all layers)",
+                "conf": "E",
+                "bytes": 38806492
+              },
+              {
+                "side": "RAM",
+                "owner": "Engine & game",
+                "system": "JS objects & strings (all layers)",
+                "conf": "E",
+                "bytes": 34189062
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "JIT machine code (JavaScriptCore)",
+                "conf": "M",
+                "bytes": 39426457.6
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "WebGL graphics mappings in the tab",
+                "conf": "M",
+                "bytes": 21495808
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "CG raster data (image rasters)",
+                "conf": "M",
+                "bytes": 5849088
+              },
+              {
+                "side": "RAM",
+                "owner": "Browser & OS",
+                "system": "system libraries, stacks, malloc",
+                "conf": "M",
+                "bytes": 59732582.4
+              },
+              {
+                "side": "RAM",
+                "owner": "Unknown owner",
+                "system": "unattributed WebKit malloc + Gigacage pages",
+                "conf": "U",
+                "bytes": 339378323
+              }
+            ],
+            "id": "3-nalati-centre",
+            "title": "Nalati centre",
+            "subtitle": "Standing in Nalati's centre, entered from the grid",
+            "pin": "65106ea87",
+            "build": "65106ea-muz7o6gx",
+            "settings": "iPhone 16 Pro Simulator, Safari, phone tier, 2x, Auto/KTX2, Developer ON, Memory saver ON, muted, one cold run",
+            "heapSource": "Mac Playwright WebKit heap snapshot at Nalati centre, pin 0e6d69988 (one commit later, different process)"
+          }
+        },
+        "historicalResidentRemainderBytes": 339378323
+      }
+    },
+    {
+      "name": "_template-centre",
+      "measured": null,
+      "accounted": {
+        "total": null,
+        "allocations": [],
+        "storageTotals": {
+          "ram": null,
+          "gpu": null
+        },
+        "unattributed": {
+          "ram": null,
+          "gpu": null
+        }
+      },
+      "missing": [
+        "No native source supplied for this required pose"
+      ]
+    },
+    {
+      "name": "sunscar-dunes-centre",
+      "measured": null,
+      "accounted": {
+        "total": null,
+        "allocations": [],
+        "storageTotals": {
+          "ram": null,
+          "gpu": null
+        },
+        "unattributed": {
+          "ram": null,
+          "gpu": null
+        }
+      },
+      "missing": [
+        "No native source supplied for this required pose"
+      ]
+    },
+    {
+      "name": "far-reach-centre",
+      "measured": null,
+      "accounted": {
+        "total": null,
+        "allocations": [],
+        "storageTotals": {
+          "ram": null,
+          "gpu": null
+        },
+        "unattributed": {
+          "ram": null,
+          "gpu": null
+        }
+      },
+      "missing": [
+        "No native source supplied for this required pose"
+      ]
+    },
+    {
+      "name": "nine-dragon-stack-centre",
+      "measured": null,
+      "accounted": {
+        "total": null,
+        "allocations": [],
+        "storageTotals": {
+          "ram": null,
+          "gpu": null
+        },
+        "unattributed": {
+          "ram": null,
+          "gpu": null
+        }
+      },
+      "missing": [
+        "No native source supplied for this required pose"
+      ]
+    },
+    {
+      "name": "worst-crossing",
+      "measured": null,
+      "accounted": {
+        "total": null,
+        "allocations": [],
+        "storageTotals": {
+          "ram": null,
+          "gpu": null
+        },
+        "unattributed": {
+          "ram": null,
+          "gpu": null
+        }
+      },
+      "missing": [
+        "No complete matched crossing window; settled entry samples are not a crossing peak"
+      ]
+    }
+  ]
+}

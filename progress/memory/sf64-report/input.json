@@ -1,0 +1,28 @@
+{
+  "schema": "memory-report-input/1",
+  "pin": "historical mixed pins; see each pose",
+  "device": "iPhone 16 Pro Simulator",
+  "settings": {
+    "tier": "phone", "renderScale": 2, "textures": "Auto/KTX2", "developer": true,
+    "memorySaver": true, "muted": true, "coldRuns": 1,
+    "provenance": "Reuses ../itemized-2026-10-08/itemized.json; other-process RAM rows remain estimates."
+  },
+  "centres": ["driftwood-isle", "pine-hollow", "nalati-grasslands", "_template", "sunscar-dunes", "far-reach", "nine-dragon-stack"],
+  "poses": [
+    {
+      "name": "road", "pin": "65106ea87",
+      "native": {"file": "../g227-budget/native-nalati-saver-on-verified-65106ea87.json.gz", "label": "neutral-road"},
+      "itemized": {"file": "../itemized-2026-10-08/itemized.json", "id": "5-road-after-nalati"}
+    },
+    {
+      "name": "pine-hollow-centre", "pin": "0e6d69988",
+      "native": {"file": "../g227-budget/pine-centre-0e6d69988/native.json.gz", "label": "pine-hollow-centre"},
+      "itemized": {"file": "../itemized-2026-10-08/itemized.json", "id": "2-pine-centre"}
+    },
+    {
+      "name": "nalati-grasslands-centre", "pin": "65106ea87",
+      "native": {"file": "../g227-budget/native-nalati-saver-on-verified-65106ea87.json.gz", "label": "nalati-grasslands-centre"},
+      "itemized": {"file": "../itemized-2026-10-08/itemized.json", "id": "3-nalati-centre"}
+    }
+  ]
+}

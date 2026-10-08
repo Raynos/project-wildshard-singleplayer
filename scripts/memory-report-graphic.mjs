@@ -64,7 +64,7 @@ export function memoryInfographic(report,pose){
     if(!owners.some(row=>row.domain===domain&&row.bytes>0))text(x+25,1070,`No ${domain.toUpperCase()} owner ledger`,27,'#b9c4d6');
   }
   text(64,1551,'Each brick ≤50 MB. Diagonal overlay = estimated storage.',25,'#c0cbdd');
-  text(64,1591,`${mb(owners.reduce((sum,row)=>sum+row.estimatedBytes,0))} MB estimated storage. RAM capacity ≠ resident WC.`,25,'#c0cbdd');
+  text(64,1591,pose.accounted.storageTotals.ram===null&&pose.accounted.storageTotals.gpu===null?'Storage measurements unavailable; no zero inferred.':`${mb(owners.reduce((sum,row)=>sum+row.estimatedBytes,0))} MB estimated storage. RAM capacity ≠ resident WC.`,25,'#c0cbdd');
   const residentRemainder=pose.evidence?.historicalResidentRemainderBytes;
   if(typeof residentRemainder==='number')text(64,1628,`Historical resident RAM unassigned: ${mb(residentRemainder)} MB (estimate)`,25,'#ffcc7a');
   /** @type {Map<string,{owner:string,gpu:number,ram:number}>} */

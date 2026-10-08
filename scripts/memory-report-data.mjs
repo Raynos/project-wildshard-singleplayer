@@ -101,7 +101,7 @@ export function emptyMemoryAttribution() { return {total:null,allocations:[],una
  */
 export function worstMemoryCrossing(samples, complete) {
   const absent=(/** @type {string} */ reason)=>({name:'worst-crossing',measured:null,accounted:emptyMemoryAttribution(),missing:[reason]});
-  if(!complete||samples.length===0)return absent('No complete matched crossing window; settled entry samples are not a crossing peak');
+  if(!complete||samples.length<2)return absent('No complete matched crossing window; settled entry samples are not a crossing peak');
   let previous=-Infinity;
   const pid=samples[0]?.measured.pid;
   for(const sample of samples){
@@ -162,7 +162,7 @@ export function nativeMemoryPose(value,label,name,source,attribution=null) {
   }
   if(accounted.storageTotals.gpu!==gpu)missing.push('Owner GPU inventory differs from same-pose live GL; keep the measured ruler separate');
   missing.push('RAM storage capacity is not resident WC; native owner/region attribution remains separate');
-  return {name,measured,accounted,missing,evidence:{native,wasm:pose.wasm??null}};
+  return {name,measured,accounted,missing,evidence:{native,wasm:pose.wasm??null,attribution:scalar??null}};
 }
 
 /** Reuse the first SF64 itemization, preserving confidence and non-additive vmmap context.

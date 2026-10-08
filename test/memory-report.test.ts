@@ -50,6 +50,7 @@ it('requires a complete matched crossing window and preserves the actual peak ow
   const samples = [0, 1, 2].map(index => ({ measured: { ...measured(`2026-10-08T00:00:0${index}Z`), wc: 600 + index, total: 700 + index }, glTime: `2026-10-08T00:00:0${index}Z`, accounted: readMemoryAttribution(snapshot) }));
   expect(worstMemoryCrossing(samples, true).measured?.total).toBe(702);
   expect(worstMemoryCrossing(samples, false).measured).toBeNull();
+  expect(worstMemoryCrossing(samples.slice(0, 1), true).measured).toBeNull();
   expect(worstMemoryCrossing(samples.map(row => ({ ...row, glTime: '2026-10-08T00:00:10Z' })), true).measured).toBeNull();
   expect(worstMemoryCrossing(samples.map((row, index) => ({ ...row, measured: { ...row.measured, pid: index + 42 } })), true).measured).toBeNull();
   expect(worstMemoryCrossing([samples[0], samples[2]].filter(row => row !== undefined), true).measured).toBeNull();
