@@ -1,0 +1,155 @@
+{
+  "pin": "0e6d69988e4a78c546d691b57c49b8a509cef046",
+  "version": {
+    "build": "0e6d699-muz9psna",
+    "time": "2026-10-08T08:22:01.851Z"
+  },
+  "seconds": 15.032,
+  "pass": true,
+  "boots": [
+    {
+      "mode": "standalone-public",
+      "pass": true,
+      "level": "driftwood-isle",
+      "appState": "play",
+      "pageErrors": [],
+      "consoleErrors": [],
+      "nativeAfter": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": []
+    },
+    {
+      "mode": "owned-grid-developer",
+      "pass": true,
+      "level": "platform.grid",
+      "appState": "play",
+      "pageErrors": [],
+      "consoleErrors": [],
+      "nativeAfter": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": []
+    }
+  ],
+  "raw": {
+    "path": "assertions.json.gz",
+    "sha256": "ed6b927c192f0c0568c97617d874535c40f5991533696ca191018d572f9411b4",
+    "decodedBytes": 67230
+  },
+  "closed": true
+}
