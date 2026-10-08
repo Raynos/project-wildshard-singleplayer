@@ -1,0 +1,109 @@
+{
+  "before": "65106ea87662db1cd0602be1f8a6b7d4e5216b1d",
+  "after": "d8bfef811ad3e537692d06666af5d6b747bac873",
+  "navigationRebake": "ace9671ed44e0297288332ab1965f7ea895910ff",
+  "walk": {
+    "beforeEastStuck": 2,
+    "beforeWestStuck": 0,
+    "afterEastStuck": 0,
+    "afterWestStuck": 0,
+    "repeatsPerDirection": 2
+  },
+  "visual": {
+    "phone": {
+      "scores": [
+        {
+          "pose": "pier",
+          "ssim": 0.9941138771322203,
+          "full": 0.9942724295916305,
+          "masked": 0.027
+        },
+        {
+          "pose": "beach",
+          "ssim": 0.9970970145965112,
+          "full": 0.9972478238366105,
+          "masked": 0.052
+        },
+        {
+          "pose": "wreck",
+          "ssim": 0.9999224620241991,
+          "full": 0.9997670725460123,
+          "masked": 0.129
+        }
+      ],
+      "bootErrors": [],
+      "programKeysSame": true,
+      "strictVerdict": "red",
+      "redFields": [
+        "boot.scene.totals.mesh",
+        "boot.scene.named",
+        "boot.render.memory.geometries",
+        "boot.gpuBytes.buffers",
+        "boot.gpuBytes.total",
+        "poses.beach.calls",
+        "poses.beach.tris",
+        "poses.wreck.calls",
+        "poses.wreck.tris"
+      ]
+    },
+    "desktop": {
+      "scores": [
+        {
+          "pose": "pier",
+          "ssim": 0.9999917665928064,
+          "full": 0.9999753417328768,
+          "masked": 0.03
+        },
+        {
+          "pose": "beach",
+          "ssim": 1,
+          "full": 1,
+          "masked": 0.128
+        },
+        {
+          "pose": "wreck",
+          "ssim": 0.9999870248764182,
+          "full": 0.9999195344678735,
+          "masked": 0.061
+        }
+      ],
+      "bootErrors": [],
+      "programKeysSame": true,
+      "strictVerdict": "red",
+      "redFields": [
+        "boot.scene.totals.mesh",
+        "boot.scene.named",
+        "boot.render.memory.geometries",
+        "boot.gpuBytes.buffers",
+        "boot.gpuBytes.total",
+        "poses.pier.calls",
+        "poses.pier.tris",
+        "poses.beach.calls",
+        "poses.beach.tris",
+        "poses.wreck.calls",
+        "poses.wreck.tris"
+      ]
+    }
+  },
+  "intentionalDelta": {
+    "meshes": 1,
+    "geometries": 1,
+    "gpuBytes": 7488,
+    "poseTriangleDelta": [
+      80,
+      168
+    ],
+    "poseCallsDelta": [
+      0,
+      2
+    ]
+  },
+  "raw": {
+    "path": "assertions.json.gz",
+    "decodedBytes": 424972,
+    "sha256": "e94d822f98ba88e8a33923d96717ea58329d38785e616d27dad48e53bf964061"
+  },
+  "closed": true,
+  "phoneCapture": "iPhone 16 Pro portrait, Metal, muted",
+  "floor": "not measured by this route/parity proof"
+}

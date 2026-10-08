@@ -1,0 +1,1 @@
+{"driftwood-isle": [{"name": "g232-wreck-east", "start": {"x": 159.6, "y": 0.24, "z": 0, "yaw": -1.5707963267948966}, "waypoints": [{"x": 230, "z": 0}], "timeout": 45, "gate": true}, {"name": "g232-wreck-west", "start": {"x": 230, "z": 0, "yaw": 1.5707963267948966}, "waypoints": [{"x": 159.6, "z": 0}], "timeout": 45, "gate": true}]}
