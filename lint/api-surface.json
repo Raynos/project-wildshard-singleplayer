@@ -6546,6 +6546,12 @@
         "from": "@wildshard/engine/models/model"
       },
       {
+        "name": "ModelBuildVisit",
+        "kind": "type",
+        "doc": "One actual builder result, observed synchronously before transforms, merging or culling mutate it.",
+        "from": "@wildshard/engine/models/model"
+      },
+      {
         "name": "modelContext",
         "kind": "function",
         "doc": "A context for one shard (its sky, and the renderer when there is one). A structure shard has no engine Sky (Nine",
@@ -6582,6 +6588,18 @@
         "from": "@wildshard/engine/models/model"
       },
       {
+        "name": "ModelPlacementVisit",
+        "kind": "interface",
+        "doc": "A placement call's original ordered copies, including copies initially hidden by culling.",
+        "from": "@wildshard/engine/models/model"
+      },
+      {
+        "name": "ModelPlacementVisitor",
+        "kind": "type",
+        "doc": "Opt-in observer on one model context. Its returned callback captures that call's actual builds, once each.",
+        "from": "@wildshard/engine/models/model"
+      },
+      {
         "name": "ModelVariant",
         "kind": "interface",
         "doc": "A named set of params the Explorer's variant row offers and `Placement.variant` picks.",
@@ -6603,6 +6621,12 @@
         "name": "seedOf",
         "kind": "function",
         "doc": "The default rng seed of a model: FNV-1a of its id.",
+        "from": "@wildshard/engine/models/model"
+      },
+      {
+        "name": "withModelPlacementVisitor",
+        "kind": "function",
+        "doc": "Observe contexts belonging to one owned world's sky during an asynchronous bake. Always removes the binding,",
         "from": "@wildshard/engine/models/model"
       },
       {
@@ -13614,6 +13638,12 @@
         "from": "@wildshard/game/grid/live"
       },
       {
+        "name": "LiveGridHighway",
+        "kind": "interface",
+        "doc": "Neutral shell physics and its one traveller remain page-owned; disposal removes only platform installations.",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
         "name": "LiveGridHome",
         "kind": "interface",
         "doc": "The page owns its initial world and continuation. The registry never replaces or disposes that borrowed world.",
@@ -13622,7 +13652,13 @@
       {
         "name": "LiveGridHost",
         "kind": "class",
-        "doc": "Live counterpart of GridSimulation: borrowed home, independent frozen regions, and exactly one page traveller.",
+        "doc": "One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition;",
+        "from": "@wildshard/game/grid/live"
+      },
+      {
+        "name": "LiveGridOwnedHome",
+        "kind": "interface",
+        "doc": "G226: the initial home is an ordinary owned region; the neutral page constructs none of its opaque content.",
         "from": "@wildshard/game/grid/live"
       },
       {
@@ -15174,9 +15210,21 @@
         "from": "@wildshard/game/shardfile/brains"
       },
       {
+        "name": "memoryTargetWarnings",
+        "kind": "function",
+        "doc": "Category resident targets are tradeable warnings; only the complete playing/loading totals refuse memory.",
+        "from": "@wildshard/game/shardfile/budget"
+      },
+      {
+        "name": "nearbyContentCost",
+        "kind": "function",
+        "doc": "Conservative total around an actual player location, using the same neighbour assumptions as admission.",
+        "from": "@wildshard/game/shardfile/budget"
+      },
+      {
         "name": "worstContentCost",
         "kind": "function",
-        "doc": "Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps.",
+        "doc": "Worst disc with three synthetic neighbours at the platform targets; grid padding covers unsampled gaps.",
         "from": "@wildshard/game/shardfile/budget"
       },
       {
@@ -17938,6 +17986,30 @@
         "from": "@wildshard/sdk/bake/glb"
       },
       {
+        "name": "NativeLatticeAttribute",
+        "kind": "interface",
+        "doc": "A native vertex channel. Values are interpolated linearly at cuts, without renormalising normals or splat weights.",
+        "from": "@wildshard/sdk/bake/nativeLattice"
+      },
+      {
+        "name": "NativeLatticeSource",
+        "kind": "interface",
+        "doc": "Exact native terrain mesh, including its original diagonal, holes and vertex channels. Collision is not rebuilt here.",
+        "from": "@wildshard/sdk/bake/nativeLattice"
+      },
+      {
+        "name": "NativeLatticeTile",
+        "kind": "interface",
+        "doc": "Render-only tile geometry. Original vertices retain their values; new boundary vertices lie on original triangles.",
+        "from": "@wildshard/sdk/bake/nativeLattice"
+      },
+      {
+        "name": "sliceNativeLattice",
+        "kind": "function",
+        "doc": "Clip original native triangles into the 62.5 m L0 or 125 m L1 grid, preserving every declared vertex channel.",
+        "from": "@wildshard/sdk/bake/nativeLattice"
+      },
+      {
         "name": "BakedProps",
         "kind": "interface",
         "doc": "Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy.",
@@ -18086,6 +18158,30 @@
         "kind": "interface",
         "doc": "Actual triangle count and the tool's absolute appearance-error estimate, including float-position allowance.",
         "from": "@wildshard/sdk/bake/worldLod"
+      },
+      {
+        "name": "BakedWorldRows",
+        "kind": "interface",
+        "doc": "Ordinary compiled rows. This render-only packer neither creates collision nor asserts product admission.",
+        "from": "@wildshard/sdk/bake/worldRows"
+      },
+      {
+        "name": "WorldBakeRows",
+        "kind": "class",
+        "doc": "Hash actual immutable bytes once, derive their costs, and pack ground/props through one deterministic file table.",
+        "from": "@wildshard/sdk/bake/worldRows"
+      },
+      {
+        "name": "WorldGroundEntry",
+        "kind": "interface",
+        "doc": "Native ground producers hand their unchanged GLB to the same row packing used for static authored placements.",
+        "from": "@wildshard/sdk/bake/worldRows"
+      },
+      {
+        "name": "WorldTileEntry",
+        "kind": "interface",
+        "doc": "One final self-contained tile GLB, from native ground, authored props, or their combined geometry.",
+        "from": "@wildshard/sdk/bake/worldRows"
       },
       {
         "name": "guardian",
@@ -18328,9 +18424,21 @@
         "from": "@wildshard/sdk/headless"
       },
       {
+        "name": "measureSimulation",
+        "kind": "function",
+        "doc": "Build report observations stop at 60 ticks; they never run the expensive entry walk reserved for validate.",
+        "from": "@wildshard/sdk/headless"
+      },
+      {
+        "name": "SimulationObservations",
+        "kind": "interface",
+        "doc": "A fixed 60-tick offline observation; scripts exclude native physics, checkpoints and IPC.",
+        "from": "@wildshard/sdk/headless"
+      },
+      {
         "name": "validateSimulation",
         "kind": "function",
-        "doc": "Offline admission enforces fuel, bounded platform queries and aggregate commands deterministically; wall timing is advisory. The independent request watchdog still bounds a broken worker.",
+        "doc": "Offline admission proves bounded execution and entries; wall timing is advisory. The independent request watchdog still bounds a broken worker.",
         "from": "@wildshard/sdk/headless"
       },
       {

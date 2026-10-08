@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-195 members; 0 without a doc line (—).
+205 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -33,6 +33,10 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `GlbPrimitive` | interface | @wildshard/sdk/bake/glb | A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. |
 | `propBounds` | function | @wildshard/sdk/bake/glb | Collect world-space bounds without changing or flattening the generator's hierarchy. |
 | `staticGlb` | function | @wildshard/sdk/bake/glb | A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. |
+| `NativeLatticeAttribute` | interface | @wildshard/sdk/bake/nativeLattice | A native vertex channel. Values are interpolated linearly at cuts, without renormalising normals or splat weights. |
+| `NativeLatticeSource` | interface | @wildshard/sdk/bake/nativeLattice | Exact native terrain mesh, including its original diagonal, holes and vertex channels. Collision is not rebuilt here. |
+| `NativeLatticeTile` | interface | @wildshard/sdk/bake/nativeLattice | Render-only tile geometry. Original vertices retain their values; new boundary vertices lie on original triangles. |
+| `sliceNativeLattice` | function | @wildshard/sdk/bake/nativeLattice | Clip original native triangles into the 62.5 m L0 or 125 m L1 grid, preserving every declared vertex channel. |
 | `BakedProps` | interface | @wildshard/sdk/bake/props | Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy. |
 | `bakeProps` | function | @wildshard/sdk/bake/props | Merge props into the canonical 8×8 / 4×4 grid, instance L0 scatter, and refuse every over-budget output. |
 | `PropsBakeSource` | interface | @wildshard/sdk/bake/props | Trusted static content. Named panels remain separate, and coarse/far replacements are optional build-time inputs. |
@@ -58,6 +62,10 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `simplifyWorldPrimitive` | function | @wildshard/sdk/bake/worldLod | Simplify one material primitive without moving vertices, flattening overhangs or crossing attribute/border seams. |
 | `WORLD_LOD_TOOL` | const | @wildshard/sdk/bake/worldLod | Pinned offline WASM simplification; source topology and every attribute stay owned by the author. |
 | `WorldLod` | interface | @wildshard/sdk/bake/worldLod | Actual triangle count and the tool's absolute appearance-error estimate, including float-position allowance. |
+| `BakedWorldRows` | interface | @wildshard/sdk/bake/worldRows | Ordinary compiled rows. This render-only packer neither creates collision nor asserts product admission. |
+| `WorldBakeRows` | class | @wildshard/sdk/bake/worldRows | Hash actual immutable bytes once, derive their costs, and pack ground/props through one deterministic file table. |
+| `WorldGroundEntry` | interface | @wildshard/sdk/bake/worldRows | Native ground producers hand their unchanged GLB to the same row packing used for static authored placements. |
+| `WorldTileEntry` | interface | @wildshard/sdk/bake/worldRows | One final self-contained tile GLB, from native ground, authored props, or their combined geometry. |
 | `guardian` | function | @wildshard/sdk/brains | Validate an interior guardian policy independently of its native view recipe. |
 | `GuardianData` | type | @wildshard/sdk/brains | Data-selected interior guardian, with native floor and rise/sink completion ports. |
 | `perchHunter` | function | @wildshard/sdk/brains | Validate a bounded perch hunter's decision parameters. |
@@ -98,7 +106,9 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `groupBrain` | function | @wildshard/sdk/groupBrains | Validate a pack or guarded-herd controller before loading its native world recipes. |
 | `GroupBrainData` | type | @wildshard/sdk/groupBrains | One admitted group policy and its explicit ordered stable actor roster. |
 | `HeadlessSimulation` | class | @wildshard/sdk/headless | A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. |
-| `validateSimulation` | function | @wildshard/sdk/headless | Offline admission enforces fuel, bounded platform queries and aggregate commands deterministically; wall timing is advisory. The independent request watchdog still bounds a broken worker. |
+| `measureSimulation` | function | @wildshard/sdk/headless | Build report observations stop at 60 ticks; they never run the expensive entry walk reserved for validate. |
+| `SimulationObservations` | interface | @wildshard/sdk/headless | A fixed 60-tick offline observation; scripts exclude native physics, checkpoints and IPC. |
+| `validateSimulation` | function | @wildshard/sdk/headless | Offline admission proves bounded execution and entries; wall timing is advisory. The independent request watchdog still bounds a broken worker. |
 | `LedgerFact` | type | @wildshard/sdk/ledger | The compiled fact contract consumed by the platform ledger. |
 | `LedgerFactSchema` | const | @wildshard/sdk/ledger | Compile a host-witnessed fact with placement identity and provenance. |
 | `LedgerRule` | type | @wildshard/sdk/ledger | One declared fact-to-platform reward mapping. |

@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-630 members; 112 without a doc line (—).
+634 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -108,8 +108,10 @@ The game layer's public modules (src/game/package.json `exports`).
 | `templateInstance` | function | @wildshard/game/grid/instances | Six copies of one template package have independent facts and local state, wherever they are placed. |
 | `LiveGridAdmission` | interface | @wildshard/game/grid/live | Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. |
 | `LiveGridFrame` | interface | @wildshard/game/grid/live | An infallible prepared assignment rebinds the existing page world/player and the renderer's local origin. |
+| `LiveGridHighway` | interface | @wildshard/game/grid/live | Neutral shell physics and its one traveller remain page-owned; disposal removes only platform installations. |
 | `LiveGridHome` | interface | @wildshard/game/grid/live | The page owns its initial world and continuation. The registry never replaces or disposes that borrowed world. |
-| `LiveGridHost` | class | @wildshard/game/grid/live | Live counterpart of GridSimulation: borrowed home, independent frozen regions, and exactly one page traveller. |
+| `LiveGridHost` | class | @wildshard/game/grid/live | One page traveller with frozen owned regions. Borrowed homes keep the existing standalone composition; |
+| `LiveGridOwnedHome` | interface | @wildshard/game/grid/live | G226: the initial home is an ordinary owned region; the neutral page constructs none of its opaque content. |
 | `LiveGridPorts` | interface | @wildshard/game/grid/live | One live fixed-step owner supplies movement; region clocks/systems run only after that move. |
 | `LiveGridRegion` | interface | @wildshard/game/grid/live | An owned region has authored colliders and logical player state, but no second traveller capsule. |
 | `LiveGridState` | interface | @wildshard/game/grid/live | Crossing telemetry is a production port: the harness verifies real fixed-boundary commits, never a page/debug probe. |
@@ -368,7 +370,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `ShardScriptBrain` | type | @wildshard/game/shardfile/brains | Validated script policy; only named admitted strikes may be requested and motion stays within its declared bounds. |
 | `ShardSkirmisher` | type | @wildshard/game/shardfile/brains | Admitted archetype parameters, identified independently from a particular creature spawn. |
 | `SkirmisherSchema` | const | @wildshard/game/shardfile/brains | Circling melee policy data; the host retains navigation, attack tokens, strike clocks and random streams. |
-| `worstContentCost` | function | @wildshard/game/shardfile/budget | Worst disc with three synthetic neighbours at the platform caps; a fine grid expands the radius to cover its gaps. |
+| `memoryTargetWarnings` | function | @wildshard/game/shardfile/budget | Category resident targets are tradeable warnings; only the complete playing/loading totals refuse memory. |
+| `nearbyContentCost` | function | @wildshard/game/shardfile/budget | Conservative total around an actual player location, using the same neighbour assumptions as admission. |
+| `worstContentCost` | function | @wildshard/game/shardfile/budget | Worst disc with three synthetic neighbours at the platform targets; grid padding covers unsampled gaps. |
 | `ClientScriptContent` | interface | @wildshard/game/shardfile/clientScripts | Minimal format view for admission and projection, independent of rendering and author callbacks. |
 | `clientScriptRules` | function | @wildshard/game/shardfile/clientScripts | Refuse hidden fields, undeclared targets, competing writers and modules outside the admitted render library. |
 | `ClientScriptsSchema` | const | @wildshard/game/shardfile/clientScripts | Presentation bytecode binds visual targets and selected numeric state; it never joins the authoritative script lane. |

@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2165 members; 830 without a doc line (—).
+2169 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1096,16 +1096,20 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `definedModels` | function | @wildshard/engine/models/model | Every model defined so far (the modules imported so far). |
 | `defineModel` | function | @wildshard/engine/models/model | Define a model. Its id must be unique; the definition is returned as given. |
 | `ModelBuild` | type | @wildshard/engine/models/model | What `build` returns: the parts of one copy (every draw technique), or a whole object (`draw: 'single'` only). |
+| `ModelBuildVisit` | type | @wildshard/engine/models/model | One actual builder result, observed synchronously before transforms, merging or culling mutate it. |
 | `modelContext` | function | @wildshard/engine/models/model | A context for one shard (its sky, and the renderer when there is one). A structure shard has no engine Sky (Nine |
 | `ModelContext` | interface | @wildshard/engine/models/model | What a model's builder gets from the shard it's placed on. Make one per shard with `modelContext`. |
 | `ModelDef` | interface | @wildshard/engine/models/model | A model: one builder, its variants, its LODs, its own-space colliders. Made with `defineModel`. |
 | `ModelInfo` | interface | @wildshard/engine/models/model | What every defined model says about itself, whatever its params (the catalog and the contract test read these). |
 | `ModelLod` | interface | @wildshard/engine/models/model | A coarser copy from `from` metres out; `build` returning `[]` draws nothing past `from` (a cull distance). |
 | `ModelPart` | interface | @wildshard/engine/models/model | One draw of one copy: a geometry in the model's own space and its material. |
+| `ModelPlacementVisit` | interface | @wildshard/engine/models/model | A placement call's original ordered copies, including copies initially hidden by culling. |
+| `ModelPlacementVisitor` | type | @wildshard/engine/models/model | Opt-in observer on one model context. Its returned callback captures that call's actual builds, once each. |
 | `ModelVariant` | interface | @wildshard/engine/models/model | A named set of params the Explorer's variant row offers and `Placement.variant` picks. |
 | `paramsOf` | function | @wildshard/engine/models/model | A copy's params: the defaults, then its variant's, then its own. |
 | `Placement` | interface | @wildshard/engine/models/model | Where one copy stands. The pose applies in this order: `scale`, then `yaw` (about +Y), then `leanX` (about world X), |
 | `seedOf` | function | @wildshard/engine/models/model | The default rng seed of a model: FNV-1a of its id. |
+| `withModelPlacementVisitor` | function | @wildshard/engine/models/model | Observe contexts belonging to one owned world's sky during an asynchronous bake. Always removes the binding, |
 | `CLAIM_MARGIN` | const | @wildshard/engine/models/place | how far outside a copy's box a tap still lands on it, metres (a hit on its face can round a hair outside) |
 | `claimCopy` | function | @wildshard/engine/models/place | the smallest of `p`'s copy boxes holding `pt` (grown by CLAIM_MARGIN), or null when `pt` is on none of them |
 | `copiesAt` | function | @wildshard/engine/models/place | Copies `at` (indices into the call's placement order) of a `place` call as a `Placed` of their own, like `copiesNear`'s |
