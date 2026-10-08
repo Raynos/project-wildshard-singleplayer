@@ -36,7 +36,7 @@ import { Fog, Group, Material, Mesh, Scene, type Object3D, type Texture } from '
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { TexturePolicyBinding, registerGpuFiles } from '@wildshard/engine/boot/gpuFiles';
-import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
+import { ownSceneResource, ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/level/frame';
@@ -206,7 +206,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
               else if (outcome === 'off' && !left() && (look.post?.() ?? null) !== null) {
                 const own = await loadLUT(level.id);
                 if (own !== null && left()) own.dispose();
-                else if (own !== null) { lut = own; resident.onDispose(() => { lut = null; own.dispose(); }); }
+                else if (own !== null) { lut = own; ownSceneResource(own, resident); resident.onDispose(() => { lut = null; }); }
               }
             } catch (error) { console.warn(`[region sky] ${cell.instance}`, error); }
           })();

@@ -7,7 +7,7 @@ export type AssetCensus = readonly AssetRecord[];
 export interface AssetResidencyHandle { observe: (owner: Scope | null) => void; release: () => void; unused?: () => void }
 /** The composition root supplies the budget. Register may refuse before this service adopts the resource. */
 export interface AssetResidencyPort<T> { register: (key: string, resource: T, owner: Scope | null, evict?: () => boolean) => AssetResidencyHandle }
-interface Entry<T> { resource: T; refs: number; retained: boolean; cached: boolean; residency: AssetResidencyHandle | undefined }
+interface Entry<T> { key: string; resource: T; refs: number; retained: boolean; cached: boolean; residency: AssetResidencyHandle | undefined }
 
 /** Shared resources are released by consumers; only this service disposes them. */
 export class AssetService<T extends Disposable3 = Disposable3> {
@@ -20,7 +20,7 @@ export class AssetService<T extends Disposable3 = Disposable3> {
     if (this.entries.has(key)) throw new Error(`Asset already registered: ${key}`);
     const cached = opts?.cache === true;
     const residency = cached ? this.residency?.register(key, resource, currentOwner(), () => this.evictCached(key)) : undefined;
-    const entry = { resource, refs: 0, retained: opts?.retain ?? false, cached, residency };
+    const entry = { key, resource, refs: 0, retained: opts?.retain ?? false, cached, residency };
     this.entries.set(key, entry); this.byResource.set(resource, entry);
     this.managed.add(resource);
     return resource;
@@ -30,6 +30,14 @@ export class AssetService<T extends Disposable3 = Disposable3> {
     if (!entry) throw new Error(`Unknown asset: ${key}`);
     entry.refs++;
     return entry.resource;
+  }
+  /** Retain an already managed object through its authoritative entry, without creating a second disposal owner. */
+  acquireResource(resource: object): (() => void) | null {
+    const entry = this.byResource.get(resource);
+    if (entry === undefined) return null;
+    this.acquire(entry.key);
+    let live = true;
+    return () => { if (live) { live = false; this.release(entry.key); } };
   }
   release(key: string): void {
     const entry = this.entries.get(key);

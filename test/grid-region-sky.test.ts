@@ -3,6 +3,7 @@
 // sky exactly.
 import { expect, it, vi } from 'vitest';
 import { BoxGeometry, BufferGeometry, Color, DirectionalLight, Fog, HemisphereLight, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, ShaderMaterial, Sprite, SpriteMaterial, Texture, Vector3 } from 'three';
+import { LookupTexture } from 'postprocessing';
 import { AssetService } from '../src/engine/app/assets';
 import { SceneOwnership, sceneObjectOwner } from '../src/engine/app/sceneOwnership';
 import { Scope } from '../src/engine/app/scope';
@@ -195,10 +196,13 @@ it('keeps layered sky geometry under the resident owner when its dome moves onto
     if (!(dome instanceof Mesh)) throw new Error('Missing dome');
     const geometry: unknown = dome.geometry;
     if (!(geometry instanceof BufferGeometry)) throw new Error('Missing dome geometry');
-    const dispose = vi.spyOn(geometry, 'dispose'); layer.attach(backdrop);
+    const lut = new LookupTexture(new Uint8Array(32), 2), lutDispose = vi.spyOn(lut, 'dispose');
+    const dispose = vi.spyOn(geometry, 'dispose'); layer.attach({ ...backdrop, lut });
+    ownership.retainContainer({ grade: { uniforms: { e7Lut: { value: lut } } } });
+    expect(assets.isAcquired(lut)).toBe(false);
     expect(sceneObjectOwner(dome)?.belongsTo(resident)).toBe(true);
     ownership.capture(); expect(assets.isAcquired(geometry)).toBe(false);
-    layer.dispose(); expect(dispose).toHaveBeenCalledOnce(); expect(scene.getObjectByName('region-dome')).toBeUndefined();
+    layer.dispose(); expect(dispose).toHaveBeenCalledOnce(); expect(lutDispose).toHaveBeenCalledOnce(); expect(scene.getObjectByName('region-dome')).toBeUndefined();
   }
   resident.dispose(); page.dispose(); expect(assets.retained()).toEqual([]);
 });

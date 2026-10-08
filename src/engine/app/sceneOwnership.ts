@@ -46,7 +46,14 @@ export function sceneObjectOwner(node: Object3D): Scope | null {
 export function ownSceneResource(resource: Disposable3, scope: Scope): void {
   const owner = resourceOwners.get(resource);
   if (owner !== undefined && !owner.disposed) return;
-  markResourceOwner(resource, scope); scope.own(resource);
+  markResourceOwner(resource, scope);
+  if (resource instanceof Texture) {
+    // A backdrop may explicitly free a sampler before its delegated scope closes. Native disposal remains exact once.
+    let disposed = false;
+    const released = (): void => { disposed = true; };
+    resource.addEventListener('dispose', released);
+    scope.capture('textures', () => { resource.removeEventListener('dispose', released); if (!disposed) resource.dispose(); });
+  } else scope.own(resource);
 }
 
 function markResourceOwner(resource: Disposable3, scope: Scope): void {
@@ -122,12 +129,17 @@ export class SceneOwnership {
     let count = 0; this.scene.traverse((node) => { if (this.engineNodes.has(node)) count++; }); return count;
   }
   private acquire(resource: Disposable3): void {
-    if (this.acquired.has(resource)) return;
-    const key = `scene:${String(Reflect.get(resource, 'uuid'))}`;
-    if (!this.assets.has(key)) this.assets.register(key, resource, { retain: true });
-    this.assets.acquire(key);
+    const owner = sceneResourceOwner(resource);
+    if (this.acquired.has(resource) || (owner !== null && !owner.disposed)) return;
+    let release = this.assets.acquireResource(resource);
+    if (release === null) {
+      const key = `scene:${String(Reflect.get(resource, 'uuid'))}`;
+      this.assets.register(key, resource);
+      this.assets.acquire(key);
+      release = () => { this.assets.release(key); };
+    }
     this.acquired.add(resource);
-    this.level.onDispose(() => { this.assets.release(key); });
+    this.level.onDispose(release);
   }
   capture(): void {
     if (this.level.disposed) return;

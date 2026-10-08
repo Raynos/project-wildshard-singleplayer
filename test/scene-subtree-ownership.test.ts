@@ -1,8 +1,8 @@
 import { expect, it, vi } from 'vitest';
-import { BatchedMesh, BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene } from 'three';
+import { BatchedMesh, BoxGeometry, Group, Mesh, MeshBasicMaterial, Scene, Texture } from 'three';
 import { AssetService } from '../src/engine/app/assets';
 import { Scope } from '../src/engine/app/scope';
-import { ownSceneTree, SceneOwnership } from '../src/engine/app/sceneOwnership';
+import { ownSceneResource, ownSceneTree, SceneOwnership } from '../src/engine/app/sceneOwnership';
 
 it.each(['outer-first', 'inner-first', 'page-first'] as const)('owns nested resources exactly once with %s disposal and a truthful page census', order => {
   const page = new Scope('page'), outer = page.child('outer'), inner = page.child('inner');
@@ -38,4 +38,33 @@ it('captures uncaptured late resources at owner exit, leaving shared assets with
   owner.dispose(); page.dispose();
   expect(geometryDispose).toHaveBeenCalledOnce(); expect(materialDispose).not.toHaveBeenCalled();
   expect(scene.children).toEqual([]); assets.release('shared-material'); expect(materialDispose).toHaveBeenCalledOnce();
+});
+
+
+it('never lets page post capture retain a regional sampler after its owner retires', () => {
+  const page = new Scope('page'), assets = new AssetService(), ownership = new SceneOwnership(new Scene(), page, assets);
+  for (let visit = 0; visit < 3; visit++) {
+    const resident = page.child('resident'), lut = new Texture(), dispose = vi.spyOn(lut, 'dispose');
+    ownSceneResource(lut, resident); ownership.retainContainer({ effects: [{ uniforms: { e7Lut: { value: lut } } }] });
+    expect(assets.isAcquired(lut)).toBe(false);
+    if (visit === 1) lut.dispose();
+    resident.dispose(); expect(dispose).toHaveBeenCalledOnce();
+  }
+  page.dispose(); expect(assets.retained()).toEqual([]);
+});
+
+it('releases generated engine scene resources at the last level consumer, preserving live shared cache users', () => {
+  const assets = new AssetService(), first = new Scope('first'), second = new Scope('second'), scene = new Scene();
+  const geometry = new BoxGeometry(), material = new MeshBasicMaterial(), halo = new Texture(); material.map = halo;
+  scene.add(new Mesh(geometry, material));
+  const geometryDispose = vi.spyOn(geometry, 'dispose'), haloDispose = vi.spyOn(halo, 'dispose');
+  const a = new SceneOwnership(scene, first, assets), b = new SceneOwnership(scene, second, assets);
+  a.retain(scene); b.retain(scene);
+  first.dispose(); expect(geometryDispose).not.toHaveBeenCalled(); expect(haloDispose).not.toHaveBeenCalled();
+  second.dispose(); expect(geometryDispose).toHaveBeenCalledOnce(); expect(haloDispose).toHaveBeenCalledOnce(); expect(assets.retained()).toEqual([]);
+  const cached = new Texture(), cachedDispose = vi.spyOn(cached, 'dispose'), user = new Scope('user');
+  assets.register('cache', cached, { retain: true, cache: true }); assets.acquire('cache');
+  const c = new SceneOwnership(new Scene(), user, assets); c.retainContainer({ map: cached }); user.dispose();
+  expect(cachedDispose).not.toHaveBeenCalled(); expect(assets.evictCached('cache')).toBe(false);
+  assets.release('cache'); expect(assets.evictCached('cache')).toBe(true); expect(cachedDispose).toHaveBeenCalledOnce();
 });

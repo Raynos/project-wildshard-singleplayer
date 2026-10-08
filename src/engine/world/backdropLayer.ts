@@ -30,7 +30,7 @@ import {
 } from 'three';
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
-import { ownSceneTree } from '../app/sceneOwnership';
+import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
 import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 
@@ -152,6 +152,8 @@ export class BackdropLayer {
     if (this.disposed) { backdrop.dispose?.(); throw new Error('Backdrop layer attached after dispose'); }
     if (this.backdrop !== null) throw new Error('Backdrop layer already has a backdrop');
     this.backdrop = backdrop;
+    // The grade pass draws this sampler outside the dome subtree; it still belongs to the resident layer.
+    if (backdrop.lut !== null && !this.assets.isAcquired(backdrop.lut)) ownSceneResource(backdrop.lut, this.scope);
     for (const child of this.holder.children.slice()) {
       ownSceneTree(child, this.scope, this.assets);
       this.holder.remove(child);
