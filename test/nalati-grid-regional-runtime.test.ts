@@ -46,7 +46,7 @@ function pageGame(scope: Scope, app: App): Game {
   const game: unknown = Object.create(Game.prototype);
   if (!(game instanceof Game)) throw new Error('Game prototype');
   const doubled = fakeWorld().game.asGame();
-  for (const [key, value] of Object.entries({ app, registrationScope: scope, faultSystems: new Map(), anonymous: 0, rootScene: doubled.rootScene, camera: doubled.camera, viewmodel: doubled.viewmodel, sceneFrames: [], renderer: { extensions: { has: () => false } }, levelScope: scope })) Reflect.defineProperty(game, key, { value, writable: true });
+  for (const [key, value] of Object.entries({ app, registrationScope: scope, faultSystems: new Map(), anonymous: 0, rootScene: doubled.rootScene, camera: doubled.camera, viewmodel: doubled.viewmodel, sceneFrames: [], renderer: { extensions: { has: () => false } }, levelScope: scope, playerScope: scope })) Reflect.defineProperty(game, key, { value, writable: true });
   return game;
 }
 

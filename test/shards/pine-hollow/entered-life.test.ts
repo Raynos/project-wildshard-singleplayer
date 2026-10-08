@@ -28,7 +28,7 @@ it('cancels the actual skinning beat without a road reward, hides its knife and 
     bag: { tab: () => () => undefined, fragment: () => () => undefined } }));
   const camera = new PerspectiveCamera(); camera.position.set(0, 1.7, 0);
   const scene = new Scene(), sky = legacyDouble<SkyRig>({ setupMaterial: () => undefined, dayNight: null });
-  const game = legacyDouble<Game>({ app, levelScope: scope, scene, camera, onUpdate: () => undefined });
+  const game = legacyDouble<Game>({ app, levelScope: scope, playerScope: scope, scene, camera, onUpdate: () => undefined, onPlayerUpdate: () => undefined });
   const weapons = legacyDouble<EquipmentService>({ enabled: true, visible: true, setEnabled: (enabled) => { weapons.enabled = enabled; } });
   const player = legacyDouble<Player>({ position: new Vector3(), swimming: false, sprinting: false, yaw: 0 });
   const mesh = new SkinnedMesh(undefined, new MeshStandardMaterial());
