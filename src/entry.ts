@@ -111,10 +111,10 @@ async function startSelected(): Promise<void> {
   const loading = beginLoading({ id: game.shard.slug, name: game.shard.name, trace: game.shard.boot?.phone?.trace === true });
   loading.waiting('Preparing application services');
   // each module the boot needs, by name (E434: no barrels); they load in parallel, as the indexes did
-  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { KIT_ITEMS }, { HOVERBOARD_TOOL },
+  const [{ installKitSpecies }, { installKitIcons, BAG_ICONS }, { installKitPickups }, { installKitProps }, { STARTER_BAG_ITEMS }, { HOVERBOARD_TOOL },
     { sharedWeaponVoices, declaredWeaponVoices }, { sharedCombatCues }, { BOAR_LOOK }, { declaredKitItemFamilies }] = await Promise.all([
     retried(() => import('./kit/species/install')), retried(() => import('./kit/icons')),
-    retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./kit/bag/items')),
+    retried(() => import('./kit/models/pickups')), retried(() => import('./kit/models/interact')), retried(() => import('./game/bag/starter.generated')),
     retried(() => import('./kit/tools/hoverboard')), retried(() => import('./kit/audio/weaponVoices')), retried(() => import('@wildshard/sdk/runtime/audio/combatCues')),
     retried(() => import('@wildshard/kit/species/view/boar')), retried(() => import('@wildshard/kit/items/declared')),
   ]);
@@ -142,7 +142,7 @@ async function startSelected(): Promise<void> {
     installKitProps();
     const { startSession } = await retried(() => import('./game/session/session'));
     await startSession(manifest, {
-      items: KIT_ITEMS,
+      items: STARTER_BAG_ITEMS,
       tools: [HOVERBOARD_TOOL],
       combatCues: (audio, silent) => sharedCombatCues(sharedWeaponVoices(audio), silent),
       bagIcons: BAG_ICONS,

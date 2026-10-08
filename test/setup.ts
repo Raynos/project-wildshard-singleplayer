@@ -60,8 +60,8 @@ const { pineElkLook } = await import('../src/shards/pine-hollow/species/looks');
 registerSpecies(speciesWithLook(pineElk(), pineElkLook()));
 // Pure inventory fixtures explicitly install the authored item catalogs.
 const { registerItemRow } = await import('../src/game/bag/itemCatalog');
-const { KIT_ITEMS } = await import('../src/kit/bag/items');
+const { STARTER_BAG_ITEMS } = await import('../src/game/bag/starter.generated');
 const { PINE_ITEMS } = await import('../src/shards/pine-hollow/items');
-for (const row of [...KIT_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);
+for (const row of [...STARTER_BAG_ITEMS, ...PINE_ITEMS, ...DRIFTWOOD_ITEMS]) registerItemRow(row);
 
 beforeEach(() => { localStorage.clear(); });

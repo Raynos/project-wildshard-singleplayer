@@ -65,3 +65,10 @@ client owns physics stepping. Existing water and prop ports can be borrowed.
 Standalone snapshots reinstall adapters with `bindShardfileSim` and
 `restoring:true`, reconnecting collider handles after world replacement without
 allocating duplicates. Borrowed snapshots belong to the client world owner.
+
+The build-only `@wildshard/commons/packs/bag.starterBagPack({credit, licence})`
+emits the ten starter harvest rows as immutable JSON for the existing commons
+catalogue/build hook. It owns their ids, labels, icons and travel flags. The game
+expands the same pack into a gitignored literal table during every `pnpm gen`;
+boot never imports commons code. Trusted runtimes normalize bag metadata through
+`@wildshard/sdk/bag.normalizeItemRow`, whose default remains `travels: false`.

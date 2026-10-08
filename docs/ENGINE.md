@@ -1,5 +1,11 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
+`@wildshard/sdk/bag.normalizeItemRow` is the trusted facade for the existing
+`@wildshard/game/bag/items` normalizer. Starter harvest content is authored once in
+the build-only commons bag pack and expanded by `pnpm gen` into
+`game/bag/starter.generated.ts`; boot installs those rows explicitly. No runtime
+imports a commons module, and no import registers a row.
+
 `@wildshard/game/systems/audio/combatCues` defines the shared equipment cue router.
 Trusted runtimes use `@wildshard/sdk/runtime/audio/combatCues.sharedCombatCues(audio, meleeSilent)`;
 its SDK facade refers to the same function. It calls the supplied mixer's existing

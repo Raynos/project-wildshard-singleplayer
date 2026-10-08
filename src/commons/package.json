@@ -3,6 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": { "./catalogue": "./catalogue.ts", "./scripts": "./scripts.ts" },
-  "dependencies": { "@wildshard/sdk": "workspace:*" }
+  "exports": {
+    "./catalogue": "./catalogue.ts",
+    "./scripts": "./scripts.ts",
+    "./packs/bag": "./packs/bag/pack.ts"
+  },
+  "dependencies": {
+    "@wildshard/sdk": "workspace:*"
+  }
 }

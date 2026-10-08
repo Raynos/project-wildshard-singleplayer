@@ -62,7 +62,8 @@
     "./portalLink": "./portalLink.ts",
     "./bake/nativeLattice": "./bake/nativeLattice.ts",
     "./bake/worldRows": "./bake/worldRows.ts",
-    "./bake/staticMaterials": "./bake/staticMaterials.ts"
+    "./bake/staticMaterials": "./bake/staticMaterials.ts",
+    "./bag": "./bag.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -332,6 +333,10 @@
       "./bake/staticMaterials": {
         "types": "./dist/types/sdk/bake/staticMaterials.d.ts",
         "default": "./dist/bake/staticMaterials.js"
+      },
+      "./bag": {
+        "types": "./dist/types/sdk/bag.d.ts",
+        "default": "./dist/bag.js"
       }
     }
   }
