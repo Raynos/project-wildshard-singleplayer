@@ -33,6 +33,8 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   uses: ['dayCycle', 'weather', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'loot', 'feats'],
   api: 1,
   load: () => import('./plugin'),
+  gridShardfile: '/shardfiles/nalati-grasslands/shard.json',
+  trustedRuntime: { get slug() { return NALATI_GRASSLANDS.slug; }, entry: 'runtime/index.ts' },
   loadout: { weapons: ['bow', 'sabre', 'spear', 'rifle'], tools: ['tool.hoverboard'], start: ['bow', 'sabre', 'spear', 'tool.hoverboard'], held: 'bow', loans: [{ id: 'rifle', in: 'practice' }] },
   budgets: NALATI_BUDGET_INPUTS,
   runtimeCost: NALATI_RUNTIME_COST,
