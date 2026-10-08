@@ -15216,9 +15216,21 @@
         "from": "@wildshard/game/shard/manifest"
       },
       {
+        "name": "ShardEntries",
+        "kind": "interface",
+        "doc": "Which entries exist (a missing one is a disabled button: NOT YET, or SHARDFILE ONLY · NO LEGACY) and which one the",
+        "from": "@wildshard/game/shard/manifest"
+      },
+      {
+        "name": "ShardEntryMode",
+        "kind": "type",
+        "doc": "SF65: LEGACY is the original TypeScript shard; SHARDFILE is its current port state (the shardfile plus any TypeScript",
+        "from": "@wildshard/game/shard/manifest"
+      },
+      {
         "name": "ShardManifest",
         "kind": "interface",
-        "doc": "Compatibility names for manifests not yet migrated to the engine look contract.",
+        "doc": "",
         "from": "@wildshard/game/shard/manifest"
       },
       {
@@ -15429,6 +15441,12 @@
         "name": "runtimeVariantEnabled",
         "kind": "function",
         "doc": "Register a reload-only runtime choice without importing the data loader or preparing trusted hooks.",
+        "from": "@wildshard/game/shard/runtimeVariant"
+      },
+      {
+        "name": "shardfileEntry",
+        "kind": "function",
+        "doc": "SF65 (G237–G241): whether this boot enters the shard as SHARDFILE (its current port state) rather than LEGACY (the",
         "from": "@wildshard/game/shard/runtimeVariant"
       },
       {

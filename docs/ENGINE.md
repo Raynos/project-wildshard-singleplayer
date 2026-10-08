@@ -2254,7 +2254,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-663 exports, grouped by the module to import them from.
+666 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2308,12 +2308,12 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/game/shard/declaredPlumbing`: `installDeclaredPlumbing`, `PlumbingHandles`, `PlumbingPorts`
 - `@wildshard/game/shard/declaredRows`: `declaredCompendium`, `declaredDay`, `declaredLootPresentation`, `declaredSpeciesLook`, `declaredWeather`
 - `@wildshard/game/shard/declaredUi`: `DeclaredUiPorts`, `mountDeclaredUi`
-- `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
+- `@wildshard/game/shard/manifest`: `CabinSite`, `ChunkAssets`, `ChunkAtmosphere`, `ChunkForest`, `ChunkGrade`, `ChunkHorizon`, `ChunkHud`, `ChunkLook`, `ChunkMapDef`, `ChunkPoi`, `ChunkSky`, `ChunkStructures`, `ChunkStyle`, `ChunkTerrain`, `ChunkTrees`, `ChunkWeapon`, `FaunaKind`, `FieldModelsContext`, `formatGrid`, `HerdPlan`, `hitDamage`, `HorizonBand`, `HorizonRing`, `KnownChunkStyle`, `MapLook`, `OceanDef`, `PondDef`, `RGB`, `ShardEntries`, `ShardEntryMode`, `ShardManifest`, `ShardSword`, `SpawnPose`, `StructureContext`, `terrainFor`, `TerrainNoise`, `TerrainSpec`, `Vec2`
 - `@wildshard/game/shard/plugin`: `ShardPlugin`
 - `@wildshard/game/shard/registry`: `chunkSlugFromUrl`, `chunkUrl`, `defaultChunk`, `defaultShard`, `findChunk`, `findShard`, `game`, `getActiveChunk`, `onActiveChunkChange`, `playable`, `setActiveChunk`, `shardSlugFromUrl`
 - `@wildshard/game/shard/retainedHooks`: `installEnteredRuntimeAttachment`, `installEnteredRuntimeInput`, `installEnteredRuntimeObserver`, `installEnteredRuntimeService`, `installEnteredRuntimeUpdate`, `installRetainedPlayerEffects`, `RetainedRuntimeHooks`, `retainsRuntimeServices`
 - `@wildshard/game/shard/runtime`: `resolveLevelBounds`, `ShardPlayHooks`, `ShardPlayHost`, `ShardRuntime`
-- `@wildshard/game/shard/runtimeVariant`: `developerToolsEnabled`, `gridPage`, `runtimeVariantEnabled`
+- `@wildshard/game/shard/runtimeVariant`: `developerToolsEnabled`, `gridPage`, `runtimeVariantEnabled`, `shardfileEntry`
 - `@wildshard/game/shard/scopedRuntime`: `bindScopedRuntime`, `createScopedRuntimeBinding`, `ScopedRuntimeBinding`
 - `@wildshard/game/shard/slug`: `parseShardSlug`, `ValidatedShardSlug`
 - `@wildshard/game/shardfile/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `accentVars`, `parseAccent`, `ROAD_ACCENT`

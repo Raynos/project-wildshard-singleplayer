@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-663 members; 112 without a doc line (—).
+666 members; 113 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -301,7 +301,9 @@ The game layer's public modules (src/game/package.json `exports`).
 | `OceanDef` | interface | @wildshard/game/shard/manifest | Open water covering the whole shard (Driftwood Isle). The terrain's `waterLevel()` returns |
 | `PondDef` | interface | @wildshard/game/shard/manifest | — |
 | `RGB` | type | @wildshard/game/shard/manifest | linear-space RGB triple, 0..1 (values above 1 are allowed for HDR sun colours) |
-| `ShardManifest` | interface | @wildshard/game/shard/manifest | Compatibility names for manifests not yet migrated to the engine look contract. |
+| `ShardEntries` | interface | @wildshard/game/shard/manifest | Which entries exist (a missing one is a disabled button: NOT YET, or SHARDFILE ONLY · NO LEGACY) and which one the |
+| `ShardEntryMode` | type | @wildshard/game/shard/manifest | SF65: LEGACY is the original TypeScript shard; SHARDFILE is its current port state (the shardfile plus any TypeScript |
+| `ShardManifest` | interface | @wildshard/game/shard/manifest | — |
 | `ShardSword` | interface | @wildshard/game/shard/manifest | a shard's own sword (ShardManifest.sword): the engine Sword's rigid rig, moves and portrait framing — or an animated rig |
 | `SpawnPose` | interface | @wildshard/game/shard/manifest | `y`: the feet's height, for a shard whose floor is built (`structures`) rather than the terrain; omitted = `heightAt(x, z)` |
 | `StructureContext` | interface | @wildshard/game/shard/manifest | what a structure-first shard's world builder is handed (main.ts, the props step) |
@@ -337,6 +339,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `developerToolsEnabled` | function | @wildshard/game/shard/runtimeVariant | Unfinished systems and diagnostics run only in the page's Developer build (E451). |
 | `gridPage` | function | @wildshard/game/shard/runtimeVariant | Whether this page runs the grid (home or neighbour cell): a reload variant may default differently there (G180: Pine |
 | `runtimeVariantEnabled` | function | @wildshard/game/shard/runtimeVariant | Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. |
+| `shardfileEntry` | function | @wildshard/game/shard/runtimeVariant | SF65 (G237–G241): whether this boot enters the shard as SHARDFILE (its current port state) rather than LEGACY (the |
 | `bindScopedRuntime` | function | @wildshard/game/shard/scopedRuntime | Bind every staged runtime slot to this play scope, retaining the resident world's previous handoff on exit. |
 | `createScopedRuntimeBinding` | function | @wildshard/game/shard/scopedRuntime | Prepare a local handoff without publishing it; each activation restores the descriptors it borrowed on leave. |
 | `ScopedRuntimeBinding` | interface | @wildshard/game/shard/scopedRuntime | Retain a trusted home's handoff while unbinding every page slot during its road visits. |

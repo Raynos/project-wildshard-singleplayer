@@ -201,6 +201,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [gen-ask-ids.mjs](./gen-ask-ids.mjs)
 - [gen-budget-derivations.d.mts](./gen-budget-derivations.d.mts)
 - [gen-budget-derivations.mjs](./gen-budget-derivations.mjs)
+- [gen-port-shares.mjs](./gen-port-shares.mjs)
 - [gen-shard-layout-doc.d.mts](./gen-shard-layout-doc.d.mts)
 - [gen-shard-layout-doc.mjs](./gen-shard-layout-doc.mjs)
 - [gen-shard-words.d.mts](./gen-shard-words.d.mts)
