@@ -75,7 +75,7 @@ and shardfiles carry no placement. SF17a changes the catalogue to the 3 × 3 gri
 **Hybrid shards bind declared behaviour rows (SHARD-PLATFORM M3, the runtime-owner binding).** A hybrid shard (a
 shardfile plus its trusted `runtime/` chunk) keeps its runtime as the owner of the world and the play scope, and still
 moves behaviour into `shard.config.ts` as data. `runtime.binds` declares which sections the runtime binds
-(`src/game/shardfile/runtimeBinds.ts`: `quests`, `ledger`, `items`, `spawns`). A bound section is validated like every row; its
+(`src/game/shardfile/runtimeBinds.ts`: `quests`, `ledger`, `items`, `spawns`, `state`). A bound section is validated like every row; its
 rows do not make the shardfile "non-empty", so the hybrid stays on its own runtime instead of the full shardfile loader,
 and the data client never installs it (`withoutRuntimeRows`). An unbound behaviour row still sends the shard down the
 full loader. The runtime calls the platform installers from `@wildshard/game/shardfile/hybridRows`, which put the rows
@@ -84,6 +84,7 @@ standalone), through the template's own installers:
 
 | Section | Installer | The runtime lends |
 |---|---|---|
+| `state` | `bindRuntimeState(ctx, source, key, legacyRead, instance = source.identity.slug)` → `read()` / `write(value): boolean` | a declared host-owned shared field; scalar values or JSON strings up to 4096 characters; a read-only legacy adapter invoked once per field, after successful durable initialization |
 | `ledger` | `bindRuntimeLedger(ctx, source, instance)` → `(fact, entity) => receipt` (the platform `Ledger`; tick 0, told apart by entity, granted once) | the first-party placement id |
 | `quests` | `bindRuntimeQuest(ctx, source, id, { flags, facts, place, chip })` → `QuestState` over its flags; emits the `onComplete` fact | its `Flags`, each world-piece marker's built spot, a chip the format cannot carry |
 | `items` | `bindRuntimeItems(ctx, source, { families, icon })` in `buildEquipment` → `installDeclaredItems`; `bindRuntimeItemContexts(ctx, source)` in play | its own families, named `<slug>.<name>` (never shadowing `kit.*`); contexts register entered-only for a retained home |
@@ -91,6 +92,11 @@ standalone), through the template's own installers:
 
 Coins a runtime pays (a quest's `onComplete.coins`, a boss reward) go through `bindRuntimeCoins(ctx, lootPurse)`: the
 level's loot purse, else the platform `Purse` for the shard (headless), never a direct coin-save write.
+
+Runtime state uses the template's `state` declarations and stable-id migrations. Pass the placement id for repeated
+instances; the slug default serves a shard with one placement. Bound state supports only host-owned shared fields,
+and keeps each field's initialization fence separate so binding one does not skip another's legacy migration.
+Disposed owners cannot read or write, blocked storage retains the platform’s in-memory fallback, and newer platform saves are preserved.
 
 A runtime-bound item carries no script hook (no simulation lane runs there). Signal Dunes is the first: its quest, its
 two ledger facts and the bullwhip row live in `shard.config.ts`; the runtime resolves `sunscar-dunes.whip` to its

@@ -12,6 +12,7 @@ import { installDeclaredItems, type DeclaredItems } from './items';
 import type { RuntimeBoundSection } from './runtimeBinds';
 import type { RuntimeBossRow, RuntimeHomeRow } from './runtimeSpawns';
 import type { Shardfile } from './schema';
+import { installRuntimeState, type RuntimeState, type RuntimeStateValue } from './runtimeState';
 
 /**
  * The runtime-owner binding (SHARD-PLATFORM M3, E435). A hybrid shard's trusted runtime owns its world and its play scope;
@@ -39,11 +40,22 @@ function requireBound(source: Pick<Shardfile, 'runtime'>, section: RuntimeBoundS
 export function withoutRuntimeRows(source: Shardfile): Shardfile {
   const binds = runtimeBinds(source);
   if (binds.size === 0) return source;
+  if (binds.has('state') && (source.state.player.length > 0 || source.state.shared.some((field) => field.privacy !== 'host'))) {
+    throw new Error('Runtime-bound state supports only host-owned shared fields');
+  }
   return { ...source,
     ...(binds.has('quests') ? { quests: { flags: [], quests: [], triggers: [], dialogue: [] } } : {}),
     ...(binds.has('ledger') ? { ledger: [] } : {}),
     ...(binds.has('items') ? { items: { version: 1, rows: [], contexts: [], loadout: { primary: null, secondary: null, tools: [] } } } : {}),
+    ...(binds.has('state') ? { state: { ...source.state, shared: [], player: [] } } : {}),
   };
+}
+
+/** Bind one declared host state field; legacy scalar/JSON-string data migrates once, never written by the shard again. */
+export function bindRuntimeState(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile, key: string,
+  legacyRead: () => RuntimeStateValue | null, instance = source.identity.slug): RuntimeState {
+  requireBound(source, 'state');
+  return installRuntimeState(ctx.app.saves, ctx.scope, source, instance, key, legacyRead);
 }
 
 /** Emit one declared fact for an entity; the platform ledger decides the grant. */
