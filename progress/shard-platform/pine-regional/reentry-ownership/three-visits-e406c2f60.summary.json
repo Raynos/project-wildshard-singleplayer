@@ -1,0 +1,179 @@
+{
+  "pin": "e406c2f6026c3fb64ae9af698bb16f2ae9857633",
+  "version": {
+    "build": "e406c2f-muz3oeep",
+    "time": "2026-10-08T05:32:58.389Z"
+  },
+  "surface": "Chromium Metal, iPhone 16 Pro portrait; Developer owned-shell diagnostic with full G216 charging",
+  "verdict": "PASS: three real Pine visits, stable per-visit GL allocations, zero texture/page/console/disposal errors; final native and level scope census zero.",
+  "checks": {
+    "textureErrors": true,
+    "pageErrors": true,
+    "consoleErrors": true,
+    "cleanDisposal": true,
+    "finalNativeZero": true,
+    "finalGPUZero": true,
+    "scopeZero": true,
+    "roadSkyRestored": true
+  },
+  "allThreeRoadSkiesRestored": true,
+  "realControllerLegs": 12,
+  "stops": [
+    {
+      "label": "road-before",
+      "current": null,
+      "glBytes": 123659462
+    },
+    {
+      "label": "visit-1.east-inside",
+      "current": "pine-hollow",
+      "glBytes": 242391194
+    },
+    {
+      "label": "visit-1.east-deep",
+      "current": "pine-hollow",
+      "glBytes": 239545678
+    },
+    {
+      "label": "visit-1.east-deep-up",
+      "current": "pine-hollow",
+      "glBytes": 240014890
+    },
+    {
+      "label": "road-after-1",
+      "current": null,
+      "glBytes": 144138162
+    },
+    {
+      "label": "visit-2.east-inside",
+      "current": "pine-hollow",
+      "glBytes": 244025446
+    },
+    {
+      "label": "visit-2.east-deep",
+      "current": "pine-hollow",
+      "glBytes": 241094934
+    },
+    {
+      "label": "visit-2.east-deep-up",
+      "current": "pine-hollow",
+      "glBytes": 241564146
+    },
+    {
+      "label": "road-after-2",
+      "current": null,
+      "glBytes": 144225270
+    },
+    {
+      "label": "visit-3.east-inside",
+      "current": "pine-hollow",
+      "glBytes": 240619614
+    },
+    {
+      "label": "visit-3.east-deep",
+      "current": "pine-hollow",
+      "glBytes": 241097622
+    },
+    {
+      "label": "visit-3.east-deep-up",
+      "current": "pine-hollow",
+      "glBytes": 241569138
+    },
+    {
+      "label": "road-after-3",
+      "current": null,
+      "glBytes": 144225654
+    }
+  ],
+  "settledRoadGLBytes": [
+    144138162,
+    144225270,
+    144225654
+  ],
+  "roadDeltasBytes": [
+    87108,
+    384
+  ],
+  "settledRoadTextureBytes": [
+    111561080,
+    111561080,
+    111561080
+  ],
+  "errors": {
+    "texture": 0,
+    "page": 0,
+    "console": 0,
+    "disposal": 0
+  },
+  "finalLevelCensus": {
+    "geometries": 0,
+    "textures": 0,
+    "programs": 0,
+    "bodies": 0,
+    "colliders": 0,
+    "listeners": {
+      "window": 0,
+      "document": 0,
+      "canvas": 0,
+      "other": 4
+    },
+    "timers": {
+      "timeouts": 0,
+      "intervals": 0,
+      "raf": 0
+    },
+    "audio": {
+      "activeVoices": 0,
+      "beds": 0,
+      "buses": 0
+    },
+    "systems": {
+      "input": 0,
+      "fixed": {
+        "pre": 0,
+        "step": 0,
+        "post": 0
+      },
+      "update": 0,
+      "late": 0,
+      "render": 0
+    },
+    "events": {
+      "listeners": 7,
+      "answerers": 5
+    },
+    "dom": {
+      "hud": 0,
+      "body": 0
+    },
+    "sceneObjects": 0
+  },
+  "finalScopeCensus": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "finalRawGL": {
+    "totalBytes": 25372736,
+    "persistentComposerBytes": 13140576,
+    "sharedCacheBytes": 12232160,
+    "note": "Raw GL absolute zero is not claimed. Persistent page composer plus explicitly retained shared rig/coat/atlas assets remain; their per-visit texture footprint is identical."
+  },
+  "raw": {
+    "file": "three-visits-e406c2f60.json.gz",
+    "decodedSha256": "fe8f931efb71f60e03ba8fe0eda6bab8f0369dc86484346ceacedf9ca8d8b05a",
+    "decodedBytes": 10437623
+  }
+}

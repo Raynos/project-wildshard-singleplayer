@@ -1,16 +1,18 @@
 # Pine re-entry ownership — E435 / SF47-g
 
-The texture crash and the generic draw-time owner leak are corrected. The three-visit run on pushed `61bb3b25b` has **zero texture, page, console or disposal errors**; 12 real controller legs pass, road sky restores exactly, and final unload is zero native / GPU / scope resources. Residual per-visit baked-coat uploads remain: the coat lane owns their `adoptOnce` fix. This receipt does **not** claim bounded memory until that rerun.
+The three-visit rerun on `e406c2f60` (the coat lane's separate `adoptOnce` fix) **passes**: 12 real controller legs, two full re-entries, zero texture / page / console / disposal errors, and exact road sky restoration after every leave. The ~105 MB-per-visit GL growth is removed. Raw per-visit texture bytes are identical; only small instancing-buffer changes remain.
 
-| Same road after visit | GL MB (10^6 bytes) |
-| --- | ---: |
-| 1 | 144.23 |
-| 2 | 148.33 |
-| 3 | 152.61 |
+| Same road after visit | GL bytes | Texture bytes | GL change |
+| --- | ---: | ---: | ---: |
+| 1 | 144,138,162 | 111,561,080 | — |
+| 2 | 144,225,270 | 111,561,080 | +87,108 |
+| 3 | 144,225,654 | 111,561,080 | +384 |
 
-Visit 1 -> 2 adds 4,108,092 bytes. Twelve duplicate coat uploads account for 4,194,624 bytes (349,552 each); all other resources net -86,532 bytes. The camera kit / reused water and height samplers no longer accumulate. Full per-asset changes are in `three-visits-61bb3b25b.summary.json`.
+Final **level / scope** census: bodies, colliders, geometries, textures, programs and every scope field **0**. The raw WebGL census is separately **25,372,736 bytes**, consisting of 13,140,576 bytes of persistent page composer and 12,232,160 bytes of shared retained rig / coat / atlas resources. This is a stable cache, not a claim that raw WebGL absolute usage reaches zero.
 
-The separate **borrowed-home cold return** on `a801eda4c` booted Developer OFF, enabled the existing Developer switch in the same page, walked away until Pine actually unloaded, then rebuilt and restored boar `creature:152` at **99 HP**. Seven legs / twelve waypoints complete in **130.082 s**. There is one `engine.player.for` updater on first and rebuilt entries. Final bodies, colliders, geometries, textures, programs and every scope census field are **0**, with no disposal errors. The unchanged raw harness marks red solely because CDP reports the same expected Nalati budget refusal as both an exception and a promise rejection; both retain the exact `claim` / `admitRegion` stack. The compact summary records the corrected classification, and the reproducible script recognizes both events. Boot-level event listeners remain baseline; the four `other` listeners are Playwright injection.
+The preceding pushed `61bb3b25b` run already eliminated camera-kit and reused-sampler accumulation, with no errors and the same clean scope unload. Its remaining ~4.2 MB/visit was traced to twelve duplicate baked-coat uploads. The exact asset deltas and unchanged raw assertions remain in `three-visits-61bb3b25b.*`; that intermediate run does not claim bounded memory. The coat fix removes all twelve repeated uploads.
+
+The separate **borrowed-home cold return** on `a801eda4c` booted Developer OFF, enabled the existing Developer switch in the same page, walked away until Pine actually unloaded, then rebuilt and restored boar `creature:152` at **99 HP**. Seven legs / twelve waypoints complete in **130.082 s**. There is one `engine.player.for` updater on first and rebuilt entries. Final bodies, colliders, level geometries / textures / programs and every scope census field are **0**, with no disposal errors. The unchanged raw harness marks red solely because CDP reports the same expected Nalati budget refusal as both an exception and a promise rejection; both retain the exact `claim` / `admitRegion` stack. The compact summary records the corrected classification, and the reproducible script recognizes both events. Boot-level event listeners remain baseline; the four `other` listeners are Playwright injection.
 
 Sources: `279ec4692` draw uploads, `2dff8ccc2` shared rifle atlas, `eb74adfc4` memo invalidation, `6d73598ab` hybrid cache audit, `5d2e77161` released image sources, `a801eda4c` camera kits / disposed-owner replacement, `7462580dc` drawn NPC rig invalidation. No shader, material recipe, HUD or appearance changes.
 

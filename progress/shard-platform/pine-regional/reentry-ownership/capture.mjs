@@ -156,7 +156,7 @@ try {
     }
     const after = roads[0], after2 = roads[1];
     const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-    result.roadSky = { exactAfterLeave: same(before.shared, after.shared), exactAfterReEnter: same(before.shared, after2.shared),
+    result.roadSky = { exactAfterEveryLeave: roads.every(road => same(before.shared, road.shared)), exactAfterLeave: same(before.shared, after.shared), exactAfterReEnter: same(before.shared, after2.shared),
       skiesOnRoad: [before.frame?.skies, after.frame?.skies, after2.frame?.skies], glMB: [before.glMB, after.glMB, after2.glMB] };
   }
   result.leak = await page.evaluate(()=>window.__wildshard.leak());
@@ -167,9 +167,9 @@ try {
     consoleErrors: result.consoleErrors.length === 0,
     cleanDisposal: result.leak.disposalErrors.length === 0,
     finalNativeZero: result.leak.after.bodies === 0 && result.leak.after.colliders === 0,
-    finalGPUZero: result.leak.after.geometries === 0 && result.leak.after.textures === 0 && result.leak.after.programs === 0,
+    finalLevelGPUZero: result.leak.after.geometries === 0 && result.leak.after.textures === 0 && result.leak.after.programs === 0,
     scopeZero: Object.values(result.leak.scope).every(value => value === 0),
-    roadSkyRestored: result.roadSky?.exactAfterLeave === true && result.roadSky?.exactAfterReEnter === true,
+    roadSkyRestored: result.roadSky?.exactAfterEveryLeave === true,
   };
   result.pass = Object.values(result.checks).every(Boolean);
   if (!result.pass) throw new Error(`Failed final census: ${JSON.stringify(result.checks)}`);
