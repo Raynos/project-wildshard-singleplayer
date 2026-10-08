@@ -11,14 +11,17 @@ import { installResources } from '../../../scripts/parity/resources.mjs';
 import { soakBootPoll } from '../../../scripts/soak/owned.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute } from '../../../scripts/frame-floor-grid.mjs';
+import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGridWitnessFailures } from '../../../scripts/public-grid.mjs';
 
 const [base, out, dist, routeMode = 'full', memorySaver = 'off'] = process.argv.slice(2), udid = process.env.SIM_UDID;
+const publicGrid = routeMode === 'public-grid';
+if (publicGrid && memorySaver !== 'off') throw new Error('Public grid measures the shipping Memory saver default OFF');
 if (!['off', 'on'].includes(memorySaver)) throw new Error('Memory saver must be off or on');
 if (!dist) throw new Error('Pass the owned preview dist directory for the preboot diagnostic helper');
 const fixtures = [
   {scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex:'auto',memorySaver,volume:0},merge:true},
   {scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}},
-  {scope:'device',key:'devMode',data:true},
+  {scope:'device',key:'devMode',data:!publicGrid},
 ].map(saveFixtureCode).join(';');
 const helper = new URL('g227-safari.html', base).href;
 // A preview may serve several cold variants. Remove only this harness's earlier inline fixture before reseeding.
@@ -26,11 +29,12 @@ const builtHtml = readFileSync(dist + '/index.html','utf8').replace(/<script(?: 
   (tag, body) => body.includes('window.__g227Errors=[];') ? '' : tag);
 const resourceFixture = routeMode === 'sky-entry' ? `(${installResources.toString()})();` : '';
 const resourcePort = routeMode === 'sky-entry' ? ',resources:()=>window.__parityResources()' : '';
-const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixture>' + resourceFixture + GL_INIT + ';' + WASM_INIT + ';' + AUDIO_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null'+resourcePort+'};window.__gridAdmissionLongTasks=[];window.__g227Errors=[];window.__g227Warnings=[];{const warn=console.warn;console.warn=(...args)=>{if(window.__g227Warnings.length<100)window.__g227Warnings.push(args.map(String).join(" "));warn.apply(console,args);};}window.addEventListener("error",e=>window.__g227Errors.push(String(e.message)));window.addEventListener("unhandledrejection",e=>window.__g227Errors.push(String(e.reason)));<\/script>');
+const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixture>' + resourceFixture + GL_INIT + ';' + WASM_INIT + ';' + AUDIO_INIT + ';' + fixtures + ';' + (publicGrid ? publicGridIntentCode({instance:'driftwood-isle',slug:'driftwood-isle'}) : '') + ';window.__wildshardHarness={seed:357,capture:null'+resourcePort+'};window.__gridAdmissionLongTasks=[];window.__g227Errors=[];window.__g227Warnings=[];{const warn=console.warn;console.warn=(...args)=>{if(window.__g227Warnings.length<100)window.__g227Warnings.push(args.map(String).join(" "));warn.apply(console,args);};}window.addEventListener("error",e=>window.__g227Errors.push(String(e.message)));window.addEventListener("unhandledrejection",e=>window.__g227Errors.push(String(e.reason)));<\/script>');
 writeFileSync(dist + '/index.html', documentHtml);
 writeFileSync(dist + '/g227-safari.html', documentHtml);
 if (!udid) throw new Error('Run through sim-lane.sh');
-const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver,
+const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver, developer:!publicGrid,
+  ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}),
   protocol: 'One cold Safari Simulator route. Three settled one-second kernel physical-footprint samples per pose; live labelled GL at the same pose. Relative evidence, not physical-phone cap proof.',
   snapshots: [], routes: [] };
 const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
@@ -56,7 +60,7 @@ try {
   let evaluate = await connect(`${base}version.json`);
   report.stage = 'cold-reset'; save();
   await evaluate(`(async () => {for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();for(const k of await caches.keys()) await caches.delete(k);localStorage.clear();sessionStorage.clear();return true;})()`);
-  await evaluate(`(() => {${saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver }, merge: true })};${saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: true })};return true;})()`);
+  await evaluate(`(() => {${saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', memorySaver }, merge: true })};${saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } })};${saveFixtureCode({ scope: 'device', key: 'devMode', data: !publicGrid })};return true;})()`);
   const samplerLog = openSync(samplerState.log, 'wx');
   try { sampler = spawn('python3', ['scripts/sim-mem-phases.py', '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--max', '1200'], { stdio: ['ignore', samplerLog, samplerLog] }); }
   finally { closeSync(samplerLog); }
@@ -72,7 +76,7 @@ try {
     await evaluate(`(() => { const {gl,texture}=window.__g227WarmGL;gl.deleteTexture(texture);gl.getExtension('WEBGL_lose_context')?.loseContext();delete window.__g227WarmGL;return true;})()`);
   } else {
   report.stage = 'title-load'; save();
-  simctl(['openurl', udid, helper]);
+  simctl(['openurl', udid, publicGrid ? `${helper}?chunk=driftwood-isle&skipintro=1&mute=1&nolock=1&sw=0` : helper]);
   await sleep(3000);
   evaluate = await connect(helper);
   const until = async (expression, ms = 180000) => {
@@ -88,11 +92,13 @@ try {
     }
     throw new Error('Readiness timed out: ' + expression);
   };
+  if (!publicGrid) {
   await until("Boolean(document.querySelector('.ws-main-grid'))");
   report.stage = 'grid-tap'; save();
   // This deliberate title-to-game navigation precedes the measurement document fence.
   await inspector.raw("(setTimeout(() => document.querySelector('.ws-main-grid').click(),100),true)");
   await sleep(3000); evaluate = await connect(helper);
+  }
   report.stage = 'grid-load'; save();
   await until("!document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live)", 240000);
   await evaluate('(window.__wildshard.world.hud.enterNow(),true)');
@@ -108,6 +114,11 @@ try {
       gamePID ??= sample.pid; report.gamePID = gamePID; samples.push(sample);
     }
     const value = await evaluate(snapshotExpression);
+    if (publicGrid) {
+      value.publicWitness = await evaluate(`(${readPublicGridWitness.toString()})()`);
+      const failures = publicGridWitnessFailures(value.publicWitness, false);
+      if (failures.length > 0) throw new Error(failures.join('; '));
+    }
     if (value.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + value.settings?.memorySaver);
     const sorted = samples.map(s => s.footprintBytes).sort((a, b) => a - b);
     const vmmapPath = out.replace(/\.json$/u, '') + '.' + label + '.vmmap.txt';
@@ -133,7 +144,16 @@ try {
   await snapshot('home-settled');
   const state = await evaluate('window.__wildshard.shard.grid.state()');
   const page = { evaluate: expression => evaluate(expression, 180000) };
-  if (routeMode === 'sky-entry') {
+  if (publicGrid) {
+    for (const plan of publicGridPlans(state)) {
+      report.stage='route:'+plan.name;writeFileSync(phaseFile,report.stage);save();
+      report.routes.push(await runFloorGridRoute(page,plan,documentOrigin));
+      await snapshot(plan.name === 'public-road' ? 'public-road' : 'public-template-centre');
+    }
+    report.publicWitness = await evaluate(`(${readPublicGridWitness.toString()})()`);
+    const failures = publicGridWitnessFailures(report.publicWitness,true);
+    if (failures.length > 0) throw new Error(failures.join('; '));
+  } else if (routeMode === 'sky-entry') {
     const sky = state.cells.find(cell => cell.slug === 'far-reach');
     if (!sky) throw new Error('Missing Developer Sky Reach cell');
     const ox = sky.cell[0] * 555, oz = sky.cell[1] * 555;
