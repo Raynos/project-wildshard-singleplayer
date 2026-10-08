@@ -252,6 +252,20 @@ function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
 }
 
 const models = new WeakMap<Sky, Map<string, Promise<NalatiModel>>>();
+/** Await models already requested by the owned world before a bake snapshots its roots.
+ * Recheck after producer callbacks: a completed model may request another model. This never
+ * starts a load, rebuilds geometry or swallows a failed asset, unlike a timed capture delay.
+ */
+export async function awaitNalatiModelLoads(sky: Sky): Promise<void> {
+  const observed = new Set<Promise<unknown>>();
+  for (;;) {
+    const pending = [...raw.values(), ...models.get(sky)?.values() ?? []].filter(promise => !observed.has(promise));
+    if (pending.length === 0) return;
+    for (const promise of pending) observed.add(promise);
+    await Promise.all(pending);
+  }
+}
+
 /** one model on the painterly look (cached per sky × name × look) */
 export function loadNalatiModel(sky: Sky, name: NalatiModelName, look: ModelLook = {}, lod: ModelLod = 'near'): Promise<NalatiModel> {
   let bySky = models.get(sky);
