@@ -1,224 +1,127 @@
 {
   "base": "http://127.0.0.1:4400",
-  "tag": "own",
-  "scene": "nalati",
+  "tag": "shared",
+  "scene": "pine",
   "stops": [
     {
       "drive": {
         "why": "arrived",
-        "seconds": 7.972699999809265,
+        "seconds": 7.3445999999046325,
         "feet": {
-          "x": 320.67800951802155,
-          "y": 0.45000011144348134,
-          "z": 0.0012911310586774666
+          "x": 0.00044036565473857744,
+          "y": 0.4500003915221275,
+          "z": 328.6635152111917
         },
-        "current": "nalati-grasslands",
-        "inside": "nalati-grasslands"
+        "current": "pine-hollow",
+        "inside": "pine-hollow"
       },
       "shots": [
-        "nalati-entry-road-e",
-        "nalati-entry-n",
-        "nalati-entry-w"
+        "pine-entry-n"
       ],
       "probe": {
         "player": [
-          -232.944491140654,
-          0.4500000000000001,
-          -0.000054213111867637553
+          -0.000013514303433787705,
+          0.44999999999999996,
+          -224.9589848701803
         ],
         "camera": [
-          322.055508859346,
+          -0.000013514303433787705,
           2.13,
-          -0.000054213111867637553
+          330.0410151298197
         ],
-        "programs": 216,
+        "programs": 178,
+        "lookPrograms": {},
         "memory": {
-          "geometries": 181,
-          "textures": 170
+          "geometries": 215,
+          "textures": 340
         },
-        "glMB": 305.78,
+        "glMB": 235.19,
         "skies": {}
       },
       "look": [
-        {
-          "root": "region:nalati-grasslands",
-          "mesh": "Mesh",
-          "uniforms": {
-            "wsLookOrigin": [
-              555,
-              0,
-              0
-            ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
-            ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
-            ],
-            "fogCloudOff": [
-              0.2862,
-              -0.1545
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
-          }
-        },
-        {
-          "root": "region:nalati-grasslands",
-          "mesh": "Mesh",
-          "uniforms": {
-            "wsLookOrigin": [
-              555,
-              0,
-              0
-            ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
-            ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
-            ],
-            "fogCloudOff": [
-              0.3039,
-              -0.1639
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
-          }
-        }
+        null,
+        null
       ]
     },
     {
       "drive": {
         "why": "arrived",
-        "seconds": 11.841699999809265,
+        "seconds": 19.609300000190736,
         "feet": {
-          "x": 468.64298165997707,
-          "y": 26.95844157324393,
-          "z": 0.020872392840663778
+          "x": 59.20981326391867,
+          "y": -0.925028135563125,
+          "z": 553.9044867705593
         },
-        "current": "nalati-grasslands",
-        "inside": "nalati-grasslands"
+        "current": "pine-hollow",
+        "inside": "pine-hollow"
       },
       "shots": [
-        "nalati-inside-e",
-        "nalati-inside-n",
-        "nalati-inside-w"
+        "pine-forest-e"
       ],
       "probe": {
         "player": [
-          -84.97968125819943,
-          27.00655849767735,
-          -0.0003125241211652252
+          60.01564457355945,
+          -0.9388571242451217,
+          0.021689593900646287
         ],
         "camera": [
-          470.02031874180057,
-          28.6865584956249,
-          -0.0003125241211652252
+          60.01564457355945,
+          0.7411428757698698,
+          555.0216895939006
         ],
-        "programs": 216,
+        "programs": 178,
+        "lookPrograms": {},
         "memory": {
-          "geometries": 186,
-          "textures": 170
+          "geometries": 235,
+          "textures": 342
         },
-        "glMB": 307.86,
+        "glMB": 237.26,
         "skies": {}
       },
       "look": [
-        {
-          "root": "region:nalati-grasslands",
-          "mesh": "Mesh",
-          "uniforms": {
-            "wsLookOrigin": [
-              555,
-              0,
-              0
-            ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
-            ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
-            ],
-            "fogCloudOff": [
-              0.7606,
-              -0.3947
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
-          }
+        null,
+        null
+      ]
+    },
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 5.872599999904633,
+        "feet": {
+          "x": 118.72799975769541,
+          "y": 0.8613691172340142,
+          "z": 554.604022124243
         },
-        {
-          "root": "region:nalati-grasslands",
-          "mesh": "Mesh",
-          "uniforms": {
-            "wsLookOrigin": [
-              555,
-              0,
-              0
-            ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
-            ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
-            ],
-            "fogCloudOff": [
-              0.7791,
-              -0.4039
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
-          }
-        }
+        "current": "pine-hollow",
+        "inside": "pine-hollow"
+      },
+      "shots": [
+        "pine-forest-120-e",
+        "pine-forest-120-n"
+      ],
+      "probe": {
+        "player": [
+          120.04324324511637,
+          0.9551666357891663,
+          0.013461762820156764
+        ],
+        "camera": [
+          120.04324324511637,
+          2.6351666357123014,
+          555.0134617628202
+        ],
+        "programs": 179,
+        "lookPrograms": {},
+        "memory": {
+          "geometries": 238,
+          "textures": 352
+        },
+        "glMB": 237.38,
+        "skies": {}
+      },
+      "look": [
+        null,
+        null
       ]
     }
   ],
@@ -227,14 +130,17 @@
     "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
     "THREE.Material: parameter 'displacementScale' has value of undefined.",
     "THREE.Material: parameter 'displacementBias' has value of undefined.",
-    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined."
   ],
-  "look": [
-    "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog",
-    "[region look] driftwood-isle: 90 materials on driftwood-isle's light and fog",
-    "[region look] nalati-grasslands: 5 materials on nalati-grasslands's light and fog",
-    "[region look] nalati-grasslands: 103 materials on nalati-grasslands's light and fog"
-  ],
+  "look": [],
   "shaderErrors": 0,
   "version": {
     "build": "640547a-muz3fy0b",
@@ -275,7 +181,7 @@
       ],
       "environmentIntensity": 1,
       "road": {
-        "uuid": "eac79cdd-be39-4a01-ba11-cd317d8c2e53",
+        "uuid": "84ae28ff-dcae-4af3-a03e-fe49521a4be3",
         "mesh": "Mesh",
         "material": "MeshStandardMaterial",
         "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
@@ -393,9 +299,9 @@
           ]
         }
       },
-      "programs": 78
+      "programs": 69
     },
-    "glMB": 126.72,
+    "glMB": 123.66,
     "after": {
       "lights": [
         [
@@ -430,7 +336,7 @@
       ],
       "environmentIntensity": 1,
       "road": {
-        "uuid": "eac79cdd-be39-4a01-ba11-cd317d8c2e53",
+        "uuid": "84ae28ff-dcae-4af3-a03e-fe49521a4be3",
         "mesh": "Mesh",
         "material": "MeshStandardMaterial",
         "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
@@ -548,20 +454,20 @@
           ]
         }
       },
-      "programs": 122
+      "programs": 124
     },
     "back": {
       "why": "arrived",
-      "seconds": 15.854,
+      "seconds": 30.026900000095367,
       "feet": {
-        "x": 278.829940347357,
-        "y": 0.44999999966042364,
-        "z": -6.283574718324303e-7
+        "x": 0.00008280473363697638,
+        "y": 0.45000001807952816,
+        "z": 278.8299354444143
       },
       "current": null,
       "inside": null
     },
-    "glMBAfter": 156.43,
-    "readBackExact": false
+    "glMBAfter": 137.1,
+    "readBackExact": true
   }
 }

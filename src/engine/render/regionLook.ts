@@ -18,6 +18,16 @@
  *    A material that reaches no overridden chunk (or only fog chunks with `fog: false`) is left alone: no new program.
  *    Materials the asset cache shares (`isShared`) are left alone too (another region may draw them).
  *
+ * 3. **Its own frame** (SF63 part 2): a look's chunks are written in its level's own world frame (a slab-edge haze that
+ *    starts some metres from the level's centre, cloud shadows tiled on its xz). A grid region is drawn at its cell's offset,
+ *    so inside every inlined region chunk of the fragment stage `cameraPosition` and the engine's fog world position
+ *    `vFogWorldPos` read relative to the region's origin (`wsLookOrigin`, the root's world position, kept by `sweep`).
+ *    The macros wrap the region's chunk text only: a page chunk left as an include inside it, and every other line of the
+ *    material, read the page frame as before.
+ * 4. **Its per-frame parts** (SF63 part 2): the look's sky dressing (`LookStrategy.sky`) builds inside the same sandbox
+ *    (its chunk writes become region overrides; its own uniforms, such as a cloud field, stay its own), and its `update`
+ *    and the look's `frame` run from `frame(dt, t)`, which the caller runs only while the player is in the cell.
+ *
  * The page's programs and chunk text never change, so a page booted as the level itself (SHARD SELECT) is untouched.
  * The patches leave with the region's scope. Generic engine code (E405): no level is named here.
  */
@@ -25,7 +35,7 @@ import * as THREE from 'three';
 import type { Scope } from '../app/scope';
 import { captureFogUniforms } from '../world/Atmosphere';
 import { PATCH_ORDER, patchShader, type ShaderSource } from './shaderPatches';
-import type { FogModel, LightingRig } from './look';
+import type { FogModel, LightingRig, SkyDressing } from './look';
 
 /** A level look's chunk text and fog uniforms, as its installs would have left them on the page now. */
 export interface LookChunks {
@@ -34,6 +44,19 @@ export interface LookChunks {
   readonly chunks: Readonly<Record<string, string>>;
   /** the uniform sets its installs added to the fog uniforms (`addFogUniforms`) */
   readonly uniforms: readonly Readonly<Record<string, THREE.IUniform>>[];
+}
+
+/** The look parts a region scopes: its light model, fog, sky dressing and per-frame hook (`LookStrategy`'s). */
+export interface RegionLookParts {
+  readonly lighting?: LightingRig;
+  readonly fog?: FogModel;
+  readonly sky?: SkyDressing;
+  readonly frame?: (dt: number, t: number) => void;
+}
+/** What a sky dressing's `build` is handed: the page's sky rig and the engine's cloud fbm. */
+export interface DressingHost {
+  readonly sky: Parameters<NonNullable<SkyDressing['build']>>[0];
+  readonly cloudField: () => THREE.Texture;
 }
 
 const captured = new Map<string, LookChunks | null>();
@@ -45,14 +68,19 @@ const chunkNames = (): string[] => Object.keys(THREE.ShaderChunk);
  * Run the look's light model and fog installs in a sandbox and return what they changed (null: they changed nothing,
  * e.g. the page already runs the same look). The page's `ShaderChunk` and fog uniform list are restored exactly.
  */
-export function captureLookChunks(id: string, look: { readonly lighting?: LightingRig; readonly fog?: FogModel }): LookChunks | null {
+export function captureLookChunks(id: string, look: RegionLookParts, dressing?: DressingHost): LookChunks | null {
   const known = captured.get(id);
   if (known !== undefined) return known;
   const before = new Map(chunkNames().map((name) => [name, readChunk(name)]));
   let uniforms: Record<string, THREE.IUniform>[] = [];
   const changed: Record<string, string> = {};
   try {
-    uniforms = captureFogUniforms(() => { look.lighting?.install(); look.fog?.install(); });
+    uniforms = captureFogUniforms(() => {
+      look.lighting?.install(); look.fog?.install();
+      // the sky dressing's build, as `SkyBackdropView.buildClouds` runs it after the installs (a cloud-shadow hook on the sun loop)
+      const build = look.sky?.build;
+      if (build !== undefined && dressing !== undefined) build(dressing.sky, dressing.cloudField());
+    });
   } finally {
     for (const name of chunkNames()) {
       const now = readChunk(name), was = before.get(name);
@@ -88,14 +116,42 @@ function reached(source: string, overrides: Readonly<Record<string, string>>, se
   return out;
 }
 
-/** inline every include that reaches an override with the region's text (the rest stay includes for three) */
-function inline(source: string, overrides: Readonly<Record<string, string>>, depth = 0): string {
+/** the region origin uniform the fragment stage's region chunks read positions against */
+export const ORIGIN_UNIFORM = 'wsLookOrigin';
+/** the names a region chunk reads as world positions (three's camera, the engine fog's world position: Atmosphere.ts) */
+const FRAME_NAMES = ['cameraPosition', 'vFogWorldPos'] as const;
+const DEFINE = FRAME_NAMES.map((name) => `#define ${name} ( ${name} - ${ORIGIN_UNIFORM} )`).join('\n');
+const UNDEF = FRAME_NAMES.map((name) => `#undef ${name}`).join('\n');
+/** a varying's declaration inside region text: declared under its own name, then shifted again */
+const VARYING_DECL = /^[ \t]*((?:flat[ \t]+)?(?:varying|in)[ \t]+(?:(?:lowp|mediump|highp)[ \t]+)?vec3[ \t]+vFogWorldPos[ \t]*;)/gm;
+
+/**
+ * Inline every include that reaches an override with the region's text (the rest stay includes for three). `shift`
+ * (the fragment stage): the region's own text reads positions in its level's frame (FRAME_NAMES, see the header); a page
+ * chunk left as an include inside it is wrapped back to the page frame.
+ */
+function inline(source: string, overrides: Readonly<Record<string, string>>, shift: boolean, inRegion = false, depth = 0): string {
   if (depth > 16) return source;
   return source.replace(INCLUDE, (whole, name: string) => {
-    if (Object.hasOwn(overrides, name)) return inline(overrides[name] ?? '', overrides, depth + 1);
+    if (Object.hasOwn(overrides, name)) {
+      const body = inline(overrides[name] ?? '', overrides, shift, true, depth + 1);
+      if (!shift || inRegion) return body;
+      return `\n${DEFINE}\n${body.replace(VARYING_DECL, (_all, decl: string) => `${UNDEF}\n${decl}\n${DEFINE}`)}\n${UNDEF}\n`;
+    }
     const text = readChunk(name);
-    return text !== undefined && reached(text, overrides).size > 0 ? inline(text, overrides, depth + 1) : whole;
+    if (text !== undefined && reached(text, overrides).size > 0) {
+      // a page chunk that includes a region one: its own lines stay in the page frame
+      const body = inline(text, overrides, shift, false, depth + 1);
+      return shift && inRegion ? `\n${UNDEF}\n${body}\n${DEFINE}\n` : body;
+    }
+    return shift && inRegion ? `\n${UNDEF}\n${whole}\n${DEFINE}\n` : whole;
   });
+}
+/** declare the origin uniform first in a source (after a `#version` line, which must stay first) */
+function declareOrigin(source: string): string {
+  const decl = `uniform highp vec3 ${ORIGIN_UNIFORM};\n`;
+  const version = /^[ \t]*#version[^\n]*\n/u.exec(source);
+  return version === null ? decl + source : version[0] + decl + source.slice(version[0].length);
 }
 
 const UNIFORM = /\buniform\s+(?:(?:lowp|mediump|highp)\s+)?\w+\s+(\w+)\s*(?:\[[^\]]*\])?\s*;/g;
@@ -129,12 +185,17 @@ export function lookChunksFor(material: THREE.Material, look: LookChunks): Reado
   return fogged === true ? hit : new Set([...hit].filter((name) => !name.startsWith('fog_')));
 }
 
-/** Apply the region's chunks to one shader source (the patch body; exposed for tests). */
-export function applyLookChunks(shader: Pick<ShaderSource, 'vertexShader' | 'fragmentShader' | 'uniforms'>, look: LookChunks): void {
+/**
+ * Apply the region's chunks to one shader source (the patch body; exposed for tests). `origin`: the region's origin in
+ * the page frame (a `{ value: Vector3 }` uniform); the fragment stage's region chunks read positions against it.
+ */
+export function applyLookChunks(shader: Pick<ShaderSource, 'vertexShader' | 'fragmentShader' | 'uniforms'>, look: LookChunks, origin?: THREE.IUniform<THREE.Vector3>): void {
   const names = declared(look);
-  shader.vertexShader = dedupeUniforms(inline(shader.vertexShader, look.chunks), names);
-  shader.fragmentShader = dedupeUniforms(inline(shader.fragmentShader, look.chunks), names);
+  shader.vertexShader = dedupeUniforms(inline(shader.vertexShader, look.chunks, false), names);
+  const fragment = inline(shader.fragmentShader, look.chunks, true);
+  shader.fragmentShader = dedupeUniforms(fragment === shader.fragmentShader ? fragment : declareOrigin(fragment), names);
   for (const set of look.uniforms) for (const [name, uniform] of Object.entries(set)) if (!Object.hasOwn(shader.uniforms, name)) shader.uniforms[name] = uniform;
+  shader.uniforms[ORIGIN_UNIFORM] = origin ?? { value: new THREE.Vector3() };
 }
 
 const isMaterial = (value: unknown): value is THREE.Material => value instanceof THREE.Material;
@@ -145,23 +206,37 @@ export interface LookScopeOptions {
   readonly isShared?: (material: THREE.Material) => boolean;
 }
 
+/** A region's scoped look: its material patches and its per-frame parts. */
+export interface ScopedLook {
+  /** patch the materials added since (call it each frame before the region draws, and once right away); keeps the origin */
+  readonly sweep: () => number;
+  readonly patched: () => number;
+  /** the look's per-frame parts (its sky dressing's `update`, its `frame`): run only while the player is in the cell */
+  readonly frame: (dt: number, t: number) => void;
+  /** the region origin the fragment stage reads positions against (page frame) */
+  readonly origin: THREE.Vector3;
+}
+
 /**
- * Scope the look to `root`'s materials; returns `sweep`, which patches the materials added since (call it each frame
- * before the region draws, and once right away). A material compiled before its patch is recompiled once.
+ * Scope the look to `root`'s materials (`sweep`, see `ScopedLook`). A material compiled before its patch is recompiled
+ * once. `parts`: the look's per-frame hooks `frame` runs.
  */
-export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: Scope, options: LookScopeOptions = {}): { sweep: () => number; patched: () => number } {
+export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: Scope, options: LookScopeOptions = {}, parts: Pick<RegionLookParts, 'sky' | 'frame'> = {}): ScopedLook {
   const done = new WeakSet<THREE.Material>();
+  const origin: THREE.IUniform<THREE.Vector3> = { value: new THREE.Vector3() };
   let count = 0;
   const visit = (material: THREE.Material): void => {
     if (done.has(material)) return;
     done.add(material);
     if (options.isShared?.(material) === true || lookChunksFor(material, look).size === 0) return;
     // three keys a program by its shader id (or a ShaderMaterial's original source id) and this key, never the patched text
-    patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look); }, { scope, key: (before) => `${before}|look:${look.id}` });
+    patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look, origin); }, { scope, key: (before) => `${before}|look:${look.id}` });
     material.needsUpdate = true; count++;
   };
   const sweep = (): number => {
     if (scope.disposed) return count;
+    root.updateWorldMatrix(true, false);
+    origin.value.setFromMatrixPosition(root.matrixWorld);
     const before = count;
     root.traverse((node) => {
       const material: unknown = Reflect.get(node, 'material');
@@ -170,5 +245,10 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     });
     return count - before;
   };
-  return { sweep, patched: () => count };
+  const frame = (dt: number, t: number): void => {
+    if (scope.disposed) return;
+    parts.sky?.update?.(dt);
+    parts.frame?.(dt, t);
+  };
+  return { sweep, patched: () => count, frame, origin: origin.value };
 }

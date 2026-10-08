@@ -1,5 +1,5 @@
 // Playtest round 2 drive-in rows: the same spots in SHARD SELECT (the shard alone), the reference for each grid capture.
-// scripts/browser-lane.sh node progress/shard-platform/playtest-2-drivein/standalone.mjs --url=<preview> --out=<dir> --tag=<t> --shard=<Card name> --poses=<json [[name,x,z,yaw,pitch],…] in shard-local metres>
+// scripts/browser-lane.sh node progress/shard-platform/playtest-2-drivein/standalone.mjs --url=<preview> --out=<dir> --tag=<t> --shard=<Card name> --poses=<json [[name,x,z,yaw,pitch,y?],…] in shard-local metres>
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, devices } from 'playwright';
@@ -23,8 +23,8 @@ try {
   await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game) && !document.querySelector('.ws-load'), undefined, { timeout: 300_000 });
   await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
   await page.waitForTimeout(8000);
-  for (const [name, x, z, yaw, pitch] of poses) {
-    await page.evaluate(p => window.__wildshard.pose(p), { x, z, y: 0.55, yaw, pitch });
+  for (const [name, x, z, yaw, pitch, y = 0.55] of poses) { // y: the feet height (default: a road pose)
+    await page.evaluate(p => window.__wildshard.pose(p), { x, z, y, yaw, pitch });
     await page.waitForTimeout(6000);
     await page.evaluate(([y, p]) => { const pl = window.__wildshard.world.player; pl.yaw = y; pl.pitch = p; }, [yaw, pitch]);
     await page.waitForTimeout(1500);

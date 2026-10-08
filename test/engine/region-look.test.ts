@@ -78,6 +78,69 @@ describe('region look (SF63)', () => {
     expect(shader.uniforms['uRampStart']).toBe(fogExtra.uRampStart);
   });
 
+  it('reads positions in the region\'s own frame inside its chunks only (fragment stage), the page lines unshifted', () => {
+    const lookFrame = {
+      fog: { order: 300, install: () => {
+        THREE.ShaderChunk.fog_pars_fragment = '#ifdef USE_FOG\n  varying vec3 vFogWorldPos;\n  #include <frame_probe>\n#endif';
+        THREE.ShaderChunk.fog_fragment = '#ifdef USE_FOG\n  float edge = max( abs( vFogWorldPos.x ), abs( cameraPosition.z ) );\n#endif';
+      } },
+    };
+    Reflect.set(THREE.ShaderChunk, 'frame_probe', 'float pageProbe() { return cameraPosition.x; }');
+    try {
+      const chunks = captureLookChunks('test-frame', lookFrame);
+      if (chunks === null) throw new Error('no capture');
+      const origin = { value: new THREE.Vector3(555, 0, 0) };
+      const shader = {
+        vertexShader: '#include <fog_pars_vertex>\nvoid main() {\n#include <fog_vertex>\n}',
+        fragmentShader: '#version 300 es\n#include <fog_pars_fragment>\nvoid main() {\nvec3 page = cameraPosition;\n#include <fog_fragment>\n}',
+        uniforms: {} as Record<string, THREE.IUniform>,
+      };
+      applyLookChunks(shader, chunks, origin);
+      const f = shader.fragmentShader;
+      expect(f.startsWith('#version 300 es\nuniform highp vec3 wsLookOrigin;\n')).toBe(true);
+      expect(shader.uniforms['wsLookOrigin']).toBe(origin);
+      // the declaration keeps its own name, then the shift resumes for the region's lines
+      expect(f).toMatch(/#undef vFogWorldPos\nvarying vec3 vFogWorldPos;\n#define cameraPosition/u);
+      // the page chunk inside the region's text, and the material's own line, read the page frame
+      expect(f).toMatch(/#undef cameraPosition\n#undef vFogWorldPos\n {2}#include <frame_probe>\n#define cameraPosition/u);
+      const pageLine = f.indexOf('vec3 page = cameraPosition;'), lastUndef = f.lastIndexOf('#undef cameraPosition', pageLine), lastDefine = f.lastIndexOf('#define cameraPosition', pageLine);
+      expect(lastUndef).toBeGreaterThan(lastDefine);
+      expect(f.match(/#define vFogWorldPos \( vFogWorldPos - wsLookOrigin \)/gu)?.length).toBe(4); // each region chunk, after its declaration, after the page include
+      // the vertex stage is never shifted
+      expect(shader.vertexShader).not.toContain('wsLookOrigin');
+    } finally { Reflect.deleteProperty(THREE.ShaderChunk, 'frame_probe'); }
+  });
+
+  it('builds the sky dressing in the sandbox and runs its per-frame parts only through frame(), until the scope ends', () => {
+    const cloud = new THREE.Texture(), field = { value: null as THREE.Texture | null };
+    let drift = 0, frames = 0;
+    const page = THREE.ShaderChunk.lights_fragment_begin;
+    const parts = {
+      fog: { order: 300, install: () => { THREE.ShaderChunk.fog_fragment = '#ifdef USE_FOG\n// dressing fog\n#endif'; } },
+      sky: { clouds: false, planet: false,
+        build: (_sky: unknown, tex: THREE.Texture) => { field.value = tex; THREE.ShaderChunk.lights_fragment_begin += '\n// cloud shadow hook'; },
+        update: (dt: number) => { drift += dt; } },
+      frame: () => { frames++; },
+    };
+    const host = { sky: {} as Parameters<NonNullable<typeof parts.sky.build>>[0], cloudField: () => cloud };
+    const chunks = captureLookChunks('test-dressing', parts, host as Parameters<typeof captureLookChunks>[2]);
+    expect(chunks?.chunks['lights_fragment_begin']).toContain('// cloud shadow hook');
+    expect(THREE.ShaderChunk.lights_fragment_begin).toBe(page); // the page's sun loop is put back
+    expect(field.value).toBe(cloud); // the dressing's own uniform keeps its value
+    if (chunks === null) throw new Error('no capture');
+    const root = new THREE.Group(), scope = new Scope('region');
+    root.position.set(555, 0, -20);
+    const scoped = scopeLookChunks(root, chunks, scope, {}, parts);
+    expect(drift).toBe(0);
+    scoped.sweep();
+    expect(scoped.origin.toArray()).toEqual([555, 0, -20]);
+    scoped.frame(0.5, 1); scoped.frame(0.25, 1.25);
+    expect(drift).toBe(0.75); expect(frames).toBe(2);
+    scope.dispose();
+    scoped.frame(1, 2);
+    expect(drift).toBe(0.75); expect(frames).toBe(2);
+  });
+
   it('binds a frame level\'s own look parts (its grass driver) and nothing outside a frame', () => {
     const grass: GrassDriver = { build: () => ({ group: new THREE.Group(), update: () => undefined }) };
     expect(boundLevelLook()).toBeUndefined();

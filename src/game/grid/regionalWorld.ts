@@ -165,6 +165,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       if (left()) throw new Error('Regional world left while building its forest');
       const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
       let world: ShardWorld | null = null;
+      // SF63 part 2: the region's scoped look (Region look B), whose per-frame parts run only while its cell is entered
+      let regionLook: ReturnType<SkyRig['scopeLevelLook']> = null;
       // its light on the page's one sky: held on each entry, put back on leave (G223); its first entry starts from its own level's light
       const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game }), () => { applyLevelLight({ sky, scene }, level); }) : null;
       const foundation: RegionalRuntimeFoundation = {
@@ -194,6 +196,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
             const lookCensus = (): void => { if (scoped.sweep() > 0) console.info(`[region look] ${cell.instance}: ${scoped.patched()} materials on ${level.id}'s light and fog`); };
             lookCensus();
             app.addSystem({ id: `grid.look.${cell.instance}`, phase: 'late', run: lookCensus }, resident);
+            regionLook = scoped;
           }
           if (forest.trees.length > 0 && forest.drawer === 'self') withOwner(view.scope, () => view.registry.add({ id: `forest:${cell.instance}`, name: 'Forest', category: 'nature',
             file: 'src/engine/world/forest/Forest.ts', surface: 'wood', colliders: forest.colliderDescs() }));
@@ -207,6 +210,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           const leaveScene = game.bindScene(scene, entry); bound++;
           entry.onDispose(() => { leaveScene(); bound--; });
           app.addSystem({ id: `grid.runtime.${cell.instance}.forest`, phase: 'update', run: (dt) => { forest.update(dt, home.player.position); } }, entry);
+          // its look's per-frame parts (its sky dressing's update, its frame hook) while entered: they write its own uniforms only
+          const scopedLook = regionLook;
+          if (scopedLook !== null) app.addSystem({ id: `grid.look.${cell.instance}.frame`, phase: 'update', run: (dt, t) => { scopedLook.frame(dt, t); } }, entry);
         },
         afterKit: async () => {
           if (resident.disposed) throw new Error('Regional world left before its creatures');

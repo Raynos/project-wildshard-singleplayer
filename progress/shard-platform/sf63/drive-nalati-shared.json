@@ -1,16 +1,16 @@
 {
-  "base": "http://127.0.0.1:4402",
+  "base": "http://127.0.0.1:4400",
   "tag": "shared",
   "scene": "nalati",
   "stops": [
     {
       "drive": {
         "why": "arrived",
-        "seconds": 8.464800000190735,
+        "seconds": 7.741099999904632,
         "feet": {
-          "x": 320.6774720252179,
-          "y": 0.44999201025509045,
-          "z": 0.0022681715454369727
+          "x": 320.67801240661,
+          "y": 0.4500000326996144,
+          "z": 0.0012568240745155085
         },
         "current": "nalati-grasslands",
         "inside": "nalati-grasslands"
@@ -22,32 +22,36 @@
       ],
       "probe": {
         "player": [
-          -232.94503000052276,
-          0.4499999999999999,
-          -0.00009427501800145233
+          -232.9444882241259,
+          0.45,
+          -0.00005277548081165928
         ],
         "camera": [
-          322.05496999947724,
+          322.0555117758741,
           2.13,
-          -0.00009427501800145233
+          -0.00005277548081165928
         ],
-        "programs": 134,
+        "programs": 187,
         "memory": {
-          "geometries": 167,
-          "textures": 106
+          "geometries": 171,
+          "textures": 167
         },
-        "glMB": null,
+        "glMB": 301.32,
         "skies": {}
-      }
+      },
+      "look": [
+        null,
+        null
+      ]
     },
     {
       "drive": {
         "why": "arrived",
-        "seconds": 11.843699999809266,
+        "seconds": 11.841099999904632,
         "feet": {
-          "x": 468.64278871938956,
-          "y": 26.9584328339686,
-          "z": 0.020855466353148833
+          "x": 468.6425690632132,
+          "y": 26.958423548957118,
+          "z": 0.02082298217291978
         },
         "current": "nalati-grasslands",
         "inside": "nalati-grasslands"
@@ -59,23 +63,27 @@
       ],
       "probe": {
         "player": [
-          -84.97987388027462,
-          27.006550803006203,
-          -0.00030926639467154793
+          -84.9800929798111,
+          27.00654310621853,
+          -0.0003053734680200648
         ],
         "camera": [
-          470.0201261197254,
-          28.686550811064908,
-          -0.00030926639467154793
+          470.0199070201889,
+          28.686543107098462,
+          -0.0003053734680200648
         ],
-        "programs": 134,
+        "programs": 187,
         "memory": {
-          "geometries": 173,
-          "textures": 124
+          "geometries": 176,
+          "textures": 167
         },
-        "glMB": null,
+        "glMB": 303.4,
         "skies": {}
-      }
+      },
+      "look": [
+        null,
+        null
+      ]
     }
   ],
   "errors": [],
@@ -88,7 +96,331 @@
   "look": [],
   "shaderErrors": 0,
   "version": {
-    "build": "1120ac8-muz2vog7",
-    "time": "2026-10-08T05:10:37.071Z"
+    "build": "640547a-muz3fy0b",
+    "time": "2026-10-08T05:26:23.295Z"
+  },
+  "road": {
+    "before": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          0.9,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.686685,
+            0.391572,
+            0.187821
+          ]
+        ]
+      ],
+      "fog": [
+        0.362108,
+        0.389097,
+        0.424088
+      ],
+      "environmentIntensity": 1,
+      "road": {
+        "uuid": "a7e1d735-22c4-48ed-87ae-80c3dc83a4e3",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            1,
+            1,
+            1
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "reflectivity": 1,
+          "ior": 1.5,
+          "refractionRatio": 0.98,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 2000,
+          "fogColor": [
+            1,
+            1,
+            1
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 1,
+          "metalness": 0,
+          "envMapIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            0.384111,
+            0.768221,
+            0.512148
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 69
+    },
+    "glMB": 123.66,
+    "after": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          0.9,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.686685,
+            0.391572,
+            0.187821
+          ]
+        ]
+      ],
+      "fog": [
+        0.362108,
+        0.389097,
+        0.424088
+      ],
+      "environmentIntensity": 1,
+      "road": {
+        "uuid": "a7e1d735-22c4-48ed-87ae-80c3dc83a4e3",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            0.01033,
+            0.012286,
+            0.017642
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "reflectivity": 1,
+          "ior": 1.5,
+          "refractionRatio": 0.98,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 1000000,
+          "fogColor": [
+            0.362108,
+            0.389097,
+            0.424088
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 0.55,
+          "metalness": 0.35,
+          "envMapIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            0.384111,
+            0.768221,
+            0.512148
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 113
+    },
+    "back": {
+      "why": "arrived",
+      "seconds": 15.845900000095368,
+      "feet": {
+        "x": 278.82994805618006,
+        "y": 0.4500000154682491,
+        "z": 1.491391810048981e-7
+      },
+      "current": null,
+      "inside": null
+    },
+    "glMBAfter": 153.36,
+    "readBackExact": false
   }
 }

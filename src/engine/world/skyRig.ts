@@ -2,7 +2,7 @@ import { SkyBackdropView } from './skyBackdrop';
 import { BackdropLayer } from './backdropLayer';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
-import { captureLookChunks, scopeLookChunks, type LookScopeOptions } from '../render/regionLook';
+import { captureLookChunks, scopeLookChunks, type LookScopeOptions, type RegionLookParts, type ScopedLook } from '../render/regionLook';
 import * as THREE from 'three';
 import type { Renderer } from '../render/renderer';
 import { TIER, TIER_CONFIG } from '../core/tier';
@@ -218,16 +218,17 @@ export class SkyRig {
   }
 
   /**
-   * SF63: a level's light model and fog (`LookStrategy.lighting` / `fog`) on the materials under `root` only, while
-   * Settings ▸ Debug ▸ Region look is B (the region's own), as region-keyed program variants (`render/regionLook.ts`);
-   * the page's chunks and programs never change. Null with the row on A (the default) or when the level's installs change
-   * nothing on this page. `sweep` patches materials added since (call it before each frame the subtree draws); the
-   * patches leave with `scope`.
+   * SF63: a level's light model, fog and sky dressing (`LookStrategy.lighting` / `fog` / `sky`) on the materials under
+   * `root` only, while Settings ▸ Debug ▸ Region look is B (the region's own), as region-keyed program variants
+   * (`render/regionLook.ts`); the page's chunks and programs never change. Null with the row on A (the default) or when
+   * the level's installs change nothing on this page. `sweep` patches materials added since (call it before each frame
+   * the subtree draws); `frame` runs the look's per-frame parts (its dressing's `update`, its `frame`: call it only while
+   * the player is in the cell); the patches leave with `scope`.
    */
-  scopeLevelLook(root: THREE.Object3D, level: { readonly id: string }, look: Pick<LookStrategy, 'lighting' | 'fog'>, scope: Scope, options: LookScopeOptions = {}): { sweep: () => number; patched: () => number } | null {
+  scopeLevelLook(root: THREE.Object3D, level: { readonly id: string }, look: RegionLookParts, scope: Scope, options: LookScopeOptions = {}): ScopedLook | null {
     if (setting('regionSky') !== 'own') return null;
-    const chunks = captureLookChunks(level.id, look);
-    return chunks === null ? null : scopeLookChunks(root, chunks, scope, options);
+    const chunks = captureLookChunks(level.id, look, { sky: this, cloudField: () => this.visual.cloudField() });
+    return chunks === null ? null : scopeLookChunks(root, chunks, scope, options, look);
   }
 
   attachPost(post: SkyBackdropPost): void { this.backdrop?.attachPost(post); }

@@ -1,11 +1,15 @@
 // SF63 (SHARD-PLATFORM, E435), from playtest round 2's drive-in: a Developer-ON grid boot, a pose onto the road only, then a
 // held-input drive into the cell (never a teleport inside it), and the captures at each stop, with the region look census
 // ([region look] lines), shader errors, the renderer's program count and GL bytes at each stop.
+// SF63 part 2: GL MB from the GL byte census (scripts/parity/glbytes.mjs `__sc_gl`, the readout pine-sky2 used), the region
+// look's live uniforms inside the cell (its origin, toon / painted-fog values, sampled twice to show the per-frame drive),
+// and the page read-back: the road's shared light and a road material's uniforms before entry and after driving back out.
 // scripts/browser-lane.sh node progress/shard-platform/sf63/drive.mjs --url=<preview> --out=<dir> --tag=<before|after> --scene=<plot|nalati|pine> [--settings='{"regionSky":"own"}']
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, devices } from 'playwright';
 import { debugSettings, saveFixture } from '../../../scripts/debug-settings.mjs';
+import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
 const arg = key => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3) ?? '';
 const base = arg('url'), out = arg('out'), tag = arg('tag'), scene = arg('scene'), settings = JSON.parse(arg('settings') || 'null');
 if (!base || !out || !tag || !scene) throw new Error('Pass --url, --out, --tag and --scene');
@@ -20,16 +24,16 @@ const SCENES = {
   nalati: { road: { x: 277.5, z: 0, yaw: E }, stops: [
     { at: [{ x: 322, z: 0 }], shots: [['nalati-entry-road-e', E, 0.3], ['nalati-entry-n', N, 0.03], ['nalati-entry-w', W, 0.03]] },
     { at: [{ x: 470, z: 0 }], shots: [['nalati-inside-e', E, 0.05], ['nalati-inside-n', N, 0.03], ['nalati-inside-w', W, 0.03]] },
-  ] },
+  ], back: [{ x: 322, z: 0 }, { x: 277.5, z: 0 }] },
   driftwood: { road: { x: 277.5, z: 0, yaw: W }, stops: [
     { at: [{ x: 230, z: 0 }], shots: [['driftwood-entry-w', W, 0.05]] },
     { at: [{ x: 120, z: 0 }], shots: [['driftwood-inside-w', W, 0.08], ['driftwood-inside-n', N, 0.08]] },
-  ] },
+  ], back: [{ x: 230, z: 0 }, { x: 277.5, z: 0 }] },
   pine: { road: { x: 0, z: 277.5, yaw: N }, stops: [
     { at: [{ x: 0, z: 330 }], shots: [['pine-entry-n', N, 0.05]] },
     { at: [{ x: 0, z: 470 }, { x: 60, z: 555 }], shots: [['pine-forest-e', E, 0.05]] },
     { at: [{ x: 120, z: 555 }], shots: [['pine-forest-120-e', E, 0.05], ['pine-forest-120-n', N, 0.05]] },
-  ] },
+  ], back: [{ x: 60, z: 555 }, { x: 0, z: 470 }, { x: 0, z: 330 }, { x: 0, z: 277.5 }] },
 };
 const plan = SCENES[scene];
 if (!plan) throw new Error(`Unknown scene ${scene}`);
@@ -37,6 +41,7 @@ const report = { base, tag, scene, stops: [], errors: [], console: [], look: [],
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const context = await browser.newContext(devices['iPhone 16 Pro']);
+  await context.addInitScript(GL_INIT);
   await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
   if (settings !== null) await debugSettings(context, settings); // a Debug row (pause ▸ Settings ▸ Debug), never a URL switch
   await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
@@ -62,8 +67,7 @@ try {
     await api.pose({ x: road.x - origin.x, y: 0.55, z: road.z - origin.z, yaw: road.yaw, pitch: 0 });
   }, plan.road);
   await page.waitForTimeout(5000);
-  for (const stop of plan.stops) {
-    const drive = await page.evaluate(async waypoints => {
+  const driveTo = waypoints => page.evaluate(async waypoints => {
       const api = window.__wildshard, world = api.world, player = world.player, input = world.game.app.input;
       const oldLimit = player.hoverSpeedLimit; let distance = 100;
       player.setHover(true); input.clear();
@@ -85,7 +89,46 @@ try {
           });
         });
       } finally { input.clear(); player.hoverSpeedLimit = oldLimit; }
-    }, stop.at);
+    }, waypoints);
+  // the page's own look as the road sees it: the shared light and every value of a road material's uniforms (clocks aside)
+  const pageState = uuid => page.evaluate(uuid => {
+    const api = window.__wildshard, game = api.world.game, scene = game.rootScene, props = game.renderer.properties;
+    const r6 = n => Math.round(n * 1e6) / 1e6, val = v => (typeof v === 'number' ? r6(v) : v?.isColor || v?.isVector2 || v?.isVector3 || v?.isVector4 ? v.toArray().map(r6) : undefined);
+    const inRegion = o => { for (let n = o; n; n = n.parent) if (n.name?.startsWith('region:')) return true; return false; };
+    const lights = [];
+    scene.traverse(o => { if ((o.isDirectionalLight || o.isHemisphereLight) && o.visible) lights.push([o.type, r6(o.intensity), val(o.color), o.groundColor ? val(o.groundColor) : null]); });
+    let road = null;
+    scene.traverse(o => {
+      if (road !== null || !o.isMesh || !o.visible || inRegion(o) || (uuid !== undefined && o.uuid !== uuid)) return;
+      const u = props.get(o.material)?.uniforms;
+      if (!u || !('fogDistDensity' in u)) return;
+      const values = {};
+      for (const [k, x] of Object.entries(u)) { if (/time|Time/u.test(k)) continue; const v = val(x?.value); if (v !== undefined) values[k] = v; }
+      road = { uuid: o.uuid, mesh: o.name || o.type, material: o.material.type, program: props.get(o.material)?.currentProgram?.cacheKey?.slice(-60) ?? null, values };
+    });
+    return { lights, fog: scene.fog ? val(scene.fog.color) : null, environmentIntensity: r6(scene.environmentIntensity ?? 1), road, programs: game.renderer.info.programs?.length ?? null };
+  }, uuid);
+  // the region look's live uniforms inside the cell (a patched material of the current region)
+  const lookState = () => page.evaluate(() => {
+    const api = window.__wildshard, game = api.world.game, props = game.renderer.properties, live = api.shard.grid.state().live?.live;
+    const r4 = n => Math.round(n * 1e4) / 1e4, val = v => (typeof v === 'number' ? r4(v) : v?.toArray ? v.toArray().map(r4) : v?.isTexture ? `texture:${v.name || v.uuid.slice(0, 8)}` : v === null ? null : undefined);
+    let found = null;
+    game.rootScene.traverse(o => {
+      if (found !== null || !o.isMesh) return;
+      let root = null; for (let n = o; n; n = n.parent) if (n.name?.startsWith('region:')) root = n.name;
+      if (root === null || !root.endsWith(live?.current ?? '?')) return;
+      const u = props.get(Array.isArray(o.material) ? o.material[0] : o.material)?.uniforms;
+      if (!u || !('wsLookOrigin' in u)) return;
+      const pick = {};
+      for (const k of ['wsLookOrigin', 'uToonNight', 'uToonLift', 'uFogNear', 'uCloudTime', 'fogV2', 'fogEdgeV2', 'fogCloudOff', 'fogCloudTex', 'uV2KeyTint', 'fogDistDensity', 'fogHeightDensity']) if (k in u) pick[k] = val(u[k].value);
+      found = { root, mesh: o.name || o.type, uniforms: pick };
+    });
+    return found;
+  });
+  const glMB = () => page.evaluate(() => { const gl = typeof window.__sc_gl === 'function' ? window.__sc_gl() : []; return Math.round(gl.reduce((s, c) => s + c.totalBytes, 0) / 1e4) / 100; });
+  report.road = { before: await pageState(), glMB: await glMB() };
+  for (const stop of plan.stops) {
+    const drive = await driveTo(stop.at);
     await page.waitForTimeout(6000);
     const shots = [];
     for (const [name, yaw, pitch] of stop.shots) {
@@ -98,13 +141,27 @@ try {
     const probe = await page.evaluate(() => {
       const api = window.__wildshard, c = api.world.game.camera.position, p = api.world.player.position, r = api.world.game.renderer;
       const gpu = window.__wildshardHarness?.gpuBytes?.() ?? null;
-      return { player: [p.x, p.y, p.z], camera: [c.x, c.y, c.z], programs: r.info.programs?.length ?? null, memory: { ...r.info.memory },
+      const lookPrograms = {};
+      for (const program of r.info.programs ?? []) { const id = /\|look:([\w-]+)/u.exec(program.cacheKey ?? '')?.[1]; if (id) lookPrograms[id] = (lookPrograms[id] ?? 0) + 1; }
+      return { player: [p.x, p.y, p.z], camera: [c.x, c.y, c.z], programs: r.info.programs?.length ?? null, lookPrograms, memory: { ...r.info.memory },
         glMB: gpu === null ? null : Math.round(gpu.total / 1e5) / 10, skies: api.shard.grid.state().frame?.skies ?? null };
     });
-    report.stops.push({ drive, shots, probe });
+    const look = await lookState(); await page.waitForTimeout(1000); const look2 = await lookState();
+    report.stops.push({ drive, shots, probe: { ...probe, glMB: await glMB() }, look: [look, look2] });
+  }
+  if (plan.back) {
+    const drive = await driveTo(plan.back);
+    await page.waitForTimeout(6000);
+    const after = await pageState(report.road.before.road?.uuid);
+    // the look's shared uniforms only: three refreshes a material's own values (diffuse, roughness, scene fog near / far) at
+    // its next draw, so a road mesh not yet drawn at the first read still holds three's defaults there
+    const OWN = new Set(['diffuse', 'opacity', 'roughness', 'metalness', 'emissive', 'emissiveIntensity', 'envMapIntensity', 'fogColor', 'fogNear', 'fogFar', 'fogDensity', 'flipEnvMap', 'ior', 'refractionRatio', 'reflectivity', 'specular', 'shininess', 'alphaTest', 'lightMapIntensity', 'aoMapIntensity', 'normalScale', 'displacementScale', 'displacementBias', 'bumpScale']);
+    const look = road => Object.fromEntries(Object.entries(road?.values ?? {}).filter(([k]) => !OWN.has(k) && !/Transform$/u.test(k)));
+    const same = JSON.stringify(after.lights) === JSON.stringify(report.road.before.lights) && JSON.stringify(look(after.road)) === JSON.stringify(look(report.road.before.road)) && after.fog?.join() === report.road.before.fog?.join() && after.environmentIntensity === report.road.before.environmentIntensity;
+    report.road.after = after; report.road.back = drive; report.road.glMBAfter = await glMB(); report.road.readBackExact = same;
   }
   await context.close();
 } catch (e) { report.failure = String(e?.stack ?? e); }
 finally { await browser.close(); writeFileSync(join(out, `drive-${scene}-${tag}.json`), `${JSON.stringify(report, null, 2)}\n`); }
-console.log(JSON.stringify({ failure: report.failure ?? null, errors: report.errors.slice(0, 5), shaderErrors: report.shaderErrors, look: report.look, stops: report.stops.map(s => ({ ...s.probe, drive: s.drive.why })) }));
+console.log(JSON.stringify({ failure: report.failure ?? null, errors: report.errors.slice(0, 5), shaderErrors: report.shaderErrors, look: report.look, road: { glMB: report.road?.glMB, glMBAfter: report.road?.glMBAfter, readBackExact: report.road?.readBackExact ?? null }, stops: report.stops.map(s => ({ programs: s.probe.programs, lookPrograms: s.probe.lookPrograms, glMB: s.probe.glMB, drive: s.drive.why, look: s.look })) }));
 if (report.failure) process.exitCode = 1;

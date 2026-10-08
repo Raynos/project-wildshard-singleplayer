@@ -98,6 +98,19 @@ export class SkyBackdropView {
     this.scene.environment = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();
   }
+  private cloudTex: THREE.Texture | null = null;
+  /**
+   * The engine's tileable cloud fbm (R): the one the page's cloud layer or dressing was built with, else made once and
+   * freed with the sky's scope (SF63: a grid region's sky dressing builds on it, `render/regionLook.ts`).
+   */
+  cloudField(): THREE.Texture {
+    if (this.cloudTex !== null) return this.cloudTex;
+    const tex = bakedTexture('clouds', makeCloudTexture);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.needsUpdate = true;
+    this.scope.onDispose(() => { tex.dispose(); });
+    this.cloudTex = tex;
+    return tex;
+  }
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   buildClouds(): void {
     const dressing = this.dressing;
@@ -105,6 +118,7 @@ export class SkyBackdropView {
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus: ~200 ms of phone CPU when not baked
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    this.cloudTex = tex;
     if (dressing !== null) {
       // a level's own sky (LookStrategy.sky): the cloud fbm is its to use (a painted sky's cloud shadows); `clouds: false` = no layer
       tex.needsUpdate = true;

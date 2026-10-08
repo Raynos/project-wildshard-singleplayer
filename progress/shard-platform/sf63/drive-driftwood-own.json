@@ -1,222 +1,199 @@
 {
   "base": "http://127.0.0.1:4400",
   "tag": "own",
-  "scene": "nalati",
+  "scene": "driftwood",
   "stops": [
     {
       "drive": {
         "why": "arrived",
-        "seconds": 7.972699999809265,
+        "seconds": 6.327599999904632,
         "feet": {
-          "x": 320.67800951802155,
-          "y": 0.45000011144348134,
-          "z": 0.0012911310586774666
+          "x": 231.3148475187768,
+          "y": 0.9162631145936283,
+          "z": 0.0013375105027067583
         },
-        "current": "nalati-grasslands",
-        "inside": "nalati-grasslands"
+        "current": "driftwood-isle",
+        "inside": "driftwood-isle"
       },
       "shots": [
-        "nalati-entry-road-e",
-        "nalati-entry-n",
-        "nalati-entry-w"
+        "driftwood-entry-w"
       ],
       "probe": {
         "player": [
-          -232.944491140654,
-          0.4500000000000001,
-          -0.000054213111867637553
+          229.93734823606746,
+          1.1250209222800194,
+          -0.00006373160062039113
         ],
         "camera": [
-          322.055508859346,
-          2.13,
-          -0.000054213111867637553
+          229.93734823606746,
+          2.8050209211286172,
+          -0.00006373160062039113
         ],
-        "programs": 216,
-        "memory": {
-          "geometries": 181,
-          "textures": 170
+        "programs": 171,
+        "lookPrograms": {
+          "driftwood-isle": 31
         },
-        "glMB": 305.78,
-        "skies": {}
+        "memory": {
+          "geometries": 248,
+          "textures": 83
+        },
+        "glMB": 216.29,
+        "skies": {
+          "driftwood-isle": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 0,
+            "reserved": 0
+          }
+        }
       },
       "look": [
         {
-          "root": "region:nalati-grasslands",
+          "root": "region:driftwood-isle",
           "mesh": "Mesh",
           "uniforms": {
             "wsLookOrigin": [
-              555,
+              0,
               0,
               0
             ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
             ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
             ],
-            "fogCloudOff": [
-              0.2862,
-              -0.1545
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
+            "uCloudTime": 20.0876,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
           }
         },
         {
-          "root": "region:nalati-grasslands",
+          "root": "region:driftwood-isle",
           "mesh": "Mesh",
           "uniforms": {
             "wsLookOrigin": [
-              555,
+              0,
               0,
               0
             ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
             ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
             ],
-            "fogCloudOff": [
-              0.3039,
-              -0.1639
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
+            "uCloudTime": 21.0877,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
           }
         }
       ]
     },
     {
       "drive": {
-        "why": "arrived",
-        "seconds": 11.841699999809265,
+        "why": "timeout",
+        "seconds": 120.00169999980926,
         "feet": {
-          "x": 468.64298165997707,
-          "y": 26.95844157324393,
-          "z": 0.020872392840663778
+          "x": 159.59934481468326,
+          "y": 0.24376615078619387,
+          "z": -0.0002816197906102755
         },
-        "current": "nalati-grasslands",
-        "inside": "nalati-grasslands"
+        "current": "driftwood-isle",
+        "inside": "driftwood-isle"
       },
       "shots": [
-        "nalati-inside-e",
-        "nalati-inside-n",
-        "nalati-inside-w"
+        "driftwood-inside-w",
+        "driftwood-inside-n"
       ],
       "probe": {
         "player": [
-          -84.97968125819943,
-          27.00655849767735,
-          -0.0003125241211652252
+          159.59934223260598,
+          0.24417808498515786,
+          -0.00028328825484504744
         ],
         "camera": [
-          470.02031874180057,
-          28.6865584956249,
-          -0.0003125241211652252
+          159.59934223260598,
+          1.924178084993359,
+          -0.00028328825484504744
         ],
-        "programs": 216,
-        "memory": {
-          "geometries": 186,
-          "textures": 170
+        "programs": 171,
+        "lookPrograms": {
+          "driftwood-isle": 31
         },
-        "glMB": 307.86,
-        "skies": {}
+        "memory": {
+          "geometries": 250,
+          "textures": 86
+        },
+        "glMB": 216.39,
+        "skies": {
+          "driftwood-isle": {
+            "weight": 1,
+            "drawn": true,
+            "bytes": 0,
+            "reserved": 0
+          }
+        }
       },
       "look": [
         {
-          "root": "region:nalati-grasslands",
+          "root": "region:driftwood-isle",
           "mesh": "Mesh",
           "uniforms": {
             "wsLookOrigin": [
-              555,
+              0,
               0,
               0
             ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
             ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
             ],
-            "fogCloudOff": [
-              0.7606,
-              -0.3947
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
+            "uCloudTime": 152.2482,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
           }
         },
         {
-          "root": "region:nalati-grasslands",
+          "root": "region:driftwood-isle",
           "mesh": "Mesh",
           "uniforms": {
             "wsLookOrigin": [
-              555,
+              0,
               0,
               0
             ],
-            "fogV2": [
-              0.0032,
-              30,
-              -10,
-              0.002
+            "uToonNight": 0,
+            "uToonLift": [
+              0.08,
+              0.05,
+              0.13
             ],
-            "fogEdgeV2": [
-              0.95,
-              251,
-              270,
-              20
+            "uFogNear": [
+              0.5,
+              0.6,
+              0.98
             ],
-            "fogCloudOff": [
-              0.7791,
-              -0.4039
-            ],
-            "fogCloudTex": "texture:5248cea4",
-            "uV2KeyTint": [
-              1,
-              1,
-              1
-            ],
-            "fogDistDensity": 0.002,
-            "fogHeightDensity": 0.0006
+            "uCloudTime": 153.2485,
+            "fogDistDensity": 0.0001,
+            "fogHeightDensity": 0.0004
           }
         }
       ]
@@ -232,8 +209,8 @@
   "look": [
     "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog",
     "[region look] driftwood-isle: 90 materials on driftwood-isle's light and fog",
-    "[region look] nalati-grasslands: 5 materials on nalati-grasslands's light and fog",
-    "[region look] nalati-grasslands: 103 materials on nalati-grasslands's light and fog"
+    "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog",
+    "[region look] driftwood-isle: 83 materials on driftwood-isle's light and fog"
   ],
   "shaderErrors": 0,
   "version": {
@@ -275,7 +252,7 @@
       ],
       "environmentIntensity": 1,
       "road": {
-        "uuid": "eac79cdd-be39-4a01-ba11-cd317d8c2e53",
+        "uuid": "c1128f3f-c341-4278-8efa-2cd8ecdb473e",
         "mesh": "Mesh",
         "material": "MeshStandardMaterial",
         "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
@@ -393,7 +370,7 @@
           ]
         }
       },
-      "programs": 78
+      "programs": 80
     },
     "glMB": 126.72,
     "after": {
@@ -410,30 +387,30 @@
         ],
         [
           "HemisphereLight",
-          0.9,
+          1.15,
           [
             0.198069,
             0.278894,
             0.904661
           ],
           [
-            0.686685,
-            0.391572,
-            0.187821
+            0.806952,
+            0.47932,
+            0.278894
           ]
         ]
       ],
       "fog": [
-        0.362108,
-        0.389097,
-        0.424088
+        0.36,
+        0.7,
+        1
       ],
-      "environmentIntensity": 1,
+      "environmentIntensity": 0.7,
       "road": {
-        "uuid": "eac79cdd-be39-4a01-ba11-cd317d8c2e53",
+        "uuid": "c1128f3f-c341-4278-8efa-2cd8ecdb473e",
         "mesh": "Mesh",
         "material": "MeshStandardMaterial",
-        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388624,8389635,srgb,e=>{C(e)}",
         "values": {
           "diffuse": [
             0.01033,
@@ -442,9 +419,6 @@
           ],
           "opacity": 1,
           "alphaTest": 0,
-          "reflectivity": 1,
-          "ior": 1.5,
-          "refractionRatio": 0.98,
           "aoMapIntensity": 1,
           "lightMapIntensity": 1,
           "bumpScale": 1,
@@ -458,9 +432,9 @@
           "fogNear": 1,
           "fogFar": 1000000,
           "fogColor": [
-            0.362108,
-            0.389097,
-            0.424088
+            0.36,
+            0.7,
+            1
           ],
           "probesMin": [
             0,
@@ -484,7 +458,7 @@
           ],
           "roughness": 0.55,
           "metalness": 0.35,
-          "envMapIntensity": 1,
+          "envMapIntensity": 0.7,
           "clearcoat": 0,
           "clearcoatNormalScale": [
             1,
@@ -527,9 +501,9 @@
             0
           ],
           "fogSunDir": [
-            0.384111,
-            0.768221,
-            0.512148
+            -0.345197,
+            0.783291,
+            -0.517006
           ],
           "fogSunColor": [
             1,
@@ -548,20 +522,20 @@
           ]
         }
       },
-      "programs": 122
+      "programs": 171
     },
     "back": {
-      "why": "arrived",
-      "seconds": 15.854,
+      "why": "timeout",
+      "seconds": 120.00860000038146,
       "feet": {
-        "x": 278.829940347357,
-        "y": 0.44999999966042364,
-        "z": -6.283574718324303e-7
+        "x": 177.399893661051,
+        "y": -0.25984029943853076,
+        "z": 0.0004693671567824534
       },
-      "current": null,
-      "inside": null
+      "current": "driftwood-isle",
+      "inside": "driftwood-isle"
     },
-    "glMBAfter": 156.43,
+    "glMBAfter": 216.39,
     "readBackExact": false
   }
 }
