@@ -13,7 +13,7 @@ function fixture(cycle, overrides = {}) {
     collect: () => { calls.push('collect'); return Promise.resolve(); }, command: (binary, args) => { calls.push([binary, ...args]); return Promise.resolve('native output'); },
     write: (path, text) => writes.set(path, text), ...overrides } };
 }
-test('four-circuit mode refuses every mixed/qualifying mode and preserves the original warm-up plans', () => {
+void test('four-circuit mode refuses every mixed/qualifying mode and preserves the original warm-up plans', () => {
   assert.equal(circuitDiagnostic('', context), null); assert.equal(circuitDiagnostic(4, context), 4);
   for (const changed of [{ qualifying: true }, { dryRun: true }, { contentCut: {} }, { firstCrossing: true }, { layout: 'shipped' }, { leg: 'road' }, { routeScope: 'catalogue' }]) {
     assert.throws(() => circuitDiagnostic(4, { ...context, ...changed }), /Four-circuit/);
@@ -24,7 +24,7 @@ test('four-circuit mode refuses every mixed/qualifying mode and preserves the or
   assert.deepEqual(circuitPlans(route, 1, null), ['cell']);
   assert.deepEqual(circuitPlans(route, 0, 4), ['cell']);
 });
-test('native and passive readings precede the intrusive heap, all reads use the same PID, and raw heap is retained', async () => {
+void test('native and passive readings precede the intrusive heap, all reads use the same PID, and raw heap is retained', async () => {
   const f = fixture(2), row = await captureBoundary(f.options);
   assert.deepEqual(f.calls.filter(Array.isArray), [['vmmap', '-summary', '456'], ['vmmap', '-v', '456'], ['footprint', '-f', 'bytes', '-p', '456']]);
   assert.ok(f.calls.indexOf('Heap.snapshot') > f.calls.indexOf('categories'));
@@ -34,7 +34,7 @@ test('native and passive readings precede the intrusive heap, all reads use the 
   assert.equal(f.calls.at(-2), 'state'); assert.equal(f.calls.at(-1), 'collect');
   assert.equal(f.calls.filter(c => c === 'Heap.disable').length, 1);
 });
-test('only boundaries two and four snapshot; passive unsupported/native failures are recorded rather than zeroed', async () => {
+void test('only boundaries two and four snapshot; passive unsupported/native failures are recorded rather than zeroed', async () => {
   for (const cycle of [0, 1, 3, 4]) {
     const f = fixture(cycle, { command: () => Promise.reject(new Error('native denied')), categories: () => Promise.resolve({ samples: [], errors: ['unsupported'] }) });
     const row = await captureBoundary(f.options);
@@ -42,7 +42,7 @@ test('only boundaries two and four snapshot; passive unsupported/native failures
     assert.equal(row.errors.length, 5); assert.match(row.native.vmmapVerbose.error, /native denied/);
   }
 });
-test('snapshot refusal still disables Heap, and malformed raw data is saved before schema refusal', async () => {
+void test('snapshot refusal still disables Heap, and malformed raw data is saved before schema refusal', async () => {
   const f = fixture(4); f.options.driver.send = method => { f.calls.push(method); return Promise.resolve({ snapshotData: 'bad json' }); };
   const row = await captureBoundary(f.options);
   assert.equal(f.writes.get('/probe/boundary-4-heap.json'), 'bad json');
@@ -51,7 +51,7 @@ test('snapshot refusal still disables Heap, and malformed raw data is saved befo
   const refused = await captureBoundary(g.options);
   assert.equal(refused.errors.length, 2); assert.ok(g.calls.includes('Heap.disable'));
 });
-test('boundary refuses PID/navigation/region changes before touching native tools; Safari time-origin drift is recorded', async () => {
+void test('boundary refuses PID/navigation/region changes before touching native tools; Safari time-origin drift is recorded', async () => {
   const drift = fixture(0); assert.equal((await captureBoundary(drift.options)).before.origin, 100.2);
   const badPid = fixture(0, { pid: null }); await assert.rejects(captureBoundary(badPid.options), /fixed game/);
   for (const changed of [{ document: 'next' }, { token: 'next' }, { current: 'pine-hollow' }, { inside: null }, { pending: ['next'] }, { gameplayReady: false }]) {
@@ -59,7 +59,7 @@ test('boundary refuses PID/navigation/region changes before touching native tool
     await assert.rejects(captureBoundary(f.options), /Settled boundary/); assert.equal(f.calls.filter(Array.isArray).length, 0); assert.equal(f.writes.size, 1);
   }
 });
-test('heap summary counts class estimates and refuses malformed/negative/nonfinite snapshots', () => {
+void test('heap summary counts class estimates and refuses malformed/negative/nonfinite snapshots', () => {
   assert.deepEqual(summarizeHeap(heap).classes, [{ kind: 'ArrayBuffer', bytes: 200, nodes: 1 }, { kind: 'Object', bytes: 140, nodes: 2 }]);
   for (const input of [{ version: 2, nodes: [], nodeClassNames: [] }, { version: 3, nodes: [0], nodeClassNames: [] },
     { version: 3, nodes: [1, -1, 0, 0], nodeClassNames: ['Object'] }, { version: 3, nodes: [1, 3, 9, 0], nodeClassNames: [] }]) {

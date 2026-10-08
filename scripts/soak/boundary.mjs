@@ -52,7 +52,9 @@ export function summarizeHeap(text) {
     classes: [...classes.values()].sort((a, b) => b.bytes - a.bytes || a.kind.localeCompare(b.kind)) };
 }
 
-const execute = promisify(execFile);
+// Node exposes this custom adapter on a symbol; its type declaration names the same adapter __promisify__.
+/** @type {typeof execFile.__promisify__} */
+const execute = Reflect.get(execFile, promisify.custom);
 /** Preserve native reads before an optional intrusive heap snapshot; missing support stays a visible refusal. */
 export async function captureBoundary({ driver, pid, out, cycle, document, origin, categories,
   collect = () => Promise.resolve(), command = async (name, args) => (await execute(name, args,

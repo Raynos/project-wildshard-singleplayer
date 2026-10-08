@@ -25,7 +25,9 @@
   /private/tmp/claude-501/sp-builders/sp-x3/sf57-e632fe913-retry retained.
 - Sun floor2ed39b862 shipped:20/22 cadence rows pass/aggregateRED; exactreceipt
   progress/shard-platform/sf50-sun-floor-e632fe913.md. HOVER8f1918525+c932ce846
-  shipped/touch4of4; Pine P0d77+f9e in e632. No plan edits. Diagnostic26 focused/scripts strict/scoped lint green. Full suite
+  shipped/touch4of4; Pine P0d77+f9e in e632. No plan edits. Driver2025b98f1 landed; urgent lint forward explicitly discards
+  node:test promises and types Node custom execFile Promise adapter without
+  suppressions. Diagnostic26 focused/scripts strict/scoped lint green. Full suite
   5310pass/9foreign reds: stale graph/API, Nine map, drafts atlas, Driftwood mover
   boat scale fixture. Coordinator approved source-only landing: all failures are foreign shared-tree WIP
   or central generated outputs; the clean-export gate owns their verification.

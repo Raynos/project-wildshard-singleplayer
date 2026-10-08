@@ -13,7 +13,7 @@ class Socket {
   message(value) { this.emit('message', JSON.stringify(value)); }
   reply(value) { this.message({ method: 'Target.dispatchMessageFromTarget', params: { message: JSON.stringify(value) } }); }
 }
-test('one target-aware connection carries passive events, scalar evaluation and heap data; listeners retire', async () => {
+void test('one target-aware connection carries passive events, scalar evaluation and heap data; listeners retire', async () => {
   const driver = soakInspector('ws://fixture', Socket); await driver.opened;
   const socket = Socket.current; assert.equal(socket.options.maxPayload, 512 * 1024 * 1024);
   socket.message({ method: 'Target.targetCreated', params: { targetInfo: { type: 'page', targetId: 'page-1' } } });
@@ -28,7 +28,7 @@ test('one target-aware connection carries passive events, scalar evaluation and 
   assert.equal(heapSent.params.targetId, 'page-2'); socket.reply({ id: JSON.parse(heapSent.params.message).id, result: { snapshotData: 'large heap' } });
   assert.equal((await heapPromise).snapshotData, 'large heap'); driver.close();
 });
-test('protocol and socket failures reject pending work rather than hanging for a heap deadline', async () => {
+void test('protocol and socket failures reject pending work rather than hanging for a heap deadline', async () => {
   const driver = soakInspector('ws://fixture', Socket); await driver.opened; const socket = Socket.current;
   const unsupported = driver.send('Memory.enable'); socket.message({ id: socket.sent.at(-1).id, error: { message: 'unsupported' } });
   await assert.rejects(unsupported, /unsupported/);
