@@ -1,5 +1,7 @@
 # Pre-release catalogue experiment: incomplete / red
 
+> **Census-inflated (G257, ruler lane, 2026-10-08).** The native WebContent numbers below were read with the old `g227-budget/native.mjs`, which ran `vmmap -summary` on the WebContent process (and an in-page census) after every pose; that inflates every later reading in the run, by ~425 MB at Pine centre (ruler lane, G257). They are not cap verdicts. The fixed-ruler re-reads are in [progress/memory/ruler/README.md](../ruler/README.md).
+
 E435, grid boot and template-copy performance investigation, 2026-10-08. This receipt retains an experiment run before the coordinator corrected G233 to **needs pick** (`826b96c0c`). It is not a Jake-picked public catalogue, permission to open the grid, or a public memory/fps clearance. No work depending on that pick continues.
 
 App pin: `a1c4f02b3ecd66ba255822ecdb4b8cd22edf6ef0`. Developer saved/effective OFF; Memory saver OFF; phone tier, render scale 2, muted. The existing expiring grid intent selected borrowed Driftwood; no admission bypass. Pine, Nalati and Far were absent from this experiment's catalogue. Three completed cold runs witnessed real road/template entry and residency, no game errors, stable document, sampler exit 0 and three fresh independent timestamps per pose.

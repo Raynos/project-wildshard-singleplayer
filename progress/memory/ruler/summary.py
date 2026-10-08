@@ -27,12 +27,16 @@ for path in sorted(glob.glob(os.path.join(runs, '*.json')) + glob.glob(os.path.j
             gl = sum(c['totalBytes'] for c in s['census']['gl'])
         wc = s['native']['medianBytes']
         arm['poses'].setdefault(s['label'], []).append({
-            'run': m.group(2), 'wcMB': wc / 1e6, 'glMB': gl / 1e6, 'combinedMB': (wc + gl) / 1e6,
-            'highCombinedMB': (s['native']['maxBytes'] + gl) / 1e6,
+            'run': m.group(2), 'wcMB': wc / 1e6, 'glMB': None if gl is None else gl / 1e6,
+            'combinedMB': None if gl is None else (wc + gl) / 1e6,
+            'highCombinedMB': None if gl is None else (s['native']['maxBytes'] + gl) / 1e6,
             'censusAtThisPose': bool(s.get('censusAfterReading')) or 'census' in s})
 
 
 def stat(xs):
+    xs = [x for x in xs if x is not None]
+    if not xs:
+        return {'median': float('nan'), 'min': float('nan'), 'max': float('nan')}
     return {'median': round(statistics.median(xs), 1), 'min': round(min(xs), 1), 'max': round(max(xs), 1)}
 
 

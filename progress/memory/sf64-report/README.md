@@ -1,5 +1,7 @@
 # SF64 report command (E456)
 
+> **Census-inflated (G257, ruler lane, 2026-10-08).** The native WebContent numbers below were read with the old `g227-budget/native.mjs`, which ran `vmmap -summary` on the WebContent process (and an in-page census) after every pose; that inflates every later reading in the run, by ~425 MB at Pine centre (ruler lane, G257). They are not cap verdicts. The fixed-ruler re-reads are in [progress/memory/ruler/README.md](../ruler/README.md).
+
 The command writes `memory-report/1` JSON, a file manifest, and one 1179 × 2556 portrait SVG/JPEG for the road, every requested shard centre and the worst crossing. It runs offline over native-audit receipts; it starts no browser, build, Simulator, Inspector or GL query.
 
 ```sh

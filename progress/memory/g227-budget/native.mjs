@@ -23,6 +23,15 @@ import { publicGridIntentCode, publicGridPlans, readPublicGridWitness, publicGri
 const argv = process.argv.slice(2);
 const censusMode = argv.find(arg => arg.startsWith('--census='))?.slice('--census='.length) ?? 'final';
 if (!['final', 'none', 'every'].includes(censusMode)) throw new Error('--census must be final, none or every');
+// --gl=every (default): the light GL read follows each pose's footprint samples. --gl=last: no in-page read at all before a
+// pose's samples, GL read once after the last pose (footprint-only control; such runs carry GL on the last pose only).
+const glMode = argv.find(arg => arg.startsWith('--gl='))?.slice('--gl='.length) ?? 'every';
+if (!['every', 'last'].includes(glMode)) throw new Error('--gl must be every or last');
+// --vmmap=last (default) | every. vmmap -summary on the WebContent task inflates its later footprint readings by
+// hundreds of MB (ruler lane, Pine centre: 478 MB without, 903 MB with a vmmap at each earlier pose), so it runs once,
+// after the last pose's reading. every is the old order, for comparison with old receipts only.
+const vmmapMode = argv.find(arg => arg.startsWith('--vmmap='))?.slice('--vmmap='.length) ?? 'last';
+if (!['every', 'last'].includes(vmmapMode)) throw new Error('--vmmap must be every or last');
 const [base, out, dist, routeMode = 'full', memorySaver = 'off', entryEdge = 'north'] = argv.filter(arg => !arg.startsWith('--')), udid = process.env.SIM_UDID;
 const standalone = routeMode === 'standalone-pine';
 if (standalone && censusMode !== 'none') throw new Error('standalone-pine has no grid for the census: pass --census=none');
@@ -49,7 +58,7 @@ const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixtur
 writeFileSync(dist + '/index.html', documentHtml);
 writeFileSync(dist + '/g227-safari.html', documentHtml);
 if (!udid) throw new Error('Run through sim-lane.sh');
-const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver, tex, developer:!publicGrid, census: censusMode,
+const report = { version: await (await fetch(new URL('version.json', base))).json(), routeMode, memorySaver, tex, developer:!publicGrid, census: censusMode, glRead: glMode, vmmap: vmmapMode,
   ...(publicGrid ? {publicGrid:'public grid as it would ship once GRID_GATES_PASSED flips'} : {}),
   protocol: 'One cold Safari Simulator route. Three settled one-second kernel physical-footprint samples per pose; live labelled GL (tracker totals) at the same pose; the in-page census only as --census says (final: once, after the last reading). Relative evidence, not physical-phone cap proof.',
   snapshots: [], routes: [] };
@@ -142,18 +151,20 @@ try {
     // Nothing in-page that allocates runs before the samples above. vmmap is out of process.
     const sorted = samples.map(s => s.footprintBytes).sort((a, b) => a - b);
     const vmmapPath = out.replace(/\.json$/u, '') + '.' + label + '.vmmap.txt';
-    let vmmap;
-    try { vmmap = execFileSync('vmmap', ['-summary', String(samples[2].pid)], { encoding: 'utf8', timeout: 30000, maxBuffer: 8e6 }); writeFileSync(vmmapPath, vmmap); }
-    catch (error) { vmmap = String(error); }
-    const light = await evaluate(lightExpression);
-    const glBytes = light.gl.reduce((sum, context) => sum + context.totalBytes, 0);
+    let vmmap = 'deferred';
+    if (vmmapMode === 'every') {
+      try { vmmap = execFileSync('vmmap', ['-summary', String(samples[2].pid)], { encoding: 'utf8', timeout: 30000, maxBuffer: 8e6 }); writeFileSync(vmmapPath, vmmap); }
+      catch (error) { vmmap = String(error); }
+    }
+    const light = glMode === 'every' ? await evaluate(lightExpression) : null;
+    const glBytes = light === null ? null : light.gl.reduce((sum, context) => sum + context.totalBytes, 0);
     const value = censusMode === 'every' ? await evaluate(snapshotExpression) : {};
     if (publicGrid) {
       value.publicWitness = await evaluate(`(${readPublicGridWitness.toString()})()`);
       const failures = publicGridWitnessFailures(value.publicWitness, false);
       if (failures.length > 0) throw new Error(failures.join('; '));
     }
-    if (light.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + light.settings?.memorySaver);
+    if (light !== null && light.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + light.settings?.memorySaver);
     const detail = {};
     if (nativeDetail) {
       // Original WC/GL samples above stay intact; passive diagnostics happen afterwards, without collecting the heap.
@@ -168,15 +179,27 @@ try {
       }
     }
     report.snapshots.push({ label, glBytes, light, ...value, native: { samples, medianBytes: sorted[1], minBytes: sorted[0], maxBytes: sorted[2], vmmapPath, vmmapError: vmmap.startsWith('Error:') ? vmmap : null, ...detail } });
-    save(); console.log(label, 'native', sorted[1] / 1e6, 'GL', glBytes / 1e6, 'census', censusMode === 'every' ? 'after this reading' : 'not yet');
+    save(); console.log(label, 'native', sorted[1] / 1e6, 'GL', glBytes === null ? 'after last pose' : glBytes / 1e6, 'census', censusMode === 'every' ? 'after this reading' : 'not yet');
   };
   // --census=final: one full census, after the last measured pose's reading, attached to that pose.
-  let censusDone = censusMode !== 'final';
+  let censusDone = censusMode !== 'final' && glMode === 'every' && vmmapMode === 'every';
   const finalCensus = async () => {
     if (censusDone) return;
     censusDone = true;
     const row = report.snapshots.at(-1);
     if (!row) return;
+    if (vmmapMode === 'last') {
+      try { writeFileSync(row.native.vmmapPath, execFileSync('vmmap', ['-summary', String(gamePID)], { encoding: 'utf8', timeout: 30000, maxBuffer: 8e6 })); }
+      catch (error) { row.native.vmmapError = String(error); }
+    }
+    if (glMode === 'last') {
+      row.light = await evaluate(lightExpression);
+      row.glBytes = row.light.gl.reduce((sum, context) => sum + context.totalBytes, 0);
+      row.glReadAfterAllReadings = true;
+      if (row.light.settings?.memorySaver !== memorySaver) throw new Error('Memory saver fixture did not activate: expected ' + memorySaver + ', observed ' + row.light.settings?.memorySaver);
+      save(); console.log(row.label, 'GL (read after the last footprint)', row.glBytes / 1e6);
+    }
+    if (censusMode !== 'final') return;
     report.stage = 'census:' + row.label; save();
     const value = await evaluate(snapshotExpression);
     const censusGL = value.census.gl.reduce((sum, context) => sum + context.totalBytes, 0);

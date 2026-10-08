@@ -1,5 +1,7 @@
 # SF47-g: Pine Hollow against the 1.0 GB cap after G187 (E435)
 
+> **Census-inflated (G257, ruler lane, 2026-10-08).** The native WebContent numbers below were read with the old `g227-budget/native.mjs`, which ran `vmmap -summary` on the WebContent process (and an in-page census) after every pose; that inflates every later reading in the run, by ~425 MB at Pine centre (ruler lane, G257). They are not cap verdicts. The fixed-ruler re-reads are in [progress/memory/ruler/README.md](../../memory/ruler/README.md).
+
 2026-10-08, pine-mem builder. **Pine is still over the 1.0 GB playing cap in the grid on both rulers.** All of G187's
 invisible cuts are on main, and G208's ring charging can't close the gap where it is. Per SF47, SF47-g goes to
 `needs pick` with a board of the remaining measured candidates. Decimal MB.

@@ -1,5 +1,7 @@
 # Sky Reach under the 1.0 GB playing cap (E435, sky-mem lane, 2026-10-08)
 
+> **Census-inflated (G257, ruler lane, 2026-10-08).** The native WebContent numbers below were read with the old `g227-budget/native.mjs`, which ran `vmmap -summary` on the WebContent process (and an in-page census) after every pose; that inflates every later reading in the run, by ~425 MB at Pine centre (ruler lane, G257). They are not cap verdicts. The fixed-ruler re-reads are in [progress/memory/ruler/README.md](../ruler/README.md).
+
 Ruler: [g227-budget](../g227-budget/README.md). `progress/memory/g227-budget/native.mjs <base> <out> <dist> sky-entry on`
 (Developer on, Memory saver on, phone tier, 2×, muted, Auto textures unless `G227_TEX` pins one), one cold iOS Simulator
 Safari boot per run (`wildshard-iphone`), north socket → islet ride → gate → bridge → island, every move real input after

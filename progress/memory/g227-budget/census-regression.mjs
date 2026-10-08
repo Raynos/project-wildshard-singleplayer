@@ -58,6 +58,8 @@ console.log('Platform view diagnostics distinguish in-frustum, off-view and hidd
 
 // The ruler fix (E435 ruler lane): no in-page census before a pose's native samples, and the default is one final census.
 assert.match(source, /\?\.slice\('--census='\.length\) \?\? 'final'/u, 'The default census mode is final');
+assert.match(source, /\?\.slice\('--vmmap='\.length\) \?\? 'last'/u, 'vmmap runs only after the last reading by default');
+assert.match(source, /if \(vmmapMode === 'every'\) \{\n {6}try \{ vmmap = execFileSync\('vmmap'/u, 'A pose runs vmmap only in the legacy mode');
 const snapshotBody = /const snapshot = async label => \{([\s\S]*?)\n {2}\};/u.exec(source)?.[1] ?? '';
 const firstSample = snapshotBody.indexOf('waitNativeSample'), firstCensus = snapshotBody.indexOf('evaluate(snapshotExpression)');
 assert.ok(firstSample >= 0 && firstCensus > firstSample, 'A pose samples the footprint before any census');
