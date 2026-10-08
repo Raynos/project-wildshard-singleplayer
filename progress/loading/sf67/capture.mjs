@@ -39,7 +39,8 @@ const INIT = `(() => {
     const pct = (r.getAttribute('data-download') || '?') + '/' + (r.getAttribute('data-setup') || '?');
     const name = r.querySelector('[data-el="slug"]')?.textContent ?? '';
     const line = r.querySelector('[data-el="line"]')?.textContent ?? '';
-    return (r.getAttribute('data-step') || '') + ' | ' + pct + ' | ' + name + ' | ' + line; };
+    const detail = r.querySelector('[data-el="suFact"]')?.textContent ?? '';
+    return (r.getAttribute('data-step') || '') + ' | ' + pct + ' | ' + name + ' | ' + line + ' | ' + detail; };
   const on = () => { const s = read(); if (s && s !== last) { last = s; const t = Math.round(performance.now()); W.__a_steps.push([t, s]); if (!W.__a_ready && s.includes('| 100/100 |')) W.__a_ready = t; } };
   const go = () => { new MutationObserver(on).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true }); on(); };
   if (document.documentElement) go(); else document.addEventListener('DOMContentLoaded', go);
