@@ -1,0 +1,32 @@
+[
+  {
+    "file": "dev-cells.json.br",
+    "rawBytes": 27952,
+    "rawSha256": "0b46d18c54aaa5e3e1b882b8d8efb5a77aa86afca958d9abfdb43b2256cd549b"
+  },
+  {
+    "file": "dev-cells-native.jsonl.br",
+    "rawBytes": 18231,
+    "rawSha256": "c2f88cfdb015d5f53678b153bc54495c841550f0829adeecdc77c08798f5586d"
+  },
+  {
+    "file": "dev-cells-gl.jsonl.br",
+    "rawBytes": 5097070,
+    "rawSha256": "72661d266541a48187100f2278f7a50dd9379e9809a9343e24dafccd3fdbf595"
+  },
+  {
+    "file": "dev-cells-gl-events.jsonl.br",
+    "rawBytes": 55837,
+    "rawSha256": "cd5630e4ba8c7b31142c7da80f85565b245d33880586ac372435a4a027e57d33"
+  },
+  {
+    "file": "manifest.json.br",
+    "rawBytes": 441,
+    "rawSha256": "0058cc08c2796b18d2d742df39723e881280664f555726b879b5f8efdac7b627"
+  },
+  {
+    "file": "x5-original-g227-fixture.html.br",
+    "rawBytes": 17530,
+    "rawSha256": "edf593e5e3ae391def7e11c03ac33440424c6270e76824ffb1e53a331fd2e2bc"
+  }
+]
