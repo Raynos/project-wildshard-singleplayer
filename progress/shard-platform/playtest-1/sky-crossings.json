@@ -1,0 +1,986 @@
+{
+ "template-in": [
+  {
+   "t": 0.0,
+   "d": -11.23,
+   "speed": 23.9,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": null
+  },
+  {
+   "t": 0.13,
+   "d": -8.31,
+   "speed": 20.4,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": null
+  },
+  {
+   "t": 0.27,
+   "d": -5.99,
+   "speed": 17.6,
+   "road": 0.972,
+   "roadSky": 0.972,
+   "cells": {
+    "template-2": 0.028
+   },
+   "air": [
+    0.525,
+    0.692,
+    0.839
+   ],
+   "current": null
+  },
+  {
+   "t": 0.37,
+   "d": -4.85,
+   "speed": 16.6,
+   "road": 0.93,
+   "roadSky": 0.93,
+   "cells": {
+    "template-2": 0.07
+   },
+   "air": [
+    0.529,
+    0.69,
+    0.833
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.5,
+   "d": -2.77,
+   "speed": 15,
+   "road": 0.789,
+   "roadSky": 0.789,
+   "cells": {
+    "template-2": 0.211
+   },
+   "air": [
+    0.539,
+    0.684,
+    0.813
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.6,
+   "d": -1.31,
+   "speed": 14.3,
+   "road": 0.665,
+   "roadSky": 0.665,
+   "cells": {
+    "template-2": 0.335
+   },
+   "air": [
+    0.549,
+    0.679,
+    0.795
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.73,
+   "d": 0.56,
+   "speed": 14,
+   "road": 0.491,
+   "roadSky": 0.491,
+   "cells": {
+    "template-2": 0.509
+   },
+   "air": [
+    0.562,
+    0.671,
+    0.77
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.83,
+   "d": 1.96,
+   "speed": 14,
+   "road": 0.361,
+   "roadSky": 0.361,
+   "cells": {
+    "template-2": 0.639
+   },
+   "air": [
+    0.572,
+    0.666,
+    0.752
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.93,
+   "d": 3.36,
+   "speed": 14,
+   "road": 0.24,
+   "roadSky": 0.24,
+   "cells": {
+    "template-2": 0.76
+   },
+   "air": [
+    0.582,
+    0.66,
+    0.734
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.07,
+   "d": 5.23,
+   "speed": 14,
+   "road": 0.106,
+   "roadSky": 0.106,
+   "cells": {
+    "template-2": 0.894
+   },
+   "air": [
+    0.592,
+    0.655,
+    0.715
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.17,
+   "d": 6.63,
+   "speed": 14,
+   "road": 0.037,
+   "roadSky": 0.037,
+   "cells": {
+    "template-2": 0.963
+   },
+   "air": [
+    0.597,
+    0.652,
+    0.705
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.27,
+   "d": 8.03,
+   "speed": 14,
+   "road": 0.002,
+   "roadSky": 0.002,
+   "cells": {
+    "template-2": 0.998
+   },
+   "air": [
+    0.6,
+    0.65,
+    0.7
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.37,
+   "d": 9.43,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "template-2": 1
+   },
+   "air": [
+    0.6,
+    0.65,
+    0.7
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.47,
+   "d": 10.83,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "template-2": 1
+   },
+   "air": [
+    0.6,
+    0.65,
+    0.7
+   ],
+   "current": "template-2"
+  }
+ ],
+ "template-out": [
+  {
+   "t": 0.0,
+   "d": 11.63,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "template-2": 1
+   },
+   "air": [
+    0.6,
+    0.65,
+    0.7
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.1,
+   "d": 10.24,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "template-2": 1
+   },
+   "air": [
+    0.6,
+    0.65,
+    0.7
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.2,
+   "d": 8.84,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "template-2": 1
+   },
+   "air": [
+    0.6,
+    0.65,
+    0.7
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.3,
+   "d": 7.44,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "template-2": 1
+   },
+   "air": [
+    0.6,
+    0.65,
+    0.7
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.43,
+   "d": 5.58,
+   "speed": 14,
+   "road": 0.041,
+   "roadSky": 0.041,
+   "cells": {
+    "template-2": 0.959
+   },
+   "air": [
+    0.597,
+    0.652,
+    0.706
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.57,
+   "d": 3.72,
+   "speed": 14,
+   "road": 0.144,
+   "roadSky": 0.144,
+   "cells": {
+    "template-2": 0.856
+   },
+   "air": [
+    0.589,
+    0.656,
+    0.721
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.67,
+   "d": 2.32,
+   "speed": 14,
+   "road": 0.25,
+   "roadSky": 0.25,
+   "cells": {
+    "template-2": 0.75
+   },
+   "air": [
+    0.581,
+    0.661,
+    0.736
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.77,
+   "d": 0.92,
+   "speed": 14,
+   "road": 0.371,
+   "roadSky": 0.371,
+   "cells": {
+    "template-2": 0.629
+   },
+   "air": [
+    0.572,
+    0.666,
+    0.753
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 0.87,
+   "d": -0.48,
+   "speed": 14,
+   "road": 0.501,
+   "roadSky": 0.501,
+   "cells": {
+    "template-2": 0.499
+   },
+   "air": [
+    0.562,
+    0.672,
+    0.772
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.0,
+   "d": -2.37,
+   "speed": 14.5,
+   "road": 0.674,
+   "roadSky": 0.674,
+   "cells": {
+    "template-2": 0.326
+   },
+   "air": [
+    0.548,
+    0.679,
+    0.797
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.1,
+   "d": -3.86,
+   "speed": 15.4,
+   "road": 0.796,
+   "roadSky": 0.796,
+   "cells": {
+    "template-2": 0.204
+   },
+   "air": [
+    0.539,
+    0.685,
+    0.814
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.2,
+   "d": -5.47,
+   "speed": 16.6,
+   "road": 0.903,
+   "roadSky": 0.903,
+   "cells": {
+    "template-2": 0.097
+   },
+   "air": [
+    0.531,
+    0.689,
+    0.829
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.33,
+   "d": -7.79,
+   "speed": 18.2,
+   "road": 0.993,
+   "roadSky": 0.993,
+   "cells": {
+    "template-2": 0.007
+   },
+   "air": [
+    0.524,
+    0.693,
+    0.842
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.43,
+   "d": -9.67,
+   "speed": 19.4,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": "template-2"
+  },
+  {
+   "t": 1.53,
+   "d": -10.73,
+   "speed": 20.6,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": null
+  },
+  {
+   "t": 1.63,
+   "d": -11.78,
+   "speed": 21.2,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": null
+  }
+ ],
+ "driftwood-in": [
+  {
+   "t": 0.0,
+   "d": 11.36,
+   "speed": 24.1,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": null
+  },
+  {
+   "t": 0.1,
+   "d": 9.11,
+   "speed": 21.4,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": null
+  },
+  {
+   "t": 0.2,
+   "d": 7.11,
+   "speed": 19,
+   "road": 0.999,
+   "roadSky": 0.999,
+   "cells": {
+    "driftwood-isle": 0.001
+   },
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": null
+  },
+  {
+   "t": 0.3,
+   "d": 5.99,
+   "speed": 17.4,
+   "road": 0.956,
+   "roadSky": 0.956,
+   "cells": {
+    "driftwood-isle": 0.044
+   },
+   "air": [
+    0.516,
+    0.694,
+    0.85
+   ],
+   "current": null
+  },
+  {
+   "t": 0.4,
+   "d": 4.31,
+   "speed": 16.1,
+   "road": 0.899,
+   "roadSky": 0.899,
+   "cells": {
+    "driftwood-isle": 0.101
+   },
+   "air": [
+    0.507,
+    0.694,
+    0.859
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.5,
+   "d": 2.77,
+   "speed": 15,
+   "road": 0.789,
+   "roadSky": 0.789,
+   "cells": {
+    "driftwood-isle": 0.211
+   },
+   "air": [
+    0.489,
+    0.695,
+    0.876
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.6,
+   "d": 1.31,
+   "speed": 14.3,
+   "road": 0.665,
+   "roadSky": 0.665,
+   "cells": {
+    "driftwood-isle": 0.335
+   },
+   "air": [
+    0.469,
+    0.696,
+    0.896
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.7,
+   "d": -0.1,
+   "speed": 14,
+   "road": 0.535,
+   "roadSky": 0.535,
+   "cells": {
+    "driftwood-isle": 0.465
+   },
+   "air": [
+    0.447,
+    0.696,
+    0.916
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.8,
+   "d": -1.5,
+   "speed": 14,
+   "road": 0.404,
+   "roadSky": 0.404,
+   "cells": {
+    "driftwood-isle": 0.596
+   },
+   "air": [
+    0.426,
+    0.697,
+    0.937
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.9,
+   "d": -2.9,
+   "speed": 14,
+   "road": 0.279,
+   "roadSky": 0.279,
+   "cells": {
+    "driftwood-isle": 0.721
+   },
+   "air": [
+    0.406,
+    0.698,
+    0.956
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.0,
+   "d": -4.3,
+   "speed": 14,
+   "road": 0.168,
+   "roadSky": 0.168,
+   "cells": {
+    "driftwood-isle": 0.832
+   },
+   "air": [
+    0.388,
+    0.699,
+    0.974
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.1,
+   "d": -5.7,
+   "speed": 14,
+   "road": 0.08,
+   "roadSky": 0.08,
+   "cells": {
+    "driftwood-isle": 0.92
+   },
+   "air": [
+    0.373,
+    0.699,
+    0.988
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.2,
+   "d": -7.1,
+   "speed": 14,
+   "road": 0.021,
+   "roadSky": 0.021,
+   "cells": {
+    "driftwood-isle": 0.979
+   },
+   "air": [
+    0.363,
+    0.7,
+    0.997
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.3,
+   "d": -8.5,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "driftwood-isle": 1
+   },
+   "air": [
+    0.36,
+    0.7,
+    1
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.4,
+   "d": -9.9,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "driftwood-isle": 1
+   },
+   "air": [
+    0.36,
+    0.7,
+    1
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.5,
+   "d": -11.3,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "driftwood-isle": 1
+   },
+   "air": [
+    0.36,
+    0.7,
+    1
+   ],
+   "current": "driftwood-isle"
+  }
+ ],
+ "driftwood-out": [
+  {
+   "t": 0.0,
+   "d": -11.92,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "driftwood-isle": 1
+   },
+   "air": [
+    0.36,
+    0.7,
+    1
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.1,
+   "d": -10.52,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "driftwood-isle": 1
+   },
+   "air": [
+    0.36,
+    0.7,
+    1
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.2,
+   "d": -9.13,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "driftwood-isle": 1
+   },
+   "air": [
+    0.36,
+    0.7,
+    1
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.3,
+   "d": -7.73,
+   "speed": 14,
+   "road": 0,
+   "roadSky": 0,
+   "cells": {
+    "driftwood-isle": 1
+   },
+   "air": [
+    0.36,
+    0.7,
+    1
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.4,
+   "d": -6.34,
+   "speed": 14,
+   "road": 0.016,
+   "roadSky": 0.016,
+   "cells": {
+    "driftwood-isle": 0.984
+   },
+   "air": [
+    0.363,
+    0.7,
+    0.997
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.5,
+   "d": -4.94,
+   "speed": 14,
+   "road": 0.07,
+   "roadSky": 0.07,
+   "cells": {
+    "driftwood-isle": 0.93
+   },
+   "air": [
+    0.371,
+    0.7,
+    0.989
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.6,
+   "d": -3.55,
+   "speed": 14,
+   "road": 0.155,
+   "roadSky": 0.155,
+   "cells": {
+    "driftwood-isle": 0.845
+   },
+   "air": [
+    0.385,
+    0.699,
+    0.976
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.7,
+   "d": -2.15,
+   "speed": 14,
+   "road": 0.264,
+   "roadSky": 0.264,
+   "cells": {
+    "driftwood-isle": 0.736
+   },
+   "air": [
+    0.403,
+    0.698,
+    0.959
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.8,
+   "d": -0.75,
+   "speed": 14,
+   "road": 0.387,
+   "roadSky": 0.387,
+   "cells": {
+    "driftwood-isle": 0.613
+   },
+   "air": [
+    0.423,
+    0.697,
+    0.939
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 0.9,
+   "d": 0.64,
+   "speed": 14,
+   "road": 0.517,
+   "roadSky": 0.517,
+   "cells": {
+    "driftwood-isle": 0.483
+   },
+   "air": [
+    0.444,
+    0.697,
+    0.919
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.0,
+   "d": 2.06,
+   "speed": 14.4,
+   "road": 0.646,
+   "roadSky": 0.646,
+   "cells": {
+    "driftwood-isle": 0.354
+   },
+   "air": [
+    0.466,
+    0.696,
+    0.899
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.1,
+   "d": 3.53,
+   "speed": 15.1,
+   "road": 0.771,
+   "roadSky": 0.771,
+   "cells": {
+    "driftwood-isle": 0.229
+   },
+   "air": [
+    0.486,
+    0.695,
+    0.879
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.2,
+   "d": 5.11,
+   "speed": 16.3,
+   "road": 0.882,
+   "roadSky": 0.882,
+   "cells": {
+    "driftwood-isle": 0.118
+   },
+   "air": [
+    0.504,
+    0.694,
+    0.862
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.3,
+   "d": 6.8,
+   "speed": 17.5,
+   "road": 0.966,
+   "roadSky": 0.966,
+   "cells": {
+    "driftwood-isle": 0.034
+   },
+   "air": [
+    0.518,
+    0.694,
+    0.849
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.4,
+   "d": 8.62,
+   "speed": 18.7,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {
+    "driftwood-isle": 0
+   },
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": "driftwood-isle"
+  },
+  {
+   "t": 1.5,
+   "d": 10.05,
+   "speed": 19.9,
+   "road": 1,
+   "roadSky": 1,
+   "cells": {},
+   "air": [
+    0.523,
+    0.693,
+    0.843
+   ],
+   "current": "driftwood-isle"
+  }
+ ]
+}

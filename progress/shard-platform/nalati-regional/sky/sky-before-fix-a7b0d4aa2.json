@@ -1,0 +1,5758 @@
+{
+  "diagnostic": true,
+  "base": "http://127.0.0.1:4401",
+  "started": "2026-10-08T00:50:13.502Z",
+  "errors": [],
+  "consoleErrors": [],
+  "version": {
+    "build": "a7b0d4a-muytkfmh",
+    "time": "2026-10-08T00:50:00.262Z"
+  },
+  "boot": {
+    "home": "driftwood-isle",
+    "inside": "driftwood-isle",
+    "feet": {
+      "x": 0,
+      "z": -194
+    },
+    "cells": [
+      {
+        "instance": "pine-hollow",
+        "slug": "pine-hollow",
+        "cell": [
+          0,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "template-2",
+        "slug": "_template",
+        "cell": [
+          1,
+          1
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "sunscar-dunes",
+        "slug": "sunscar-dunes",
+        "cell": [
+          -1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "driftwood-isle",
+        "slug": "driftwood-isle",
+        "cell": [
+          0,
+          0
+        ],
+        "shows": "playing"
+      },
+      {
+        "instance": "nalati-grasslands",
+        "slug": "nalati-grasslands",
+        "cell": [
+          1,
+          0
+        ],
+        "shows": "far proxy"
+      },
+      {
+        "instance": "far-reach",
+        "slug": "far-reach",
+        "cell": [
+          0,
+          -1
+        ],
+        "shows": "far proxy"
+      }
+    ],
+    "strips": 40,
+    "road": {
+      "segments": 24,
+      "junctions": 16,
+      "roundabouts": 4,
+      "signs": 124,
+      "lights": 364,
+      "draws": 3
+    },
+    "seams": {
+      "triangles": 100388,
+      "draws": 5,
+      "buckets": {
+        "ground": 85364,
+        "stone": 7876,
+        "rock": 6428,
+        "rail": 360,
+        "curtain": 360
+      }
+    },
+    "softWalls": {
+      "closed": 12
+    },
+    "shimmer": {
+      "borders": 24,
+      "status": null
+    },
+    "screens": {
+      "shown": [
+        {
+          "instance": "far-reach",
+          "status": "waiting"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "status": "waiting"
+        }
+      ],
+      "draws": 16
+    },
+    "plots": {
+      "plots": [
+        {
+          "instance": "open-plot-nw",
+          "visible": true,
+          "entries": {
+            "north": {
+              "billboard": "sky-race",
+              "demo": "alien-plain"
+            },
+            "east": {
+              "billboard": "night-market",
+              "demo": "desert-ruin"
+            },
+            "south": {
+              "billboard": "frozen-lighthouse",
+              "demo": "ink-valley"
+            },
+            "west": {
+              "billboard": "canyon-railway",
+              "demo": "sky-race"
+            }
+          }
+        },
+        {
+          "instance": "open-plot-sw",
+          "visible": true,
+          "entries": {
+            "north": {
+              "billboard": "coral-reef",
+              "demo": "night-market"
+            },
+            "east": {
+              "billboard": "alien-plain",
+              "demo": "frozen-lighthouse"
+            },
+            "south": {
+              "billboard": "desert-ruin",
+              "demo": "canyon-railway"
+            },
+            "west": {
+              "billboard": "ink-valley",
+              "demo": "coral-reef"
+            }
+          }
+        },
+        {
+          "instance": "open-plot-se",
+          "visible": true,
+          "entries": {
+            "north": {
+              "billboard": "frozen-lighthouse",
+              "demo": "ink-valley"
+            },
+            "east": {
+              "billboard": "canyon-railway",
+              "demo": "sky-race"
+            },
+            "south": {
+              "billboard": "coral-reef",
+              "demo": "night-market"
+            },
+            "west": {
+              "billboard": "alien-plain",
+              "demo": "frozen-lighthouse"
+            }
+          }
+        }
+      ],
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010
+    },
+    "ringsReady": true,
+    "residentMB": 1757.94,
+    "playingMB": 2331.31,
+    "accountedBytes": 1757937909,
+    "rings": {
+      "far": 5,
+      "l1": 0,
+      "l0": 0,
+      "refused": 0,
+      "inFlight": 0,
+      "queued": 0
+    },
+    "frame": {
+      "installed": true,
+      "faded": 4,
+      "owner": "driftwood-isle",
+      "highway": 0,
+      "weights": {
+        "driftwood-isle": 1
+      },
+      "air": [
+        0.36,
+        0.7,
+        1
+      ],
+      "grade": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "roadSky": 0
+    },
+    "live": {
+      "live": {
+        "current": "driftwood-isle",
+        "worldFeet": {
+          "x": -0.000013705249605117098,
+          "y": 1.214684708108689,
+          "z": -194.0000379104051
+        },
+        "crossings": 0,
+        "transitions": [],
+        "residents": [
+          "nalati-grasslands",
+          "pine-hollow"
+        ],
+        "pending": [],
+        "issues": {},
+        "gameplayReady": true,
+        "continuations": {
+          "entries": 0,
+          "storedChars": 0,
+          "capacityChars": 0,
+          "claimedBytes": 0
+        }
+      },
+      "crossing": {
+        "current": "driftwood-isle",
+        "target": "driftwood-isle",
+        "phase": "settled",
+        "issue": null
+      },
+      "stowed": false,
+      "renderOrigin": {
+        "x": 0,
+        "z": 0
+      },
+      "hoverCap": 14,
+      "homeActive": null
+    },
+    "life": [
+      {
+        "instance": "template-2",
+        "creatures": 3,
+        "frozen": true,
+        "views": {
+          "targets": 3,
+          "posed": 3,
+          "particles": 2,
+          "capacity": 6,
+          "tick": 408
+        },
+        "failed": null
+      }
+    ]
+  },
+  "route": {
+    "destination": {
+      "instance": "nalati-grasslands",
+      "slug": "nalati-grasslands",
+      "cell": [
+        1,
+        0
+      ],
+      "shows": "far proxy"
+    },
+    "road": {
+      "x": 277.5,
+      "z": 0
+    },
+    "interior": {
+      "x": 324,
+      "z": 0
+    },
+    "observations": [
+      {
+        "label": "road.before",
+        "current": null,
+        "ready": true,
+        "feet": {
+          "x": 277.50000497201853,
+          "y": 0.02009996031119954,
+          "z": 0
+        },
+        "activeLevel": "driftwood-isle",
+        "appState": "play",
+        "hudPaused": false,
+        "census": {
+          "geometries": 474,
+          "materials": 64,
+          "textures": 52,
+          "renderTargets": 0,
+          "meshes": 95,
+          "resources": 902,
+          "bodies": 29,
+          "sounds": 2,
+          "listeners": 1703,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 774,
+          "systems": 40,
+          "colliders": 2404,
+          "nodes": 96
+        },
+        "light": {
+          "sunDir": [
+            -0.64217,
+            0.60078,
+            -0.47611
+          ],
+          "sunColor": [
+            1,
+            0.97,
+            0.9
+          ],
+          "lights": [
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              2048
+            ],
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              2048
+            ],
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              2048
+            ]
+          ],
+          "mapSize": 2048,
+          "hemi": [
+            [
+              0.19807,
+              0.27889,
+              0.90466
+            ],
+            [
+              0.80695,
+              0.47932,
+              0.27889
+            ],
+            1.15
+          ],
+          "disc": [
+            true,
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0.95,
+              0.85
+            ]
+          ],
+          "halo": [
+            [
+              420,
+              420,
+              1
+            ],
+            1
+          ],
+          "painterly": {
+            "uPSunRef": [
+              2.7,
+              2.619,
+              2.43
+            ],
+            "uPSunDir": [
+              -0.64217,
+              0.60078,
+              -0.47611
+            ],
+            "uPShade": [
+              0.1,
+              0.14,
+              0.3
+            ],
+            "uPRimColor": [
+              1.4,
+              1.2,
+              0.9
+            ],
+            "uPWind": [
+              0.8,
+              0.6,
+              1
+            ],
+            "uPWarm": 0.8,
+            "uPFloor": 3,
+            "uPWet": 0
+          },
+          "grade": [
+            0.3,
+            0.2,
+            0
+          ],
+          "volumetrics": {
+            "uSunDir": [
+              -0.65081,
+              0.59402,
+              -0.47284
+            ],
+            "uSunColor": [
+              1,
+              0.97,
+              0.9
+            ],
+            "uFogColor": [
+              0.36,
+              0.7,
+              1
+            ],
+            "uHeight": -8,
+            "uFalloff": 0.12,
+            "uDensity": 0.0045,
+            "uStrength": 0.55
+          }
+        },
+        "frame": {
+          "installed": true,
+          "faded": 4,
+          "owner": null,
+          "highway": 1,
+          "weights": {},
+          "air": [
+            0.523,
+            0.693,
+            0.843
+          ],
+          "grade": [
+            0,
+            0.8,
+            1,
+            0.95,
+            0.99,
+            1.07
+          ],
+          "roadSky": 1
+        }
+      },
+      {
+        "label": "inside.0",
+        "current": "nalati-grasslands",
+        "ready": true,
+        "feet": {
+          "x": 323.54047101612446,
+          "y": 0.019999976924736984,
+          "z": 0.0006934750380283868
+        },
+        "activeLevel": "driftwood-isle",
+        "appState": "play",
+        "hudPaused": false,
+        "census": {
+          "geometries": 2,
+          "materials": 2,
+          "textures": 1,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 1,
+          "bodies": 14,
+          "sounds": 12,
+          "listeners": 1792,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 596,
+          "systems": 25,
+          "colliders": 2769,
+          "nodes": 2
+        },
+        "light": {
+          "sunDir": [
+            -0.64217,
+            0.60078,
+            -0.47611
+          ],
+          "sunColor": [
+            1,
+            0.97,
+            0.9
+          ],
+          "lights": [
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              512
+            ],
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              512
+            ],
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              512
+            ]
+          ],
+          "mapSize": 512,
+          "hemi": [
+            [
+              0.19807,
+              0.27889,
+              0.90466
+            ],
+            [
+              0.80695,
+              0.47932,
+              0.27889
+            ],
+            1.15
+          ],
+          "disc": [
+            false,
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0.95,
+              0.85
+            ]
+          ],
+          "halo": [
+            [
+              420,
+              420,
+              1
+            ],
+            1
+          ],
+          "painterly": {
+            "uPSunRef": [
+              2.7,
+              2.619,
+              2.43
+            ],
+            "uPSunDir": [
+              0.71606,
+              0.63919,
+              0.28053
+            ],
+            "uPShade": [
+              0.1,
+              0.16,
+              0.36
+            ],
+            "uPRimColor": [
+              1.5,
+              1.28,
+              0.95
+            ],
+            "uPWind": [
+              -0.92896,
+              0.37018,
+              1
+            ],
+            "uPWarm": 0.8,
+            "uPFloor": 3,
+            "uPWet": 0
+          },
+          "grade": [
+            0.1,
+            0.15,
+            0
+          ],
+          "volumetrics": {
+            "uSunDir": [
+              0.86081,
+              0.41836,
+              -0.2898
+            ],
+            "uSunColor": [
+              1,
+              0.9,
+              0.72
+            ],
+            "uFogColor": [
+              0.62,
+              0.78,
+              0.98
+            ],
+            "uHeight": -30,
+            "uFalloff": 0.06,
+            "uDensity": 0.0009,
+            "uStrength": 0.35
+          }
+        },
+        "frame": {
+          "installed": true,
+          "faded": 4,
+          "owner": "nalati-grasslands",
+          "highway": 0,
+          "weights": {
+            "nalati-grasslands": 1
+          },
+          "air": [
+            0.62,
+            0.78,
+            0.98
+          ],
+          "grade": [
+            0,
+            1.11,
+            1.175,
+            0.995,
+            1.005,
+            1.02
+          ],
+          "roadSky": 0
+        }
+      },
+      {
+        "label": "road.after.0",
+        "current": null,
+        "ready": true,
+        "feet": {
+          "x": 277.9455263840027,
+          "y": 0.020036577094288077,
+          "z": 0.00015659426164958722
+        },
+        "activeLevel": "driftwood-isle",
+        "appState": "play",
+        "hudPaused": false,
+        "census": {
+          "geometries": 477,
+          "materials": 66,
+          "textures": 53,
+          "renderTargets": 0,
+          "meshes": 95,
+          "resources": 1155,
+          "bodies": 43,
+          "sounds": 2,
+          "listeners": 3507,
+          "timers": 2,
+          "rafs": 0,
+          "disposers": 1512,
+          "systems": 41,
+          "colliders": 4931,
+          "nodes": 111
+        },
+        "light": {
+          "sunDir": [
+            -0.64217,
+            0.60078,
+            -0.47611
+          ],
+          "sunColor": [
+            1,
+            0.97,
+            0.9
+          ],
+          "lights": [
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              512
+            ],
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              512
+            ],
+            [
+              [
+                1,
+                0.97,
+                0.9
+              ],
+              2.7,
+              512
+            ]
+          ],
+          "mapSize": 512,
+          "hemi": [
+            [
+              0.19807,
+              0.27889,
+              0.90466
+            ],
+            [
+              0.80695,
+              0.47932,
+              0.27889
+            ],
+            1.15
+          ],
+          "disc": [
+            false,
+            [
+              1,
+              1,
+              1
+            ],
+            [
+              1,
+              0.95,
+              0.85
+            ]
+          ],
+          "halo": [
+            [
+              420,
+              420,
+              1
+            ],
+            1
+          ],
+          "painterly": {
+            "uPSunRef": [
+              2.7,
+              2.619,
+              2.43
+            ],
+            "uPSunDir": [
+              0.72085,
+              0.62552,
+              0.29848
+            ],
+            "uPShade": [
+              0.1,
+              0.16,
+              0.36
+            ],
+            "uPRimColor": [
+              1.5,
+              1.28,
+              0.95
+            ],
+            "uPWind": [
+              -0.92896,
+              0.37018,
+              1
+            ],
+            "uPWarm": 0.8,
+            "uPFloor": 3,
+            "uPWet": 0
+          },
+          "grade": [
+            0.1,
+            0.15,
+            0
+          ],
+          "volumetrics": {
+            "uSunDir": [
+              0.87311,
+              0.40228,
+              -0.27541
+            ],
+            "uSunColor": [
+              1,
+              0.9,
+              0.72
+            ],
+            "uFogColor": [
+              0.62,
+              0.78,
+              0.98
+            ],
+            "uHeight": -30,
+            "uFalloff": 0.06,
+            "uDensity": 0.0009,
+            "uStrength": 0.35
+          }
+        },
+        "frame": {
+          "installed": true,
+          "faded": 4,
+          "owner": null,
+          "highway": 1,
+          "weights": {},
+          "air": [
+            0.523,
+            0.693,
+            0.843
+          ],
+          "grade": [
+            0,
+            0.8,
+            1,
+            0.95,
+            0.99,
+            1.07
+          ],
+          "roadSky": 1
+        }
+      }
+    ],
+    "legs": [
+      {
+        "entered": true,
+        "start": {
+          "current": null,
+          "worldFeet": {
+            "x": 277.5000051196945,
+            "y": 0.019997686853457708,
+            "z": 0
+          },
+          "crossings": 1,
+          "transitions": [
+            {
+              "from": "driftwood-isle",
+              "to": null
+            }
+          ],
+          "residents": [
+            "nalati-grasslands",
+            "pine-hollow",
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "gameplayReady": true,
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "end": {
+          "current": "nalati-grasslands",
+          "worldFeet": {
+            "x": 323.3053575912409,
+            "y": 0.02039952822451596,
+            "z": 0.00018232598506445416
+          },
+          "crossings": 2,
+          "transitions": [
+            {
+              "from": "driftwood-isle",
+              "to": null
+            },
+            {
+              "from": null,
+              "to": "nalati-grasslands"
+            }
+          ],
+          "residents": [
+            "nalati-grasslands",
+            "pine-hollow",
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "gameplayReady": true,
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "trace": [
+          {
+            "t": 0.0332999997138977,
+            "x": 277.50000526737045,
+            "y": 0.020099953850149177,
+            "z": 0,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.23300000000000004,
+            "x": 278.13417828064036,
+            "y": 0.020121115412621293,
+            "z": -3.3814220737032677e-7,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.4331999998092652,
+            "x": 278.9847756100781,
+            "y": 0.019998990344902268,
+            "z": 0.000006240875816052318,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.6318999996185304,
+            "x": 279.8443136436827,
+            "y": 0.020099132907489548,
+            "z": 9.519700397725726e-8,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.8331999998092652,
+            "x": 280.7042643276937,
+            "y": 0.02013877899662475,
+            "z": 0.000001863104873388591,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.0320999999046327,
+            "x": 281.56423306446146,
+            "y": 0.020099944948015036,
+            "z": 7.90230442980769e-7,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.2315999999046325,
+            "x": 282.4242634026296,
+            "y": 0.020198430440359516,
+            "z": 0.000001003662155173449,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.4315999999046323,
+            "x": 283.2842129988558,
+            "y": 0.019999938867840683,
+            "z": 0.0000029006209578785776,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.6315999999046324,
+            "x": 284.1441543249376,
+            "y": 0.020118330972763943,
+            "z": -0.000013834217700504633,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.8315999999046322,
+            "x": 285.0041556505449,
+            "y": 0.020099926554394187,
+            "z": -4.420150241279922e-7,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.031599999904632,
+            "x": 285.86414810996126,
+            "y": 0.0201701496662281,
+            "z": 0.0000013287121318861258,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.2315999999046325,
+            "x": 286.72414733450483,
+            "y": 0.020182051732263062,
+            "z": -0.00007906218009804232,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.4315999999046327,
+            "x": 287.58414543401074,
+            "y": 0.020204034146445338,
+            "z": -0.00006654995727043255,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.631599999904633,
+            "x": 288.44415158759426,
+            "y": 0.020099629655305762,
+            "z": -0.000059579898415016975,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.831599999904633,
+            "x": 289.30412711929154,
+            "y": 0.019999964748421917,
+            "z": -0.00002281560099529455,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.0315999999046332,
+            "x": 290.16411788742613,
+            "y": 0.02019479519003653,
+            "z": -0.000020973099289032783,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.2315999999046334,
+            "x": 291.02411893736195,
+            "y": 0.020099961246160092,
+            "z": -0.000009134088589244906,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.4315999999046336,
+            "x": 291.8841162918098,
+            "y": 0.02009994716718211,
+            "z": -0.000012398599408884316,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.631599999904634,
+            "x": 292.74411506186794,
+            "y": 0.020097663680644473,
+            "z": -0.000012314121988269967,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.831599999904634,
+            "x": 293.60411564986777,
+            "y": 0.020097905322472798,
+            "z": -0.000009878577830805803,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.031699999809267,
+            "x": 294.46411597709726,
+            "y": 0.02009995619300753,
+            "z": -0.000009905696831184464,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.231699999809268,
+            "x": 295.32411146889996,
+            "y": 0.02010013026301749,
+            "z": -0.00007210712367628324,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.431599999904637,
+            "x": 296.18410880099606,
+            "y": 0.020121144618315157,
+            "z": -0.0000681049857326793,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.7421999998092685,
+            "x": 297.33077549915384,
+            "y": 0.02000002417844371,
+            "z": -0.000048087053937832515,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.048199999809269,
+            "x": 298.1907747758515,
+            "y": 0.020099941681110067,
+            "z": -0.000046305825695595594,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.225499999523167,
+            "x": 298.56611642461854,
+            "y": 0.020099836478038924,
+            "z": 0.001053564299847539,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.425299999713903,
+            "x": 299.3022990720265,
+            "y": 0.020218867084622616,
+            "z": 0.0010517022219956283,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.625299999713904,
+            "x": 300.16229843068055,
+            "y": 0.019999926331365714,
+            "z": 0.0010693372517876464,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.825299999713905,
+            "x": 301.02227905112437,
+            "y": 0.019999224346975097,
+            "z": 0.001142996859594677,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.025199999809273,
+            "x": 301.8822758020752,
+            "y": 0.019999999851279426,
+            "z": 0.0011093411229011162,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.225299999713907,
+            "x": 302.74228620248965,
+            "y": 0.02009854580683168,
+            "z": 0.0011174381567107781,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.425299999713908,
+            "x": 303.60228553879193,
+            "y": 0.020116459898417816,
+            "z": 0.0011145636427719006,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.625299999713909,
+            "x": 304.46227433997325,
+            "y": 0.020100199180888012,
+            "z": 0.0010829527251977021,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.931400000095379,
+            "x": 305.3088939236396,
+            "y": 0.020099488101550378,
+            "z": 0.0011220713431035444,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.127100000381482,
+            "x": 306.10829473379187,
+            "y": 0.01999952781625325,
+            "z": 0.00565278193800994,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.327100000381483,
+            "x": 306.965959698885,
+            "y": 0.020257537209545262,
+            "z": 0.005470730090677608,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.527100000381484,
+            "x": 307.8258712002926,
+            "y": 0.020145122573012486,
+            "z": 0.005192540581560098,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.727100000381485,
+            "x": 308.685816512435,
+            "y": 0.020142481916991528,
+            "z": 0.004902662750850214,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.927100000381486,
+            "x": 309.5458038309508,
+            "y": 0.02012665654910961,
+            "z": 0.004632455260092757,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.127100000381486,
+            "x": 310.405731149941,
+            "y": 0.019999620148155373,
+            "z": 0.004325984201954344,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.327200000286117,
+            "x": 311.2657215306454,
+            "y": 0.02009948007435014,
+            "z": 0.004031921665613555,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.527100000381484,
+            "x": 312.1257226625376,
+            "y": 0.019999828216896276,
+            "z": 0.0037407435153218836,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.727100000381483,
+            "x": 312.9857221776538,
+            "y": 0.019999508467662963,
+            "z": 0.0034686062077745015,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.927100000381483,
+            "x": 313.845713877111,
+            "y": 0.019999700589323766,
+            "z": 0.0032154138704064104,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.127100000381482,
+            "x": 314.7057144725614,
+            "y": 0.019999919304609648,
+            "z": 0.002941602194027001,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.327100000381481,
+            "x": 315.5656379992061,
+            "y": 0.02009828713016759,
+            "z": 0.002720904389774733,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.52710000038148,
+            "x": 316.4256018111401,
+            "y": 0.020099815648791264,
+            "z": 0.002409872330303261,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.72710000038148,
+            "x": 317.2855991879397,
+            "y": 0.020210211629091646,
+            "z": 0.0021333888167865377,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.927100000381479,
+            "x": 318.1455880934291,
+            "y": 0.020163551080258912,
+            "z": 0.0018715086013108527,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.127100000381478,
+            "x": 319.0054952809506,
+            "y": 0.01999950435674691,
+            "z": 0.0015997146698501462,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.327100000381478,
+            "x": 319.86540412250093,
+            "y": 0.020094865836654208,
+            "z": 0.001230575721478163,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.52720000028611,
+            "x": 320.7253608042293,
+            "y": 0.019999402427856694,
+            "z": 0.0009927089528210496,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.727100000381476,
+            "x": 321.5853928858333,
+            "y": 0.020021556771098403,
+            "z": 0.0006885145563720295,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.927100000381476,
+            "x": 322.4453607583337,
+            "y": 0.020135284026764566,
+            "z": 0.00039989033996251297,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 11.127100000381475,
+            "x": 323.3053575912409,
+            "y": 0.02039952822451596,
+            "z": 0.00018232598506445416,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          }
+        ],
+        "stuck": [],
+        "failure": null,
+        "wallMs": 13802
+      },
+      {
+        "entered": false,
+        "start": {
+          "current": "nalati-grasslands",
+          "worldFeet": {
+            "x": 323.5404703370074,
+            "y": 0.020098540415347088,
+            "z": 0.0006940768762428181
+          },
+          "crossings": 2,
+          "transitions": [
+            {
+              "from": "driftwood-isle",
+              "to": null
+            },
+            {
+              "from": null,
+              "to": "nalati-grasslands"
+            }
+          ],
+          "residents": [
+            "nalati-grasslands",
+            "pine-hollow",
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "gameplayReady": true,
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "end": {
+          "current": null,
+          "worldFeet": {
+            "x": 278.1810911828013,
+            "y": 0.020685308474639896,
+            "z": 0.00029999943124924173
+          },
+          "crossings": 3,
+          "transitions": [
+            {
+              "from": "driftwood-isle",
+              "to": null
+            },
+            {
+              "from": null,
+              "to": "nalati-grasslands"
+            },
+            {
+              "from": "nalati-grasslands",
+              "to": null
+            }
+          ],
+          "residents": [
+            "nalati-grasslands",
+            "pine-hollow",
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "gameplayReady": true,
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "trace": [
+          {
+            "t": 0.033399999618530275,
+            "x": 323.54047026944477,
+            "y": 0.020075950436876155,
+            "z": 0.0006941376000378104,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.29369999980926514,
+            "x": 322.90622983214575,
+            "y": 0.01999949099990772,
+            "z": 0.0006916538727446427,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.49379999971389765,
+            "x": 322.0555377387734,
+            "y": 0.02009981590890675,
+            "z": 0.0006588623240824395,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.693699999809265,
+            "x": 321.1959603139492,
+            "y": 0.01992687316305819,
+            "z": 0.0006051750904654559,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 0.893699999809265,
+            "x": 320.3359966957303,
+            "y": 0.020099843310163124,
+            "z": 0.0005866805892460765,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.0936999998092647,
+            "x": 319.47613715467173,
+            "y": 0.01994806341463118,
+            "z": 0.0007135173054089468,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.2936999998092649,
+            "x": 318.6161112197967,
+            "y": 0.01999989193791407,
+            "z": 0.0007050887483992814,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.4936999998092646,
+            "x": 317.75613790837247,
+            "y": 0.0203109567919455,
+            "z": 0.0006966532175405623,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.693799999713897,
+            "x": 316.89612629351336,
+            "y": 0.020150779757386772,
+            "z": 0.0006729513829051588,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 1.8936999998092643,
+            "x": 316.0361384311052,
+            "y": 0.01999983411587891,
+            "z": 0.0006687156054590323,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.0936999998092647,
+            "x": 315.1761885294052,
+            "y": 0.019999608524813084,
+            "z": 0.0007052611122256043,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.293699999809265,
+            "x": 314.31619366345126,
+            "y": 0.019999670483230148,
+            "z": 0.0006903069006321279,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.4937999997138975,
+            "x": 313.4563696840139,
+            "y": 0.020099763802136295,
+            "z": 0.0008308696891199692,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.6936999998092648,
+            "x": 312.5963794597717,
+            "y": 0.01999998389510438,
+            "z": 0.000820408368648747,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 2.8937999997138975,
+            "x": 311.73638947394807,
+            "y": 0.019994159483758267,
+            "z": 0.0007914397162758509,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.0936999998092647,
+            "x": 310.8764160507651,
+            "y": 0.019999998199637048,
+            "z": 0.0007476813046119209,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.2936999998092644,
+            "x": 310.01640434649903,
+            "y": 0.020099765384657076,
+            "z": 0.0007223029969077051,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.4936999998092637,
+            "x": 309.15648534235675,
+            "y": 0.020099536897760117,
+            "z": 0.000760116141921093,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.6935999999046314,
+            "x": 308.2964735039802,
+            "y": 0.019999773117888253,
+            "z": 0.0007477598634318146,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 3.8936999998092645,
+            "x": 307.43652942118365,
+            "y": 0.019999742027721368,
+            "z": 0.0008060691030800389,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.093599999904632,
+            "x": 306.57656811264474,
+            "y": 0.019999502277642023,
+            "z": 0.0007564135046345418,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.293699999809266,
+            "x": 305.71662979659754,
+            "y": 0.02011159255198436,
+            "z": 0.0007722274307231676,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.560299999713899,
+            "x": 304.7849721023174,
+            "y": 0.0199999606484198,
+            "z": 0.0007635244106656576,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.7482999997138995,
+            "x": 303.9250155472489,
+            "y": 0.019997654140752275,
+            "z": 0.0008243047107545938,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 4.948199999809268,
+            "x": 303.06502830323893,
+            "y": 0.0201090489354101,
+            "z": 0.0008165393627419822,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.148199999809269,
+            "x": 302.2050332808228,
+            "y": 0.020102233458601404,
+            "z": 0.0008420849729842435,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.34819999980927,
+            "x": 301.345035464439,
+            "y": 0.020133215373789426,
+            "z": 0.0008227622818464416,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.548299999713904,
+            "x": 300.48503707436043,
+            "y": 0.019999956362880766,
+            "z": 0.0008819654451284483,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.748299999713905,
+            "x": 299.6250412621828,
+            "y": 0.01999996583617758,
+            "z": 0.000871542900679619,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 5.948199999809273,
+            "x": 298.7650498383971,
+            "y": 0.019999984724563546,
+            "z": 0.0008766834447127299,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.148299999713907,
+            "x": 297.9050672808023,
+            "y": 0.019999961859866744,
+            "z": 0.0009141766157623484,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.3481999998092755,
+            "x": 297.04499974933583,
+            "y": 0.020100138277484803,
+            "z": 0.0009120442510917333,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.548299999713909,
+            "x": 296.185002856824,
+            "y": 0.020229161429597298,
+            "z": 0.0008762426112949602,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.74829999971391,
+            "x": 295.3250035205217,
+            "y": 0.020000533248094143,
+            "z": 0.0008431597023244327,
+            "current": "nalati-grasslands",
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 6.948199999809279,
+            "x": 294.5200463095041,
+            "y": 0.01999995208097971,
+            "z": 0.0008118818467690877,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.14819999980928,
+            "x": 293.66005352971274,
+            "y": 0.019997546514787246,
+            "z": 0.0008919556793256807,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.348199999809281,
+            "x": 292.8000591629477,
+            "y": 0.020201470477331895,
+            "z": 0.0008344854968558598,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.548199999809282,
+            "x": 291.9400608026715,
+            "y": 0.02009936348258634,
+            "z": 0.0007866691963758517,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.748199999809283,
+            "x": 291.08016256329734,
+            "y": 0.022714439935953123,
+            "z": 0.0007964426714610913,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 7.948399999618549,
+            "x": 290.22017567691523,
+            "y": 0.02022404828312574,
+            "z": 0.0007389236503772286,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.148399999618547,
+            "x": 289.3601808184119,
+            "y": 0.020100536225072574,
+            "z": 0.0007364323739725028,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.348299999713914,
+            "x": 288.50018441763837,
+            "y": 0.020099553166801343,
+            "z": 0.0007075063302895164,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.548399999618546,
+            "x": 287.64021769252736,
+            "y": 0.020142949437286006,
+            "z": 0.000672106215691611,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.748399999618545,
+            "x": 286.78022251364905,
+            "y": 0.020099918383493787,
+            "z": 0.0006916974663613592,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 8.948399999618545,
+            "x": 285.92022668657023,
+            "y": 0.02009822555919527,
+            "z": 0.0006580945516066213,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.148399999618544,
+            "x": 285.0602262103291,
+            "y": 0.02011913197566173,
+            "z": 0.0005952459921263771,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.348399999618543,
+            "x": 284.2002212786408,
+            "y": 0.020000108979729703,
+            "z": 0.0005308061189839582,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.548399999618542,
+            "x": 283.34028559264857,
+            "y": 0.020496420900599333,
+            "z": 0.0004569164870633931,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.748399999618542,
+            "x": 282.48043307003695,
+            "y": 0.019999778571218485,
+            "z": 0.0004632205393906593,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 9.948399999618541,
+            "x": 281.6206929170819,
+            "y": 0.0204245126042224,
+            "z": 0.0003446255830144314,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.148299999713908,
+            "x": 280.7608469956847,
+            "y": 0.020062159626832,
+            "z": 0.00030043121173720284,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.34839999961854,
+            "x": 279.9009152510496,
+            "y": 0.02000031036004657,
+            "z": 0.0002932680042806742,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.548399999618539,
+            "x": 279.0409630247684,
+            "y": 0.020099967754504178,
+            "z": 0.00027153280371864004,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          },
+          {
+            "t": 10.748299999713906,
+            "x": 278.1810911828013,
+            "y": 0.020685308474639896,
+            "z": 0.00029999943124924173,
+            "current": null,
+            "ready": true,
+            "appState": "play",
+            "hudPaused": false,
+            "motor": true
+          }
+        ],
+        "stuck": [],
+        "failure": null,
+        "wallMs": 10862
+      }
+    ],
+    "end": {
+      "home": "driftwood-isle",
+      "inside": null,
+      "feet": {
+        "x": 277.95,
+        "z": 0
+      },
+      "cells": [
+        {
+          "instance": "pine-hollow",
+          "slug": "pine-hollow",
+          "cell": [
+            0,
+            1
+          ],
+          "shows": "far proxy"
+        },
+        {
+          "instance": "template-2",
+          "slug": "_template",
+          "cell": [
+            1,
+            1
+          ],
+          "shows": "far proxy"
+        },
+        {
+          "instance": "sunscar-dunes",
+          "slug": "sunscar-dunes",
+          "cell": [
+            -1,
+            0
+          ],
+          "shows": "far proxy"
+        },
+        {
+          "instance": "driftwood-isle",
+          "slug": "driftwood-isle",
+          "cell": [
+            0,
+            0
+          ],
+          "shows": "frozen"
+        },
+        {
+          "instance": "nalati-grasslands",
+          "slug": "nalati-grasslands",
+          "cell": [
+            1,
+            0
+          ],
+          "shows": "far proxy"
+        },
+        {
+          "instance": "far-reach",
+          "slug": "far-reach",
+          "cell": [
+            0,
+            -1
+          ],
+          "shows": "far proxy"
+        }
+      ],
+      "strips": 40,
+      "road": {
+        "segments": 24,
+        "junctions": 16,
+        "roundabouts": 4,
+        "signs": 124,
+        "lights": 364,
+        "draws": 3
+      },
+      "seams": {
+        "triangles": 100388,
+        "draws": 5,
+        "buckets": {
+          "ground": 85364,
+          "stone": 7876,
+          "rock": 6428,
+          "rail": 360,
+          "curtain": 360
+        }
+      },
+      "softWalls": {
+        "closed": 8
+      },
+      "shimmer": {
+        "borders": 24,
+        "status": null
+      },
+      "screens": {
+        "shown": [
+          {
+            "instance": "far-reach",
+            "status": "waiting"
+          }
+        ],
+        "draws": 51
+      },
+      "plots": {
+        "plots": [
+          {
+            "instance": "open-plot-nw",
+            "visible": true,
+            "entries": {
+              "north": {
+                "billboard": "sky-race",
+                "demo": "alien-plain"
+              },
+              "east": {
+                "billboard": "night-market",
+                "demo": "desert-ruin"
+              },
+              "south": {
+                "billboard": "frozen-lighthouse",
+                "demo": "ink-valley"
+              },
+              "west": {
+                "billboard": "canyon-railway",
+                "demo": "sky-race"
+              }
+            }
+          },
+          {
+            "instance": "open-plot-sw",
+            "visible": true,
+            "entries": {
+              "north": {
+                "billboard": "coral-reef",
+                "demo": "night-market"
+              },
+              "east": {
+                "billboard": "alien-plain",
+                "demo": "frozen-lighthouse"
+              },
+              "south": {
+                "billboard": "desert-ruin",
+                "demo": "canyon-railway"
+              },
+              "west": {
+                "billboard": "ink-valley",
+                "demo": "coral-reef"
+              }
+            }
+          },
+          {
+            "instance": "open-plot-se",
+            "visible": true,
+            "entries": {
+              "north": {
+                "billboard": "frozen-lighthouse",
+                "demo": "ink-valley"
+              },
+              "east": {
+                "billboard": "canyon-railway",
+                "demo": "sky-race"
+              },
+              "south": {
+                "billboard": "coral-reef",
+                "demo": "night-market"
+              },
+              "west": {
+                "billboard": "alien-plain",
+                "demo": "frozen-lighthouse"
+              }
+            }
+          }
+        ],
+        "pictures": 8,
+        "draws": 27,
+        "triangles": 32010
+      },
+      "ringsReady": true,
+      "residentMB": 1771.19,
+      "playingMB": 2346.02,
+      "accountedBytes": 1771186991,
+      "rings": {
+        "far": 5,
+        "l1": 3,
+        "l0": 0,
+        "refused": 0,
+        "inFlight": 0,
+        "queued": 0
+      },
+      "frame": {
+        "installed": true,
+        "faded": 4,
+        "owner": null,
+        "highway": 1,
+        "weights": {},
+        "air": [
+          0.523,
+          0.693,
+          0.843
+        ],
+        "grade": [
+          0,
+          0.8,
+          1,
+          0.95,
+          0.99,
+          1.07
+        ],
+        "roadSky": 1
+      },
+      "live": {
+        "live": {
+          "current": null,
+          "worldFeet": {
+            "x": 277.94552640634305,
+            "y": 0.020094865838473197,
+            "z": 0.00015703412838020383
+          },
+          "crossings": 3,
+          "transitions": [
+            {
+              "from": "driftwood-isle",
+              "to": null
+            },
+            {
+              "from": null,
+              "to": "nalati-grasslands"
+            },
+            {
+              "from": "nalati-grasslands",
+              "to": null
+            }
+          ],
+          "residents": [
+            "nalati-grasslands",
+            "pine-hollow",
+            "template-2"
+          ],
+          "pending": [],
+          "issues": {},
+          "gameplayReady": true,
+          "continuations": {
+            "entries": 0,
+            "storedChars": 0,
+            "capacityChars": 0,
+            "claimedBytes": 0
+          }
+        },
+        "crossing": {
+          "current": null,
+          "target": null,
+          "phase": "settled",
+          "issue": null
+        },
+        "stowed": true,
+        "renderOrigin": {
+          "x": 0,
+          "z": 0
+        },
+        "hoverCap": 30,
+        "homeActive": null
+      },
+      "life": [
+        {
+          "instance": "template-2",
+          "creatures": 3,
+          "frozen": true,
+          "views": {
+            "targets": 3,
+            "posed": 3,
+            "particles": 2,
+            "capacity": 6,
+            "tick": 2014
+          },
+          "failed": null
+        }
+      ]
+    }
+  },
+  "compare": [
+    {
+      "label": "road.after.0",
+      "sameLight": false,
+      "differs": [
+        "lights",
+        "mapSize",
+        "disc",
+        "painterly",
+        "grade",
+        "volumetrics"
+      ]
+    }
+  ],
+  "inside": [
+    {
+      "label": "inside.0",
+      "differs": [
+        "lights",
+        "mapSize",
+        "disc",
+        "painterly",
+        "grade",
+        "volumetrics"
+      ]
+    }
+  ],
+  "leak": {
+    "before": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "disposalErrors": [
+      "Cannot read properties of null (reading 'dispose')",
+      "Cannot read properties of null (reading 'dispose')",
+      "Cannot read properties of null (reading 'dispose')",
+      "Cannot read properties of null (reading 'dispose')",
+      "Cannot read properties of null (reading 'dispose')"
+    ],
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "stacks": {
+      "listeners": [
+        "Error: listener touchmove\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4401/?tier=phone&mute=1&nolock=1&sw=0&chunk=driftwood-isle:35:16",
+        "Error: listener gesturestart\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at http://127.0.0.1:4401/?tier=phone&mute=1&nolock=1&sw=0&chunk=driftwood-isle:36:16",
+        "Error: listener online\n    at addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:5163)\n    at O (http://127.0.0.1:4401/assets/bootTrace-C3JKlNdw.js:2:5199)\n    at new <anonymous> (http://127.0.0.1:4401/assets/main-D030yHDL.js:3:960)\n    at http://127.0.0.1:4401/assets/main-D030yHDL.js:3:864",
+        "Error: listener visibilitychange\n    at HTMLDocument.addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:5163)\n    at new <anonymous> (http://127.0.0.1:4401/assets/main-D030yHDL.js:3:1268)\n    at http://127.0.0.1:4401/assets/main-D030yHDL.js:3:864",
+        "Error: listener pagehide\n    at addEventListener (<anonymous>:18:79)\n    at e.listen (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:5163)\n    at new <anonymous> (http://127.0.0.1:4401/assets/main-D030yHDL.js:3:1378)\n    at http://127.0.0.1:4401/assets/main-D030yHDL.js:3:864"
+      ],
+      "timers": [
+        "Error: timeout\n    at w.setTimeout (<anonymous>:32:21)\n    at e.timeout (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:5866)\n    at af (http://127.0.0.1:4401/assets/session-CLkHDnKL.js:233:11637)\n    at c (http://127.0.0.1:4401/assets/session-CLkHDnKL.js:233:13380)\n    at async http://127.0.0.1:4401/assets/session-CLkHDnKL.js:233:13590\n    at async http://127.0.0.1:4401/assets/session-CLkHDnKL.js:233:6420",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:6135)\n    at new <anonymous> (http://127.0.0.1:4401/assets/main-D030yHDL.js:3:1236)\n    at http://127.0.0.1:4401/assets/main-D030yHDL.js:3:864",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:6135)\n    at Pt (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:72:4045)\n    at G (http://127.0.0.1:4401/assets/pageServices-DjaPQVAP.js:1:257020)\n    at http://127.0.0.1:4401/assets/main-D030yHDL.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:6135)\n    at Pt (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:72:4145)\n    at G (http://127.0.0.1:4401/assets/pageServices-DjaPQVAP.js:1:257020)\n    at http://127.0.0.1:4401/assets/main-D030yHDL.js:10:1507",
+        "Error: interval\n    at w.setInterval (<anonymous>:34:101)\n    at e.interval (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:1:6135)\n    at Pt (http://127.0.0.1:4401/assets/runtime-BM_fQxkB.js:72:4254)\n    at G (http://127.0.0.1:4401/assets/pageServices-DjaPQVAP.js:1:257020)\n    at http://127.0.0.1:4401/assets/main-D030yHDL.js:10:1507"
+      ]
+    },
+    "retained": [
+      {
+        "key": "scene:0aff3487-0b80-4308-bc2d-c9fec8671aec",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a81cb2e2-9fe3-4b05-b831-a9d58868d2df",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d60ed6ad-0562-4108-97dd-c1c66aaace48",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:649b170c-db36-4913-960b-ce5c03fabbd7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:3c70ce99-4f21-46b6-9c92-04baea99a8db",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f0402680-341f-45e6-9c1a-3fe0464e6f1e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:bc1dda8e-ae15-4295-a830-9ae9a679e52b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:undefined",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:67bd4b08-223f-4185-b932-b5c84b3f17b1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2f4f78ad-c094-4b16-9e65-3b1104bd685a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5ecb1d22-1e0d-4aaa-b503-0479cc2ac33e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:73c5762d-11ca-4d9f-858b-b237c998be9e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8c46dc9f-e569-4da2-87d9-c7bb6dfefd24",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:717a626d-0539-41a0-8121-84bc6f3499a0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:6a4daa68-eb5f-4350-967e-45915cbaef26",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:264da3b7-5969-4175-a68a-f909d8bbcccf",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:df9a1fa4-2e2f-40a5-b243-d1916434d758",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d84d44dc-0a08-49fb-a80c-6b2c0e1a893a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ff54d1fb-50c4-4dd8-af4e-465db893470d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f2723981-2a10-49d2-9496-44cb0fee3d1b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d69ff210-14f5-4463-8901-d62cbb281034",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0e4c78bd-3e01-4550-9916-09ab7a36e7f8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:318fdaaf-2b5e-4d1c-b977-f6c5a4cf241f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a4316eb5-7f0d-4d31-a33f-c34de11719dc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f8ac5574-aa04-4eae-a135-aab82411b064",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:69687062-929e-40a1-8af5-a874cb3ce474",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:645fcd24-41ee-4c30-9ee7-6bdaf9296fca",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d32b6061-d175-4d97-b02c-c81ccab1e55d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a82f85bc-3c88-4036-871d-1f4689d39d03",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:63a091c4-8b6a-46c3-85c5-9d541b873feb",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5e496c41-6c3b-42f9-b719-071dc6357fb8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0a56c14e-b93f-4e71-9dbf-dd261a52c986",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "renderer:shadow:4d415cea-4996-4a6b-86a4-6eb2b9ae0d6b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:68a34f6a-ef58-41e9-913b-52d41a2aae72",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b2f20653-bac9-4459-8cc8-879e86ac0b2b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:edba9c8f-467d-422e-83a7-932664cd84c3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:16061b1a-c758-4549-9b99-80384f80b00a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a5bbacc3-9f05-4460-8c24-75c89e6bb217",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:3542a364-afab-4115-af17-de852ed424a8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f203539d-0dc1-4c41-a902-a6ad820208f2",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b71abf18-2f97-424f-b793-c39ad0c138c3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c9f26c8c-3ff4-4fa7-b33c-3c4610f66e7e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:08c14420-8a86-4011-80a9-c56c9431fb1c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2b667220-ada6-4320-afa7-032addfe4562",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:85c63471-100d-48d1-84af-e99ea422e046",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:09600fd4-0ef7-4439-93ce-60aef8c3b24e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:bd615e51-e567-454c-9f48-8ed969616d5d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:61373916-e7df-459b-857b-86fc5742e659",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:73b35b8a-ba75-4904-bc44-5db8e6abedd6",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:839b940d-2df3-4cc6-9f99-a462cfc85b41",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4029aa6d-3357-4eb8-8224-d3294a9cc77e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:91897a45-52b8-4646-b306-b0c811e2616a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:922673b3-3feb-4237-9bfa-74a9d7dc8411",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:30e4b2c6-ddd5-4090-bef0-75718bac37d1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e9d70621-ad2f-4489-8a8c-ac5548b0d3a6",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e2490d4f-31dd-4162-9aeb-66211abd6966",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c8c44cd7-fd27-4401-9caf-55c56d4330c1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4b32bfea-a1ec-43bd-b034-23a99cf53e3c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d2a7e3bf-5de8-4de0-93ef-7ef863ec5fe9",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5ee38f55-5e55-4f28-8600-1022cb385249",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5e6cac8a-08ef-47e7-bb55-318c2fa45129",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1bf5ee72-39bd-4f31-be40-9410696ee363",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2d0d85ce-d48a-4b96-abda-995d5004b519",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8a970f4f-acdf-4b47-986d-ef23e6b6fbc5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2ff5ef5d-ff49-4688-9e32-bea2bfec741a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a6230a21-80dd-409e-afe0-86e5c1bc8c06",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8e0a1e99-60da-48f1-b91c-8115f15a35d4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2032344c-0fa6-4b6d-9133-2c11714758bb",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0c35ee1d-fbd4-4d83-b254-76eca32b05e3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:7aec5a56-d029-4b04-abb0-047050602da3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:efb01ba0-9c90-4ac9-8dbd-9eb138bc36f9",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:48bf106a-935c-4536-b66c-f77e3197e0fe",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8756fb83-349a-4ada-8668-408ac272b789",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f2e7fdfd-ff87-48b5-90cc-20b5bcdeb8ff",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:86ef7a31-298a-431a-b4e2-432552a33420",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:12cde5d0-2d29-42e6-948b-809f10725022",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:83e62659-6e54-4585-901e-f1b699f16269",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:12fe95a4-f22a-488f-87c9-85c078d8deb5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:6b63f729-3ac0-4d51-9213-57fd7e73c589",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2b5dc610-56f5-43f4-ae44-2f6d599cb824",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:44bed43d-c557-48ba-b40a-43df61ed5008",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8eda2303-477e-4dd5-938d-7f1b6fff295a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1178a901-d1d6-4f6d-ae00-615d0816c641",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e946e83b-55e3-4bed-b80d-da5403f31e12",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e2521de0-ab40-44c9-ba5c-62f7d95e3b04",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0012b440-ea31-4305-aa55-78c405bbcbbf",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:6fd6afa2-93be-4eac-9de3-1b42786f3fcf",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8a782705-cfa8-4df2-8822-3442001dc2e7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:7ce3a38d-0815-4079-842a-562e905f0239",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b7b09f22-b443-4abc-9381-8eb504eea895",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:3ec051d1-181f-4580-ab4e-238f85e85a64",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:437e2db3-8440-4634-91f4-58df1fb6a8e7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:327258bc-d0a2-4921-83a3-674e5ab2f894",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a8c59a9e-b9a6-4915-9605-799a1b863928",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:bd4a46cf-0eab-45a4-b7aa-5db4dd4d29a7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9e571050-4383-4564-9061-cb43efe02645",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2626d37a-325d-481d-b55d-334f0edd27f7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9cb2734e-4d24-436f-b117-e5b2e46f091a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e8a14a0d-4f7c-42df-8129-12dff39d8bd7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4ced22d3-92d7-4e69-bddd-0d4d6c8ab0b4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:20c71d22-619c-4d26-a13f-34b438ab8abe",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:7a72f3b7-4e60-4a49-b0e4-65cfa3a2fb5d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:39033699-1598-4295-a211-1f5967ad61ff",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f40be7a7-46da-42e6-957a-5b3a2497bdfe",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:3b5415c0-9c34-4d02-851d-dd1f24bd238f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:439ab381-2fcd-445e-a5b1-49ff1fac98f8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:30011fd7-f9d5-43de-ad4f-76afd3fe62d3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f61cd25f-10ed-44ac-a9d6-1ec81dbf09a3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e0c9e9b3-fd83-4713-b035-764f0ec3033e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:53df4366-6df9-49ac-a126-b810f772f1aa",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ebd77a0f-92e1-4408-be34-0d233a070865",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4c9aa1bc-d6d2-4534-8e34-71e2cb6c9e01",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:cfc793ef-323b-4f9d-b2e9-5ed6b2120722",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b590eff3-3842-4b22-90d4-a1934ffdfa34",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b264cbbd-5e7f-42bc-9781-fa1b12c4f80f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:7f680b19-cfe9-4dd8-8129-6dffffe1053f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:dc436893-443e-4cd0-b725-27ebeeac363d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2a7cadbf-a0c1-4db3-b3f1-e0095aa3cf86",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8c45aeed-01f0-4c21-b1a8-826e1cb1504d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:65ff20a4-a14d-4a7e-a1e4-0427bd53c373",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8436552b-d7f6-4494-a331-d32be0e72e13",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2f5ab897-124d-4a5f-8a75-a6ef2b4e7926",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:886a2f34-8263-4897-9585-ab1e79875b49",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:cf8b76c9-7c1b-4d76-b8db-e2b4f09718fe",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:de1c94bc-34e7-4429-ba28-7cbcbf1be26f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ff812df0-3589-4ee8-86d0-1af98c529a77",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:00acce52-54f8-407b-815f-55298d272767",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:aa892496-ec12-486f-a089-95a30f8597c6",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5bcaf275-bcaf-4e28-bcb7-de24b91ca7de",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:83141b82-94e6-4620-8ac0-7adccb0c6c72",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0c05e01c-f3e8-4a04-899e-a85fde3ea5e0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4a1fde49-15bd-4bb6-b83c-9ed2499a61a7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b29dea19-ae53-4b53-8b95-ae57e87fcdfb",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:df30c7de-a5fd-4d0e-8c56-759d12ca6579",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:effe5a9c-cd45-4f04-9171-d9dff3ad33b4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:eca5a9b6-4882-42fc-aca0-d33ed12c8929",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:fb686848-5727-409d-84fe-a6d9246c56d8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:30dd010c-78b9-4384-927a-3fd1cde36090",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:48745c98-0172-4fd8-8812-6b94e0e738b5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d45beff5-2cd6-4f01-b335-0836e8575e4a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:69000d01-d7b4-49f6-93b0-07984bf89835",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:eb164f30-d746-4e22-a769-2548be46acc9",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:68c18798-a152-495c-82fe-c3b7ab20b629",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b5c3d13b-894e-4f25-818e-5ac3e06a2be2",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2956d906-371f-4b75-9705-2653000f0982",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c03ba9f1-afaa-49a8-967e-1616bc892546",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:935d505f-12a2-4110-84bb-2c872bc75660",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:80a65124-13c9-4eb3-9d71-a34f57b46e32",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f98fe71b-c156-47e9-a30d-8bc8619048c0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ea07c569-1521-48b8-ac73-398847061744",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1adb7625-f585-4e05-9681-925cc2daef71",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8540d58d-201e-4fba-b6ae-a2e3bdb6f357",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:14144900-06f3-4c4f-8666-e0681f1f2396",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5a0b0c4e-2713-486e-990a-a8ce4b394dec",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c8979a30-efaa-4c63-ada4-7d151e90202a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a63d114a-e6b4-4111-8dfa-80b3e83bfe2d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:44819fa3-4bd4-484a-8eb9-dcc75783d127",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:938fe6a2-56fa-4d70-af41-5da3835b5e7e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:51de40d0-a0c0-48e4-aae5-6b45900b62b0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5d0f9295-66af-422c-be6a-1446077c538a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2093bee3-4dd7-4d54-99ec-ea05c0fe2a0a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0ed6fb39-1310-490b-80e7-40d371d0d01d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:8f9b8363-6202-4193-ae8b-6017e309afd1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d50ecf63-bc0d-412f-849b-be40a8d5ba33",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:043e4254-edcb-4658-86c2-db00483925af",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1594203b-8866-4a46-8340-1818308a7e8d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:cda8f5fe-75fd-4e05-a36a-a98ea6036f52",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4d279113-b876-4c88-91fe-b81dfe451fc1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b87b089c-0a82-49da-9c39-821c5e58b443",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1259fa40-97f7-426a-8920-fdc66cd02d00",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5a9f7602-4802-4190-93ac-bbc07d986089",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f304d2aa-d24d-42e3-b5cc-efb69236affd",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e8f5b605-eddd-4296-bc99-1a8898fc56eb",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f8671c8b-bff9-45aa-ac4f-1c1acb2a7f4f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:52e2eb25-63c6-4a47-a5ba-6f689ac25312",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:687e519c-ca02-4cd6-8ac6-956c07f3e18b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:be71f8c6-b4fb-4fd8-8924-cf71d2ab28b3",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:63060a97-ffc5-4fbd-b99e-437a1dc5e7bc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:ca15ab5d-7958-4818-a533-a9a5c70b95c8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b46d14d6-5323-48f1-924d-f15e74917207",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:b6ea7abf-e838-466e-9d52-c455a791b362",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:096a1a62-11b3-4637-9437-a6d1920e0942",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:abe55e5a-8baf-4b01-96af-4cbda90a4b78",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f426531f-fd6d-4b52-929d-87b16008b35b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:7e95e073-365f-4641-82b9-698a81e780a7",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1c50601c-56a2-4435-8ae4-121f6f4973fd",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d935cacb-933e-4684-8896-8ed3eeff2d8d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f2f8965e-0c88-49d9-b49c-04030f48232b",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4d6f7f6e-67ae-4b3a-9ccf-dc32b68b97ea",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:160813df-128e-4f91-becd-56863e106edc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:88fe1ca0-835b-4041-b8d8-feddf64cb35e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:561c7a9e-b3c4-41bb-abf3-ae68413a6677",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9931cb58-8d8d-41fd-90cd-1ddc2bc40367",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0f22901e-e74a-4abe-acc0-5598f5a13746",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:863eb2c1-24f6-47c4-9ad2-9d47ae86fd70",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:7a741fd2-0845-4d17-93e1-7f07808c6f7a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9f688675-1137-4e37-89ea-9591d32b70f1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f060625a-aeb6-474f-96c2-1b5c0bb37eb5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:bc617247-1ac0-4883-9700-a39c5561920a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:59901c38-a74a-46d1-8335-49cacf30998d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:60bca2bf-67e9-4009-921a-22fbcd9b1036",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:deb0d8dc-86ea-4c1b-bdc9-1bae486c0b56",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:749bf748-b203-461d-9ee4-d662890816ef",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:719ea67c-df3d-4937-9992-a6f3b9a954cd",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d0c2afb5-bf3d-40b1-9b3c-4992df2912c1",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a5bff245-e6fd-4107-86fb-129f297bdb62",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:c997cdab-775b-4e5b-a0a6-5594f59794e5",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:00e5b9b0-8227-43e9-950c-d2b8c252b68c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1229901b-bd32-4930-80eb-238be6aa54f8",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2c62441c-2ddf-4d35-8ab6-ef26d802b968",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9188d101-b957-44bd-addd-daf23c5e2f92",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:0b83f513-7f6e-4a5b-a729-2df9a459285e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:24775f10-579b-4dff-8751-c25d15d6b2f2",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a3e11315-70d1-4948-9450-ba60d1286df0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9f5be058-275d-42bf-a09f-2416dd77960a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:d461681b-f21e-4fc5-8599-f1b2613ce26a",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:9107840f-9938-4624-b9e4-c6bdb68f80cc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:904d8df5-3e58-4508-92aa-124a5a1e0c22",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:56ca1dcf-faba-4cbf-9eeb-3c451fe504ff",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:35f565d0-64f2-4362-a580-fd35348c5e85",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:fec31702-1840-4366-99a1-6b616f40242f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:6cdfee2b-5a12-40a8-980e-b2227c3f23a4",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:1d35cedd-561e-4fd7-9cdb-0c7a748b7d7e",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:3ede5c37-51e9-442b-9864-9693d0b98ec0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:96c7c9d2-6afd-48fb-8e5f-1d55e501200c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:448ba0f6-144b-42fe-aad2-95681e047ced",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:cbee4761-fe10-49ef-8851-33e828581c79",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:28d3ce0f-85c5-4c31-ac50-9dad9f96d3c0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:04d5be60-bc54-4cf4-9a58-5312362a4d6c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a42090da-7e77-4f8d-baa5-804527518877",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:eeab5ee2-387e-483c-b2ff-33626dd20148",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:718e7345-9622-46c3-a914-c8c517547656",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:dfcb249c-6738-4a4a-83f8-56a1d3952c63",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:da54213c-5dc0-433d-bc72-ec89fe88c4fd",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:78be65ee-9cdf-4953-b3ef-8d319783df7c",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:e247c6bb-8bd5-4bf6-9f87-574c90b76497",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:49e6be44-2f7e-42c3-80dc-92dacbec750f",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:91da53a1-9a06-49d9-bb08-33014bf0cddc",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:f53e1d5c-87e0-4157-beff-1c72f7f1a7de",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:20cfb935-0cf9-468f-a214-6bea3bc549dd",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:4caba6e6-d069-4caa-9b54-808c6964a1e0",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:a07db086-bba8-4e39-a88c-986624aced89",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:6157a60a-d241-4456-b092-949837609843",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:579d24b2-59fb-4f21-9de3-b3037e31374d",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:be854a09-b5e2-49f6-8411-390eda357674",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:5f5bcf3b-2521-46ed-8af5-9ce1ae90e922",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:2ccbda2d-bba4-474b-8891-91a7f46fafb9",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:29939bc7-37ba-4096-9069-f42bbd406c31",
+        "refs": 0,
+        "retained": true
+      },
+      {
+        "key": "scene:138a56f4-564f-4f74-97dd-b962fda55459",
+        "refs": 0,
+        "retained": true
+      }
+    ],
+    "gpu": {
+      "total": {
+        "geometries": 11,
+        "textures": 11,
+        "programs": 129
+      },
+      "retained": {
+        "geometries": 11,
+        "textures": 11,
+        "programs": 129
+      },
+      "resources": [
+        {
+          "type": "e",
+          "uuid": "0aff3487-0b80-4308-bc2d-c9fec8671aec",
+          "name": "PMREM.cubeUv",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "bd8de800-66f1-4bcc-8a7c-9e35f1887a16",
+          "image": {
+            "width": 336,
+            "height": 256
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "649b170c-db36-4913-960b-ce5c03fabbd7",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "ql",
+          "uuid": "3c70ce99-4f21-46b6-9c92-04baea99a8db",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            0,
+            13
+          ],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "67bd4b08-223f-4185-b932-b5c84b3f17b1",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "cda00d43-4508-40cc-8796-8d02f65ad60e",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "5ecb1d22-1e0d-4aaa-b503-0479cc2ac33e",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "38809844-2c7e-4daf-9359-694fe47a59ca",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "8c46dc9f-e569-4da2-87d9-c7bb6dfefd24",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "a2fe15a6-7579-4c65-bad7-fc31daea2391",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "6a4daa68-eb5f-4350-967e-45915cbaef26",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "800b058f-09e7-4e5d-a0f4-b68d9ef2a3a7",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "df9a1fa4-2e2f-40a5-b243-d1916434d758",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "1406fa29-bf75-4359-81ab-903af80e6c81",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "0c35ee1d-fbd4-4d83-b254-76eca32b05e3",
+          "name": "EffectComposer.Buffer",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "f9205d6f-cede-4dd4-9a08-ebe9cd02bffd",
+          "image": {
+            "width": 804,
+            "height": 1362
+          }
+        },
+        {
+          "type": "io",
+          "uuid": "d60ed6ad-0562-4108-97dd-c1c66aaace48",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            2
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "b2f20653-bac9-4459-8cc8-879e86ac0b2b",
+          "name": "sword",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            3
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "16061b1a-c758-4549-9b99-80384f80b00a",
+          "name": "driftwood-fp-wood",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            4,
+            135,
+            203
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "a5bbacc3-9f05-4460-8c24-75c89e6bb217",
+          "name": "driftwood-fp-iron",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            5
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "3542a364-afab-4115-af17-de852ed424a8",
+          "name": "driftwood-fp-arms",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            6,
+            136,
+            204
+          ],
+          "image": {}
+        },
+        {
+          "type": "ql",
+          "uuid": "2b667220-ada6-4320-afa7-032addfe4562",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            8
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "09600fd4-0ef7-4439-93ce-60aef8c3b24e",
+          "name": "sword",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            3
+          ],
+          "image": {}
+        },
+        {
+          "type": "ql",
+          "uuid": "4029aa6d-3357-4eb8-8224-d3294a9cc77e",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            8
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "922673b3-3feb-4237-9bfa-74a9d7dc8411",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            9
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "e9d70621-ad2f-4489-8a8c-ac5548b0d3a6",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            9
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "c8c44cd7-fd27-4401-9caf-55c56d4330c1",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            9
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "5e6cac8a-08ef-47e7-bb55-318c2fa45129",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            9
+          ],
+          "image": {}
+        },
+        {
+          "type": "io",
+          "uuid": "2d0d85ce-d48a-4b96-abda-995d5004b519",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            10,
+            2
+          ],
+          "image": {}
+        },
+        {
+          "type": "io",
+          "uuid": "2ff5ef5d-ff49-4688-9e32-bea2bfec741a",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            2
+          ],
+          "image": {}
+        },
+        {
+          "type": "io",
+          "uuid": "8e0a1e99-60da-48f1-b91c-8115f15a35d4",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            2
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "2032344c-0fa6-4b6d-9133-2c11714758bb",
+          "name": "driftwood-fp-swim",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            11,
+            12
+          ],
+          "image": {}
+        },
+        {
+          "type": "ql",
+          "uuid": "bc1dda8e-ae15-4295-a830-9ae9a679e52b",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            14
+          ],
+          "image": {}
+        },
+        {
+          "type": "io",
+          "uuid": "f2723981-2a10-49d2-9496-44cb0fee3d1b",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            2
+          ],
+          "image": {}
+        },
+        {
+          "type": "Pa",
+          "uuid": "0e4c78bd-3e01-4550-9916-09ab7a36e7f8",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            15
+          ],
+          "image": {}
+        },
+        {
+          "type": "ql",
+          "uuid": "f8ac5574-aa04-4eae-a135-aab82411b064",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            16
+          ],
+          "image": {}
+        },
+        {
+          "type": "ql",
+          "uuid": "d32b6061-d175-4d97-b02c-c81ccab1e55d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            17
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "30011fd7-f9d5-43de-ad4f-76afd3fe62d3",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            18,
+            118,
+            153
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "f61cd25f-10ed-44ac-a9d6-1ec81dbf09a3",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            19,
+            119,
+            154
+          ],
+          "image": {}
+        },
+        {
+          "type": "eu",
+          "uuid": "cfc793ef-323b-4f9d-b2e9-5ed6b2120722",
+          "name": "ridge0",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            20
+          ],
+          "image": {}
+        },
+        {
+          "type": "eu",
+          "uuid": "b590eff3-3842-4b22-90d4-a1934ffdfa34",
+          "name": "ridge1",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            20
+          ],
+          "image": {}
+        },
+        {
+          "type": "eu",
+          "uuid": "b264cbbd-5e7f-42bc-9781-fa1b12c4f80f",
+          "name": "ridge2",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            20
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "7f680b19-cfe9-4dd8-8129-6dffffe1053f",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            22,
+            134,
+            191
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "dc436893-443e-4cd0-b725-27ebeeac363d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            19,
+            154,
+            119
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "2a7cadbf-a0c1-4db3-b3f1-e0095aa3cf86",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            23
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "8c45aeed-01f0-4c21-b1a8-826e1cb1504d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            24,
+            213,
+            226
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "65ff20a4-a14d-4a7e-a1e4-0427bd53c373",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            25
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "8436552b-d7f6-4494-a331-d32be0e72e13",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            26,
+            27,
+            79,
+            214,
+            227
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "2f5ab897-124d-4a5f-8a75-a6ef2b4e7926",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            28,
+            215,
+            228
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "886a2f34-8263-4897-9585-ab1e79875b49",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            30,
+            221,
+            233
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "cf8b76c9-7c1b-4d76-b8db-e2b4f09718fe",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            19
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "de1c94bc-34e7-4429-ba28-7cbcbf1be26f",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            19,
+            154,
+            119
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "ff812df0-3589-4ee8-86d0-1af98c529a77",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            19,
+            154,
+            119
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "00acce52-54f8-407b-815f-55298d272767",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            33,
+            120,
+            155
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "aa892496-ec12-486f-a089-95a30f8597c6",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            34,
+            216,
+            229
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "5bcaf275-bcaf-4e28-bcb7-de24b91ca7de",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            19,
+            154,
+            119
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "83141b82-94e6-4620-8ac0-7adccb0c6c72",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            35,
+            121,
+            156
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "0c05e01c-f3e8-4a04-899e-a85fde3ea5e0",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            36,
+            122,
+            157
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "4a1fde49-15bd-4bb6-b83c-9ed2499a61a7",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            37,
+            123,
+            158
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "b29dea19-ae53-4b53-8b95-ae57e87fcdfb",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            35,
+            121,
+            156
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "df30c7de-a5fd-4d0e-8c56-759d12ca6579",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            38,
+            222,
+            234
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "effe5a9c-cd45-4f04-9171-d9dff3ad33b4",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            42,
+            217,
+            230
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "eca5a9b6-4882-42fc-aca0-d33ed12c8929",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            43,
+            124,
+            159
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "fb686848-5727-409d-84fe-a6d9246c56d8",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            43,
+            124,
+            159
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "30dd010c-78b9-4384-927a-3fd1cde36090",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "48745c98-0172-4fd8-8812-6b94e0e738b5",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "d45beff5-2cd6-4f01-b335-0836e8575e4a",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "69000d01-d7b4-49f6-93b0-07984bf89835",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "eb164f30-d746-4e22-a769-2548be46acc9",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "68c18798-a152-495c-82fe-c3b7ab20b629",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "b5c3d13b-894e-4f25-818e-5ac3e06a2be2",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "2956d906-371f-4b75-9705-2653000f0982",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            43,
+            124,
+            159
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "c03ba9f1-afaa-49a8-967e-1616bc892546",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            43,
+            124,
+            159
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "935d505f-12a2-4110-84bb-2c872bc75660",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "80a65124-13c9-4eb3-9d71-a34f57b46e32",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            44,
+            125,
+            160
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "f98fe71b-c156-47e9-a30d-8bc8619048c0",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            45,
+            218,
+            231
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "ea07c569-1521-48b8-ac73-398847061744",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            46,
+            126,
+            161
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "1adb7625-f585-4e05-9681-925cc2daef71",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            47,
+            127,
+            162
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "8540d58d-201e-4fba-b6ae-a2e3bdb6f357",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            48,
+            128,
+            163
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "5a0b0c4e-2713-486e-990a-a8ce4b394dec",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            50
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "938fe6a2-56fa-4d70-af41-5da3835b5e7e",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "0ed6fb39-1310-490b-80e7-40d371d0d01d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "8f9b8363-6202-4193-ae8b-6017e309afd1",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "d50ecf63-bc0d-412f-849b-be40a8d5ba33",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "043e4254-edcb-4658-86c2-db00483925af",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "1594203b-8866-4a46-8340-1818308a7e8d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "1259fa40-97f7-426a-8920-fdc66cd02d00",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "f8671c8b-bff9-45aa-ac4f-1c1acb2a7f4f",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "52e2eb25-63c6-4a47-a5ba-6f689ac25312",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "687e519c-ca02-4cd6-8ac6-956c07f3e18b",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "be71f8c6-b4fb-4fd8-8924-cf71d2ab28b3",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "b6ea7abf-e838-466e-9d52-c455a791b362",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "7e95e073-365f-4641-82b9-698a81e780a7",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "160813df-128e-4f91-becd-56863e106edc",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "0f22901e-e74a-4abe-acc0-5598f5a13746",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "863eb2c1-24f6-47c4-9ad2-9d47ae86fd70",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "7a741fd2-0845-4d17-93e1-7f07808c6f7a",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "9f688675-1137-4e37-89ea-9591d32b70f1",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "f060625a-aeb6-474f-96c2-1b5c0bb37eb5",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "bc617247-1ac0-4883-9700-a39c5561920a",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "59901c38-a74a-46d1-8335-49cacf30998d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "60bca2bf-67e9-4009-921a-22fbcd9b1036",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "d0c2afb5-bf3d-40b1-9b3c-4992df2912c1",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "a5bff245-e6fd-4107-86fb-129f297bdb62",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "c997cdab-775b-4e5b-a0a6-5594f59794e5",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "00e5b9b0-8227-43e9-950c-d2b8c252b68c",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "1229901b-bd32-4930-80eb-238be6aa54f8",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "2c62441c-2ddf-4d35-8ab6-ef26d802b968",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "a3e11315-70d1-4948-9450-ba60d1286df0",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "9f5be058-275d-42bf-a09f-2416dd77960a",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "d461681b-f21e-4fc5-8599-f1b2613ce26a",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "9107840f-9938-4624-b9e4-c6bdb68f80cc",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "904d8df5-3e58-4508-92aa-124a5a1e0c22",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            51
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "6cdfee2b-5a12-40a8-980e-b2227c3f23a4",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            52
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "1d35cedd-561e-4fd7-9cdb-0c7a748b7d7e",
+          "name": "iron-sword-steel",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            24
+          ],
+          "image": {}
+        },
+        {
+          "type": "Yl",
+          "uuid": "3ede5c37-51e9-442b-9864-9693d0b98ec0",
+          "name": "iron-sword-fittings",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            24
+          ],
+          "image": {}
+        },
+        {
+          "type": "ql",
+          "uuid": "f2e7fdfd-ff87-48b5-90cc-20b5bcdeb8ff",
+          "name": "ViewmodelDepthMerge",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            105
+          ],
+          "image": {}
+        },
+        {
+          "type": "A",
+          "uuid": "48bf106a-935c-4536-b66c-f77e3197e0fe",
+          "name": "CopyMaterial",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            106
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tt",
+          "uuid": "12cde5d0-2d29-42e6-948b-809f10725022",
+          "name": "EffectMaterial",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            107,
+            112
+          ],
+          "image": {}
+        },
+        {
+          "type": "Tt",
+          "uuid": "4ced22d3-92d7-4e69-bddd-0d4d6c8ab0b4",
+          "name": "EffectMaterial",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            108
+          ],
+          "image": {}
+        },
+        {
+          "type": "Us",
+          "uuid": "318fdaaf-2b5e-4d1c-b977-f6c5a4cf241f",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "90340256-0bac-4e4c-9f5b-d3a4ca6c7c12",
+          "image": {
+            "width": 256,
+            "height": 256
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "69687062-929e-40a1-8af5-a874cb3ce474",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "3d1e9d04-4955-40f5-9f54-9bce6011a733",
+          "image": {
+            "width": 512,
+            "height": 256
+          }
+        },
+        {
+          "type": "jo",
+          "uuid": "7a72f3b7-4e60-4a49-b0e4-65cfa3a2fb5d",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "0eedb8b5-2e61-4592-9cc3-97549d296853",
+          "image": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "type": "jo",
+          "uuid": "39033699-1598-4295-a211-1f5967ad61ff",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "5d49efb4-8180-46d9-9ca6-46f47be698d9",
+          "image": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "439ab381-2fcd-445e-a5b1-49ff1fac98f8",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "56c9aef8-bcd7-40d0-85b6-1d0b71d20a1e",
+          "image": {
+            "width": 512,
+            "height": 512,
+            "src": "http://127.0.0.1:4401/assets/models/driftwood-blender/lm-bounce.phone.webp?v=fdf30ed3"
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "3b5415c0-9c34-4d02-851d-dd1f24bd238f",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "9da60ecc-d176-4ccf-ac74-6b54f0f2beab",
+          "image": {
+            "width": 1024,
+            "height": 1024,
+            "src": "http://127.0.0.1:4401/assets/models/driftwood-blender/lm-ao.phone.webp?v=66351318"
+          }
+        },
+        {
+          "type": "t",
+          "uuid": "6b63f729-3ac0-4d51-9213-57fd7e73c589",
+          "name": "driftwood-isle-lut",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "34f52ef6-cb7f-4fab-babf-1fa3d88932cd",
+          "image": {
+            "width": 33,
+            "height": 33
+          }
+        },
+        {
+          "type": "tu",
+          "uuid": "4d415cea-4996-4a6b-86a4-6eb2b9ae0d6b",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            86,
+            93,
+            94,
+            95,
+            96,
+            102,
+            103,
+            92,
+            98,
+            89,
+            99,
+            101,
+            137,
+            138,
+            139,
+            140,
+            141,
+            151,
+            152,
+            205,
+            206,
+            207,
+            208,
+            209,
+            210,
+            211,
+            212,
+            223,
+            224,
+            225,
+            235,
+            236,
+            237
+          ],
+          "image": {}
+        },
+        {
+          "type": "jo",
+          "uuid": "20c71d22-619c-4d26-a13f-34b438ab8abe",
+          "name": "DFG_LUT",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "8bb3b1d6-7c9b-44b8-9135-75891405268f",
+          "image": {
+            "width": 16,
+            "height": 16
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "f0402680-341f-45e6-9c1a-3fe0464e6f1e",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "a4316eb5-7f0d-4d31-a33f-c34de11719dc",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "645fcd24-41ee-4c30-9ee7-6bdaf9296fca",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "ff54d1fb-50c4-4dd8-af4e-465db893470d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "jo",
+          "uuid": "f40be7a7-46da-42e6-957a-5b3a2497bdfe",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "3b79079c-29b2-4a52-bdfc-ef12319984d5",
+          "image": {
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "a81cb2e2-9fe3-4b05-b831-a9d58868d2df",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "a82f85bc-3c88-4036-871d-1f4689d39d03",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "0a56c14e-b93f-4e71-9dbf-dd261a52c986",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "jo",
+          "uuid": "f203539d-0dc1-4c41-a902-a6ad820208f2",
+          "name": "",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "f1998eaf-28e8-4c7a-aade-51d8cf27f069",
+          "image": {
+            "width": 16,
+            "height": 16
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "d69ff210-14f5-4463-8901-d62cbb281034",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "0012b440-ea31-4305-aa55-78c405bbcbbf",
+          "name": "LuminancePass.Target",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "a289f72e-bc68-4e6f-a132-14500c97b1c1",
+          "image": {
+            "width": 804,
+            "height": 1362
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "efb01ba0-9c90-4ac9-8dbd-9eb138bc36f9",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Se",
+          "uuid": "e2521de0-ab40-44c9-ba5c-62f7d95e3b04",
+          "name": "LuminanceMaterial",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            109
+          ],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "7ce3a38d-0815-4079-842a-562e905f0239",
+          "name": "Downsampling.Mipmap0",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "fa1f350f-6217-4639-96d6-ff28d933ffdf",
+          "image": {
+            "width": 402,
+            "height": 681
+          }
+        },
+        {
+          "type": "Te",
+          "uuid": "a8c59a9e-b9a6-4915-9605-799a1b863928",
+          "name": "DownsamplingMaterial",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            110
+          ],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "b7b09f22-b443-4abc-9381-8eb504eea895",
+          "name": "Downsampling.Mipmap1",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "f468e534-e958-449c-8a31-74e10ea5facf",
+          "image": {
+            "width": 201,
+            "height": 341
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "3ec051d1-181f-4580-ab4e-238f85e85a64",
+          "name": "Downsampling.Mipmap2",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "80e95561-9165-401c-a270-8bfbdffc9e27",
+          "image": {
+            "width": 101,
+            "height": 171
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "437e2db3-8440-4634-91f4-58df1fb6a8e7",
+          "name": "Downsampling.Mipmap3",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "79c9a02e-0402-485a-a60d-4eb77e02245a",
+          "image": {
+            "width": 51,
+            "height": 86
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "327258bc-d0a2-4921-83a3-674e5ab2f894",
+          "name": "Upsampling.Mipmap2",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "0867240b-2608-4b2c-9863-d5ab83ade393",
+          "image": {
+            "width": 101,
+            "height": 171
+          }
+        },
+        {
+          "type": "Oe",
+          "uuid": "6fd6afa2-93be-4eac-9de3-1b42786f3fcf",
+          "name": "UpsamplingMaterial",
+          "retained": true,
+          "texture": false,
+          "programs": [
+            111
+          ],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "8a782705-cfa8-4df2-8822-3442001dc2e7",
+          "name": "Upsampling.Mipmap1",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "a5edebc9-af02-4272-b37f-12b95473d96e",
+          "image": {
+            "width": 201,
+            "height": 341
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "83e62659-6e54-4585-901e-f1b699f16269",
+          "name": "Upsampling.Mipmap0",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "83d7ab2a-8b5a-44eb-aa19-ea80f874c04f",
+          "image": {
+            "width": 402,
+            "height": 681
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "7aec5a56-d029-4b04-abb0-047050602da3",
+          "name": "EffectComposer.Buffer",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "0dfe1966-9be6-41e3-b2c2-2e37e97f6da5",
+          "image": {
+            "width": 804,
+            "height": 1362
+          }
+        },
+        {
+          "type": "Yl",
+          "uuid": "1c50601c-56a2-4435-8ae4-121f6f4973fd",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Nr",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "Gs",
+          "uuid": "2f4f78ad-c094-4b16-9e65-3b1104bd685a",
+          "name": ".shadowMap",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "40a298ba-b3cc-44d2-8729-4c38137865fd",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "Gs",
+          "uuid": "73c5762d-11ca-4d9f-858b-b237c998be9e",
+          "name": ".shadowMap",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "c90be249-f296-4349-9966-201c3a1b755a",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "Gs",
+          "uuid": "717a626d-0539-41a0-8121-84bc6f3499a0",
+          "name": ".shadowMap",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "27113183-f587-4baa-b00b-41bb61978a05",
+          "image": {
+            "width": 2048,
+            "height": 2048
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "579d24b2-59fb-4f21-9de3-b3037e31374d",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "e23ee8d5-92d8-47ad-ac94-a4495b70fc65",
+          "image": {
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "5f5bcf3b-2521-46ed-8af5-9ce1ae90e922",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "565f8734-a16a-49e4-a4b2-344cb011bbf5",
+          "image": {
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "f53e1d5c-87e0-4157-beff-1c72f7f1a7de",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "image": {}
+        },
+        {
+          "type": "e",
+          "uuid": "20cfb935-0cf9-468f-a214-6bea3bc549dd",
+          "name": "Image_0",
+          "retained": true,
+          "texture": true,
+          "programs": [],
+          "source": "97e15e03-9203-4280-81d3-59b15241f106",
+          "image": {
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "29939bc7-37ba-4096-9069-f42bbd406c31",
+          "name": "",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "3cdd10e4-31b0-461b-bf53-9ed6a53006de",
+          "image": {
+            "width": 512,
+            "height": 512
+          }
+        },
+        {
+          "type": "e",
+          "uuid": "6157a60a-d241-4456-b092-949837609843",
+          "name": "PMREM.cubeUv",
+          "retained": true,
+          "texture": false,
+          "programs": [],
+          "source": "85f64fe8-09a0-41ca-a0e7-fc2d62b22f6a",
+          "image": {
+            "width": 336,
+            "height": 256
+          }
+        }
+      ]
+    }
+  }
+}
