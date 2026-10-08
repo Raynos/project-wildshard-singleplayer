@@ -85,8 +85,26 @@ parameters and shaders are unchanged. Three mock-free focused checks cover sourc
 independent sampler objects and the unchanged OFF path. Reproduce via browser-lane:
 `node progress/memory/g227-budget/viewmodel-parity.mjs OUT_JSON`.
 
+## Actual centre comparison: no texture saving
+
+`texture-centre-comparison.json` compares the original Mac route against the isolated
+candidate `162c069cb14e0f467eed88c73cfe63ba0abe2530` (parent `0e6d69988`, only the two
+production source-sharing files from `70da4e333`). `texture-centre-after.json.gz` retains
+the completed after report; both browsers closed. Scene CPU buffers are identical:
+1,222 buffers / 64,501,290 bytes. Texture backing arrays remain 44 / 14,297,832 bytes.
+Labelled GL remains 245,244,410 bytes / 1,249 resources. The raw heap class counts and
+payloads also match exactly: ArrayBuffer 151,522,625; Float32Array 62,774,168;
+AudioBuffer 112,106,585; CanvasRenderingContext2D 25,432,802; ImageBitmap 4,718,728 bytes.
+These heap categories overlap backing storage and are not an additive memory bill.
+
+**No entered-Pine saving is credited.** The fixture demonstrates sharing when repeated
+procedural consumers exist; this real route does not demonstrate that duplication.
+Six native cold runs are deferred until a candidate changes a real owner. For future native
+credit, use at least three cold runs per side and report median and spread; a single pair
+cannot distinguish ordinary process/allocator variation from a cut.
+
 ## Handoff (sp-x5)
 
-Pine remains over cap on the measured baseline. The shared-source cut passed pixel/lifetime
-proof; native after-cut readings and the selected 30-minute soak pin are pending. sp-x2 owns
-generic music; sp-x4 owns Nalati cuts. No process delta or cap pass is claimed before that ruler.
+Pine remains over cap. The shared-source pixel/lifetime proof passes, but its isolated actual
+centre comparison is zero. Exact canvas ownership is the next attribution step. sp-x2 owns
+generic music; sp-x4 owns Nalati cuts. No native saving or cap pass is claimed.
