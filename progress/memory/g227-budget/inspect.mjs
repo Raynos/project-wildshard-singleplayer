@@ -1,4 +1,23 @@
 // Shared non-restoring WebKit attribution; never a substitute for Simulator WC + GL.
+export const AUDIO_INIT = `(() => {
+ if(window.__g227Audio) return; window.__g227Audio=[]; window.__g227AudioContexts=[];
+ const sources=new WeakMap(), originalBytes=Response.prototype.arrayBuffer;
+ Response.prototype.arrayBuffer=function(...args){const url=this.url;return originalBytes.apply(this,args).then(bytes=>{sources.set(bytes,url);return bytes;});};
+ const originalSlice=ArrayBuffer.prototype.slice;
+ ArrayBuffer.prototype.slice=function(...args){const bytes=originalSlice.apply(this,args);if(sources.has(this))sources.set(bytes,sources.get(this));return bytes;};
+ for(const Context of [globalThis.AudioContext,globalThis.OfflineAudioContext]) {
+  if(!Context) continue; const original=Context.prototype.decodeAudioData;
+  Context.prototype.decodeAudioData=function(...args){
+   const source=sources.get(args[0])??null, result=original.apply(this,args);
+   result.then(buffer=>{window.__g227Audio.push({source,buffer:new WeakRef(buffer)});},()=>undefined);
+   return result;
+  };
+ }
+ for(const name of ['AudioContext','OfflineAudioContext']) {
+  const Original=globalThis[name]; if(!Original)continue;
+  globalThis[name]=new Proxy(Original,{construct(target,args,newTarget){const context=Reflect.construct(target,args,newTarget);window.__g227AudioContexts.push({kind:name,context:new WeakRef(context)});return context;}});
+ }
+})();`;
 export const WASM_INIT = `(() => {
  if(window.__g227Wasm) return; window.__g227Wasm=[];
  const record=(instance,source) => { for(const [name,value] of Object.entries(instance.exports)) if(value instanceof WebAssembly.Memory && !window.__g227Wasm.some(row=>row.memory.deref()===value)) window.__g227Wasm.push({source,name,memory:new WeakRef(value)}); };
@@ -97,6 +116,7 @@ export const snapshotExpression = `(() => {
           [key, JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}').keys?.[key]?.data ?? null])),
         gridPage: Boolean(api.shard.grid),
         runtime: { texture: api.world.game.level.assets?.texture, level: api.world.game.level.id },
+        audioContexts: (window.__g227AudioContexts ?? []).flatMap(({kind,context})=>{const live=context.deref();return live ? [{kind,state:live.state,currentTime:live.currentTime,sampleRate:live.sampleRate}] : [];}),
         wasm: (window.__g227Wasm ?? []).map(({source,name,memory})=>({source,name,bytes:memory.deref()?.buffer.byteLength ?? 0})), reveal: window.__wsReveal, originDrift: window.__frameFloorGridOriginDrift };
 })()`;
 export async function heapOwners(connection, heap) {
@@ -130,11 +150,12 @@ export async function heapOwners(connection, heap) {
               }
             });
             for(const row of window.__g227Wasm??[]){const memory=row.memory.deref();if(memory?.buffer===target)matches.push({owner:'WASM:'+row.source+':'+row.name,role:'memory',viewBytes:memory.buffer.byteLength});}
+            for(const row of window.__g227Audio??[]){if(row.buffer.deref()===target)matches.push({owner:'decoded-audio:'+row.source,role:'audio-buffer',source:row.source});}
             return {kind:target.constructor?.name,byteLength:target.byteLength??null,length:target.length??null,width:target.width??null,height:target.height??null,duration:target.duration??null,matches};
           }`});
         rows.push({...target,details:details.result?.value,thrown:details.wasThrown??false});
       } catch(error){rows.push({...target,error:String(error)});}
     }
   } finally {await connection.send('Runtime.releaseObjectGroup',{objectGroup});}
-  return {protocol:'Exact object-identity match through Heap.getRemoteObject + Runtime.callFunctionOn against active scene attributes/textures and weak WASM memory registrations. Strong remote handles released before the post-heap footprint. Unmatched objects require retainer paths; no owner is inferred from equal sizes.',rows};
+  return {protocol:'Exact object-identity match through Heap.getRemoteObject + Runtime.callFunctionOn against active scene attributes/textures and weak WASM/audio registrations. Audio sources follow Response bytes through the unchanged decoder. Strong remote handles released before the post-heap footprint. Unmatched objects require retainer paths; no owner is inferred from equal sizes.',rows};
 }

@@ -2,7 +2,7 @@
 import { spawn, execFileSync } from 'node:child_process';
 import WebSocket from 'ws';
 import { memoryCategories } from './memory-categories.mjs';
-import { WASM_INIT, snapshotExpression, heapOwners } from './inspect.mjs';
+import { AUDIO_INIT, WASM_INIT, snapshotExpression, heapOwners } from './inspect.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
@@ -21,7 +21,7 @@ const helper = new URL('g227-safari.html', base).href;
 // A preview may serve several cold variants. Remove only this harness's earlier inline fixture before reseeding.
 const builtHtml = readFileSync(dist + '/index.html','utf8').replace(/<script(?: data-g227-fixture)?>([\s\S]*?)<\/script>/gu,
   (tag, body) => body.includes('window.__g227Errors=[];') ? '' : tag);
-const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixture>' + GL_INIT + ';' + WASM_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];window.__g227Errors=[];window.__g227Warnings=[];{const warn=console.warn;console.warn=(...args)=>{if(window.__g227Warnings.length<100)window.__g227Warnings.push(args.map(String).join(" "));warn.apply(console,args);};}window.addEventListener("error",e=>window.__g227Errors.push(String(e.message)));window.addEventListener("unhandledrejection",e=>window.__g227Errors.push(String(e.reason)));<\/script>');
+const documentHtml = builtHtml.replace('<head>', '<head><script data-g227-fixture>' + GL_INIT + ';' + WASM_INIT + ';' + AUDIO_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];window.__g227Errors=[];window.__g227Warnings=[];{const warn=console.warn;console.warn=(...args)=>{if(window.__g227Warnings.length<100)window.__g227Warnings.push(args.map(String).join(" "));warn.apply(console,args);};}window.addEventListener("error",e=>window.__g227Errors.push(String(e.message)));window.addEventListener("unhandledrejection",e=>window.__g227Errors.push(String(e.reason)));<\/script>');
 writeFileSync(dist + '/index.html', documentHtml);
 writeFileSync(dist + '/g227-safari.html', documentHtml);
 if (!udid) throw new Error('Run through sim-lane.sh');

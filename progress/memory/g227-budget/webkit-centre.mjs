@@ -5,7 +5,7 @@ import { webkit, devices } from 'playwright';
 import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 import { gridFloorDocumentIdentity, gridFloorPlans, runFloorGridRoute } from '../../../scripts/frame-floor-grid.mjs';
-import { WASM_INIT, snapshotExpression, heapOwners } from './inspect.mjs';
+import { AUDIO_INIT, WASM_INIT, snapshotExpression, heapOwners } from './inspect.mjs';
 
 const [base, out, slug = 'nalati-grasslands', memorySaver = 'on'] = process.argv.slice(2);
 if (!base || !out || !['pine-hollow', 'nalati-grasslands'].includes(slug) || !['on', 'off'].includes(memorySaver)) {
@@ -28,7 +28,7 @@ try {
     {scope:'global',key:'settings',data:{tier:'phone',fps:'auto',tex:'auto',memorySaver,volume:0},merge:true},
     {scope:'global',key:'gfx',data:{dpr:'2',aa:'auto'}}, {scope:'device',key:'devMode',data:true},
   ].map(saveFixtureCode).join(';');
-  await context.addInitScript({ content: GL_INIT + ';' + WASM_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];' });
+  await context.addInitScript({ content: GL_INIT + ';' + WASM_INIT + ';' + AUDIO_INIT + ';' + fixtures + ';window.__wildshardHarness={seed:357,capture:null};window.__gridAdmissionLongTasks=[];' });
   page = await context.newPage();
   report.errors = []; report.warnings = [];
   page.on('pageerror', error => { report.errors.push(String(error)); save(); });
