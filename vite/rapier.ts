@@ -13,7 +13,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
-import { brotliCompressSync, constants as zlib } from 'node:zlib';
+import { brotliCompress, constants as zlib } from 'node:zlib';
 import type { Plugin } from 'vite';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -33,14 +33,19 @@ export const rapierAlias = [
  * documented allowlist) to ~836 KB. The bench measures the preview, so the preview answers the way production does.
  */
 export function rapierPreviewPlugin(): Plugin {
-  let br: Buffer | null = null;
   return {
     name: 'wildshard:rapier-preview',
-    configurePreviewServer(server) {
+    async configurePreviewServer(server) {
+      // Prepare the CDN-equivalent bytes before preview starts accepting requests. Compressing in the
+      // first handler blocks all boot requests for 16+ seconds and falsely attributes it to WASM fetch.
+      const br = await new Promise<Buffer>((resolve, reject) => {
+        brotliCompress(readFileSync(TARGET), { params: { [zlib.BROTLI_PARAM_QUALITY]: 11 } }, (error, bytes) => {
+          if (error) reject(error); else resolve(bytes);
+        });
+      });
       server.middlewares.use((req: IncomingMessage, res: ServerResponse, next: () => void) => {
         const accepts = req.headers['accept-encoding'] ?? '';
         if (req.method !== 'GET' || !req.url?.startsWith('/assets/physics/rapier.wasm') || !accepts.includes('br')) { next(); return; }
-        br ??= brotliCompressSync(readFileSync(TARGET), { params: { [zlib.BROTLI_PARAM_QUALITY]: 11 } });
         res.setHeader('Content-Type', 'application/wasm');
         res.setHeader('Content-Encoding', 'br');
         res.setHeader('Content-Length', String(br.length));
