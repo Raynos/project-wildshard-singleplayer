@@ -1,0 +1,61 @@
+{
+  "pin": "3e5ea7e581737f5e01ec491d3b2dfd4bc440b140",
+  "browser": "Chrome / ANGLE Metal / iPhone 16 Pro emulation",
+  "tier": "phone",
+  "dpr": 2,
+  "frameCap": 30,
+  "muted": true,
+  "route": {
+    "from": "driftwood-isle",
+    "via": "road",
+    "to": "pine-hollow",
+    "seconds": 13.044200000286102,
+    "witnessFailures": [],
+    "current": "pine-hollow",
+    "gameplayReady": true,
+    "residents": [
+      "pine-hollow"
+    ]
+  },
+  "initialEnteredWarm": {
+    "at": 24663.400000095367,
+    "ms": 816.2000002861023,
+    "owner": "runtime:pine-hollow",
+    "programs": 107
+  },
+  "programCreations": {
+    "road": 10,
+    "warming": 107,
+    "postWarm": 0
+  },
+  "postWarmInfoLogs": 0,
+  "errors": [],
+  "pixels": {
+    "after": {
+      "hash": "9cbde2306a134783d17c44b1b9fce608abd20837fcfc96e788b554e3cc823642",
+      "height": 874,
+      "width": 402
+    },
+    "afterRepeat": {
+      "hash": "9cbde2306a134783d17c44b1b9fce608abd20837fcfc96e788b554e3cc823642",
+      "height": 874,
+      "width": 402
+    },
+    "before": {
+      "hash": "9cbde2306a134783d17c44b1b9fce608abd20837fcfc96e788b554e3cc823642",
+      "height": 874,
+      "width": 402
+    },
+    "match": true,
+    "repeat": {
+      "hash": "9cbde2306a134783d17c44b1b9fce608abd20837fcfc96e788b554e3cc823642",
+      "height": 874,
+      "width": 402
+    }
+  },
+  "limitations": [
+    "One real Pine entry and its standing view; no claim for every camera or physical iPhone.",
+    "Pixel comparison freezes the frame gate, Three clock delta and volumetric noise phase after the entered frame settles. Earlier unfrozen controls did not repeat and were rejected.",
+    "A warm-up comparison of the same live state, not parent/current full-game parity."
+  ]
+}
