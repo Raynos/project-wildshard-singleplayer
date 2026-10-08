@@ -67,5 +67,6 @@ it('boots public Pine through real SHARD SELECT as well as Driftwood and the Dev
   expect(source).toContain("page.locator('.ws-main-select').click()");
   expect(source).toContain("page.locator('.ws-menu-play').click()");
   expect(source).toContain('value.shard === shard && value.grid === null');
-  expect(source).toContain('started + 60000');
+  expect(source).toContain('started + 90000');
+  expect(source).toContain("page.locator('.ws-grid-reveal').dispatchEvent('pointerdown')");
 });

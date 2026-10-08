@@ -54,7 +54,8 @@ export function bootLifecycleDiagnostic(report, observedGridNavigation) {
 
 /** @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out @param {string} [shard] */
 export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle') {
-  const started = Date.now(), deadline = started + 60000;
+  // CI's macOS runner renders the phone tier at ~0.3 fps, so a case needs more than a minute of wall clock.
+  const started = Date.now(), deadline = started + 90000;
   const receipt = mode === 'standalone' && shard !== 'driftwood-isle' ? shard : mode;
   /** @type {Record<string, number>} */ const phases = {};
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
@@ -116,8 +117,14 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       gridNavigationIntent = true;
       await page.locator('.ws-main-grid').click();
     }
+    let revealSkipped = false;
     await until(page, faults, async () => {
       const value = await page.evaluate(bootObservation);
+      // Skip the grid's sky-down reveal with the player's own tap: it still waits for the rings and the home handoff,
+      // but its 7 s camera path no longer costs minutes of wall clock on a runner that draws a frame every few seconds.
+      if (value.revealing === true && !revealSkipped) {
+        revealSkipped = await page.locator('.ws-grid-reveal').dispatchEvent('pointerdown').then(() => true, () => false);
+      }
       if (!value.ready) return false;
       if (mode === 'standalone') return value.shard === shard && value.grid === null;
       const grid = value.grid;
