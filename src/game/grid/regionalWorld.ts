@@ -31,6 +31,7 @@
 import { Fog, Group, Material, Mesh, Scene, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
+import { TexturePolicyBinding, registerGpuFiles } from '@wildshard/engine/boot/gpuFiles';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
@@ -46,13 +47,16 @@ import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
 import { CHUNK_SIZE } from '@wildshard/engine/core/config';
+import { TIER } from '@wildshard/engine/core/tier';
 import type { ShardManifest } from '../shard/manifest';
+import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
 import { frameLookOf, regionGrade, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
+import { imagesFirstPlayingBytes } from './runtimeCost';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -115,15 +119,21 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     const { slug: identity } = request.manifest;
     if (level.id !== identity) throw new Error('Regional level identity differs from its trusted manifest');
     const resident = request.scope.child(`grid.world:${cell.instance}`), left = (): boolean => resident.disposed;
+    const textures = new TexturePolicyBinding(request.manifest.tiers?.[TIER]?.textures, identity, imagesFirstPlayingBytes(request.manifest.runtimeCost));
+    // Exclusive runtime construction has retired the source. Keep the destination's policy through asynchronous
+    // setup, then restore the page on the road. Entered frame scopes reinstall this same resolved policy for hooks.
+    const leaveTextures = textures.enter(); resident.onDispose(leaveTextures);
     const scene = new Scene(); scene.name = `region-scene:${cell.instance}`;
     let bound = 0;
     ownSceneTree(scene, resident, app.assets);
     try {
+      await prepareShardAssets(request.manifest, registerGpuFiles);
+      if (left()) throw new Error('Regional world left while registering its texture stand-ins');
       const navmesh = ports.navmesh === undefined ? null : await ports.navmesh(level);
       await ports.pause();
       if (left()) throw new Error('Regional world left while loading its navmesh');
       const water = ports.water?.(level) ?? new WaterBodies();
-      const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water });
+      const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures });
       const field = (): typeof frame.terrain.field => frame.terrain.field;
       const host = withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
         heightAt: (x, z) => field().heightAt(x, z), scope: resident }));
@@ -204,6 +214,6 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
     } catch (error) {
       resident.dispose();
       throw error;
-    }
+    } finally { leaveTextures(); }
   };
 }

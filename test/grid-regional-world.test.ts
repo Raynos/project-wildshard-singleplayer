@@ -5,6 +5,9 @@ import { Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3 } 
 import { App } from '../src/engine/app/app';
 import { withOwner } from '../src/engine/app/ownership';
 import { Scope } from '../src/engine/app/scope';
+import { setTexturePolicy, texMode, gpuFile } from '../src/engine/boot/gpuFiles';
+import { initializeTier } from '../src/engine/core/tier';
+import { saveSetting } from '../src/engine/ui/Settings';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { Game } from '../src/engine/core/Game';
 import type { Player } from '../src/engine/player/Player';
@@ -102,6 +105,33 @@ it('retires partial native allocation if a presentation boundary cancels the fou
     expect(host.scope.disposed).toBe(true); expect(host.physics.world.colliders).toBeUndefined();
     expect(f.homePhysics.world.colliders.len()).toBe(0);
   } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
+it('builds the region with its own cold measured texture policy and overlay before restoring the home', async () => {
+  const f = fixture(); initializeTier('phone'); saveSetting('tex', 'auto'); setTexturePolicy('img', 'home');
+  const source = '/assets/regional-fixture.webp', target = '/assets/regional-fixture.ktx2';
+  const request: RegionalRuntimeRequest = { ...f.request, manifest: { ...f.request.manifest,
+    ktx2: () => Promise.resolve({ GPU_FILES: { phone: { [source]: target }, desktop: {} } }) } };
+  let loaded = false;
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => f.region,
+    terrain: async () => { await Promise.resolve(); expect(texMode()).toBe('ktx2'); expect(gpuFile(source)).toBe(target); loaded = true; return drawnGround(); },
+    pause: () => Promise.resolve(), checkpoint: () => true });
+  try {
+    expect(texMode()).toBe('img');
+    const prepared = await foundation(request); expect(loaded).toBe(true); expect(texMode()).toBe('img');
+    const entered = f.scope.child('entered'); prepared.enter(entered);
+    expect(texMode()).toBe('ktx2'); expect(gpuFile(source)).toBe(target);
+    entered.dispose(); expect(texMode()).toBe('img'); prepared.region.dispose(); expect(texMode()).toBe('img');
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); setTexturePolicy(undefined); saveSetting('tex', 'auto'); }
+});
+
+it('restores the home texture policy when a destination asset build fails before entry', async () => {
+  const f = fixture(); initializeTier('phone'); saveSetting('tex', 'auto'); setTexturePolicy('img', 'home');
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => f.region,
+    terrain: async () => { await Promise.resolve(); expect(texMode()).toBe('ktx2'); throw new Error('Destination texture failure'); },
+    pause: () => Promise.resolve(), checkpoint: () => true });
+  try { await expect(foundation(f.request)).rejects.toThrow('Destination texture failure'); expect(texMode()).toBe('img'); }
+  finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); setTexturePolicy(undefined); saveSetting('tex', 'auto'); }
 });
 
 it('owns a bodyless destination, its terrain collider and a scene subtree that game.scene resolves only while entered', async () => {
