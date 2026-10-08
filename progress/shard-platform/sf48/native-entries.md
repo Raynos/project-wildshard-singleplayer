@@ -1,0 +1,13 @@
+# Nalati native entry admission (E435, SF48-g)
+
+The committed WSTR height lattice is the geometry evidence, independently of the transitional hybrid product's implicit plane. `test/nalati-entryways-native.test.ts` changes only the wire header to the existing WTT1 collider codec: all 65,536 float32 heights and their native 256-sample locations remain identical. No interpolation, terrain flattening, socket floor or hidden ground participates.
+
+The four declared boundary profiles now preserve those exact heights. The generator previously rounded them to three decimal places; exact binary fractions retain the native samples without a precision lint exception. Existing palette values and the immutable terrain bake stay unchanged.
+
+Method: `pnpm exec vitest run test/nalati-entryways-native.test.ts`. Two tests pass: exact terrain/profile equality, continuous triangle-clipped 8 × 15 m terrain admission at all four midpoints, and 7,680 native quarter-metre rays at y=0. The native world contains exactly one collider (the authored terrain); no platform sockets exist.
+
+The author product builds with `node scripts/wildshard.mjs build src/shards/nalati-grasslands <output> --product-only` and validates with `node scripts/wildshard.mjs validate <output>/shard.json`: 60 simulation ticks, 92 entry lanes and 46,094 capsule steps. This product still describes a trusted runtime with `terrain:null`; its generic source-only edge walk is not evidence of Nalati's real terrain.
+
+The separate real-terrain 50 m walk currently refuses north lane 0 at 49.39 m: grounded, freedom 1, normal 0.997475, feet y=-0.152492 m. The road gently descends beyond the canonical flat socket, while the generic walk requires y=0 throughout. The authored-surface walk proposal is awaiting the coordinator; this is not a completed native drivability claim.
+
+Follow-up for the coordinator's plan queue: renderer-free native collider metadata for trusted products, preserving the full 256-sample WSTD lattice. It is intentionally separate from this proof; the live regional foundation already installs the real terrain collider. Queue it after Driftwood → Pine → Nalati is drivable.
