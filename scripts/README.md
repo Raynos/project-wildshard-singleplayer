@@ -175,6 +175,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 ## Other
 
+- [admin-data.d.mts](./admin-data.d.mts)
+- [admin-data.mjs](./admin-data.mjs)
 - [asks.d.mts](./asks.d.mts)
 - [asks.mjs](./asks.mjs)
 - [audit-animation-models.mjs](./audit-animation-models.mjs)
@@ -290,6 +292,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 
 ## Folders
 
+- [admin-data/](./admin-data/)
 - [bake/](./bake/)
 - [blender/](./blender/)
 - [crossroads-rig/](./crossroads-rig/)
