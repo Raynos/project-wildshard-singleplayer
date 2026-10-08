@@ -7,9 +7,9 @@ void test('independent listener identities survive duplicate registration and di
     // oxlint-disable-next-line typescript/unbound-method -- Restore the exact native prototype methods after this isolated census test.
     add: EventTarget.prototype.addEventListener, remove: EventTarget.prototype.removeEventListener };
   try {
-    globalThis.window = Object.assign(new EventTarget(), { setTimeout, setInterval, clearTimeout, clearInterval,
-      requestAnimationFrame: () => 1, cancelAnimationFrame: () => undefined });
-    globalThis.document = new EventTarget(); globalThis.HTMLCanvasElement = class extends EventTarget {};
+    Reflect.set(globalThis, 'window', Object.assign(new EventTarget(), { setTimeout, setInterval, clearTimeout, clearInterval,
+      requestAnimationFrame: () => 1, cancelAnimationFrame: () => undefined }));
+    Reflect.set(globalThis, 'document', new EventTarget()); Reflect.set(globalThis, 'HTMLCanvasElement', class extends EventTarget {});
     installResources();
     const listener = () => undefined, external = new EventTarget();
     window.addEventListener('error', listener); window.addEventListener('error', listener);

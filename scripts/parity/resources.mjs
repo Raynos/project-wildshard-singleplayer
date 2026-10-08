@@ -40,8 +40,10 @@ export function installResources() {
   w.cancelAnimationFrame=(id)=>{raf.delete(id);cancel(id);};
   window.__parityResources=()=>{
     const counts={window:0,document:0,canvas:0,other:0};
+    /** @param {EventTarget} target @returns {keyof typeof counts} */
+    const targetKind=target=>target===window?'window':target===document?'document':target instanceof HTMLCanvasElement?'canvas':'other';
     const listenerDetails=[...listeners].map(e=>({id:e.id,type:e.type,capture:e.capture,
-      kind:e.target===window?'window':e.target===document?'document':e.target instanceof HTMLCanvasElement?'canvas':'other',
+      kind:targetKind(e.target),
       target:e.target.constructor.name,stack:e.stack}));
     for(const e of listenerDetails)counts[e.kind]++;
     return {listeners:counts,listenerDetails,timers:{timeouts:timeouts.size,intervals:intervals.size,raf:raf.size},timerIds:{timeouts:[...timeouts.keys()],intervals:[...intervals.keys()],raf:[...raf.keys()]},stacks:{listeners:[...listeners].slice(0,5).map((e)=>e.stack),timers:[...timeouts.values(),...intervals.values(),...raf.values()].slice(0,5)}};
