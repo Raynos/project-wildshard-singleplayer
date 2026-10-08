@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "runtimeRevision": "2fccee5ba2d50ca53ce298f313781045bf8f31b9",
+  "driverRevision": "2fccee5ba2d50ca53ce298f313781045bf8f31b9",
+  "approvedBy": "wildshard-new",
+  "circuits": 4,
+  "layout": "dev",
+  "subset": "Driftwood/Pine/Nalati/template copies; original owned cell routes, no crossroads tour",
+  "observer": "light c132 + coalesced exact GL journal; raw storage tracing/callsite stacks OFF; no extra GPU probe",
+  "settledBoundaries": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "heapBoundaries": [
+    2,
+    4
+  ],
+  "ordering": [
+    "original WC+GL settled window",
+    "SF64 owner/program scalar state",
+    "fixed-WebContent-PID vmmap summary/verbose and footprint",
+    "passive WebKit memory categories",
+    "optional heap snapshot",
+    "same-document/home-ready fence"
+  ],
+  "limitations": [
+    "Intrusive heap snapshots may collect; no qualifying duration/cap/performance clearance",
+    "Historical e632 baseline differs by SF69 and the PMREM lifetime fix; not a single-change A/B",
+    "place.ts records/cullers lifetime fix is absent and remains an attribution candidate",
+    "Native/heap/SF64/category numbers overlap WebContent and are not additive totals"
+  ],
+  "preparedAt": "2026-10-08T18:47:01.560235+00:00"
+}

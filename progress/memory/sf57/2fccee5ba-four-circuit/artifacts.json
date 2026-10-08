@@ -1,0 +1,212 @@
+{
+  "method": "Exact raw bytes; XZ only for files over10000bytes. Every compressed file was decompressed and checked byte-for-byte before landing. Original filesystem timestamps retained as metadata, not measurement timestamps.",
+  "artifacts": [
+    {
+      "name": "boundary-0-footprint.txt",
+      "evidence": "boundary-0-footprint.txt",
+      "bytes": 2646,
+      "sha256": "726bbebc130e3e7b9c28050056b85599884863147ce529c0f3470109ab8b1d8e",
+      "storedBytes": 2646,
+      "storedSha256": "726bbebc130e3e7b9c28050056b85599884863147ce529c0f3470109ab8b1d8e",
+      "originalModifiedAt": 1791485337.2109783
+    },
+    {
+      "name": "boundary-0-vmmapSummary.txt",
+      "evidence": "boundary-0-vmmapSummary.txt",
+      "bytes": 7999,
+      "sha256": "3e2e62920dbdc78d840de8dbef442fe7f5fefedfee02ef6251a4f2300ff9e051",
+      "storedBytes": 7999,
+      "storedSha256": "3e2e62920dbdc78d840de8dbef442fe7f5fefedfee02ef6251a4f2300ff9e051",
+      "originalModifiedAt": 1791485333.6791067
+    },
+    {
+      "name": "boundary-0-vmmapVerbose.txt",
+      "evidence": "boundary-0-vmmapVerbose.txt.xz",
+      "bytes": 1395359,
+      "sha256": "d6b991a769c4bfe2b29485ddcbe6c4b268f3a3b5fc44ad9128a65a057749cdae",
+      "storedBytes": 91812,
+      "storedSha256": "17b35fd5c1789525ec52bba7fae85e936e56142d9d38197f8a4fb1c42466e820",
+      "originalModifiedAt": 1791485337.0610542
+    },
+    {
+      "name": "boundary-0.json",
+      "evidence": "boundary-0.json.xz",
+      "bytes": 2346773,
+      "sha256": "c462fb9a4fc4f9ba071efde5d752a4018bb3eac13520b9c3bd1032894f77c5e9",
+      "storedBytes": 41868,
+      "storedSha256": "f18dd624d662534f01ab4867224455dd8263aa0a2a798fa3c9318d506010c2da",
+      "originalModifiedAt": 1791485339.915804
+    },
+    {
+      "name": "boundary-1-footprint.txt",
+      "evidence": "boundary-1-footprint.txt",
+      "bytes": 2717,
+      "sha256": "c84f1c451ef75016a78b156c72db5124b051cbb4f5154efb68e22aafc90694a3",
+      "storedBytes": 2717,
+      "storedSha256": "c84f1c451ef75016a78b156c72db5124b051cbb4f5154efb68e22aafc90694a3",
+      "originalModifiedAt": 1791485554.596142
+    },
+    {
+      "name": "boundary-1-vmmapSummary.txt",
+      "evidence": "boundary-1-vmmapSummary.txt",
+      "bytes": 8391,
+      "sha256": "2b66997a027fb011b5153fbabf069164d644748ce3c06a3dbc3364ae1c5f1de5",
+      "storedBytes": 8391,
+      "storedSha256": "2b66997a027fb011b5153fbabf069164d644748ce3c06a3dbc3364ae1c5f1de5",
+      "originalModifiedAt": 1791485553.4349363
+    },
+    {
+      "name": "boundary-1-vmmapVerbose.txt",
+      "evidence": "boundary-1-vmmapVerbose.txt.xz",
+      "bytes": 1455789,
+      "sha256": "8b20a1637e4727fb7b11603aa1699992ef2677be306a3513a99f2fdeeceb18f8",
+      "storedBytes": 94384,
+      "storedSha256": "d84e66be7757daf4222a39e1305f702b6386a23e2ca75966e8a3de358a2146fb",
+      "originalModifiedAt": 1791485554.5343485
+    },
+    {
+      "name": "boundary-1.json",
+      "evidence": "boundary-1.json.xz",
+      "bytes": 4410606,
+      "sha256": "fc630b451ed7d00dc7bf547b11efce8c9656cba910cfb15f00a3e43459cf5f0e",
+      "storedBytes": 68908,
+      "storedSha256": "a0eea384fb1a2f98a55125f738c886eae379e2e65dea3597252e2c99dcaeb3cf",
+      "originalModifiedAt": 1791485557.2240484
+    },
+    {
+      "name": "boundary-2-footprint.txt",
+      "evidence": "boundary-2-footprint.txt",
+      "bytes": 2717,
+      "sha256": "8f00c9ca6c58f83adfe1b16622c6088c4c3b47e9bdf53dcf2f526090f301db16",
+      "storedBytes": 2717,
+      "storedSha256": "8f00c9ca6c58f83adfe1b16622c6088c4c3b47e9bdf53dcf2f526090f301db16",
+      "originalModifiedAt": 1791485740.0548213
+    },
+    {
+      "name": "boundary-2-vmmapSummary.txt",
+      "evidence": "boundary-2-vmmapSummary.txt",
+      "bytes": 8493,
+      "sha256": "4710d47badc94b75256abd79505ccf2706613007ee83235d4c5d53b74741209e",
+      "storedBytes": 8493,
+      "storedSha256": "4710d47badc94b75256abd79505ccf2706613007ee83235d4c5d53b74741209e",
+      "originalModifiedAt": 1791485738.759742
+    },
+    {
+      "name": "boundary-2-vmmapVerbose.txt",
+      "evidence": "boundary-2-vmmapVerbose.txt.xz",
+      "bytes": 1472501,
+      "sha256": "1bff17c014f4a26a6f205c36282ade640a228128f23f2770c9dbbd0cd36b81f3",
+      "storedBytes": 95364,
+      "storedSha256": "8a19bed9e3d994a55632b4716712ad02c589f22efff41838da03677f12442a54",
+      "originalModifiedAt": 1791485739.981333
+    },
+    {
+      "name": "boundary-2.json",
+      "evidence": "boundary-2.json.xz",
+      "bytes": 3185381,
+      "sha256": "b87b6d247e8c48cefd6f7d605ff755aee142d152c7095e4a8c330a47f581ccf9",
+      "storedBytes": 88384,
+      "storedSha256": "3ec6683ad6754e88758db0e8b89a15b754a08826e20a2cdbf28df7cde2fe826e",
+      "originalModifiedAt": 1791485758.9784052
+    },
+    {
+      "name": "dev-cells-gl-events.jsonl",
+      "evidence": "dev-cells-gl-events.jsonl.xz",
+      "bytes": 10451405,
+      "sha256": "8a38500af34bdcc3ad09f2eb5359d1070fdb5bc8483bb21731a5cff31701f135",
+      "storedBytes": 253448,
+      "storedSha256": "c457a36635f99ed76ccf9310a5d36b838983f6130382d81c109ccfcd55cd91c8",
+      "originalModifiedAt": 1791485742.635047
+    },
+    {
+      "name": "dev-cells-gl-uploads.jsonl",
+      "evidence": "dev-cells-gl-uploads.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalModifiedAt": 1791485249.2873478
+    },
+    {
+      "name": "dev-cells-gl.jsonl",
+      "evidence": "dev-cells-gl.jsonl.xz",
+      "bytes": 40118458,
+      "sha256": "0ee5d083961a253461ec5d2d3b0c2e5ef968782b3acf96936f8769d952566264",
+      "storedBytes": 79804,
+      "storedSha256": "4ec14b027d754d6208b6a230a5c00332df8539747f51d2c2f1b6e0a8da90849b",
+      "originalModifiedAt": 1791485742.6357422
+    },
+    {
+      "name": "dev-cells-native.jsonl",
+      "evidence": "dev-cells-native.jsonl.xz",
+      "bytes": 138985,
+      "sha256": "ecec03579bbb965fc8eaa4eac7bd34ef33ca1569788c999a07edff785805913c",
+      "storedBytes": 18644,
+      "storedSha256": "788301ad430b052a492638d30abf9cea0f7c59af3aac0d8ee538b2d93bd4aab6",
+      "originalModifiedAt": 1791485829.6393745
+    },
+    {
+      "name": "dev-cells.json",
+      "evidence": "dev-cells.json.xz",
+      "bytes": 9627057,
+      "sha256": "6c906c795ee19c5536cfd586ab4737f97207494956ebb421423c276e6d24a772",
+      "storedBytes": 160528,
+      "storedSha256": "47b338d6621f934b1ae3b6792f80a38c3baba3720e2284f3e532ad7a8c8890a2",
+      "originalModifiedAt": 1791485717.2854598
+    },
+    {
+      "name": "dev-cells.phase",
+      "evidence": "dev-cells.phase",
+      "bytes": 4,
+      "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211",
+      "storedBytes": 4,
+      "storedSha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211",
+      "originalModifiedAt": 1791485828.9907591
+    },
+    {
+      "name": "machine-load.jsonl",
+      "evidence": "machine-load.jsonl",
+      "bytes": 645,
+      "sha256": "440261ac61f60c68951f00d02b115d4bfec239a5d9824e284787f4823fd7f0d8",
+      "storedBytes": 645,
+      "storedSha256": "440261ac61f60c68951f00d02b115d4bfec239a5d9824e284787f4823fd7f0d8",
+      "originalModifiedAt": 1791485804.5974174
+    },
+    {
+      "name": "manifest.json",
+      "evidence": "manifest.json",
+      "bytes": 484,
+      "sha256": "a04b7b778b504b20ac9b2ba862f7a2bc5719d5dfa9d38948e995a0c053e806d6",
+      "storedBytes": 484,
+      "storedSha256": "a04b7b778b504b20ac9b2ba862f7a2bc5719d5dfa9d38948e995a0c053e806d6",
+      "originalModifiedAt": 1791485215.7371647
+    },
+    {
+      "name": "preview-proof.json",
+      "evidence": "preview-proof.json",
+      "bytes": 493,
+      "sha256": "70fc734fc1cc1817ba476132b83a93cd26be88129d7a39c950c613b5094aea9c",
+      "storedBytes": 493,
+      "storedSha256": "70fc734fc1cc1817ba476132b83a93cd26be88129d7a39c950c613b5094aea9c",
+      "originalModifiedAt": 1791485229.7713737
+    },
+    {
+      "name": "protocol.json",
+      "evidence": "protocol.json",
+      "bytes": 1256,
+      "sha256": "456154d1decb4a3c346565a217385ec7c8cc264978e730d067b38c295cf8cb30",
+      "storedBytes": 1256,
+      "storedSha256": "456154d1decb4a3c346565a217385ec7c8cc264978e730d067b38c295cf8cb30",
+      "originalModifiedAt": 1791485221.5606515
+    },
+    {
+      "name": "run.log",
+      "evidence": "run.log",
+      "bytes": 4918,
+      "sha256": "0d405e0ae9a4298d67ecedd8614a0d88f8938771a92f7e9b278d03c85a610a53",
+      "storedBytes": 4918,
+      "storedSha256": "0d405e0ae9a4298d67ecedd8614a0d88f8938771a92f7e9b278d03c85a610a53",
+      "originalModifiedAt": 1791485837.4076693
+    }
+  ]
+}

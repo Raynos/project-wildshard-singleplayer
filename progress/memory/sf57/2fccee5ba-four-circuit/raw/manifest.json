@@ -1,0 +1,22 @@
+{
+  "sha": "2fccee5ba2d50ca53ce298f313781045bf8f31b9",
+  "out": "/private/tmp/claude-501/sp-builders/sp-x3/sf57-2fccee5ba-four-circuit",
+  "bases": [
+    {
+      "layout": "dev",
+      "base": "http://127.0.0.1:4400/",
+      "version": {
+        "build": "2fccee5-muzw19i7",
+        "time": "2026-10-08T18:46:46.787Z"
+      }
+    }
+  ],
+  "contentCut": null,
+  "routeScope": "prepared",
+  "dryRun": false,
+  "legs": [
+    "cells"
+  ],
+  "rehearsal": true,
+  "diagnosticCircuits": 4
+}

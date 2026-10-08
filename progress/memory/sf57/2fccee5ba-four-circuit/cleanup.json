@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-08T19:00:54.768164+00:00",
+  "device": "A274C713-B7DE-4AB6-BF56-8B24E53EFF38",
+  "ownedDeviceName": "sf57-sp-x3-dev-81409",
+  "shutdownVerified": true,
+  "ownedDeviceDeleted": true,
+  "simLaneStatus": "simulators: 0 / 1 booted\n",
+  "ownedPreviewPort": 4400,
+  "previewRegistryPresent": true,
+  "previewOwnerPid": 82624,
+  "samplerFinalSummary": true,
+  "inspectorClosed": true,
+  "newRunStarted": false
+}

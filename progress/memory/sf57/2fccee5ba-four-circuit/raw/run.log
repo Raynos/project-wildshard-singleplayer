@@ -1,0 +1,55 @@
+serve-build: building 2fccee5ba2d50ca53ce298f313781045bf8f31b9 2fccee5ba → /private/tmp/claude-501/sp-builders/sp-x3/sf57-2fccee5ba-four-circuit/serve/20261008-134624-4400/dist
+serve-build: pid 82624, reaped in 3 h; stop it with: scripts/serve-build.sh stop 4400
+PREPARED /private/tmp/claude-501/sp-builders/sp-x3/sf57-2fccee5ba-four-circuit/manifest.json — waiting for coordinator quiet; touch /private/tmp/claude-501/sp-builders/sp-x3/sf57-2fccee5ba-four-circuit/GO only after go
+sim-lane: created sf57-sp-x3-dev-81409 (A274C713-B7DE-4AB6-BF56-8B24E53EFF38)
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate com.apple.mobilesafari.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "com.apple.mobilesafari" failed. found nothing to terminate
+	found nothing to terminate
+[   0.0s] phase -> loading
+[   1.0s] WebContent 85310 gone during loading
+[   1.0s] WebContent 85332 gone during loading
+[   1.0s] WebContent 85370 gone during loading
+[  41.3s] phase -> baseline-0
+[  62.4s] phase -> diagnostic-0
+{"layout":"dev","cycle":0,"route":"driftwood-isle-to-pine-hollow","seconds":0.015}
+[  82.6s] phase -> drive
+{"layout":"dev","cycle":0,"route":"pine-hollow-to-nalati-grasslands","seconds":44.18}
+{"layout":"dev","cycle":0,"route":"nalati-grasslands-to-template-2","seconds":99.462}
+{"layout":"dev","cycle":0,"route":"template-2-to-driftwood-isle","seconds":140.334}
+[ 274.8s] phase -> settle-1
+[ 294.9s] phase -> diagnostic-1
+{"layout":"dev","cycle":1,"route":"driftwood-isle-to-pine-hollow","seconds":217.323}
+[ 300.0s] phase -> drive
+{"layout":"dev","cycle":1,"route":"pine-hollow-to-nalati-grasslands","seconds":244.441}
+{"layout":"dev","cycle":1,"route":"nalati-grasslands-to-template-2","seconds":289.245}
+{"layout":"dev","cycle":1,"route":"template-2-to-driftwood-isle","seconds":331.145}
+[ 460.1s] phase -> settle-2
+[ 480.2s] phase -> diagnostic-2
+[ 571.8s] phase -> done
+{"phases": {"loading": {"samples": 41, "seconds": 40.3, "gamePid": 85210, "gameHighGB": 0.488, "gameSampledGB": 0.485, "allWebContentGB": 0.527, "gpuProcessGB": 0.168}, "baseline-0": {"samples": 21, "seconds": 20.1, "gamePid": 85210, "gameHighGB": 0.637, "gameSampledGB": 0.477, "allWebContentGB": 0.521, "gpuProcessGB": 0.165}, "diagnostic-0": {"samples": 20, "seconds": 19.1, "gamePid": 85210, "gameHighGB": 0.856, "gameSampledGB": 0.856, "allWebContentGB": 0.896, "gpuProcessGB": 0.164}, "drive": {"samples": 350, "seconds": 376.5, "gamePid": 85210, "gameHighGB": 1.41, "gameSampledGB": 1.403, "allWebContentGB": 1.449, "gpuProcessGB": 0.348}, "settle-1": {"samples": 20, "seconds": 19.1, "gamePid": 85210, "gameHighGB": 1.085, "gameSampledGB": 0.893, "allWebContentGB": 0.932, "gpuProcessGB": 0.286}, "diagnostic-1": {"samples": 5, "seconds": 4.0, "gamePid": 85210, "gameHighGB": 1.102, "gameSampledGB": 1.102, "allWebContentGB": 1.142, "gpuProcessGB": 0.287}, "settle-2": {"samples": 20, "seconds": 19.1, "gamePid": 85210, "gameHighGB": 1.394, "gameSampledGB": 1.217, "allWebContentGB": 1.257, "gpuProcessGB": 0.342}, "diagnostic-2": {"samples": 91, "seconds": 90.6, "gamePid": 85210, "gameHighGB": 2.139, "gameSampledGB": 1.91, "allWebContentGB": 2.179, "gpuProcessGB": 0.347}}, "lost": [{"pid": 85310, "phase": "loading", "elapsed": 1.0}, {"pid": 85332, "phase": "loading", "elapsed": 1.0}, {"pid": 85370, "phase": "loading", "elapsed": 1.0}]}
+file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/inspector.mjs:30
+    const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error(`Safari inspector timeout: ${method}`)); }, method === 'Heap.snapshot' ? 300000 : 10000);
+                                                                               ^
+
+Error: Safari inspector timeout: Runtime.evaluate
+    at Timeout._onTimeout (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/inspector.mjs:30:80)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+
+Node.js v24.18.1
+file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36
+  child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
+                                                                                                      ^
+
+Error: /Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh exited 1
+    at ChildProcess.<anonymous> (file:///Users/raynos/projects/games/wildshard-singleplayer/scripts/soak/soak.mjs:36:103)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at Socket.<anonymous> (node:internal/child_process:481:11)
+    at Socket.emit (node:events:509:28)
+    at Pipe.<anonymous> (node:net:351:12)
+
+Node.js v24.18.1

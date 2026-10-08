@@ -1,0 +1,43 @@
+======================================================================
+com.apple.WebKit.WebContent [85210]: 64-bit    Footprint: 855281312 B (16384 bytes per page)
+======================================================================
+
+      Dirty         Clean   Reclaimable    Regions    Category
+        ---           ---           ---        ---    ---
+710688768 B           0 B   356941824 B        494    WebKit malloc
+ 49381376 B           0 B   193855488 B         46    JS VM Gigacage
+ 34308096 B           0 B     3129344 B          3    JS JIT generated code
+ 18202624 B           0 B           0 B         76    dyld private memory
+  8732672 B           0 B           0 B          3    Owned physical footprint (unmapped) (graphics)
+  7864320 B           0 B     9535488 B        640    MALLOC_SMALL
+  6973497 B       32768 B           0 B        949    __DATA
+  5652480 B           0 B           0 B         12    untagged (VM_ALLOCATE) (graphics)
+  4636672 B           0 B           0 B        225    untagged (VM_ALLOCATE)
+  2624672 B       16384 B           0 B        979    __DATA_CONST
+  2576032 B           0 B           0 B          1    page table
+  1130496 B           0 B           0 B         37    stack
+   573440 B           0 B           0 B          6    CG raster data
+   557056 B           0 B       49152 B          1    libdispatch
+   442368 B           0 B       32768 B         12    MALLOC metadata
+   397191 B           0 B           0 B       1008    unused dyld shared cache area
+   163840 B           0 B           0 B          1    MALLOC_TINY
+   158624 B           0 B           0 B         14    __DATA_DIRTY
+    69632 B           0 B           0 B          3    __TPRO_CONST
+    32768 B           0 B           0 B          1    __AUTH_CONST
+    32768 B           0 B           0 B          2    ColorSync
+    32768 B           0 B           0 B          1    Activity Tracing
+    16384 B           0 B           0 B          1    Foundation
+    16384 B           0 B           0 B          1    CoreServices
+    16384 B           0 B           0 B          1    os_alloc_once
+        0 B           0 B     8978432 B         10    ImageIO
+        0 B    21168128 B           0 B        103    mapped file
+        0 B     3686400 B           0 B        992    __TEXT
+        0 B     1638400 B           0 B         74    __LINKEDIT
+        0 B           0 B           0 B          1    __FONT_DATA
+        ---           ---           ---        ---    ---
+855281312 B    26542080 B   572522496 B       5699    TOTAL
+
+Auxiliary data:
+    phys_footprint: 855805600 B
+    phys_footprint_peak: 856329888 B
+

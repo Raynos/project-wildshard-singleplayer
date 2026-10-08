@@ -10,27 +10,33 @@
 - Offline attribution receipt0edc1ca2a: WC+197.150MB, GL+6.902MB;
   PMREM+6.881MB routed coordinator/Opus, ~50.2MB/circuit total/no observed
   plateau. attribution/README.md + reproducer/JSON under the same evidence dir.
-- Approved follow-up: ONE four-circuit Developer D/P/N/template diagnostic on
-  post-SF69 pin (coordinator sends SHA+GO). SF64/native/program/passive categories
-  at settled boundaries0–4; heap snapshots only after2/4, outside travel, intrusive.
-  New opt-in --diagnostic-circuits=4; normal qualifying route unchanged. No labels-OFF
-  seam/control (coordinator declined); compare the historical e632 soak.
-- No Simulator/browser/helper owned. Idle e632 diagnostic preview4402/PID53044
-  stopped after coordinator changed the pin. Next: build ONE queued post-SF69
-  preview after SHA, write prepared manifest dev/cells/prepared/diagnosticCircuits4,
-  fresh owned sf57-sp-x3 device; start only after GO. Keep failures and passive
-  unsupported samples; heap collection prevents a cap/performance clearance.
-- Preparation scratch /private/tmp/claude-501/sp-builders/sp-x3/sf57-e632-four-circuit
-  has focused/type/lint/full-suite logs; earlier soak scratch
-  /private/tmp/claude-501/sp-builders/sp-x3/sf57-e632fe913-retry retained.
+- Approved post-SF69 four-circuit diagnostic on2fccee5ba FAILED/incomplete:
+  2circuits/8route witnesses green, boundary0/1/2 SF64/native/passive data kept;
+  Heap.snapshot at2 closed Inspector before any heap payload. Cleanup RPC timeout
+  prevented final main-result flush (rawcircuits1 is stale; eight witnesses prove2).
+  Evidence/reproducer progress/memory/sf57/2fccee5ba-four-circuit/.
+- Preinspection WCtails464.605/890.917/1213.699MB; SF64RAM196.036/355.382/531.403MB;
+  programs151/314/320. RAM1to2+176.022MB =buffers127.251+bitmaps35.652+canvases7.877+
+  images5.243; renderergeometry251->251,GL+1.836MB. CPU-source candidate for
+  place-lifetime lane, NOT strong-root proof without heap/collection.
+- VM/heap inspection visibly raises nativeWC; failedheap intervalhigh2139MB is
+  intrusive, not cap evidence. No newips/postbootWebContentloss, but transport
+  closecode/reason was not retained;512MiB payload limit is unproved candidate.
+  No four-circuit leak rate or causal comparison with e632; SF69+PMREM present.
+- All owned Safari/Inspector/proxy/sampler closed; sim0/1 verified; fresh device
+  A274C713-B7DE-4AB6-BF56-8B24E53EFF38 shut down/deleted. Owned4400/PID82624 stopped
+  by preparation finally. No preview/browser/native remains. No retry started.
+  Next: send receiptSHA to coordinator/place lane; wait coordinator for diagnostic
+  transport/final-flush correction and any next shared-Simulator measurement.
+- Driver2025b98f1 +lintforward6d3165ebb landed/pushed.26focused/scriptsstrict/scopedlint
+  green. Requiredheavyfull5310pass/9foreignreds was approved bycoordinator (shared
+  WIP or central generated outputs). No sourceWIP or plan edits.
+- Scratch /private/tmp/claude-501/sp-builders/sp-x3/sf57-2fccee5ba-four-circuit
+  raw is archived exactly in repo; original e632scratch still kept under
+  /private/tmp/claude-501/sp-builders/sp-x3/sf57-e632fe913-retry.
 - Sun floor2ed39b862 shipped:20/22 cadence rows pass/aggregateRED; exactreceipt
   progress/shard-platform/sf50-sun-floor-e632fe913.md. HOVER8f1918525+c932ce846
-  shipped/touch4of4; Pine P0d77+f9e in e632. No plan edits. Driver2025b98f1 landed; urgent lint forward explicitly discards
-  node:test promises and types Node custom execFile Promise adapter without
-  suppressions. Diagnostic26 focused/scripts strict/scoped lint green. Full suite
-  5310pass/9foreign reds: stale graph/API, Nine map, drafts atlas, Driftwood mover
-  boat scale fixture. Coordinator approved source-only landing: all failures are foreign shared-tree WIP
-  or central generated outputs; the clean-export gate owns their verification.
+  shipped/touch4of4; Pine P0d77+f9e in e632. No plan edits.
 - Coordinator alone pushes. Private index fromHEAD/CAS/hooks; never message
   wildshard-v. Older e459 scratch cleanup was blocked by automatic review;
   no deletion retry, all useful evidence already durable.

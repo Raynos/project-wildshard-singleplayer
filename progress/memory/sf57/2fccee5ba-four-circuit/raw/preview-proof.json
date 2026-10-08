@@ -1,0 +1,17 @@
+{
+  "base": "http://127.0.0.1:4400/",
+  "version": {
+    "build": "2fccee5-muzw19i7",
+    "time": "2026-10-08T18:46:46.787Z"
+  },
+  "dist": "/private/tmp/claude-501/sp-builders/sp-x3/sf57-2fccee5ba-four-circuit/serve/20261008-134624-4400/dist",
+  "registry": [
+    "82624",
+    "1791496015",
+    "/private/tmp/claude-501/sp-builders/sp-x3/sf57-2fccee5ba-four-circuit/serve/20261008-134624-4400",
+    "sf57-dev-81409",
+    "sf57-dev-81409"
+  ],
+  "httpDiskMatch": true,
+  "rawTracing": false
+}
