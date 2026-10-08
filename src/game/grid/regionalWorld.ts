@@ -58,7 +58,7 @@ import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
-import { frameLookOf, regionChain, regionGrade, type FrameLookPort } from './frameLook';
+import { frameLookOf, lookChainKind, regionChain, regionGrade, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
 import { imagesFirstPlayingBytes } from './runtimeCost';
@@ -108,7 +108,7 @@ export function regionalWorldCensus(foundation: RegionalRuntimeFoundation): Regi
 const isMaterial = (value: unknown): value is Material => value instanceof Material;
 /** a level's sky backdrop as the page's sky layers it (G223) */
 type LayeredBackdrop = NonNullable<Awaited<ReturnType<SkyRig['layeredBackdrop']>>>['backdrop'];
-/** a layered sky's volumetric light stays the page's (G232 hands a region's clock only the page's saturation) */
+/** a layered sky's volumetric light: the page's chain never has one to hand (G232 hands a region's clock the page's saturation, SF63 its god rays) */
 const NO_VOL: Parameters<LayeredBackdrop['attachPost']>[0]['vol'] = { setSun: () => undefined, setFogColor: () => undefined, setStrength: () => undefined };
 
 function simLevel(level: LevelSpec): SimLevel {
@@ -186,7 +186,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
           // G232: on a neutral page shell its whole grade chain (grade, look layer, learned LUT) is carried exactly
           let lut: Texture | null = null;
-          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain: regionChain(level, () => lut) }));
+          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain: regionChain(level, () => lut, lookChainKind(levelLook)) }));
           // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
           if (look !== null && sky instanceof SkyRig) void (async () => {
             try {
@@ -198,7 +198,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
                 made.backdrop = layered.backdrop;
                 // its clock turns the page's saturation with its hour as standalone, where the page carries its chain
                 const post = look.post?.() ?? null;
-                if (post !== null) layered.backdrop.attachPost({ vol: NO_VOL, rays: null, hueSat: post.hueSat });
+                if (post !== null) layered.backdrop.attachPost({ vol: NO_VOL, rays: post.rays, hueSat: post.hueSat });
                 return layered;
               } });
               // its LUT: the drawn backdrop's (it loaded the level's), else the level's own file when it has no backdrop

@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Color, Fog, PerspectiveCamera, Scene, type Uniform } from 'three';
-import { BlendFunction, BrightnessContrastEffect, Effect, EffectPass, HueSaturationEffect, LookupTexture, LUT3DEffect, type EffectComposer } from 'postprocessing';
+import { BlendFunction, BloomEffect, BrightnessContrastEffect, Effect, EffectPass, HueSaturationEffect, LookupTexture, LUT3DEffect, VignetteEffect, type EffectComposer } from 'postprocessing';
 import { GradeEffect, GradeLookEffect } from '../src/engine/core/Grade';
 import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
-import { FrameGradeEffect, GridFrame, neutralLut, opacityFade, passEffects, swappableLut } from '../src/game/grid/frame';
+import { FrameGradeEffect, GridFrame, chainKnobs, neutralLut, opacityFade, passEffects, swappableLut } from '../src/game/grid/frame';
 import { ROAD_SKY_ORDER } from '../src/game/grid/roadSky';
-import { frameLookOf, regionChain, regionGrade } from '../src/game/grid/frameLook';
+import { frameLookOf, lookChainKind, regionChain, regionGrade } from '../src/game/grid/frameLook';
+import { ENGINE_CHAIN_TUNING } from '../src/engine/render/look';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { Scope } from '../src/engine/app/scope';
@@ -264,5 +265,37 @@ describe('G232: a region\'s whole grade chain on a neutral page shell', () => {
     expect(passEffects(pass)).toEqual([saturation, contrast, gradeEffect, grain]);
     expect([saturation, contrast, gradeEffect].map((e) => Number(e.blendMode.opacity.value))).toEqual([1, 1, 1]);
     regionLut.dispose(); pass.dispose();
+  });
+});
+
+describe('SF63: a carried region\'s engine chain knobs (bloom, vignette, god rays)', () => {
+  const pine = toLevelSpec(PINE_HOLLOW);
+  it('its chain kind is its look\'s declared one, cinematic without one, none for a replace look', () => {
+    expect(lookChainKind({ chain: 'clean' })).toBe('clean');
+    expect(lookChainKind({})).toBe('cinematic');
+    expect(lookChainKind(null)).toBe('cinematic');
+    expect(lookChainKind({ mode: 'replace' })).toBeUndefined();
+    expect(regionChain(pine, () => null).post).toBeUndefined();
+    const post = regionChain(pine, () => null, 'cinematic').post;
+    expect(post).toEqual({ kind: 'cinematic', bloomIntensity: pine.lookLayer?.grade.bloomIntensity ?? pine.grade.bloomIntensity,
+      bloomThreshold: pine.lookLayer?.grade.bloomThreshold ?? pine.grade.bloomThreshold, bloomSmoothing: 0.3, vignette: 0.55, rays: 1 });
+    expect(ENGINE_CHAIN_TUNING.clean).toEqual({ rays: 0.12, bloomSmoothing: 0.08, vignette: 0.35 });
+  });
+  it('moves the page\'s knobs toward the region\'s by the weight, keeps what its clock writes into the rays, and restores', () => {
+    const bloom = new BloomEffect({ intensity: 0.4, luminanceThreshold: 1, luminanceSmoothing: 0.08 }), vignette = new VignetteEffect({ darkness: 0.35 });
+    const rays = new Effect('rays', 'void mainImage(const in vec4 i, const in vec2 uv, out vec4 o) { o = i; }');
+    rays.blendMode.opacity.value = 0.12;
+    const post = { grade: new GradeEffect(), saturation: new HueSaturationEffect(), contrast: new BrightnessContrastEffect(), bloom, vignette, rays };
+    expect(chainKnobs(post, undefined)).toBeNull();
+    const knobs = chainKnobs(post, { kind: 'cinematic', bloomIntensity: 0.6, bloomThreshold: 0.8, bloomSmoothing: 0.3, vignette: 0.55, rays: 1 });
+    if (knobs === null) throw new Error('no knobs');
+    const read = (): number[] => [bloom.intensity, bloom.luminanceMaterial.threshold, bloom.luminanceMaterial.smoothing, vignette.darkness, Number(rays.blendMode.opacity.value)].map((n) => Math.round(n * 1e4) / 1e4);
+    knobs.weight(1); expect(read()).toEqual([0.6, 0.8, 0.3, 0.55, 1]);
+    knobs.weight(0.5); expect(read()).toEqual([0.5, 0.9, 0.19, 0.45, 0.56]);
+    rays.blendMode.opacity.value = 0.7; // its clock turns the rays with the hour
+    knobs.weight(1); expect(read()[4]).toBe(0.7);
+    knobs.weight(0); expect(read()).toEqual([0.4, 1, 0.08, 0.35, 0.12]);
+    knobs.weight(1); knobs.restore(); expect(read()).toEqual([0.4, 1, 0.08, 0.35, 0.12]);
+    bloom.dispose(); vignette.dispose(); rays.dispose();
   });
 });

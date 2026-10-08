@@ -14,7 +14,8 @@
  * - **Its air**: given a fog object of its own (`air`, a grid region's fog: the one frame reads it as the owner's air and
  *   blends it by the owners' weights), the layer's clock writes its fog colour there and leaves the scene fog alone;
  *   without one it blends the scene fog's colour like the rest.
- * - **Its dome**: whatever the backdrop adds to the layer's `holder` scene (its sky dome) moves to the page scene, drawn
+ * - **Its dome**: whatever the backdrop adds to the layer's `holder` scene (its sky dome) moves to the page scene (its
+ *   `clouds` layer kept on the camera, as the page keeps its own), drawn
  *   after the page's own sky pieces (render order −20 … −10) and before the grid road sky (−9), depth-tested (the dome
  *   sits past every world thing), with a constant blend alpha of the weight; at weight 0 it is hidden and its clock is
  *   not run (no cost outside the cell).
@@ -186,6 +187,9 @@ export class BackdropLayer {
     if (on !== this.drawn) { this.drawn = on; for (const dome of this.domes) dome.visible = on; }
     if (!on) return null;
     backdrop.update(dt, camera);
+    // its own sky layer (a dome and its cloud ring) travels with the camera, as Game.ts keeps the page's `sky.clouds`;
+    // left at the page origin, a ring drawn around its own centre sat off-centre and behind the far world (SF63)
+    backdrop.clouds?.position.copy(camera.position);
     for (const m of this.materials) m.blendAlpha = w;
     for (const slot of this.slots) slot.save();
     for (const slot of this.slots) slot.blend(w);

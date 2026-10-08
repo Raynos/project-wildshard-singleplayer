@@ -19,6 +19,7 @@
  * into (`frameLookOf`), so no layer names the other. Generic game code (E405): no shard is named here.
  */
 import type { Color, Texture } from 'three';
+import { ENGINE_CHAIN_TUNING, type EngineChainKind } from '@wildshard/engine/render/look';
 import type { RegionGrade } from './frameModel';
 
 type Rgb = readonly [number, number, number];
@@ -49,9 +50,26 @@ export interface RegionChain {
   readonly look: { readonly curve: number; readonly vibrance: number };
   /** its learned LUT once loaded (33³ RGBA8, `world/lut.ts`); null: none (yet) */
   readonly lut: () => Texture | null;
+  /**
+   * its engine chain's own knobs (SF63): bloom's intensity, threshold and smoothing, the vignette's darkness and the god
+   * rays' opacity, as its level's grade and its chain kind (`ENGINE_CHAIN_TUNING`) set them standalone; absent: a level
+   * whose look builds its whole chain itself ('replace'), whose knobs the page's chain has no equivalent of
+   */
+  readonly post?: RegionPost;
+}
+/** A level's engine chain knobs (`Game.buildComposer`): what the page's same effects carry inside its cell. */
+export interface RegionPost {
+  readonly kind: EngineChainKind;
+  readonly bloomIntensity: number; readonly bloomThreshold: number; readonly bloomSmoothing: number;
+  readonly vignette: number;
+  readonly rays: number;
 }
 /** What a region's sky clock drives of the page's post while the region carries its chain (`SkyBackdropPost`'s hue). */
-export interface FramePost { readonly hueSat: { saturation: number } }
+export interface FramePost {
+  readonly hueSat: { saturation: number };
+  /** the page's god rays when its chain has them (SF63: the region's clock turns their opacity as standalone); else null */
+  readonly rays: { readonly blendMode: { readonly opacity: { value: number } } } | null;
+}
 /** A live region's own sky laid over the frame's one sky (`regionSky.ts`, G223): told its owner's weight each frame. */
 export interface FrameSkyLayer {
   readonly weight: (w: number) => void;
@@ -85,8 +103,8 @@ export function frameLookOf(scene: object): FrameLookPort | null { return ports.
 interface LevelGrade { readonly saturation: number; readonly brightness: number; readonly contrast: number; readonly shadowTint: Rgb; readonly highTint: Rgb; readonly gain: Rgb }
 /** The fields a level's grade chain reads (structural). */
 interface ChainLevel {
-  readonly grade: ChainGrade;
-  readonly lookLayer?: { readonly grade: Partial<ChainGrade>; readonly curve: number; readonly vibrance: number } | undefined;
+  readonly grade: ChainGrade & { readonly bloomIntensity: number; readonly bloomThreshold: number };
+  readonly lookLayer?: { readonly grade: Partial<ChainGrade & { readonly bloomIntensity: number; readonly bloomThreshold: number }>; readonly curve: number; readonly vibrance: number } | undefined;
 }
 
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
@@ -115,11 +133,18 @@ export function regionGrade(level: { readonly grade: LevelGrade; readonly lookLa
  * A level's grade chain (G232): its grade with its look layer's grade over it (`resolveGrade`'s merge), the look's
  * S-curve and vibrance, and its LUT as `lut` reads it (late: the region loads it).
  */
-export function regionChain(level: ChainLevel, lut: () => Texture | null): RegionChain {
+export function regionChain(level: ChainLevel, lut: () => Texture | null, kind?: EngineChainKind): RegionChain {
   const g = { ...level.grade, ...level.lookLayer?.grade };
+  const tuning = kind === undefined ? null : ENGINE_CHAIN_TUNING[kind];
   return {
     grade: { saturation: g.saturation, brightness: g.brightness, contrast: g.contrast, shadowTint: g.shadowTint, highTint: g.highTint, lift: g.lift, gain: g.gain, gamma: g.gamma },
     look: { curve: level.lookLayer?.curve ?? 0, vibrance: level.lookLayer?.vibrance ?? 0 },
     lut,
+    ...(kind === undefined || tuning === null ? {} : { post: { kind, bloomIntensity: g.bloomIntensity, bloomThreshold: g.bloomThreshold, bloomSmoothing: tuning.bloomSmoothing, vignette: tuning.vignette, rays: tuning.rays } }),
   };
+}
+/** The engine chain a level's look runs on (SF63): its declared kind, the cinematic chain without one, none for a 'replace' look. */
+export function lookChainKind(look: { readonly mode?: 'extend' | 'replace'; readonly chain?: EngineChainKind } | null): EngineChainKind | undefined {
+  if (look === null) return 'cinematic';
+  return look.mode === 'replace' ? undefined : look.chain ?? 'cinematic';
 }

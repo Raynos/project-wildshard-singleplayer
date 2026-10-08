@@ -1,0 +1,715 @@
+{
+  "base": "http://127.0.0.1:4401",
+  "tag": "after",
+  "scene": "nalati",
+  "stops": [
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 7.0905,
+        "feet": {
+          "x": 320.6279305577186,
+          "y": 0.4499971155752092,
+          "z": -0.0012028965684306864
+        },
+        "current": "nalati-grasslands",
+        "inside": "nalati-grasslands"
+      },
+      "shots": [
+        "nalati-entry-road-e",
+        "nalati-entry-n",
+        "nalati-entry-w"
+      ],
+      "probe": {
+        "player": [
+          -232.9945699759851,
+          0.45000000000000007,
+          0.000004760508771697869
+        ],
+        "camera": [
+          322.0054300240149,
+          2.13,
+          0.000004760508771697869
+        ],
+        "programs": 216,
+        "lookPrograms": {
+          "nalati-grasslands": 22
+        },
+        "memory": {
+          "geometries": 181,
+          "textures": 173
+        },
+        "glMB": 309.57,
+        "skies": {},
+        "grass": {
+          "grass-v2-ring0": 30926,
+          "grass-v2-ring1": 6400,
+          "grass-v2-ring2": 0,
+          "grass-v2-flowers": 7290,
+          "grass-v2-cards": 400
+        },
+        "skyDome": null
+      },
+      "look": [
+        {
+          "root": "region:nalati-grasslands",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              555,
+              0,
+              0
+            ],
+            "fogV2": [
+              0.0032,
+              30,
+              -10,
+              0.002
+            ],
+            "fogEdgeV2": [
+              0.95,
+              251,
+              270,
+              20
+            ],
+            "fogCloudOff": [
+              0.2862,
+              -0.1545
+            ],
+            "fogCloudTex": "texture:d92aca0c",
+            "uV2KeyTint": [
+              1,
+              1,
+              1
+            ],
+            "fogDistDensity": 0.002,
+            "fogHeightDensity": 0.0006
+          }
+        },
+        {
+          "root": "region:nalati-grasslands",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              555,
+              0,
+              0
+            ],
+            "fogV2": [
+              0.0032,
+              30,
+              -10,
+              0.002
+            ],
+            "fogEdgeV2": [
+              0.95,
+              251,
+              270,
+              20
+            ],
+            "fogCloudOff": [
+              0.3039,
+              -0.1639
+            ],
+            "fogCloudTex": "texture:d92aca0c",
+            "uV2KeyTint": [
+              1,
+              1,
+              1
+            ],
+            "fogDistDensity": 0.002,
+            "fogHeightDensity": 0.0006
+          }
+        }
+      ],
+      "chain": {
+        "owner": "nalati-grasslands",
+        "weight": 1,
+        "lut": false,
+        "values": [
+          0.1,
+          0,
+          0.15,
+          0,
+          0
+        ],
+        "post": [
+          0.4,
+          1,
+          0.08,
+          0.35,
+          -1
+        ]
+      }
+    },
+    {
+      "drive": {
+        "why": "arrived",
+        "seconds": 11.846,
+        "feet": {
+          "x": 468.62787412143325,
+          "y": 26.957766476901647,
+          "z": 0.01975982535363552
+        },
+        "current": "nalati-grasslands",
+        "inside": "nalati-grasslands"
+      },
+      "shots": [
+        "nalati-inside-e",
+        "nalati-inside-n",
+        "nalati-inside-w"
+      ],
+      "probe": {
+        "player": [
+          -84.99476869769614,
+          27.005938528498717,
+          -0.0000753354432661002
+        ],
+        "camera": [
+          470.00523130230386,
+          28.68593852694629,
+          -0.0000753354432661002
+        ],
+        "programs": 216,
+        "lookPrograms": {
+          "nalati-grasslands": 22
+        },
+        "memory": {
+          "geometries": 186,
+          "textures": 172
+        },
+        "glMB": 308.15,
+        "skies": {},
+        "grass": {
+          "grass-v2-ring0": 30926,
+          "grass-v2-ring1": 48000,
+          "grass-v2-ring2": 36288,
+          "grass-v2-flowers": 18954,
+          "grass-v2-cards": 400
+        },
+        "skyDome": null
+      },
+      "look": [
+        {
+          "root": "region:nalati-grasslands",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              555,
+              0,
+              0
+            ],
+            "fogV2": [
+              0.0032,
+              30,
+              -10,
+              0.002
+            ],
+            "fogEdgeV2": [
+              0.95,
+              251,
+              270,
+              20
+            ],
+            "fogCloudOff": [
+              0.7606,
+              -0.3947
+            ],
+            "fogCloudTex": "texture:d92aca0c",
+            "uV2KeyTint": [
+              1,
+              1,
+              1
+            ],
+            "fogDistDensity": 0.002,
+            "fogHeightDensity": 0.0006
+          }
+        },
+        {
+          "root": "region:nalati-grasslands",
+          "mesh": "Mesh",
+          "uniforms": {
+            "wsLookOrigin": [
+              555,
+              0,
+              0
+            ],
+            "fogV2": [
+              0.0032,
+              30,
+              -10,
+              0.002
+            ],
+            "fogEdgeV2": [
+              0.95,
+              251,
+              270,
+              20
+            ],
+            "fogCloudOff": [
+              0.7791,
+              -0.4039
+            ],
+            "fogCloudTex": "texture:d92aca0c",
+            "uV2KeyTint": [
+              1,
+              1,
+              1
+            ],
+            "fogDistDensity": 0.002,
+            "fogHeightDensity": 0.0006
+          }
+        }
+      ],
+      "chain": {
+        "owner": "nalati-grasslands",
+        "weight": 1,
+        "lut": false,
+        "values": [
+          0.1,
+          0,
+          0.15,
+          0,
+          0
+        ],
+        "post": [
+          0.4,
+          1,
+          0.08,
+          0.35,
+          -1
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "console": [
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+    "THREE.Material: parameter 'displacementScale' has value of undefined.",
+    "THREE.Material: parameter 'displacementBias' has value of undefined.",
+    "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+  ],
+  "look": [
+    "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog",
+    "[region look] driftwood-isle: 90 materials on driftwood-isle's light and fog",
+    "[region look] nalati-grasslands: 5 materials on nalati-grasslands's light and fog",
+    "[region look] nalati-grasslands: 103 materials on nalati-grasslands's light and fog"
+  ],
+  "shaderErrors": 0,
+  "poses": [
+    [
+      "nalati-entry-road-e",
+      -232.99,
+      0,
+      -1.5707963267948966,
+      0.3,
+      0.45
+    ],
+    [
+      "nalati-entry-n",
+      -232.99,
+      0,
+      3.141592653589793,
+      0.03,
+      0.45
+    ],
+    [
+      "nalati-entry-w",
+      -232.99,
+      0,
+      1.5707963267948966,
+      0.03,
+      0.45
+    ],
+    [
+      "nalati-inside-e",
+      -84.99,
+      0,
+      -1.5707963267948966,
+      0.05,
+      27.01
+    ],
+    [
+      "nalati-inside-n",
+      -84.99,
+      0,
+      3.141592653589793,
+      0.03,
+      27.01
+    ],
+    [
+      "nalati-inside-w",
+      -84.99,
+      0,
+      1.5707963267948966,
+      0.03,
+      27.01
+    ]
+  ],
+  "version": {
+    "build": "54f914c-muz7s8v6",
+    "time": "2026-10-08T07:27:56.510Z"
+  },
+  "road": {
+    "before": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          0.9,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.686685,
+            0.391572,
+            0.187821
+          ]
+        ]
+      ],
+      "fog": [
+        0.362108,
+        0.389097,
+        0.424088
+      ],
+      "environmentIntensity": 1,
+      "road": {
+        "uuid": "c76dedff-2809-4737-9f81-0b14a98f1070",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            1,
+            1,
+            1
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "reflectivity": 1,
+          "ior": 1.5,
+          "refractionRatio": 0.98,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 2000,
+          "fogColor": [
+            1,
+            1,
+            1
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 1,
+          "metalness": 0,
+          "envMapIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            0.384111,
+            0.768221,
+            0.512148
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 78
+    },
+    "glMB": 127.01,
+    "chain": {
+      "owner": null,
+      "weight": 0,
+      "lut": false,
+      "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+      ],
+      "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1
+      ]
+    },
+    "after": {
+      "lights": [
+        [
+          "DirectionalLight",
+          2.7,
+          [
+            1,
+            0.97,
+            0.9
+          ],
+          null
+        ],
+        [
+          "HemisphereLight",
+          0.9,
+          [
+            0.198069,
+            0.278894,
+            0.904661
+          ],
+          [
+            0.686685,
+            0.391572,
+            0.187821
+          ]
+        ]
+      ],
+      "fog": [
+        0.362108,
+        0.389097,
+        0.424088
+      ],
+      "environmentIntensity": 1,
+      "road": {
+        "uuid": "c76dedff-2809-4737-9f81-0b14a98f1070",
+        "mesh": "Mesh",
+        "material": "MeshStandardMaterial",
+        "program": "0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,8388608,8389635,srgb,e=>{C(e)}",
+        "values": {
+          "diffuse": [
+            0.01033,
+            0.012286,
+            0.017642
+          ],
+          "opacity": 1,
+          "alphaTest": 0,
+          "reflectivity": 1,
+          "ior": 1.5,
+          "refractionRatio": 0.98,
+          "aoMapIntensity": 1,
+          "lightMapIntensity": 1,
+          "bumpScale": 1,
+          "normalScale": [
+            1,
+            1
+          ],
+          "displacementScale": 1,
+          "displacementBias": 0,
+          "fogDensity": 0.00025,
+          "fogNear": 1,
+          "fogFar": 1000000,
+          "fogColor": [
+            0.362108,
+            0.389097,
+            0.424088
+          ],
+          "probesMin": [
+            0,
+            0,
+            0
+          ],
+          "probesMax": [
+            0,
+            0,
+            0
+          ],
+          "probesResolution": [
+            0,
+            0,
+            0
+          ],
+          "emissive": [
+            0,
+            0,
+            0
+          ],
+          "roughness": 0.55,
+          "metalness": 0.35,
+          "envMapIntensity": 1,
+          "clearcoat": 0,
+          "clearcoatNormalScale": [
+            1,
+            1
+          ],
+          "clearcoatRoughness": 0,
+          "dispersion": 0,
+          "retroreflectivity": 0,
+          "iridescence": 0,
+          "iridescenceIOR": 1.3,
+          "iridescenceThicknessMinimum": 100,
+          "iridescenceThicknessMaximum": 400,
+          "sheen": 0,
+          "sheenColor": [
+            0,
+            0,
+            0
+          ],
+          "sheenRoughness": 1,
+          "transmission": 0,
+          "transmissionSamplerSize": [
+            0,
+            0
+          ],
+          "thickness": 0,
+          "attenuationDistance": 0,
+          "attenuationColor": [
+            0,
+            0,
+            0
+          ],
+          "specularColor": [
+            1,
+            1,
+            1
+          ],
+          "specularIntensity": 1,
+          "anisotropyVector": [
+            0,
+            0
+          ],
+          "fogSunDir": [
+            0.384111,
+            0.768221,
+            0.512148
+          ],
+          "fogSunColor": [
+            1,
+            0.98,
+            0.92
+          ],
+          "fogHeight": -20,
+          "fogHeightFalloff": 0.08,
+          "fogHeightDensity": 0.0004,
+          "fogDistDensity": 0.00014,
+          "fogEdge": [
+            0,
+            236,
+            252,
+            10
+          ]
+        }
+      },
+      "programs": 122
+    },
+    "back": {
+      "why": "arrived",
+      "seconds": 15.844,
+      "feet": {
+        "x": 278.8299472030044,
+        "y": 0.45000001510968557,
+        "z": -5.813641142937698e-7
+      },
+      "current": null,
+      "inside": null
+    },
+    "glMBAfter": 127.47,
+    "chainAfter": {
+      "owner": null,
+      "weight": 0,
+      "lut": false,
+      "values": [
+        0.3,
+        0,
+        0.2,
+        0,
+        0
+      ],
+      "post": [
+        0.4,
+        1,
+        0.08,
+        0.35,
+        -1
+      ]
+    },
+    "readBackExact": true
+  }
+}

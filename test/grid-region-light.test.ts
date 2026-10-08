@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { Color, DataTexture, DirectionalLight, Fog, HemisphereLight, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, SphereGeometry, Sprite, SpriteMaterial, Vector3 } from 'three';
-import { BloomEffect, BrightnessContrastEffect, HueSaturationEffect } from 'postprocessing';
+import { BloomEffect, BrightnessContrastEffect, HueSaturationEffect, VignetteEffect } from 'postprocessing';
 import { legacyDouble } from './fake/FakeGame';
 import { Scope } from '../src/engine/app/scope';
 import type { Game } from '../src/engine/core/Game';
@@ -41,7 +41,7 @@ function pageGame(): Pick<Game, 'scene' | 'camera' | 'post' | 'volumetrics'> {
   const camera = new PerspectiveCamera(), scene = new Scene();
   scene.fog = new Fog(0x8899aa, 1, 1e6);
   return { scene, camera, volumetrics: new VolumetricsEffect(camera, new DataTexture()),
-    post: { grade: new GradeEffect(), saturation: new HueSaturationEffect(), contrast: new BrightnessContrastEffect(), bloom: new BloomEffect() } };
+    post: { grade: new GradeEffect(), saturation: new HueSaturationEffect(), contrast: new BrightnessContrastEffect(), bloom: new BloomEffect(), vignette: new VignetteEffect(), rays: null } };
 }
 
 /** Every shared value a region's light could touch, each part as JSON. */

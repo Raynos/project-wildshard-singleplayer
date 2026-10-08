@@ -22,6 +22,7 @@ const DRIFTWOOD_SHADOWS: LookStrategy['shadows'] = { rig: 'phoneSplits', filter:
 
 export const shardRender = (): LookStrategy => ({
   mode: 'extend',
+  chain: 'clean',
   compose: (c) => ({ chain: c.engineChain('clean') }),
   lighting: { install: installToonLighting },
   fog: { order: 200, install: installRampFog },

@@ -143,7 +143,7 @@ export function dataLook(spec: DataLookSpec): LookStrategy {
   const owned: { dome: THREE.Mesh<THREE.SphereGeometry, THREE.ShaderMaterial> | null; lut: LookupTexture | null } = { dome: null, lut: null };
   return {
     // the sky builds before the composer: the level scope takes the dome and the LUT here
-    mode: 'extend', compose: ({ engineChain, scene, scope }) => {
+    mode: 'extend', chain: 'clean', compose: ({ engineChain, scene, scope }) => {
       if (linear) {
         setInheritedPatch(patchFog, { scope, chain: true });
         const seen = new Set<THREE.Material>();

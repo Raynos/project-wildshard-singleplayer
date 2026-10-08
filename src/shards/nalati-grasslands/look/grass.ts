@@ -135,6 +135,7 @@ uniform vec3 uNear;       // the card ring's hand-over: r0, r1, the share of bla
 uniform float uTime;
 varying float vT; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh;
 void main() {
+  vec3 camL = cameraPosition - modelMatrix[3].xyz; // the camera in the grass's own frame (a grid cell's offset; zero standalone)
   float per = uPerSide * uPerSide;
   float tile = floor(float(gl_InstanceID) / per);
   float id = float(gl_InstanceID) - tile * per;
@@ -152,7 +153,7 @@ void main() {
   float h = H0 * mix(.32, 1.08, r * r) * mix(.75, 1.15, patchN);
   vec2 dh = abs(xz - uHole.xy);
   if (uHole.w > .5 && max(dh.x, dh.y) < uHole.z) h = 0.;
-  float dist = length(xz - cameraPosition.xz);
+  float dist = length(xz - camL.xz);
   h *= 1. - smoothstep(uFade0, uFade1, dist);
   // under the painted near cards most blades stand down (the few left are slim), so no big dark spikes at the feet
   float nearK = max(smoothstep(uNear.x, uNear.y, dist), 1. - smoothstep(.24, .4, H0)); // short turf keeps its blades (no cards there)
@@ -161,7 +162,7 @@ void main() {
   // facing: random, half turned toward the camera so no blade goes edge-on
   float ang = gHash12(cell + 3.3) * 6.2831;
   vec2 f = vec2(cos(ang), sin(ang));
-  vec2 toCam = normalize(cameraPosition.xz - xz + 1e-4);
+  vec2 toCam = normalize(camL.xz - xz + 1e-4);
   f = normalize(mix(f, toCam, .55));
   vec2 side = vec2(-f.y, f.x);
   // one bend vector (radians × direction): a lean of its own + the Wind's gusts and flutter + the trample
@@ -196,10 +197,10 @@ void main() {
   vCol = mix(rootC, tip, smoothstep(0., .85, t));
   vSelf = mix(.3, 1., pow(t, .9)) * mix(.6, 1., r);
   vT = t;
-  vFogWorldPos = p;
+  vFogWorldPos = p + modelMatrix[3].xyz;
   vSh = bakedShadow(p + vec3(0., .12, 0.));   // the static bake
   vSelf *= mix(bakedContact(root), 1., t * .5);   // the contact shade under the yurts / rocks / trunks, most at the roots
-  vec4 mv = viewMatrix * vec4(p, 1.);
+  vec4 mv = viewMatrix * vec4(p + modelMatrix[3].xyz, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
 }`;
@@ -222,6 +223,7 @@ ${LOOK_BAKE_GLSL}
 uniform float uSpacing; uniform float uPerSide; uniform float uFade0; uniform float uFade1; uniform float uTime; uniform vec3 uNear;
 varying vec2 vUv; varying float vType; varying vec3 vFogWorldPos; varying float vFogDepth; varying float vSeed; varying float vSh;
 void main() {
+  vec3 camL = cameraPosition - modelMatrix[3].xyz; // the camera in the grass's own frame (a grid cell's offset; zero standalone)
   float per = uPerSide * uPerSide;
   float tile = floor(float(gl_InstanceID) / per);
   float id = float(gl_InstanceID) - tile * per;
@@ -240,7 +242,7 @@ void main() {
   float kind = r2 < .65 ? own : 1. + mod(floor((r2 - .65) / .35 * 3.), 3.);
   // 1 sage → the lupine spike · 2 white → daisy (edelweiss on the plateau) · 3 buttercup
   float type = kind < 1.5 ? 2. : kind < 2.5 ? (plateau ? 3. : 1.) : 0.;
-  float dist = length(xz - cameraPosition.xz);
+  float dist = length(xz - camL.xz);
   float s = keep * (1. - smoothstep(uFade0, uFade1, dist)) * smoothstep(uNear.x, uNear.y, dist); // the near cards carry the flowers at the feet
   if (s < .05) { gl_Position = vec4(0., 0., -2., 1.); return; }
   // the heads ride just above the grass (a drift reads from afar), smaller in short turf
@@ -248,12 +250,12 @@ void main() {
   h *= 1.25;
   float w = type == 2. ? h * .34 : h * .55;
   w *= 1. + dist * .006 * step(type, 1.5); h *= 1. + dist * .003;
-  vec2 toCam = normalize(cameraPosition.xz - xz); vec2 right = vec2(toCam.y, -toCam.x);
+  vec2 toCam = normalize(camL.xz - xz); vec2 right = vec2(toCam.y, -toCam.x);
   float sway = sin(uTime * 2. + r * 30.) * .03 * position.y;
   vec3 p = vec3(xz.x, groundH(xz) - .02, xz.y) + vec3(right.x, 0., right.y) * (position.x * w + sway) + vec3(0., position.y * h * s, 0.);
-  vUv = position.xy + vec2(.5, 0.); vType = type; vFogWorldPos = p; vSeed = r;
+  vUv = position.xy + vec2(.5, 0.); vType = type; vFogWorldPos = p + modelMatrix[3].xyz; vSeed = r;
   vSh = bakedShadow(p + vec3(0., .12, 0.)) * bakedContact(p) + 0.001;
-  vec4 mv = viewMatrix * vec4(p, 1.);
+  vec4 mv = viewMatrix * vec4(p + modelMatrix[3].xyz, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
 }`;
@@ -313,6 +315,7 @@ attribute float aQ;       // which of the 3 crossed quads (0, 1, 2 → 0°, 60°
 uniform float uSpacing; uniform float uPerSide; uniform vec3 uNear; uniform vec4 uCells[16]; uniform float uTime;
 varying vec2 vUv; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf;
 void main() {
+  vec3 camL = cameraPosition - modelMatrix[3].xyz; // the camera in the grass's own frame (a grid cell's offset; zero standalone)
   float per = uPerSide * uPerSide;
   float tile = floor(float(gl_InstanceID) / per);
   float id = float(gl_InstanceID) - tile * per;
@@ -325,7 +328,7 @@ void main() {
   H0 = mix(min(H0, 0.22), H0, msk.g) * msk.r;
   float r = gHash12(cell + 7.77), r2 = gHash12(cell + 3.91), r3 = gHash12(cell + 1.19);
   float patchN = gFbm(xz * .09);
-  float dist = length(xz - cameraPosition.xz);
+  float dist = length(xz - camL.xz);
   // a clump the field's height (a painted clump is a tuft: its tallest stems reach the field height)
   float h = clamp(H0 * mix(.62, 1.05, r) * mix(.8, 1.12, patchN), 0., 1.);   // capped: a taller painted clump is all giant leaves at the lens
   h *= smoothstep(.24, .4, H0);                              // short turf is the blades' (they are no spikes there)
@@ -371,9 +374,9 @@ void main() {
   vTint = mix(mix(vec3(.86, .98, .78), vec3(.68, .92, .7), lush), vec3(1.12, .98, .7), gold) * mix(.78, 1.08, r) * mix(.85, 1.05, patchN);
   vT = t;
   vSelf = mix(.42, 1., smoothstep(0., .8, t)) * mix(bakedContact(root), 1., t * .5);
-  vFogWorldPos = p;
+  vFogWorldPos = p + modelMatrix[3].xyz;
   vSh = bakedShadow(p + vec3(0., .12, 0.));
-  vec4 mv = viewMatrix * vec4(p, 1.);
+  vec4 mv = viewMatrix * vec4(p + modelMatrix[3].xyz, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
 }`;
@@ -465,7 +468,7 @@ const instances = new Set<GrassV2>();
 /** the dressing landed: every v2 carpet re-bakes its mask (wireNalati calls it once the dressing is built) */
 export function reseedGrassV2(): void { for (const g of instances) g.reseed(); }
 
-const _frustum = new THREE.Frustum(), _pv = new THREE.Matrix4(), _box = new THREE.Box3();
+const _frustum = new THREE.Frustum(), _pv = new THREE.Matrix4(), _box = new THREE.Box3(), _origin = new THREE.Vector3();
 
 export class GrassV2 {
   readonly group = new THREE.Group();
@@ -658,10 +661,12 @@ export class GrassV2 {
     this.placedFrame = frame;
     _pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     _frustum.setFromProjectionMatrix(_pv);
-    const cx = camera.position.x, cz = camera.position.z;
+    // the tiles are in the grass's own frame: a grid cell draws it at its offset (zero standalone), the camera is the page's
+    const o = _origin.setFromMatrixPosition(this.group.matrixWorld);
+    const cx = camera.position.x - o.x, cz = camera.position.z - o.z;
     // seen from high up the fine rings are wasted (their blades are sub-pixel): a ring stands down once the camera is
     // higher above the ground than the ring reaches, and the next ring fills its square
-    const above = camera.position.y - heightAt(Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, cx)), Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, cz)));
+    const above = camera.position.y - o.y - heightAt(Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, cx)), Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, cz)));
     let prev: { cx: number; cz: number; half: number } | null = null;
     this.rings.forEach((R, i) => {
       if (i < this.rings.length - 1 && above > R.half * 0.9) { R.geo.instanceCount = 0; return; }
@@ -683,6 +688,7 @@ export class GrassV2 {
       if (x0 + T < -CHUNK_HALF || z0 + T < -CHUNK_HALF || x0 > CHUNK_HALF || z0 > CHUNK_HALF) continue;
       const y = heightAt(Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, x0 + T / 2)), Math.max(-CHUNK_HALF, Math.min(CHUNK_HALF, z0 + T / 2)));
       _box.min.set(x0, y - T * 0.35 - 2, z0); _box.max.set(x0 + T, y + T * 0.35 + 2, z0 + T);
+      _box.translate(_origin); // the frustum is the page's
       if (!_frustum.intersectsBox(_box)) continue;
       if (n >= MAX_TILES) break;
       data[n * 4] = x0; data[n * 4 + 1] = z0;

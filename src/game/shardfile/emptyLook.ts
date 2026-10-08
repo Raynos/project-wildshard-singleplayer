@@ -6,7 +6,7 @@ import type { LookStrategy } from '@wildshard/engine/render/look';
 export function emptyLook(dayOverride: number | null): LookStrategy {
   let restore = (): void => { /* Bound while the sky is built. */ };
   return {
-    mode: 'extend', compose: ({ engineChain, scope }) => { scope.onDispose(restore); return { chain: engineChain('clean') }; },
+    mode: 'extend', chain: 'clean', compose: ({ engineChain, scope }) => { scope.onDispose(restore); return { chain: engineChain('clean') }; },
     sky: { clouds: false, planet: false },
     backdrop: ({ scene }) => {
       const clock = new DayCycle({ units: 'hour', start: (dayOverride ?? 0.5) * 24,

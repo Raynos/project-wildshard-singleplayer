@@ -35,7 +35,7 @@ import { GradeLookEffect, type GradeEffect } from '@wildshard/engine/core/Grade'
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import type { FarProxyView } from './farView';
 import { RoadSky } from './roadSky';
-import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain } from './frameLook';
+import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
 import { NEUTRAL_GRADE, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
 /** What the frame reads from the page: the scene and camera, the engine's composer and its grade effects (late-bound). */
@@ -52,6 +52,10 @@ export interface FramePostEffects {
   readonly grade: Effect & Pick<GradeEffect, 'set' | 'hold'>;
   readonly saturation: Effect & { saturation: number };
   readonly contrast: Effect & { brightness: number; contrast: number };
+  /** SF63: the chain's bloom, vignette and god rays (null: the chain has none), whose knobs a carried region's chain sets */
+  readonly bloom?: Effect & { intensity: number; readonly luminanceMaterial: { threshold: number; smoothing: number } };
+  readonly vignette?: Effect & { darkness: number };
+  readonly rays?: Effect | null;
 }
 
 /** The frame's readout (tests, the harness, the board). */
@@ -74,7 +78,9 @@ export interface GridFrameState {
    * G232: the region whose whole grade chain the page's grade carries (null: none), its weight, whether its LUT is drawn,
    * and the page's grade values as drawn: saturation, brightness, contrast, curve, vibrance
    */
-  readonly chain: { readonly owner: string | null; readonly weight: number; readonly lut: boolean; readonly values: readonly [number, number, number, number, number] };
+  readonly chain: { readonly owner: string | null; readonly weight: number; readonly lut: boolean; readonly values: readonly [number, number, number, number, number];
+    /** SF63: the page chain's knobs as drawn: bloom intensity, threshold, smoothing, vignette darkness, god rays' opacity (−1: none) */
+    readonly post: readonly [number, number, number, number, number] };
 }
 
 /**
@@ -162,6 +168,44 @@ export function passEffects(pass: EffectPass): Effect[] | null {
   return isEffectList(found) ? found : null;
 }
 
+/**
+ * SF63: a carried region's engine chain knobs on the page's same effects: bloom's intensity, threshold and smoothing, the
+ * vignette's darkness and the god rays' opacity, each moved from the page's value toward the region's by the owner weight
+ * every frame (all uniforms: nothing compiles). The region's clock may drive the rays' opacity itself (`FramePost.rays`):
+ * a value written since the last frame is the region's own and is kept. `restore` puts the page's values back. Null when
+ * the region carries no knobs (a 'replace' look).
+ */
+export function chainKnobs(post: FramePostEffects, knobs: RegionPost | undefined): { readonly weight: (w: number) => void; readonly restore: () => void } | null {
+  if (knobs === undefined) return null;
+  const bloom = post.bloom, vignette = post.vignette, rays = post.rays ?? null;
+  const read = (u: Uniform): number => { const v: unknown = u.value; return typeof v === 'number' ? v : 1; };
+  const page = { intensity: bloom?.intensity ?? 0, threshold: bloom?.luminanceMaterial.threshold ?? 0, smoothing: bloom?.luminanceMaterial.smoothing ?? 0,
+    darkness: vignette?.darkness ?? 0, rays: rays === null ? 0 : read(rays.blendMode.opacity) };
+  // the rays' full value: the region's chain's own, or what its clock wrote since the last frame
+  let raysOwn = knobs.rays, raysWritten = Number.NaN;
+  const mix = (a: number, b: number, w: number): number => a + (b - a) * w;
+  return {
+    weight: (w) => {
+      if (bloom !== undefined) {
+        bloom.intensity = mix(page.intensity, knobs.bloomIntensity, w);
+        bloom.luminanceMaterial.threshold = mix(page.threshold, knobs.bloomThreshold, w);
+        bloom.luminanceMaterial.smoothing = mix(page.smoothing, knobs.bloomSmoothing, w);
+      }
+      if (vignette !== undefined) vignette.darkness = mix(page.darkness, knobs.vignette, w);
+      if (rays !== null) {
+        const now = read(rays.blendMode.opacity);
+        if (!Number.isNaN(raysWritten) && now !== raysWritten) raysOwn = now;
+        raysWritten = mix(page.rays, raysOwn, w); rays.blendMode.opacity.value = raysWritten;
+      }
+    },
+    restore: () => {
+      if (bloom !== undefined) { bloom.intensity = page.intensity; bloom.luminanceMaterial.threshold = page.threshold; bloom.luminanceMaterial.smoothing = page.smoothing; }
+      if (vignette !== undefined) vignette.darkness = page.darkness;
+      if (rays !== null) rays.blendMode.opacity.value = page.rays;
+    },
+  };
+}
+
 /** The live one frame. Built by the grid session for every host with a frame (G175); disposed with the level scope. */
 export class GridFrame {
   private readonly host: GridFrameHost;
@@ -189,7 +233,7 @@ export class GridFrame {
   /** the page's grade effects (set at install on a shell page: chains are carried) and their fade by the carried weight */
   private chainPost: FramePostEffects | null = null;
   private chainFade: FrameStack | null = null;
-  private carrier: { readonly instance: string; readonly chain: RegionChain; readonly restore: () => void } | null = null;
+  private carrier: { readonly instance: string; readonly chain: RegionChain; readonly restore: () => void; readonly knobs: ((w: number) => void) | null } | null = null;
   private chainWeight = 0;
   private chainLut = false;
   private readonly roadSky = new RoadSky();
@@ -215,7 +259,7 @@ export class GridFrame {
     this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
     this.lookEffect.blendMode.opacity.value = 0; this.lutEffect.blendMode.opacity.value = 0;
     const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer),
-      post: (): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation }) });
+      post: (): FramePost | null => (this.chainPost === null ? null : { hueSat: this.chainPost.saturation, rays: this.chainPost.rays ?? null }) });
     scope.onDispose(() => {
       unbind(); this.live.clear(); this.skies.clear();
       host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); this.lookEffect.dispose(); this.lutEffect.dispose(); this.neutral.dispose();
@@ -349,6 +393,7 @@ export class GridFrame {
     if (best !== null && chain !== null && this.carrier === null) this.take(best, chain);
     this.chainWeight = top;
     this.chainFade?.weight(top);
+    this.carrier?.knobs?.(top);
     this.lookEffect.blendMode.opacity.value = top;
     const lut = this.carrier?.chain.lut() ?? null, drawn = lut !== null && swappableLut(lut);
     this.lutUniform(drawn ? lut : this.neutral);
@@ -371,7 +416,9 @@ export class GridFrame {
     post.saturation.saturation = g.saturation; post.contrast.brightness = g.brightness; post.contrast.contrast = g.contrast;
     post.grade.set({ shadowTint: rgb(g.shadowTint), highTint: rgb(g.highTint), lift: rgb(g.lift), gain: rgb(g.gain), gamma: g.gamma });
     this.lookEffect.set(chain.look);
-    this.carrier = { instance, chain, restore: () => {
+    const knobs = chainKnobs(post, chain.post);
+    this.carrier = { instance, chain, knobs: knobs?.weight ?? null, restore: () => {
+      knobs?.restore();
       post.saturation.saturation = saturation; post.contrast.brightness = brightness; post.contrast.contrast = contrast; undoGrade();
     } };
   }
@@ -421,6 +468,13 @@ export class GridFrame {
     return post === null ? [0, 0, 0, 0, 0] : [r(post.saturation.saturation), r(post.contrast.brightness), r(post.contrast.contrast), r(look.curve), r(look.vibrance)];
   }
 
+  /** the page chain's knobs as drawn (bloom intensity, threshold, smoothing, vignette, rays; −1 where the chain has none) */
+  private postValues(): readonly [number, number, number, number, number] {
+    const post = this.chainPost, r = (n: number | undefined): number => (n === undefined ? -1 : Math.round(n * 1e4) / 1e4);
+    const rays: unknown = post?.rays?.blendMode.opacity.value;
+    return [r(post?.bloom?.intensity), r(post?.bloom?.luminanceMaterial.threshold), r(post?.bloom?.luminanceMaterial.smoothing), r(post?.vignette?.darkness), r(typeof rays === 'number' ? rays : undefined)];
+  }
+
   /** The readout. */
   state(): GridFrameState {
     const round = (n: number): number => Math.round(n * 1000) / 1000, g = this.graded;
@@ -431,7 +485,7 @@ export class GridFrame {
       grade: [round(g.exposure), round(g.saturation), round(g.contrast), round(g.tint[0]), round(g.tint[1]), round(g.tint[2])],
       roadSky: round(this.roadSky.drawn),
       skies: Object.fromEntries([...this.skies].map(([k, layer]) => [k, layer.state()])),
-      chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues() },
+      chain: { owner: this.carrier?.instance ?? null, weight: round(this.chainWeight), lut: this.chainLut, values: this.chainValues(), post: this.postValues() },
     };
   }
 }

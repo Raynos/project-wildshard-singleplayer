@@ -48,6 +48,17 @@ export interface LookReplaceContext {
 /** the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's
  *  learned LUT) and 'clean' (E88, the L5 pick: no volumetrics, grain or fringe; faint rays, the LUT last) */
 export type EngineChainKind = 'clean' | 'cinematic';
+/**
+ * The knobs that differ between the two chains beside which effects they hold (Game.buildComposer builds from these; a grid
+ * cell carries a region's chain from the same table, SF63): the god rays' opacity, bloom's luminance smoothing and the
+ * vignette's darkness.
+ */
+export const ENGINE_CHAIN_TUNING: Readonly<Record<EngineChainKind, { readonly rays: number; readonly bloomSmoothing: number; readonly vignette: number }>> = {
+  cinematic: { rays: 1, bloomSmoothing: 0.3, vignette: 0.55 },
+  // faint rays (a midday sun must not wash the sand and lagoon to white), bloom only what is really over the threshold, a
+  // light vignette
+  clean: { rays: 0.12, bloomSmoothing: 0.08, vignette: 0.35 },
+};
 
 export interface LookComposeContext extends LookReplaceContext {
   /** the engine chain's effects: the 'cinematic' chain's unless the compose asked `engineChain('clean')` first */
@@ -167,6 +178,12 @@ interface LookParts {
 /** 'extend' (the default): the level's passes go in slots around the engine's chain */
 export interface ExtendLook extends LookParts {
   mode?: 'extend';
+  /**
+   * The engine chain its compose asks for, declared so a grid cell can carry it without composing (SF63); absent: the
+   * cinematic chain (what a compose that asks nothing gets). Game.buildComposer builds the declared kind before compose,
+   * so a compose that asks the other kind throws.
+   */
+  chain?: EngineChainKind;
   compose: (c: LookComposeContext) => LookComposition;
 }
 
