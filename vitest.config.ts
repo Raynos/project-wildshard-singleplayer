@@ -5,6 +5,12 @@
 import { defineConfig } from 'vitest/config';
 import { rapierAlias } from './vite/rapier';
 
+export const HEAVY_INTEGRATION_TESTS = [
+  'test/live-grid.test.ts',
+  'test/sdk-repo-build.test.ts',
+  'test/template-copy-scaffold.test.ts',
+];
+
 export default defineConfig({
   // Rapier's wasm-importing module → plain bindings; tests hand loadRapier() the binary. (A test reaches a layer's
   // internals by its relative path; src imports only the @wildshard/* packages' exports, E432.)
@@ -16,6 +22,11 @@ export default defineConfig({
     testTimeout: 20_000,
     include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts', 'drafts/test/**/*.test.ts'], // API tests live outside api/ so Vercel does not deploy them as functions.
     environment: 'node',
+    // These real subprocess/worker proofs keep their deadlines, after the main pool has drained.
+    projects: [
+      { extends: true, test: { name: 'unit', exclude: HEAVY_INTEGRATION_TESTS, sequence: { groupOrder: 0 } } },
+      { extends: true, test: { name: 'integration', include: HEAVY_INTEGRATION_TESTS, fileParallelism: false, sequence: { groupOrder: 1 } } },
+    ],
     // Actor and engine contracts stay in Node. Only the legacy sword viewmodel opts into happy-dom via its header.
     coverage: {
       provider: 'v8',
