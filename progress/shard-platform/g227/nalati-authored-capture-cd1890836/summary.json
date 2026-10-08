@@ -1,0 +1,4459 @@
+{
+  "version": 1,
+  "shard": "nalati-grasslands",
+  "nativeTerrain": {
+    "bytes": 540483,
+    "sha256": "8e610bab24eeae2d8fbd710466c99fbaf9f7fdfe721adbbfb218b4f5550855fa"
+  },
+  "scope": "Authored pre-cull placement and settled drawnInto inventory; candidate classification is not a completed static world bake.",
+  "placements": [
+    {
+      "model": "nalati-grasslands/granite-outcrop",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 0,
+      "copies": 234,
+      "copiesSha256": "7961f6a0df8144bf1c637a948df0d370d0cf3c794a0eead4cafb4479f5cbf9e1"
+    },
+    {
+      "model": "nalati-grasslands/rounded-boulder",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 0,
+      "copies": 338,
+      "copiesSha256": "bc66c476ff786bd30d4d521b00c64041203a60664e661dc643c561830a54f5cc"
+    },
+    {
+      "model": "nalati-grasslands/crag-rock",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 1,
+      "copies": 492,
+      "copiesSha256": "783e43da0c1836eb794c557a2e84c4d1d409d0ca8222ed6e42bcbf90cee5b390"
+    },
+    {
+      "model": "nalati-grasslands/yurt",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 6,
+      "copiesSha256": "65f9c98dd1feff47c9442b1a516bbc8143e168a73de3f799413f990fb37d2eba"
+    },
+    {
+      "model": "nalati-grasslands/ribbon-pole",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "737e4c4a7b9630f13bc00e2b3d25afe67892ed25295a207765d32c657473e058"
+    },
+    {
+      "model": "nalati-grasslands/eagle-perch",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "6be1f4eec31c1b94a96c5b33e19a3934289543407a408ac79c81257a2611e15a"
+    },
+    {
+      "model": "nalati-grasslands/perched-eagle",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "57aa1a4c1052a41a860566f81a7efc49f83a4c114f095e9efbd70af5df236985"
+    },
+    {
+      "model": "nalati-grasslands/stove",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "defdda661e5a1b4500ce7116ab3c6c613ccaa7c95df8e1ec44803731972943c4"
+    },
+    {
+      "model": "nalati-grasslands/kazan",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "9c102618ddaf7b4ac8826b2f455b51f89eda3ff490abdfb6a5e381a9b2303e63"
+    },
+    {
+      "model": "nalati-grasslands/firewood",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 2,
+      "copiesSha256": "8d7e03fe697f038c25962dd69149da6fe22a75ad5da558906dbca8f4c3bb3b3c"
+    },
+    {
+      "model": "nalati-grasslands/camp-bench",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "65117ea9f75437dc957c5d78ca600ebc2b42a7c3d25e18e66e1e5273b7fcff07"
+    },
+    {
+      "model": "nalati-grasslands/rug-rack",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "572ea6443eb83c8324acf9ce0759d64b804bc8e74823e9b13e3b6b2892d4b467"
+    },
+    {
+      "model": "nalati-grasslands/felt-rug",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 2,
+      "copiesSha256": "55e23ea0fa93e98a24cc4e2014158849cf082c7d7b432e3434d54f987de4c136"
+    },
+    {
+      "model": "nalati-grasslands/cart",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "59d5d07c6f7384ce196cf12fd0267850a59d774c039602850adad014ab75aa61"
+    },
+    {
+      "model": "nalati-grasslands/barrel",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 3,
+      "copiesSha256": "faaeff3bbb27f8276fc6f5612f69870c93efe6d3fa1d14248e2d195ae74c6ab6"
+    },
+    {
+      "model": "nalati-grasslands/chest",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 2,
+      "copiesSha256": "897f0b9a7caeb63701e06987042ad695cd32d453e1615a3cc3dfb8e5d028343d"
+    },
+    {
+      "model": "nalati-grasslands/hitching-rail",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "408b85ce4e53cfe02ea66b87121b4288f10aaabe32f3e71027bf5afc684059e5"
+    },
+    {
+      "model": "nalati-grasslands/water-trough",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "eb2bc19bd29b1a693c5222b405ac769890e610ad6e546d88365714d4bfb5d743"
+    },
+    {
+      "model": "nalati-grasslands/saddle-rack",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "b7527283825d4fb5bac4b5f4effbf2d30ba816900c8220185e74fbee8b6b31a5"
+    },
+    {
+      "model": "nalati-grasslands/corral",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "a26b5695e2b87fec86b20cf0124c08bed4ee2ccc84dd0329050df77db5b0016e"
+    },
+    {
+      "model": "nalati-grasslands/hay-pile",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "26d7b4282c9b826bf901b671862211717206d473ae194c1b4335bc6d93ce288b"
+    },
+    {
+      "model": "nalati-grasslands/feed-trough",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "e72c7f8c9b5533177ae0d08b941faaa8054f171a713921fbfe4941d22569a7f7"
+    },
+    {
+      "model": "nalati-grasslands/kumis-churn",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 2,
+      "copiesSha256": "a9069df357eefd3cda4b0874168d5884cacafdee3dda8f76481dc02fe69f8ff4"
+    },
+    {
+      "model": "nalati-grasslands/rug-line",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "37cc280a1b0abd095a18fa7523d9ffeada96279d7ec1bdba971095880bb427ce"
+    },
+    {
+      "model": "nalati-grasslands/chopping-block",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "c14bccd0441d232aa1a1438eb7a666de9a5587f1999ff1830c1a86ce5b3bde76"
+    },
+    {
+      "model": "nalati-grasslands/ground-saddle",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 2,
+      "copiesSha256": "7fa9d94304134ccbc595bbb56f552ee352bddddb7e374de09335e2de06579f75"
+    },
+    {
+      "model": "nalati-grasslands/milk-cans",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 2,
+      "copies": 1,
+      "copiesSha256": "b7a57369d09d5b587a088d13fe884abd043e641dcc647049fed2fab85888e808"
+    },
+    {
+      "model": "nalati-grasslands/kunes-bridge",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 3,
+      "copies": 1,
+      "copiesSha256": "998c901ad6e2bc8ac7c6d7738f4044e9042744a5794804719a278403c69c1f19"
+    },
+    {
+      "model": "nalati-grasslands/fence",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 4,
+      "copies": 5,
+      "copiesSha256": "61a8753fbdc15e233402c2f25a1772194fc971e7b5087c64a3b48f23131a8860"
+    },
+    {
+      "model": "nalati-grasslands/signpost",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 4,
+      "copies": 5,
+      "copiesSha256": "45ff228973fdfde2f3c29402e0b3d098cf15b97fbf65f06b465e3440429c1856"
+    },
+    {
+      "model": "nalati-grasslands/yurt",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 3,
+      "copiesSha256": "cdc63714e2724821a2678715dea3507615fec468b0410c1150773c7d6f4cd3cb"
+    },
+    {
+      "model": "nalati-grasslands/kazan",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 1,
+      "copiesSha256": "7a433c90fdc8b1f6ef87c586be5a5a64b109a1bdaefad4b5f4021b2c196057af"
+    },
+    {
+      "model": "nalati-grasslands/cart",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 1,
+      "copiesSha256": "4c38d44bdc51dc67e2df73d974d7fb6eb183efe7410e42ef53eb12d546d7830f"
+    },
+    {
+      "model": "nalati-grasslands/chest",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 1,
+      "copiesSha256": "fbe244ac089651b63bc20db87baee5a56376e9de99771e5e535bac2efede3c8e"
+    },
+    {
+      "model": "nalati-grasslands/barrel",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 1,
+      "copiesSha256": "009314d625f0763e8773fdc8ee14865a840f4f76bdc84f3e8212dc7cc0d604f3"
+    },
+    {
+      "model": "nalati-grasslands/felt-rug",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 2,
+      "copiesSha256": "c931592558ce3bb43fb248c9406574e72384e0387a9e89048e8d9adc4fc72e4f"
+    },
+    {
+      "model": "nalati-grasslands/tether-line",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 1,
+      "copiesSha256": "d7c6494e1dfea67b4d26f31a11ae7326f296c7a420d52d8835ff92d135931473"
+    },
+    {
+      "model": "nalati-grasslands/kurt-board",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 1,
+      "copiesSha256": "563226d246e4237ab7cc526feb5a28215862091e2d920d4bc3c60788bf3b39ab"
+    },
+    {
+      "model": "nalati-grasslands/ribbon-post",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 5,
+      "copies": 1,
+      "copiesSha256": "db0b8ec922dd743f6210027f0ec26e12a2f0361c576653b56f6dd9185577ad7f"
+    },
+    {
+      "model": "nalati-grasslands/kurgan-kerb",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 6,
+      "copies": 332,
+      "copiesSha256": "981140212fde08bede230a58d6caeed78f39f8f0710b75e0c7c558439428213d"
+    },
+    {
+      "model": "nalati-grasslands/fieldstone",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 6,
+      "copies": 33,
+      "copiesSha256": "2079e51a70791608318c7edff360c13c705839d08c20db66abdf03379dc7bf7c"
+    },
+    {
+      "model": "nalati-grasslands/kurgan-entrance",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 6,
+      "copies": 1,
+      "copiesSha256": "726a6962793ef7aa8513d663bae58aad615b16944e55e704477a96efe8885e3b"
+    },
+    {
+      "model": "nalati-grasslands/balbal",
+      "draw": "instanced",
+      "role": "hybrid",
+      "root": null,
+      "copies": 12,
+      "copiesSha256": "056ed7d17bf484ce440a2a1d2d78612b8e3280fe7a718f33b11576f8f77e99cd"
+    },
+    {
+      "model": "nalati-grasslands/eagle-rock",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 7,
+      "copies": 1,
+      "copiesSha256": "b793aa68473ef3cbbaa6586adf713fdd6ef0499127cfefeceb3205814455fbbc"
+    },
+    {
+      "model": "nalati-grasslands/wind-cairn",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 8,
+      "copies": 1,
+      "copiesSha256": "9c6bdd82e2eb98deb3ef1ec0032565553746811859940a4eecfddec952328fe7"
+    },
+    {
+      "model": "nalati-grasslands/crag-ledge",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 9,
+      "copies": 6,
+      "copiesSha256": "28afc2bd617f533bc9ef6ad0782beb8eff7b94c9c7380dcf6e5aaf35ec3da24a"
+    },
+    {
+      "model": "nalati-grasslands/leopard-cave",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 9,
+      "copies": 1,
+      "copiesSha256": "cdb89cc0350d4e9ccdc92c96f8b2200eb41f70cb770429129fd2af3512d1b27f"
+    },
+    {
+      "model": "nalati-grasslands/watchtower",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 10,
+      "copies": 1,
+      "copiesSha256": "3ad04dc6c4c68aaffbdfce3aad3960779f75634644bfaa4901d25724968b560f"
+    },
+    {
+      "model": "nalati-grasslands/fieldstone",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 11,
+      "copies": 9,
+      "copiesSha256": "f7d9f52b1512c828fbbd6c75e2294db09dd846a9628b238551a682dd7de99220"
+    },
+    {
+      "model": "nalati-grasslands/stone-step",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 11,
+      "copies": 54,
+      "copiesSha256": "ab629252baa3a255280282e1762f67d633438a8226d1f98dcdee3eb5414509dd"
+    },
+    {
+      "model": "nalati-grasslands/kokpar-post",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 12,
+      "copies": 34,
+      "copiesSha256": "2094575127856483dae04194bfddfd745ebb03cc0259998e68a5c19b893e71ee"
+    },
+    {
+      "model": "nalati-grasslands/kokpar-goal",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 12,
+      "copies": 2,
+      "copiesSha256": "c2d4de191ffe97b7c8ea0c622600845ea2664e07aa18a7ccdcd078650051e5eb"
+    },
+    {
+      "model": "nalati-grasslands/saddled-horse",
+      "draw": "instanced",
+      "role": "hybrid",
+      "root": 13,
+      "copies": 6,
+      "copiesSha256": "a87080a20fcf34b8d9ad18fe040b8cee7bb232da9273ecae3afc781222e8fef6"
+    },
+    {
+      "model": "nalati-grasslands/kokpar-rider",
+      "draw": "instanced",
+      "role": "hybrid",
+      "root": 13,
+      "copies": 6,
+      "copiesSha256": "df862665d8f7800ff7f147016ee0ffb84993e3f609469bb20be22f396e949a8b"
+    },
+    {
+      "model": "nalati-grasslands/herd-horse",
+      "draw": "instanced",
+      "role": "hybrid",
+      "root": 14,
+      "copies": 240,
+      "copiesSha256": "daa6dabeed437a9ea02ac785113b50609960373d76dc1caf946e64d33750a38f"
+    },
+    {
+      "model": "nalati-grasslands/snow-lotus",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 15,
+      "copies": 52,
+      "copiesSha256": "3da2cca80024f7df766a360aa871b34f14140cb11cb62995037bef52c130f544"
+    },
+    {
+      "model": "nalati-grasslands/glacier-snout",
+      "draw": "single",
+      "role": "static-candidate",
+      "root": 16,
+      "copies": 1,
+      "copiesSha256": "b94849e18a425a2c851024665041fbf9323234211d890a13abac9fb90ac07684"
+    },
+    {
+      "model": "nalati-grasslands/boulder",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 17,
+      "copies": 1267,
+      "copiesSha256": "67fc0911908d1f2b8ba46900560e436e8b731545ada65261450e404e1434763a"
+    },
+    {
+      "model": "nalati-grasslands/boulder",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 18,
+      "copies": 633,
+      "copiesSha256": "22aa150a326d891158d0c3b553bec141f1ad3113dd797ccfcf1108587e9b7ff5"
+    },
+    {
+      "model": "nalati-grasslands/slab",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 19,
+      "copies": 1579,
+      "copiesSha256": "a53aa8db729243177c33bb96c3f84180485b84658dfb394b67900f512df98066"
+    },
+    {
+      "model": "nalati-grasslands/stone",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 20,
+      "copies": 19791,
+      "copiesSha256": "038aba356cff076500e56e3c6fca9ea3484f28c8c7ded82dff1d73a757579d00"
+    },
+    {
+      "model": "nalati-grasslands/juniper",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 21,
+      "copies": 278,
+      "copiesSha256": "65a5588af44e9467bafd723c1e15831578427f970e799bda7f9807290aebca71"
+    },
+    {
+      "model": "nalati-grasslands/wild-rose",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 22,
+      "copies": 136,
+      "copiesSha256": "153de5c6812098409c14bd3dd3f33850b800321b6d2ff6912846b940b62b762e"
+    },
+    {
+      "model": "nalati-grasslands/dwarf-willow",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 23,
+      "copies": 230,
+      "copiesSha256": "fa532cbdda97e4cbe35f284fcf1c17362b152aeb9e566b177a7d5db368c81e82"
+    },
+    {
+      "model": "nalati-grasslands/lupin",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 24,
+      "copies": 2778,
+      "copiesSha256": "68e7d97feced2d8b1c403814e3326542c70aff6c62ad8dc614142dc434f16f4c"
+    },
+    {
+      "model": "nalati-grasslands/daisy",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 25,
+      "copies": 8811,
+      "copiesSha256": "06c0a7a1abf73e5c5b8e495068139a46ca739cc7efefe48e9c9b2b02061edaee"
+    },
+    {
+      "model": "nalati-grasslands/reed",
+      "draw": "instanced",
+      "role": "static-candidate",
+      "root": 26,
+      "copies": 1050,
+      "copiesSha256": "57c08b8fdd195a2d14ace5cf9ce50a418063d4430d1d4949b3cfa8711fc2be24"
+    },
+    {
+      "model": "nalati-grasslands/fallen-log",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 27,
+      "copies": 17,
+      "copiesSha256": "0216e246cf8f562012d43f24c4dd480f9ce24affaa665af5b7254eec29c1b715"
+    },
+    {
+      "model": "nalati-grasslands/stump",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 27,
+      "copies": 11,
+      "copiesSha256": "549ad78bc6b395e00863c8c2f97f5d9b9641b61b9c8c6041171f073f5077c861"
+    },
+    {
+      "model": "nalati-grasslands/ovoo",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 27,
+      "copies": 9,
+      "copiesSha256": "eb69e644ca1d1717e38938afcfa9a36cbd941b365ab3a49f3e85f6d45762306d"
+    },
+    {
+      "model": "nalati-grasslands/viewpoint-pole",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 27,
+      "copies": 7,
+      "copiesSha256": "55d1d7821c718fd2415f59d467cb77832b0a57de233818107b525c3facf9bd17"
+    },
+    {
+      "model": "nalati-grasslands/fence",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 27,
+      "copies": 6,
+      "copiesSha256": "1bad5e9e85c0294c9201e0899aeedf26f73f15f13184e1068edb59b0bd22591e"
+    },
+    {
+      "model": "nalati-grasslands/sky-gateway",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 27,
+      "copies": 1,
+      "copiesSha256": "0d26643f75bf925a0e12e400001533ece0f579f8d2d7e38470b84ebea40d5eb3"
+    },
+    {
+      "model": "nalati-grasslands/camp-clutter",
+      "draw": "merged",
+      "role": "static-candidate",
+      "root": 28,
+      "copies": 48,
+      "copiesSha256": "a143eb7403ef9a4bcdb6a96e2ab30770ba9ef858922fedea2b16ae838208d22b"
+    }
+  ],
+  "roots": [
+    {
+      "name": "nalati-outcrops",
+      "models": [
+        "nalati-grasslands/granite-outcrop",
+        "nalati-grasslands/rounded-boulder"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 2,
+          "name": "nalati-outcrops",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1481688,
+              "sha256": "55f843b868c39bb906bb9b35b8c11ddcbc6f64b41f8dcece0dbaf5d4bf3421a4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1481688,
+              "sha256": "5e8bb72be76f098b64e5378091197f743c05e95cd50987d298754891c2d2eecb"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1481688,
+              "sha256": "5fdde173a4f04cf68e1211284ec7f7359d41fd634c775fa9d21f3396fd243a76"
+            }
+          },
+          "indices": {
+            "count": 493896,
+            "sha256": "d0e2a760359d210a334c445594d130da0592d0af4aa99262970ee4b88aba6713"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-crag-rock",
+      "models": [
+        "nalati-grasslands/crag-rock"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 3,
+          "name": "nalati-crag-rock-0",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 22833,
+              "sha256": "7e180f99fe84b750480c7184075ed80bc5883855675c1251b83254a06760cfb3"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 22833,
+              "sha256": "a1d9091eaa428c169bd3b7fc78d555ae629d94cb0e1c4370445a9a3a77edb994"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 22833,
+              "sha256": "50f680ff38824e202cff43e7d436922dd13458e231fd298de9f20f317c894cbf"
+            }
+          },
+          "indices": {
+            "count": 7611,
+            "sha256": "dc8a3c891afc83d7da5917686541c3f15429fd36e74c1254ffa366fef7dad344"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 4,
+          "name": "nalati-crag-rock-1",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 46386,
+              "sha256": "c093276bbb8e5933a9a8fb792072e816141e2d3c3c08407c2739d936ceadcbd4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 46386,
+              "sha256": "dee9a2f21d78ce2aa611ba909e200feec37c0617a547516ddcde7fcbf39bf219"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 46386,
+              "sha256": "8ddfd94c534884ce3b7cdd9309d907e0d5e9a97ab4bf70cdd3889109a50cca61"
+            }
+          },
+          "indices": {
+            "count": 15462,
+            "sha256": "49bc3c3b8ef2a0ca9aca5da9826190cead93746277f5df61fc86cbb1b67ddd73"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 5,
+          "name": "nalati-crag-rock-2",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 110079,
+              "sha256": "bf7011564eeda615008fb261e7d7f4d6092dc2951ff72da1275e064f1336479a"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 110079,
+              "sha256": "2a2d06eba084588ef8aee2d031686165b63a01bc1a3274f9b3f30878d4b65059"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 110079,
+              "sha256": "8d6e55407946bd8e9599dd815c85d08e90184964c84ea857b64a9e4e8f0aa85b"
+            }
+          },
+          "indices": {
+            "count": 36693,
+            "sha256": "2e3f2cd33d03911a7e4abf082046cbd50aa2fa6eb4af9893319cd78f06f98fd6"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 6,
+          "name": "nalati-crag-rock-3",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 115344,
+              "sha256": "6bf51c82fdbc1cda2f6abdca19b1171f1c0fcb5bfb6e50034ad65fc770059cec"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 115344,
+              "sha256": "74a6c5f1bdfe80a58ddfff132eee16fa40945a02159cc23a6a34d20ccd5a32b2"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 115344,
+              "sha256": "5c48c9a372901972601ed69f7f5b1df248d8964dbbcd1150bcebc4ceb0b85c24"
+            }
+          },
+          "indices": {
+            "count": 38448,
+            "sha256": "b3b3f3bec22501433f42260c11a4bd704a89dbc0e782933705851c671d1e1325"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-camp",
+      "models": [
+        "nalati-grasslands/barrel",
+        "nalati-grasslands/camp-bench",
+        "nalati-grasslands/cart",
+        "nalati-grasslands/chest",
+        "nalati-grasslands/chopping-block",
+        "nalati-grasslands/corral",
+        "nalati-grasslands/eagle-perch",
+        "nalati-grasslands/feed-trough",
+        "nalati-grasslands/felt-rug",
+        "nalati-grasslands/firewood",
+        "nalati-grasslands/ground-saddle",
+        "nalati-grasslands/hay-pile",
+        "nalati-grasslands/hitching-rail",
+        "nalati-grasslands/kazan",
+        "nalati-grasslands/kumis-churn",
+        "nalati-grasslands/milk-cans",
+        "nalati-grasslands/perched-eagle",
+        "nalati-grasslands/ribbon-pole",
+        "nalati-grasslands/rug-line",
+        "nalati-grasslands/rug-rack",
+        "nalati-grasslands/saddle-rack",
+        "nalati-grasslands/stove",
+        "nalati-grasslands/water-trough",
+        "nalati-grasslands/yurt"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 7,
+          "name": "nalati-yard",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 4,
+              "values": 20164,
+              "sha256": "3356b25e618756508e74e916f4aa34e0ab727fe76370ec408abd1ad7214e2592"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 15123,
+              "sha256": "5eac87690f127a4005f74cec13d35a080bf52443fd7f2b16392dce07f576fc9e"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 15123,
+              "sha256": "a4074859310c877658d6c20e3bda9586c9db4bf0c96c6deed973d58a272d06f3"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 10082,
+              "sha256": "462ed6b89cddb2afc636ee66e9c2e24d7d2f83d2456bf94e86c4f9209a634041"
+            }
+          },
+          "indices": {
+            "count": 6942,
+            "sha256": "cf44b19437ca34bd2e79a9defda15bb60b0bedd3373cc58d119888846137684d"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 8,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 472896,
+              "sha256": "262f32097cd8f95e0f2c00260f0bdc805d3ebddf523e53e47f48b6aeffebc25f"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 472896,
+              "sha256": "2cc33a28ccd00e5a0de9116fb3293bceaeb9d0e96d9756bc6ece641e3b26dce0"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 472896,
+              "sha256": "eadb2ffcf9ea80cd3bdd1b4c300b812487bc85f1e020156b1b43cdd6e8170d78"
+            }
+          },
+          "indices": {
+            "count": 157632,
+            "sha256": "f5a1b10d8e1f1c6590296b31dc22c2628e53ba1dcfa5bd8dc1727d533b4123f6"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 9,
+          "name": "nalati-camp-felt",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 95904,
+              "sha256": "9cf81afcecd927f1870bb943c842847535bd9818cdc58fd2dc08195619fb1270"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 95904,
+              "sha256": "55be4523eb134d8561ae8a2b33246f574f085d8c73394caf1888549624d37952"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 95904,
+              "sha256": "a6aebc068a53794b981e8ce423d116a8a20073f2977e3d3b94c04c7a2571e2d7"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 63936,
+              "sha256": "b310421a032a9ba6ebd713a7da5f8f37721af7e96d7230c4e8cbf62506e7b292"
+            }
+          },
+          "indices": {
+            "count": 31968,
+            "sha256": "fa091db23be7d5f5f81e98e3e6bdb82512e51111b4b44d8902fcedafd20cf56b"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 10,
+          "name": "nalati-camp-wood",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 54432,
+              "sha256": "458c3e46abc037c80025fed4bc6e8eba722d6c33a9edf4b73863e2602f298cd4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 54432,
+              "sha256": "206bcb8d1bd1346166a8d1103c1cc1ab960dafaccec5c22e234e1cbd74c0f43c"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 54432,
+              "sha256": "9142a8b6713a8f24039f77ecbf5536fbfd13d53a77a43ea19a7752620cb66271"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 36288,
+              "sha256": "510fe3218b440b874f9c34161afa9a84fdf85659be07bb4191172c7f620d095a"
+            }
+          },
+          "indices": {
+            "count": 18144,
+            "sha256": "53778c4ae725c30858c72984abb694a8831636acb6e9eb75ebe8eaf9881bb6e1"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 11,
+          "name": "nalati-model-eagle",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 18969,
+              "sha256": "1c604c7f9fd4b649447155993f74aadbc34ce3e1c5a9db1a0f0745ee4391a5b9"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 18969,
+              "sha256": "a68c5f2201acfba64de3a8e4c0b4c651c603b68b70ae28235194c7657377a24f"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 18969,
+              "sha256": "cfe4214060a65035f35be0e3eb35aa6fa14d68ed40b200b31950561d710ce675"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 12646,
+              "sha256": "24a51c8b4726a1aebdf0b8be7745fec11b3ec794c7b74fb96fc7ce64109e8ac7"
+            }
+          },
+          "indices": {
+            "count": 17709,
+            "sha256": "76d7436ac5474b116bacf0fc8012a177a9a8df3c7501254ca97576c8e7b49c5c"
+          },
+          "instances": {
+            "count": 1,
+            "capacity": 1,
+            "matricesSha256": "73f53b311798c1bc8e7dd9b729ed11dd50a33d12d3d9ffa2fce8f13951f8750c",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 12,
+          "name": "nalati-model-cauldron",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 5007,
+              "sha256": "3c0d74b93b4aead0176400a902c0912a4bcce55f7e3257e6ebfd748dad3b31dd"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 5007,
+              "sha256": "fca70e2ba6aae65ef6db74657f692a78457551e1335f78c2ede39b8b4278f674"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 5007,
+              "sha256": "73605e62e6552a29c4cb6929bc80d3dd78add56c5c3dd00eb040d243d7dcd228"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 3338,
+              "sha256": "87f626219335a79fe786500cc8790e045fecd369e594e6b83781748455641099"
+            }
+          },
+          "indices": {
+            "count": 4218,
+            "sha256": "3396f1dd5e766cd41c308bd15c451165b4080e0ffc4442121cdd7ff13429f389"
+          },
+          "instances": {
+            "count": 1,
+            "capacity": 1,
+            "matricesSha256": "5ca6e83d52b3e0afcd93909d614a00a6607ec8d2d72aefb3cb07d3a6b5e5593d",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 13,
+          "name": "nalati-model-firewood",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 5589,
+              "sha256": "231f387cef2d3f2c751d9d994ae7c89570780dfd11c2a1ba89dbe68c65d4208f"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 5589,
+              "sha256": "1375a9d4b258f98eeb1a012ecbf20fb41b4f575572bb3d0a6b8f360bc4efc478"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 5589,
+              "sha256": "c35128cdbbebb75e7d8af52b32127b8f2df4407101bca9598d5772f7678109ad"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 3726,
+              "sha256": "2bec801c4bd17920d2c6e75e9dd92ccd806de3632c253a572354581667b9f66a"
+            }
+          },
+          "indices": {
+            "count": 4476,
+            "sha256": "e38c14596255502902f5f810a282b57312aec8d3da87247f94d57e195f90e8fc"
+          },
+          "instances": {
+            "count": 2,
+            "capacity": 2,
+            "matricesSha256": "2d679709f911f5f45a4fb447462ab3e24662ac4c9fa07203181e69a6cc02e16c",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 14,
+          "name": "nalati-model-chest",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 4473,
+              "sha256": "e442be39c1629d9311af978c43740620bb5fd7018f1001e4fb4b6bf076a62b00"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 4473,
+              "sha256": "321b034cd7bf3d63583014e4a37bc502a69d7a4883f6c6fce31a8fa27fe93fe4"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 4473,
+              "sha256": "c84332cf4bdb798b0a0f837a999077905919b9ddbc46ded35adecb186bd99e9d"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 2982,
+              "sha256": "3a4a77fe6968ad8d8c51977a00db826d68223d911d24b7950284187676cc5fae"
+            }
+          },
+          "indices": {
+            "count": 4251,
+            "sha256": "5472bfbd840358111e2fcaf73f68d119e93ef9d93fd51108c9655d7bfa338777"
+          },
+          "instances": {
+            "count": 2,
+            "capacity": 2,
+            "matricesSha256": "775d3e4be8a14ee4b37efa68aa32189376f811f683664f4b3a8b13aae8f0f743",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 15,
+          "name": "nalati-model-kumis-churn",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 5805,
+              "sha256": "fdb52956c1562060dbb139ea922c1da19284519ea29bfe47a00e258bbadbeaf2"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 5805,
+              "sha256": "51cd7919ca441f433b4de2b0c696fa0490313bb6227ff1ad3808d45886a79072"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 5805,
+              "sha256": "d3a61f1e866637e50555321f60ba5455469f9ff6d77d373d4cf61a9e747f80ae"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 3870,
+              "sha256": "47586509afe1fee3e89267e475a16cd54096457d6038a515e6059302fc18fde6"
+            }
+          },
+          "indices": {
+            "count": 4002,
+            "sha256": "c3e5fa6fd0cf015f1e08eb50329d14e5f7dd2743296a98bd56e67c9060d0d316"
+          },
+          "instances": {
+            "count": 2,
+            "capacity": 2,
+            "matricesSha256": "42d2307f2c3112132186b37d457c755ed117a923c788dc5d80913d0fa012952d",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 16,
+          "name": "nalati-model-saddle",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 5814,
+              "sha256": "8027841724c29d81af1ef5dab0070cb8400843371be01981121c312cd16bd477"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 5814,
+              "sha256": "79ff445a61cde7ff3236783585f40d33d01b25d22425c4ad15d171ccaa8fe97f"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 5814,
+              "sha256": "decaf7d7afa55a37e94b9f7fc1fc952390c8d8b32fbdc61545fef767ffaf7c0d"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 3876,
+              "sha256": "39e127d6c1b4741d41f1ce4ada2c8e59b5eeae5f294aec57fb93a662815f627e"
+            }
+          },
+          "indices": {
+            "count": 4368,
+            "sha256": "79141d628478efc68468e7b78902281a610f1d346fca271ca4a1122f5d93e6f2"
+          },
+          "instances": {
+            "count": 2,
+            "capacity": 2,
+            "matricesSha256": "71a4de70569c0ab330b522a60d923ba64336cbeb4aa5b6acfc3a597621477511",
+            "coloursSha256": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-bridge",
+      "models": [
+        "nalati-grasslands/kunes-bridge"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 17,
+          "name": "nalati-bridge",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 158112,
+              "sha256": "3af35701d092aab6f4678aa958486e47ff3141d6a978647d5bf7b42b7f59ff88"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 158112,
+              "sha256": "e26003cba32a08709c7a12a54fc43ff151829b41024d0fe80d85d386eb55ec44"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 158112,
+              "sha256": "7b7c2a3a3cf323979f18c71e60892d36f2680988f4d84ea580947190626c5fbb"
+            }
+          },
+          "indices": {
+            "count": 52704,
+            "sha256": "8557bf9c866e430c281031bcf920744713b9c86060b3c1d1c42884ac2a6f58a0"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "",
+      "models": [
+        "nalati-grasslands/fence",
+        "nalati-grasslands/signpost"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 18,
+          "name": "nalati-roads",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 4176,
+              "sha256": "196b8e7507fe7eb3d9228daed2e7e4d59b7f9a6b16e2682cea6e2bda532078a4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 4176,
+              "sha256": "893fbbb146477e37978a602263e7f6a4f97ae47789457c8d17d19d2a2fc8be8b"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 4176,
+              "sha256": "1d9c6a6f899704991d77353be970df05ab8d3ef30385061bd6d508af5b99755e"
+            }
+          },
+          "indices": {
+            "count": 1392,
+            "sha256": "f92bc70620b34edff40997d88271a02eae468c69825e452d913b2c3365724587"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 19,
+          "name": "nalati-signs",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 384,
+              "sha256": "178d518b9e86ff5ceb06c8ccc2e95523bcfedadf9d94730d26c32844379401f8"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 384,
+              "sha256": "4c3cc4032174526859c8f04e034f80214c7386868897be7fd6a931c82aff7a37"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 384,
+              "sha256": "d159843aa98ea51e85ef6ebadef2de7962ed58d81e303917130ee8d6e2aca93d"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 256,
+              "sha256": "3907fcfc72ed76fcd4c68f1f3350898383f6a5e08ca150a233a3bd70b4b476a1"
+            }
+          },
+          "indices": {
+            "count": 192,
+            "sha256": "fc7755147100b4e572424f1251d0370e73e5d9af1e40d6fee57126d86f267700"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 20,
+          "name": "nalati-roads-wood",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 136728,
+              "sha256": "1cda9fb755f3db8688bc5057f9c1af8964582becf6160451747536b198f06cd9"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 136728,
+              "sha256": "abec7b2c42e8fe758a264ae2001340f56608a00566198b3686c105a05144c9e9"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 136728,
+              "sha256": "89dc87972fac4ab17b791a4617c7d8db462b86612c06a4015d054bafb2d0d39f"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 91152,
+              "sha256": "7d04065c25af1e30bd61d2c873d05a3e85e6c59c2d8b7ab1021f267dfcb44e57"
+            }
+          },
+          "indices": {
+            "count": 45576,
+            "sha256": "fedf024e38cba93e1bd84feeec2050b84c1ff4abba181ec2642d15d76bcd3511"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-summer-camp",
+      "models": [
+        "nalati-grasslands/barrel",
+        "nalati-grasslands/cart",
+        "nalati-grasslands/chest",
+        "nalati-grasslands/felt-rug",
+        "nalati-grasslands/kazan",
+        "nalati-grasslands/kurt-board",
+        "nalati-grasslands/ribbon-post",
+        "nalati-grasslands/tether-line",
+        "nalati-grasslands/yurt"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 21,
+          "name": "nalati-yard",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 4,
+              "values": 6724,
+              "sha256": "b4f6b71b94b53e8dc8afbca180861d3f3ed917e26220a850e8a173188df567b0"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 5043,
+              "sha256": "f559bd42f57f2f8477e8066395b8a5fe4a9bd7ce1b99d17018fad7344e527d2a"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 5043,
+              "sha256": "bf14059997490e6c5974886d9648d22bd01abd9cd1eb30c8837ae4c25c874cec"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 3362,
+              "sha256": "374c45ef75072b1d30ed54fc257693b15bee52afdfd5750507e6ea1e53997a21"
+            }
+          },
+          "indices": {
+            "count": 2082,
+            "sha256": "cf2af41df88ec1dd819bd4264c23ca0a45d8ba3a4227d450c9ab7d3f9ddef97b"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 22,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 212508,
+              "sha256": "d60767bd3033f2255d02d1e9cc8e42b03be48031eb5dac392853481b061723c0"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 212508,
+              "sha256": "5d8c74dd468901b002cac153d4f1f8ee9a8c9d76383f4a0b357672f9bfd97efd"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 212508,
+              "sha256": "d5c17e0742fb39487b45189dfba6111a416d3bd18be963a4ce73f1f60ff8d5b0"
+            }
+          },
+          "indices": {
+            "count": 70836,
+            "sha256": "8848623d596fbf23df541d58a59d1ac417c967ca0ed6b6b5a9136f1b53a3ca8f"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 23,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 47952,
+              "sha256": "f825996f5f74e19185280328dd996e0fab0df7ec60d6ec341eac7b1a542e676a"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 47952,
+              "sha256": "ef46bfe3ff73b39ec8f6f6af7865b845a5f94005ccb51465fdba924a37ed5ac7"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 47952,
+              "sha256": "e42731c6c72c5089cb355033fbd45c192ffb99a8c856fe388aaea30d166b2f3f"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 31968,
+              "sha256": "dc4041c56fd671a7eb3c7853f0b312cf977d8a0909bf0e1da0b5dc27d8b65fa0"
+            }
+          },
+          "indices": {
+            "count": 15984,
+            "sha256": "a16ae1af671bfd9f1c7481381b9bd0e99bb57f724ddcde62a6dad21ea637c947"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 24,
+          "name": "nalati-summer-wood",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1512,
+              "sha256": "cee0feb85c1024d38ccb6393d015da098df6d4828f1e1c2b0daf38d0c9e674b4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1512,
+              "sha256": "c2232099808aac791c7b8e7daa952791e129ae2cd8666be87fcd682023b74899"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1512,
+              "sha256": "cefb7703b2a79870961fc19546ba6f48067390a8648263524e7436c27f070c82"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 1008,
+              "sha256": "4e71ee3c60b46364798c0a38b439b085cb9d937d46934f52d51d24784e14ae08"
+            }
+          },
+          "indices": {
+            "count": 504,
+            "sha256": "ab653854bfb7d723efdafaad705d6ab7b88bdd865cb4b8474a5d3932f5b4f39d"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 25,
+          "name": "nalati-model-cauldron",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 5007,
+              "sha256": "3c0d74b93b4aead0176400a902c0912a4bcce55f7e3257e6ebfd748dad3b31dd"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 5007,
+              "sha256": "fca70e2ba6aae65ef6db74657f692a78457551e1335f78c2ede39b8b4278f674"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 5007,
+              "sha256": "73605e62e6552a29c4cb6929bc80d3dd78add56c5c3dd00eb040d243d7dcd228"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 3338,
+              "sha256": "87f626219335a79fe786500cc8790e045fecd369e594e6b83781748455641099"
+            }
+          },
+          "indices": {
+            "count": 4218,
+            "sha256": "3396f1dd5e766cd41c308bd15c451165b4080e0ffc4442121cdd7ff13429f389"
+          },
+          "instances": {
+            "count": 1,
+            "capacity": 1,
+            "matricesSha256": "84ee4e57c441bcee96b45fdc5a810613da7d7d81ceea55e0480da74bf8cef959",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 26,
+          "name": "nalati-model-chest",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 4473,
+              "sha256": "e442be39c1629d9311af978c43740620bb5fd7018f1001e4fb4b6bf076a62b00"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 4473,
+              "sha256": "321b034cd7bf3d63583014e4a37bc502a69d7a4883f6c6fce31a8fa27fe93fe4"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 4473,
+              "sha256": "c84332cf4bdb798b0a0f837a999077905919b9ddbc46ded35adecb186bd99e9d"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 2982,
+              "sha256": "3a4a77fe6968ad8d8c51977a00db826d68223d911d24b7950284187676cc5fae"
+            }
+          },
+          "indices": {
+            "count": 4251,
+            "sha256": "5472bfbd840358111e2fcaf73f68d119e93ef9d93fd51108c9655d7bfa338777"
+          },
+          "instances": {
+            "count": 1,
+            "capacity": 1,
+            "matricesSha256": "e15057f197a7ca093c9f8cdd8c0f943a3b8e540bc27afc7b767e5bef648e84b4",
+            "coloursSha256": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-kurgans",
+      "models": [
+        "nalati-grasslands/fieldstone",
+        "nalati-grasslands/kurgan-entrance",
+        "nalati-grasslands/kurgan-kerb"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 27,
+          "name": "nalati-kurgans",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 285804,
+              "sha256": "038786b05b3f64a5c828af47f97f564fda686e3bf6175559daf3e4cbaacf63d4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 285804,
+              "sha256": "5c60e0e22773d8351cc225757a53a2ca570e5f8e1340e26bbc1fbcf10975e376"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 285804,
+              "sha256": "3bb5544bd2589be3dc75a0fb589668ddef66055bb5a39e34f2edd85e8dc09849"
+            }
+          },
+          "indices": {
+            "count": 95268,
+            "sha256": "3f7cdfec2c20557980a1d181e703669f0ba3aa6241f02930e3837ddcdd84e830"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-eagle-rock",
+      "models": [
+        "nalati-grasslands/eagle-rock"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 28,
+          "name": "nalati-eagle-rock",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 172620,
+              "sha256": "fa7d5e86cb7c19f647129b14e531a66c3c854bd29d2f522acb72659b3d895061"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 172620,
+              "sha256": "389c19fa96b5be2d244e7fd68222660cf03690a45414d1d542138e4dde81321a"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 172620,
+              "sha256": "8d751d1d5a3be1c6be4b6793d887f2906bb6f91a10937bd3b8e45904b871acb4"
+            }
+          },
+          "indices": {
+            "count": 57540,
+            "sha256": "340f2137cf883543872e7c5ab1ae915859ca08c54004b8398ce1ea4525677945"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-cairn",
+      "models": [
+        "nalati-grasslands/wind-cairn"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 29,
+          "name": "nalati-cairn",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 68400,
+              "sha256": "6ec7e715719eeda52535a77719c2dbfad3540c78d1a32a66e28e8e52b70567cd"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 68400,
+              "sha256": "44d7085a296e8d7b6cfec8ef2aaf3bdb0d2d0bb463e6fb4f9ec8cd40fe530051"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 68400,
+              "sha256": "816181232828305a48ac7850a01adad6fe951954b5206ed0347e7b4497f41349"
+            }
+          },
+          "indices": {
+            "count": 22800,
+            "sha256": "6e7e9547516bb2911a7f21f70283e32fc1f747d91560cff102277d5412125580"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-crags",
+      "models": [
+        "nalati-grasslands/crag-ledge",
+        "nalati-grasslands/leopard-cave"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 30,
+          "name": "nalati-crags",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 71064,
+              "sha256": "27e9b0123f7dfa949a3076377889ee02819c3be0bac559a6c12bb7d2f1f18ad4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 71064,
+              "sha256": "18db583f25a556d8b79716b67cf2379d2b493dcb02cb4259806061589aadfa7e"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 71064,
+              "sha256": "0d5484cabf745e1af38bb33f1e18ad0acf055ce79019e45bf9218f6789855ca1"
+            }
+          },
+          "indices": {
+            "count": 23688,
+            "sha256": "af99a6c3be6ef99a7306692cfc078b72863d1eb7bf76b84c08ec6ca375271a7f"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-watchtower",
+      "models": [
+        "nalati-grasslands/watchtower"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 31,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 58968,
+              "sha256": "203001bda996000188677858de46e60a630d0d708b9893b5ae73ccc74f6eaffe"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 58968,
+              "sha256": "d7843ebeca8faf1a4cc80dc3d172d70d58f6cfac9718acb88d9ea233cb5059e2"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 58968,
+              "sha256": "105828ce96368f6fc4cad3a6635bd77fd45c81a48068a66942e3bce299ecc2f5"
+            }
+          },
+          "indices": {
+            "count": 19656,
+            "sha256": "308affc3bbce6719094c4c788ec6d4c7f03d0ff89d02e5e5548e285a238cec86"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 32,
+          "name": "nalati-model-watchtower",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 13587,
+              "sha256": "62d484d322da95d51d89f48d0835b5f3d1595f8af547f65dbdf9689b7c79ba92"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 13587,
+              "sha256": "6d661054226cc34e0a9f9a9f84dacbda8df6ced497ac7409db6f9a86eba68553"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 13587,
+              "sha256": "f4812481997a38c581d98c1e60b0acd836a74bc96a63bf2b88b1b5315673f104"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 9058,
+              "sha256": "c9f8e11498157b13ac19a96d5c6209962aeed6bc09ff121a2460dff65c2228b3"
+            }
+          },
+          "indices": {
+            "count": 12000,
+            "sha256": "2c66acad90911f73b3fd1fe6246de600a3437c205ecad695031aa41e22d80623"
+          },
+          "instances": {
+            "count": 1,
+            "capacity": 1,
+            "matricesSha256": "169d12e7de5ac9fcc7082ef7a3a4955c1ea8f1077913328682cd9db53a009b07",
+            "coloursSha256": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "",
+      "models": [
+        "nalati-grasslands/fieldstone",
+        "nalati-grasslands/stone-step"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 31,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 58968,
+              "sha256": "203001bda996000188677858de46e60a630d0d708b9893b5ae73ccc74f6eaffe"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 58968,
+              "sha256": "d7843ebeca8faf1a4cc80dc3d172d70d58f6cfac9718acb88d9ea233cb5059e2"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 58968,
+              "sha256": "105828ce96368f6fc4cad3a6635bd77fd45c81a48068a66942e3bce299ecc2f5"
+            }
+          },
+          "indices": {
+            "count": 19656,
+            "sha256": "308affc3bbce6719094c4c788ec6d4c7f03d0ff89d02e5e5548e285a238cec86"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "",
+      "models": [
+        "nalati-grasslands/kokpar-goal",
+        "nalati-grasslands/kokpar-post"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 33,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 12528,
+              "sha256": "e167a714f4668ebb760dfa1fe40b3b7f68371596d8b130069be83dbebc35d2f7"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 12528,
+              "sha256": "fe6eea4787e7afaf58bf56f8e294506620b9c9693e9815efca29790b16889efb"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 12528,
+              "sha256": "5c6a107101b8e222d9a6bd668c098cd1dd263e51f38f2e44f259af03aae479d9"
+            }
+          },
+          "indices": {
+            "count": 4176,
+            "sha256": "2d87f9ebb553ec61010fc117000a9cbbc975107e2f53a0385f7625f392fdeee5"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-kokpar",
+      "models": [
+        "nalati-grasslands/kokpar-rider",
+        "nalati-grasslands/saddled-horse"
+      ],
+      "roles": [
+        "hybrid"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 33,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 12528,
+              "sha256": "e167a714f4668ebb760dfa1fe40b3b7f68371596d8b130069be83dbebc35d2f7"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 12528,
+              "sha256": "fe6eea4787e7afaf58bf56f8e294506620b9c9693e9815efca29790b16889efb"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 12528,
+              "sha256": "5c6a107101b8e222d9a6bd668c098cd1dd263e51f38f2e44f259af03aae479d9"
+            }
+          },
+          "indices": {
+            "count": 4176,
+            "sha256": "2d87f9ebb553ec61010fc117000a9cbbc975107e2f53a0385f7625f392fdeee5"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 34,
+          "name": "nalati-model-horse-saddled",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 26865,
+              "sha256": "249792afb6e5b323d9ae9ebadee42f541236981ed2f5b87c8ceffd18f535505e"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 26865,
+              "sha256": "402682b919876e924063494601f3729b5acccb1c0a61404fee8361f1b76ba0f6"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 26865,
+              "sha256": "e6c744ace10fb2e75ad66fe9a1f4de0fbca98686c961eb0faafdb39993bf246b"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 17910,
+              "sha256": "cd86b0db6feb08dcde56193c1c22b6768871831dff2fb34c9a998283d4d048a9"
+            }
+          },
+          "indices": {
+            "count": 24000,
+            "sha256": "41b3c4fdf6553b5b36e635d60fb877c7ddf73b82e3904b548401a729e732eeb7"
+          },
+          "instances": {
+            "count": 6,
+            "capacity": 6,
+            "matricesSha256": "b649a36cbfd10c20f5b1d5a18fe048d03ab5b02f0eb021dd42df20e5b484033d",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 35,
+          "name": "nalati-kokpar-riders",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 32274,
+              "sha256": "e7a701fc4c45cc52a8100e271b3f9126971feb112794889031f7fa71835000d5"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 32274,
+              "sha256": "2da300ad0bf40f1207eb0b402d76d5e166ae5a9ec6bca6438e8505d2c618ffc6"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 32274,
+              "sha256": "e0732bf65d2e5b65954f2e6aee4208723f821a0310a1b9067d19f50124efdc50"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 21516,
+              "sha256": "2d859a32fb40264e5d4a7b8e2428337bf29841fcbbe70faf11985f956d27baa8"
+            }
+          },
+          "indices": {
+            "count": 27000,
+            "sha256": "87902a08c211acbd84e4a0e1117b2eeb31cd5c28d9e6e107e12dd7ae8f65dde7"
+          },
+          "instances": {
+            "count": 6,
+            "capacity": 6,
+            "matricesSha256": "25f380df903f9659d181e3d2628b4450818bd668930adecc15e73d7e36b3a1ae",
+            "coloursSha256": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-far-herds",
+      "models": [
+        "nalati-grasslands/herd-horse"
+      ],
+      "roles": [
+        "hybrid"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 36,
+          "name": "nalati-far-herd",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "2b7876e3aec6ce2835ffdc66571254f2793f4946d24cab549e0acc0219513fd0"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "336fae6634f2db08c75f054cd9c2a58d915120d86e3478d685c7783f6d0abcb7"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "cf998f79d028413e04c27fa75563dc31398d914cf7372df6f15d42e8615dc679"
+            }
+          },
+          "indices": {
+            "count": 2370,
+            "sha256": "581a2be613d8e54f8e65b13d474630c716452226ec237173f5fd83617714063f"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 80,
+            "matricesSha256": "43f0c25a3100cdfc56bca2877455b908ab48333b567338ccd72e4d65ad0b7fc5",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 37,
+          "name": "nalati-far-herd",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "2b7876e3aec6ce2835ffdc66571254f2793f4946d24cab549e0acc0219513fd0"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "336fae6634f2db08c75f054cd9c2a58d915120d86e3478d685c7783f6d0abcb7"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "cf998f79d028413e04c27fa75563dc31398d914cf7372df6f15d42e8615dc679"
+            }
+          },
+          "indices": {
+            "count": 2370,
+            "sha256": "581a2be613d8e54f8e65b13d474630c716452226ec237173f5fd83617714063f"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 56,
+            "matricesSha256": "b7eee5fe75255bb08029d9ebbc634ce64b1ac53c3bf7320f48dcfb7dbc99b307",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 38,
+          "name": "nalati-far-herd",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "2b7876e3aec6ce2835ffdc66571254f2793f4946d24cab549e0acc0219513fd0"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "336fae6634f2db08c75f054cd9c2a58d915120d86e3478d685c7783f6d0abcb7"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "cf998f79d028413e04c27fa75563dc31398d914cf7372df6f15d42e8615dc679"
+            }
+          },
+          "indices": {
+            "count": 2370,
+            "sha256": "581a2be613d8e54f8e65b13d474630c716452226ec237173f5fd83617714063f"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 56,
+            "matricesSha256": "b7eee5fe75255bb08029d9ebbc634ce64b1ac53c3bf7320f48dcfb7dbc99b307",
+            "coloursSha256": null
+          }
+        },
+        {
+          "sourceMesh": 39,
+          "name": "nalati-far-herd",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "2b7876e3aec6ce2835ffdc66571254f2793f4946d24cab549e0acc0219513fd0"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "336fae6634f2db08c75f054cd9c2a58d915120d86e3478d685c7783f6d0abcb7"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1173,
+              "sha256": "cf998f79d028413e04c27fa75563dc31398d914cf7372df6f15d42e8615dc679"
+            }
+          },
+          "indices": {
+            "count": 2370,
+            "sha256": "581a2be613d8e54f8e65b13d474630c716452226ec237173f5fd83617714063f"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 48,
+            "matricesSha256": "92498f40621355e513ca14dca864c055f2b5c75149c31c204f2ee21c277658f7",
+            "coloursSha256": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-snow-lotus",
+      "models": [
+        "nalati-grasslands/snow-lotus"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 40,
+          "name": "nalati-model-snow-lotus",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 10014,
+              "sha256": "7169a9b7631729366a659d420e779bdc61e99906bb3f814f1040ea6c95e8b61f"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 10014,
+              "sha256": "90a1ebe76ab0ff6a9a1567e1260322a132eb10cf93429305b6832fadae66acb5"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 10014,
+              "sha256": "3d95296599ec32484e53402fa8954fb80ddb2f54fa6d6d4eb515049bd19802a2"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 6676,
+              "sha256": "7cc11450719c3a0a39d56eeb0ef681a2c75ee92d8d43bc48f56b01e8d163b016"
+            }
+          },
+          "indices": {
+            "count": 6699,
+            "sha256": "a1025e3696ef80de465bac686c6fb39241cb4fed143668c4ea73fee431d3e529"
+          },
+          "instances": {
+            "count": 52,
+            "capacity": 52,
+            "matricesSha256": "9df1aaab4a12a4388a89938246942762df098720919a995ccac7e9ae9fb78fea",
+            "coloursSha256": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-glacier",
+      "models": [
+        "nalati-grasslands/glacier-snout"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 41,
+          "name": "nalati-glacier",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 285,
+              "sha256": "5dd2dca53a38facffe8bb65940b020521d8c249eb03065960f662f55f8fbf53e"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 285,
+              "sha256": "48c2125fbad324061be7321b2383040d690ce3d96e0e72d2bf1e45d85ba7101c"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 285,
+              "sha256": "ff6759aee431f12dfe883868751b432c3bbc0f29cc3af4b2ae30f73c29b199a7"
+            }
+          },
+          "indices": {
+            "count": 432,
+            "sha256": "5c7c27640e9793f16f17d68433c93196e73bd2d7d04e552a4f42abfbf0c3eceb"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-boulder",
+      "models": [
+        "nalati-grasslands/boulder"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 42,
+          "name": "nalati-dress-boulder",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1665,
+              "sha256": "589aa713aef537e5bb1b614225bdbf4ef97c5e924d576fe623497de21e3ac222"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1665,
+              "sha256": "b9f26dfa270ecedf0afb90623d22c0a0ad61159c47ef0db79dfd8c959ca21215"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1665,
+              "sha256": "cb63c9a4ebb60b6059ed6c121c9f2f1ccb0c22d53a16dcda6e826a5e8ce1f7db"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 1110,
+              "sha256": "ef3d5f28cbc05f4abb5937473f7cf1881e29bfce8ca67201a7de1546397b0f7f"
+            }
+          },
+          "indices": {
+            "count": 2400,
+            "sha256": "4ea95fc0a2bcfdfd54efc9a890fb5486c8f0833bb979c023d3594d0e9dd2c74c"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 1267,
+            "matricesSha256": "58d2cbcf428930587aa774a4d7c5448cf35f6918cfb0a3e2a2de46a61dda16f4",
+            "coloursSha256": "a86d482397462e8fba9ae337cc4bea49c04366eb85997c8f7771439e130fefb9"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-boulder-tall",
+      "models": [
+        "nalati-grasslands/boulder"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 43,
+          "name": "nalati-dress-boulder-tall",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1659,
+              "sha256": "bd6de6039ebafbbfd8cfc2aed8e856a85fe8dab718ea75852ebbe486aa131a03"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1659,
+              "sha256": "43ca1f500eb9cbc47c4236166bc10322fefa8f695ea6dbcbe913bbe636788e3b"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1659,
+              "sha256": "69144a70c601e527da63f8b910996c37d1e9972c236a38efbef5362a65e08ae9"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 1106,
+              "sha256": "f3e63d9a7b63737dcc69fba0415c3342917f4f72af4d33e49c45342d3e8174ae"
+            }
+          },
+          "indices": {
+            "count": 2400,
+            "sha256": "0a7e2e55d97a5124d6424fe07cba1c46dbeba21db37fe8caf150e80961f67300"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 633,
+            "matricesSha256": "e83af63d8958551dbece79e839873c29622f2bce9ab5f71efb8b93b965bc0b06",
+            "coloursSha256": "eed637f2ab3124f683859aef67b1e16ceed379ecea000102c46a1b4ddfa98f60"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-slab",
+      "models": [
+        "nalati-grasslands/slab"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 44,
+          "name": "nalati-dress-slab",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1956,
+              "sha256": "2c74bb2d15e56ac5f78282860f19a0cdb471b86cc30dc5e920d514989d8d0839"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1956,
+              "sha256": "80e4106f69f3f1b66871b509157e12014b13a9a4883126ffdbdb2400a22ce199"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1956,
+              "sha256": "83fbe5b3e1b20f4ee7eae852c709d10b0f3ba106013674404fa301b94e2c0f98"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 1304,
+              "sha256": "1ce99b9a7365301180f7df5d224a6ea74641d4a5086c3d89c964e31c9841c495"
+            }
+          },
+          "indices": {
+            "count": 2400,
+            "sha256": "dd2fe15f8fb4825cd9f69a2935d2386d3637a20ff00d6e3092fe21ed70334607"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 1579,
+            "matricesSha256": "34f6ce427000151aabc81c1a15a85d444cbfdc833cdc9faf7cc92e8c87da7f85",
+            "coloursSha256": "2faf74e527ffe1399cbee03c969deccea80361ef491273ce22a786d876e0554b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-stone",
+      "models": [
+        "nalati-grasslands/stone"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 45,
+          "name": "nalati-dress-stone",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 126,
+              "sha256": "94130bc47ec9c2871cc79ee643c50dfbaf9c871ad7e208405943b7a75ccb7f08"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 126,
+              "sha256": "a37c5b85f1c70323f250ec87e74ee890213f8e3a303a5778163bd0f12787f4a0"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 126,
+              "sha256": "bf906c88c7dc8e654a786bf24979535b446bafe51cb574c44267e77f812974f7"
+            }
+          },
+          "indices": {
+            "count": 240,
+            "sha256": "bd191c7ae1f3769acd73dfaf4502e72ad78d1567ed987fcea6d49b813ab13d81"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 19791,
+            "matricesSha256": "dcd471b1ae618bbc9400ea9410262f92da4763aa4cd8a053348d8cccfe2c4311",
+            "coloursSha256": "59dd05369b614f4064b2e30decfaeedb39143e059e717dcaf2de9313230b2ed2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-juniper",
+      "models": [
+        "nalati-grasslands/juniper"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 46,
+          "name": "nalati-dress-juniper",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1110,
+              "sha256": "e27487d7f2e9724c70ff2a2a5c68af879e5ed223b25b63f4fdf3029d993afc77"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1110,
+              "sha256": "a657ce8421b5f03e8c0fe6565bd7c02d2c7d5c0b6de392bf0cfccb91ea49f7d2"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1110,
+              "sha256": "b2f308a602fa5e9661938c3a35b8c7e9c6bfe5bfd258a5005ba8728a5539fb76"
+            }
+          },
+          "indices": {
+            "count": 1224,
+            "sha256": "5a6cd7e0d480d69b043fab48092b31319078f110544417159c3146cdd7d4da22"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 278,
+            "matricesSha256": "4b1076b741f32cf64337e01192172b303920237084a9034f9cee7a65b7960ae4",
+            "coloursSha256": "e1a162587da12ecc43d92eaefeb12d96a215432376e1c4ac9856ed400c0e8359"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-rose",
+      "models": [
+        "nalati-grasslands/wild-rose"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 47,
+          "name": "nalati-dress-rose",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1338,
+              "sha256": "d4494aa8253ffa4a0e63d21ce28b46280c46d944fc1a87335f20bb9df205e844"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1338,
+              "sha256": "8a3b6ecd00116676c45a0ffd0b6bdc1d2ea2afa7ed010c2886c5251d9d110b01"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1338,
+              "sha256": "6d8ca9495cadfaedd66784c6e7f4acfb4a5ecae13e9dad184e31aeaab1e2e143"
+            }
+          },
+          "indices": {
+            "count": 1560,
+            "sha256": "ffae16acb62e8eac868ada4b24b102bc3e6a8d489622978a866cd5e8b78db994"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 136,
+            "matricesSha256": "c587b4981c0b0bb151a752fd482e14b4456dc799c496305ac6eee43f806f6a23",
+            "coloursSha256": "235a7f4dd8af8a77a032c72b99f4537ecb4c1e30067f1ef4c5308689279cb137"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-willow",
+      "models": [
+        "nalati-grasslands/dwarf-willow"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 48,
+          "name": "nalati-dress-willow",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1326,
+              "sha256": "3b271d197fe9890b66242aaef97876a45d25103a53558ab715abc1928c053bd4"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1326,
+              "sha256": "7a97bd0411d21e96ba4a80368a54cfc9e0ab906bfc3f81de6835f09b72c48ef1"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1326,
+              "sha256": "d38d19361e3c19e0ff2b14b3e0bbdb11256cf07b062324204836d3f15459aae5"
+            }
+          },
+          "indices": {
+            "count": 1416,
+            "sha256": "e9d3f7344add170f543eddbf166cadad3c4974a6aea27343ae5596d0051bee33"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 230,
+            "matricesSha256": "f4084b224f968501524bcfe14062a87c67c3b691b3f9b9efe3f730d075a52c01",
+            "coloursSha256": "bae555aea679ad7e524d27af3cc2e2e9d4b74b5bcb821244afe80bb9037aeb87"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-lupin",
+      "models": [
+        "nalati-grasslands/lupin"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 49,
+          "name": "nalati-dress-lupin",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 1011,
+              "sha256": "5d5e1744e516a930477178042e0da39a65d06c954444772b9a367886a1e889ad"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 1011,
+              "sha256": "bf61b183b14a2dccbe413c6f213e33b6ab36a7e3b879c6c6be1025b8c35263a9"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 1011,
+              "sha256": "808d6bf9c45914ef294ce361a8a17d757318dacbc5262cb52056c9fd980a7981"
+            }
+          },
+          "indices": {
+            "count": 1530,
+            "sha256": "15687ea9104e2d6d774b8ae0201d055826e5841cd6006bcbea121ae2111e4de9"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 2778,
+            "matricesSha256": "e0a635c474e71b5ad555b4b780f0ab321d78345945e576f0df0bbeb899d56e79",
+            "coloursSha256": "36d61045cc70cf7deac829ba32ef20b6c70e6e48032e2e50f31ce788a0ba1961"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-daisy",
+      "models": [
+        "nalati-grasslands/daisy"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 50,
+          "name": "nalati-dress-daisy",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 480,
+              "sha256": "94d9e4d1c37db5e59331e59c8c1d5913393b59c0e744accae2f23afacb880dca"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 480,
+              "sha256": "f881db95ec9ae05b65bd2a77514fbb4c13609bb3fe02294d300f958908809d7f"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 480,
+              "sha256": "0f33d5988029f1bfb6eb0c453c131c9486e2ad20907343b00c43a49e2e03379f"
+            }
+          },
+          "indices": {
+            "count": 576,
+            "sha256": "364d45ce6e8f37c4cb4a3b70aec70f488447d7a53a72ea385facc932e50fdc29"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 8811,
+            "matricesSha256": "a8f4b715a584b264962af0dfeaeeb18ff953a6f2056ec127dcfa75262ca99ab0",
+            "coloursSha256": "b02a168bfef31b5f28ababe27830c7daa89cb2dc12800ab1e08dd0ff783aed59"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-reed",
+      "models": [
+        "nalati-grasslands/reed"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 51,
+          "name": "nalati-dress-reed",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 468,
+              "sha256": "cc77ef26f01fb6341024e5f8c926137e277df1791d62158c418bb077a90970a2"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 468,
+              "sha256": "03a8549677370d009993ee455949e3ad96bc8f27c9472a04b1a6d2f499852c12"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 468,
+              "sha256": "c42d23a254de71e7cce4fabc24829ffa685b2b3283cedfc0e81c823c4166a746"
+            }
+          },
+          "indices": {
+            "count": 480,
+            "sha256": "7648ab68612ae5f0248f9338381dda4dd1e9d7289f7b0ded4d776568527e36a1"
+          },
+          "instances": {
+            "count": 0,
+            "capacity": 1050,
+            "matricesSha256": "a0ce734c0c39c7621b3241ac5e79be6f5e50e8fb2872729a8c9b119842f1ee68",
+            "coloursSha256": "c20d17e787753b48b0e04821641c46460715857cebc6e71ec6d92090bd887e47"
+          }
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-statics",
+      "models": [
+        "nalati-grasslands/fallen-log",
+        "nalati-grasslands/fence",
+        "nalati-grasslands/ovoo",
+        "nalati-grasslands/sky-gateway",
+        "nalati-grasslands/stump",
+        "nalati-grasslands/viewpoint-pole"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 52,
+          "name": "nalati-dress-props-3",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 75060,
+              "sha256": "827b011c3aea31eedafbcf1a7e1004f50fbf7de700b29284b6301004cb9ec89b"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 75060,
+              "sha256": "95079483b4344b1933e7bce5f2a9721c9a052ceafb490a46ef7057227d1f4013"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 75060,
+              "sha256": "1622cd92784b5cf419b3763524ba2aeddc2ecc7283e26321f3f656ea498e154b"
+            }
+          },
+          "indices": {
+            "count": 25020,
+            "sha256": "ac6622d37ffcdc83b934ea0f213904f7a7b0bbf13067e93a857a7c7c9d094e72"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 53,
+          "name": "nalati-dress-props-2",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 36216,
+              "sha256": "52e2fa283dc302a2e4e4f5f5f216af63d0bc88af735b80d774b0cfe3de294a49"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 36216,
+              "sha256": "bf889af8aaaae984e612b8f936bc61dc7c6b121a1a38ea03b90995b93a739d4c"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 36216,
+              "sha256": "d1ae603c1f0b6c5b282e1862e73a6d020ef34359cc5180004451f0ca6389720d"
+            }
+          },
+          "indices": {
+            "count": 12072,
+            "sha256": "e1d971af2aaf43bf3446074ee92deecabde4a919187af02c05aa14d54748cded"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 54,
+          "name": "nalati-dress-props-1",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 103014,
+              "sha256": "432285096554186fda415ea66e52e281feb3050db3989c58a19a6afda1695f5b"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 103014,
+              "sha256": "229b5a3c8e8c25eb694069f20ba24d6a1d15a8be49ec3bf4c97057ec4ec34fd9"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 103014,
+              "sha256": "c120dc569a795add4ff0287ac6dbfd5e04d3e58a361fbb86e3be75745cbb6d47"
+            }
+          },
+          "indices": {
+            "count": 34338,
+            "sha256": "aa8861c8dad0abdd20dd5eb8cb2d5e3a72cda75889ce1f26c5f3a1219c1dc95c"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 55,
+          "name": "nalati-dress-props-0",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 58896,
+              "sha256": "b1fd3f9aff8abaca3c7dbddfe776a86e741ba9af0fd68994272ed4287b6a838c"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 58896,
+              "sha256": "3384738697b360437bb6542d6959edabed72e3443c0af9ea03911374a5d83b53"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 58896,
+              "sha256": "e682a63b68766a95b2e3b6516126b10533b6ab8abfb496cdbdb28c8c37926643"
+            }
+          },
+          "indices": {
+            "count": 19632,
+            "sha256": "79843193b80d6f722c898008d10da5d945f97d7f52c494ac5f6c1ee3ab61878b"
+          },
+          "instances": null
+        },
+        {
+          "sourceMesh": 56,
+          "name": "nalati-dress-fences",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 112824,
+              "sha256": "5d30cf217f57bf4b5066f7c4cbcdfaf9b195969d2b43520c0053767bf8e55231"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 112824,
+              "sha256": "9853a4a85e2c173a77d5d49307a98739a2be9d9755cb5533267eded503c8d812"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 112824,
+              "sha256": "aa40b8535fb112c7b59fa252cd6c4781bcb4894b67745529060b16639840f584"
+            },
+            "uv": {
+              "itemSize": 2,
+              "values": 75216,
+              "sha256": "8b0c2f00922d9a7729d59a5ab3fa94f999fc6e29bc0e734a067313d3947b8d2a"
+            }
+          },
+          "indices": {
+            "count": 37608,
+            "sha256": "1be40c1841ec4327f7937f9fd2f575a566abfd239a7d97890119aa15d053e7fd"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "name": "nalati-dress-camp-clutter",
+      "models": [
+        "nalati-grasslands/camp-clutter"
+      ],
+      "roles": [
+        "static-candidate"
+      ],
+      "meshes": [
+        {
+          "sourceMesh": 57,
+          "name": "nalati-dress-camp-clutter",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 167976,
+              "sha256": "ab3fa1196ac894fb02b9aa5aac7c4bdcc06a33a6e3ab75d28adc14a7b2826eb5"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 167976,
+              "sha256": "f22ad43b090afc31c8d08ed84443f929d36c4457ccb7cbb240f1ec5687a121ca"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 167976,
+              "sha256": "c65f55c436663db9133e3abe0069df0e5e02296695974bb387b1a1703b5a04e6"
+            }
+          },
+          "indices": {
+            "count": 55992,
+            "sha256": "f7a28d1265baac40139a9d987ee0c852289d25ade60a7cb39555acb9eda7023f"
+          },
+          "instances": null
+        }
+      ]
+    }
+  ],
+  "builds": [
+    {
+      "model": "nalati-grasslands/balbal",
+      "kind": "model",
+      "level": 0,
+      "copies": 4,
+      "meshes": [
+        {
+          "sourceMesh": 0,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 33084,
+              "sha256": "07ce7792864e937d52e9caf32aa4ac62d6ebf233b9b8ab944bee6b5570fed0f9"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 33084,
+              "sha256": "10e4545da1d9fd798ac35ea7894e3adacf19678362ac5318488b179c51d7d811"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 33084,
+              "sha256": "2a2bcc9d112d24b59074c4b293ace0ae0a35f40a539f1f49888388036987fdfb"
+            }
+          },
+          "indices": {
+            "count": 11028,
+            "sha256": "7511ed325f7bddb593460b46fbe5173e25999915f5f05789b24747acc4179230"
+          },
+          "instances": null
+        }
+      ]
+    },
+    {
+      "model": "nalati-grasslands/balbal",
+      "kind": "model",
+      "level": 0,
+      "copies": 8,
+      "meshes": [
+        {
+          "sourceMesh": 1,
+          "name": "",
+          "type": "Mesh",
+          "visible": true,
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "materials": [
+            {
+              "name": "",
+              "type": "MeshLambertMaterial"
+            }
+          ],
+          "attributes": {
+            "color": {
+              "itemSize": 3,
+              "values": 32328,
+              "sha256": "5eb3f05bf59bd39df7d190ec63c041682b50895b72a30dd1794000555dc96c42"
+            },
+            "normal": {
+              "itemSize": 3,
+              "values": 32328,
+              "sha256": "e3463fcc7fe72ee811bff38ff9e90be7423245e4b95ed888b428440b5d17f28e"
+            },
+            "position": {
+              "itemSize": 3,
+              "values": 32328,
+              "sha256": "5b2a5a946aebfc509a7a1153367ee0f580acbdf033c4ec234959ee0117077227"
+            }
+          },
+          "indices": {
+            "count": 10776,
+            "sha256": "1e85863761838fbc5f6b22b378b5fd1bad59bdb570c3f14802b8492931272de4"
+          },
+          "instances": null
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "page": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "levelUnloaded": true,
+    "physicsReleased": true,
+    "renderReleased": true
+  },
+  "physics": {
+    "colliders": 2747,
+    "pieces": {
+      "forest": 155,
+      "nalati-grasslands/granite-outcrop": 200,
+      "nalati-grasslands/rounded-boulder": 30,
+      "nalati-grasslands/granite-outcrop-2": 15,
+      "nalati-grasslands/crag-rock": 150,
+      "nalati-grasslands/crag-rock-2": 150,
+      "nalati-grasslands/crag-rock-3": 150,
+      "nalati-grasslands/crag-rock-4": 42,
+      "nalati-grasslands/yurt": 12,
+      "nalati-grasslands/ribbon-pole": 1,
+      "nalati-grasslands/eagle-perch": 1,
+      "nalati-grasslands/stove": 1,
+      "nalati-grasslands/kazan": 1,
+      "nalati-grasslands/firewood": 1,
+      "nalati-grasslands/camp-bench": 1,
+      "nalati-grasslands/rug-rack": 1,
+      "nalati-grasslands/cart": 1,
+      "nalati-grasslands/barrel": 3,
+      "nalati-grasslands/chest": 2,
+      "nalati-grasslands/hitching-rail": 1,
+      "nalati-grasslands/water-trough": 1,
+      "nalati-grasslands/saddle-rack": 1,
+      "nalati-grasslands/corral": 24,
+      "nalati-grasslands/hay-pile": 1,
+      "nalati-grasslands/kumis-churn": 2,
+      "nalati-grasslands/rug-line": 3,
+      "nalati-grasslands/chopping-block": 1,
+      "nalati-grasslands/milk-cans": 1,
+      "nalati-grasslands/kunes-bridge": 39,
+      "nalati-grasslands/fence": 12,
+      "nalati-grasslands/signpost": 5,
+      "nalati-grasslands/yurt#2": 6,
+      "nalati-grasslands/kazan#2": 1,
+      "nalati-grasslands/cart#2": 1,
+      "nalati-grasslands/chest#2": 1,
+      "nalati-grasslands/barrel#2": 1,
+      "nalati-grasslands/tether-line": 2,
+      "nalati-grasslands/kurt-board": 1,
+      "nalati-grasslands/ribbon-post": 1,
+      "nalati-grasslands/kurgan-entrance": 19,
+      "nalati-grasslands/eagle-rock": 59,
+      "nalati-grasslands/wind-cairn": 5,
+      "nalati-grasslands/crag-ledge": 6,
+      "nalati-grasslands/leopard-cave": 5,
+      "nalati-grasslands/watchtower": 1,
+      "nalati-grasslands/stone-step": 54,
+      "nalati-grasslands/kokpar-goal": 2,
+      "nalati-grasslands/boulder": 150,
+      "nalati-grasslands/boulder-2": 150,
+      "nalati-grasslands/boulder-3": 136,
+      "nalati-grasslands/boulder#2": 150,
+      "nalati-grasslands/boulder#2-2": 69,
+      "nalati-grasslands/slab": 150,
+      "nalati-grasslands/slab-2": 150,
+      "nalati-grasslands/slab-3": 150,
+      "nalati-grasslands/slab-4": 150,
+      "nalati-grasslands/slab-5": 82,
+      "nalati-grasslands/fallen-log": 17,
+      "nalati-grasslands/stump": 11,
+      "nalati-grasslands/ovoo": 9,
+      "nalati-grasslands/viewpoint-pole": 7,
+      "nalati-grasslands/fence#2": 31,
+      "nalati-grasslands/sky-gateway": 2,
+      "nalati-grasslands/camp-clutter": 13,
+      "nalati-kurgan-dungeon": 35,
+      "paths": 112
+    }
+  },
+  "counts": {
+    "placementRows": 74,
+    "authoredCopies": 38567,
+    "roots": 29,
+    "meshes": 58,
+    "builds": 2,
+    "uniqueMeshes": 56,
+    "mixedRoots": 0,
+    "weldBuilds": 0
+  }
+}
