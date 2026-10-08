@@ -1,0 +1,1070 @@
+{
+  "version": 1,
+  "sourcePin": "cd1890836",
+  "captureSha256": "30bd5b9bea2ce01933be2676f8ecc31aa332a3ce53f89a8bcf777ede0dd74378",
+  "counts": {
+    "rootReferences": 58,
+    "builderMeshes": 2,
+    "uniqueMeshes": 58,
+    "static": 50,
+    "hybrid": 8,
+    "aliases": 2,
+    "pendingScatterSources": 10
+  },
+  "meshes": [
+    {
+      "sourceMesh": 0,
+      "name": "",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "build",
+        "index": 0,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "build",
+          "index": 0,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 1,
+      "name": "",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "build",
+        "index": 1,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "build",
+          "index": 1,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 2,
+      "name": "nalati-outcrops",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 0,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 0,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 3,
+      "name": "nalati-crag-rock-0",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 1,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 1,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 4,
+      "name": "nalati-crag-rock-1",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 1,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 1,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 5,
+      "name": "nalati-crag-rock-2",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 1,
+        "mesh": 2
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 1,
+          "mesh": 2
+        }
+      ]
+    },
+    {
+      "sourceMesh": 6,
+      "name": "nalati-crag-rock-3",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 1,
+        "mesh": 3
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 1,
+          "mesh": 3
+        }
+      ]
+    },
+    {
+      "sourceMesh": 7,
+      "name": "nalati-yard",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 8,
+      "name": "",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 9,
+      "name": "nalati-camp-felt",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 2
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 2
+        }
+      ]
+    },
+    {
+      "sourceMesh": 10,
+      "name": "nalati-camp-wood",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 3
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 3
+        }
+      ]
+    },
+    {
+      "sourceMesh": 11,
+      "name": "nalati-model-eagle",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 4
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 4
+        }
+      ]
+    },
+    {
+      "sourceMesh": 12,
+      "name": "nalati-model-cauldron",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 5
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 5
+        }
+      ]
+    },
+    {
+      "sourceMesh": 13,
+      "name": "nalati-model-firewood",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 6
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 6
+        }
+      ]
+    },
+    {
+      "sourceMesh": 14,
+      "name": "nalati-model-chest",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 7
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 7
+        }
+      ]
+    },
+    {
+      "sourceMesh": 15,
+      "name": "nalati-model-kumis-churn",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 8
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 8
+        }
+      ]
+    },
+    {
+      "sourceMesh": 16,
+      "name": "nalati-model-saddle",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 2,
+        "mesh": 9
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 2,
+          "mesh": 9
+        }
+      ]
+    },
+    {
+      "sourceMesh": 17,
+      "name": "nalati-bridge",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 3,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 3,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 18,
+      "name": "nalati-roads",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 4,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 4,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 19,
+      "name": "nalati-signs",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 4,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 4,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 20,
+      "name": "nalati-roads-wood",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 4,
+        "mesh": 2
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 4,
+          "mesh": 2
+        }
+      ]
+    },
+    {
+      "sourceMesh": 21,
+      "name": "nalati-yard",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 5,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 5,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 22,
+      "name": "",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 5,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 5,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 23,
+      "name": "",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 5,
+        "mesh": 2
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 5,
+          "mesh": 2
+        }
+      ]
+    },
+    {
+      "sourceMesh": 24,
+      "name": "nalati-summer-wood",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 5,
+        "mesh": 3
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 5,
+          "mesh": 3
+        }
+      ]
+    },
+    {
+      "sourceMesh": 25,
+      "name": "nalati-model-cauldron",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 5,
+        "mesh": 4
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 5,
+          "mesh": 4
+        }
+      ]
+    },
+    {
+      "sourceMesh": 26,
+      "name": "nalati-model-chest",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 5,
+        "mesh": 5
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 5,
+          "mesh": 5
+        }
+      ]
+    },
+    {
+      "sourceMesh": 27,
+      "name": "nalati-kurgans",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 6,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 6,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 28,
+      "name": "nalati-eagle-rock",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 7,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 7,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 29,
+      "name": "nalati-cairn",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 8,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 8,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 30,
+      "name": "nalati-crags",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 9,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 9,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 31,
+      "name": "",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 10,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 10,
+          "mesh": 0
+        },
+        {
+          "kind": "root",
+          "index": 11,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 32,
+      "name": "nalati-model-watchtower",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 10,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 10,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 33,
+      "name": "",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 12,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 12,
+          "mesh": 0
+        },
+        {
+          "kind": "root",
+          "index": 13,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 34,
+      "name": "nalati-model-horse-saddled",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "root",
+        "index": 13,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 13,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 35,
+      "name": "nalati-kokpar-riders",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "root",
+        "index": 13,
+        "mesh": 2
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 13,
+          "mesh": 2
+        }
+      ]
+    },
+    {
+      "sourceMesh": 36,
+      "name": "nalati-far-herd",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "root",
+        "index": 14,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 14,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 37,
+      "name": "nalati-far-herd",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "root",
+        "index": 14,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 14,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 38,
+      "name": "nalati-far-herd",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "root",
+        "index": 14,
+        "mesh": 2
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 14,
+          "mesh": 2
+        }
+      ]
+    },
+    {
+      "sourceMesh": 39,
+      "name": "nalati-far-herd",
+      "owner": "hybrid",
+      "replay": "runtime",
+      "primary": {
+        "kind": "root",
+        "index": 14,
+        "mesh": 3
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 14,
+          "mesh": 3
+        }
+      ]
+    },
+    {
+      "sourceMesh": 40,
+      "name": "nalati-model-snow-lotus",
+      "owner": "static",
+      "replay": "captured-instances",
+      "primary": {
+        "kind": "root",
+        "index": 15,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 15,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 41,
+      "name": "nalati-glacier",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 16,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 16,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 42,
+      "name": "nalati-dress-boulder",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 17,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 17,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 43,
+      "name": "nalati-dress-boulder-tall",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 18,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 18,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 44,
+      "name": "nalati-dress-slab",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 19,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 19,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 45,
+      "name": "nalati-dress-stone",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 20,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 20,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 46,
+      "name": "nalati-dress-juniper",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 21,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 21,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 47,
+      "name": "nalati-dress-rose",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 22,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 22,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 48,
+      "name": "nalati-dress-willow",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 23,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 23,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 49,
+      "name": "nalati-dress-lupin",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 24,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 24,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 50,
+      "name": "nalati-dress-daisy",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 25,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 25,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 51,
+      "name": "nalati-dress-reed",
+      "owner": "static",
+      "replay": "scatter-source-required",
+      "primary": {
+        "kind": "root",
+        "index": 26,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 26,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 52,
+      "name": "nalati-dress-props-3",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 27,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 27,
+          "mesh": 0
+        }
+      ]
+    },
+    {
+      "sourceMesh": 53,
+      "name": "nalati-dress-props-2",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 27,
+        "mesh": 1
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 27,
+          "mesh": 1
+        }
+      ]
+    },
+    {
+      "sourceMesh": 54,
+      "name": "nalati-dress-props-1",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 27,
+        "mesh": 2
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 27,
+          "mesh": 2
+        }
+      ]
+    },
+    {
+      "sourceMesh": 55,
+      "name": "nalati-dress-props-0",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 27,
+        "mesh": 3
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 27,
+          "mesh": 3
+        }
+      ]
+    },
+    {
+      "sourceMesh": 56,
+      "name": "nalati-dress-fences",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 27,
+        "mesh": 4
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 27,
+          "mesh": 4
+        }
+      ]
+    },
+    {
+      "sourceMesh": 57,
+      "name": "nalati-dress-camp-clutter",
+      "owner": "static",
+      "replay": "world-mesh",
+      "primary": {
+        "kind": "root",
+        "index": 28,
+        "mesh": 0
+      },
+      "references": [
+        {
+          "kind": "root",
+          "index": 28,
+          "mesh": 0
+        }
+      ]
+    }
+  ]
+}
