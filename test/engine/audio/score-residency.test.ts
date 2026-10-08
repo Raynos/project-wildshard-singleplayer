@@ -28,6 +28,33 @@ describe('decoded score residency', () => {
     scope.dispose();
   });
 
+  it('releases the title from every boot/profile owner while keeping the gameplay recording and stings', () => {
+    const scope = new Scope('music.title'), audio = withOwner(scope, () => new Audio());
+    const music = withOwner(scope, () => new Music(audio)); audio.music = music;
+    const title = slot('title'), theme = slot('theme'), decoded = bank(title, theme);
+    const sting = { duration: 1 } as AudioBuffer; decoded.stings.set('pickup', sting);
+    const profile = { title: decoded, score: { slots: new Map(), stings: new Map() },
+      cues: { loops: new Map(), shots: new Map() } };
+    audio.useLevelBank(profile);
+    expect(music.residentBank()).toBe(decoded);
+    music.setState({ mode: 'calm' });
+    expect(decoded.slots.has('title')).toBe(false);
+    const late = bank(slot('title'), theme); late.stings.set('pickup', { duration: 1 } as AudioBuffer);
+    audio.useLevelBank({ ...profile, title: late });
+    expect(late.slots.has('title')).toBe(false);
+    expect(late.stings.get('pickup')).toBe(sting);
+    expect(music.residentBank()?.slots.get('theme')).toBe(theme);
+    let observed: StyleBank | undefined;
+    audio.onLevelBank(value => { observed = value.title; }, scope);
+    expect(observed).toBe(late); expect(observed?.slots.has('title')).toBe(false);
+    music.setState({ mode: 'menu' });
+    const returned = slot('title'); music.useBank(bank(returned, theme));
+    expect(music.residentBank()?.slots.get('title')).toBe(returned);
+    music.setState({ mode: 'calm' });
+    expect(music.residentBank()?.slots.has('title')).toBe(false);
+    expect(audio.ready).toBe(false); scope.dispose();
+  });
+
   it('releases the outgoing slot at deck handoff without requiring another scene refresh', () => {
     const scene = { slot: 'nd-market' }, first = slot('nd-market'), next = slot('nd-well');
     const score = new SetScore({ dir: '/assets/music/nine-dragon-stack/', manifestKey: 'nine-dragon-stack', scene,

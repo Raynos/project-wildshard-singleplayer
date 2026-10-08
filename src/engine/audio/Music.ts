@@ -504,6 +504,7 @@ export class Music {
   private _genre: MusicGenre = getMusicStyle();
   /** the resident genre: decoded at the loading bar (useBank), or from the offline cache after a menu switch */
   private bank: StyleBank | undefined;
+  private titleRetired = false;
   /** the genre being decoded for a switch (the old one plays on meanwhile) */
   private decoding: MusicGenre | undefined;
   private deck: Deck | undefined;
@@ -584,18 +585,25 @@ export class Music {
     return this.source;
   }
 
-  /** the stems the loading bar decoded (src/engine/boot/extras.ts) — the selected genre's title + this shard's slot + stings */
+  /**
+   * Adopt a decoded bank. Its mutable maps stay shared with boot/profile owners so retiring the title releases
+   * their reference too. The outgoing Deck alone keeps its recording through the unchanged bar crossfade.
+   */
   useBank(bank: StyleBank): void {
-    if (bank.genre !== this._genre) return; // the genre changed while the bar ran: prepare() decodes that one
-    // Reuse matching incoming recordings, but never accumulate retired levels' PCM in the page bank.
-    // The outgoing Deck owns its buffers through its unchanged crossfade; re-entry decodes from cached compressed bytes.
+    if (bank.genre !== this._genre) return;
     const old = this.bank;
-    this.bank = old?.genre === bank.genre && old.set === bank.set ? {
-      ...bank,
-      slots: new Map([...bank.slots].map(([slot, audio]) => [slot, old.slots.get(slot) ?? audio])),
-      stings: new Map([...bank.stings].map(([sting, audio]) => [sting, old.stings.get(sting) ?? audio])),
-    } : bank;
+    if (old?.genre === bank.genre && old.set === bank.set) {
+      for (const [slot, audio] of bank.slots) bank.slots.set(slot, old.slots.get(slot) ?? audio);
+      for (const [sting, audio] of bank.stings) bank.stings.set(sting, old.stings.get(sting) ?? audio);
+    }
+    if (old !== bank) old?.slots.delete('title');
+    this.bank = bank;
+    if (bank.slots.has('title')) this.titleRetired = false;
+    this.retireTitle();
     this.sync();
+  }
+  private retireTitle(): void {
+    if (this.state.mode !== 'menu' && this.bank?.slots.delete('title')) this.titleRetired = true;
   }
 
   /** start an arrangement (the game uses 'theme'); restarts if already playing. The stems start at once when decoded, else the synth. */
@@ -682,13 +690,15 @@ export class Music {
     const slot = this.wantSlot();
     if (slot === null) { this.toSynth(now); return; }
     if (this.deck?.slot === slot && this.deck.genre === genre) return;
+    // Keep the current deck on its bar grid while a returning menu reloads its retired recording.
+    if (slot === 'title' && this.titleRetired) { this.prepare(genre); return; }
     const a = bank.slots.get(slot);
     if (a === undefined) { this.toSynth(now); return; } // this genre has no such slot in the build (or it failed to decode)
     this.startDeck(a);
   }
   /** decode `genre` from the offline cache (a menu switch; the bar already downloaded every genre) — the old genre plays on */
   private prepare(genre: MusicGenre): void {
-    if (genre === 'synth' || this.bank?.genre === genre || this.decoding === genre || this.failed.has(genre)) return;
+    if (genre === 'synth' || (this.bank?.genre === genre && !this.titleRetired) || this.decoding === genre || this.failed.has(genre)) return;
     this.decoding = genre;
     void this.decodeFor(genre);
   }
@@ -702,8 +712,7 @@ export class Music {
       return;
     } finally { if (this.decoding === genre) this.decoding = undefined; }
     if (this._genre !== genre) return; // picked something else meanwhile
-    this.bank = bank; // the previous genre's buffers go with it (a fading deck holds its own until it ends)
-    this.sync();
+    this.useBank(bank); // A late menu decode must not retain the title after gameplay starts.
   }
 
   /** a decoded slot takes over on a bar: from the synth (its bar grid) or from the other deck (that deck's grid), faded over ≥ 1 bar */
@@ -751,10 +760,11 @@ export class Music {
 
   /** the game → the music: mode/lead/intensity take effect on the next bar (pending bars are rescheduled); underwater is immediate */
   setState(next: Partial<MusicState>): void {
-    if (!this.rig) { Object.assign(this.pending, next); this.pending.intensity = Math.min(1, Math.max(0, this.pending.intensity)); return; }
+    if (!this.rig) { Object.assign(this.pending, next); this.pending.intensity = Math.min(1, Math.max(0, this.pending.intensity)); this.retireTitle(); return; }
     const s = this.rig.engine.state, prev = { ...s };
     Object.assign(s, next);
     s.intensity = Math.min(1, Math.max(0, s.intensity));
+    this.retireTitle();
     const now = this.ctx.currentTime;
     if (s.underwater !== prev.underwater && !this.engine.arrangement?.driven) {
       this.engine.setLevel('lpf', s.underwater ? 600 : 20000, now, s.underwater ? 0.35 : 0.5);
