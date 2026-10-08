@@ -24,9 +24,11 @@ import { engineString } from '../strings';
  *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks and "N" are CSS. (The heading readout under the circle is
  *      gone, E51: the arrow already says where you face.)
  *
- * The built world (E130, `ShardManifest.map`): the shard's sand paths and its registered pieces' collider footprints as flat
- * silhouettes (src/engine/ui/mapShapes.ts) — Driftwood's pier, jetties, boat, hut, bridge, lookout, wreck, zipline, shrine, the sea
- * cave's vault and the palms' crowns — drawn into the same layer and zoom tiles, so the minimap and the full map both show them.
+ * The baked map (SF66, G246 / G247, `MinimapSpec.image`): a level that names its map baked from the world (scripts/bake-maps.mjs
+ * renders the shard straight down; a stale one fails test/baked-maps.test.ts) draws that image as layer 1 in place of the
+ * painted terrain, on the minimap and the full map alike. It is fetched and decoded into one ImageBitmap the first time the map
+ * draws, never painted into a second canvas, and closed when the minimap is disposed or its level changes. Everything drawn over
+ * it (fog, animals, marks, the full map's places and quest markers) stays listed data.
  *
  * Nothing is allocated per frame: every canvas, gradient and sprite is built at construction or on resize.
  *
@@ -41,10 +43,12 @@ import { Noise2D, smoothstep } from '../core/noise';
 import { Rng } from '../core/rng';
 import { activeLevel, onLevelChange } from '../level/selection';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
-import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { app } from '../app/runtime';
 import { onOwnerDispose } from '../app/ownership';
 import { ROOM_BG, arenaMap, fitRoom, paintRoom, type RoomMap } from './roomMap';
+
+/** the level's baked map while it loads (`image` null) and once decoded; `closed` once released */
+interface BakedGround { url: string; image: ImageBitmap | null; closed: boolean }
 
 /** a point the map marks with a small diamond (Minimap.setMarks) */
 export interface MapMark { x: number; z: number; color: string }
@@ -139,9 +143,6 @@ const WATER_SHALLOW: RGB = [92, 132, 152], WATER_DEEP: RGB = [46, 80, 110];
 const TRAIL_EDGE = 'rgba(80, 64, 44, 0.85)', TRAIL = '#a08a66';
 const CROWN_DARK = '#2b4229', CROWN_MID = '#3c5a34', CROWN_LIGHT = '#66864a', CROWN_SHADOW = 'rgba(18, 34, 20, 0.5)';
 const ROOF = '#74523a', ROOF_RIDGE = '#9a7a58', ROOF_SHADOW = 'rgba(0, 0, 0, 0.45)';
-// the built world's looks (ShardManifest.map): fill, outline — flat, like the roofs
-const LOOK: Record<MapPoly['look'], [string, string]> = { planks: ['#c9a46c', '#5e4630'], timber: ['#8e5d38', '#3a2716'], stone: ['#ddd6c4', '#5f5a50'], rock: ['#8f8a7e', '#403c36'] };
-const PATH_EDGE = 'rgba(112, 90, 58, 0.6)', PATH = '#e4cd96', PALM = '#3d7a3c', PALM_SHADOW = 'rgba(10, 30, 16, 0.4)';
 const VOID = '#0b1016';
 const DOT_PASSIVE = '#ffe066', DOT_AGGRESSIVE = '#ff5a4a', DOT_OUTLINE = 'rgba(6, 10, 18, 0.9)';
 const ARROW = '#ffffff';
@@ -162,10 +163,13 @@ export class Minimap {
   private ctx: CanvasRenderingContext2D;
   private nLabel: HTMLSpanElement;
 
-  private layer = canvas(CHUNK_SIZE * LAYER_PPM, CHUNK_SIZE * LAYER_PPM);
+  /** the painted terrain layer, made only for a level with no baked map (the baked image is the layer then) */
+  private painted: HTMLCanvasElement | null = null;
   private layerDirty = true;
   /** last paint time of the terrain layer, ms */
   paintMs = 0;
+  /** the level's baked map (MinimapSpec.image): its URL, and the decoded image once it is ready */
+  private baked: BakedGround | null = null;
 
   private cover = canvas(Math.ceil(CHUNK_SIZE * COVER_PPM), Math.ceil(CHUNK_SIZE * COVER_PPM));
   private coverCtx = ctx2d(this.cover);
@@ -200,8 +204,7 @@ export class Minimap {
     // a dev page swapping its chunk in place: a new map. In the game several shards are resident (E155) and a change is a
     // switch between them — this map's shard, its drawn layer and its explored fog stay as they are
     onOwnerDispose(onLevelChange(() => { if (app.levelScope !== null) return; this.layerDirty = true; this.clearCoverage(); }));
-    // a piece the map draws that lands after the layer was drawn (the zipline, with the adventure) → paint again
-    app.registry.onAdd((p) => { if (this.shapes !== null && mapWants(activeLevel().minimap, p.id)) this.layerDirty = true; });
+    this.scope.onDispose(() => { this.releaseBaked(); this.releasePainted(); });
 
     if (typeof ResizeObserver !== 'undefined') {
       this.ro = new ResizeObserver(() => this.fit());
@@ -211,15 +214,19 @@ export class Minimap {
     this.fit();
   }
 
-  /** The drawn terrain layer and fog coverage, for the full map (src/engine/ui/Map.ts). */
-  get layers(): { terrain: HTMLCanvasElement; cover: HTMLCanvasElement } { if (this.layerDirty) this.paintLayer(); return { terrain: this.layer, cover: this.cover }; }
+  /** The ground layer (the baked map, else the painted terrain; null while the baked map loads) and the fog coverage, for
+   *  the full map (src/engine/ui/Map.ts). */
+  get layers(): { terrain: HTMLCanvasElement | ImageBitmap | null; cover: HTMLCanvasElement } { return { terrain: this.ground(), cover: this.cover }; }
+  /** is the ground the baked map? (the full map then draws it as it is: no painted zoom tiles) */
+  get bakedGround(): boolean { if (this.layerDirty) this.ground(); return this.baked !== null; }
+  /** the baked map's decoded bytes held now (RGBA), for the memory readouts */
+  get bakedBytes(): number { const img = this.baked?.image; return img ? img.width * img.height * 4 : 0; }
 
   /**
-   * A shard's own map features (Pine Hollow, C9): its real trees (forest.trees — the crowns then sit where the pines stand, so
-   * the old-growth's giants, the King's clearing, the Ridge's bare crags and the Den's bowl read) and extra roofs (the mill
-   * hamlet). Unset = the density-noise stipple and the chunk's cabins, as before.
+   * A shard's own map features (Pine Hollow, C9) for the painted ground: its real trees and extra roofs. A level with a baked
+   * map shows them from the world itself, so they only matter on the painted terrain.
    */
-  setFeatures(f: MapFeatures): void { this.features = f; this.layerDirty = true; }
+  setFeatures(f: MapFeatures): void { this.features = f; if (this.baked === null) this.layerDirty = true; }
   private features: MapFeatures = {};
 
   setVisible(v: boolean): void {
@@ -273,7 +280,40 @@ export class Minimap {
     this.lastStampX = this.lastStampZ = Number.NaN;
   }
 
-  dispose(): void { this.ro?.disconnect(); this.root.remove(); }
+  dispose(): void { this.ro?.disconnect(); this.root.remove(); this.releaseBaked(); this.releasePainted(); }
+
+  /** the ground now: the level's baked map once decoded (null while it loads), else the painted layer. The level is read
+   *  only when the layer is dirty (construction, a dev page's level change), never per frame: a grid crossing keeps it */
+  private ground(): HTMLCanvasElement | ImageBitmap | null {
+    if (this.layerDirty) {
+      const url = activeLevel().minimap.image;
+      if (url === undefined) { this.releaseBaked(); this.paintLayer(); }
+      else {
+        this.layerDirty = false;
+        if (this.baked?.url !== url) { this.releasePainted(); this.loadBaked(url); }
+      }
+    }
+    return this.baked !== null ? this.baked.image : this.painted;
+  }
+  private loadBaked(url: string): void {
+    this.releaseBaked();
+    const entry: BakedGround = { url, image: null, closed: false };
+    this.baked = entry;
+    void (async () => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const image = await createImageBitmap(await res.blob());
+        if (entry.closed) { image.close(); return; }
+        entry.image = image; this.layerGen++;
+      } catch (error) { if (!entry.closed) console.warn(`[minimap] the baked map ${url} did not load:`, error); }
+    })();
+  }
+  private releaseBaked(): void {
+    const b = this.baked; if (b === null) return;
+    b.closed = true; b.image?.close(); b.image = null; this.baked = null; this.layerGen++;
+  }
+  private releasePainted(): void { if (this.painted !== null) { this.painted.width = this.painted.height = 0; this.painted = null; } }
 
   /**
    * The day badge (a shard's `ShardManifest.hud.dayBadge`; Nalati — N16 wave 6, the user's pick: no text): the sun or the moon
@@ -301,7 +341,7 @@ export class Minimap {
     if (this.size === 0) return;
     if (this.roomMap !== null) { this.paintRoom(pos, yaw, this.roomMap); return; }
     this.paintDay();
-    if (this.layerDirty) this.paintLayer();
+    const ground = this.ground();
 
     // heading, for the player arrow — the compass band's convention (HUD.ts): +Z is north, turning left decreases it
     let deg = 180 - (yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
@@ -321,12 +361,15 @@ export class Minimap {
     ctx.fillStyle = overlay?.outside ?? activeLevel().minimap.outside ?? VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
     if (overlay !== null) this.paintExtraGround(overlay, pos, c, k);
 
-    // 1. terrain, the player centred, north up (layer u = (HALF − x) · ppm so east (−X) is screen right)
-    const lr = VIEW_RADIUS * LAYER_PPM;
+    // 1. terrain (the baked map or the painted layer), the player centred, north up (layer u = (HALF − x) · ppm so east (−X)
+    // is screen right); nothing while the baked map loads
     if (baseAlpha > 0) {
-      ctx.globalAlpha = baseAlpha;
-      ctx.drawImage(this.layer, (CHUNK_HALF - pos.x) * LAYER_PPM - lr, (CHUNK_HALF - pos.z) * LAYER_PPM - lr, lr * 2, lr * 2, 0, 0, D, D);
-      ctx.globalAlpha = 1;
+      if (ground !== null) {
+        const gp = ground.width / CHUNK_SIZE, lr = VIEW_RADIUS * gp; // the ground's px per metre (2 for both today)
+        ctx.globalAlpha = baseAlpha;
+        ctx.drawImage(ground, (CHUNK_HALF - pos.x) * gp - lr, (CHUNK_HALF - pos.z) * gp - lr, lr * 2, lr * 2, 0, 0, D, D);
+        ctx.globalAlpha = 1;
+      }
 
       // 2. fog: black at (1 − brightness), punched out where the coverage canvas is opaque (with an overlay: inside the chunk only)
       const fc = this.fogCtx, cr = VIEW_RADIUS * COVER_PPM;
@@ -479,9 +522,9 @@ export class Minimap {
     const t0 = performance.now();
     this.layerDirty = false;
     this.crowns = null;
-    this.shapes = null;
     this.layerGen++;
-    this.paintRegion(ctx2d(this.layer), 0, 0, CHUNK_SIZE, this.layer.width, HEIGHT_STEP);
+    this.painted ??= canvas(CHUNK_SIZE * LAYER_PPM, CHUNK_SIZE * LAYER_PPM);
+    this.paintRegion(ctx2d(this.painted), 0, 0, CHUNK_SIZE, this.painted.width, HEIGHT_STEP);
     this.paintMs = performance.now() - t0;
   }
 
@@ -493,7 +536,7 @@ export class Minimap {
    * `sizeM` metres a side into a `px` × `px` canvas, the ground sampled every ~2 px (at least 1/8 m).
    */
   paintTile(target: HTMLCanvasElement, u0: number, v0: number, sizeM: number, px: number): void {
-    if (this.layerDirty) this.paintLayer();
+    if (this.layerDirty) this.ground();
     if (target.width !== px || target.height !== px) { target.width = px; target.height = px; }
     const ctx = ctx2d(target);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -555,7 +598,6 @@ export class Minimap {
     const ocean = level.minimap.openWater ?? null; // open-water shard: sea by depth, sand where the floor breaks the surface, no forest
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
     const palette = level.minimap.palette ?? null;   // a level's own map look: its ground colours, its overlay, no pines / cabins
-    const bareGround = level.minimap.ground ?? null;  // a structure-first shard: a flat void under its built world (ChunkMapDef.ground)
     const forestMask = palette ? level.forest?.mask : undefined;
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
@@ -570,9 +612,7 @@ export class Minimap {
       const hij = h[c] ?? 0;
       const alt = (hij - hMin) / Math.max(1, hMax - hMin);
       let sh = shade;
-      if (bareGround) {
-        col[0] = bareGround[0]; col[1] = bareGround[1]; col[2] = bareGround[2]; sh = 1;
-      } else if (palette) {
+      if (palette) {
         palette.ground(wx, wz, hij, slope, forestMask?.(wx, wz) ?? 0, col);
       } else if (ocean) {
         const depth = ocean.level - hij;
@@ -606,7 +646,7 @@ export class Minimap {
     }
 
     if (palette) { palette.overlay?.({ ctx, toU, toV, ppm, trails: TRAILS, half: CHUNK_HALF, forestMask }); return; }
-    if (ocean || bareGround) { this.paintBuilt(ctx, toU, toV, ppm, px, k); return; } // the piers, the paths, the island's buildings: all from ShardManifest.map
+    if (ocean) return; // an open-water level: the sea and its islands, no trails, crowns or roofs
     // trails: a dark bed with a lighter dirt centre
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const stroke = (w: number, style: string): void => {
@@ -642,42 +682,6 @@ export class Minimap {
       ctx.fillStyle = ROOF; ctx.fillRect(-w / 2, -dpt / 2, w, dpt);
       ctx.fillStyle = ROOF_RIDGE; ctx.fillRect(-w / 2, -k, w, 2 * k);
       ctx.restore();
-    }
-  }
-
-  /** the def's built world as shapes (mapShapes), read from the registry once per layer paint */
-  private shapes: MapShapes | null = null;
-  /** ShardManifest.map over the square: the sand paths, the palms' crowns, then each look's footprints — outlined as one
-   *  silhouette (every outline first, then every fill), a soft shadow under them like the cabin roofs */
-  private paintBuilt(ctx: CanvasRenderingContext2D, toU: (x: number) => number, toV: (z: number) => number, ppm: number, px: number, k: number): void {
-    const def = activeLevel().minimap;
-    this.shapes ??= mapShapes(def, app.registry.pieces);
-    const { polys, dots } = this.shapes;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    for (const [w, style] of [[4.5, PATH_EDGE], [3, PATH]] as const) {
-      ctx.lineWidth = w * ppm; ctx.strokeStyle = style; ctx.beginPath();
-      for (const poly of def.paths ?? []) poly.forEach(([x, z], i) => (i ? ctx.lineTo(toU(x), toV(z)) : ctx.moveTo(toU(x), toV(z))));
-      ctx.stroke();
-    }
-    const inside = (u0: number, v0: number, u1: number, v1: number): boolean => Math.max(u0, u1) > -4 && Math.max(v0, v1) > -4 && Math.min(u0, u1) < px + 4 && Math.min(v0, v1) < px + 4;
-    const r = Math.max(1.6 * ppm, 1.1), sh = Math.max(ppm * 0.6, 1);
-    ctx.fillStyle = PALM_SHADOW; ctx.beginPath();
-    for (const d of dots) { const u = toU(d.x), v = toV(d.z); if (inside(u, v, u, v)) { ctx.moveTo(u + sh + r, v + sh); ctx.arc(u + sh, v + sh, r, 0, Math.PI * 2); } }
-    ctx.fill();
-    ctx.fillStyle = PALM; ctx.beginPath();
-    for (const d of dots) { const u = toU(d.x), v = toV(d.z); if (inside(u, v, u, v)) { ctx.moveTo(u + r, v); ctx.arc(u, v, r, 0, Math.PI * 2); } }
-    ctx.fill();
-    const trace = (p: MapPoly, du: number, dv: number): void => {
-      for (let i = 0; i < p.pts.length; i += 2) { const u = toU(p.pts[i] ?? 0) + du, v = toV(p.pts[i + 1] ?? 0) + dv; if (i === 0) ctx.moveTo(u, v); else ctx.lineTo(u, v); }
-      ctx.closePath();
-    };
-    for (const look of ['rock', 'planks', 'timber', 'stone'] as const) {
-      const mine = polys.filter((p) => p.look === look && inside(toU(p.x0), toV(p.z0), toU(p.x1), toV(p.z1)));
-      if (mine.length === 0) continue;
-      const [fill, edge] = LOOK[look];
-      ctx.fillStyle = ROOF_SHADOW; ctx.beginPath(); for (const p of mine) trace(p, 1.5 * k, 2 * k); ctx.fill();
-      ctx.strokeStyle = edge; ctx.lineWidth = Math.max(0.7 * ppm, 1.2); ctx.beginPath(); for (const p of mine) trace(p, 0, 0); ctx.stroke();
-      ctx.fillStyle = fill; ctx.beginPath(); for (const p of mine) trace(p, 0, 0); ctx.fill();
     }
   }
 

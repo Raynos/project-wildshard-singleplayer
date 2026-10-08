@@ -11,6 +11,8 @@ export const TEMPLATE: ShardManifest = {
   style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'trees' },
   shardfile: '/shardfiles/_template/shard.json',
   ground: { paths: 'plugin', structures: true },
+  minimap: { image: '/assets/_template/map/top.webp' }, // the map baked from the world (SF66)
+  assetGlobs: ['public/assets/_template/map/**'],
   // Start above the sampled collision floor: the analytic trail bed is lower between grid vertices.
   spawn: SPAWN, bounds: { x0: -100, x1: 100, z0: -100, z1: 100, floor: -10 },
   sky: { sunColor: [1, 1, 1], sunIntensity: 1.5, envIntensity: 0.5, bgIntensity: 1, fogSunColor: [1, 1, 1], cloudSunColor: [1, 1, 1],

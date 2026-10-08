@@ -23,7 +23,7 @@ export const SKY_REACH: ShardManifest = {
   spawn: { x: SPAWN.x, y: DECK + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -120, x1: 120, z0: -240, z1: 60, floor: DECK - 18 },
   world: { killY: DECK - 24 },
   horizon: { rings: [], cloudSea: false }, boundary: { visible: false },
-  minimap: { palette: SKY_REACH_MINIMAP }, // the islands over the cloud sea, the bridges, the places (look/minimap.ts)
+  minimap: { image: '/assets/far-reach/map/top.webp', palette: SKY_REACH_MINIMAP }, // the map baked from the world (SF66); the palette paints the grid's edges (look/minimap.ts)
   // The painted light (review 2026-10-01 item 1): a warm sky fill and a gold ground bounce lift every shade side; the key
   // stays low and behind the islands (look/light.ts adds the bounce wrap, the rim and the shade floor).
   sky: { sunColor: [1, 0.8, 0.58], sunIntensity: 2.3, envIntensity: 0.7, bgIntensity: 1, fogSunColor: [1, 0.82, 0.64], cloudSunColor: [1, 0.84, 0.7],

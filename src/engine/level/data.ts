@@ -147,14 +147,14 @@ export interface HudSpec {
   dayBadge?: boolean;
 }
 export interface MinimapSpec {
+  /** the map baked from the world (SF66, G246): the image's URL. It covers the CHUNK_SIZE square centred on the origin,
+   *  north (+Z) up and east (−X) right; the minimap and the full map draw it as their ground, loaded when they first need
+   *  it and released with them. Omitted = the painted ground (`palette`, else the hillshade) */
+  image?: string;
   palette?: MinimapPalette;
   openWater?: { level: number; deepDepth: number };
   outside?: string;
-  paths?: Vec2[][];
-  pieces?: { ids: string[]; look: MapLook }[];
-  ground?: [number, number, number];
 }
-export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 export interface PoiSpec { id: string; name: string; x: number; z: number; r?: number }
 
 export interface ExploreArt { world: string; models: string; sets: string; practice: string }

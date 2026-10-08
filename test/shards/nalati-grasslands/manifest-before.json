@@ -11,7 +11,8 @@
       "public/assets/gpu/nalati/**",
       "public/assets/music/nalati/**",
       "public/assets/sfx/nalati-grasslands/**",
-      "public/assets/title/nalati-grasslands-portrait.jpg"
+      "public/assets/title/nalati-grasslands-portrait.jpg",
+      "public/assets/nalati-grasslands/map/**"
     ],
     "order": 3,
     "status": "earlyAccess",

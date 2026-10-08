@@ -57,7 +57,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
       bands: [0, 40, 85, 125, 175, 220, 265, 310].map((azimuth, i) => ({ azimuth, spread: 50, height: [29, 33, 26, 35, 30, 34, 27, 32][i] ?? 30, rough: 0.18 })) },
   ] },
   boundary: { visible: false },
-  minimap: { palette: SIGNAL_DUNES_MINIMAP }, // the sand map: crests, slip faces, hollows, the ridges, the caravan tracks (look/minimap.ts)
+  minimap: { image: '/assets/sunscar-dunes/map/top.webp', palette: SIGNAL_DUNES_MINIMAP }, // the map baked from the world (SF66); the palette paints the grid's edges (look/minimap.ts)
   render: async () => (await import('./look/render')).signalDunesLook(),
   uses: ['quests', 'coins', 'loot', 'hover'],
   assetGlobs: ['public/assets/sunscar-dunes/**', 'public/assets/lut/sunscar-dunes.bin'],

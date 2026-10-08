@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { GridCellEvents } from '../src/game/grid/boot';
-import { minimapOverlay, roadRects, ROAD_TERRAIN_ALPHA } from '../src/game/grid/minimapBlend';
+import { fullMapOverlay, minimapOverlay, roadRects, ROAD_TERRAIN_ALPHA } from '../src/game/grid/minimapBlend';
 import { crossingSaveStatus } from '../src/game/grid/borderShimmer';
 
 const assembly = new GridAssembly({ developer: false, devserver: false });
@@ -39,6 +39,17 @@ describe('G107 minimap blend', () => {
     const road = minimapOverlay({ ...port, worldFeet: () => ({ x: home.origin.x + 277.5, z: home.origin.z }) }, rects);
     expect(road.baseAlpha).toBe(0); expect(road.images).toHaveLength(assembly.cells.length);
     expect(road.images.every((row) => row.alpha === ROAD_TERRAIN_ALPHA)).toBe(true);
+  });
+  it('SF66: the full map lays out every other cell\'s baked map at its cell, the road, and every shard\'s name', () => {
+    const cells = new GridCellEvents();
+    const map = fullMapOverlay(host({ x: home.origin.x, z: home.origin.z }, cells), rects);
+    expect(map.baseAlpha).toBe(1); // the home's own baked map is the base layer
+    expect(map.images).toHaveLength(assembly.cells.length - 1);
+    expect(map.images.every((m) => m.alpha === 1 && m.size === 500)).toBe(true);
+    const others = assembly.cells.filter((c) => c.instance !== home.instance);
+    expect(map.images.map((m) => [m.x, m.z])).toEqual(others.map((c) => [c.origin.x - home.origin.x, c.origin.z - home.origin.z]));
+    expect(map.labels.map((l) => l.text)).toEqual(assembly.cells.map((c) => c.slug));
+    expect(map.rects).toBe(rects);
   });
 });
 

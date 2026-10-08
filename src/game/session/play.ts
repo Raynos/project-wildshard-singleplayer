@@ -496,7 +496,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       onInput: (fn) => { game.onInput(fn, 'game.grid.hud.fov'); }, onLate: (fn) => { game.onLate(fn, 'game.grid.hud'); } });
     // G107: the minimap blends at the road boundary (the shard + the road + the neighbours' names inside; faded terrain on the road)
     const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
-      name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope);
+      name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope, fullMap); // SF66: the full map lays out every cell's baked map + the road
     // SF38 / G30: Developer mode's points budget over the one live allocator (no element or timer until Developer is on)
     const slugCount = new Map<string, number>();
     for (const cell of grid.assembly.cells) slugCount.set(cell.slug, (slugCount.get(cell.slug) ?? 0) + 1);

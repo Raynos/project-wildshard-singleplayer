@@ -73,7 +73,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   boot: { steps: {}, files: () => FILES, sources: (tier, tex) => bootSources(tier, tex, FILES), audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image]), exploreGrapple] }, precache: [], barrier: true, phone: { deferExtras: true, fragile: true, trace: true }, cullBeforeFirstDraw: true },
   audio: { bed: ND_SAMPLES.bed, samples: { omitLoops: ND_SAMPLES.omitLoops, omitShots: ND_SAMPLES.omitShots, loopGains: ND_SAMPLES.loopGains }, ambience: 'ambience.nd', score: 'score.nd', preload: async () => (await import('./runtime/audio/files')).createNdAudio() },
   tiers: { phone: { ao: false, slices: false, aa: 'fxaa', warmTurns: 0, textures: 'img' }, desktop: { ao: true, slices: false } },
-  assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg'],
+  assetGlobs: ['public/assets/nine-dragon/**', 'public/assets/gpu/nine-dragon/**', 'public/assets/music/nine-dragon-stack/**', 'public/assets/sfx/nine-dragon-stack/**', 'public/assets/title/nine-dragon-stack-portrait.jpg', 'public/assets/nine-dragon-stack/map/**'],
   ktx2: () => import('./ktx2.generated'),
   order: 4,
   status: 'experimental',
@@ -140,22 +140,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   explore: EXPLORE,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
-  // the maps: the built fragment over a dark void (the Well, the air between the towers) — the floors, the tower fronts,
-  // the balustrade, the props' footprints and the Well's crossings from the registry (index.ts registers the fabric under
-  // these ids; the models' pieces are registered as they are placed, world/inKit.ts)
-  minimap: {
-    ground: [11, 16, 22],
-    pieces: [
-      { ids: ['nds-fronts'], look: 'rock' },
-      // (the stair paifang's post bases, stone like the stair they stand on; E346)
-      { ids: ['nds-floors', 'nds-paifang@stair-terraces'], look: 'stone' },
-      { ids: ['nds-well-balustrade@*'], look: 'rock' },
-      // (and the props that collide as models)
-      { ids: ['nds-paifang@paifang', 'nds-banyan@*', 'nds-earth-god-shrine@*', 'nds-kowloon-stele@*', 'nds-noodle-stall@*', 'nds-hawker-stall@*', 'nds-set-booth', 'nds-set-parasol', 'nds-set-pavilion', 'nds-landing-planter@*'], look: 'timber' },
-      // (the gate bridges' paifang posts, drawn with their crossings' decks; E346)
-      { ids: ['nds-crossings', 'nds-paifang@well-c-gates'], look: 'planks' },
-    ],
-  },
+  minimap: { image: '/assets/nine-dragon-stack/map/top.webp' }, // the map baked from the world (SF66)
   // the Jiehua look under the engine's composer (look/render.ts, the render agent's): the ink silhouette, the 晕染 bleed,
   // the window glow, the drizzle, the clean room's LUT in place of the engine's colour chain
   // The look culls its instanced batches right before drawing, with the camera final.

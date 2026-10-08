@@ -138,7 +138,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   horizonStrips: { day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24 },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true },
   debugOptions: [],
-  assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**'],
+  assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**', 'public/assets/driftwood-isle/map/**'],
   ktx2: () => import('./ktx2.generated'),
   boot: { audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], files: (tier) => Object.values(bootSources(tier)).flat(), sources: bootSources, lateReads }, // what its boot reads (./boot/sources.ts: no props of its own); the island's late reads (./boot/lateReads.ts)
   load: () => import('./plugin'), // E357 S4.1: the world build (./world/build.ts); the rest still runs in main.ts until S4.2–S4.4
@@ -180,21 +180,12 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   explore: EXPLORE,
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
-  // the maps draw the island's built world (E130): the sand paths, then the pieces' footprints from the registry (main.ts
-  // registers them under these ids) — palms as crowns, the decks as planks, the hut / tower / wreck / zipline as timber, the
-  // shrine as stone, the sea cave's vault as rock
+  // the maps: the island baked from the world (SF66); the open water also tells the grid's edge reader where the sea is
   minimap: {
+    image: '/assets/driftwood-isle/map/top.webp',
     // SF46 (G164): road height, so the grid's edge reader sees the lowered sea
     openWater: { level: LOWERED_SEA, deepDepth: OCEAN.deepDepth },
     outside: 'rgb(22,74,128)',
-    paths: PATHS,
-    pieces: [
-      { ids: ['palms'], look: 'dot' },
-      { ids: ['cove'], look: 'rock' },
-      { ids: ['pier', 'jetty-*', 'bridge', 'boat'], look: 'planks' },
-      { ids: ['hut', 'lookout', 'wreck', 'zipline'], look: 'timber' },
-      { ids: ['shrine'], look: 'stone' },
-    ],
   },
   pois: [
     { id: 'jetty', name: 'Jetty', x: 0, z: -CHUNK_HALF + 24, r: 16 },

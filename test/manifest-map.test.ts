@@ -39,172 +39,6 @@ const ORIGINAL = [
       },
       "explore": true,
       "roster": "@function",
-      "map": {
-        "paths": [
-          [
-            [
-              0,
-              -152
-            ],
-            [
-              -8,
-              -145
-            ],
-            [
-              -18,
-              -143
-            ],
-            [
-              -30,
-              -142
-            ],
-            [
-              -30,
-              -104
-            ],
-            [
-              -24,
-              -80
-            ],
-            [
-              -20,
-              -68
-            ]
-          ],
-          [
-            [
-              -20,
-              -68
-            ],
-            [
-              -8,
-              -50
-            ],
-            [
-              14,
-              -24
-            ],
-            [
-              17,
-              8
-            ],
-            [
-              15,
-              12
-            ],
-            [
-              16,
-              14
-            ],
-            [
-              32,
-              30
-            ],
-            [
-              34,
-              32
-            ],
-            [
-              46,
-              46
-            ],
-            [
-              86,
-              86
-            ],
-            [
-              88,
-              88
-            ]
-          ],
-          [
-            [
-              17,
-              8
-            ],
-            [
-              60,
-              0
-            ],
-            [
-              100,
-              -2
-            ],
-            [
-              140,
-              4
-            ]
-          ],
-          [
-            [
-              -20,
-              -68
-            ],
-            [
-              -52,
-              -30
-            ],
-            [
-              -72,
-              20
-            ],
-            [
-              -88,
-              70
-            ],
-            [
-              -94,
-              88
-            ],
-            [
-              -87.5,
-              93.7
-            ],
-            [
-              -89.3,
-              96.1
-            ]
-          ]
-        ],
-        "pieces": [
-          {
-            "ids": [
-              "palms"
-            ],
-            "look": "dot"
-          },
-          {
-            "ids": [
-              "cove"
-            ],
-            "look": "rock"
-          },
-          {
-            "ids": [
-              "pier",
-              "jetty-*",
-              "bridge",
-              "boat"
-            ],
-            "look": "planks"
-          },
-          {
-            "ids": [
-              "hut",
-              "lookout",
-              "wreck",
-              "zipline"
-            ],
-            "look": "timber"
-          },
-          {
-            "ids": [
-              "shrine"
-            ],
-            "look": "stone"
-          }
-        ]
-      },
       "pois": [
         {
           "id": "jetty",
@@ -3270,56 +3104,6 @@ const ORIGINAL = [
       },
       "explore": true,
       "roster": "@function",
-      "map": {
-        "ground": [
-          11,
-          16,
-          22
-        ],
-        "pieces": [
-          {
-            "ids": [
-              "nds-fronts"
-            ],
-            "look": "rock"
-          },
-          {
-            "ids": [
-              "nds-floors",
-              "nds-paifang@stair-terraces"
-            ],
-            "look": "stone"
-          },
-          {
-            "ids": [
-              "nds-well-balustrade@*"
-            ],
-            "look": "rock"
-          },
-          {
-            "ids": [
-              "nds-paifang@paifang",
-              "nds-banyan@*",
-              "nds-earth-god-shrine@*",
-              "nds-kowloon-stele@*",
-              "nds-noodle-stall@*",
-              "nds-hawker-stall@*",
-              "nds-set-booth",
-              "nds-set-parasol",
-              "nds-set-pavilion",
-              "nds-landing-planter@*"
-            ],
-            "look": "timber"
-          },
-          {
-            "ids": [
-              "nds-crossings",
-              "nds-paifang@well-c-gates"
-            ],
-            "look": "planks"
-          }
-        ]
-      },
       "render": "@function",
       "bounds": {
         "x0": -36,
@@ -3496,9 +3280,10 @@ function originalShape(m: (typeof SHARDS)[number], fixture: (typeof ORIGINAL)[nu
     const { speciesTraits: _speciesTraits, ...forest } = m.forest;
     projected['forest'] = forest;
   }
-  // Nalati's palette moved from the engine map into its manifest. Other map data stays frozen.
+  // Nalati's palette moved from the engine map into its manifest; SF66 (G246) replaced the registered pieces, the sand paths and
+  // the void colour with the map baked from the world (the fixtures dropped them). Other map data stays frozen.
   if (minimap !== undefined) {
-    const { palette: _palette, openWater: _openWater, outside: _outside, ...map } = minimap;
+    const { palette: _palette, openWater: _openWater, outside: _outside, image: _image, ...map } = minimap;
     if (Object.keys(map).length === 0 && !('map' in fixture)) delete projected['map'];
     else projected['map'] = map;
   }

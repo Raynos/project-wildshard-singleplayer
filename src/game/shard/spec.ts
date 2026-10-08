@@ -1,5 +1,5 @@
 import type { EngineMechanism, LevelSpec } from '@wildshard/engine/level/spec';
-import type { ShardManifest } from './manifest';
+import { bakedMapUrl, type ShardManifest } from './manifest';
 
 const ENGINE_MECHANISMS: ReadonlySet<string> = new Set(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice']);
 const engineMechanism = (value: string): value is EngineMechanism => ENGINE_MECHANISMS.has(value);
@@ -28,7 +28,10 @@ export function toLevelSpec(manifest: ShardManifest): LevelSpec {
     audio: manifest.audio ?? { ambience: 'legacy', score: 'legacy' },
     loadout: manifest.loadout ?? { weapons: [], tools: [], start: [] },
     species: manifest.species ?? [], spawns: manifest.spawns,
-    minimap: manifest.minimap ?? {},
+    minimap: ((map) => {
+      const { image: path, ...look } = map ?? {}, image = bakedMapUrl(path);
+      return image === undefined ? look : { ...look, image };
+    })(manifest.minimap),
     kitLook: manifest.kitLook ?? 'pbr',
     ...(manifest.hands === undefined ? {} : { hands: manifest.hands }),
     ...(manifest.bounds === undefined ? {} : { bounds: manifest.bounds }),

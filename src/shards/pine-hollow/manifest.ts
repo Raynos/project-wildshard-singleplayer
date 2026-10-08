@@ -68,7 +68,7 @@ export const PINE_HOLLOW: ShardManifest = {
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: false },
   creatures: { lowPoly: false, waitForModels: true, furRim: true, tintRange: 0.2, oneMaterial: false },
   debugOptions: [],
-  assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg'],
+  assetGlobs: ['public/assets/models/pine-hollow-crags/**', 'public/assets/models/pine-hollow-hero/**', 'public/assets/models/pine-hollow-trees/**', 'public/assets/gpu/models/pine-hollow-hero/**', 'public/assets/gpu/models/pine-hollow-trees/**', 'public/assets/gpu/pine-hollow/**', 'public/assets/gpu/baked/pine-hollow/**', 'public/assets/music/pine-hollow-folk/**', 'public/assets/music/pine-hollow-orchestral/**', 'public/assets/music/pine-hollow-piano/**', 'public/assets/sfx/pine-hollow/**', 'public/assets/horizon/pine-hollow-*', 'public/assets/gpu/horizon/pine-hollow-*', 'public/assets/lut/pine-hollow.bin', 'public/assets/title/pine-hollow-portrait.jpg', 'public/assets/pine-hollow/map/**'],
   ktx2: () => import('./boot/gpuTable').then((m) => m.pineKtx2()), // G180 B2: the memory trim's ASTC 6×6 phone overlay
   order: 2,
   status: 'earlyAccess', // Jake 2026-10-01: Pine Hollow is an early access level
@@ -88,6 +88,7 @@ export const PINE_HOLLOW: ShardManifest = {
   // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
   roster: async () => (await import('./roster')).ROSTER,
   // the forest's trees and the forest floor's kinds drawn as its models (E315 M2), once core has built the fields (E349)
+  minimap: { image: '/assets/pine-hollow/map/top.webp' }, // the map baked from the world (SF66)
   pois: PINE_HOLLOW_POIS.map(({ id, name, x, z, r }) => ({ id, name, x, z, r })),
 
   // the pond and the creek are water bodies (app.world.water, world/water.ts): swimming and wading ask them

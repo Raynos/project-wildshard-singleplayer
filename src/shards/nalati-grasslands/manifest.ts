@@ -47,7 +47,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true },
   creatures: { lowPoly: false, waitForModels: true, furRim: false, tintRange: 0.2, oneMaterial: false },
   debugOptions: [],
-  assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg'],
+  assetGlobs: ['public/assets/nalati/**', 'public/assets/gpu/nalati/**', 'public/assets/music/nalati/**', 'public/assets/sfx/nalati-grasslands/**', 'public/assets/title/nalati-grasslands-portrait.jpg', 'public/assets/nalati-grasslands/map/**'],
   ktx2: () => import('./ktx2.generated'),
   order: 3,
   status: 'earlyAccess',
@@ -73,7 +73,7 @@ export const NALATI_GRASSLANDS: ShardManifest = {
   roster: async () => (await import('./roster')).ROSTER,
   pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
   hud: { dayBadge: true }, // the minimap's sun / moon (E154)
-  minimap: { palette: NALATI_MINIMAP }, // the painted map: its ground colours, the spruce + roads, the map-01 places (look/minimap.ts)
+  minimap: { image: '/assets/nalati-grasslands/map/top.webp', palette: NALATI_MINIMAP }, // the map baked from the world (SF66); the palette paints the grid's edges and names the map-01 places (look/minimap.ts)
   weapon: 'custom', // its own kit (src/shards/nalati-grasslands/weapons/nalatiKit.ts: bow · sabre · spear) — no Driftwood sword built (NALATI-MERGE F2)
   // the rings re-aimed to layout v2 in front of the painted panorama (the far snow range is the painting); the camera's far
   // plane is 2.6 km: every ring stays inside 2.5 km

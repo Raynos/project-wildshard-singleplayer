@@ -59,7 +59,9 @@ it('draws the ground on its own frames while open, with the app paused under the
   full.show();
   step();
   const onMap = drawn.filter((d) => d.canvas.parentElement === full.root);
-  expect(onMap.map((d) => d.source)).toContain(map.layers.terrain);
+  const ground = map.layers.terrain; // null while a level's baked map (SF66) is still loading: the frame draws its fog and pins
+  expect(onMap.length).toBeGreaterThan(0);
+  if (ground !== null) expect(onMap.map((d) => d.source)).toContain(ground);
   drawn.length = 0;
   step();                                // and every frame after, while it stays open
   expect(drawn.some((d) => d.canvas.parentElement === full.root)).toBe(true);

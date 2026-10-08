@@ -562,7 +562,7 @@ export interface ShardManifest {
    *  there (Pine Hollow: the beaver pool, E322 F-L6); omitted = none */
   pondLilyExclusions?: readonly { x: number; z: number; r: number }[];
   pondClip?: (x: number, z: number) => boolean;
-  /** what the minimap and the full map draw of the built world (E130); omitted = ground, trails and the def's own features only */
+  /** the shard on the minimap and the full map: its baked map image (SF66) and its painted look; omitted = the hillshade */
   minimap?: ChunkMapDef;
   /** named places — Explore World's mini map pins them and flies to them (src/engine/explore/MiniMap.ts); omitted = none */
   pois?: ChunkPoi[];
@@ -605,25 +605,32 @@ export interface ShardManifest {
   camera?: { portraitFov: number };
 }
 
+declare const __BUILD_ID__: string; // vite.config.ts define; absent under Node
 /**
- * The built world on the maps (E130, src/engine/ui/Minimap.ts): flat silhouettes in the map's own style, read from the real layout —
- * the registered pieces' collider footprints (src/engine/world/registry.ts), never hand-placed shapes.
+ * The URL the maps fetch for a shard's baked map image (`ChunkMapDef.image`), versioned by the build: /assets is cached as
+ * immutable for a year, so a rebake must never reuse a URL a phone already holds. Undefined = none baked.
+ */
+export function bakedMapUrl(image: string | undefined): string | undefined {
+  if (image === undefined) return undefined;
+  const build = ((): string => { try { return __BUILD_ID__; } catch { return ''; } })();
+  return build === '' ? image : `${image}?v=${encodeURIComponent(build)}`;
+}
+
+/**
+ * The shard on the maps (src/engine/ui/Minimap.ts, Map.ts). The ground is the map baked from the world (SF66, G246 / G247:
+ * scripts/bake-maps.mjs renders the shard straight down; test/baked-maps.test.ts fails a stale one), never hand-drawn shapes;
+ * its places, quest markers, portals and entries stay listed data drawn on top (test/map-coverage.test.ts).
  */
 export interface ChunkMapDef {
-  /** sand paths drawn as lines (the island's are not the pine trails' dirt beds) */
-  paths?: Vec2[][];
-  /** registry piece ids (a trailing `*` matches a prefix: `jetty-*`), each drawn in a look: a flat footprint in that material's
-   *  colour, or `dot` (a tree crown: one small dot per collider) */
-  pieces?: { ids: string[]; look: MapLook }[];
-  /** the ground's colour (0..255 sRGB) where nothing is built — a structure-first shard's void (the shaft, the air between
-   *  the towers): the maps paint it flat and draw only the built world over it; omitted = the landscape, hill-shaded */
-  ground?: [number, number, number];
-  /** the level's own map look (07 §6.2 step 7): its ground colours, its overlay, its named places (Minimap.ts) */
+  /** the baked map image (scripts/bake-maps.mjs: `/assets/<slug>/map/top.webp`, the `image` of the shard's
+   *  look/map.baked.json stamp; test/map-coverage.test.ts holds them equal) */
+  image?: string;
+  /** the level's own painted map look (07 §6.2 step 7): its ground colours (also the grid's edge reader), its overlay, its
+   *  named places (Minimap.ts); the painted ground only shows where no baked image is named */
   palette?: MinimapPalette;
   openWater?: { level: number; deepDepth: number };
   outside?: string;
 }
-export type MapLook = 'planks' | 'timber' | 'stone' | 'rock' | 'dot';
 
 /** a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) */
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }

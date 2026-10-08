@@ -6,11 +6,14 @@ import { engineString } from '../strings';
 /**
  * The full map — the MAP tab of the in-game menu (src/engine/ui/Menu.ts): tap the minimap or press M.
  *
- * The whole 500 m chunk, north-up, drawn from the Minimap's own terrain layer (hillshade, pond,
- * trails, crowns, cabin roofs) with the same fog of war; points of interest (the cabins, the pond)
- * named; your arrow. No animal markers — the map is for finding your way, not for finding prey.
- * Zoomed in, the ground is repainted sharp: TILE_PX tiles at the screen's own px/m (Minimap.paintTile), a few per
- * frame over the stretched layer, cached (E97: the 2 px/m layer alone went to mush at 4–6×).
+ * The whole 500 m chunk, north-up, drawn from the Minimap's own ground layer — the shard's map baked from the world (SF66,
+ * `MinimapSpec.image`), else the painted terrain (hillshade, pond, trails, crowns, cabin roofs) — with the same fog of war;
+ * points of interest named (the shard's own list, else its manifest's places, else the cabins and the pond); your arrow. No
+ * animal markers — the map is for finding your way, not for finding prey.
+ * Zoomed in, a painted ground is repainted sharp: TILE_PX tiles at the screen's own px/m (Minimap.paintTile), a few per
+ * frame over the stretched layer, cached (E97: the 2 px/m layer alone went to mush at 4–6×). A baked map is drawn as it is.
+ * Around the chunk, `setExtras` lays out more ground as data (the grid: every cell's baked map at its cell, the road network
+ * and each shard's name; SF66), and the view then spans all of it.
  * Drag to pan, pinch or wheel to zoom (1× = the chunk fitted to the frame, up to 6×). The world
  * keeps running underneath; the canvas swallows touch so the pads don't move you.
  *
@@ -33,7 +36,8 @@ import { engineString } from '../strings';
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
-import { LAYER_PPM, type MapFeatures, type Minimap } from './Minimap';
+import { activeLevel } from '../level/selection';
+import { LAYER_PPM, type MapExtras, type MapFeatures, type Minimap } from './Minimap';
 import { ROOM_BG, fitRoom, paintRoom } from './roomMap';
 
 /** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond);
@@ -45,7 +49,8 @@ export interface MapQuest { title: string; objective: string; hint: string }
 export interface MapZone { x: number; z: number; label: string }
 
 const FOG_BRIGHTNESS = 0.3;
-const ZOOM_MIN = 1, ZOOM_MAX = 6;
+/** 1× fits everything the map spans; the closest zoom shows as much ground as 6× of one chunk */
+const ZOOM_MIN = 1, ZOOM_CHUNK_MAX = 6;
 const TILE_PX = 256;          // a zoom tile's side, device px
 const TILE_CACHE = 64;        // tiles kept (256 KB each)
 const TILE_BUDGET_MS = 6;     // painting new tiles, per frame
@@ -128,6 +133,10 @@ export class FullMap {
   private zones: readonly MapZone[] = [];
   /** the shard's real trees + extra roofs for the ground layer (Minimap.setFeatures) */
   setFeatures(f: MapFeatures): void { this.minimap.setFeatures(f); }
+  /** More ground around the chunk, read every frame the map is open (data only, in the same metres as `update`'s position):
+   *  its rectangles and images under the chunk, its labels over them; the view spans them all. null clears it. */
+  setExtras(source: (() => MapExtras | null) | null): void { this.extrasSource = source; }
+  private extrasSource: (() => MapExtras | null) | null = null;
   /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
   setQuest(source: () => MapQuest | null): void { this.questSource = source; }
   /** Scoped cards may retire in any order without resurrecting a disposed quest. */
@@ -147,7 +156,8 @@ export class FullMap {
     this.openScope = this.scope.child('open');
     this.layer = app.ui.push('gameMenu', { root: this.root, embedded: true, order: 0, back: () => { this.hide(); } }, this.openScope);
     this.root.style.display = 'block';
-    this.cx = 0; this.cz = 0; this._zoom = 1;
+    const b = this.bounds(this.extrasSource?.() ?? null);
+    this.cx = (b.x0 + b.x1) / 2; this.cz = (b.z0 + b.z1) / 2; this._zoom = 1;
     this.fit();
     // E440: the map draws itself every frame while open. The menu that shows it pauses the app (Menu.open), and a paused
     // app runs no update phase (Game.runPhase, E357 F8), so a draw driven from the play loop never came and the frame stayed black
@@ -168,8 +178,17 @@ export class FullMap {
     this.canvas.height = Math.round(h * this.dpr);
     this.dash = [3 * this.dpr, 2.5 * this.dpr];
   }
+  /** the world square the map spans (metres): the chunk, grown to hold every extra */
+  private bounds(extras: MapExtras | null): { x0: number; x1: number; z0: number; z1: number; span: number } {
+    let x0 = -CHUNK_HALF, x1 = CHUNK_HALF, z0 = -CHUNK_HALF, z1 = CHUNK_HALF;
+    for (const r of extras?.rects ?? []) { x0 = Math.min(x0, r.x - r.hx); x1 = Math.max(x1, r.x + r.hx); z0 = Math.min(z0, r.z - r.hz); z1 = Math.max(z1, r.z + r.hz); }
+    for (const m of extras?.images ?? []) { const h = m.size / 2; x0 = Math.min(x0, m.x - h); x1 = Math.max(x1, m.x + h); z0 = Math.min(z0, m.z - h); z1 = Math.max(z1, m.z + h); }
+    return { x0, x1, z0, z1, span: Math.max(x1 - x0, z1 - z0) };
+  }
+  private span(): number { return this.bounds(this.extrasSource?.() ?? null).span; }
+  private zoomMax(): number { return ZOOM_CHUNK_MAX * this.span() / CHUNK_SIZE; }
   /** screen px (device) per metre at the current zoom */
-  private ppm() { return (Math.min(this.canvas.width, this.canvas.height) * 0.9 / CHUNK_SIZE) * this._zoom; }
+  private ppm() { return (Math.min(this.canvas.width, this.canvas.height) * 0.9 / this.span()) * this._zoom; }
   private pair(): [{ x: number; y: number }, { x: number; y: number }] { const [a, b] = [...this.pointers.values()]; if (!a || !b) throw new Error('FullMap: pinch needs two pointers'); return [a, b]; }
   private dist(): number { const [a, b] = this.pair(); return Math.hypot(a.x - b.x, a.y - b.y); }
   private mid(): { x: number; y: number } { const [a, b] = this.pair(); return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
@@ -180,7 +199,7 @@ export class FullMap {
     this.clamp();
   }
   private zoomTo(z: number, aroundClient: { x: number; y: number }) {
-    const nz = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z));
+    const nz = Math.min(this.zoomMax(), Math.max(ZOOM_MIN, z));
     // keep the world point under the finger fixed
     const before = this.toWorld(aroundClient);
     this._zoom = nz;
@@ -195,7 +214,10 @@ export class FullMap {
     const ppm = this.ppm(), W = this.canvas.width, H = this.canvas.height;
     return { x: this.cx - ((client.x - r.left) * this.dpr - W / 2) / ppm, z: this.cz - ((client.y - r.top) * this.dpr - H / 2) / ppm };
   }
-  private clamp() { const m = CHUNK_HALF * (1 - 0.5 / this._zoom); this.cx = Math.max(-m, Math.min(m, this.cx)); this.cz = Math.max(-m, Math.min(m, this.cz)); }
+  private clamp() {
+    const b = this.bounds(this.extrasSource?.() ?? null), m = (b.span / 2) * (1 - 0.5 / this._zoom), mx = (b.x0 + b.x1) / 2, mz = (b.z0 + b.z1) / 2;
+    this.cx = Math.max(mx - m, Math.min(mx + m, this.cx)); this.cz = Math.max(mz - m, Math.min(mz + m, this.cz));
+  }
 
   private readonly pose = { x: 0, z: 0, yaw: 0 };
   /** Every frame of play: where you are. The map draws from it on its own frames while open (show), paused or not. */
@@ -214,6 +236,7 @@ export class FullMap {
       return;
     }
     const { terrain, cover } = this.minimap.layers;
+    const extras = this.extrasSource?.() ?? null;
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height, ppm = this.ppm(), side = CHUNK_SIZE * ppm;
     const sx = (x: number) => W / 2 + (this.cx - x) * ppm;   // −X is east (screen right)
     const sz = (z: number) => H / 2 + (this.cz - z) * ppm;   // +Z is north (screen up)
@@ -222,8 +245,21 @@ export class FullMap {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, W, H);
     ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(terrain, ox, oy, side, side);
-    this.drawTiles(ox, oy, ppm);
+    if (extras !== null) {   // the ground around the chunk (the grid's cells and roads), under it
+      if (extras.outside !== undefined) { ctx.fillStyle = extras.outside; ctx.fillRect(0, 0, W, H); }
+      for (const r of extras.rects) { ctx.fillStyle = r.color; ctx.fillRect(sx(r.x + r.hx), sz(r.z + r.hz), 2 * r.hx * ppm, 2 * r.hz * ppm); }
+      for (const m of extras.images) {
+        if (m.alpha <= 0) continue;
+        ctx.globalAlpha = Math.min(1, m.alpha);
+        ctx.drawImage(m.image, sx(m.x + m.size / 2), sz(m.z + m.size / 2), m.size * ppm, m.size * ppm);
+      }
+      ctx.globalAlpha = 1;
+    }
+    const baseAlpha = extras?.baseAlpha ?? 1;
+    if (terrain !== null && baseAlpha > 0) {
+      ctx.globalAlpha = baseAlpha; ctx.drawImage(terrain, ox, oy, side, side); ctx.globalAlpha = 1;
+      if (!this.minimap.bakedGround) this.drawTiles(ox, oy, ppm);
+    }
 
     // fog of war, same rule as the minimap: unexplored ground at FOG_BRIGHTNESS (fog canvas at screen res, clipped to the view)
     if (this.fog.width !== W || this.fog.height !== H) { this.fog.width = W; this.fog.height = H; }
@@ -240,13 +276,18 @@ export class FullMap {
     ctx.strokeStyle = 'rgba(143, 227, 255, 0.55)'; ctx.lineWidth = 1.5 * this.dpr;
     ctx.strokeRect(ox, oy, side, side);
 
+    // the extras' labels (the grid: each cell's shard name), under the pins
+    if (extras !== null && extras.labels.length > 0) {
+      ctx.font = `700 ${Math.max(12 * this.dpr, 0.05 * CHUNK_SIZE * ppm)}px Rajdhani, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round'; ctx.lineWidth = 3 * this.dpr; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)';
+      for (const l of extras.labels) { const t = l.text.toUpperCase(); ctx.strokeText(t, sx(l.x), sz(l.z)); ctx.fillStyle = l.color; ctx.fillText(t, sx(l.x), sz(l.z)); }
+      ctx.textAlign = 'left';
+    }
+
     // points of interest (their labels laid out clear of each other, the markers and your arrow)
     const fs = Math.max(11 * this.dpr, side * 0.022 / this._zoom);
     const px = sx(pos.x), py = sz(pos.z), r = Math.max(7 * this.dpr, fs * 0.6);
-    const list: Pin[] = this.poiSource ? [...this.poiSource()] : [
-      ...CABIN_SITES.map((c, i): Pin => ({ x: c.x, z: c.z, label: engineString('s_a5912d0f68ef', [i + 1]), kind: 'place', color: '#8fe3ff' })),
-      ...(hasPond() ? [{ x: POND.x, z: POND.z, label: engineString('s_5dddbb894d63'), kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
-    ];
+    const list: Pin[] = this.poiSource ? [...this.poiSource()] : levelPins();
     if (this.poiSources.size > 0) list.push(...[...this.poiSources].flatMap((source) => source()));
     const tally = this.tally ? this.layTally(list, ox, oy + side) : null;
     // the minimap's marks (Driftwood's sea chart: every unfound sea glass piece, E314) — under the pins, no labels, not
@@ -451,6 +492,16 @@ export class FullMap {
 
 /** a pin as the map draws it: a MapPoi, with a dot colour for the built-in cabins / pond */
 type Pin = MapPoi & { color?: string };
+/** the pins a level shows when its shard sets none (`setPois`): its listed places (LevelSpec.pois), else the cabins and the
+ *  pond of its terrain (test/map-coverage.test.ts: every listed place is on the map) */
+export function levelPins(): Pin[] {
+  const pois = activeLevel().pois;
+  if (pois !== undefined && pois.length > 0) return pois.map((p): Pin => ({ x: p.x, z: p.z, label: p.name.toUpperCase(), kind: 'place', color: CYAN }));
+  return [
+    ...CABIN_SITES.map((c, i): Pin => ({ x: c.x, z: c.z, label: engineString('s_a5912d0f68ef', [i + 1]), kind: 'place', color: '#8fe3ff' })),
+    ...(hasPond() ? [{ x: POND.x, z: POND.z, label: engineString('s_5dddbb894d63'), kind: 'place', color: '#6fb8e8' } satisfies Pin] : []),
+  ];
+}
 function diamond(ctx: CanvasRenderingContext2D, x: number, y: number, r: number): void {
   ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath();
 }
