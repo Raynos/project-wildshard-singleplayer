@@ -127,7 +127,8 @@ describe('P1 capture-frame driver', () => {
       free: false, remaining: 0, cpu: 0, on: false, advance: () => Promise.reject(new Error('not ready')),
     };
     const world = { game: { get frameNo() { return frameNo; } } };
-    const window = { __parity: control, __wildshard: { requireWorld: () => world },
+    let retired = false;
+    const window = { __parity: control, __wildshard: { get world() { return retired ? undefined : world; }, requireWorld: () => { if (retired) throw new Error('Debug level has retired'); return world; } },
       setTimeout: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
       setInterval: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
       clearTimeout: (id?: number) => { if (id !== undefined) wallTimers.delete(id); },
@@ -167,5 +168,15 @@ describe('P1 capture-frame driver', () => {
     expect(frameNo).toBe(4); expect(control.remaining).toBe(0);
     expect(fired).toEqual(['boot migrated','toast expired']);
     expect(native.size).toBe(1);
+    retired = true;
+    expect(() => window.__wildshard.requireWorld()).toThrow('retired');
+    let censusFinished = false;
+    // oxlint-disable-next-line promise/prefer-await-to-callbacks -- Reproduce the browser census API's nested RAF callbacks after level retirement.
+    window.requestAnimationFrame(() => { window.requestAnimationFrame(() => { censusFinished = true; }); });
+    for (let n = 0; n < 2; n++) {
+      const batch = [...native.values()]; native.clear();
+      for (const callback of batch) callback(n);
+    }
+    expect(censusFinished).toBe(true); expect(frameNo).toBe(4);
   });
 });
