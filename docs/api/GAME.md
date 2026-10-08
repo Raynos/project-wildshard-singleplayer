@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-650 members; 112 without a doc line (—).
+659 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -603,6 +603,15 @@ The game layer's public modules (src/game/package.json `exports`).
 | `proveSocketLift` | function | @wildshard/game/shardfile/socketLiftProof | Walk, command, ride and return through actual collision. Feet are initialized once; every later move comes from the motor. |
 | `SocketLiftProof` | interface | @wildshard/game/shardfile/socketLiftProof | Counts come from actual fixed steps and motor moves, including both stop calls and the automatic idle return. |
 | `SocketLiftProofPorts` | interface | @wildshard/game/shardfile/socketLiftProof | Trusted admission world: advance the existing one host/runtime/world fixed step before moving the real capsule. |
+| `checkTileMaterialNames` | function | @wildshard/game/shardfile/splatTerrain | The props GLB material-name check with a splat terrain. Without one, `checkPropMaterialNames` as before (named materials |
+| `SPLAT_CHANNELS` | const | @wildshard/game/shardfile/splatTerrain | The GLB application channels a splat tile primitive carries, the attribute the material reads and its components. |
+| `SPLAT_ROLES` | const | @wildshard/game/shardfile/splatTerrain | The texture-array roles and the read each takes: colour is sRGB, normal and ARM numeric data. |
+| `SplatRole` | type | @wildshard/game/shardfile/splatTerrain | One texture-array role. |
+| `SplatTerrain` | type | @wildshard/game/shardfile/splatTerrain | Admitted splat terrain. |
+| `splatTerrainOf` | function | @wildshard/game/shardfile/splatTerrain | A props section's splat terrain, admitted (undefined: none). Reads the additive `splat` field whether or not `PropsSchema` declares it yet. |
+| `SplatTerrainSchema` | const | @wildshard/game/shardfile/splatTerrain | `props.splat`: the splat terrain material the props tiles' terrain primitives draw with. |
+| `splatTextureRefs` | function | @wildshard/game/shardfile/splatTerrain | Every layer file in role order (colour ×4, normal ×4, ARM ×4). |
+| `validateSplatTerrain` | function | @wildshard/game/shardfile/splatTerrain | Check a splat terrain against the admitted files: every layer file is a KTX2 dependency of a declared props tile GLB, one |
 | `ShardTerrain` | type | @wildshard/game/shardfile/terrain | A validated terrain section, containing no landscape closures. |
 | `TerrainSchema` | const | @wildshard/game/shardfile/terrain | The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. |
 | `validateTerrainAssets` | function | @wildshard/game/shardfile/terrain | Check baked payloads against the public tile rows and edge profiles, including exact render/collider L0 seams. |

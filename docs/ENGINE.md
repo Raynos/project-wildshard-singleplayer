@@ -1849,7 +1849,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2193 exports, grouped by the module to import them from.
+2196 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2111,7 +2111,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/engine/render/precompile`: `backgroundJob`, `collectTextures`, `CompileJob`, `postJobs`, `precompileLevel`, `PrecompileReport`, `runPrecompile`, `sceneJobs`, `shadowJobs`, `warmComposerFrame`
 - `@wildshard/engine/render/renderer`: `createRenderer`, `isRenderer`, `probeRenderer`, `Renderer`
 - `@wildshard/engine/render/shaderPatches`: `copyShaderPatches`, `hasProgramKey`, `OwnUniform`, `ownUniforms`, `PATCH_ORDER`, `patchIds`, `patchShader`, `setInheritedPatch`, `setProgramKey`, `ShaderPatchFn`, `ShaderPatchKey`, `ShaderPatchOptions`, `ShaderSource`, `takeForeignHook`, `usedPatchIds`
-- `@wildshard/engine/render/textureBytes`: `textureBytes`
+- `@wildshard/engine/render/textureBytes`: `cachedResourceAllocations`, `composerAllocationBytes`, `ResourceAllocation`, `textureBytes`
 - `@wildshard/engine/render/viewmodelFeel`: `DrawingBuffer`, `LookLag`, `LookSpring`, `viewmodel`
 - `@wildshard/engine/saves/runtime`: `homeScreenPersistence`, `installLegacyMirror`, `installSaveReporter`, `persistHomeScreen`, `saves`, `standaloneDisplay`
 - `@wildshard/engine/saves/slots`: `Json`, `jsonRecord`, `jsonSchema`, `jsonSlot`, `saveStorage`
@@ -2224,7 +2224,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-650 exports, grouped by the module to import them from.
+659 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2337,6 +2337,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/game/shardfile/skinLayers`: `skinLayerDecoded`, `SkinPoseLayer`, `SkinPoseLayerSchema`, `validateSkinLayers`
 - `@wildshard/game/shardfile/socketLift`: `parseSocketLift`, `SocketLift`, `socketLiftEntries`, `SocketLiftEntry`, `socketLiftRules`, `SocketLiftSchema`
 - `@wildshard/game/shardfile/socketLiftProof`: `commandSocketLift`, `proveShardfileEntries`, `proveSocketLift`, `SocketLiftProof`, `SocketLiftProofPorts`
+- `@wildshard/game/shardfile/splatTerrain`: `checkTileMaterialNames`, `SPLAT_CHANNELS`, `SPLAT_ROLES`, `SplatRole`, `SplatTerrain`, `splatTerrainOf`, `SplatTerrainSchema`, `splatTextureRefs`, `validateSplatTerrain`
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
@@ -2395,7 +2396,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 
 ### `@wildshard/sdk` (`src/sdk/package.json`)
 
-212 exports, grouped by the module to import them from.
+214 exports, grouped by the module to import them from.
 
 - `@wildshard/sdk/accent`: `ACCENT_IDS`, `AccentId`, `ACCENTS`, `AccentSchema`, `parseAccent`
 - `@wildshard/sdk/admission`: `preflightShardfile`, `SHARDFILE_ADMISSION_LIMITS`
@@ -2412,7 +2413,7 @@ An `Animal` rig can bind once to its matching `AnimalSim` with `bindSimulation(s
 - `@wildshard/sdk/bake/textureWasm`: `bakeWorldTexture`, `WORLD_TEXTURE_TOOL`
 - `@wildshard/sdk/bake/world`: `NormalizedWorld`, `normalizeWorldGlb`, `WorldImage`, `WorldMaterial`, `WorldPanel`, `WorldPrimitive`, `WorldTexture`
 - `@wildshard/sdk/bake/worldCollision`: `BakedWorldCollision`, `bakeWorldCollision`, `WorldCollisionPanel`, `WorldCollisionTile`
-- `@wildshard/sdk/bake/worldLod`: `simplifyWorldPrimitive`, `WORLD_LOD_TOOL`, `WorldLod`
+- `@wildshard/sdk/bake/worldLod`: `NativeLatticeLod`, `simplifyNativeLatticeTile`, `simplifyWorldPrimitive`, `WORLD_LOD_TOOL`, `WorldLod`
 - `@wildshard/sdk/bake/worldRows`: `BakedWorldRows`, `WorldBakeRows`, `WorldGroundEntry`, `WorldTileEntry`
 - `@wildshard/sdk/brains`: `guardian`, `GuardianData`, `perchHunter`, `PerchHunterData`, `scriptBrain`, `ScriptBrainData`, `skirmisher`, `SkirmisherData`
 - `@wildshard/sdk/clientScripts`: `ClientScriptsSchema`, `clientScriptViewCost`, `parseClientScripts`, `ShardClientScripts`

@@ -9186,6 +9186,24 @@
         "from": "@wildshard/engine/render/shaderPatches"
       },
       {
+        "name": "cachedResourceAllocations",
+        "kind": "function",
+        "doc": "Retained cache storage, without reading released attributes back from the GPU. Capture before the first upload;",
+        "from": "@wildshard/engine/render/textureBytes"
+      },
+      {
+        "name": "composerAllocationBytes",
+        "kind": "function",
+        "doc": "Actual allocated composer texture/renderbuffer bytes in one renderer, deduplicated by native handle. Called only",
+        "from": "@wildshard/engine/render/textureBytes"
+      },
+      {
+        "name": "ResourceAllocation",
+        "kind": "interface",
+        "doc": "One shared CPU/GPU allocation. Identity deduplicates attributes, backing stores and same-sampler texture sources.",
+        "from": "@wildshard/engine/render/textureBytes"
+      },
+      {
         "name": "textureBytes",
         "kind": "function",
         "doc": "An estimate of the texture memory a scene holds: every texture its materials and uniforms reference, once, at its",
@@ -16854,6 +16872,60 @@
         "from": "@wildshard/game/shardfile/socketLiftProof"
       },
       {
+        "name": "checkTileMaterialNames",
+        "kind": "function",
+        "doc": "The props GLB material-name check with a splat terrain. Without one, `checkPropMaterialNames` as before (named materials",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "SPLAT_CHANNELS",
+        "kind": "const",
+        "doc": "The GLB application channels a splat tile primitive carries, the attribute the material reads and its components.",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "SPLAT_ROLES",
+        "kind": "const",
+        "doc": "The texture-array roles and the read each takes: colour is sRGB, normal and ARM numeric data.",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "SplatRole",
+        "kind": "type",
+        "doc": "One texture-array role.",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "SplatTerrain",
+        "kind": "type",
+        "doc": "Admitted splat terrain.",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "splatTerrainOf",
+        "kind": "function",
+        "doc": "A props section's splat terrain, admitted (undefined: none). Reads the additive `splat` field whether or not `PropsSchema` declares it yet.",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "SplatTerrainSchema",
+        "kind": "const",
+        "doc": "`props.splat`: the splat terrain material the props tiles' terrain primitives draw with.",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "splatTextureRefs",
+        "kind": "function",
+        "doc": "Every layer file in role order (colour ×4, normal ×4, ARM ×4).",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
+        "name": "validateSplatTerrain",
+        "kind": "function",
+        "doc": "Check a splat terrain against the admitted files: every layer file is a KTX2 dependency of a declared props tile GLB, one",
+        "from": "@wildshard/game/shardfile/splatTerrain"
+      },
+      {
         "name": "ShardTerrain",
         "kind": "type",
         "doc": "A validated terrain section, containing no landscape closures.",
@@ -18530,6 +18602,18 @@
         "kind": "interface",
         "doc": "One nonempty 62.5 m collision tile. The hash refers to exact cell-local WMC1 bytes.",
         "from": "@wildshard/sdk/bake/worldCollision"
+      },
+      {
+        "name": "NativeLatticeLod",
+        "kind": "interface",
+        "doc": "Native render-only L1 result; actual counts can exceed the requested ratio because every border remains locked.",
+        "from": "@wildshard/sdk/bake/worldLod"
+      },
+      {
+        "name": "simplifyNativeLatticeTile",
+        "kind": "function",
+        "doc": "Simplify an already clipped native L1 tile with the pinned WASM tool, retaining exact surviving vertices and channels.",
+        "from": "@wildshard/sdk/bake/worldLod"
       },
       {
         "name": "simplifyWorldPrimitive",

@@ -4,7 +4,7 @@
 
 The author SDK public modules (src/sdk/package.json `exports`); shard projects use this surface.
 
-218 members; 0 without a doc line (—).
+220 members; 0 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -67,6 +67,8 @@ The author SDK public modules (src/sdk/package.json `exports`); shard projects u
 | `bakeWorldCollision` | function | @wildshard/sdk/bake/worldCollision | Partition actual collision triangles at the L0 lattice, weld exact Float32 seams, and bake panels independently. |
 | `WorldCollisionPanel` | interface | @wildshard/sdk/bake/worldCollision | Interactive geometry stays independent of static tiles, in its authored world rest pose. |
 | `WorldCollisionTile` | interface | @wildshard/sdk/bake/worldCollision | One nonempty 62.5 m collision tile. The hash refers to exact cell-local WMC1 bytes. |
+| `NativeLatticeLod` | interface | @wildshard/sdk/bake/worldLod | Native render-only L1 result; actual counts can exceed the requested ratio because every border remains locked. |
+| `simplifyNativeLatticeTile` | function | @wildshard/sdk/bake/worldLod | Simplify an already clipped native L1 tile with the pinned WASM tool, retaining exact surviving vertices and channels. |
 | `simplifyWorldPrimitive` | function | @wildshard/sdk/bake/worldLod | Simplify one material primitive without moving vertices, flattening overhangs or crossing attribute/border seams. |
 | `WORLD_LOD_TOOL` | const | @wildshard/sdk/bake/worldLod | Pinned offline WASM simplification; source topology and every attribute stay owned by the author. |
 | `WorldLod` | interface | @wildshard/sdk/bake/worldLod | Actual triangle count and the tool's absolute appearance-error estimate, including float-position allowance. |
