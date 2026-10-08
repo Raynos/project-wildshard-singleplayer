@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { simClosure, simRoot } from './sim-closure.mjs';
 import { authoredHtmlSites } from './authored-html.mjs';
 import { runtimeCommonsClosure } from './commons-closure.mjs';
+import { runtimePerformanceViolations } from './runtime-performance.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
 /** E432: the layers are workspace packages, `@wildshard/<layer>[/<sub>]` → `src/<layer>/<sub | index>`. Whether a
@@ -406,6 +407,17 @@ const runtimeCommons = rule('Runtime cannot import kit or commons code (G143 / S
     const target = modulePath(context.filename, source);
     if (/^@wildshard\/(?:kit|commons)(?:\/|$)/u.test(source) || target.startsWith('src/kit/') || target.startsWith('src/commons/')) report(context, node, `Runtime imports cannot use kit or commons code: ${source}`);
   });
+});
+// SF62: only the reviewed exact predecessor sites remain during the first-party conversions.
+const runtimeDebt = JSON.parse(readFileSync(new URL('runtime-performance.json', import.meta.url), 'utf8')).sites;
+const runtimePerformance = rule('Custom runtime has bounded work and no frame allocations, raw rendering, DOM, timers or fetch', context => {
+  const filename = pathOf(context);
+  if (!/^src\/shards\/[^/]+\/runtime\/.*\.[jt]s$/u.test(filename)) return {};
+  return { Program() {
+    for (const site of runtimePerformanceViolations(context.sourceCode.text, filename, runtimeDebt)) {
+      context.report({ loc: { line: site.line, column: 0 }, message: `${site.kind}: ${site.message}` });
+    }
+  } };
 });
 const layer = rule('Layer direction: imports point down, shards never import shards, every src file has a layer (E357, E405)', layerWalk('layer'));
 const publicIndex = rule('Cross-layer imports use the public index (E357, E405 AG2)', layerWalk('public'));
@@ -865,6 +877,7 @@ const plugin = {
   rules: {
     'no-reexport': noReexport,
     'runtime-commons': runtimeCommons,
+    'runtime-performance': runtimePerformance,
     'no-url-switch': noUrlSwitch, layer, 'public-index': publicIndex, 'engine-words': engineWordsRule, 'no-shard-branch': noShardBranch, 'no-raw-save': noRawSave,
     'no-raw-random-time': noRawRandomTime, 'no-raw-input': noRawInput,
     'no-renderer-type': noRendererType, 'no-raw-shader-patch': noRawShaderPatch, 'sim-no-render': simNoRender,

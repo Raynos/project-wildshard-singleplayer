@@ -170,6 +170,7 @@
         "wildshard/sim-no-render": "error",
         // SHARD-PLATFORM SP5: generators never ship; only the bake and other generators import them
         "wildshard/no-runtime-generator": "error",
+        "wildshard/runtime-performance": "error",
         "wildshard/no-active-chunk": "error",
         "wildshard/no-raw-hud": "error",
         "wildshard/no-raw-animation-mixer": "error",

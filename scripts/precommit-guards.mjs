@@ -36,7 +36,7 @@ export function precommitGuards(root = resolve(import.meta.dirname, '..')) {
     const manifest = changed.some((p) => /^src\/shards\/[^/]+\/manifest\.ts$/u.test(p));
     const predecessor = join(scratch, 'predecessor');
     mkdirSync(predecessor);
-    const predecessorLists = PLATFORM_LISTS.filter((list) => list !== 'lint/weapon-subclasses.json' || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
+    const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/runtime-performance.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
     const lists = run(root, 'git', ['archive', 'HEAD', '--', ...predecessorLists], { encoding: 'buffer' });
     run(root, 'tar', ['-xf', '-', '-C', predecessor], { input: lists });
     const snapshot = guardSnapshot(root, tree, scratch, paths);

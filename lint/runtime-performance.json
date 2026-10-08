@@ -1,0 +1,1770 @@
+{
+  "about": "SF62 reviewed exact transition debt. Counts and site identities only shrink; outside projects have no allowance.",
+  "baselineAt": "fadcee06196f345f706aa9f7e01a3bb027968a20",
+  "sites": {
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:d107e1a57ecc0cb08b745166a6d3c35eaa9add78f53ff246fa03a122f8738550": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:aaa2d428b8e7b4a356109583cd28ee6c9dfafd40e29797bed40556fc7e6e9d73": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:1ae403141d30d2c053b0c666fcaaa791c86252bf65c8b3399a4b1e7b06b19946": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:4d0028488925754960fe3d26dc12591e4f7d7cd72d8b21730c146b98ffe66073": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:e69c762b667fe26e604f284bb8621155720a9d23959e90c55067975b7a753b59": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:40fcff8780609a071c22331f82f6feea35efc24484dacfa86e848ecdd6d5b5d2": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b5635b66f70486fb834dc5475b3fad85a96dce12b8a38604307a36babd8b384c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:392a7258955e06ce2402bd1db1ea193a4e7e1ff441dd5dddcb5cbd759848caff": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b80e0d16163a4954c4842a154fafb93d8c5aaf8cf8a7c05e4841ade960e7176c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:e7c9db1cdf94ab0f5f0d9ab9b0b4084e0ca22a6266f31f25543f84114b4a0cbf": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:929bcdcf5d2f3efe1a8e9d9e27aa7e42ad4709f27e8d6f28c1eafcb517b04710": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:ad0464ad49d26126bb0249f15c9e617d08022b49f5348032f93577ad166debde": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:4f4cd4f9299ee55fa597189989019f51a0f1ee60f8eafd62a3610cb905518933": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:fe217d0f90ca74a46f12f1a09d00ef3a3f5bf2d700be392891ad8601c324a045": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b57a33a658603c7b95c9f261a5251e689b4ed85a2743ddc1a484dd1dc48c0820": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:cb84edecfe3b55a36f5162a70349e9eff97909bbea2ad055eedc755d685287ac": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:c693a4cd23e4e8bc87abce54488dc102715c71983114c3318002568461bb87f3": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:faea92c5b528315c3289afd5cc1b3ee8fb89dc89fb2c470f621501dd497484a5": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:d43fc225572ed1128747f7c4342c5d4e27771c4cc1b1a748757efaff0722a480": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b1324e04b3d80fc4fed0fa9fe53d0157964a6c5995b79767b4029da8e776c79b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:16bb4ba9c5f13e537a489d0de6d2a578e61097bb8da0dd28925babda705ddc25": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:833f9fcf9eea095fd604ffe2ff1a5bf947f138e16357886c5688bd4586e53e87": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:1ef05d6c5bf487c4ba085a84ff4489e68f8c358df7855d19738df106d95de68d": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:786fa2d960d89a62f84b0da3706c6ef2b98f2e3270194482571d046b2b1ae729": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:cfed1a9ca84c6c653935fd5c5c8cf5e531d88973bea1b156cdc5c668e6190447": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:269d99ad196c0e3b9e797a95b8498c04c30f62074dd1dcdbbab6f743b5630c5c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:e52c0beec3fd3309dc9100c9e411bf71448d8dc04b3c27d58a3a94a5b81f8ed8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:0f86ecfb28320ed844f84875bc4e1015b1cc29c7b856fedafe66c13be7481f59": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:bece24fc4459dc1e5ffca45baea034634a66d5b68975de190d5c64253e52a98b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:63035d101be40d9b433347e28309e26ed5bc01eb5c78ec3b56c31faff7b93a66": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:3d83fa2728ffafd5643589bbe36093ef82ea13b09fe659eecdac42f539b6f35b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b8f454d01b25f8810140c9c6f1917b6c448e9d3f6716c61d722de3059aee78df": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:e6db213d20e2693553e187033593fa41d3d394150b9dd5f6a8444a932cff9d49": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b79ff20bad5bfd4169b58eae1b8d9d8217970a958f7da56c072c5a07aaa2076d": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b70c2f869372674d861fd057c3e107c5307390a696f82fd235216f7b6407ff96": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:ce989c247f523be5f0b35dbc26e706a0230ba977dac1685c9e65958374d32aeb": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:3def814bcdd6c1badd76cb17b7f14681f004889d6a21fb75d0c8391ca01dbbdf": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:5ab58c21d08b1e6aaf45149ae7156d41ec4428dde44862231078b48229a3f940": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:11e44ac152815bea2408140816912bf42741d7312460c17fd07b2f297fb4abae": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:33d7c2550ab772c5ca73f821d5e7e5606ef06c701ed20eb8b108253dbcb7d810": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:async:f8120c6f7b3fcb34d4252a2f5a4a0e3bc1e6608f88c11874a9bd37d3040a9e83": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:6348498bd47ff2dd31597b468e9a09200fb5a22ac9cd4ac6f490359095639264": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:28ded2795829f441b896b62bff469d71a7c1e21d3dc682814078d2b3b228bec6": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:549f3ffdaa6c995eeb794bf1627479545eb4d887897713569473faff25e87b03": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:99aa9ff12f903a40619d90b07f210b52a493be34951aa36d459d6ddf1e59c4d4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:53004c36e56de4219414d78deeffba22361a271134cd5a369a00fba39e87db00": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:b6460099e12b4fa5d220d126443587eba78228bfbedcda469d1559e275821d3a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:4817b5fd515e2b2358fc1ecb62f0432f5a8bcdb641c28cac8ca8db0bd47e19c6": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:b084382de44159d07948411789e64740e61b2c517010101f47ed1a5caa7e1fc8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:bbc094e13c4600564ee3777be886664c4cec4fb55ef3298aa95e3d855022ae25": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:a883a2ae54f943764188e5ba053f3f4d60f97327e7386f649dd988e0afae57fb": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:44e8672c039183d10d6bded466fc3fdd50aa4071f2653addc89e019a3ee1f983": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:b59e05d62684995afc962a2f0a635d0563943b42576447762489511c0e8d63bc": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:0bc22a370546e3d73fc962c253000104f9cc423c2b7e2f2f8beed92ec60864a3": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:d53e664d1a4b8165e61ee8105e5bc1ca8da34a706d339601277246b0660180ee": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:1e2e9c4949b9fcb348b2f6109232c8c8c9450c756e606197a7af9400cd544ebf": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:8d2330bdec1165061615370536ead33d7b06273ea90fade827350ef69a7cbe49": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:1a4f9d937329e94c0448c25647fc20291fa982560ba5ec49a742f6c252c264bb": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:45bfc4be926919e851d13c031615f7ee2f9944d01799579fcc168d82d98e4f97": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:1dea1d0010ffaaa540c4693dc35a9f806c3a7701a24a5960a72cf53cee7fe9f6": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:unbounded-loop:a3e6da59d7daefc9bed0d6483b9043ce09fdfd697f417657e99f669d54bf167c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:eeca18bd6827f8fee7e9f12408c69fbedb9b8972c79e7fa520ccbe309a11f630": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:23a6dc396749803c3659e74f584df998b8b30888ae159cf202102390421b2d2c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:4b6f707023360902d7e09243a1af12ff4928178c527aa0da83feb6572f24c19c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:9e4e2b7f9264c922f4ce5d540471cd7b645b796bb1ccbedd3c9b021cd21e54c3": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:0d0ef93c2b007d9dd7719d438011dbeb18f1790c6f0a16421cc3bf2f8bd1f7b9": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:f69149cebbfaa0d78380edc2ff16e7bf07771b6f32edec140f2de1a6666a81be": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:6ef1d32cfe1c13d56422e8c5293b0536834fda558fdf8d8142e3d23c05dc9df8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:3932b29d4ebcd3bdb5a92b3647bd9bd8286204c56fab37b4484ce96e21a5a0ac": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:fa357ef1f1df96f7f93dc88259b4544363b3deb3370037e5c7ee896c3fb237b8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:4fd7b98d37dff2e711f4d3ccb81206e7621d278637c7e5d8428dcad66396db1e": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:1f1cb365bed9e99df35fef28786de2d2208f33344928f8222c37aeb51daceb52": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/creatureVoices.ts:unbounded-loop:e72b64d34f2c31c1a284e6332b7b294fcd604bddfc9b16cc54f409e089a73f3b": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/files.ts:unbounded-loop:87a33d4b8e43fbf7e9addcc23ee1b7d5d31b7ca6f9880d6eee918d920b7fd3e4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/files.ts:unbounded-loop:40e33f5da5b811b6e0d0c94ce956efa9edfa5eeec61263719cbaec76ff0390d4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/install.ts:unbounded-loop:0d511d211bf32e909f395bdf2660f75c0df4d1301a3cc3c2575c9942b2cea1b8": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/score.ts:unbounded-loop:8d1e4c586639a98b85b6098aaac941278762e7ff51c75609c826f7735dfaca0f": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/sfx.ts:async:b5a5535c7099039189e84b8262093b32828cbe04254d17f0a9c3a1db8225cc6f": {
+      "count": 2,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/sfx.ts:unbounded-loop:f75cf0e9dc7c37226bb634e5894b88512a3a2f343ea2b37a371394d3cf47335a": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/shrineHum.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/shrineHum.ts:frame-allocation:a4ebf2ee469a28ce5ba851b4e7d6e8dd63f6565a346b2952fbcdf1fcba0be650": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/shrineHum.ts:frame-allocation:f8ae623ed82b4e059f58799c0a2e08043bdd22e817431ee1662e35780792e8fc": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/shrineHum.ts:unbounded-loop:ae2b7980a412951876b70b8edfeee2756fe15631ba8aed34d9f93a276a55c7a3": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/shrineHum.ts:async:f8120c6f7b3fcb34d4252a2f5a4a0e3bc1e6608f88c11874a9bd37d3040a9e83": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/shrineHum.ts:frame-allocation:30f41b4b2c6b6e041a827020d05b81b8fcccf6e856e134608f5d7a2d4902dc9d": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/shrineHum.ts:unbounded-loop:ec4b316f78e9dc049abca8f5469ba2c3b479ef16e9db8f952afa2285407e77b4": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/surface.ts:unbounded-loop:ecb61eb14273ea563c0141da432178e935cbde986ed85f44ef75ea4fab1649a5": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/audio/surface.ts:unbounded-loop:584ec8626aab41df89ddbf0341f56ad1390c8d7c55e2bc02495c9a959369c13c": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/brains.ts:unbounded-loop:817d383b1012295764549ca3c82d59eac4c8877238325bc94de2765a23d24530": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/finale.ts:unbounded-loop:928fea1e7c8b0fa5ea2e80fb4664079a41f389ab1f98cc8d0c44239ccb8a3391": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/driftwood-isle/runtime/finale.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF46"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:7cc8cbca2e128c458802817619f11a2b00a1ea08f8cd2afb6128e4f05fe38062": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:3150882f9ae45c7f452e1fb7124f8083c6850d92b5765691a38a361d8e1b0c79": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:9cf0c741a15c4085c5fd38f1f1940b0096db21aa4b7f3693712456804d2df2f9": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:247d23317da740cd5a620598481b3ce5bc84578e11b73f6b0affec2e86ad9977": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:02450a2a8735a6a3fdbe31ed296486f254ba8be67d32e29d5a16acc24f0f577e": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:995746fea97f6aadbddc07117476fed5dc5b084d8ed9053a32499f8d72eb6942": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:1ea6c44f0f30fb3870a262a1c5c10f0f2f363c7ecfb67566b9e7328d08926b30": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:e1550dfb36c96de881ce4cd0753b545e8c03642d25baa1c9d3e24ee766c8e87f": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:unbounded-loop:4eaa63a1310d0aa1955bae0567b369af2e0258019ac206e2cdd6ec955259cc6e": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:unbounded-loop:dad813f63a59f84b5c4eeec3f2a8fc6fd5f3fd616a69c5f3b78ab6d495f4f8f5": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:6742f17a3e2ea886b1f1b5bc9bef22b80fd0c68db8124e578f25d96bc4cffd6f": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:unbounded-loop:0ab27848cbbf38f3822e83f481467be1b63d7be0e7d7dddc3738f2da2c85cd18": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/far-reach/runtime/brains.ts:frame-allocation:13954b00d69bea6e9ef2003d659bb8b6adb0619eb8f179a6aac0680e244af359": {
+      "count": 1,
+      "row": "SF49"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:d1c3efbaa4a887f4a953d61ce554cab91238c94acd60410c7106bae2ba83e94c": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:080e1a6145a3a402d4debfc81215cac244cfe97175754527e368adf13090d272": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:5386699eb1d09c7ee0c24d8e3287f56d64b7834488a83d650abfc7e31246376c": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:unbounded-loop:b49fa9a3a8031c154ee89ec716e711dec2e5f74a70705da59b60b01e15395130": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:56b7f9de55ebfea3a7df3142d62884b2210c621b7e38bba15b772d73eebc3c2c": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:unbounded-loop:13ee130146ba5b4d6df982280015ce12a292192e9f6a349cd4bb8be48aa666f9": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:unbounded-loop:d6ef28975bbd74fb0054127e732e96bb0705acb2239a5efeb9f11507d501f15b": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:7d249ecb86a5682338567af33ee8ab622f546e7830077c1b24be534d28b2f73d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:086ebe506dbb1522610f185e362c23e812ee404ddcbc70cd6aaa7651285b31a6": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:8b274bb1ed4a9be5a95bbedd901a4779ea7a040c239386f1dcd42b25d9f43ca3": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:a54478a831d697ec7aca674d7526766a3d9a34cf339fc991ac0eedeccf13c930": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:87d4e3fd97ef566fa03f67e526bb9717416bb5810b29f3e199f8708060c49d22": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeAmbience.ts:frame-allocation:5d8bff3b08bb9b372995b8c6a3b320036d55430cf852301619a60f74e73c751e": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeScore.ts:frame-allocation:32828fd340a4df6bf6a36d3b2b45bf902e621133fb989e25eb65b831d517f7ba": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeScore.ts:raw-render:73df3fea97746166e385992c978fb7f28bdbffc839e32097e6bf45379a286a61": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeScore.ts:frame-allocation:70f9ac480f2f46e7587d0740e4064ba9eb6400f9b0743309e3920cdde66cecd6": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/SteppeScore.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 4,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/files.ts:unbounded-loop:f44150fa525f8a4de0f2118c2c64b6842a2270cdffe8fce44e89bbbff0ea983f": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/files.ts:unbounded-loop:52b33145370cee637e3fb47926a5a7e6a40e928d809d2972b2d1a92e5c8e23aa": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:unbounded-loop:d1eca7091568da72caf00bdbefaca35e343e24f9eca0930278e2354a6eeb8565": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:raw-render:2ec9e01ce51a0ce52d8c3806aef6ae147b380a302614073abafc8ea956d156f7": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:raw-render:07d6df5f8941cf2da9d11d2887bd4039812b0e3bbbb2499d9a9b595dc902c122": {
+      "count": 3,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:unbounded-loop:d0cef4c571758a1682cc66d4e8c4a46f9f86ecd0c651de8c14a62291aa63e041": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:frame-allocation:5d40dc3c92591177affeb634b24b00eb480450d9a17131c49edf15b073b6bd8d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:frame-allocation:2b5a22f65db1b8613b48c8fcfd1488a14696f624e6e7bad327c47de4d14f9cd3": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:frame-allocation:c4c9bc55fdda6ab7dff73c9c839c9578529db69a07c9436f4ed36a4de90f1b0c": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:frame-allocation:8d7803672a04953bdac58e2abfc3a70c5049af529299bfe34494d1f6d33f4f12": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/sound.ts:frame-allocation:639c9fdf31c7facb8eb1008b413af31cf2a1cc2d1747ebc38673ab2618f77ad1": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:cba13ed83d2136ff8e0344def572937d5ea47b7acadea9caa0a2c60a4692a133": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:f7025c10625db865c98640baa3d13e12bd68acfd90d83042d447a208d8a5540e": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:c09d7e63a480bc33517d87e19c4403d112876cdd36fdf48d72d3ff91c7fd3401": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:1e0b7e0b2f5d0ba46b09320985b85be4af4149dde1ba437b7261816546dbc29f": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:22fff1238f004a47eef1a9980b389c9796d045410a3540edcdaaace5ac95b604": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:4e3fc2cd9656c024362b11acdf3832653b89f25e3df516a911e29aebeccdde25": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:ab79c6fbb7cb027d8408316fe0da1a2834cd1ac2d41abba6fc85f08d558be6a5": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:d23df8c912612c45b2a341cf79c79ab9692191d11d0719ea7f0033435970ed8c": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:8c10b11a3a76565410eaab10ba88ac6e55fcd5e2bad56cb05d3f08e895fba522": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:async:9948ee18010d5be5d538aa9132cc9c17d6275d42c7864085b913328e0ce7766a": {
+      "count": 3,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:5d023a85413a9df0c3f93b1f4e682202d1e92d08a00196fd0d97fcef2464d809": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:unbounded-loop:64a5d3605ae4457d82629b5951da08d4782d0611156e85ef037551ee1ae5e63b": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/audio/synth.ts:frame-allocation:6efeb9a5321c0016dc412b884641104ff20f28ab83a4e33e820dc0ea40cd8d77": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/enteredAdventure.ts:unbounded-loop:e78f760b4f4fdb17ba1b061c269f427996c55e20dafc66cb1a6b944eebd6fb93": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/enteredAdventure.ts:unbounded-loop:71b6e01b37c733c9fd34c51d5bf78f601601f87bd8fe3e42c1061914544edf21": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/enteredAdventure.ts:async:7b5fd8204d464b38bf13bdb0370a29544e9e6988d1454dee9061521337ae4a6a": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/enteredEnvironment.ts:unbounded-loop:6796e4bb9e912a48dd532227251ca07fc5d11c84a48e92da59aa64b0a9d3cde9": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/flockDeclared.ts:frame-allocation:90c9623d90ecc422e5b4bf4b0cae5b17cbecc256ee588eb09a8ba39563b6bc10": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupDispatch.ts:frame-allocation:3a9f9f2f86a36a3a92e856a339209b388c7574c78b6f20969cac6cedc0c3546e": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupDispatch.ts:frame-allocation:abb923de895804b7f4e36a966965d49c7654d2762023473b63c6a4ec56a818db": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupDispatch.ts:frame-allocation:5534107ea2026cb237d4aec7594d4c834794dad7999f3111d550b24ffce1a93a": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupDispatch.ts:unbounded-loop:b0bff64e025b1a82175257c441ff10b0e715f3509cdf6916ba767f197dcb0f36": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupDispatch.ts:frame-allocation:134f8cc3565ad4a9e64c5813e9fcbdb8ac0a5604bfaa4f5d61eedaa3222f5b11": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupDispatch.ts:frame-allocation:b55709ffd98295a5ead0c0598cc1172144ecfaf2a263934107c8d3b137414144": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupDispatch.ts:frame-allocation:3e13a82fd2de7fb111fd2bfe375500a3c137882b45af2b5c7774584f4f68fb80": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupRegistry.ts:unbounded-loop:dd6ee2e23d0ef971e1cde8bc7295ff0b4b440a1b24f72e923c401d2594746cd4": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/groupRegistry.ts:unbounded-loop:613fd74703f23f8b5a921fc5f6cbbfea918e4738f398c012795377ccd710c88d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/index.ts:frame-allocation:55c6e8158e1d823c528db44bee4e1a88ad02a1327de70e8ca24955de0e91df5d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/index.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/state.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
+      "count": 6,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/state.ts:raw-render:26ac04d3c61192df7c8aef1624f65c27f8fcc32c97f81124161fc5085d275655": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/state.ts:unbounded-loop:4abed363ae244317352edfebe398eec0c499413ade0b6d129060ce40ee2ad6e0": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/state.ts:frame-allocation:3b9dcba1c6f71b0595d904965565636b455fa9103dd7b5134e7aa48678384093": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/state.ts:frame-allocation:b1fb84fb3ba6471ed03d1d02d7ea1a61308a74439d65a5fbd03817bf7f966a6d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/state.ts:unbounded-loop:109deae63a5ac2be7ed0adaa310ec0dc45bbe49460bff05e6971ab80e8a78fa5": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/state.ts:unbounded-loop:db5628bacfa79539d12f29983d94489bb6be82d19b10af236aff2d3e5d6331d8": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts:raw-render:2c1caff46adaba5159fff206ff1ce360bf06fbeb7a4ba67ec4237c3330cef409": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts:unbounded-loop:ee0e0b66dcee2fa30223419407d6e85fb13888a018586dd3bd0b7eaa3fed91dc": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts:unbounded-loop:013c6da66881939e9c76af5a380da10efc883f363cb2eb47e14f15c29e969e25": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts:unbounded-loop:2686d3752f68444b3cc2445a510d432b8350803a43a6237f1c6b793da1986854": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts:unbounded-loop:c881b72b19fbcc978a6ae6ac7a63df2561724919ba5f879799b30d66083bd7c6": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/GoldenBow.ts:unbounded-loop:23bfccb0dd38005776c0d981cef8bd1be752cdf84acf1b778a036899c082f84b": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:raw-render:989c1d2b68976fa97d23c9b94a2589b593ee969adf616bbbe227b257a78f3101": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:8d49e17e6237c76d5b855b9532600c4c7d4922f201d07191071f37035fbb6c20": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:8fba33e3f84821a4109aa679179ea290f4abe804ea28abfc1e3d977a7db12ee0": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:760d8f3b7b2beaf2ff0012af3abbe9b4a4a942ccb8a64b790de6942851372816": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:raw-render:2c1caff46adaba5159fff206ff1ce360bf06fbeb7a4ba67ec4237c3330cef409": {
+      "count": 4,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:bc5390203d29e9896faeaa77f767a8c8c63fe7e59659ef097605be69a1dd722d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:2f6628d03ee3c950f8efcef78f36a1578976defb0b5d1ea79af58ce8467eac14": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:18caa352450666022b508a7465b461071e76afc21c9707515303d35b8738470d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:368259c0f0b02ad57a4ffa92d202809706baaeb646a535ad58a63a624016fded": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:9b1cd90d5b0451d42519b24213c4171156589a5403ad82ee13969aca331b02f0": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:76606fd012a7d9ca800a8469c77e98780cb08f78267c1a9db3d3b9dcfb227108": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:41d39269ce72c9d4f773ffd32140a02df999e13a2792f69d0f04d4825f08c866": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:7bb986b8bf78040be8d71e6c55a3a332b82ad2c968d1b48ede57bbfa082d2ca3": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:742f91bde81c2fc5825f29cf468b3bf12f3b1411e37d0155484d4db7b32465ce": {
+      "count": 2,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:c527777058d436f6169bbd4a57f9790d3d3fc445b1ba21680e5d5eb471b61652": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:13a82efb18f092fbb963ed90699323ec73cb56e9dc30901c1579ad8931a467a0": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:d4f23f4d3512f2f40fcc282aa4dbe7868a19ae26730e24afdc19b741bc0035d5": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:unbounded-loop:373752c20d681ebf8abab7232c2b1d1cc0ec17dec74c4907e310e38b5338b98e": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Naizagai.ts:frame-allocation:dad0d793f94eba5de2471d59935951759a030d531589aad8c30bbbfca29a7c95": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:b6df3df4312d4b5bc636680761017c88e3fa9a3d7ea095d8d8357243d40ebc3f": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:56cfe79b1332b879654382280a3995682ecfa1a99a64f75bb39273310721f2cc": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:raw-render:f9514863f14a38e8041e48fa69862760facace6b84f90a2ed8dd872607a8f283": {
+      "count": 4,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:async:a7072a8fe8dc3a21938f14c1e02f3f4cef4e203a784d66eac399f87e61cdf5a5": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:dbadda7c0bfa1d1515066b4b78134c51420099b4777315788b37238ad0491e3f": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:83bb55ce5388efe2b6c9f96bd167128390d9c0692118fb349875b30965b246a3": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:af413dab936395b8e897f664843361948d899ddcc0ebc96485afe85fb5badfc5": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:50bf88fc8d6f0865a257dd8224b9045a3623b8cebd89c314e2f141e165ef4704": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:8e13e9108f8e1dae4ed8639306da8b5cd91387425a382f3f23d080d07cc3b604": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:df67e65236ac664232e9e88682f5a300358b0af7f5161a5e12e2a3baa244724c": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:4fde52e3e9a29fa1b016fc17940d8f431a2d91f1a8b9d8b85555b58f5b923f54": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:d7ef4082fe0a242a1da898db3a3ac3834d3009918455a58f5dc15f4d57c73731": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:a975b43c3048f0c244feef542dc620c260d01b2bd8d53e0e23d42c07a3af40a8": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:raw-render:c39bf1fcb0d20122b496c0873be24c82e78d542cb8f70ca747eadcf06262d189": {
+      "count": 2,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Rifle.ts:unbounded-loop:97f363da657f5fe97f4eb894866087bd5737de591d7ff19f25187dae95e4ea26": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Sabre.ts:unbounded-loop:90f42cfc5d3dacb925e54ef510dbc444a6980dbba8e3aec56526828dd28610d6": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Sabre.ts:unbounded-loop:f787795753c76d8779cf9cc29e1fcf9171f3e4e843aa4adb3888404b57ad8384": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:a47d15820e9d2340133905633663ed3cadfeabcdb0dc362356b0bc7c27a2badd": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:efde7489bc4ada46fd8077cb0b7f904e6a3d9ef2fe5e55763a691599c40cbdcf": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:raw-render:f9514863f14a38e8041e48fa69862760facace6b84f90a2ed8dd872607a8f283": {
+      "count": 3,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:759f84bb7aaee54fb1ff821c19088ff4c0baeb10020289e761c10b856fece1f0": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:83bb55ce5388efe2b6c9f96bd167128390d9c0692118fb349875b30965b246a3": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:af83362740781c4ee61f0f9a9c6bf6bff6f68e46c747d2884bd6dd81a9a8ac96": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:8f9d7fcc7a18934f001ce3c0705ba542d8f317f243efb7e3cc3af703eee8fc60": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:82b6d4c1e4ce85711e82f12d5db745439366de0774a1e9fa36703c27d18cbca8": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:raw-render:90ddb022d37337b28ac5598a63ea68102ac77908380329a07f0f7e0c35106d75": {
+      "count": 2,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:c3f3f81cdf6d4fcb2c2cb6f8258572994b74d482d5a9465381ca5e869108d59a": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:6d181985a53738cc9665ac0362b9b950e59b639d6b529e0ee88680ab72292f85": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:df3c226020ed87fee7d212ff6ff25500817e3d3ad9a56243622a1134a7e4c5ca": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:287948fbb3cbea1d21baf7a2a3e19665230b8c559234a45cfa59566bd50e7f00": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:2e09ea6b2a8b22064a76a1848a171ddf47a64e2c5f31c8f215cec2eb1787de1c": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:b5f523a36a5edf8ce0d4af21947b8507101568884b98e836f1f08f2fabe1ce4d": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:5185d22ccd7535bb5f7cb5c25f2d8944ba7a9b4b412b8122bae5b7385ffff0d8": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:8560f6a106aa87ee890e93f29756a23645930e9a1dfb67100d2c1ab70a42a3e1": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:4cfa2dab149ec4daa3c120b558ac02cc02af432d593947b9d47986efd2f4ec81": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:8c7dee758296c5c6b7a71e22b457608c7f310ad8ee0ec37be66c058fa886a661": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:8a7d295cb1e3cdb27ee5b23b0edcc0c238ec59b3d7eeb7daa7d8f73c44334c4e": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:aa54508811f5eee5395a8813a34b744a87374d5fb69f9c2357a7a353cbef24df": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:99e803920b3d65c7ef72a5b7d22547ff54f36371356f48175a3ef5c00fff4e42": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:84f0e4ef7e1b2902d2d75da3696c34c90a74c7d6715fe5e7e4c0278b6a8a4daf": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:unbounded-loop:78f2e867d486cea05f475defa995c96c1880341bae0ffd3112e7b871481efa27": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:a0714c9db7447bf55ac7734265b07e34310a5b06716a379f1e1617b2677a9985": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:b6bc01b38eacd08f603c5f010c4cff25522905fe346e095363048b6382504e73": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nalati-grasslands/runtime/weapons/Spear.ts:frame-allocation:1664e5cd964263d197cf13d343c7dac99372fc00d46d6b47667f005100984fc0": {
+      "count": 1,
+      "row": "SF48"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:frame-allocation:97edf52d4644278ca38ce7e10b265d691091ad90cee4bff8d265501203a1b7c9": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:frame-allocation:91061c6a6c54454470e72c5b6ed422f513fcb0250ad32f1a481dbb8e987b5623": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:frame-allocation:e8d9c4fd6c800733d8d67c04f5ea88ccd22eca21b92acf08aa141acf80c34cd1": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:frame-allocation:b4254d21967b992f6a0e42cd3603fba36cd2663d67b945df53ef700a62cc71bd": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:raw-render:07d6df5f8941cf2da9d11d2887bd4039812b0e3bbbb2499d9a9b595dc902c122": {
+      "count": 2,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:frame-allocation:3f1bbf2cd230a8b00c694a47c7a1d4437d11fedd211180f51bde24f60a8ae6ed": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/ambience.ts:frame-allocation:9e86842a94293b25c2f1e4acd10c43250764d1883a78c8ff22b9e4553c9b1172": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/files.ts:raw-render:e44f9671c80ea557873b6d09502dcb20507380aa1cd9d3dac5a1266deee139ee": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/nine-dragon-stack/runtime/audio/files.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 1,
+      "row": "SF51"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 19,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:raw-render:69b596be39ff37a6803b2ade307fd0ddfef51031844a17c0d12fadf8492168d8": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:319c3d3e80027ec554b56cd9a3a123546d476e3344a9613882976bd09c378516": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:db512c034da11e284869de7bd29b26dafa46dac848ed895be8adb7845e13ad62": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:08557baff21d22ec78d4530c9ad3a00e3442257f758f8fb566d59a2d21baf3a0": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:bdb1d45743859b9e965cda72e7985ea4ee5fbbb7a53dd04340475ecaf9afbef5": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:raw-render:c2eb7544a0f67b7d7198b0dd274b484f9163f5ea072be318c1d464d383940bcf": {
+      "count": 6,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:6ee4c70fb08acfab67dee3ae878cc0b300ef3a7be3bf06ffa4d8859410fb8139": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:72434f882fd68032adabf03d43152bff85dfe8614504b32bd88d6782b9d60e6d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:96c3953565a87e5d87387482cd356ed78d3d20989a688e0c05055d1235cba687": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:95fa7928ca6ed9a2d70f5a537f05db7890c8024f98b97aeb02e4a14b427a64dd": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:13ad114b0b947aeab5de9428b177d7e32cd4f5d1decb547d341b897b386e4555": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:105fae72f3f8f318d4c8c22943fe6e2deb4b35879f94e40bb430ec5354b0f8d8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:2d241347cb330513845c3dd7f2736f1c7bf828bec83bac4ca1c86b0d58faf45a": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:d661471736d5bc3215cd2cab03989dbea7fcd51aea99d565da4a9db3b3383950": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:5d67d2d8abf6952eaafd5b6ab94218270102ab7f59881e41640a9d834899ff4f": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:a6b29b80b0d4df7ebd9b8026c3092f68800598b357dda28bcc7911ef1f21e6f3": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:794b8b8711e65055210a834c36ca52774f6f708273f8ebfb486cdd3effb79f7c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:d254c1adbfc8ad810bdfea2f7f31e41c4d9a44b160fad296bee0d0e9f5084150": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:a8100cc75be86b5e66aae5a4eb697ec73d01536c811e0322549dda308e575d0c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:8a1c9d697774ce6e65d042a69c70630cfc1811bbd1d235ba1564a90c0993ac6b": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:ac04b75f69e90db6d8788f770045b843c527feb0ed29c54600412776af66ef20": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:b99b1e4f0c54fb2e0d2347042a2a4217b502988a39c831e456f9be85b4f26352": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:frame-allocation:2a4d2e7b78d451350f324e222cce4d910470dfe8b443e70e2236a05c76a364ce": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:319d8f4e4be68aa6fd20f444489b9e04798d54f02ab37a15a2e790c03e1d2d01": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:raw-render:14a7c8382d98507819d4738db4765309ea16d8b4e19c55a5307322e195511ce2": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:62beb5176dd42988369c57513c32e592ea9ae168373f41d0f2c16f1b4de066f8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/antlerKing.ts:unbounded-loop:1603f5e506605fc6334fab70b2a2b0b24baa76249d30a33aaf5f62da869422e9": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:84d2ba8054ad70b47c330deab7e7d53a1895167b8c88c5a96bf5262a06792b59": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:cc33ad8dd4f2ebea51a5cf7556a6e47463c347e32752fc7392185f6d0eb4d0d7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:b8a95d364fec463e77ae831de9a7d266dfbba580a942ad534ef7af41a956e637": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:40fcff8780609a071c22331f82f6feea35efc24484dacfa86e848ecdd6d5b5d2": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:3569a20a2028b8c3c66bb918b1c58aaa2010f81a865a5c1a51de5bba0b4883d5": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:84e113327d868254ef386c95c819cda0b3c3b606bbeb3833d0f380e5fdbce493": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:e36866fa50e2c8ea15ecf5a4d7115f17edf95666c8b8d64d9ae3d4edfd9bb3ec": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:dde62667a5af32378afdfd38e4ccf7bf8bcf987a9d90802cde5ab2f7204decc8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:e98f0e652444c0e64f92ef7d759e66e9751f2f596bf9949564a59dd1548906f4": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:33d7c2550ab772c5ca73f821d5e7e5606ef06c701ed20eb8b108253dbcb7d810": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:079b72663b702bd322ddb87f077c94bd525340b3e4fc58147a878715a93f89f5": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:async:f8120c6f7b3fcb34d4252a2f5a4a0e3bc1e6608f88c11874a9bd37d3040a9e83": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:0217c1888ee3184e64eeb437dd82ecd5ead9e28973dd37f5533385844e6980ac": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:708f157ce5f76236be86b33ad767c54b51fd1639bef4d0e106381a56d72fda46": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:4b3245f04fbb450ad89f29796b659faa4b59c41ed755d8759fa4bda9aae2e9a7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:204d5c57e9e2d5484e94c778e6b9c91219b23ebc9544b939e6b397f8ab1528eb": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:d0a5faf3a75b6dac3f4fca45a63ac402aa5c97eb4ce8550431c2c467a43f387c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:bd21def54dea02398124fb6dea7ede16e5ab54acb630abdcbe781f7c23e821d5": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:e770a42f1d5dfb5eadb2559eff21b824e44ca5cb86c1345bb6020e2e6959e3c5": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:a2e4f98b3314493ae70bed583dd2561988d287b834982d7e9408327cffdf1bfa": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:827e796586b19b662beafd1ca328a0d1df559939af93785dca5629fb3c6828ac": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:f7b034760f62aa08c25d01d28c135a45c84823cacba70c37767a0ee51d9b9e44": {
+      "count": 3,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:017c0945451668023b4a8778fc6e96a041bf2d28fe561ce4269d02a653c8e5ee": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:e49a9575971273141ccc6874e5a7067b9cbdae600fa4a58eb5291c99b7b05ddc": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:3d3188a13d24ebb8f52957652f9128f4c31d9081426985bace682447971efd5d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:d4cba01e87e78e41c2dd50d98f1e16c45c81138ece753bec7fa787bc59a83c66": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:5f67c0c162bcc78d5f74d6b3b5eb847443215f949590895fb5d325da9f52a59e": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:5bc0e1821cbb881f8aa5f7e3d3d47bdc8f22d5a163b497ab417da8c798230fa3": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:ccbdfcf9600ed20f20a5fd112fa66ce7a19040f3cf19815af85ac2f6110256f3": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:9961819b7d8a9354d16c97a06f9d5b4dd40c8539b0c8915795821449f4f15b5e": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:415263249367c773ef383c0e220fb4b92ea9c5d66e1522db02dc76742ae40b20": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:4b6f707023360902d7e09243a1af12ff4928178c527aa0da83feb6572f24c19c": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:34ef04ecd7ecb11c7cdf5ab570fa5c4941414742719f57649723a3ec0933ac83": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:374eb33062cc00dce35ce1fdd418105057efcd83107aa744cef5fc2360396483": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:05486c08e54e0bd658170b4361351405d21732b731e9bda7ca48c8716948cfe0": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:6e9d34d5c519d06653c589f47305d52290f11c9334277c4c4c945a76c856e890": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:61fba1cf30dd52d700daa166c6c6eeedf14bb2ec8aa32710e7f0fc20cf74ddc7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:783412bb0412303855b5cdc7e243d0448af148add130012333fb3f2f0899bcfe": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:8d934e074c108f8e9a166934838d8cfa5421d7a5030fc30c38c5adacbd9c8d60": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:223ced3da14b31828ef9081e941cd2029d2710a0fc07109dd5ba4696cd5ca72b": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:947392f501a180b0cf40084282050d6e544b9cd55f2b2e465878c9262de4793c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:cfa393f2d202951e1c5875c768bc8ee05099ed613a48470c2083aa46bb4b90e7": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:09373fb6615cd25caf24a93f0033140c86ea2e1f0266561105a2a292c9cf4fac": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:b1deb593383e2abe2b82463bab5c17679cd9fc95e01139e246711ac9710e0522": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:f745408f07ba574c4665b84c00563ded8dc9f7d02d7d1d36360cb6c04926dd7e": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:9c004585e2d74a2fd97b991a65b6d1728ca6473a9fa1a75fb0226cac69e71c5a": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:7d5dda415bb2e46f6b176e192e287ee2c2874aca698ae91d6cfd9121ac879c17": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:47dbf095ff350c89824996684dac45ad7edd10218846ce7dad66324a0cd419a4": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:93d6ab787a66cc1968e7fd5d0bd0bd14cfaee763830c8ed362ebfea9cebebebc": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:b1c25b0e0f96bc6ddec15c2e9483a3c3932b9dfde35ae84defef5dc3897f45a9": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:bcca37da2903ef2c883fba36a7886207e1b0a110877b63afb0dd33b296916eff": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:2ef454192796b55bbe5c8356797f20a506b156d096db41b5ead22d32e2cf917d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:0caec2c929c3189ba4cba690bdd89c1c89d80a6a5b6691a5932abd8853dc6698": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:ff550b7ab71bb6c1aaff7ac5f66bb5aaf4c0592f678284c56d1192bd2ff5e96a": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:4d26592b58f0dfe65b4a8328ec34b15de31f34383ccfa009843a32dde7f70f40": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:3935532d16e28ddae9eb618685d813a3777f57f4a674651c30ea954050f5b4e7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:45750656cfbecd5410ee5fbb9879fb3df8719e0c97ac3321abd3a4c094d6f954": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:frame-allocation:940b5601d4bb243991902852fd73dc8fadca53e2bfabf7ee9a16cd94bcd5969f": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:9cbedd3f1b583e1e2a98d895ed6515628c6393e9e23e64577e70ed66b9ae6478": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:16e4f25f5fd48bcc0085b128fb73b6065dcfd75749ebcea44e9cb501b4266f1b": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:b3a545d61531922dc77f26458f0d8803eecdded9dd72279c0cb8f2b09cf1b373": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/ambience.ts:unbounded-loop:8cf4de175bfef2d45356c1559cd98f13969cdd3ff6a4e087a2a53fe3ff64d8be": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/combatCues.ts:unbounded-loop:d8f54b0005cad0c6bb7ee513db9173528052755c061dbb75ac1cfdbe739d0a60": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/combatCues.ts:unbounded-loop:dbcaf6a2448a054600c2e9809bf8203cffd0a9487b5d74967a327560a4bc426c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/score.ts:unbounded-loop:5c7bf43fc910edd0b9df53ea525aa0090f872a1192b638bbcde35f829cff799d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/score.ts:raw-render:18c23120909fa8c1bd7ad2b1f22ec1ffeeaf015d7ae2b4d59168f5a39e4595bb": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/score.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 4,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/score.ts:async:61a6183e9569df7b2e367ec7cab39c50b4d891db4550ba2de88dc10745cd8833": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:ba9d207336c9239dd63ad1785b190b178ecbe9862a42dabdebf0504b21073370": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:d0ded91dbcc67da2065bd39fb3923a2c8bb04c99199e8e92bebe327983862c50": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:88fb888df8de6bb4c8dbdc9bab13a10448f0621e92025e91b1efd98377e2c58b": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:31c9672607a47cda1a7e3714b2bb6b476b124a356a090ebf9e7c8de482036bdd": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:71358db97032436da0c1d3b7ee7c3ebe2185a828e8597193cce443571cdeef55": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:2f0e50110c1f26e07f6b7dcff95c8ca5410367756da5f7941e7eeba0ffa8fc61": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:8e862658a12888ae04be3956b686ec4b19cb0d6566c2818bcb5092ad9b1de10a": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:04b75fffafa98beb39770e42c2e4ae09cf236a91b249b0321a147ce16b7d7861": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:dom:9b02ac7dff110177133a34c96863fadc36ede4a990b8d5edc6afdc44a5e04d14": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:unbounded-loop:907ee491e874b51b0d27a0b64c0f9116dc133e168a8305ee38645534ef8fb065": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/sfx.ts:async:88d26e13005d544ebc30f2eb6da9791ecc0a01c173e6b737375021f5ca757318": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/synth.ts:async:9948ee18010d5be5d538aa9132cc9c17d6275d42c7864085b913328e0ce7766a": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/synth.ts:unbounded-loop:08d54b21433c055c8b019f9c956495d54f6382560402fd13b6b192e2a48be0d0": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/synth.ts:unbounded-loop:11c0ff153ceed3b16af2d8f07f5e97ec22a3b912eddbdaeb5c322093e3cc9e39": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/wiring.ts:unbounded-loop:7e7c94d815e7832fbcbd1dc881f86fc803ea53c2c90a72148c7750262c9c6232": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/wiring.ts:unbounded-loop:447cb479f935438553ee3a01aa7a6d2f11b09a613030ca91a7858e9605462083": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/wiring.ts:frame-allocation:4d044b132d4a44eef4228f813e5d1b2bf1ab174d8b05e8cec43954f2f54f5471": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/audio/wiring.ts:dom:9b02ac7dff110177133a34c96863fadc36ede4a990b8d5edc6afdc44a5e04d14": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/index.ts:frame-allocation:2be06f352fc75afd8520729a2e54ac4a8789b49f950bfa891e9fd4127592a4dd": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/index.ts:raw-render:ae8dedf219ccd850aedd82b38eaafe641af6681d4ee858b0ac59710d4ee8ed86": {
+      "count": 6,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/index.ts:unbounded-loop:a9f8e896b89f396e20a02cedb3d40511fc66bc2924d31b63577dfccdd29ba18c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/index.ts:unbounded-loop:af0fe1843dc166fe03fa20c3f09fbed61631013518268219361405f43994e5ac": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/index.ts:raw-render:26ac04d3c61192df7c8aef1624f65c27f8fcc32c97f81124161fc5085d275655": {
+      "count": 4,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/index.ts:unbounded-loop:8a7dc8dae8a27a988e7c520999cb0b95f7e7adcc6c8ecb1c52b4fb250fef64ac": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/index.ts:unbounded-loop:a1877314e26fa471ca1112c930cadfaf205a1482c5a96344d9d0eca04fc1b08b": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/kingLifetime.ts:raw-render:db2a96a7ac53e82ebeb9a10fa84bf613e12f963a9d1483963079483e49469b28": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/kingLifetime.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 6,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/questClock.ts:frame-allocation:382fa834fdc93cb3cdfbee11d351b5e8691314af15ed0be52729152fbdb3a726": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/questDirector.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/questLifetime.ts:async:abbd54c982a159f18f3502bdd31b425c6d36b6958f0205b7860af773929e2bb5": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/questLifetime.ts:async:04f89591224b1fde9537af4e69ec8b438a2c0b1be369cd331ea3ffcdd6415551": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:f5cbb8dbc3ffd82c7689a32c29c469cc58cf82118964834a45b66dfe2a74a12a": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:eb587bf48c3ec37c4aed47ee20376fc4779ead3f50899a9302ce0bebf42c3ccc": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:a02ad9f4923dfcb12029cbf13e43c695f567f5a7000e5f51bd1e2ae3e3b9df0f": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:raw-render:37de407479eab2fb53f78a51a1a54eec96688320644c6949e20c0f81ee958ad6": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:88e517e257b265107b47b982ee843ba5e49110ea0dd9450042f9fc317118a19d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:331820626f2d5f37eb814eca6d5f59fd831d45c3c19f3a31125b68be88b2901c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:75a740b915abaa3639fe36ada2d0b4c4b97d8a25fc7a1fd64d36beb95c39b9d1": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:6471531a86e39ac8c2ccc90f12e414207298482184d1bf90258983d3de18370b": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:42e093d229e8d9749f478a06046ece4b0b16f8db4f4ebe5ef9e1ddf749ee3db7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:9ada764c4ae9e22ec74a13c11eb5ca53bf90c2265f319f9508d4c8228cd5c3e7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:bd6e15cf15b3b3ea6feee4ce18a7f16c39f742a79be2cf8697ffb58c1443bde8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:6e32f9a1e994531a3feaa2dda2dcf8d7a940d880319cbae3b4128534c1b92fe8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:2fa914b5d174850b05b23ae27a0b6fdc74521965e53d996023e1609fb961ea7f": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:a2bff7e2f85f0a7ca63a77fe4ae67d8e2edcde72f5aadc15252a638c9b5834c0": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:raw-render:f9514863f14a38e8041e48fa69862760facace6b84f90a2ed8dd872607a8f283": {
+      "count": 5,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:raw-render:90ddb022d37337b28ac5598a63ea68102ac77908380329a07f0f7e0c35106d75": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:af413dab936395b8e897f664843361948d899ddcc0ebc96485afe85fb5badfc5": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:dbadda7c0bfa1d1515066b4b78134c51420099b4777315788b37238ad0491e3f": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:0df4b72eef64dede606b2686526a2abe6c2714e710853f9c8800c769f0adef87": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:83bb55ce5388efe2b6c9f96bd167128390d9c0692118fb349875b30965b246a3": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:6bef95f4b531ef2eb67459005b44270d787f9c855f97f6f486de309be9aff81c": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:65b36de9f130ef74958c7666a1d1d4ae0bf426942ddf8cb92359aab72a53ba27": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:b4c30a6a5a57239e861997eeffb813196bebdfdd1c3cf9b9f0cdaee4287c7359": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:7e6d5f6b61a332844ed5826ee473f0694de18d446babb3b46bb3cb7882458675": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:2650d56a400aedb40e070d87380ad3b77adb829a53c8775325d2ec958359bf68": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:56da6845c52fe595d62fdbfed51fe6c40c238ad1a22d5b9d38c0b46171ea8291": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:4fde52e3e9a29fa1b016fc17940d8f431a2d91f1a8b9d8b85555b58f5b923f54": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:22c146b9b0a53b25d37181e76efe28a4ecfc1a5a0426fb66f81255d4938a7f16": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:a975b43c3048f0c244feef542dc620c260d01b2bd8d53e0e23d42c07a3af40a8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:raw-render:c39bf1fcb0d20122b496c0873be24c82e78d542cb8f70ca747eadcf06262d189": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:97f363da657f5fe97f4eb894866087bd5737de591d7ff19f25187dae95e4ea26": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:967865c2a3a0cf50d378134229b815e85c8833c91e394bc09332c21ba39e895b": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:frame-allocation:4233812b741d7dbfcb14af11cf0629eb8b907522172a5ab8149f0ec61fecd815": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:efdea1a121357ca50a9d5194fe8727c19a789c2f0b64e7106c890c60b8d9bc36": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:7b7f5d730a9308a1610bac4dd5014a8f0285c0c46f144fa281a9032e47831d1f": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/LeverRifle.ts:unbounded-loop:626dcad44bf782fc901c059eaac7c534f13314eec3e687820a5e407fb4f9aad0": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:0c84b0802cbb2a147d75d5f0c8c06b080c82b051e4eb58754c0270abb9c6384e": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:ce6ffd7c003eba81a5ae6f22c5201f09d02c047f3ed3ecd13ed1a587498d740a": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:raw-render:66d23b38cd1d6f6490a6dcb410b90f4963355dd8699f3793fafec09b4ffcdae4": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:raw-render:543b388111b07aaa52c3943b2d12d39f78d86ea729f6254263dd673adb2a1e50": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:4fe555ca993df5b541b672031e412fc91f159dafc087b609f1a0f9a943dccc40": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:2cbd5742ae1ce5e5008783b14102b6e0df02f3ff44bd764aeb184c4471c16d70": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:292048022b79959f90da019af12f6788c976a281728df2aa2afc368849c8669d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:raw-render:f9514863f14a38e8041e48fa69862760facace6b84f90a2ed8dd872607a8f283": {
+      "count": 4,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:ab1300e12315f5855eb4a7058f325ee81004e2e083bea7d2a532486e8d558e89": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:3a4972e3e136ae2c3363cc192b2f03cb965a58fde173a9030585c8a80045366e": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:618082e02523dff38b1864c8631ce0bb6e3a4942d7602b138c84c7eed48a8324": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:1d3f357c5fd4befcecad66970c36122c1967b40781afebada81a15fb07d2f65d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:83bb55ce5388efe2b6c9f96bd167128390d9c0692118fb349875b30965b246a3": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:df04a9c73f78f23a8a0f5777d161596caf914de474a9f9b7ee92acec3cb18fe1": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:a975b43c3048f0c244feef542dc620c260d01b2bd8d53e0e23d42c07a3af40a8": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:d11b78ee64f25965722ee8fc0e7e327609ee69c78d17406b94971e97ffff6774": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:raw-render:c39bf1fcb0d20122b496c0873be24c82e78d542cb8f70ca747eadcf06262d189": {
+      "count": 2,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:9f50d3f70e42d0327025e36c37dbd41a45005b7cec1799445fe029612dc844df": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:8ab236280ad4f48836c89185a1bb517ae8ab55d62c358c4f51ad61a30a0c3bd7": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:frame-allocation:753bc186e2c150c3f7da5c84465e11f54d82047b4a01fb38996f492b477a4dcf": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:frame-allocation:b75edb8415bae2b43ad37c9c1d052098cc75380b19c816988bf9c2957a40698d": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:frame-allocation:f5de6b314d143e963de8cbcf09f0532d9f4e75f737c21814cbd6b97333ee5022": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:frame-allocation:db072509f3371799f6b6b972eb18c362f836731807f7f11149b5e0b4fd60b499": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts:unbounded-loop:7b122e820963055e54c31214b6c944627d657017f634388172c645e14d2d2f63": {
+      "count": 1,
+      "row": "SF47"
+    },
+    "src/shards/sunscar-dunes/runtime/brains.ts:frame-allocation:d65f76439b954999499740d888210a7a70e6fdec9321ff4781020ab45a1f0a3c": {
+      "count": 1,
+      "row": "SF50"
+    },
+    "src/shards/sunscar-dunes/runtime/brains.ts:frame-allocation:ba05485eaca734635625c7de77f26950fdf8c94b5f5d3ad48b9a4ac8b79b553c": {
+      "count": 1,
+      "row": "SF50"
+    },
+    "src/shards/sunscar-dunes/runtime/brains.ts:unbounded-loop:4eaa63a1310d0aa1955bae0567b369af2e0258019ac206e2cdd6ec955259cc6e": {
+      "count": 1,
+      "row": "SF50"
+    },
+    "src/shards/sunscar-dunes/runtime/brains.ts:unbounded-loop:8944d353a10baca82909ca5d016d0a96562b60cd444b9a3bb1a75aeda722ceb6": {
+      "count": 1,
+      "row": "SF50"
+    },
+    "src/shards/sunscar-dunes/runtime/brains.ts:frame-allocation:5373bef9a440cc7a5a25b82a195dba994485533329e7a836a4c0f402e9020999": {
+      "count": 1,
+      "row": "SF50"
+    }
+  }
+}

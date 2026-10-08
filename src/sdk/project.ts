@@ -13,6 +13,7 @@ import { readBoundedFile } from './sourceReader';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { MemoryAdmission } from '@wildshard/game/grid/memoryAdmission';
 import { projectPerformancePolicy } from './performancePolicy';
+import { checkProjectRuntime } from './runtimePerformance';
 import { performanceReport, performanceReportLines, performanceTargetIssues } from './reportCard';
 
 /** Stable JSON encoding: sorted object keys, no timestamps or host paths. */
@@ -43,7 +44,9 @@ async function projectModule(project: string): Promise<{ shard: Shardfile; commo
   const chunk = chunks[0]; if (chunk === undefined) throw new Error('config chunk missing');
   const loaded: unknown = await import(`data:text/javascript;base64,${Buffer.from(chunk.code).toString('base64')}`);
   if (typeof loaded !== 'object' || loaded === null || !('default' in loaded)) throw new Error('config has no default export');
-  return { shard: parseShardfile(loaded.default), commons: 'commons' in loaded ? loaded.commons : undefined };
+  const shard = parseShardfile(loaded.default);
+  checkProjectRuntime(project, projectPerformancePolicy(project, shard));
+  return { shard, commons: 'commons' in loaded ? loaded.commons : undefined };
 }
 /** Compile a trusted local TypeScript config; only its serialisable default export enters the product. */
 export async function readProject(project: string): Promise<Shardfile> { return (await projectModule(project)).shard; }

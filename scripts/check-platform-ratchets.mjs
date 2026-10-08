@@ -1,10 +1,11 @@
 // SF1b: immutable predecessor lists, never the candidate's own allowance, set the limit.
 import { compareCoupling, compareWeaponTransfers, WEAPON_TRANSFER_BOOTSTRAP, WEAPON_TRANSFER_LIST } from './shard-coupling.mjs';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST];
+export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, 'lint/runtime-performance.json'];
 
 /** Explicit file inputs work in an index export and in a post-commit export with no .git. */
 export function comparePlatformList(list, baselineFile, candidateFile) {
@@ -12,6 +13,27 @@ export function comparePlatformList(list, baselineFile, candidateFile) {
     if (!existsSync(candidateFile)) return existsSync(baselineFile) ? [`${list}: transfer policy was removed; retire its entries instead`] : [];
     const before = existsSync(baselineFile) ? JSON.parse(readFileSync(baselineFile, 'utf8')).transfers : WEAPON_TRANSFER_BOOTSTRAP;
     return compareWeaponTransfers(before, JSON.parse(readFileSync(candidateFile, 'utf8')).transfers);
+  }
+  if (list === 'lint/runtime-performance.json') {
+    if (!existsSync(candidateFile)) return [`${list}: reviewed policy was removed; retire its sites instead`];
+    const after = JSON.parse(readFileSync(candidateFile, 'utf8'));
+    if (!existsSync(baselineFile)) {
+      // E435 / SF62: coordinator-reviewed bootstrap, 441 exact sites / 626 violations; never a new-site escape.
+      const digest = createHash('sha256').update(JSON.stringify(after.sites)).digest('hex');
+      return digest === '77308f0fdfbbb38ae8d19cd97d5d9940a396fd1f16edf1a009ef878f5aace0de' && after.baselineAt === 'fadcee06196f345f706aa9f7e01a3bb027968a20' ? [] : [`${list}: bootstrap differs from the reviewed inventory`];
+    }
+    const before = JSON.parse(readFileSync(baselineFile, 'utf8')), failures = [];
+    if (after.baselineAt !== before.baselineAt || after.about !== before.about || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
+    for (const [site, item] of Object.entries(after.sites)) {
+      const previous = before.sites[site];
+      if (!previous) failures.push(`${list}: new runtime site ${site}`);
+      else {
+        if (item.count > previous.count) failures.push(`${list}: ${site} count rose`);
+        if (item.row !== previous.row) failures.push(`${list}: ${site} retirement owner changed`);
+      }
+      if (!Number.isSafeInteger(item.count) || item.count <= 0 || Object.keys(item).sort().join(',') !== 'count,row') failures.push(`${list}: invalid site ${site}`);
+    }
+    return failures;
   }
   const before = JSON.parse(readFileSync(baselineFile, 'utf8'));
   const after = JSON.parse(readFileSync(candidateFile, 'utf8'));
