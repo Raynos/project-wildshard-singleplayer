@@ -140,3 +140,18 @@ it('keeps captured piece batches under their piece owner and disposes once on le
   expect(f.scene.children).toEqual([]); expect(f.region.world.colliders.len()).toBe(0);
   f.claim.release(); f.home.dispose(); f.region.dispose();
 });
+
+
+it('shares a placement object across pieces without freeing it until its last piece leaves', () => {
+  const f = fixture(), first = f.resident.child('first'), last = f.resident.child('last');
+  const batch = new BatchedMesh(1, 24, 36, new MeshBasicMaterial()), source = new BoxGeometry();
+  batch.addInstance(batch.addGeometry(source)); source.dispose();
+  const dispose = vi.spyOn(batch, 'dispose');
+  withOwner(first, () => { f.view.registry.add(box('first', 0, { object: batch })); });
+  withOwner(last, () => { f.view.registry.add(box('last', 1, { object: batch })); });
+  expect(f.view.root.children).toEqual([batch]); expect(f.region.world.colliders.len()).toBe(2);
+  first.dispose(); expect(dispose).not.toHaveBeenCalled(); expect(batch.parent).toBe(f.view.root);
+  expect(f.region.world.colliders.len()).toBe(1);
+  last.dispose(); expect(dispose).toHaveBeenCalledOnce(); expect(batch.parent).toBeNull();
+  f.view.dispose(); f.resident.dispose(); f.claim.release(); f.home.dispose(); f.region.dispose();
+});

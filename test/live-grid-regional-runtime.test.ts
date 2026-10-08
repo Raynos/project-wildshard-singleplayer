@@ -33,7 +33,7 @@ import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const noop = (): void => undefined;
 
-it('admits a whole-cost runtime, runs hooks only after the real interior event, checkpoints and returns both worlds to baseline', async () => {
+it.each(['road', 'inside'] as const)('admits a whole-cost runtime, runs entered hooks and returns both worlds to baseline on %s unload', async unload => {
   const R = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer), app = new App(), scope = app.engineScope.child('page');
   app.levelScope = scope;
   const pageHost = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier: R });
@@ -73,7 +73,7 @@ it('admits a whole-cost runtime, runs hooks only after the real interior event, 
   vi.spyOn(foundation, 'createRegionalWorldFoundation').mockImplementation(ports => request => {
     // View/terrain/rig construction is a declared foundation double; native host, grid installs, lease, scopes,
     // registry, trusted lifecycle, equipment and checkpoint writers remain the real production implementations.
-    const host = createSimHost({ ...SIM_LEVEL, id: target.slug, entities: [], quests: [] }, { rapier: R, playerBody: false });
+    const host = createSimHost({ ...SIM_LEVEL, id: target.slug, entities: [], quests: [] }, { rapier: R, playerBody: false, scope: request.scope.child('native-foundation') });
     regions.push(host); ports.install?.(host, request);
     const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon' }); aimBodies = animals.animals; vi.spyOn(animals, 'update').mockImplementation(noop);
     return Promise.resolve({ region: { host, dispose: () => { disposed++; host.dispose(); } }, ground: { heightAt: () => 0, waterSurfaceAt: () => null },
@@ -103,10 +103,17 @@ it('admits a whole-cost runtime, runs hooks only after the real interior event, 
     traveller.position.z = -260; expect(session.aimAnimals()).not.toBe(aimBodies);
     traveller.position.z = 0; expect(session.aimAnimals()).toBe(aimBodies);
     expect(session.live.checkpoint(target.instance)).toBe(true);
-    gridCells.leave(); expect(app.registryValue).toBe(registry);
-    expect(session.aimAnimals()).toEqual([]); expect(session.aimAnimals()).not.toBe(aimBodies);
-    const leave = await session.live.prepare(target.instance, null); leave.commit();
-    expect(session.live.unload(target.instance)).toBe(true); expect(disposed).toBe(1); expect(release).toHaveBeenCalledTimes(1);
+    if (unload === 'road') {
+      gridCells.leave(); expect(app.registryValue).toBe(registry);
+      expect(session.aimAnimals()).toEqual([]); expect(session.aimAnimals()).not.toBe(aimBodies);
+      const leave = await session.live.prepare(target.instance, null); leave.commit();
+      expect(session.live.unload(target.instance)).toBe(true);
+    } else {
+      expect(() => { scope.dispose(); }).not.toThrow();
+      expect(session.live.current()).toBe(home.instance);
+      expect(app.registryValue).toBe(registry);
+    }
+    expect(disposed).toBe(1); expect(release).toHaveBeenCalledTimes(1);
     expect(scene.children).toHaveLength(0);
     expect(regions.every(host => host.scope.disposed)).toBe(true);
   } finally {

@@ -172,6 +172,7 @@ export class LiveGridSession {
   /** each admitted region's authored spawn (its level's player start) and its ground / water queries, local */
   private readonly regions = new Map<string, { readonly spawn: LiveGridSpawn; readonly queries: PlayerFrameQueries; readonly simulation: ShardfileSimulation }>();
   private homeSim: GridHomeSimulation | null = null;
+  private readonly runtimeScope: Scope;
   private readonly runtimeRegions = new Map<string, PreparedRegionalRuntime>();
   private readonly runtimeResidents = new Map<string, HybridResident>();
   private readonly runtimeEntries: TrustedRuntimeEntry[] = [];
@@ -188,6 +189,8 @@ export class LiveGridSession {
     this.framePhysics = ports.physics;
     const { assembly, home, scope } = ports, rapier = ports.physics.R;
     const traveller = page.traveller;
+    // Register the resident parent before the live host disposer: the traveller returns before native children free.
+    this.runtimeScope = scope.child('grid.runtime.residents');
     this.hybrid = new HybridRuntimeSession(this.runtimeResidents, this.runtimeEntries, scope);
     scope.onDispose(gridCells.onLeave(() => { this.hybrid.leave(); }));
     scope.onDispose(gridCells.onEnter(cell => {
@@ -532,7 +535,7 @@ export class LiveGridSession {
         }),
       });
       let prepared: PreparedRegionalRuntime;
-      try { prepared = await factory({ cell, admitted: retained.admitted, manifest, page, allocator: this.ports.allocator, claim, scope: this.ports.scope }); }
+      try { prepared = await factory({ cell, admitted: retained.admitted, manifest, page, allocator: this.ports.allocator, claim, scope: this.runtimeScope }); }
       catch (error) { this.transferWalls.delete(cell.instance); saved.unbind(); throw error; }
       this.runtimeRegions.set(cell.instance, prepared); this.runtimeResidents.set(cell.instance, prepared.resident);
       this.respawnCells.set(cell.instance, { instance: cell.instance, origin: cell.origin, entryways: retained.admitted.source.entryways });

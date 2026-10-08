@@ -94,6 +94,7 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   root.position.set(cell.origin.x - request.home.x, 0, cell.origin.z - request.home.z);
   const registry = new WorldRegistry();
   const movers = new Set<() => void>(), platforms: Floor[] = [];
+  const objects = new Map<Object3D, { scope: Scope; refs: number }>();
   let bindings = 0, held = false;
   // Unwinds last (LIFO): the scene node, then the claim hold, after every piece scope below has released its handles.
   scope.onDispose(() => {
@@ -116,7 +117,17 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
       }
       withOwner(pieceScope, () => {
         const object = piece.object;
-        if (object !== undefined) { root.add(object); ownSceneTree(object, pieceScope, assets); }
+        if (object !== undefined) {
+          let owned = objects.get(object);
+          if (owned === undefined) {
+            const objectScope = scope.child(`grid.object:${piece.id}`);
+            owned = { scope: objectScope, refs: 0 }; objects.set(object, owned);
+            root.add(object); ownSceneTree(object, objectScope, assets);
+            objectScope.onDispose(() => { objects.delete(object); });
+          }
+          const placement = owned; placement.refs++;
+          pieceScope.onDispose(() => { placement.refs--; if (placement.refs === 0) placement.scope.dispose(); });
+        }
         const added = addPiece(physics, piece, root);
         if (added.body !== null || piece.active !== undefined) {
           movers.add(added.sync); pieceScope.onDispose(() => { movers.delete(added.sync); });
