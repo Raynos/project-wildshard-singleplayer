@@ -192,7 +192,7 @@ export class Deck {
       this.layerGains.length = 0;
     });
     this.scope.listen(ctx, 'statechange', () => {
-      if (this.stopAt !== Infinity && this.ctx.state !== 'running') this.dispose();
+      if (this.stopAt !== Infinity && this.pausedClock()) this.dispose();
     });
     const mk = (buf: AudioBuffer, to: AudioNode) => {
       const s = withOwner(this.scope, () => ownAudioSource(ctx.createBufferSource())); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
@@ -218,6 +218,10 @@ export class Deck {
   }
   /** Stop and release this deck once, including when its context cannot deliver ended. */
   dispose(): void { this.scope.dispose(); }
+  private pausedClock(): boolean {
+    // Offline contexts accept scheduled crossfades before startRendering, while suspended.
+    return this.ctx.state !== 'running' && !('startRendering' in this.ctx);
+  }
   get phase(): BossPhase { return this._phase; }
 
   /** the boss's phase: its layers move to that phase's gains on the next bar (in over a beat, out over two bars) */
@@ -260,7 +264,7 @@ export class Deck {
     const firstFade = this.stopAt === Infinity;
     this.stopAt = t + secs;
     // A paused clock cannot reach the scheduled stop. Retiring it is inaudible.
-    if (this.ctx.state !== 'running') { this.dispose(); return; }
+    if (this.pausedClock()) { this.dispose(); return; }
     const g = this.out.gain;
     const cp: { cancelAndHoldAtTime?: (t: number) => void } = g;
     if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(t); else { g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); }

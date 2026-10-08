@@ -88,6 +88,19 @@ describe('stem deck PCM lifetime', () => {
     f.scope.dispose();
   });
 
+  it('preserves scheduled offline crossfades before rendering starts', () => {
+    const f = fixture('suspended');
+    Object.assign(f.ctx, { startRendering: () => Promise.resolve(f.audio.calm) });
+    const deck = f.make(); deck.fadeOut(14, 4);
+    expect(f.sources.every(s => s.buffer !== null)).toBe(true);
+    expect(f.sources.map(s => s.stops)).toEqual([[18.05], [18.05], [18.05]]);
+    f.ctx.dispatchEvent(new Event('statechange'));
+    expect(deck.audio).toBe(f.audio);
+    f.sources[0]?.dispatchEvent(new Event('ended'));
+    expect(f.sources.every(s => s.buffer === null)).toBe(true);
+    f.scope.dispose();
+  });
+
   it('owns playing sources in the deck child scope and releases them on region retirement', () => {
     const f = fixture(), deck = f.make();
     expect(f.scope.census.sounds).toBe(3);
