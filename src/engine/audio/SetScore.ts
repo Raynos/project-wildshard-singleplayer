@@ -105,6 +105,11 @@ export class SetScore<Scene> implements ScoreSource {
   get available(): boolean { return this.slots.length > 0; }
   get resident(): string[] { return [...this.residentSlots.keys()]; }
   get pending(): boolean { return this.waitingBoot || this.decoding !== undefined; }
+  /** Music has installed the new deck; only its fading predecessor still needs the outgoing PCM. */
+  onDeck(slot: string): void {
+    const wanted = this.target();
+    for (const key of this.residentSlots.keys()) if (key !== slot && key !== wanted) this.residentSlots.delete(key);
+  }
   useBank(bank: ScoreBank): void {
     if (this.disposed) return;
     this.waitingBoot = false;

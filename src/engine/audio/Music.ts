@@ -587,12 +587,14 @@ export class Music {
   /** the stems the loading bar decoded (src/engine/boot/extras.ts) — the selected genre's title + this shard's slot + stings */
   useBank(bank: StyleBank): void {
     if (bank.genre !== this._genre) return; // the genre changed while the bar ran: prepare() decodes that one
-    // E155: another shard's bar decoded its own slot of the same genre: add it to the resident bank (the title and the first
-    // shard's slot stay decoded), so switching back never waits on a decode. E264: a slot or sting already resident keeps its
-    // first copy (the one the deck plays): a second decode of the same file was the replacement, and the deck held the old
-    // buffers on while the bank held the new ones (Nine Dragon's two stems, 35 MB of PCM, twice)
+    // Reuse matching incoming recordings, but never accumulate retired levels' PCM in the page bank.
+    // The outgoing Deck owns its buffers through its unchanged crossfade; re-entry decodes from cached compressed bytes.
     const old = this.bank;
-    this.bank = old?.genre === bank.genre && old.set === bank.set ? { ...bank, slots: new Map([...bank.slots, ...old.slots]), stings: new Map([...bank.stings, ...old.stings]), log: [...old.log, ...bank.log] } : bank;
+    this.bank = old?.genre === bank.genre && old.set === bank.set ? {
+      ...bank,
+      slots: new Map([...bank.slots].map(([slot, audio]) => [slot, old.slots.get(slot) ?? audio])),
+      stings: new Map([...bank.stings].map(([sting, audio]) => [sting, old.stings.get(sting) ?? audio])),
+    } : bank;
     this.sync();
   }
 
