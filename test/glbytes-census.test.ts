@@ -112,6 +112,13 @@ it('journals exact allocation mutations and labels without retaining WebGL objec
     if(new Set(buffer.map(e=>e.id)).size!==1)throw Error('Unstable allocation identity');
     const texture=events.filter(e=>e.op==='allocation' && e.kind==='texture').at(-1);
     if(texture.bytes!==84 || texture.asset!=='fixture-texture' || !texture.labelled)throw Error('Missing mip/label mutation');
+    if(texture.width!==4 || texture.height!==4 || texture.depth!==1 || texture.levels!==3
+      || texture.internalFormat!==0x8058 || texture.operation!=='generateMipmap')throw Error('Missing scalar texture shape');
+    const rb=gl.createRenderbuffer();gl.bindRenderbuffer(0x8d41,rb);gl.renderbufferStorageMultisample(0x8d41,4,0x8058,8,16);
+    const target=events.at(-1);
+    if(target.width!==8 || target.height!==16 || target.samples!==4 || target.bytes!==2048
+      || target.operation!=='renderbufferStorageMultisample')throw Error('Missing scalar target shape');
+    gl.deleteRenderbuffer(rb);
     if(events.some(e=>Object.values(e).some(v=>v!==null && typeof v==='object')))throw Error('Journal retains an object');
     const count=events.length; window.__sc_gl_change=null; gl.createBuffer();
     if(events.length!==count)throw Error('Disabled loading journal still observes playing allocations');

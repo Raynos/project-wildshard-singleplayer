@@ -130,7 +130,7 @@ async function worker() {
     await driver.evaluate(`${GL_INIT};window.__sf57Errors=[];localStorage.clear();sessionStorage.clear();(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();window.__sf57GL.push(window.__sf57ReadGL());true`);
     await collectGl();
     phase('loading');
-    sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--sample-interval-high', '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
+    sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--sample-interval-high', ...(diagnosticFirstCrossing ? ['--process-identities'] : []), '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
     /** @type {{ error: string | null }} */ const samplerResult = { error: null };
     const samplerClosed = new Promise((resolve) => { sampler.on('error', (error) => { samplerResult.error = String(error); resolve(); }); sampler.on('close', (code) => { if (code !== 0) samplerResult.error = `Native sampler exited ${code}`; resolve(); }); });
     const gameUrl = `${base}sf57-safari.html?mute=1&nolock=1&sw=0`;
@@ -189,7 +189,13 @@ async function worker() {
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         result.seconds = (Date.now() - driveStart) / 1000;
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
-        if (diagnosticFirstCrossing) { complete = true; break; }
+        if (diagnosticFirstCrossing) {
+          phase('settle-entry'); await measuredWait(20);
+          const entry = await driver.evaluate('({document:window.__sf57DocumentId,current:window.__wildshard?.shard?.grid?.state().live?.live?.current})');
+          if (entry.document !== result.documentId || entry.current !== plan.to) throw new Error('Diagnostic entry changed document or region during settle');
+          result.diagnosticEntry = { at: Date.now() / 1000, instance: entry.current, settledSeconds: 20 };
+          complete = true; break;
+        }
         // Finish the fenced leg; a completed last leg still receives its lap count and settled baseline below.
         if (result.seconds >= duration && plan !== plans.at(-1)) { complete = true; break; }
       }

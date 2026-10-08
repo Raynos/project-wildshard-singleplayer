@@ -2,7 +2,7 @@
 export const GL_INIT = String.raw`(() => { const W = window;
   if (W.__sc_gl) return;
   const labels = new WeakMap(), sources = new WeakMap(), ids = new WeakMap(), uploads = new WeakMap(), storage = new WeakMap();
-  let scope = null, sequence = 0;
+  let scope = null, sequence = 0, operation = null;
   const object = (v) => v !== null && (typeof v === 'object' || typeof v === 'function');
   const label = (resource, owner, asset) => { if (object(resource) && owner && asset) { const previous=labels.get(resource); if(previous?.owner===owner && previous.asset===asset)return; labels.set(resource, { owner, asset }); W.__sc_gl_change?.({at:Date.now()/1000,op:'label',id:identity(resource,'resource'),owner,asset}); } };
   W.__sc_label_gl = label;
@@ -20,8 +20,10 @@ export const GL_INIT = String.raw`(() => { const W = window;
   W.__sc_gl_id = (resource) => object(resource) ? ids.get(resource) ?? null : null;
   W.__sc_gl_source_ids = (source) => !object(source) ? [] : recs.flatMap(r => [...r.buf.keys()].filter(resource => (uploads.get(resource)?.deref() === source || storage.get(resource)?.deref() === source)).map(resource => identity(resource, 'buffer')));
   // Optional loading journal contains scalar identities only; it never retains GPU/source objects.
-  const changed = (gl, resource, kind, bytes) => { if (W.__sc_gl_change) {const row=entry(resource,kind,bytes);W.__sc_gl_change({at:Date.now()/1000,op:'allocation',context:identity(gl,'context'),...row,bytes});} };
-  const changedTexture = (gl, resource) => { if (!W.__sc_gl_change) return; let bytes=0; for(const level of rec(gl).tex.get(resource)?.values() ?? []) bytes+=level.bytes; changed(gl,resource,'texture',bytes); };
+  const changed = (gl, resource, kind, bytes, dimensions = {}) => { if (W.__sc_gl_change) {const row=entry(resource,kind,bytes);W.__sc_gl_change({at:Date.now()/1000,op:'allocation',context:identity(gl,'context'),...row,bytes,operation,canvas:gl.canvas?.id??null,stage:W.__frameFloorGridStop?.phase??'boot',...dimensions});} };
+  const changedTexture = (gl, resource) => { if (!W.__sc_gl_change) return; let bytes=0,width=0,height=0,depth=0,levels=0,internalFormat=null;
+    for(const level of rec(gl).tex.get(resource)?.values() ?? []){bytes+=level.bytes;width=Math.max(width,level.w);height=Math.max(height,level.h);depth=Math.max(depth,level.d);levels++;internalFormat=level.ifmt;}
+    changed(gl,resource,'texture',bytes,{width,height,depth,levels,internalFormat}); };
   // Lost contexts have no live allocations. Record the same retirement in the journal as in the census.
   const retire = (gl) => {
     const r = recOf.get(gl); if (!r) return;
@@ -74,7 +76,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
   const BUF_BIND = { 0x8892: 0x8894, 0x8893: 0x8895, 0x8a11: 0x8a28, 0x8f36: 0x8f36, 0x8f37: 0x8f37, 0x88eb: 0x88ed, 0x88ec: 0x88ef, 0x8c8e: 0x8c8f };
   const hook = (proto) => {
     if (!proto) return;
-    const wrap = (name, after) => { const orig = proto[name]; if (typeof orig !== 'function') return; proto[name] = function wrapped(...a) { const r = orig.apply(this, a); try { after(this, a, r); } catch {} return r; }; };
+    const wrap = (name, after) => { const orig = proto[name]; if (typeof orig !== 'function') return; proto[name] = function wrapped(...a) { const r = orig.apply(this, a), previous=operation; operation=name; try { after(this, a, r); } catch {} finally{operation=previous;} return r; }; };
     for (const [method, kind, field] of [['createTexture', 'texture', 'tex'], ['createRenderbuffer', 'renderbuffer', 'rb'], ['createBuffer', 'buffer', 'buf']]) {
       wrap(method, (gl, _args, resource) => { if (!resource) return; const r = rec(gl); r[field].set(resource, kind === 'texture' ? new Map() : 0); identity(resource, kind); if (scope) label(resource, scope.owner, scope.asset); changed(gl,resource,kind,0); });
     }
@@ -106,7 +108,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
       changedTexture(gl,t);
     });
     wrap('deleteTexture', (gl, a) => { recOf.get(gl)?.tex.delete(a[0]); if(a[0]) changed(gl,a[0],'texture',null); });
-    const rbSet = (gl, samples, ifmt, w, h) => { const b = gl.getParameter(0x8ca7); if (b) {const bytes=w * h * (SIZED[ifmt] ?? 4) * Math.max(1, samples);rec(gl).rb.set(b,bytes);changed(gl,b,'renderbuffer',bytes);} };
+    const rbSet = (gl, samples, ifmt, w, h) => { const b = gl.getParameter(0x8ca7); if (b) {const bytes=w * h * (SIZED[ifmt] ?? 4) * Math.max(1, samples);rec(gl).rb.set(b,bytes);changed(gl,b,'renderbuffer',bytes,{width:w,height:h,samples,internalFormat:ifmt});} };
     wrap('renderbufferStorage', (gl, a) => { rbSet(gl, 1, a[1], a[2], a[3]); });
     wrap('renderbufferStorageMultisample', (gl, a) => { rbSet(gl, a[1], a[2], a[3], a[4]); });
     wrap('deleteRenderbuffer', (gl, a) => { recOf.get(gl)?.rb.delete(a[0]); if(a[0]) changed(gl,a[0],'renderbuffer',null); });
