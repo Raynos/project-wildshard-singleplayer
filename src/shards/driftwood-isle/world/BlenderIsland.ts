@@ -213,10 +213,10 @@ const COVER_DEPTH = 0.6;
  * SF67 (E461): the cove's cover splat, baked. `CoverGrid.splat` overwrites every cell of the area from the instanced cover
  * triangles alone (whatever GroundCover filled there before), so the area's block is a pure function of island.glb,
  * placements.bin, island.json and the tier: scripts/bake-island-cover.mjs runs this same code in Node per tier and writes
- * it, the build writes it back (`CoverGrid.writeBlock`) instead of walking ~1 M triangles at load, and splats only when
+ * it next to the island's other files, the build writes it back (`CoverGrid.writeBlock`) instead of walking ~1 M triangles at load, and splats only when
  * the file is missing or does not fit. bake-check (`--check`) rebuilds it byte for byte, so a stale bake fails the gate.
  */
-export const islandCoverUrl = (tier: Tier): string => `/assets/baked/driftwood-isle/island-cover.${tier}.bin`;
+export const islandCoverUrl = (tier: Tier): string => (tier === 'phone' ? '/assets/models/driftwood-blender/island-cover.phone.bin' : '/assets/models/driftwood-blender/island-cover.desktop.bin');
 const COVER_MAGIC = 0x43495357, COVER_VERSION = 1, COVER_HEADER = 16; // 'WSIC' · version · placements used · floats
 
 /** the area's splatted block (`CoverGrid.readBlock`) from the cover sets' triangles */

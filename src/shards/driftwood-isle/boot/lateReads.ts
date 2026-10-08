@@ -18,5 +18,5 @@ export function lateReads(tier: Tier, tex: TexMode = 'img'): string[] {
   const { gpu } = filePolicy(tier, tex, GPU_FILES);
   const lm = tier === 'phone' ? '.phone.webp' : '.webp';
   return ['/assets/lut/driftwood-isle.bin', ...HORIZON.map(gpu), gpu(`${ISLAND}island.glb`), `${ISLAND}island.json`, `${ISLAND}placements.bin`,
-    gpu(`${ISLAND}lm-ao${lm}`), gpu(`${ISLAND}lm-bounce${lm}`), `/assets/baked/driftwood-isle/island-cover.${tier}.bin`, gpu(CAPTAIN)].filter((url) => url in publicBytes());
+    gpu(`${ISLAND}lm-ao${lm}`), gpu(`${ISLAND}lm-bounce${lm}`), tier === 'phone' ? '/assets/models/driftwood-blender/island-cover.phone.bin' : '/assets/models/driftwood-blender/island-cover.desktop.bin', gpu(CAPTAIN)].filter((url) => url in publicBytes());
 }

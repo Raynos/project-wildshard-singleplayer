@@ -5,8 +5,8 @@
 // load (the audit's islandInstances.ts `coverTriangles` task, 733 ms at 4× CPU). The splat overwrites the whole area from
 // island.glb, placements.bin and island.json alone, so this runs the build's own functions (islandProtos, islandSets,
 // coverTrianglesOf, islandCoverBlock) in Node, once per tier (the tile counts and the phone's cover share are the tier's:
-// a child process each, the tier set before the modules load), and writes public/assets/baked/driftwood-isle/
-// island-cover.<tier>.bin. The page writes it back and splats only when it is missing or does not fit (BlenderIsland.ts).
+// a child process each, the tier set before the modules load), and writes public/assets/models/driftwood-blender/
+// island-cover.<tier>.bin (beside island.glb: the shard's own asset folder, so its reads stay inside the shard sandbox). The page writes it back and splats only when it is missing or does not fit (BlenderIsland.ts).
 // Every run bakes in memory and writes only differing bytes; --check (bake-check.mjs) fails when a source or asset changed
 // without a rebake.
 //

@@ -122,12 +122,10 @@
     "src/shards/sunscar-dunes/runtime/audio/cues.ts": 1
   },
   "wildshard/shard-sandbox": {
-    "src/shards/driftwood-isle/boot/lateReads.ts": 1,
     "src/shards/driftwood-isle/boot/sources.ts": 2,
     "src/shards/driftwood-isle/look/backdrop.ts": 2,
     "src/shards/driftwood-isle/quest/Complete.ts": 2,
     "src/shards/driftwood-isle/quest/install.ts": 3,
-    "src/shards/driftwood-isle/world/BlenderIsland.ts": 1,
     "src/shards/nalati-grasslands/boot/files.ts": 6,
     "src/shards/nalati-grasslands/look/grade.ts": 1,
     "src/shards/nalati-grasslands/look/grass.ts": 1,
