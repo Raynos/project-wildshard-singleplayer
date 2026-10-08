@@ -222,6 +222,7 @@
     "./render/hoverboardGeometry": "./render/hoverboardGeometry.ts",
     "./render/dataLook": "./render/dataLook.ts",
     "./render/look": "./render/look.ts",
+    "./render/memorySaver": "./render/memorySaver.ts",
     "./render/lut": "./render/lut.ts",
     "./render/precompile": "./render/precompile.ts",
     "./render/renderer": "./render/renderer.ts",
