@@ -14,18 +14,20 @@
  * (src/engine/boot/bytes.ts), so three's loaders, the boot pack and the manifest all see the same file. Every lookup also takes
  * an explicit mode (`standIn(served, tex)`), so a list can be computed for the OTHER mode (the background download).
  *
- * WHICH mode a page loads with (E157 B, the user: "images on the first visit, KTX2 from the next launch"):
+ * WHICH mode a resident build loads with (G188 supersedes the universal E157 images-first rule):
  *   pause ▸ Settings ▸ Debug ▸ GPU textures = Images   never KTX2;
  *                                           = KTX2     always KTX2 (a set not cached yet downloads with the boot);
- *                                           = Auto     KTX2 once THIS shard's whole KTX2 set for this tier is in the service
+ *                                           = Auto     a measured over-cap phone estimate selects KTX2 immediately;
+ *                                                      otherwise the tier policy wins, or KTX2 once THIS shard's
+ *                                                      whole KTX2 set for this tier is in the service
  *                                                      worker's cache — src/engine/boot/shardPrefetch.ts downloads it in the
  *                                                      background after the first visit and, when the worker has confirmed
  *                                                      every file, writes a marker (the set's hash) that the next page load
  *                                                      reads here. A half-downloaded set has no marker: images.
  * G188: a measured images-first playing estimate above the phone cap selects KTX2 on the first visit.
- * A level may otherwise fix Auto through tier data. An explicit Debug pick still wins; desktop is unchanged.
+ * An explicit Debug pick still wins; desktop is unchanged.
  * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
- * running world. One page builds one level; navigation rebuilds the selected level on a fresh page.
+ * running resident. A grid page can build multiple residents, each with its own TexturePolicyBinding.
  * The explicit Debug pick applies to that page's build. The
  * resolver that checks the marker is registered by shardPrefetch.ts (it owns the set's list); a page that never loads it
  * (dev pages, the bake scripts in Node) reads Auto as Images.

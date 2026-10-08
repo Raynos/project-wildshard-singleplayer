@@ -29,6 +29,17 @@ Estimated time to playable uses unique playable bytes at **1 MB/s plus 1 s setup
 This cold-network model is not a phone measurement: capture real fetch, decode,
 compile, admission and first-frame timings before claiming a loading improvement.
 
+Runtime geometry is not cheap merely because its source is code. Measure builder CPU,
+physics insertion and upload separately; move deterministic construction into baked
+assets or workers, and yield within the remaining builders. The SF67 target is no
+loading task above about 100 ms; the current matched report still exceeds it.
+Report real completed work within Props and other long steps, actual download bytes,
+and named waits from the first HTML frame. A step boundary alone is insufficient.
+Use [the loading benchmark](../progress/loading/sf67/README.md), separately from the
+frame floor: cold and warm SHARD SELECT, phase wall times and tasks above 50 ms.
+Chromium CPU emulation and Simulator Safari are separate results, neither a physical
+phone measurement.
+
 For example, a 5 MB playable closure estimates 6 s under those assumptions. A good
 card says `PASS (refuse)` with measured script samples and no refusals. A bad new
 card declaring an 8,000,001-byte library says `REFUSED (refuse)` and

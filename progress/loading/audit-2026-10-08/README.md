@@ -1,5 +1,7 @@
 # SF67 loading audit (E461), 2026-10-08
 
+**Follow-up (2026-10-08).** This audit preserves the `46d6962` snapshot. Its Pine compressed-texture P0 is stale after `d77c83b84`/`f9e50f6fb`; later standalone boots and the matched SF67 runs reach play. Lazy fingerprints, sub-progress, trusted validation receipts, gated GPU journals and the first-step clamp have landed. See [the matched report](../sf67/README.md) for exact before/after pins and remaining stalls; its Chromium figures do not substitute for matched Simulator Safari runs. The earlier audit statements about absent cache fixes apply only to its pin.
+
 Build `46d6962-muzq309n` (clean HEAD export, `scripts/serve-build.sh --head`). Flow measured: the bare title URL,
 then SHARD SELECT, the shard's card and ENTER WORLD (the real `travel()`: `location.replace(?chunk=<slug>)`), until the
 loading panel has faded. The template is a Developer-only card, so its runs have Developer on.

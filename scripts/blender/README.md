@@ -53,7 +53,11 @@ recipes are the prop lists in `scripts/img2mesh/props/`; Nalati's is `nalati.jso
 
 `pnpm blender:island [--quick]` rebuilds Driftwood's spawn cove in Blender, headless, and writes
 `public/assets/models/driftwood-blender/`. The game always loads it in place of the procedural cove (the user's pick, E7;
-the `?island` switch is gone since E136); the procedural cove stays underneath as the load-failure fallback.
+the `?island` switch is gone since E136). The runtime still constructs procedural content before
+replacing or clipping its drawing inside the Blender area; this is remaining loading
+work, not a supported load-failure fallback. A required island asset failure refuses
+boot. SF67 baking work must remove redundant construction while preserving colliders
+and authored content; it has not landed yet.
 
 **Per shard (PINE-HOLLOW-REMASTER PH-0.3).** Three things name a shard:
 - its area: `src/world/blenderArea.ts`, `blenderAreaFor(slug)`. Driftwood's is also the `area` export that

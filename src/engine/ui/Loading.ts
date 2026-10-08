@@ -15,9 +15,9 @@ const savedStorage = saveStorage('session');
 /**
  * Loading screen in the Wildshard staging identity — a painter of the boot plan's view
  * (src/engine/boot/plan.ts) and nothing else: two tracks (DOWNLOAD bytes read / declared, SETUP
- * weighted steps) as integers that read 100 only when the fraction is exactly 1, an elapsed
- * clock, and one row per step with its wall ms and live detail. Nothing here eases, animates
- * on a timer or guesses. `done()` fades it out and resolves when it is gone.
+ * weighted steps and reported sub-progress) as integers that read 100 only when the fraction is exactly 1,
+ * an elapsed clock, and one row per step with its wall ms and live detail. Bytes and completed work come
+ * from the producer; unknown totals and waits stay explicit. `done()` fades it out and resolves when it is gone.
  *
  * Players (E140, the user's 4a) see only the shard's display name, one bar (both tracks, half each) and a short line;
  * the tracks, the step log, the tier line and "Loading chunk · <slug>" are developer mode's (`<html data-dev>`, set by

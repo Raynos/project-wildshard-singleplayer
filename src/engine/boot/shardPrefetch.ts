@@ -29,7 +29,8 @@ import { prepareBootAudio } from './audioInventory';
  * lanes fetch each shard's KTX2 set (`ktx2Set`: the KTX2 stand-ins its KTX2 boot reads + the Basis transcoder), this
  * shard's first. When the worker has answered every file of a set with 'hit' or 'stored', its marker (`ktx2MarkerKey`,
  * the set's hash) is written; src/engine/boot/gpuFiles.ts reads it at the next page load and Auto boots that shard with KTX2.
- * A failed file removes the marker (images again). Skipped when Settings ▸ Debug ▸ GPU textures is Images.
+ * A failed file removes the marker. It does not override G188's first-visit over-cap phone policy or explicit
+ * tier/Debug choices (gpuFiles.ts). Skipped when Settings ▸ Debug ▸ GPU textures is Images.
  *
  * `window.__ws_prefetch` (the bench / tests): `{ state, done }` — `done` resolves with the final report.
  */

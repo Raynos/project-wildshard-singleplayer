@@ -1,5 +1,7 @@
 # Mobile + web action-game practice, mapped to Wildshard (E357 research, 2026-09-30)
 
+**2026-10-08 correction (SF67/G188).** This is research against `afd112a5`, not current policy. A measured over-cap images-first phone estimate now selects KTX2 on the first visit; explicit Debug choices still win. Current loading work is measured separately from fps, diagnostics are gated, and trusted validation verdicts are cached by exact declaration and validator revision. Historical tables below preserve their original snapshot. See [current rendering/loading rules](../../process/RENDERING.md).
+
 What AAA mobile action / open-world studios and web-game engines do, set against Wildshard's tree at `afd112a5`, for
 the GAME-NORMALIZATION v2 rewrite. Five topics, one table each: **practice · who does it · Wildshard today · gap ·
 row**. The rows (`MW1`–`MW22`) are listed in §6 with a when-tag: **[N]** inside the E357 normalization, **[A]** right

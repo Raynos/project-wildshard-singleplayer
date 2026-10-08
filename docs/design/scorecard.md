@@ -78,7 +78,7 @@ and **desktop** (1600 × 900 at 1×, `?tier=desktop`).
 | `cold.playMs` | Time to play, bench-load's definition: from navigation start until `.ws-load` is gone and `window.__wildshard.world` is set. |
 | `cold4g.playMs` | The same on Fast 4G, in a fresh context of its own. |
 | `cold.longTaskMaxMs` | The longest main-thread task before playable (`PerformanceObserver('longtask')`). |
-| `warm.*` | The second load in the same context, after the background download: the service worker's cache. This load is the KTX2 one (E157 B: Auto boots KTX2 once the shard's set is cached; the phone since E157, the desktop since E173), so its requests include the KTX2 stand-ins, which are not packed, and its GPU rows are the compressed ones. |
+| `warm.*` | The second load in the same context, after the background download: the service worker's cache. Record the resolved texture mode for both visits. G188 can select KTX2 on the first phone visit when the measured images-first estimate exceeds the cap; cache warmth does not define texture mode. Where Auto uses a cache marker, a complete set selects KTX2. KTX2 stand-ins are not packed; their GPU rows are compressed. |
 
 The JSON keeps each load's requests by file type (`reqByType`) and bytes by type (`byType`), so a request-count
 change can be traced to its files.

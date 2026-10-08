@@ -586,6 +586,20 @@ with the stack and a Reload button. **Unload** is `scope.dispose()`; switching s
 
 ## 8. Boot (staged load)
 
+Loading has its own task budget, independently of steady-state fps. Report observed
+sub-progress within builders and explicit waits from the first HTML panel; whole-step
+percentages cannot explain a long Props stall. Keep individual main-thread tasks below
+about 100 ms through baking, workers or time slicing. This is a target, not a claim
+that current worlds meet it: see the [matched SF67 report](../progress/loading/sf67/README.md).
+
+Ordinary boot does not eagerly walk the scene/HUD/shaders to create a probe fingerprint.
+A pinned harness may capture it eagerly; an ordinary reader computes it lazily. The
+GPU allocation journal runs only with Developer or the explicit census harness;
+labels remain a separate bounded mechanism. Do not enable diagnostic walks or journals
+in production merely because they were useful during a capture. The first physics
+frame after loading starts with one fixed tick rather than catching up loading time;
+subsequent bounded catch-up is unchanged.
+
 `ProgressView.worldBytesReady` closes the world transport independently from menu art,
 music and SFX. Loading switches to “Building the world” when that transport is in;
 the download numerator still reports all actual bytes. `slicer(budgetMs, progress?)`

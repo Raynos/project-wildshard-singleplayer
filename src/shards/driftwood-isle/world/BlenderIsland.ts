@@ -2,7 +2,8 @@
  * The Blender-built island (DRIFTWOOD-REMASTER X2, E52): on Driftwood it always replaces the procedural spawn cove —
  * terrain, palms, bushes, shore boulders, ground cover inside `area` (./blenderArea.ts) — with the one scripts/blender/
  * builds in Blender and bakes in Cycles (the user's pick, E7; the switch is gone since E136). The procedural cove is still
- * built underneath: it is what the Blender one sits on, and the fallback when it fails to load (main.ts).
+ * built before this install, then replaced or clipped inside the area. That construction is remaining loading
+ * work, not a supported load-failure fallback: a required island asset failure refuses boot.
  *
  *   island = await BlenderIsland.install({ game, sky, player, terrain, palms, … });
  *

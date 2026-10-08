@@ -1,5 +1,7 @@
 # Pine Hollow and Driftwood Isle: where the memory goes (SF46 / SF47 breakdown, 2026-10-04)
 
+**2026-10-08 correction (G188/SF67).** The measurements below remain evidence for `6844a302a`. Its images-first Auto description is historical: a measured over-cap phone estimate now selects KTX2 on the first visit. Texture choice and cache warmth are separate axes; do not treat these explicit `img` rows as the current cold Auto default. Category caps quoted below are historical targets; the current hard limits are complete 1,000 MB playing / 1,800 MB loading totals.
+
 Rows SF46 and SF47 of [SHARD-PLATFORM](../../../../plans/SHARD-PLATFORM.md), against §3.2's caps v1 (shard library ≤ 25 MB,
 L0 tile ≤ 4 MB, L1 ≤ 2 MB, far 1.6 MB, sim ≤ 25 MB, no JS copies after upload, shadows only within ~80 m). It follows
 [SF22a](sf22a-memory.md) (Simulator: Pine Hollow 1,097 MB alone, Driftwood 868 MB). Raw numbers:

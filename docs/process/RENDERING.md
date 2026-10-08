@@ -19,6 +19,27 @@ Linked from [AGENTS.md](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-
 - **A risky rendering or memory change** (batching, multi-draw, texture or memory policy) ships **default-off behind a
   Debug row** until a physical-device reading backs it (E423 decision 6). It is the one exception to "no phone checks".
 
+## Loading work and diagnostics
+
+Code-built geometry still costs CPU, allocation and upload. Prefer deterministic
+bakes and workers; slice unavoidable runtime work and report completed units within
+long steps. The loading screen owns its clock, identity, bytes and current wait from
+first paint. SF67 targets tasks below about 100 ms, with tasks above 50 ms attributed
+in a separate cold/warm SHARD SELECT benchmark. A frame-floor pass does not prove
+loading responsiveness, and a Chromium emulation result is not Safari evidence.
+
+Debug instruments are gated work: ordinary boot fingerprints are lazy, and the GPU
+allocation journal is Developer/census-only. Preserve harness evidence without making
+its scene walks, task observers or resource journals unconditional production work.
+
+Texture policy follows memory admission, not a blanket images-first rule. With Auto,
+a measured images-first phone estimate above the playing cap selects KTX2 on the first
+visit (G188); an explicit Debug choice takes precedence. The cache-marker fallback
+still applies where no tier policy selects a mode. Configure final samplers before
+upload, retain compressed mips until the first successful real draw, and reject an
+unresident clone without upload data. Cache presence alone does not prove GPU residency.
+
+
 ## Physics (Rapier)
 
 - **`src/engine/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
