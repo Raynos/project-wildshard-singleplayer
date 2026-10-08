@@ -3,11 +3,12 @@ import { readFileSync } from 'node:fs';
 import { beforeAll, describe, expect, it } from 'vitest';
 import source from '../src/shards/nalati-grasslands/shard.config';
 import { NALATI_EDGES } from '../src/shards/nalati-grasslands/data/edges';
-import { encodeTerrainTile, decodeTerrainTile } from '../src/engine/world/terrainTileData';
+import { encodeTerrainTile, decodeTerrainTile, terrainTileHeight } from '../src/engine/world/terrainTileData';
 import { validateEntrywayTerrain } from '../src/game/shardfile/entryways';
 import { entryFootprints } from '../src/game/shardfile/entryGeometry';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { Physics } from '../src/engine/physics/Physics';
+import { CharacterMotor } from '../src/engine/physics/CharacterMotor';
 import { addBakedTerrainCollider } from '../src/engine/physics/terrainTiles';
 import { floorBelow } from '../src/engine/physics/query';
 import { Scope } from '../src/engine/app/scope';
@@ -43,5 +44,34 @@ describe('Nalati real native midpoint entries', () => {
       }
     } finally { scope.dispose(); physics.dispose(); }
   });
-
+  it('continues all 92 entry lanes for 50 m over the authored road instead of requiring a flat world', () => {
+    const physics = new Physics(rapier), scope = new Scope('nalati-native-walk');
+    const motor = new CharacterMotor(physics, { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] });
+    const terrain = decodeTerrainTile(bytes);
+    let lanes = 0;
+    try {
+      addBakedTerrainCollider(physics, bytes, scope); physics.step();
+      for (const side of ['north', 'east', 'south', 'west'] as const) for (let lane = 0; lane < 23; lane++) {
+        const offset = -3.65 + lane * 7.3 / 22, along = side === 'north' || side === 'east' ? 249.55 : -249.55;
+        const feet = { x: side === 'north' || side === 'south' ? offset : along, y: 0.03, z: side === 'east' || side === 'west' ? offset : along };
+        const delta = { x: side === 'east' ? -0.1 : side === 'west' ? 0.1 : 0, y: -9.81 / 3600, z: side === 'north' ? -0.1 : side === 'south' ? 0.1 : 0 };
+        let travelled = 0, stalled = 0;
+        for (let tick = 0; travelled < 50; tick++) {
+          const before = side === 'north' || side === 'south' ? feet.z : feet.x;
+          const result = motor.move(feet, delta);
+          const advance = (side === 'north' || side === 'east' ? -1 : 1) * ((side === 'north' || side === 'south' ? feet.z : feet.x) - before);
+          travelled += advance; stalled = advance < 0.05 ? stalled + 1 : 0;
+          expect(tick).toBeLessThan(600); expect(stalled).toBeLessThan(5); expect(result.grounded).toBe(true);
+          expect(Math.abs((side === 'north' || side === 'south' ? feet.x : feet.z) - offset)).toBeLessThanOrEqual(0.35);
+          const authored = terrainTileHeight(terrain, feet.x, feet.z);
+          expect(Math.abs(feet.y - authored)).toBeLessThanOrEqual(0.15);
+          expect(result.groundNormalY).toBeGreaterThanOrEqual(Math.cos(Math.PI / 4));
+          // Only the canonical socket is required to stay at y=0; the following real road may descend.
+          if (travelled < 14.55) { expect(authored).toBe(0); expect(result.groundNormalY).toBeGreaterThanOrEqual(0.99); }
+        }
+        lanes++;
+      }
+      expect(lanes).toBe(92); expect(physics.world.colliders.len()).toBe(2);
+    } finally { motor.dispose(); scope.dispose(); physics.dispose(); }
+  }, 60_000); // 46,000+ real native moves and per-step contact assertions share CPU with the full CI suite.
 });
