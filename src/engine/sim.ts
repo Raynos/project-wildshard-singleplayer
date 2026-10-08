@@ -122,6 +122,7 @@ export class SimHost {
     const health = new PlayerHealth(this.events, { now: () => this.clock.now * 1000, position: () => position, dodging: () => false, dodgeGuard: () => false });
     if (ports.player !== undefined && ports.playerBody === false) throw new Error('A borrowed player owns its motor');
     this.playerMotor = ports.player === undefined && ports.playerBody !== false ? this.motor('PLAYER', 0.35, 1.8, health.id) : undefined;
+    this.playerMotor?.resetAt(position);
     const readMotor = (): CharacterMotor => { if (this.playerMotor === undefined) throw new Error('Frozen simulation has no player motor'); return this.playerMotor; };
     const writeMotor = (motor: CharacterMotor): void => { this.playerMotor = motor; };
     this.player = ports.player ?? { id: health.id, position, yaw: level.player.yaw, health,
@@ -138,7 +139,11 @@ export class SimHost {
         random: () => this.rng.stream('gameplay').next(), hit: (req) => this.combat.hit(req),
       });
       entity.place(spawn.at.x, spawn.at.z, spawn.yaw, spawn.at.y);
-      entity.motor = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
+      const body = this.motor('CREATURE', spawn.spec.dims.bodyRadius * spawn.scale, spawn.spec.dims.bodyY * spawn.scale * 2, spawn.id);
+      // The capsule starts at the spawn: a creature that never walks (an idle boss) never moves it, and Rapier would
+      // otherwise leave it at the world origin, an invisible wall at the cell centre (G222 playtest #7).
+      body.resetAt(entity.position);
+      entity.motor = body;
       this.entities.set(spawn.id, entity);
       if (spawn.strike !== undefined) {
         this.strikes.set(spawn.id, new StrikeRunner()); this.weapons.set(spawn.id, { ...spawn.strike, weight: () => 1 });

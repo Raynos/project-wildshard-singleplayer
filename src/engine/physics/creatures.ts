@@ -119,7 +119,10 @@ export class CreatureBodies<C extends Creature = Creature> {
     const s = c.scale, d = c.dims;
     const radius = THREE.MathUtils.clamp(Math.min(d.bodyRadius, d.bodyHalfLen) * s, 0.12, 0.9);
     const height = Math.max(radius * 2 + 0.05, (d.bodyY + d.bodyRadius) * s);
-    return new CharacterMotor(this.physics, { radius, height, step: 0.3 * Math.max(1, s), maxClimbDeg: 45, snap: 0.3, group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: c });
+    const motor = new CharacterMotor(this.physics, { radius, height, step: 0.3 * Math.max(1, s), maxClimbDeg: 45, snap: 0.3, group: 'CREATURE', blockedBy: ['WORLD', 'PLAYER', 'CREATURE'], owner: c });
+    // at the animal, not the world origin: an animal standing still never moves its capsule (G222 playtest #7)
+    motor.resetAt(c.position);
+    return motor;
   }
 
   /** The nearest head / body along the ray within `maxDist` (the returned object is reused). */

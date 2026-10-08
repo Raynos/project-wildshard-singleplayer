@@ -51,4 +51,21 @@ describe('versioned renderer-free simulation entry', () => {
       host.step(); expect(count).toBe(3);
     } finally { host.dispose(); }
   });
+  it('places every body at its spawn before the first step, never at the world origin (G222 playtest #7)', () => {
+    const level = structuredClone(SIM_LEVEL);
+    level.player.at = { x: -6, y: 0, z: 5 };
+    for (const entity of level.entities) entity.at = { x: 7, y: 0, z: -9 };
+    const host = createSimHost(level, { rapier });
+    try {
+      const bodiesAt = (x: number, z: number): number => {
+        let n = 0;
+        host.physics.world.intersectionsWithPoint({ x, y: 0.4, z }, (c) => { if (c.shape.type !== rapier.ShapeType.HeightField) n++; return true; });
+        return n;
+      };
+      // the boar never walks here (no step): its capsule must still stand where it was placed
+      expect(bodiesAt(0, 0)).toBe(0);
+      expect(bodiesAt(7, -9)).toBe(level.entities.length);
+      expect(bodiesAt(-6, 5)).toBe(1);
+    } finally { host.dispose(); }
+  });
 });
