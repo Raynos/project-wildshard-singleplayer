@@ -1,0 +1,959 @@
+{
+  "revision": "a661cebcf0601e6e0216c0b72f3d7879b4e7330d",
+  "build": {
+    "build": "a661ceb-muyz3q2w",
+    "time": "2026-10-08T03:24:54.666Z"
+  },
+  "surface": "Chromium Metal, iPhone 16 Pro portrait",
+  "qualifies": "pushed-build hybrid travel, continuation and same-document teardown only",
+  "memoryGate": false,
+  "admission": "Developer ON: G216 honest over-budget admission, no runtime discount",
+  "pine": {
+    "pass": true,
+    "seconds": 62.976,
+    "transitions": [
+      {
+        "from": "driftwood-isle",
+        "to": null
+      },
+      {
+        "from": null,
+        "to": "pine-hollow"
+      },
+      {
+        "from": "pine-hollow",
+        "to": null
+      },
+      {
+        "from": null,
+        "to": "driftwood-isle"
+      },
+      {
+        "from": "driftwood-isle",
+        "to": null
+      },
+      {
+        "from": null,
+        "to": "pine-hollow"
+      },
+      {
+        "from": "pine-hollow",
+        "to": null
+      },
+      {
+        "from": null,
+        "to": "driftwood-isle"
+      }
+    ],
+    "previousDamage": {
+      "id": "creature:152",
+      "before": 100,
+      "after": 99,
+      "dealt": 1
+    },
+    "freshHP": 99,
+    "damage": {
+      "id": "creature:152",
+      "before": 99,
+      "after": 98,
+      "dealt": 1
+    },
+    "restoredHP": 98,
+    "homeCurrent": "driftwood-isle",
+    "homeReady": true,
+    "accountedBytesAtHomeReturn": 1773260466,
+    "playingMBAtHomeReturn": 2348.32,
+    "errors": [],
+    "caught": [],
+    "failedResponses": [],
+    "reports": [],
+    "warnings": [
+      "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "THREE.Material: parameter 'displacementScale' has value of undefined.",
+      "THREE.Material: parameter 'displacementBias' has value of undefined.",
+      "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "THREE.Material: parameter 'displacementScale' has value of undefined.",
+      "THREE.Material: parameter 'displacementBias' has value of undefined.",
+      "[LightPool] sealed and full: a mid-play light was asked for — handing out an unlit one (no recompile)",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    ],
+    "documents": [
+      {
+        "at": 1791429900433,
+        "url": "http://127.0.0.1:4400/?mute=1&sw=0&nolock=1"
+      },
+      {
+        "at": 1791429907363,
+        "url": "http://127.0.0.1:4400/?mute=1&sw=0&nolock=1&chunk=driftwood-isle"
+      }
+    ],
+    "leak": {
+      "before": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "after": {
+        "geometries": 0,
+        "textures": 0,
+        "programs": 0,
+        "bodies": 0,
+        "colliders": 0,
+        "listeners": {
+          "window": 0,
+          "document": 0,
+          "canvas": 0,
+          "other": 0
+        },
+        "timers": {
+          "timeouts": 0,
+          "intervals": 0,
+          "raf": 0
+        },
+        "audio": {
+          "activeVoices": 0,
+          "beds": 0,
+          "buses": 0
+        },
+        "systems": {
+          "input": 0,
+          "fixed": {
+            "pre": 0,
+            "step": 0,
+            "post": 0
+          },
+          "update": 0,
+          "late": 0,
+          "render": 0
+        },
+        "events": {
+          "listeners": 7,
+          "answerers": 5
+        },
+        "dom": {
+          "hud": 0,
+          "body": 0
+        },
+        "sceneObjects": 0
+      },
+      "scope": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      },
+      "disposalErrors": []
+    }
+  },
+  "nalati": {
+    "errors": [],
+    "consoleErrors": [],
+    "pages": [
+      {
+        "visit": 0,
+        "freshPage": false,
+        "build": {
+          "build": "a661ceb-muyz3q2w",
+          "time": "2026-10-08T03:24:54.666Z"
+        },
+        "persistedNalati": null,
+        "caughtRestore": [],
+        "entries": [
+          {
+            "edge": "west",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 277.5000003940666,
+                  "y": 0.019997730618342757,
+                  "z": 0
+                },
+                "end": {
+                  "x": 336.2796313008255,
+                  "y": 0.019998861525088785,
+                  "z": -0.00012895177822171448
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.279631300825486,
+                "elapsed": 14.302899999618539,
+                "wallMs": 17265.5,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 336.2796313008255,
+                  "y": 0.019998861525088785,
+                  "z": -0.00012895177822171448
+                },
+                "end": {
+                  "x": 277.60785304252545,
+                  "y": 0.020095234785109994,
+                  "z": 0.00014688058479532225
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.39214695747455,
+                "elapsed": 13.917599999904645,
+                "wallMs": 14013.799999713898,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          },
+          {
+            "edge": "south",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 555,
+                  "y": 0.5,
+                  "z": -277.5
+                },
+                "end": {
+                  "x": 554.9999399566173,
+                  "y": 0.0200993018224338,
+                  "z": -218.72020313225948
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.279796867740515,
+                "elapsed": 13.98970000028611,
+                "wallMs": 14498.699999809265,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 554.9999399566173,
+                  "y": 0.0200993018224338,
+                  "z": -218.72020313225948
+                },
+                "end": {
+                  "x": 555.0000577896581,
+                  "y": 0.017100659300872678,
+                  "z": -277.3930684108127
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.393068410812702,
+                "elapsed": 13.800000000000004,
+                "wallMs": 13798.5,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          },
+          {
+            "edge": "east",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 832.5,
+                  "y": 0.5,
+                  "z": 0
+                },
+                "end": {
+                  "x": 773.6485338145794,
+                  "y": 0.019999446553661926,
+                  "z": 0.00010070671102979309
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.351466185420577,
+                "elapsed": 14.168699999332423,
+                "wallMs": 15886.60000038147,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 773.6485338145794,
+                  "y": 0.019999446553661926,
+                  "z": 0.00010070671102979309
+                },
+                "end": {
+                  "x": 832.3924161336035,
+                  "y": 0.02010050416536302,
+                  "z": -0.00004608436757659248
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.392416133603547,
+                "elapsed": 13.83290000009537,
+                "wallMs": 13830.400000095367,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          },
+          {
+            "edge": "north",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 555,
+                  "y": 0.5,
+                  "z": 277.5
+                },
+                "end": {
+                  "x": 555.0000841496006,
+                  "y": 0.019998878758087812,
+                  "z": 218.72094008536078
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.27905991463922,
+                "elapsed": 14.088399999618542,
+                "wallMs": 15834,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 555.0000841496006,
+                  "y": 0.019998878758087812,
+                  "z": 218.72094008536078
+                },
+                "end": {
+                  "x": 554.9999433350804,
+                  "y": 0.019996242682282173,
+                  "z": 277.39251222112216
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.39251222112216,
+                "elapsed": 13.944300000190735,
+                "wallMs": 14015.099999904633,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          }
+        ],
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "disposalErrors": []
+        }
+      },
+      {
+        "visit": 1,
+        "freshPage": true,
+        "build": {
+          "build": "a661ceb-muyz3q2w",
+          "time": "2026-10-08T03:24:54.666Z"
+        },
+        "persistedNalati": {
+          "bytes": 6808,
+          "sha256": "427b04a93480f215dc73001ccd3a442d59e10838d78dd400ab48b3f94434b4fb",
+          "identical": true
+        },
+        "caughtRestore": [],
+        "entries": [
+          {
+            "edge": "west",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 277.5000005417421,
+                  "y": 0.019997727387817577,
+                  "z": 0
+                },
+                "end": {
+                  "x": 336.27973372959127,
+                  "y": 0.01999999215762216,
+                  "z": 0.0000034824051411918265
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.27973372959127,
+                "elapsed": 14.240299999713898,
+                "wallMs": 16883.299999713898,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 336.27973372959127,
+                  "y": 0.01999999215762216,
+                  "z": 0.0000034824051411918265
+                },
+                "end": {
+                  "x": 277.6086217305117,
+                  "y": 0.019933561105730746,
+                  "z": 0.00006847153500412722
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.391378269488314,
+                "elapsed": 13.895199999332434,
+                "wallMs": 13965.5,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          },
+          {
+            "edge": "south",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 555,
+                  "y": 0.5,
+                  "z": -277.5
+                },
+                "end": {
+                  "x": 555.0000010410475,
+                  "y": 0.019999972966566304,
+                  "z": -218.64903313003742
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.350966869962576,
+                "elapsed": 13.932499999999985,
+                "wallMs": 13919,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 555.0000010410475,
+                  "y": 0.019999972966566304,
+                  "z": -218.64903313003742
+                },
+                "end": {
+                  "x": 555.0000571796314,
+                  "y": 0.020452313554365276,
+                  "z": -277.3924429614126
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.3924429614126,
+                "elapsed": 13.833300000190736,
+                "wallMs": 13831.300000190735,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          },
+          {
+            "edge": "east",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 832.5,
+                  "y": 0.5,
+                  "z": 0
+                },
+                "end": {
+                  "x": 773.6809560210022,
+                  "y": 0.020911976895149564,
+                  "z": 0.00003401816807648353
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.319043978997797,
+                "elapsed": 14.31990000009536,
+                "wallMs": 17083.89999961853,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 773.6809560210022,
+                  "y": 0.020911976895149564,
+                  "z": 0.00003401816807648353
+                },
+                "end": {
+                  "x": 832.3920203455564,
+                  "y": 0.020100480488508765,
+                  "z": -0.0000037550811345203605
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.392020345556375,
+                "elapsed": 13.832800000190735,
+                "wallMs": 13827.89999961853,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          },
+          {
+            "edge": "north",
+            "legs": [
+              {
+                "entering": true,
+                "start": {
+                  "x": 555,
+                  "y": 0.5,
+                  "z": 277.5
+                },
+                "end": {
+                  "x": 555.000078070702,
+                  "y": 0.020142731729720253,
+                  "z": 218.71955219343363
+                },
+                "current": "nalati-grasslands",
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": "nalati-grasslands",
+                  "target": "nalati-grasslands",
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": 31.28044780656637,
+                "elapsed": 14.168599999904622,
+                "wallMs": 16510.200000286102,
+                "stuck": [],
+                "failure": null
+              },
+              {
+                "entering": false,
+                "start": {
+                  "x": 555.000078070702,
+                  "y": 0.020142731729720253,
+                  "z": 218.71955219343363
+                },
+                "end": {
+                  "x": 555.0001676776881,
+                  "y": 0.01947975931034307,
+                  "z": 277.3204745530529
+                },
+                "current": null,
+                "ready": true,
+                "appState": "play",
+                "hudPaused": false,
+                "crossing": {
+                  "current": null,
+                  "target": null,
+                  "phase": "settled",
+                  "issue": null
+                },
+                "grounded": true,
+                "depth": -27.320474553052918,
+                "elapsed": 14.168000000476843,
+                "wallMs": 14247.099999904633,
+                "stuck": [],
+                "failure": null
+              }
+            ]
+          }
+        ],
+        "leak": {
+          "before": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "after": {
+            "geometries": 0,
+            "textures": 0,
+            "programs": 0,
+            "bodies": 0,
+            "colliders": 0,
+            "listeners": {
+              "window": 0,
+              "document": 0,
+              "canvas": 0,
+              "other": 0
+            },
+            "timers": {
+              "timeouts": 0,
+              "intervals": 0,
+              "raf": 0
+            },
+            "audio": {
+              "activeVoices": 0,
+              "beds": 0,
+              "buses": 0
+            },
+            "systems": {
+              "input": 0,
+              "fixed": {
+                "pre": 0,
+                "step": 0,
+                "post": 0
+              },
+              "update": 0,
+              "late": 0,
+              "render": 0
+            },
+            "events": {
+              "listeners": 7,
+              "answerers": 5
+            },
+            "dom": {
+              "hud": 0,
+              "body": 0
+            },
+            "sceneObjects": 0
+          },
+          "scope": {
+            "geometries": 0,
+            "materials": 0,
+            "textures": 0,
+            "renderTargets": 0,
+            "meshes": 0,
+            "resources": 0,
+            "bodies": 0,
+            "sounds": 0,
+            "listeners": 0,
+            "timers": 0,
+            "rafs": 0,
+            "disposers": 0,
+            "systems": 0,
+            "colliders": 0,
+            "nodes": 0
+          },
+          "disposalErrors": []
+        }
+      }
+    ]
+  },
+  "resources": "All owned browser pages, browser and pinned preview closed after completion.",
+  "raw": {
+    "file": "raw.json.br",
+    "bytes": 539476,
+    "compressedBytes": 83441,
+    "sha256": "c73e172e6a60cbd201db478288233809c3ab6f126042afbdf1f7e1c325f2b0a6"
+  }
+}
