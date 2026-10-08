@@ -1,0 +1,412 @@
+{
+  "protocol": "Cold muted iPhone Simulator direct Nalati route and residents=[] road; WC kernel median plus separately labelled GL. Inspector heap class payload estimates are WC subsets, not additive physical bytes; unrooted pending-collection objects may remain. Single cold run per revision, no forced GC before original poses.",
+  "lifecycleAudioBufferReductionBytes": 115611520,
+  "reports": [
+    {
+      "file": "native-nalati-direct-cc2371ac6",
+      "version": {
+        "build": "cc2371a-muz6daey",
+        "time": "2026-10-08T06:48:18.340Z"
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 599166504,
+          "webContentMinBytes": 598756904,
+          "webContentMaxBytes": 623283776,
+          "gpuBytes": 211555187,
+          "combinedBytes": 810721691,
+          "modelBytes": 934896463
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 921472672,
+          "webContentMinBytes": 921243296,
+          "webContentMaxBytes": 921521824,
+          "gpuBytes": 310108352,
+          "combinedBytes": 1231581024,
+          "modelBytes": 1143313166
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 979373776,
+          "webContentMinBytes": 971853520,
+          "webContentMaxBytes": 979488464,
+          "gpuBytes": 306614524,
+          "combinedBytes": 1285988300,
+          "modelBytes": 1128784955
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 975638272,
+          "webContentMinBytes": 975605504,
+          "webContentMaxBytes": 975638272,
+          "gpuBytes": 160961638,
+          "combinedBytes": 1136599910,
+          "modelBytes": 588246941
+        },
+        {
+          "label": "neutral-road-after-heap",
+          "webContentBytes": 966168608,
+          "webContentMinBytes": 965120032,
+          "webContentMaxBytes": 966299680,
+          "gpuBytes": 160961638,
+          "combinedBytes": 1127130246,
+          "modelBytes": 588246941
+        }
+      ],
+      "errors": "[]",
+      "heapPayloadBytes": 606986317,
+      "audioBufferBytes": 153513721,
+      "audioBufferCount": 40,
+      "heapClasses": [
+        {
+          "name": "ArrayBuffer",
+          "bytes": 227140445,
+          "count": 2635
+        },
+        {
+          "name": "AudioBuffer",
+          "bytes": 153513721,
+          "count": 40
+        },
+        {
+          "name": "ImageBitmap",
+          "bytes": 64422184,
+          "count": 49
+        },
+        {
+          "name": "Float32Array",
+          "bytes": 36051192,
+          "count": 11403
+        },
+        {
+          "name": "FunctionCodeBlock",
+          "bytes": 27836172,
+          "count": 6087
+        },
+        {
+          "name": "Object",
+          "bytes": 23710810,
+          "count": 358488
+        },
+        {
+          "name": "HTMLCanvasElement",
+          "bytes": 22919660,
+          "count": 48
+        },
+        {
+          "name": "string",
+          "bytes": 9472022,
+          "count": 96280
+        },
+        {
+          "name": "UnlinkedFunctionCodeBlock",
+          "bytes": 7759807,
+          "count": 11912
+        },
+        {
+          "name": "Uint32Array",
+          "bytes": 4450872,
+          "count": 193
+        },
+        {
+          "name": "Structure",
+          "bytes": 4383680,
+          "count": 39140
+        },
+        {
+          "name": "Cell Butterfly",
+          "bytes": 2980336,
+          "count": 7045
+        }
+      ]
+    },
+    {
+      "file": "native-nalati-deck-9478d5b03",
+      "version": {
+        "build": "9478d5b-muz6xngu",
+        "time": "2026-10-08T07:04:08.116Z"
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 488181528,
+          "webContentMinBytes": 488132376,
+          "webContentMaxBytes": 491147056,
+          "gpuBytes": 211555187,
+          "combinedBytes": 699736715,
+          "modelBytes": 934896463
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 878497704,
+          "webContentMinBytes": 878481320,
+          "webContentMaxBytes": 878546856,
+          "gpuBytes": 309019304,
+          "combinedBytes": 1187517008,
+          "modelBytes": 1143313166
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 881151936,
+          "webContentMinBytes": 881102784,
+          "webContentMaxBytes": 881708992,
+          "gpuBytes": 305525476,
+          "combinedBytes": 1186677412,
+          "modelBytes": 1126069145
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 888344560,
+          "webContentMinBytes": 888328176,
+          "webContentMaxBytes": 888410096,
+          "gpuBytes": 155369238,
+          "combinedBytes": 1043713798,
+          "modelBytes": 555518462
+        },
+        {
+          "label": "neutral-road-after-heap",
+          "webContentBytes": 902205688,
+          "webContentMinBytes": 902189304,
+          "webContentMaxBytes": 902222072,
+          "gpuBytes": 155369238,
+          "combinedBytes": 1057574926,
+          "modelBytes": 555518462
+        }
+      ],
+      "errors": "[]",
+      "heapPayloadBytes": 485840920,
+      "audioBufferBytes": 37902201,
+      "audioBufferCount": 32,
+      "heapClasses": [
+        {
+          "name": "ArrayBuffer",
+          "bytes": 223698417,
+          "count": 2579
+        },
+        {
+          "name": "ImageBitmap",
+          "bytes": 62324968,
+          "count": 47
+        },
+        {
+          "name": "AudioBuffer",
+          "bytes": 37902201,
+          "count": 32
+        },
+        {
+          "name": "Float32Array",
+          "bytes": 36038472,
+          "count": 11374
+        },
+        {
+          "name": "FunctionCodeBlock",
+          "bytes": 28383225,
+          "count": 6173
+        },
+        {
+          "name": "Object",
+          "bytes": 23611454,
+          "count": 356782
+        },
+        {
+          "name": "HTMLCanvasElement",
+          "bytes": 22919660,
+          "count": 48
+        },
+        {
+          "name": "string",
+          "bytes": 9446008,
+          "count": 95481
+        },
+        {
+          "name": "UnlinkedFunctionCodeBlock",
+          "bytes": 7738061,
+          "count": 11870
+        },
+        {
+          "name": "Uint32Array",
+          "bytes": 4453224,
+          "count": 193
+        },
+        {
+          "name": "Structure",
+          "bytes": 4321968,
+          "count": 38589
+        },
+        {
+          "name": "Cell Butterfly",
+          "bytes": 2875728,
+          "count": 7002
+        }
+      ]
+    },
+    {
+      "file": "native-nalati-score-29f650e1e",
+      "version": {
+        "build": "29f650e-muz75d64",
+        "time": "2026-10-08T07:10:07.698Z"
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 625036864,
+          "webContentMinBytes": 624856640,
+          "webContentMaxBytes": 626265664,
+          "gpuBytes": 211555187,
+          "combinedBytes": 836592051,
+          "modelBytes": 934896463
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 800214712,
+          "webContentMinBytes": 798379704,
+          "webContentMaxBytes": 800263864,
+          "gpuBytes": 310108352,
+          "combinedBytes": 1110323064,
+          "modelBytes": 1143313166
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 810831544,
+          "webContentMinBytes": 810798776,
+          "webContentMaxBytes": 810847928,
+          "gpuBytes": 306614524,
+          "combinedBytes": 1117446068,
+          "modelBytes": 1128784955
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 820547304,
+          "webContentMinBytes": 820154040,
+          "webContentMaxBytes": 861802216,
+          "gpuBytes": 155369238,
+          "combinedBytes": 975916542,
+          "modelBytes": 555518462
+        },
+        {
+          "label": "neutral-road-after-heap",
+          "webContentBytes": 814567384,
+          "webContentMinBytes": 814485464,
+          "webContentMaxBytes": 826298328,
+          "gpuBytes": 155369238,
+          "combinedBytes": 969936622,
+          "modelBytes": 555518462
+        }
+      ],
+      "errors": "[]",
+      "heapPayloadBytes": 485549165,
+      "audioBufferBytes": 37902201,
+      "audioBufferCount": 32,
+      "heapClasses": [
+        {
+          "name": "ArrayBuffer",
+          "bytes": 223698443,
+          "count": 2580
+        },
+        {
+          "name": "ImageBitmap",
+          "bytes": 62324968,
+          "count": 47
+        },
+        {
+          "name": "AudioBuffer",
+          "bytes": 37902201,
+          "count": 32
+        },
+        {
+          "name": "Float32Array",
+          "bytes": 36040008,
+          "count": 11374
+        },
+        {
+          "name": "FunctionCodeBlock",
+          "bytes": 27774455,
+          "count": 6047
+        },
+        {
+          "name": "Object",
+          "bytes": 23614384,
+          "count": 356810
+        },
+        {
+          "name": "HTMLCanvasElement",
+          "bytes": 22919734,
+          "count": 50
+        },
+        {
+          "name": "string",
+          "bytes": 9430429,
+          "count": 96118
+        },
+        {
+          "name": "UnlinkedFunctionCodeBlock",
+          "bytes": 7769222,
+          "count": 11929
+        },
+        {
+          "name": "Uint32Array",
+          "bytes": 4453224,
+          "count": 193
+        },
+        {
+          "name": "Structure",
+          "bytes": 4370240,
+          "count": 39020
+        },
+        {
+          "name": "Cell Butterfly",
+          "bytes": 2877520,
+          "count": 7002
+        }
+      ]
+    }
+  ],
+  "audioParity": {
+    "before": "8ecb6c70b",
+    "after": "29f650e1e",
+    "sourceHashes": {
+      "8ecb6c70b": {
+        "src/engine/audio/Music.ts": "29eeec2f4a003e7e372e6db55d19b66e0cd65ed38cb7eb3c74cf06a13fd2b533",
+        "src/engine/audio/Stems.ts": "7a4fccb34e70d4d6d74737adf8223c2e1fe88117b402f4db31bd98720796bdc3",
+        "src/engine/audio/SetScore.ts": "cfdbd04e5dc0544ae30554043ace31e263dc812069bb6bc716a4f859180dea09"
+      },
+      "29f650e1e": {
+        "src/engine/audio/Music.ts": "d00cbbcfda058207539b32be5a96fca3fd5683e2a935193dde3eccfeba8cb9ca",
+        "src/engine/audio/Stems.ts": "da2ea417639d70bed2b8a1499fa96bbd76b21ea4501cc84b421e352804e4f776",
+        "src/engine/audio/SetScore.ts": "0a3fcfb9e6a06f70a7ef84c5e88c7d6a52f8f3c8b30526bac299374c4bb75a1a"
+      }
+    },
+    "engine": "Playwright WebKit OfflineAudioContext",
+    "muted": true,
+    "protocol": "Actual Music/Deck code from each committed revision; deterministic 48kHz stereo stem fixtures. Same first-gesture-equivalent start, bank replacement, bar-aligned calm/tension automation and source disposal/handoff; stop at9s, render14s. Compare every sample, without alignment shifts or normalization.",
+    "cases": [
+      {
+        "scenario": "bank-switch",
+        "samples": 1344000,
+        "sampleRate": 48000,
+        "maximumAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "signalRms": 0.02996760278725479
+      },
+      {
+        "scenario": "calm-to-tension",
+        "samples": 1344000,
+        "sampleRate": 48000,
+        "maximumAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "signalRms": 0.04959059869849915
+      },
+      {
+        "scenario": "shard-handoff",
+        "samples": 1344000,
+        "sampleRate": 48000,
+        "maximumAbsoluteDifference": 0,
+        "rmsDifference": 0,
+        "signalRms": 0.03491089844202818
+      }
+    ],
+    "pass": true
+  }
+}

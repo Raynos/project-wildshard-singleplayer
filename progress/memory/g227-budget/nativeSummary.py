@@ -33,7 +33,8 @@ def regions(path):
 
 
 reports = []
-for filename in ['native-f47f33199.json', 'native-nalati-direct-f47f33199.json', 'native-nalati-direct-cc2371ac6.json']:
+for filename in ['native-f47f33199.json', 'native-nalati-direct-f47f33199.json', 'native-nalati-direct-cc2371ac6.json',
+                 'native-nalati-deck-9478d5b03.json', 'native-nalati-score-29f650e1e.json']:
     path = ROOT / filename
     if not path.exists():
         path = ROOT / (filename + '.gz')

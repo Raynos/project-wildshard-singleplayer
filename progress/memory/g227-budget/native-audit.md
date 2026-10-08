@@ -1,5 +1,7 @@
 # G227 native ruler, empty-road residual and cut list (E435)
 
+Follow-up: [audio retirement and exact output proof](audio-retirement.md) removes the four traced retired Deck pairs (115.611520 MB); its latest Nalati centre still exceeds the cap. The baseline audit below is retained with its original pins.
+
 **WC + labelled GL remains the conservative ruler. Both entered centres exceed 1 GB, and an empty road retains over 1.1 GB even after the cache-eviction forward. There is no evidence for a blanket model discount.** Decimal MB throughout; Simulator-relative evidence, not a physical-phone cap pass.
 
 ## Allocation control

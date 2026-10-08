@@ -1,0 +1,46 @@
+{
+  "before": "8ecb6c70b",
+  "after": "29f650e1e",
+  "sourceHashes": {
+    "8ecb6c70b": {
+      "src/engine/audio/Music.ts": "29eeec2f4a003e7e372e6db55d19b66e0cd65ed38cb7eb3c74cf06a13fd2b533",
+      "src/engine/audio/Stems.ts": "7a4fccb34e70d4d6d74737adf8223c2e1fe88117b402f4db31bd98720796bdc3",
+      "src/engine/audio/SetScore.ts": "cfdbd04e5dc0544ae30554043ace31e263dc812069bb6bc716a4f859180dea09"
+    },
+    "29f650e1e": {
+      "src/engine/audio/Music.ts": "d00cbbcfda058207539b32be5a96fca3fd5683e2a935193dde3eccfeba8cb9ca",
+      "src/engine/audio/Stems.ts": "da2ea417639d70bed2b8a1499fa96bbd76b21ea4501cc84b421e352804e4f776",
+      "src/engine/audio/SetScore.ts": "0a3fcfb9e6a06f70a7ef84c5e88c7d6a52f8f3c8b30526bac299374c4bb75a1a"
+    }
+  },
+  "engine": "Playwright WebKit OfflineAudioContext",
+  "muted": true,
+  "protocol": "Actual Music/Deck code from each committed revision; deterministic 48kHz stereo stem fixtures. Same first-gesture-equivalent start, bank replacement, bar-aligned calm/tension automation and source disposal/handoff; stop at9s, render14s. Compare every sample, without alignment shifts or normalization.",
+  "cases": [
+    {
+      "scenario": "bank-switch",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.02996760278725479
+    },
+    {
+      "scenario": "calm-to-tension",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.04959059869849915
+    },
+    {
+      "scenario": "shard-handoff",
+      "samples": 1344000,
+      "sampleRate": 48000,
+      "maximumAbsoluteDifference": 0,
+      "rmsDifference": 0,
+      "signalRms": 0.03491089844202818
+    }
+  ],
+  "pass": true
+}
