@@ -54,8 +54,13 @@ for (const arm of arms) {
     const result = { pin: arm.pin, shard, cache, status: 'failed', capturedAt: new Date().toISOString(), fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 }, protocolErrors: [], timeline: [], profiles: [], console: [] };
     const file = resolvePath(out, `${arm.name}-${shard}-${cache}.json`);
     try {
-      execFileSync('xcrun', ['simctl', 'openurl', udid, new URL(cache === 'cold' ? '/sf67-start.html' : '/', arm.base).href]);
-      await connect(arm.base);
+      if (cache === 'cold') {
+        execFileSync('xcrun', ['simctl', 'openurl', udid, new URL('/sf67-start.html', arm.base).href]);
+        await connect(arm.base);
+      } else {
+        // Reuse this exact tab/cache context; opening another tab could attach to the old playing page.
+        try { await inspector.evaluate(`location.replace('/')`); } catch { /* process swap; wait reconnects below */ }
+      }
       await wait(`document.querySelector('.ws-main-select') !== null`, arm.base);
       await inspector.evaluate(`document.querySelector('.ws-main-select').click()`);
       await wait(`document.querySelectorAll('.ws-menu-card').length > 0`, arm.base);
@@ -81,11 +86,19 @@ for (const arm of arms) {
       await sleep(100);
       offTimeline(); offProfile(); offConsole();
       console.log(`${arm.name} ${shard} ${cache}: ${(result.data.origin + result.data.play - result.tapEpoch).toFixed(1)}ms`);
-    } catch (error) { result.failure = String(error); console.error(result.failure); }
+    } catch (error) {
+      result.failure = String(error); console.error(result.failure);
+      try { result.partial = JSON.parse(await inspector.evaluate(`JSON.stringify({ data: window.__sf67, href: location.href, diagnostics: document.querySelector('.ws-load')?.textContent ?? '' })`)); } catch { /* retain the original failure if its document is gone */ }
+    }
     finally { writeFileSync(file, JSON.stringify(result)); }
     if (result.status !== 'ok') break; // preserve failed cold; do not call its retry warm
   }
-  } finally { fixture.close(); }
+  } finally {
+    try { await inspector.evaluate(`location.replace('about:blank')`); } catch { /* unload or a lost document */ }
+    closeInspector();
+    try { execFileSync('xcrun', ['simctl', 'terminate', udid, 'com.apple.mobilesafari'], { stdio: 'ignore' }); } catch { /* already closed */ }
+    fixture.close();
+  }
 }
 } finally {
   closeInspector();
