@@ -126,7 +126,7 @@ export function passEffects(pass: EffectPass): Effect[] | null {
 export class GridFrame {
   private readonly host: GridFrameHost;
   private readonly cells: readonly FrameCell[];
-  private readonly homeInstance: string;
+  private readonly homeInstance: string | null;
   private readonly half: number;
   private readonly band: number | undefined;
   private readonly feet: () => { readonly x: number; readonly z: number };
@@ -151,9 +151,9 @@ export class GridFrame {
   private readonly written = new Color(Number.NaN, Number.NaN, Number.NaN);
   private readonly eye = new Vector3();
 
-  constructor(options: { host: GridFrameHost; scope: Scope; cells: readonly FrameCell[]; home: FrameCell; half: number; band?: number; feet: () => { readonly x: number; readonly z: number } }) {
+  constructor(options: { host: GridFrameHost; scope: Scope; cells: readonly FrameCell[]; home: FrameCell; homeIsFrame?: boolean; half: number; band?: number; feet: () => { readonly x: number; readonly z: number } }) {
     const { host, scope, home } = options;
-    this.host = host; this.cells = options.cells; this.homeInstance = home.instance; this.half = options.half; this.band = options.band; this.feet = options.feet;
+    this.host = host; this.cells = options.cells; this.homeInstance = options.homeIsFrame === false ? null : home.instance; this.half = options.half; this.band = options.band; this.feet = options.feet;
     this.weights = { cells: new Map([[home.instance, 1]]), highway: 0 };
     // the scene fog is the owner's air while the scene draws (the backdrop has written its own by then)
     const prev = host.scene.onBeforeRender.bind(host.scene);
@@ -229,7 +229,10 @@ export class GridFrame {
       if (effects === null || !effects.includes(post.saturation)) continue;
       const home = effects.filter((effect) => effect === post.saturation || effect === post.contrast || effect === post.grade || effect instanceof LUT3DEffect);
       this.faded = home.length;
-      const unstack = this.stack(this.homeInstance, opacityFade(home));
+      const fade = opacityFade(home);
+      let unstack: () => void;
+      if (this.homeInstance === null) { fade.weight(0); unstack = fade.dispose; } // neutral shell: every cell supplies its own grade
+      else unstack = this.stack(this.homeInstance, fade);
       effects.push(this.effect);
       this.restore.push(() => { unstack(); const i = effects.indexOf(this.effect); if (i !== -1) effects.splice(i, 1); pass.recompile(); });
       pass.recompile();

@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Color, Fog, PerspectiveCamera, Scene, type Uniform } from 'three';
-import { BlendFunction, Effect, EffectPass } from 'postprocessing';
+import { BlendFunction, Effect, EffectPass, type EffectComposer } from 'postprocessing';
 import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
 import { FrameGradeEffect, GridFrame, opacityFade, passEffects } from '../src/game/grid/frame';
 import { ROAD_SKY_ORDER } from '../src/game/grid/roadSky';
@@ -153,4 +153,43 @@ describe('grid frame grade pieces', () => {
     const flat = { saturation: 0, brightness: 0, contrast: 0, shadowTint: [1, 1, 1], highTint: [1, 1, 1], gain: [1, 1, 1] } as const;
     expect(regionGrade({ grade: flat })).toEqual({ exposure: 0, saturation: 1, contrast: 1, tint: [1, 1, 1] });
   });
+});
+
+
+it.each([true, false])('G226: catalogue home stays page-owned only when homeIsFrame=%s', homeIsFrame => {
+  const scope = new Scope('g226-frame'), scene = new Scene(), camera = new PerspectiveCamera();
+  scene.fog = new Fog(new Color(0.4, 0.5, 0.6), 10, 100);
+  const home = cells[4]; if (home === undefined) throw new Error('Missing home');
+  const feet = { x: 0, z: 0 };
+  const effects = ['grade', 'saturation', 'contrast'].map(id => new Effect(id, 'void mainImage(const in vec4 i, const in vec2 uv, out vec4 o) { o = i; }'));
+  const [gradeEffect, saturation, contrast] = effects;
+  if (gradeEffect === undefined || saturation === undefined || contrast === undefined) throw new Error('Missing effects');
+  const pass = new EffectPass(camera, ...effects); vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
+  const frame = new GridFrame({ host: { scene, camera, composer: () => ({ passes: [pass] }) as EffectComposer,
+    post: () => ({ grade: gradeEffect, saturation, contrast }) }, scope, cells, home, homeIsFrame, half, feet: () => feet });
+  const own = new Fog(new Color(1, 1, 1), 1, 2), grade = { exposure: 0.2, saturation: 1.2, contrast: 1.1 };
+  const declaration = { haze: { colour: [0.2, 0.3, 0.4] as const }, grade };
+  frame.declare(home.instance, declaration);
+  let release = (): void => undefined;
+  if (homeIsFrame) expect(() => frame.contribute(home.instance, { fog: own, grade })).toThrow('home look');
+  else { release = frame.contribute(home.instance, { fog: own, grade }); expect(own.color.toArray()).toEqual(declaration.haze.colour); }
+  const draw = (x: number): void => {
+    feet.x = x; frame.frame();
+    const before: unknown = Reflect.get(scene, 'onBeforeRender'); if (typeof before === 'function') Reflect.apply(before, scene, []);
+    scene.fog?.color.setRGB(0.4, 0.5, 0.6);
+  };
+  draw(0);
+  expect(frame.state().grade).toEqual(homeIsFrame ? [0, 1, 1, 1, 1, 1] : [0.2, 1.2, 1.1, 1, 1, 1]);
+  expect(frame.state().air).toEqual(homeIsFrame ? [0.4, 0.5, 0.6] : [0.2, 0.3, 0.4]);
+  expect(effects.map(effect => Number(effect.blendMode.opacity.value))).toEqual(homeIsFrame ? [1, 1, 1] : [0, 0, 0]);
+  draw(half);
+  expect(frame.state().roadSky).toBe(0.5);
+  expect(frame.state().grade[0]).toBe(homeIsFrame ? 0 : 0.1);
+  expect(effects.map(effect => Number(effect.blendMode.opacity.value))).toEqual(homeIsFrame ? [0.5, 0.5, 0.5] : [0, 0, 0]);
+  draw(half + 27.5);
+  expect(frame.state().owner).toBeNull(); expect(frame.state().roadSky).toBe(1);
+  expect(frame.state().air).toEqual([0.45, 0.5, 0.55]);
+  release(); scope.dispose();
+  expect(effects.map(effect => Number(effect.blendMode.opacity.value))).toEqual([1, 1, 1]);
+  expect(passEffects(pass)).toEqual(effects); pass.dispose();
 });

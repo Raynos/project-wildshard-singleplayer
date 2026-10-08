@@ -90,7 +90,7 @@ export function frameTime(world: number, weights: RegionWeights, overrides: Read
 
 type Rgb = readonly [number, number, number];
 /** The frame's air colour: the home's live fog, a neighbour owner's declared haze and the road's neutral air, by weight. */
-export function frameFog(weights: RegionWeights, home: { readonly instance: string; readonly fog: Rgb }, hazes: ReadonlyMap<string, Rgb>): [number, number, number] {
+export function frameFog(weights: RegionWeights, home: { readonly instance: string | null; readonly fog: Rgb }, hazes: ReadonlyMap<string, Rgb>): [number, number, number] {
   const out: [number, number, number] = [0, 0, 0];
   const add = (c: Rgb, w: number): void => { out[0] += c[0] * w; out[1] += c[1] * w; out[2] += c[2] * w; };
   let left = 1;
@@ -107,7 +107,7 @@ export function frameFog(weights: RegionWeights, home: { readonly instance: stri
  * The frame's one grade on top of the home's own chain: the home contributes the neutral grade (its own grade effects
  * fade with its weight instead), a neighbour owner its declared grade, the road the G75 grey-blue grade, by weight.
  */
-export function frameGrade(weights: RegionWeights, home: string, grades: ReadonlyMap<string, RegionGrade>): FullGrade {
+export function frameGrade(weights: RegionWeights, home: string | null, grades: ReadonlyMap<string, RegionGrade>): FullGrade {
   let exposure = 0, saturation = 0, contrast = 0, r = 0, g = 0, b = 0, left = 1;
   const add = (grade: RegionGrade, w: number): void => {
     const tint = grade.tint ?? [1, 1, 1];

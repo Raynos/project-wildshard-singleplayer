@@ -277,7 +277,7 @@ export class GridSession {
     // SF19a / G158 (on for everyone since Jake's G175 pick, E450): the shard the player stands in owns the whole frame, the
     // road look owns the road, blended over 16 m at the cell edge; a host with no camera / composer builds none
     const frameHost = host.frame;
-    this.frame = frameHost !== undefined ? new GridFrame({ host: frameHost, scope: host.scope, home, half: CHUNK_HALF, feet: () => this.world(),
+    this.frame = frameHost !== undefined ? new GridFrame({ host: frameHost, scope: host.scope, home, homeIsFrame: host.ownedHome !== true, half: CHUNK_HALF, feet: () => this.world(),
       cells: this.assembly.cells.map((cell) => ({ instance: cell.instance, origin: { x: cell.origin.x, z: cell.origin.z } })) }) : null;
     const frame = this.frame;
     // SF17b look: the boulevard over the deck's road band (G80 / G81 / G93) and the VR void past the outer road (G89)
