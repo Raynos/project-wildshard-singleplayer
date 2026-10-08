@@ -44,12 +44,13 @@ export function installFloorGridProgress() {
       if (!grid) return last;
       if (window.__wildshard?.world?.game?.renderer.getContext().isContextLost()) return last;
       const state = grid.state(), residency = grid.residency(), live = state.live?.live;
-      const contexts = window.__sc_gl?.();
+      // The GL census is installed only in travel configurations, so its global can be absent here.
+      const contexts = '__sc_gl' in window ? window.__sc_gl() : null;
       last = { documentOrigin: performance.timeOrigin, sampledAt: Date.now(), seconds: performance.now() / 1000,
         stop: { ...stop }, current: live?.current, inside: state.inside, feet: live?.worldFeet, gameplayReady: live?.gameplayReady,
         memory: { modelledMB: state.playingMB ?? null, accountedBytes: state.accountedBytes ?? null,
-          glMB: contexts ? contexts.reduce((sum, row) => sum + row.totalBytes, 0) / 1e6 : null,
-          glReconciled: contexts ? contexts.every(row => row.reconciled) : null, claims: residency.claims, cost: residency.cost } };
+          ...(contexts ? { glMB: contexts.reduce((sum, row) => sum + row.totalBytes, 0) / 1e6, glReconciled: contexts.every(row => row.reconciled) }
+            : { glMB: null, glReconciled: null }), claims: residency.claims, cost: residency.cost } };
       sampled = performance.now(); return last;
     } catch { return last; } // Diagnostic reads must not replace the original route/renderer failure.
   };
