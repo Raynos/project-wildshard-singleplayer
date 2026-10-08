@@ -2,6 +2,7 @@ import { parseQuestData } from '@wildshard/sdk/quests';
 import { BASIN, BRAZIERS, CARAVAN, TOWER, WELL } from '../layout';
 import { STRINGS } from '../strings';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
+import { brazierFlag } from '../quest/brazierFlag';
 
 /** Raised when the Dune Matriarch falls (combat/matriarch.ts): the quest's last step. */
 export const MATRIARCH_FLAG = 'sunscar.matriarch.down';
@@ -12,7 +13,7 @@ export const PAID_FLAG = 'sunscar.signal.paid';
 /** The ledger facts Signal Dunes emits (SF14): the platform grants their achievements once per (shard, achievement). */
 export const FACT = { signal: 'sunscar.signal', matriarch: 'sunscar.matriarch' } as const;
 
-const waymarks = BRAZIERS.map((_, i) => FLAG.brazier(i));
+const waymarks = BRAZIERS.map((_, i) => brazierFlag(i));
 /** Any step after Sefa's: a save from before her (loop 2), or a player who walked past her, counts her step done. */
 export const LATER_FLAGS = [FLAG.logbook, FLAG.oil, ...waymarks, FLAG.lit, MATRIARCH_FLAG] as const;
 
@@ -31,7 +32,7 @@ export const SIGNAL_QUESTS = parseQuestData({
     { id: 'oil', objective: STRINGS.stepOil, chip: STRINGS.chipOil, hint: STRINGS.hintOil, done: { all: [FLAG.oil] },
       markers: [{ id: 'well', label: STRINGS.well, short: STRINGS.shortWell, at: { poi: 'world', x: WELL.x, z: WELL.z } }] },
     { id: 'waymarks', objective: STRINGS.stepWaymarks, chip: STRINGS.chipWaymarks, hint: STRINGS.hintWaymarks, done: { all: waymarks }, count: waymarks,
-      markers: BRAZIERS.map((b, i) => ({ id: `waymark.${String(i)}`, label: STRINGS.waymark, short: STRINGS.shortWaymark, at: { poi: 'world' as const, x: b.x, z: b.z }, hideWhen: { all: [FLAG.brazier(i)] } })) },
+      markers: BRAZIERS.map((b, i) => ({ id: `waymark.${String(i)}`, label: STRINGS.waymark, short: STRINGS.shortWaymark, at: { poi: 'world' as const, x: b.x, z: b.z }, hideWhen: { all: [brazierFlag(i)] } })) },
     { id: 'fire', objective: STRINGS.step, chip: STRINGS.chipFire, hint: STRINGS.hintFire, done: { all: [FLAG.lit] },
       markers: [{ id: 'tower', label: STRINGS.tower, short: STRINGS.shortTower, at: { poi: 'world', x: TOWER.x, z: TOWER.z } }] },
     { id: 'matriarch', objective: STRINGS.stepBoss, chip: STRINGS.chipBoss, hint: STRINGS.hintBoss, done: { all: [MATRIARCH_FLAG] },

@@ -13,6 +13,7 @@ import { buildButtes } from './buttes';
 import { FIRE_RESOURCES, fireGeometries, fireLight, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
+import { brazierFlag } from '../quest/brazierFlag';
 
 /** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
 export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }
@@ -94,11 +95,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags): SignalWorld {
       } },
       light: () => {
         if (brazier.lit || !brazier.oiled) return false;
-        brazier.lit = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; flags.set(FLAG.brazier(i));
+        brazier.lit = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; flags.set(brazierFlag(i));
         const n = braziers.filter((x) => x.lit).length; toast(ctx, n < braziers.length ? `${STRINGS.waymarkLit} · ${String(n)}/${String(braziers.length)}` : STRINGS.allLit);
         return true;
       } };
-    if (flags.has(FLAG.brazier(i))) { brazier.oiled = true; brazier.lit = true; parts.oil.visible = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; }
+    if (flags.has(brazierFlag(i))) { brazier.oiled = true; brazier.lit = true; parts.oil.visible = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; }
     else if (flags.has(FLAG.oil)) brazier.spot.label = STRINGS.pourOil;
     return brazier;
   });

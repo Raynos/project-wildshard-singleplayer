@@ -1,7 +1,7 @@
 import { SPAWN } from '../layout';
 
 /** The quest's flags (persisted per shard by `Flags`); plain data, so shard.config.ts can declare the quest (SHARD-PLATFORM M3). */
-export const FLAG = { logbook: 'sunscar.logbook', oil: 'sunscar.oil', brazier: (i: number): string => `sunscar.brazier.${String(i)}`, lit: 'sunscar.lit' } as const;
+export const FLAG = { logbook: 'sunscar.logbook', oil: 'sunscar.oil', brazierPrefix: 'sunscar.brazier.', lit: 'sunscar.lit' } as const;
 /** Raised when the player has talked to Sefa: the quest's first step (P4, the lead's pick: the quest starts at an NPC, as Driftwood's Wendell). */
 export const SCOUT_FLAG = 'sunscar.scout';
 /**
