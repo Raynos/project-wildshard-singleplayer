@@ -1,0 +1,13 @@
+{
+  "schema": "loading-benchmark/1",
+  "pin": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "device": "synthetic validator fixture, not a measurement",
+  "runs": [{
+    "shard": "fixture",
+    "cache": "cold",
+    "timeToPlayableMs": 100,
+    "phases": [{ "name": "kit", "startMs": 20, "endMs": 80, "owner": "fixture/kit" }],
+    "longTasks": [{ "startMs": 20, "durationMs": 60, "owner": "fixture/kit" }]
+  }],
+  "missing": []
+}

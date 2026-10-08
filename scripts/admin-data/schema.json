@@ -1,0 +1,1106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wildshard:admin:1",
+  "title": "Committed Wildshard admin data bundle",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "wildshard-admin/1"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "memory": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "bytes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256",
+                  "bytes"
+                ],
+                "additionalProperties": false
+              },
+              "pins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "format": {
+                "const": "sf64"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "schema": {
+                    "const": "memory-report/1"
+                  },
+                  "pin": {
+                    "type": "string"
+                  },
+                  "device": {
+                    "type": "string"
+                  },
+                  "settings": {
+                    "type": "object"
+                  },
+                  "cap": {
+                    "type": "object",
+                    "properties": {
+                      "bytes": {
+                        "const": 1000000000
+                      }
+                    },
+                    "required": [
+                      "bytes"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "poses": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "measured": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "wc": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "gl": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "total": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                "time": {
+                                  "type": "string"
+                                },
+                                "source": {
+                                  "type": "string"
+                                },
+                                "pid": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "wc",
+                                "gl",
+                                "total",
+                                "time",
+                                "source",
+                                "pid"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "accounted": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "allocations": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "domain": {
+                                    "enum": [
+                                      "ram",
+                                      "gpu"
+                                    ]
+                                  },
+                                  "kind": {
+                                    "type": "string"
+                                  },
+                                  "bytes": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "owner": {
+                                    "type": "string"
+                                  },
+                                  "asset": {
+                                    "type": "string"
+                                  },
+                                  "precision": {
+                                    "enum": [
+                                      "exact",
+                                      "estimate"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "domain",
+                                  "kind",
+                                  "bytes",
+                                  "owner",
+                                  "asset",
+                                  "precision"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "unattributed": {
+                              "type": "object",
+                              "properties": {
+                                "ram": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "gpu": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "ram",
+                                "gpu"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "storageTotals": {
+                              "type": "object",
+                              "properties": {
+                                "ram": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "gpu": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 9007199254740991
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "ram",
+                                "gpu"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "allocations",
+                            "unattributed",
+                            "storageTotals"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "missing": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "evidence": {
+                          "type": "object"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "measured",
+                        "accounted",
+                        "missing"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "schema",
+                  "pin",
+                  "device",
+                  "settings",
+                  "cap",
+                  "poses"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "source",
+              "pins",
+              "format",
+              "data"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "bytes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256",
+                  "bytes"
+                ],
+                "additionalProperties": false
+              },
+              "pins": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "format": {
+                "const": "itemized"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "protocol": {
+                    "type": "string"
+                  },
+                  "situations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "subtitle": {
+                          "type": "string"
+                        },
+                        "pin": {
+                          "type": "string"
+                        },
+                        "build": {
+                          "type": "string"
+                        },
+                        "settings": {
+                          "type": "string"
+                        },
+                        "heapSource": {
+                          "type": "string"
+                        },
+                        "wcBytes": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "glBytes": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "totalBytes": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "blocks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "side": {
+                                "enum": [
+                                  "RAM",
+                                  "GPU"
+                                ]
+                              },
+                              "owner": {
+                                "type": "string"
+                              },
+                              "system": {
+                                "type": "string"
+                              },
+                              "conf": {
+                                "enum": [
+                                  "M",
+                                  "E",
+                                  "U"
+                                ]
+                              },
+                              "bytes": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "side",
+                              "owner",
+                              "system",
+                              "conf",
+                              "bytes"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "subtitle",
+                        "pin",
+                        "build",
+                        "settings",
+                        "heapSource",
+                        "wcBytes",
+                        "glBytes",
+                        "totalBytes",
+                        "blocks"
+                      ],
+                      "additionalProperties": true
+                    }
+                  }
+                },
+                "required": [
+                  "protocol",
+                  "situations"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "source",
+              "pins",
+              "format",
+              "data"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "loading": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "reports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "bytes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "path",
+                  "sha256",
+                  "bytes"
+                ],
+                "additionalProperties": false
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "schema": {
+                    "const": "loading-benchmark/1"
+                  },
+                  "pin": {
+                    "type": "string"
+                  },
+                  "device": {
+                    "type": "string"
+                  },
+                  "runs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "shard": {
+                          "type": "string"
+                        },
+                        "cache": {
+                          "enum": [
+                            "cold",
+                            "warm"
+                          ]
+                        },
+                        "timeToPlayableMs": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "phases": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "startMs": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "endMs": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "owner": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "startMs",
+                              "endMs",
+                              "owner"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "longTasks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "startMs": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              "durationMs": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 9007199254740991,
+                                "exclusiveMinimum": 50
+                              },
+                              "owner": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "startMs",
+                              "durationMs",
+                              "owner"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "shard",
+                        "cache",
+                        "timeToPlayableMs",
+                        "phases",
+                        "longTasks"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "schema",
+                  "pin",
+                  "device",
+                  "runs",
+                  "missing"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "source",
+              "data"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "reports",
+        "missing"
+      ],
+      "additionalProperties": false
+    },
+    "playtests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "path",
+              "sha256",
+              "bytes"
+            ],
+            "additionalProperties": false
+          },
+          "title": {
+            "type": "string"
+          },
+          "builds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "markdown": {
+            "type": "string"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "rank": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "title": {
+                  "type": "string"
+                },
+                "line": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "markdown": {
+                  "type": "string"
+                },
+                "media": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "rank",
+                "title",
+                "line",
+                "markdown",
+                "media"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "headers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "rows": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "line": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "cells": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "line",
+                      "cells"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "headers",
+                "rows"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "media": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "title",
+          "builds",
+          "markdown",
+          "findings",
+          "tables",
+          "media",
+          "missing"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "plan": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "bytes"
+          ],
+          "additionalProperties": false
+        },
+        "title": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "stateLine": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "reportedPercent": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "percent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "approximate": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "label",
+              "percent",
+              "approximate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "effort": {
+          "type": "object",
+          "properties": {
+            "context": {
+              "type": "string"
+            },
+            "rows": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "milestone": {
+                    "type": "string"
+                  },
+                  "total": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "done": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "left": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "percent": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "approximate": {
+                    "type": "boolean"
+                  },
+                  "basis": {
+                    "type": "string"
+                  },
+                  "line": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "milestone",
+                  "total",
+                  "done",
+                  "left",
+                  "percent",
+                  "approximate",
+                  "basis",
+                  "line"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "context",
+            "rows"
+          ],
+          "additionalProperties": false
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "markdown": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "line",
+              "markdown"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "cells": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "line",
+              "cells"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "cells": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "line",
+              "cells"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "waitingForJake": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "cells": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "line",
+              "cells"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "source",
+        "title",
+        "state",
+        "stateLine",
+        "reportedPercent",
+        "effort",
+        "milestones",
+        "rows",
+        "decisions",
+        "waitingForJake"
+      ],
+      "additionalProperties": false
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "url": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "image",
+              "video"
+            ]
+          }
+        },
+        "required": [
+          "path",
+          "sha256",
+          "bytes",
+          "url",
+          "kind"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "revision",
+    "memory",
+    "loading",
+    "playtests",
+    "plan",
+    "media"
+  ],
+  "additionalProperties": false
+}
