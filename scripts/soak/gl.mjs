@@ -1,3 +1,40 @@
+/** Keep bounded scalar console/loss evidence through a refused navigation, without preventing recovery. */
+export function installSoakDiagnostics() {
+  const key = 'sf57.diagnostics', document = window.__sf57DocumentId;
+  window.__sf57Diagnostics = JSON.parse(sessionStorage.getItem(key) ?? '[]');
+  sessionStorage.removeItem(key);
+  let sequence = 0;
+  const record = (kind, details) => {
+    window.__sf57Diagnostics.push({ at: Date.now() / 1000, document, sequence: sequence++, kind, ...details });
+    if (window.__sf57Diagnostics.length > 128) window.__sf57Diagnostics.shift();
+  };
+  const state = () => {
+    try {
+      const grid = window.__wildshard?.shard?.grid?.state(), current = grid?.live?.runtimeTiming?.current;
+      return { inside: grid?.inside ?? null, current: grid?.live?.live?.current ?? null,
+        pending: (grid?.live?.live?.pending ?? []).map(value => String(value).slice(0, 128)),
+        admitting: current ? { instance: current.instance, hook: current.hook, start: current.start } : null };
+    } catch (error) { return { stateError: String(error).slice(0, 2000) }; }
+  };
+  for (const method of ['log', 'info', 'warn', 'error']) {
+    const original = window.console[method];
+    window.console[method] = (...args) => {
+      record('console', { method, text: args.map(value => String(value).slice(0, 2000)).join(' ').slice(0, 4000) });
+      return original.apply(window.console, args);
+    };
+  }
+  window.addEventListener('webglcontextlost', event => {
+    const game = window.__wildshard?.world?.game;
+    record('contextlost', { ...state(), gameCanvas: event.target === game?.canvas,
+      target: { tag: event.target?.tagName ?? null, id: event.target?.id ?? null, connected: event.target?.isConnected ?? null },
+      status: String(event.statusMessage ?? '').slice(0, 2000) });
+  }, true);
+  window.addEventListener('pagehide', event => {
+    record('pagehide', { ...state(), persisted: event.persisted });
+    sessionStorage.setItem(key, JSON.stringify(window.__sf57Diagnostics));
+  }, { once: true });
+}
+
 /** Record exact mutations through boot and drive, including when long tasks block the one-second timer. */
 export function installLoadingGlJournal() {
   const key = 'sf57.loading-gl-journal';

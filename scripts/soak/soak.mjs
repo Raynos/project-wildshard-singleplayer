@@ -15,7 +15,7 @@ import { mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync } fr
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { GL_INIT } from '../parity/glbytes.mjs';
-import { installSoakGl, installSoakWasm, installLoadingGlJournal } from './gl.mjs';
+import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDiagnostics } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
@@ -106,7 +106,8 @@ async function worker() {
   const collectGl = async () => {
     if (!driver) return;
     // Drain both journals in one protocol response so a boot process swap cannot lose a drained half.
-    const { rows, events, errors } = await driver.evaluate('({rows:window.__sf57GL?.splice(0) ?? [],events:window.__sf57GLEvents?.splice(0) ?? [],errors:window.__sf57Errors ?? []})');
+    const { rows, events, errors, diagnostics } = await driver.evaluate('({rows:window.__sf57GL?.splice(0) ?? [],events:window.__sf57GLEvents?.splice(0) ?? [],errors:window.__sf57Errors ?? [],diagnostics:window.__sf57Diagnostics ?? []})');
+    result.diagnostics = diagnostics;
     for (const row of events) {
       glEvents.push(row); appendFileSync(glEventsFile, `${JSON.stringify(row)}\n`);
     }
@@ -279,7 +280,7 @@ function writeHelper(base, layout) {
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
-  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();${fixtures};`;
+  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();(${installSoakDiagnostics.toString()})();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();${fixtures};`;
   const helper = html.replace('<head>', `<head><script data-sf57-fixture>${pins}</script>`);
   // The ordinary main-menu action can return to index.html before any measurement begins.
   writeFileSync(join(dist, 'index.html'), helper);

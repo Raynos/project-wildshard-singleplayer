@@ -1,7 +1,37 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { installSoakGl, installSoakWasm, installLoadingGlJournal } from './gl.mjs';
+import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDiagnostics } from './gl.mjs';
 import { loadingGlSamples } from './owned.mjs';
+
+void test('SF57 preserves bounded console, actual loss target and admitting-cell evidence through navigation without changing handling', () => {
+  const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map(), listeners = new Map();
+  const calls = [], canvas = { tagName: 'CANVAS', id: 'game', isConnected: true };
+  try {
+    globalThis.sessionStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { storage.set(key, value); }, removeItem: key => { storage.delete(key); } };
+    const page = document => ({ __sf57DocumentId: document,
+      console: Object.fromEntries(['log', 'info', 'warn', 'error'].map(method => [method, (...args) => { calls.push([method, ...args]); }])),
+      addEventListener: (name, listener) => { listeners.set(name, listener); },
+      __wildshard: { world: { game: { canvas } }, shard: { grid: { state: () => ({ inside: 'road', live: {
+        live: { current: null, pending: ['pine-hollow'] }, runtimeTiming: { current: { instance: 'pine-hollow', hook: 'world', start: 123 } },
+      } }) } } } });
+    globalThis.window = page('first'); installSoakDiagnostics();
+    for (let index = 0; index < 140; index++) window.console.log(index);
+    window.console.warn('before loss');
+    const loss = { target: canvas, statusMessage: 'fixture', preventDefault: () => { throw new Error('Must not change recovery'); } };
+    listeners.get('webglcontextlost')(loss);
+    listeners.get('pagehide')({ persisted: false });
+    assert.equal(window.__sf57Diagnostics.length, 128); assert.equal(calls.length, 141);
+    globalThis.window = page('second'); installSoakDiagnostics();
+    const records = window.__sf57Diagnostics;
+    assert.equal(records.at(-3).text, 'before loss'); assert.equal(records.at(-3).method, 'warn');
+    const actual = records.at(-2); assert.equal(actual.gameCanvas, true); assert.equal(actual.kind, 'contextlost');
+    assert.deepEqual(actual.target, { tag: 'CANVAS', id: 'game', connected: true });
+    assert.deepEqual(actual.admitting, { instance: 'pine-hollow', hook: 'world', start: 123 });
+    assert.deepEqual(actual.pending, ['pine-hollow']); assert.equal(actual.current, null);
+    assert.equal(records.at(-1).kind, 'pagehide'); assert.equal(records.at(-1).document, 'first');
+    assert.equal(JSON.stringify(records).includes('preventDefault'), false, 'No event/game objects retained');
+  } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
+});
 
 void test('SF57 journal suppresses repeated assertions but preserves exact resize, relabel, deletion and new lifetime state', () => {
   const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage;
