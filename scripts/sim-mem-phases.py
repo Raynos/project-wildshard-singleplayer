@@ -38,6 +38,8 @@ def main() -> int:
     ap.add_argument('--max', type=float, default=900, help='seconds before it stops on its own')
     ap.add_argument('--sample-interval-high', action='store_true',
                     help='reset kernel interval highs after each sample; phase summary maxima stay cumulative')
+    ap.add_argument('--process-identities', action='store_true',
+                    help='include GPU and WebContent PID/start identities for restart diagnostics')
     args = ap.parse_args()
 
     native = wd.NativeMemory()
@@ -123,9 +125,16 @@ def main() -> int:
             b['pidFootprint'][p] = max(b['pidFootprint'].get(p, 0), r['physicalFootprintBytes'])
             b['pidInterval'][p] = max(b['pidInterval'].get(p, 0), r['intervalMaxPhysicalFootprintBytes'], r['physicalFootprintBytes'])
         b['gpuInterval'] = max(b['gpuInterval'], sum(max(r['physicalFootprintBytes'], r['intervalMaxPhysicalFootprintBytes']) for r in grows))
+        detail = {}
+        if args.process_identities:
+            detail = {'processIdentities': {
+                kind: {r['pid']: {'startAbstime': r['startAbstime'],
+                                 'footprintBytes': r['physicalFootprintBytes'],
+                                 'intervalMaxBytes': r['intervalMaxPhysicalFootprintBytes']} for r in entries}
+                for kind, entries in (('webContent', rows), ('gpu', grows))}}
         emit('sample', phase=ph, elapsed=el, footprint=agg, interval=agg_interval,
              pids={r['pid']: [r['physicalFootprintBytes'], r['intervalMaxPhysicalFootprintBytes']] for r in rows},
-             gpu=sum(r['physicalFootprintBytes'] for r in grows))
+             gpu=sum(r['physicalFootprintBytes'] for r in grows), **detail)
         if args.sample_interval_high:
             for pid in list(procs) + list(gprocs):
                 try:

@@ -44,12 +44,13 @@ class Intervals(unittest.TestCase):
                         phase.write_text('done')
 
                 def processes(_manager, kind=None):
-                    return {7} if kind is None else set()
+                    return {7} if kind is None else {9}
 
                 args = ['sampler', '--device', 'fake', '--phase-file', str(phase),
                         '--out', str(output), '--interval', '1', '--max', '100']
                 if fresh:
                     args.append('--sample-interval-high')
+                    args.append('--process-identities')
                 with patch.object(sys, 'argv', args), patch.object(PHASES.wd, 'NativeMemory', Kernel), \
                         patch.object(PHASES.wd, 'command', return_value='1'), \
                         patch.object(PHASES.wd, 'simulator_processes', processes), \
@@ -66,6 +67,14 @@ class Intervals(unittest.TestCase):
                 self.assertEqual(summary['gameHighGB'], 0.4)
                 self.assertEqual(summary['allWebContentGB'], 0.4)
                 self.assertEqual(rows[-1]['lost'], [])
+                if fresh:
+                    self.assertEqual(samples[0]['processIdentities'], {
+                        'webContent': {'7': {'startAbstime': 123, 'footprintBytes': 400_000_000,
+                                            'intervalMaxBytes': 400_000_000}},
+                        'gpu': {'9': {'startAbstime': 123, 'footprintBytes': 400_000_000,
+                                     'intervalMaxBytes': 400_000_000}}})
+                else:
+                    self.assertNotIn('processIdentities', samples[0])
 
 
 if __name__ == '__main__':
