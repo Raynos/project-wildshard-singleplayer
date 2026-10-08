@@ -119,8 +119,12 @@ Two 8,760,384-byte composer colour targets are its input/output pair. Pine's two
 not evidence of duplication. No smaller resolution or changed texel format is applied.
 
 Rock-ground colour and normal files each have two 626,288-byte GL allocations;
-one pair is absent from the active scene texture census. This is an investigation target
-(1,252,576 bytes), not a proved dead owner or a saving. A reuse change must preserve
+one pair is absent from the plain active-scene texture census. The exact follow-up
+`rock-texture-owners-cdad59776.json` proves both pairs are live: slab owner
+`grid.world:pine-hollow` and crag owner `grid.object:pine-crags-crag-cliff`, with distinct
+Source UUIDs but identical full GL sampler keys, dimensions, formats, file labels and repeats.
+Crag uniforms are installed through onBeforeCompile, beyond the plain material-property
+census. This is a shared-storage target (1,252,576 bytes), **not a dead owner or a saving**. A reuse change must preserve
 file bytes, every sampler parameter, late consumers and disposal behavior, then pass
 exact pixel comparison and an actual allocation delta.
 

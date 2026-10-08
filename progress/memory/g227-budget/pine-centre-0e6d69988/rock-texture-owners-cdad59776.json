@@ -1,0 +1,248 @@
+{
+  "pin": "cdad59776",
+  "version": {
+    "build": "cdad597-muzcgb1q",
+    "time": "2026-10-08T09:38:37.194Z"
+  },
+  "closed": true,
+  "failure": null,
+  "method": "Actual uploaded resources from Game.gpuResourceDiagnostics + renderer-local uploaded resource set, joined by __sc_gl_id(native WebGLTexture); scalar metadata only, no restored arrays or GC.",
+  "rows": [
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/rock_ground/diffuse-90136f33.ktx2/Texture",
+      "bytes": 626288,
+      "type": "Vs",
+      "uuid": "2dd6dc92-0018-4768-911d-7eecd84fce83",
+      "name": "",
+      "owner": {
+        "name": "grid.world:pine-hollow",
+        "disposed": false,
+        "level": true
+      },
+      "retained": false,
+      "texture": true,
+      "programs": [],
+      "source": "202c7cc4-c2c8-4ad2-93ef-91df83ccfeea",
+      "image": {
+        "width": 1024,
+        "height": 1024
+      },
+      "glId": "texture:1399",
+      "sampler": {
+        "wrapS": 1000,
+        "wrapT": 1000,
+        "magFilter": 1006,
+        "minFilter": 1008,
+        "anisotropy": 16,
+        "internalFormat": null,
+        "format": 37812,
+        "type": 1009,
+        "generateMipmaps": false,
+        "premultiplyAlpha": false,
+        "flipY": false,
+        "unpackAlignment": 4,
+        "colorSpace": "srgb"
+      },
+      "mipCount": 0,
+      "repeat": [
+        1,
+        1
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "textureVersion": 2,
+      "sourceVersion": 3
+    },
+    {
+      "asset": "/assets/gpu/tex/rock_ground/arm.phone-4cc2ef34.ktx2/Texture",
+      "bytes": 174776,
+      "type": "Vs",
+      "uuid": "c33dd7f8-f450-495f-ad05-a247a5f7ff62",
+      "name": "",
+      "owner": {
+        "name": "grid.world:pine-hollow",
+        "disposed": false,
+        "level": true
+      },
+      "retained": false,
+      "texture": true,
+      "programs": [],
+      "source": "ffa4cc89-20b0-4c92-b064-218721e98306",
+      "image": {
+        "width": 512,
+        "height": 512
+      },
+      "glId": "texture:1400",
+      "sampler": {
+        "wrapS": 1000,
+        "wrapT": 1000,
+        "magFilter": 1006,
+        "minFilter": 1008,
+        "anisotropy": 16,
+        "internalFormat": null,
+        "format": 37492,
+        "type": 1009,
+        "generateMipmaps": false,
+        "premultiplyAlpha": false,
+        "flipY": false,
+        "unpackAlignment": 4,
+        "colorSpace": ""
+      },
+      "mipCount": 0,
+      "repeat": [
+        1,
+        1
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "textureVersion": 2,
+      "sourceVersion": 3
+    },
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/rock_ground/nor_gl-78bf8132.ktx2/Texture",
+      "bytes": 626288,
+      "type": "Vs",
+      "uuid": "b5c262e4-3d47-4100-a5c8-b8c2a09c985d",
+      "name": "",
+      "owner": {
+        "name": "grid.world:pine-hollow",
+        "disposed": false,
+        "level": true
+      },
+      "retained": false,
+      "texture": true,
+      "programs": [],
+      "source": "7c623475-026e-4a8d-a92e-7ddb3343204d",
+      "image": {
+        "width": 1024,
+        "height": 1024
+      },
+      "glId": "texture:1401",
+      "sampler": {
+        "wrapS": 1000,
+        "wrapT": 1000,
+        "magFilter": 1006,
+        "minFilter": 1008,
+        "anisotropy": 16,
+        "internalFormat": null,
+        "format": 37812,
+        "type": 1009,
+        "generateMipmaps": false,
+        "premultiplyAlpha": false,
+        "flipY": false,
+        "unpackAlignment": 4,
+        "colorSpace": ""
+      },
+      "mipCount": 0,
+      "repeat": [
+        1,
+        1
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "textureVersion": 2,
+      "sourceVersion": 3
+    },
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/rock_ground/diffuse-90136f33.ktx2/Texture",
+      "bytes": 626288,
+      "type": "Vs",
+      "uuid": "e847773d-61ba-4f6a-8b38-9b1fc6e8bbc4",
+      "name": "",
+      "owner": {
+        "name": "grid.object:pine-crags-crag-cliff",
+        "disposed": false,
+        "level": true
+      },
+      "retained": false,
+      "texture": true,
+      "programs": [],
+      "source": "323f9205-f139-4a0b-8510-0f60ec3ebc5c",
+      "image": {
+        "width": 1024,
+        "height": 1024
+      },
+      "glId": "texture:2036",
+      "sampler": {
+        "wrapS": 1000,
+        "wrapT": 1000,
+        "magFilter": 1006,
+        "minFilter": 1008,
+        "anisotropy": 16,
+        "internalFormat": null,
+        "format": 37812,
+        "type": 1009,
+        "generateMipmaps": false,
+        "premultiplyAlpha": false,
+        "flipY": false,
+        "unpackAlignment": 4,
+        "colorSpace": "srgb"
+      },
+      "mipCount": 0,
+      "repeat": [
+        1,
+        1
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "textureVersion": 3,
+      "sourceVersion": 4
+    },
+    {
+      "asset": "/assets/pine-hollow/astc6/tex/rock_ground/nor_gl-78bf8132.ktx2/Texture",
+      "bytes": 626288,
+      "type": "Vs",
+      "uuid": "00705b58-2fbf-407b-98d7-98237fda8d52",
+      "name": "",
+      "owner": {
+        "name": "grid.object:pine-crags-crag-cliff",
+        "disposed": false,
+        "level": true
+      },
+      "retained": false,
+      "texture": true,
+      "programs": [],
+      "source": "0c4df0e8-cf0b-4684-8766-2110d3e12884",
+      "image": {
+        "width": 1024,
+        "height": 1024
+      },
+      "glId": "texture:2037",
+      "sampler": {
+        "wrapS": 1000,
+        "wrapT": 1000,
+        "magFilter": 1006,
+        "minFilter": 1008,
+        "anisotropy": 16,
+        "internalFormat": null,
+        "format": 37812,
+        "type": 1009,
+        "generateMipmaps": false,
+        "premultiplyAlpha": false,
+        "flipY": false,
+        "unpackAlignment": 4,
+        "colorSpace": ""
+      },
+      "mipCount": 0,
+      "repeat": [
+        1,
+        1
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "textureVersion": 3,
+      "sourceVersion": 4
+    }
+  ],
+  "verdict": "Two independent sources for each identical file/full GL sampler key. Both are live: slab grid.world and crag grid.object. Crag uniforms live in onBeforeCompile and are absent from the plain material-property census. No dead owner is inferred. Potential shared-source storage reduction1,252,576B; not yet implemented or credited."
+}
