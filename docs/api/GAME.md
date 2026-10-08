@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-698 members; 112 without a doc line (—).
+700 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -466,6 +466,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `HybridShardPlugin` | class | @wildshard/game/shardfile/hybrid | Standalone staged composition keeps the resident data plugin and trusted hooks on the existing Game boot path. |
 | `installHybridRuntime` | function | @wildshard/game/shardfile/hybrid | Consume the grid client's interior events; a late subscriber installs the current cell, never its neighbours. |
 | `prepareHybridShard` | function | @wildshard/game/shardfile/hybrid | Admit declared data and trusted hooks; catalogue placement and cell activation stay in the game layer. |
+| `bindRuntimeActor` | function | @wildshard/game/shardfile/hybridRows | Bind one `runtime.spawns.actors` row. Default retained identities are declared; `identity: runtime` preserves the |
 | `bindRuntimeBoss` | function | @wildshard/game/shardfile/hybridRows | Bind one declared boss row to the runtime's animals; `spawned` dresses each fresh body. |
 | `bindRuntimeCoins` | function | @wildshard/game/shardfile/hybridRows | Bind the coins a runtime pays (a quest's `onComplete.coins`, a boss's reward burst) to the platform purse: the level's |
 | `bindRuntimeHomes` | function | @wildshard/game/shardfile/hybridRows | Keep the declared homes (`runtime.spawns.homes`) in the runtime's play scope: one creature of the row's runtime species |
@@ -474,6 +475,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `bindRuntimeLedger` | function | @wildshard/game/shardfile/hybridRows | Bind the declared ledger rules for a runtime that has no simulation host: each fact is stamped tick 0 and told apart by |
 | `bindRuntimeQuest` | function | @wildshard/game/shardfile/hybridRows | Build one declared quest's state over the runtime's flags, scoped to its play scope. The `onComplete` fact is emitted |
 | `bindRuntimeState` | function | @wildshard/game/shardfile/hybridRows | Bind one declared host state field; legacy scalar/JSON-string data migrates once, never written by the shard again. |
+| `RuntimeActor` | interface | @wildshard/game/shardfile/hybridRows | A finite declared body, without home refill or encounter behaviour. Placement timing remains runtime-owned. |
 | `runtimeBinds` | function | @wildshard/game/shardfile/hybridRows | The sections `source` declares its runtime binds; empty for a pure-data shard. |
 | `RuntimeBoss` | interface | @wildshard/game/shardfile/hybridRows | A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. |
 | `RuntimeBossOptions` | interface | @wildshard/game/shardfile/hybridRows | Boss identity policy for a runtime adopting spawn data without changing its existing save identities. |

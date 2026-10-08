@@ -1932,6 +1932,15 @@ Paths start at `$`; `[]` is an array member, `[n]` a tuple slot, `{key}` / `{val
 | $.runtime.cost.webContentMB | number | required | finite [function; not executed]; min_value 0 |
 | $.runtime.entry | string | required | max_length 160; regex /^runtime\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.ts$/u |
 | $.runtime.spawns | strict_object | optional; default undefined | check [function; not executed] "unique runtime spawn identities" |
+| $.runtime.spawns.actors | array | exact_optional; default undefined | max_length 256 |
+| $.runtime.spawns.actors[] | strict_object | required |  |
+| $.runtime.spawns.actors[].at | tuple | required |  |
+| $.runtime.spawns.actors[].at[0] | number | required | min_value -250; max_value 250 |
+| $.runtime.spawns.actors[].at[1] | number | required | min_value -250; max_value 250 |
+| $.runtime.spawns.actors[].id | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
+| $.runtime.spawns.actors[].kind | string | required | regex /^[a-z][a-zA-Z0-9-]*$/u; max_length 64 |
+| $.runtime.spawns.actors[].look | string | required | regex /^[a-z][a-z0-9.:-]*$/u; max_length 128 |
+| $.runtime.spawns.actors[].yaw | number | required | finite [function; not executed] |
 | $.runtime.spawns.bosses | array | required | max_length 16 |
 | $.runtime.spawns.bosses[] | strict_object | required |  |
 | $.runtime.spawns.bosses[].at | tuple | required |  |

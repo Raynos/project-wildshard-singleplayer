@@ -13264,6 +13264,12 @@
         "from": "@wildshard/engine/world/voxelAO"
       },
       {
+        "name": "withVoxelAOBake",
+        "kind": "function",
+        "doc": "Run a world build with the baked table at `url` added (fetched first; a missing or unreadable file adds nothing, so every",
+        "from": "@wildshard/engine/world/voxelAO"
+      },
+      {
         "name": "basinBody",
         "kind": "function",
         "doc": "A still basin cut into the terrain (a pond, a river channel): water wherever the terrain's",
@@ -16290,6 +16296,12 @@
         "from": "@wildshard/game/shardfile/hybrid"
       },
       {
+        "name": "bindRuntimeActor",
+        "kind": "function",
+        "doc": "Bind one `runtime.spawns.actors` row. Default retained identities are declared; `identity: runtime` preserves the",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
         "name": "bindRuntimeBoss",
         "kind": "function",
         "doc": "Bind one declared boss row to the runtime's animals; `spawned` dresses each fresh body.",
@@ -16335,6 +16347,12 @@
         "name": "bindRuntimeState",
         "kind": "function",
         "doc": "Bind one declared host state field; legacy scalar/JSON-string data migrates once, never written by the shard again.",
+        "from": "@wildshard/game/shardfile/hybridRows"
+      },
+      {
+        "name": "RuntimeActor",
+        "kind": "interface",
+        "doc": "A finite declared body, without home refill or encounter behaviour. Placement timing remains runtime-owned.",
         "from": "@wildshard/game/shardfile/hybridRows"
       },
       {

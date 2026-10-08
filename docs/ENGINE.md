@@ -1928,7 +1928,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2236 exports, grouped by the module to import them from.
+2237 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2296,7 +2296,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/world/terrainTileData`: `decodeTerrainTile`, `encodeTerrainTile`, `isTerrainTileData`, `terrainTileCost`, `TerrainTileData`, `terrainTileHeight`
 - `@wildshard/engine/world/terrainTileView`: `installTerrainTile`, `maskTerrainTile`
 - `@wildshard/engine/world/TreeFactory`: `FadeBand`, `forestFade`, `patchFade`, `patchWind`, `TreeFactory`, `TreeMaterial`, `TreeVariant`, `windUniforms`
-- `@wildshard/engine/world/voxelAO`: `addVoxelAOBake`, `aoTint`, `decodeVoxelAOBake`, `encodeVoxelAOBake`, `HemiDir`, `HemiRing`, `hemisphere`, `recordVoxelAO`, `voxelAO`, `voxelAOBakeStats`, `VoxelAOParams`
+- `@wildshard/engine/world/voxelAO`: `addVoxelAOBake`, `aoTint`, `decodeVoxelAOBake`, `encodeVoxelAOBake`, `HemiDir`, `HemiRing`, `hemisphere`, `recordVoxelAO`, `voxelAO`, `voxelAOBakeStats`, `VoxelAOParams`, `withVoxelAOBake`
 - `@wildshard/engine/world/water/body`: `basinBody`, `swellBody`, `WaterBodies`, `WaterBody`
 - `@wildshard/engine/world/water/declared`: `declaredWaterBody`, `dryEntryContains`, `DryEntryEdge`, `WaterDeclaration`
 - `@wildshard/engine/world/water/view`: `surfaceReflect`, `waterView`, `WaterView`
@@ -2307,7 +2307,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-698 exports, grouped by the module to import them from.
+700 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2391,7 +2391,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/shardfile/groupBrains`: `groupBrainRules`, `GroupBrainSchema`, `HerdGroupSchema`, `PackGroupSchema`, `parseGroupBrain`, `ShardGroupBrain`, `ShardHerdGroup`, `ShardPackGroup`
 - `@wildshard/game/shardfile/groupRuntime`: `DeclaredGroupPolicy`, `DeclaredGroupPorts`, `DeclaredHerdRecipe`, `DeclaredPackRecipe`, `prepareDeclaredGroupBrains`, `PreparedGroupBrains`
 - `@wildshard/game/shardfile/hybrid`: `HybridCellBinding`, `HybridHookTiming`, `hybridInstallation`, `HybridResident`, `HybridResidentWorld`, `HybridRuntimeOptions`, `HybridRuntimeSession`, `HybridRuntimeState`, `hybridShardManifest`, `HybridShardPlugin`, `installHybridRuntime`, `prepareHybridShard`
-- `@wildshard/game/shardfile/hybridRows`: `bindRuntimeBoss`, `bindRuntimeCoins`, `bindRuntimeHomes`, `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `bindRuntimeState`, `runtimeBinds`, `RuntimeBoss`, `RuntimeBossOptions`, `RuntimeCoins`, `RuntimeFacts`, `RuntimeHome`, `RuntimeHomePorts`, `RuntimeHomes`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `runtimeSpawnRows`, `withoutRuntimeRows`
+- `@wildshard/game/shardfile/hybridRows`: `bindRuntimeActor`, `bindRuntimeBoss`, `bindRuntimeCoins`, `bindRuntimeHomes`, `bindRuntimeItemContexts`, `bindRuntimeItems`, `bindRuntimeLedger`, `bindRuntimeQuest`, `bindRuntimeState`, `RuntimeActor`, `runtimeBinds`, `RuntimeBoss`, `RuntimeBossOptions`, `RuntimeCoins`, `RuntimeFacts`, `RuntimeHome`, `RuntimeHomePorts`, `RuntimeHomes`, `RuntimeItemPorts`, `RuntimeQuest`, `RuntimeQuestPorts`, `runtimeSpawnRows`, `withoutRuntimeRows`
 - `@wildshard/game/shardfile/items`: `DeclaredItemPorts`, `DeclaredItems`, `declaredItemScriptEntities`, `installDeclaredItems`, `itemRules`, `ItemsSchema`, `parseItems`, `shardItemFamilies`, `ShardItems`
 - `@wildshard/game/shardfile/json`: `isJsonData`
 - `@wildshard/game/shardfile/ledger`: `LedgerFact`, `LedgerFactSchema`, `LedgerRule`, `LedgerRulesSchema`, `parseLedgerRules`

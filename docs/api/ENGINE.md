@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2253 members; 834 without a doc line (—).
+2254 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -2215,6 +2215,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `voxelAO` | function | @wildshard/engine/world/voxelAO | each vertex's darkening (0..1; NaN where a sample was skipped: a degenerate normal) |
 | `voxelAOBakeStats` | function | @wildshard/engine/world/voxelAO | how many `voxelAO` calls the bake answered and how many marched since the page loaded (the load benchmark reads it) |
 | `VoxelAOParams` | interface | @wildshard/engine/world/voxelAO | — |
+| `withVoxelAOBake` | function | @wildshard/engine/world/voxelAO | Run a world build with the baked table at `url` added (fetched first; a missing or unreadable file adds nothing, so every |
 | `basinBody` | function | @wildshard/engine/world/water/body | A still basin cut into the terrain (a pond, a river channel): water wherever the terrain's |
 | `swellBody` | function | @wildshard/engine/world/water/body | A body whose surface rides the engine's Gerstner swell (../waves.ts) over a flat rest level: an open sea. |
 | `WaterBodies` | class | @wildshard/engine/world/water/body | `app.world.water`: the level's registered bodies; each leaves with the scope that added it. |
