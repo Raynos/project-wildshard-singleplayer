@@ -17,9 +17,9 @@ const report = { version: await (await fetch(new URL('version.json', base))).jso
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const snapshot = page => page.evaluate(() => {
-  const api = window.__wildshard, grid = api.shard.grid, world = api.requireWorld();
+  const api = window.__wildshard, grid = api.shard.grid, world = api.requireWorld(), hud = document.querySelector('#hud');
   return { state: grid.state(), residency: grid.residency(), gl: window.__sc_gl().map(({ gl, ...row }) => row),
-    position: { ...world.player.position }, contextLost: world.game.renderer.getContext().isContextLost(), accent: document.querySelector('#hud')?.style.getPropertyValue('--ws-cyan'),
+    position: { ...world.player.position }, contextLost: world.game.renderer.getContext().isContextLost(), accent: hud ? getComputedStyle(hud).getPropertyValue('--ws-cyan').trim() : null,
     actors: api.shard.sunscar?.creatures?.all().map(actor => ({ id: actor.entityId, kind: actor.kind, hp: actor.hp, alive: actor.alive })),
     // Read existing geometry metadata and matrices only; no released attribute accessor is touched.
     presentation: (() => { const bands = [], planes = []; world.game.scene.traverse(object => {
@@ -32,9 +32,9 @@ try {
   for (const edge of ['north', 'east', 'south', 'west'].filter(edge => !only || edge === only)) {
     const row = { edge, snapshots: [], routes: [], trace: [], errors: [], consoleErrors: [], warnings: [], documents: [] };
     report.entries.push(row); report.stage = `${edge}:boot`; save();
-    const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
+    const context = await browser.newContext({ ...devices['iPhone 16 Pro'] });
     const page = await context.newPage(); page.setDefaultTimeout(240000);
-    page.on('pageerror', error => { row.errors.push(String(error)); save(); });
+    page.on('pageerror', error => { row.errors.push(error.stack ?? String(error)); save(); });
     page.on('console', message => { if (message.type() === 'error') row.consoleErrors.push(message.text()); if (message.type() === 'warning') row.warnings.push(message.text()); });
     page.on('request', request => { if (request.isNavigationRequest() && request.frame() === page.mainFrame()) row.documents.push(request.url()); });
     try {
@@ -99,7 +99,8 @@ try {
       row.authoredIdentityPreserved = JSON.stringify(entered.actors?.map(actor => actor.id).sort()) === JSON.stringify(reentered.actors?.map(actor => actor.id).sort());
       row.enteredActorsPresent = entered.actors?.length > 0 && reentered.actors?.length === entered.actors.length;
       row.orchid = entered.accent?.toLowerCase() === '#e989e1' && reentered.accent?.toLowerCase() === '#e989e1';
-      row.warmBandPresent = entered.presentation.bands.some(band => band.visible && band.colour.every((value, index) => Math.abs(value - [0.95, 0.45, 0.1][index]) < 1e-6));
+      // G158: the border band carries the shard's mood from the road; its own frame takes over inside.
+      row.warmBandPresent = [row.snapshots[0], returned].every(reading => reading.presentation.bands.some(band => band.visible && band.colour.every((value, index) => Math.abs(value - [0.95, 0.45, 0.1][index]) < 1e-6)));
       row.recoveries = await page.evaluate(() => window.__sf50Recoveries);
       row.leak = await page.evaluate(() => window.__wildshard.leak());
       row.finalGL = await page.evaluate(() => window.__sc_gl().map(({ gl, ...row }) => row));
