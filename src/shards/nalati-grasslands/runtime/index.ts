@@ -1,4 +1,4 @@
-import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { NALATI_SPECIES, NALATI_LOOKS } from '../species/rows';
 import { STRINGS } from '../strings';
 import { NALATI_FEATS } from '../feats';
@@ -119,6 +119,8 @@ export class NalatiPlugin extends ShardPlugin {
     rt.titan.bind({ ...common, wildlife, ride, get sabre() { return kit.sabre; }, upgradeSabre: (power) => { kit.upgradeSabre(weapons, power); },
       hurt: (amount, why) => { hurt('boss.storm-titan', amount, { kind: 'storm-titan', label: 'the Storm Titan' }, why); },
       record: (kind, variant) => { progress.recordKill(kind, variant); progress.recordEvent(kind); }, ownSkin: (id) => { rt.skins.own(id); } });
+    // Boss prewarming reserves its identity before the authored lairs materialize for strict restore.
+    if (retainsRuntimeServices(ctx)) rt.elites.initialize();
     if (ride !== null) ride.taming.onBonded = () => { progress.recordEvent('tame'); };
     ctx.on('player.died', () => { if (ride?.mounted === true) ride.mount.dismount(); });
     ctx.on('player.respawned', () => { kit.refill(); });

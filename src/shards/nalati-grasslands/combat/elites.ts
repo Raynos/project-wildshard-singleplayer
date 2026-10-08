@@ -934,6 +934,9 @@ export class NalatiElites {
     this.ctx.game.levelScope.onDispose(app.debug.scopedExpose('nalati.elites', this));
   }
 
+  /** Materialize eligible authored actors before continuation restore without ticking encounters or awarding rewards. */
+  initialize(): void { this.elites?.initialize(); }
+
   update(dt: number, t: number): void { this.elites?.update(dt, t); }
 }
 
