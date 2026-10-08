@@ -11,7 +11,7 @@ import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { saveFixtureCode } from './debug-settings.mjs';
-import { gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure } from './frame-floor-grid.mjs';
+import { gridFloorPlans, stageFloorGrid, driveFloorGrid, gridFloorWitnessFailures, installFloorGridProgress, gridFloorRuntimeFailure, gridFloorDocumentIdentity } from './frame-floor-grid.mjs';
 import { GL_INIT } from './parity/glbytes.mjs';
 
 const ROOT = resolvePath(import.meta.dirname, '..');
@@ -168,16 +168,18 @@ function sample(n) {
 // Runtime.evaluate on Safari does not await JavaScript promises. Poll an explicit result envelope;
 // Target.* multiplexing is supported; a new document invalidates the measurement rather than replaying it.
 let evalSequence = 0;
+let evaluationOriginDriftMaxMs = 0;
 function evaluator(raw, observe = () => undefined) {
   return async (expression, timeout = 35000) => {
     const key = `__frameFloorEval${++evalSequence}`;
-    const origin = await raw(`globalThis[${JSON.stringify(key)}] = {done:false}; Promise.resolve().then(() => (${expression})).then(value => {globalThis[${JSON.stringify(key)}] = {done:true,value};}, error => {globalThis[${JSON.stringify(key)}] = {done:true,error:String(error)};}); performance.timeOrigin`);
+    const origin = JSON.parse(await raw(`globalThis[${JSON.stringify(key)}] = {done:false}; Promise.resolve().then(() => (${expression})).then(value => {globalThis[${JSON.stringify(key)}] = {done:true,value};}, error => {globalThis[${JSON.stringify(key)}] = {done:true,error:String(error)};}); JSON.stringify((${gridFloorDocumentIdentity.toString()})())`));
     const start = Date.now();
     try {
       while (Date.now() - start < timeout) {
-        const value = await raw(`JSON.stringify({origin:performance.timeOrigin,state:globalThis[${JSON.stringify(key)}] ?? null,progress:window.__frameFloorGridProgress?.() ?? null})`);
+        const value = await raw(`JSON.stringify({identity:(${gridFloorDocumentIdentity.toString()})(),state:globalThis[${JSON.stringify(key)}] ?? null,progress:window.__frameFloorGridProgress?.() ?? null})`);
         const envelope = typeof value === 'string' ? JSON.parse(value) : null;
-        if (envelope?.origin !== origin) throw Object.assign(new Error('Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue'), { documentOrigin: envelope?.origin });
+        if (envelope?.identity?.token !== origin.token) throw Object.assign(new Error('Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue'), { documentOrigin: envelope?.identity?.timeOrigin });
+        evaluationOriginDriftMaxMs = Math.max(evaluationOriginDriftMaxMs, Math.abs(envelope.identity.timeOrigin - origin.timeOrigin));
         if (envelope.progress) observe(envelope.progress);
         const state = envelope.state;
         if (state?.done) { if (state.error) throw new Error(state.error); return state.value; }
@@ -222,7 +224,7 @@ async function measureShard(driver, shard, deadline) {
     await driver.load(shard);
     if (shard === 'grid') await enterGrid(driver);
     await waitReady(driver.evaluate);
-    const documentOrigin = await driver.evaluate('performance.timeOrigin');
+    const documentOrigin = await driver.evaluate(`(${gridFloorDocumentIdentity.toString()})()`);
     if (shard === 'grid' && gridScenario !== 'baseline') await driver.evaluate(`(${installFloorGridProgress.toString()})()`);
     await sleep(settleMs);
     const meta = await driver.evaluate(`(${metadata.toString()})()`);
@@ -276,13 +278,13 @@ async function measureShard(driver, shard, deadline) {
     }
     const errors = await driver.errors();
     return { shard, complete: true, pass: rows.every((r) => r.pass) && errors.length === 0, seconds: (Date.now() - start) / 1000,
-      floorMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, lastRoute: driver.progress(), errors };
+      floorMs, evaluationOriginDriftMaxMs, metadata: meta, cameraSource: declared.length > 0 ? 'manifest standing parity cameras' : 'no declared parity cameras; reversed spawn fallback', scan, rows, scenarios, lastRoute: driver.progress(), errors };
   } catch (error) {
     console.error(`${surface} ${shard}: ${errorText(error)}`);
     const diagnostic = await driver.evaluate(`(() => { const app = window.__wildshard?.world?.game?.app; const saved = JSON.parse(localStorage.getItem('wildshard.save.v2.device') ?? '{}'); return { documentOrigin: performance.timeOrigin, lastEnd: saved.keys?.['life.lastEnd']?.data, lastUnload: saved.keys?.['life.lastUnload']?.data, url: location.href, readyState: document.readyState, state: app?.state, modal: document.querySelector('#wserr .msg')?.textContent, stack: document.querySelector('#wserr pre')?.textContent, loading: document.querySelector('.ws-load')?.textContent?.slice(-3000), bootTrace: saved.keys?.['boot.trace']?.data, systems: app ? Object.values(app.systemsByPhase()).flat().map(system => system.id) : [], console: window.__frameFloorConsole ?? [], resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) }; })()`).catch(() => null);
     const lastRoute = driver.progress(), runtimeFailure = gridFloorRuntimeFailure(lastRoute, diagnostic ?? { documentOrigin: error?.documentOrigin });
     return { shard, complete: runtimeFailure !== null, pass: false, seconds: (Date.now() - start) / 1000, error: errorText(error),
-      errors: await driver.errors().catch(() => []), rows, scenarios, lastRoute, runtimeFailure, diagnostic };
+      evaluationOriginDriftMaxMs, errors: await driver.errors().catch(() => []), rows, scenarios, lastRoute, runtimeFailure, diagnostic };
   } finally { await driver.unload(); }
 }
 
@@ -392,7 +394,7 @@ async function worker() {
         followed: async () => { await sleep(1500); await connect(`${base}frame-floor-safari.html`); },
       };
     }
-    for (const shard of shards) { lastRoute = null; rows.push(await measureShard(driver, shard, deadline)); }
+    for (const shard of shards) { lastRoute = null; evaluationOriginDriftMaxMs = 0; rows.push(await measureShard(driver, shard, deadline)); }
   } catch (error) {
     for (const shard of shards.filter((s) => !rows.some((r) => r.shard === s))) rows.push({ shard, complete: false, pass: false, error: errorText(error) });
   } finally {

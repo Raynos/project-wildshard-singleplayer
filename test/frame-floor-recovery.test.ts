@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- A fresh VM models document identity without navigating a real browser.
 import { createContext, runInContext, runInNewContext } from 'node:vm';
 import { expect, it, vi } from 'vitest';
-import { gridFloorRuntimeFailure, installFloorGridProgress, type FloorGridProgress } from '../scripts/frame-floor-grid.mjs';
+import { gridFloorRuntimeFailure, installFloorGridProgress, gridFloorDocumentIdentity, type FloorGridProgress } from '../scripts/frame-floor-grid.mjs';
 
 const source = readFileSync('scripts/frame-floor.mjs', 'utf8');
 const evaluatorSource = source.slice(source.indexOf('let evalSequence = 0;'), source.indexOf('async function waitReady'));
@@ -14,10 +14,10 @@ const last: FloorGridProgress = { documentOrigin: 100, sampledAt: 200, seconds: 
     claims: [{ id: 'sim:pine', bytes: 501e6 }], cost: { playing: 1082e6 } } };
 
 it('mirrors the last ledger before a document change, rejects the active route and never dispatches it again', async () => {
-  const clock = { timeOrigin: 100 }, window = { calls: 0, __frameFloorGridProgress: () => last };
-  const context = createContext({ window, performance: clock });
+  const clock = { timeOrigin: 100 }, window: { calls: number; __frameFloorGridProgress: () => FloorGridProgress; __frameFloorGridDocumentToken?: string } = { calls: 0, __frameFloorGridProgress: () => last };
+  const context = createContext({ window, performance: clock, crypto: { randomUUID: () => 'document-one' } });
   const observe = vi.fn<(progress: FloorGridProgress) => void>();
-  const evaluate = runInNewContext(`${evaluatorSource}\nevaluator`, { sleep: () => { clock.timeOrigin = 300; return Promise.resolve(); } }) as
+  const evaluate = runInNewContext(`${evaluatorSource}\nevaluator`, { gridFloorDocumentIdentity, sleep: () => { clock.timeOrigin = 300; window.__frameFloorGridDocumentToken = 'document-two'; return Promise.resolve(); } }) as
     (raw: (expression: string) => Promise<unknown>, observed: (progress: FloorGridProgress) => void) => (expression: string) => Promise<unknown>;
   const run = evaluate(expression => Promise.resolve(runInContext(expression, context) as unknown), observe);
   await expect(run('(window.calls++, new Promise(() => {}))')).rejects.toThrow('document changed');
@@ -27,10 +27,37 @@ it('mirrors the last ledger before a document change, rejects the active route a
 });
 
 it('still awaits an ordinary promise in the same document', async () => {
-  const context = createContext({ window: {}, performance: { timeOrigin: 100 } });
-  const evaluate = runInNewContext(`${evaluatorSource}\nevaluator`, { sleep: () => Promise.resolve() }) as
+  const context = createContext({ window: {}, performance: { timeOrigin: 100 }, crypto: { randomUUID: () => 'document-one' } });
+  const evaluate = runInNewContext(`${evaluatorSource}\nevaluator`, { gridFloorDocumentIdentity, sleep: () => Promise.resolve() }) as
     (raw: (expression: string) => Promise<unknown>) => (expression: string) => Promise<unknown>;
   expect(await evaluate(expression => Promise.resolve(runInContext(expression, context) as unknown))('Promise.resolve(42)')).toBe(42);
+});
+
+it('records same-document Safari time-origin drift without replaying the expression', async () => {
+  const clock = { timeOrigin: 100 }, window = { calls: 0 };
+  const context = createContext({ window, performance: clock, crypto: { randomUUID: () => 'document-one' } });
+  const host = createContext({ gridFloorDocumentIdentity, sleep: () => Promise.resolve() });
+  const evaluate = runInContext(`${evaluatorSource}\nevaluator`, host) as
+    (raw: (expression: string) => Promise<unknown>) => (expression: string) => Promise<unknown>;
+  let reads = 0;
+  const run = evaluate(expression => {
+    if (++reads === 2) clock.timeOrigin += 2;
+    return Promise.resolve(runInContext(expression, context) as unknown);
+  });
+  expect(await run('(window.calls++, Promise.resolve(42))')).toBe(42);
+  expect(window.calls).toBe(1);
+  expect(runInContext('evaluationOriginDriftMaxMs', host)).toBe(2);
+});
+
+it('refuses a new document token even if its time origin is identical', async () => {
+  const window: { calls: number; __frameFloorGridDocumentToken?: string } = { calls: 0 };
+  const context = createContext({ window, performance: { timeOrigin: 100 }, crypto: { randomUUID: () => 'document-one' } });
+  const evaluate = runInNewContext(`${evaluatorSource}\nevaluator`, { gridFloorDocumentIdentity,
+    sleep: () => { window.__frameFloorGridDocumentToken = 'document-two'; return Promise.resolve(); } }) as
+    (raw: (expression: string) => Promise<unknown>) => (expression: string) => Promise<unknown>;
+  const run = evaluate(expression => Promise.resolve(runInContext(expression, context) as unknown));
+  await expect(run('(window.calls++, new Promise(() => {}))')).rejects.toThrow('document changed');
+  expect(window.calls).toBe(1);
 });
 
 it('reconnects Safari for evidence after a transport timeout without re-evaluating a gameplay command', async () => {
