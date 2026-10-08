@@ -117,7 +117,7 @@ async function buildSession(manifest: ShardManifest, stage: LoadStage, kit: KitP
     fragment: (tab, fragment) => { const menu = boot.runtime.play?.menu; if (menu === undefined) throw new Error('Bag plugin fragments require the play host'); return bagMenu(menu).fragment(tab, fragment); },
   } };
   let context: ShardContext | undefined;
-  const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game); return context; };
+  const ctx = (level: LevelContext): ShardContext => { context ??= shardContext(level, manifest, game); boot.context = context; return context; };
   app.levelAdapters.inputContext = (def) => {
     const child = scope.child(`input.${def.id}`); app.input.register(def, child);
     return () => child.dispose();

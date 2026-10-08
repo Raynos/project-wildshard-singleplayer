@@ -40,6 +40,26 @@ function fixture() {
 }
 const down = (physics: Physics) => { physics.step(); return castRay(physics, { x: 0, y: 10, z: 0 }, { x: 0, y: -1, z: 0 }, 20); };
 
+it('protects an entered view and permits quota eviction of its parked resident', () => {
+  const allocator = new ResidencyAllocator(), resident = new Scope('evictable-region'), scene = new Scene(), physics = new Physics(rapier);
+  const claim = allocator.reserve({ id: 'runtime:region-1', category: 'product', bytes: 40 * MB, owner: cell.instance, distance: 0, needed: false,
+    evictSync: () => { resident.dispose(); } });
+  if (claim === null) throw new Error('Fixture claim refused');
+  const view = createRegionalView({ cell, home: { x: 0, z: 0 }, scene, physics, slot: { registryValue: null }, assets: { isAcquired: () => false },
+    allocator, claim, scope: resident, ground: { heightAt: () => 0, waterSurfaceAt: () => null } });
+  const entered = resident.child('entered'); view.enter(entered);
+  const next = { id: 'next', category: 'product' as const, owner: 'next', bytes: 550 * MB, distance: 0, needed: true };
+  try {
+    expect(allocator.reserve(next)).toBeNull(); expect(resident.disposed).toBe(false);
+    expect(allocator.entries().find(row => row.id === claim.id)?.holds).toBe(1);
+    entered.dispose(); expect(view.census().held).toBe(false);
+    const lease = allocator.reserve(next); expect(lease).not.toBeNull(); expect(resident.disposed).toBe(true);
+    expect(scene.children).toHaveLength(0); expect(physics.world.colliders.len()).toBe(0);
+    lease?.release();
+  } finally { resident.dispose(); claim.release(); physics.dispose(); }
+  expect(allocator.entries()).toEqual([]);
+});
+
 it('refuses to exist without the cell\'s reserved whole-runtime claim', () => {
   const allocator = new ResidencyAllocator(), physics = new Physics(rapier);
   const claim = allocator.reserve({ id: 'runtime:other', category: 'product', bytes: MB, owner: 'other', distance: 0, needed: true });
@@ -52,7 +72,7 @@ it('writes the destination physics through the page verbs while entered, hides p
   const f = fixture(), { view } = f;
   expect(view.root.parent).toBe(f.scene);
   expect([view.root.position.x, view.root.position.z]).toEqual([540, 0]); // the cell's render offset from the home frame
-  expect(view.census()).toMatchObject({ visible: false, bound: false, held: true });
+  expect(view.census()).toMatchObject({ visible: false, bound: false, held: false });
 
   // A world-stage piece parks with the resident; an entered piece belongs to the entry scope.
   const world = f.resident.child('runtime.world'), entry = f.resident.child('runtime:region-1');
@@ -82,7 +102,7 @@ it('writes the destination physics through the page verbs while entered, hides p
   // Leave: entered handles go, the page registry returns to the home, parked geometry stays but is hidden.
   entry.dispose();
   expect(f.app.registry).toBe(f.homeRegistry);
-  expect(view.census()).toEqual({ bodies: 0, colliders: 1, pieces: 1, objects: 2, movers: 0, platforms: 0, bound: false, visible: false, held: true });
+  expect(view.census()).toEqual({ bodies: 0, colliders: 1, pieces: 1, objects: 2, movers: 0, platforms: 0, bound: false, visible: false, held: false });
   expect(disposed).toEqual(['geometry', 'material']); // the page asset cache's shared material is never disposed with a region
   expect(down(f.region)?.point.y).toBeCloseTo(-1.5, 3);
 

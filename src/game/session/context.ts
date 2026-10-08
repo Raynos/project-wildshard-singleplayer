@@ -1,3 +1,4 @@
+import type { ShardContext } from '../shard/context';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { StepProgress } from '@wildshard/engine/boot/plan';
@@ -37,6 +38,8 @@ export interface SessionState {
 }
 export interface BuiltWorld { readonly scene: Scene; dispose: () => void }
 export interface StagedBoot {
+  /** The actual staged context lent to admitted regional runtimes after page gameplay exists. */
+  context?: ShardContext;
   runtime: ShardRuntime;
   skins: readonly SkinDef[];
   progress: StepProgress;

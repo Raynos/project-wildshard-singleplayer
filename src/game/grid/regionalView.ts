@@ -19,7 +19,7 @@
  *
  * Memory: the view constructs nothing outside the whole measured runtime claim (`regionalRuntimeAccountedBytes`), which
  * the caller reserves on the page allocator before admission. The view refuses to exist without that live claim and
- * holds it against eviction for its lifetime. Generic game code: no shard is named here (E405).
+ * holds it against eviction only during an entered scope. Generic game code: no shard is named here (E405).
  */
 import { Group, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -94,14 +94,12 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   root.position.set(cell.origin.x - request.home.x, 0, cell.origin.z - request.home.z);
   const registry = new WorldRegistry();
   const movers = new Set<() => void>(), platforms: Floor[] = [];
-  let bindings = 0, held = true;
-  const unhold = claim.hold();
+  let bindings = 0, held = false;
   const free = (tree: Object3D): void => {
     tree.removeFromParent();
     for (const resource of sceneResources(tree)) if (!assets.isAcquired(resource)) resource.dispose();
   };
   // Unwinds last (LIFO): the scene node, then the claim hold, after every piece scope below has released its handles.
-  scope.onDispose(() => { held = false; unhold(); });
   scope.onDispose(() => {
     free(root); root.clear();
     registry.pieces.length = 0; registry.picks.length = 0; registry.sets.length = 0;
@@ -141,12 +139,13 @@ export function createRegionalView(request: RegionalViewRequest): RegionalView {
   const queries: PlayerFrameQueries = { heightAt: request.ground.heightAt, waterSurfaceAt: request.ground.waterSurfaceAt, platforms };
   const enter = (owner: Scope): void => {
     if (scope.disposed || owner.disposed) throw new Error('Regional registry requires a live view and entry');
+    const unhold = claim.hold(); held = true;
     const prior = slot.registryValue;
-    if (prior === registry) throw new Error('Regional registry is already entered');
+    if (prior === registry) { unhold(); throw new Error('Regional registry is already entered'); }
     slot.registryValue = registry; bindings++; root.visible = true;
     let restored = false;
     const restore = (): void => {
-      if (restored) return; restored = true; bindings--;
+      if (restored) return; restored = true; bindings--; unhold(); held = bindings > 0;
       if (bindings === 0) root.visible = false;
       if (slot.registryValue === registry) slot.registryValue = prior;
     };

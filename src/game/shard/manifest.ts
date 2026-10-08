@@ -1,3 +1,4 @@
+import type { TrustedRuntimeEntry } from '../shardfile/runtime';
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
 import type { Noise2D } from '@wildshard/engine/core/noise';
@@ -16,11 +17,11 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import type { WaterBody } from '@wildshard/engine/world/water/body';
-import type { ShardSlug } from './slugs.generated';
 import { terrainFieldFor } from '@wildshard/engine/world/groundField';
 import type { ShardPlugin } from './plugin';
 import type { AccentId } from '../shardfile/accent';
 import type { RuntimeCost } from '../grid/runtimeCost';
+import type { ShardSlug } from './slugs.generated';
 /**
  * ShardManifest — everything that makes one Wildshard shard different from another.
  *
@@ -444,6 +445,8 @@ export interface ShardManifest {
   shardfile?: string;
   /** First-party grid declaration for a trusted hybrid; discovery alone does not replace the standalone boot path. */
   gridShardfile?: string;
+  /** Explicit first-party module admission for the declared regional runtime; never an arbitrary asset import. */
+  trustedRuntime?: TrustedRuntimeEntry;
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
   load?: () => Promise<{ default: new () => ShardPlugin }>;

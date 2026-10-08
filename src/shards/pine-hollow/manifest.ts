@@ -44,6 +44,7 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
 export const PINE_HOLLOW: ShardManifest = {
   runtimeCost: PINE_RUNTIME_COST,
   gridShardfile: '/shardfiles/pine-hollow/shard.json',
+  trustedRuntime: { get slug() { return PINE_HOLLOW.slug; }, entry: 'runtime/index.ts', load: () => import('./runtime/index') },
   // Migrated verbatim from parity’s camera table; omitted y keeps the existing ground/land placement.
   dev: { poses: () => Promise.resolve(Object.fromEntries([{name:'gate',x:0,z:-200,yaw:Math.PI,pitch:0},{name:'cabin',x:-14,z:-62,yaw:Math.PI,pitch:0},{name:'pond',x:-56,z:95,yaw:Math.PI,pitch:0}].map((probe) => [probe.name, {
     probe, eye: [probe.x, (PINE_HOLLOW.ground.terrain?.heightAt(probe.x, probe.z) ?? 0) + 1.68, probe.z] as const, yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI,

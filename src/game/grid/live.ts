@@ -12,10 +12,12 @@ import { GridContinuationCache, GRID_CONTINUATION_CACHE_BYTES } from './continua
 import type { HomeResidencyClaim } from './pageResidency';
 
 /** An owned region has authored colliders and logical player state, but no second traveller capsule. */
-export interface LiveGridRegion { host: SimHost; dispose: () => void; walls?: ReadinessWalls }
+export interface LiveGridRegion { host: SimHost; dispose: () => void;
+  /** Opaque runtimes own logical checkpoints; native shardfile hosts use the exact codec below. */
+  checkpoint?: () => boolean; walls?: ReadinessWalls }
 /** Immutable content is admitted before its sim claim and world allocation; trusted runtime preparation imports only. */
 export interface LiveGridAdmission {
-  bytes: number; create: (saved: SimSnapshot | undefined) => Promise<LiveGridRegion>;
+  bytes: number; create: (saved: SimSnapshot | undefined, claim: ResidencyLease) => Promise<LiveGridRegion>;
   /** Release an unpublished product lease on refusal/cancellation. Idempotent after failed create or region disposal;
    *  successful publication transfers release to the returned region's dispose. */
   cancel?: () => void;
@@ -180,7 +182,7 @@ export class LiveGridHost {
         if (packed === null) throw new Error('Live continuation cache capacity exceeded');
         if (bundle.hybridWireBytes > 0 && admitted.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
         await admitted.prepareRuntime?.(); this.assertAlive(); this.readiness.complete(ticket, 'runtime');
-        region = await admitted.create(prior); this.checkRegion(region);
+        region = await admitted.create(prior, lease); this.checkRegion(region);
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
         this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, reservations: 0, evicting: false });
@@ -228,6 +230,7 @@ export class LiveGridHost {
     if (this.disposed) return false;
     if (instance === this.ports.home.instance) return this.ports.home.checkpoint();
     const resident = this.residents.get(instance); if (resident === undefined) return false;
+    if (resident.region.checkpoint !== undefined) return resident.region.checkpoint();
     let snapshot = this.saved.read(instance);
     if (instance === this.active) {
       const host = resident.region.host; host.player.position.copy(this.ports.player.position); host.player.yaw = this.ports.player.yaw;
