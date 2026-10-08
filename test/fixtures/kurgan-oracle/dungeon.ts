@@ -1,5 +1,5 @@
 import { app } from '@wildshard/engine/app/runtime';
-import { Rng } from '@wildshard/engine/core/rng';
+import type { Rng } from '@wildshard/engine/core/rng';
 import { fxMaterial, annulus, FX, type FxMaterial } from '@wildshard/engine/fx/groundFx';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { HeightPatch } from '@wildshard/engine/physics/heightPatch';
@@ -46,9 +46,9 @@ import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engin
  *   dungeon.showHeap(on)             the heap of gold plaques the King crumbles into
  */
 import * as THREE from 'three';
-import { PaintKit, M, v3 } from './paint';
+import { PaintKit, M, v3 } from '../../../src/shards/nalati-grasslands/world/paint';
 import { pole, blob, lathe } from '@wildshard/engine/world/geometryKit';
-import { balbalGeometry } from '../models/balbal';
+import { balbalGeometry } from '../../../src/shards/nalati-grasslands/models/balbal';
 
 /** where the interior lives (world): the chamber floor centre. Flat plateau under it (see the header). */
 export const DUNGEON = { x: -40, y: 140, z: -95 };
@@ -56,10 +56,6 @@ export const DUNGEON = { x: -40, y: 140, z: -95 };
 export const CH = 10;
 /** the sand-drift grid over the chamber floor (cells per side) */
 const SAND_N = 40;
-// Frozen shipping recipe, seed 0xb0551, after chamber/dromos/gravegoods and before movables.
-// The source-hashed oracle verifies this continuation and every resulting geometry byte.
-const POST_STATIC_RNG = { version: 1, state: 1996222552, initial: 0xb0551, scrambledFork: false };
-const STATIC_TRIANGLES = 111316;
 /** chamber wall / ceiling heights */
 const WALL_H = 5.3, BEAM_Y = 5.45, PLANK_Y = 5.95;
 /** the dromos: from the chamber's north door (z = CH) out to its far end (z = DROMOS_END), half width, height */
@@ -218,7 +214,7 @@ const log = (x0: number, y: number, z0: number, x1: number, z1: number, r: numbe
 interface Stream { mesh: THREE.Mesh; mat: FxMaterial; tell: THREE.Mesh; tellMat: FxMaterial; x: number; z: number }
 interface Ring { mesh: THREE.Mesh; mat: FxMaterial }
 
-export class KurganDungeon {
+export class ShippingKurganDungeon {
   readonly group = new THREE.Group();
   readonly colliders: Collider[] = [];
   /** true while the player is in the dromos or the chamber (the fight hides the outdoor world then) */
@@ -248,8 +244,6 @@ export class KurganDungeon {
   /** the drifts' collision (P1): rebuilt with the drawn grid */
   private sandPatch: HeightPatch | null = null;
   private sandAcc = 0;
-  private staticMaterial: THREE.MeshBasicMaterial | null = null;
-  private staticBuilt = false;
 
   constructor() {
     this.group.name = 'kurgan-dungeon';
@@ -265,27 +259,11 @@ export class KurganDungeon {
   inDromos(p: THREE.Vector3): boolean { const x = p.x - DUNGEON.x, z = p.z - DUNGEON.z, y = p.y - DUNGEON.y; return Math.abs(x) < DW + 0.5 && z >= CH && z < DROMOS_END + 1 && y > -3 && y < 8; }
   inVolume(p: THREE.Vector3): boolean { return this.inChamber(p) || this.inDromos(p); }
 
-  build(lazyStatic = false): this {
+  build(): this {
     const t0 = performance.now();
-    const kit = lazyStatic ? null : new PaintKit(0xb0551);
-    const rng = kit?.rng ?? new Rng(0xb0551);
-    const mat = interiorMaterial();
-    this.staticMaterial = mat;
-    if (kit) this.buildStatic(kit);
-    else { rng.restore(POST_STATIC_RNG); this.tris = STATIC_TRIANGLES; }
-    this.buildMovables(mat, rng);
-    this.buildSand(mat);
-    this.buildFx();
-    this.buildColliders();
-    this.buildMs = Math.round(performance.now() - t0);
-    return this;
-  }
-
-  private buildStatic(kit: PaintKit): void {
-    if (this.staticBuilt) return;
-    const mat = this.staticMaterial;
-    if (mat === null) throw new Error('The dungeon must build before entry');
+    const kit = new PaintKit(0xb0551);
     const rng = kit.rng;
+    const mat = interiorMaterial();
     this.buildChamber(kit, rng);
     this.buildDromos(kit, rng);
     this.buildGraveGoods(kit, rng);
@@ -295,10 +273,13 @@ export class KurganDungeon {
     mesh.name = 'kurgan-interior';
     mesh.frustumCulled = false;
     this.group.add(mesh);
-    // Preserve shipping child order even when the static mesh is materialized after its movables.
-    this.group.children.pop(); this.group.children.unshift(mesh);
-    this.staticBuilt = true;
+    this.buildMovables(mat, rng);
+    this.buildSand(mat);
+    this.buildFx();
+    this.buildColliders();
+    this.buildMs = Math.round(performance.now() - t0);
     this.tris = geo.getAttribute('position').count / 3;
+    return this;
   }
   buildMs = 0; tris = 0;
 
@@ -846,10 +827,7 @@ export class KurganDungeon {
   setShaft(i: number, strength: number): void { const s = this.shafts[i]; if (s) s.target = strength; }
   showHeap(on: boolean, lx = COFFIN.x + 1.8, lz = COFFIN.z + 2.6): void { this.heap.visible = on; this.heap.position.set(lx, this.sandAt(lx, lz), lz); }
   /** show / hide the whole interior (it lives in the sky — see the header) */
-  setVisible(on: boolean): void {
-    if (on && !this.staticBuilt) this.buildStatic(new PaintKit(0xb0551));
-    this.group.visible = on;
-  }
+  setVisible(on: boolean): void { this.group.visible = on; }
 
   update(dt: number, t: number): void {
     if (!this.group.visible) return;

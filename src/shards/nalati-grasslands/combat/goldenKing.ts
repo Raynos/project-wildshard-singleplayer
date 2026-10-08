@@ -8,6 +8,7 @@ import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { listenPage } from '@wildshard/engine/input/dom';
 import type { Player } from '@wildshard/engine/player/Player';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
+import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -662,9 +663,9 @@ export class KurganBoss {
 
   constructor(private readonly ctx: KurganCtx) {}
 
-  /** the interior + the spare light (boot, before the precompile) */
+  /** Boot collision, movables and light; Memory saver delays only the hidden static dressing until entry. */
   build(): this {
-    this.dungeon.build();
+    this.dungeon.build(memorySaverOn());
     this.ctx.game.scene.add(this.dungeon.group);
     this.dungeon.register(this.ctx.registry);   // NALATI-MERGE P1: the interior's collision, the seal, the sand drifts
     this.spareLight.position.set(DUNGEON.x, DUNGEON.y - 30, DUNGEON.z);

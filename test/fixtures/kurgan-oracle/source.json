@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "139182ea58872c92a8330a63eb42f5c916eae1dc",
+  "source": "src/shards/nalati-grasslands/world/KurganDungeon.ts",
+  "blob": "d9945f7463d260de06af4e82c63b86a1a2e88eaa",
+  "sha256": "344fd949d8bfc3e0767c8ce30879e2f8b257fb76fc3af516f7fd71a5538d3039",
+  "changes": "Only relative import paths and the exported class name; inverse rewrites reconstruct the shipping blob byte-for-byte.",
+  "rewrites": [
+    [
+      "'./paint'",
+      "'../../../src/shards/nalati-grasslands/world/paint'"
+    ],
+    [
+      "'../models/balbal'",
+      "'../../../src/shards/nalati-grasslands/models/balbal'"
+    ],
+    [
+      "export class KurganDungeon {",
+      "export class ShippingKurganDungeon {"
+    ]
+  ]
+}
