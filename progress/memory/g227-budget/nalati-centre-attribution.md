@@ -35,7 +35,7 @@ Platform render claims total 99.777680 MB at this pose. The current camera is at
 
 Buffer labels shared by identically named plot meshes are weaker than texture identity. The full per-resource table preserves that distinction. NW and SW have **1.005408 MB of unique direct CPU arrays**; releasing their visual scopes under the existing 900 m visibility rule could retire roughly another 1 MB of GPU geometry. It cannot retire the shared atlases while SE uses them. No saving has yet been credited.
 
-Next platform step: scopes and separately charged geometry per plot, created before the existing visibility boundary, disposed outside it; shared atlases stay once, colliders stay permanent. A larger road/atlas reduction requires smaller independently owned pieces with the same pixels. Wholesale platform deletion inside a cell is rejected by this capture.
+Coordinator decision after this capture: skip the roughly 2 MB plot split; its complexity is not justified now. Prioritise the larger unexplained native WebContent allocation. An Opus lane takes road/sign/plot atlas chunking with the same pixels. Wholesale platform deletion inside a cell is rejected by this capture.
 
 ## Reproduce / artifacts
 

@@ -1,6 +1,7 @@
 // G227 one cold Simulator grid route, kernel footprint and labelled GL at entered poses.
 import { spawn, execFileSync } from 'node:child_process';
 import WebSocket from 'ws';
+import { memoryCategories } from './memory-categories.mjs';
 import { WASM_INIT, snapshotExpression, heapOwners } from './inspect.mjs';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -31,7 +32,8 @@ const save = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n');
 const phaseFile = out + '.phase', nativeFile = out + '.native.jsonl';
 writeFileSync(phaseFile, 'loading');
 const simctl = args => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-let inspector, sampler, proxy;
+let inspector, sampler, proxy, gamePID;
+const nativeDetail = process.env.G227_NATIVE_DETAIL === '1';
 let evalSequence = 0;
 try {
   try { simctl(['terminate', udid, 'com.apple.mobilesafari']); } catch { /* Cold first launch. */ }
@@ -88,7 +90,10 @@ try {
       const lines = readFileSync(nativeFile, 'utf8').split('\n').filter(Boolean);
       const latest = lines.slice(0, -1).map(line => JSON.parse(line)).findLast(row => row.type === 'sample' && row.phase === label);
       if (!latest) throw new Error('Missing native sample');
-      const [pid, values] = Object.entries(latest.pids).sort((a, b) => b[1][0] - a[1][0])[0];
+      const candidate = gamePID === undefined ? Object.entries(latest.pids).sort((a, b) => b[1][0] - a[1][0])[0]
+        : Object.entries(latest.pids).find(([pid]) => Number(pid) === gamePID);
+      if (!candidate) throw new Error('Admitted WebContent PID disappeared; cannot substitute another process');
+      const [pid, values] = candidate; gamePID ??= Number(pid); report.gamePID = gamePID;
       samples.push({ at: latest.t, pid: Number(pid), footprintBytes: values[0], intervalPeakBytes: values[1], gpuProcessBytes: latest.gpu });
     }
     const value = await evaluate(snapshotExpression);
@@ -98,7 +103,20 @@ try {
     let vmmap;
     try { vmmap = execFileSync('vmmap', ['-summary', String(samples[2].pid)], { encoding: 'utf8', timeout: 30000, maxBuffer: 8e6 }); writeFileSync(vmmapPath, vmmap); }
     catch (error) { vmmap = String(error); }
-    report.snapshots.push({ label, ...value, native: { samples, medianBytes: sorted[1], minBytes: sorted[0], maxBytes: sorted[2], vmmapPath, vmmapError: vmmap.startsWith('Error:') ? vmmap : null } });
+    const detail = {};
+    if (nativeDetail) {
+      // Original WC/GL samples above stay intact; passive diagnostics happen afterwards, without collecting the heap.
+      detail.memoryCategories = await memoryCategories(inspector);
+      for (const [name, command, args] of [
+        ['vmmapVerbose', 'vmmap', ['-v', String(gamePID)]],
+        ['footprint', 'footprint', ['-f', 'bytes', '-p', String(gamePID)]],
+      ]) {
+        const path = out.replace(/\.json$/u, '') + '.' + label + '.' + name + '.txt';
+        try { writeFileSync(path, execFileSync(command, args, { encoding: 'utf8', timeout: 30000, maxBuffer: 16e6 })); detail[name] = { path, pid: gamePID }; }
+        catch (error) { detail[name] = { error: String(error), pid: gamePID }; }
+      }
+    }
+    report.snapshots.push({ label, ...value, native: { samples, medianBytes: sorted[1], minBytes: sorted[0], maxBytes: sorted[2], vmmapPath, vmmapError: vmmap.startsWith('Error:') ? vmmap : null, ...detail } });
     save(); console.log(label, 'native', sorted[1] / 1e6, 'GL', value.census.gl.reduce((s, c) => s + c.totalBytes, 0) / 1e6, 'model', value.residency.cost.playing / 1e6);
   };
   await snapshot('home-settled');
@@ -153,7 +171,7 @@ try {
   } else if (routeMode !== 'nalati-route') { report.glFootprintControl = await footprintControl(evaluate); save(); }
   }
   }
-} catch (error) { report.diagnostic = await inspector?.raw('JSON.stringify({url:location.href,origin:performance.timeOrigin,token:window.__frameFloorGridDocumentToken,stop:window.__frameFloorGridStop,body:document.body.innerText.slice(-4000)})').catch(() => null); report.failure = String(error); process.exitCode = 1; console.error(report.failure); }
+} catch (error) { report.diagnostic = await inspector?.raw(`JSON.stringify({url:location.href,origin:performance.timeOrigin,token:window.__frameFloorGridDocumentToken,stop:window.__frameFloorGridStop,body:document.body.innerText.slice(-4000),loading:document.querySelector('.ws-load')?.textContent,saved:(()=>{try{const keys=JSON.parse(localStorage.getItem('wildshard.save.v2.device')??'{"keys":{}}').keys;return Object.fromEntries(['life.lastEnd','life.lastUnload','boot.trace'].map(k=>[k,keys?.[k]?.data??null]));}catch(error){return{error:String(error)};}})()})`).catch(() => null); report.failure = String(error); process.exitCode = 1; console.error(report.failure); }
 finally {
   report.errors = await inspector?.raw('JSON.stringify(window.__g227Errors ?? [])').catch(() => null);
   report.warnings = await inspector?.raw('JSON.stringify(window.__g227Warnings ?? [])').catch(() => null);
@@ -185,11 +203,12 @@ function evaluator(raw, observe = () => undefined) {
   };
 }
 function webkit(wsUrl) {
-  const ws = new WebSocket(wsUrl, { maxPayload: 512 * 1024 * 1024 }), pending = new Map();
+  const ws = new WebSocket(wsUrl, { maxPayload: 512 * 1024 * 1024 }), pending = new Map(), listeners = new Map();
   let seq = 0, target = null;
   const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
   ws.addEventListener('close', event => { for (const [id, waiter] of pending) { clearTimeout(waiter.timer); waiter.reject(new Error(`Inspector socket closed ${event.code}: ${event.reason}`)); pending.delete(id); } });
   const inner = (message) => {
+    for (const listener of listeners.get(message.method) ?? []) listener(message.params);
     const waiter = pending.get(message.id);
     if (waiter) { pending.delete(message.id); clearTimeout(waiter.timer); if (message.error) waiter.reject(new Error(message.error.message)); else waiter.done(message.result); }
   };
@@ -207,11 +226,11 @@ function webkit(wsUrl) {
     const message = { id, method, params };
     ws.send(JSON.stringify(target ? { id: ++seq, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } } : message));
   });
-  return { opened, send, raw: async (expression) => {
+  return { opened, send, on: (method, listener) => { const entries = listeners.get(method) ?? new Set(); entries.add(listener); listeners.set(method, entries); return () => { entries.delete(listener); if (entries.size === 0) listeners.delete(method); }; }, raw: async (expression) => {
     const result = await send('Runtime.evaluate', { expression, returnByValue: true });
     if (result.wasThrown) throw new Error(result.result?.description ?? 'Safari evaluation threw');
     return result.result?.value;
-  }, close: () => { for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('Inspector closed')); } pending.clear(); ws.close(); } };
+  }, close: () => { for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('Inspector closed')); } pending.clear(); listeners.clear(); ws.close(); } };
 }
 async function safariPage(base) {
   const start = Date.now();
