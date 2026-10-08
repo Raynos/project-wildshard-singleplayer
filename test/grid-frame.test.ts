@@ -8,6 +8,7 @@ import { frameLookOf, regionGrade } from '../src/game/grid/frameLook';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { Scope } from '../src/engine/app/scope';
+import { legacyDouble } from './fake/FakeGame';
 
 // SHARD-PLATFORM SF19a re-aimed by G158: the shard the player stands in owns the whole frame, the road look the road
 const pitch = 555, half = 250;
@@ -165,7 +166,7 @@ it.each([true, false])('G226: catalogue home stays page-owned only when homeIsFr
   const [gradeEffect, saturation, contrast] = effects;
   if (gradeEffect === undefined || saturation === undefined || contrast === undefined) throw new Error('Missing effects');
   const pass = new EffectPass(camera, ...effects); vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
-  const frame = new GridFrame({ host: { scene, camera, composer: () => ({ passes: [pass] }) as EffectComposer,
+  const frame = new GridFrame({ host: { scene, camera, composer: () => legacyDouble<EffectComposer>({ passes: [pass] }),
     post: () => ({ grade: gradeEffect, saturation, contrast }) }, scope, cells, home, homeIsFrame, half, feet: () => feet });
   const own = new Fog(new Color(1, 1, 1), 1, 2), grade = { exposure: 0.2, saturation: 1.2, contrast: 1.1 };
   const declaration = { haze: { colour: [0.2, 0.3, 0.4] as const }, grade };
