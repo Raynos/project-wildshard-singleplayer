@@ -1,0 +1,587 @@
+{
+  "orderingCaveat": "Attempt1 freshly created Simulator; attempts2-10 reuse same device after OS shutdown/cold Safari/origin reset. Metal/driver shader caches were not erased. This is not an independent fresh-device rate.",
+  "table": [
+    {
+      "attempt": 1,
+      "outcome": "GPU loss",
+      "entryApiPeakBytes": 228725762,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20378210,
+          "positiveObserverEvents": 241
+        },
+        "0.05": {
+          "growthBytes": 40842862,
+          "positiveObserverEvents": 666
+        },
+        "0.1": {
+          "growthBytes": 59614446,
+          "positiveObserverEvents": 1385
+        },
+        "0.25": {
+          "growthBytes": 84020918,
+          "positiveObserverEvents": 1907
+        },
+        "0.5": {
+          "growthBytes": 111300340,
+          "positiveObserverEvents": 2318
+        },
+        "1": {
+          "growthBytes": 111300340,
+          "positiveObserverEvents": 2318
+        }
+      },
+      "traceOverflow": 0,
+      "leakZero": false
+    },
+    {
+      "attempt": 2,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232691476,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20423822,
+          "positiveObserverEvents": 244
+        },
+        "0.05": {
+          "growthBytes": 39694682,
+          "positiveObserverEvents": 667
+        },
+        "0.1": {
+          "growthBytes": 57038914,
+          "positiveObserverEvents": 1354
+        },
+        "0.25": {
+          "growthBytes": 85578900,
+          "positiveObserverEvents": 2079
+        },
+        "0.5": {
+          "growthBytes": 116028760,
+          "positiveObserverEvents": 2392
+        },
+        "1": {
+          "growthBytes": 117877282,
+          "positiveObserverEvents": 2438
+        }
+      },
+      "traceOverflow": 0,
+      "leakZero": true
+    },
+    {
+      "attempt": 3,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232693780,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 19110382,
+          "positiveObserverEvents": 218
+        },
+        "0.05": {
+          "growthBytes": 39206956,
+          "positiveObserverEvents": 599
+        },
+        "0.1": {
+          "growthBytes": 55139212,
+          "positiveObserverEvents": 1255
+        },
+        "0.25": {
+          "growthBytes": 84027830,
+          "positiveObserverEvents": 1910
+        },
+        "0.5": {
+          "growthBytes": 114797888,
+          "positiveObserverEvents": 2330
+        },
+        "1": {
+          "growthBytes": 118763602,
+          "positiveObserverEvents": 2440
+        }
+      },
+      "traceOverflow": 131,
+      "leakZero": true
+    },
+    {
+      "attempt": 4,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232691476,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20362958,
+          "positiveObserverEvents": 240
+        },
+        "0.05": {
+          "growthBytes": 41428544,
+          "positiveObserverEvents": 712
+        },
+        "0.1": {
+          "growthBytes": 59104780,
+          "positiveObserverEvents": 1375
+        },
+        "0.25": {
+          "growthBytes": 85551972,
+          "positiveObserverEvents": 2075
+        },
+        "0.5": {
+          "growthBytes": 117877282,
+          "positiveObserverEvents": 2438
+        },
+        "1": {
+          "growthBytes": 118761298,
+          "positiveObserverEvents": 2439
+        }
+      },
+      "traceOverflow": 0,
+      "leakZero": true
+    },
+    {
+      "attempt": 5,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232691476,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 18898004,
+          "positiveObserverEvents": 181
+        },
+        "0.05": {
+          "growthBytes": 41175756,
+          "positiveObserverEvents": 673
+        },
+        "0.1": {
+          "growthBytes": 56466348,
+          "positiveObserverEvents": 1317
+        },
+        "0.25": {
+          "growthBytes": 83335806,
+          "positiveObserverEvents": 1906
+        },
+        "0.5": {
+          "growthBytes": 116028760,
+          "positiveObserverEvents": 2392
+        },
+        "1": {
+          "growthBytes": 118761298,
+          "positiveObserverEvents": 2439
+        }
+      },
+      "traceOverflow": 0,
+      "leakZero": true
+    },
+    {
+      "attempt": 6,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232693780,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20457038,
+          "positiveObserverEvents": 249
+        },
+        "0.05": {
+          "growthBytes": 40842862,
+          "positiveObserverEvents": 666
+        },
+        "0.1": {
+          "growthBytes": 59439670,
+          "positiveObserverEvents": 1375
+        },
+        "0.25": {
+          "growthBytes": 84411132,
+          "positiveObserverEvents": 2006
+        },
+        "0.5": {
+          "growthBytes": 117879586,
+          "positiveObserverEvents": 2439
+        },
+        "1": {
+          "growthBytes": 118763602,
+          "positiveObserverEvents": 2440
+        }
+      },
+      "traceOverflow": 184,
+      "leakZero": true
+    },
+    {
+      "attempt": 7,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232693780,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20423822,
+          "positiveObserverEvents": 244
+        },
+        "0.05": {
+          "growthBytes": 40888474,
+          "positiveObserverEvents": 669
+        },
+        "0.1": {
+          "growthBytes": 57978460,
+          "positiveObserverEvents": 1316
+        },
+        "0.25": {
+          "growthBytes": 84371412,
+          "positiveObserverEvents": 1995
+        },
+        "0.5": {
+          "growthBytes": 117879586,
+          "positiveObserverEvents": 2439
+        },
+        "1": {
+          "growthBytes": 118763602,
+          "positiveObserverEvents": 2440
+        }
+      },
+      "traceOverflow": 0,
+      "leakZero": true
+    },
+    {
+      "attempt": 8,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232693780,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20423822,
+          "positiveObserverEvents": 244
+        },
+        "0.05": {
+          "growthBytes": 41413168,
+          "positiveObserverEvents": 711
+        },
+        "0.1": {
+          "growthBytes": 58447740,
+          "positiveObserverEvents": 1362
+        },
+        "0.25": {
+          "growthBytes": 85716732,
+          "positiveObserverEvents": 2086
+        },
+        "0.5": {
+          "growthBytes": 117879586,
+          "positiveObserverEvents": 2439
+        },
+        "1": {
+          "growthBytes": 118763602,
+          "positiveObserverEvents": 2440
+        }
+      },
+      "traceOverflow": 0,
+      "leakZero": true
+    },
+    {
+      "attempt": 9,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232691476,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20362958,
+          "positiveObserverEvents": 240
+        },
+        "0.05": {
+          "growthBytes": 38973150,
+          "positiveObserverEvents": 661
+        },
+        "0.1": {
+          "growthBytes": 52703084,
+          "positiveObserverEvents": 1216
+        },
+        "0.25": {
+          "growthBytes": 82924444,
+          "positiveObserverEvents": 1887
+        },
+        "0.5": {
+          "growthBytes": 116028760,
+          "positiveObserverEvents": 2392
+        },
+        "1": {
+          "growthBytes": 118761298,
+          "positiveObserverEvents": 2439
+        }
+      },
+      "traceOverflow": 184,
+      "leakZero": true
+    },
+    {
+      "attempt": 10,
+      "outcome": "20s settled",
+      "entryApiPeakBytes": 232693780,
+      "burstWindowsSeconds": {
+        "0.016": {
+          "growthBytes": 20958762,
+          "positiveObserverEvents": 253
+        },
+        "0.05": {
+          "growthBytes": 42167566,
+          "positiveObserverEvents": 695
+        },
+        "0.1": {
+          "growthBytes": 60225482,
+          "positiveObserverEvents": 1395
+        },
+        "0.25": {
+          "growthBytes": 84411048,
+          "positiveObserverEvents": 2005
+        },
+        "0.5": {
+          "growthBytes": 117879586,
+          "positiveObserverEvents": 2439
+        },
+        "1": {
+          "growthBytes": 118763602,
+          "positiveObserverEvents": 2440
+        }
+      },
+      "traceOverflow": 0,
+      "leakZero": true
+    }
+  ],
+  "crash": {
+    "sourcePath": "/Users/raynos/Library/Logs/DiagnosticReports/com.apple.WebKit.GPU-2026-10-08-061826.ips",
+    "sha256": "831c6db7476a24ec86503d83ce34121e85dccb8b0f0acd717c5e894166d118b8",
+    "pid": 87505,
+    "captureTime": "2026-10-08 06:18:25.7607 -0500",
+    "exception": {
+      "codes": "0x0000000000000001, 0x0000000141b74000",
+      "rawCodes": [
+        1,
+        5397495808
+      ],
+      "type": "EXC_BAD_ACCESS",
+      "signal": "SIGSEGV",
+      "subtype": "KERN_INVALID_ADDRESS at 0x0000000141b74000"
+    },
+    "termination": {
+      "flags": 0,
+      "code": 11,
+      "namespace": "SIGNAL",
+      "indicator": "Segmentation fault: 11",
+      "byProc": "exc handler",
+      "byPid": 87505
+    },
+    "threadName": "RemoteGraphicsContextGL work queue",
+    "frames": [
+      {
+        "symbol": "_platform_memmove",
+        "image": "libsystem_platform.dylib",
+        "offset": 12700
+      },
+      {
+        "symbol": "rx::(anonymous namespace)::UploadTextureContents(gl::Context const*, angle::Format const&, MTLRegion const&, gl::LevelIndexWrapper<unsigned int> const&, unsigned int, unsigned char const*, unsigned long, unsigned long, bool, std::__1::shared_ptr<rx::mtl::Texture> const&)",
+        "image": "libANGLE-shared.dylib",
+        "offset": 1948944
+      },
+      {
+        "symbol": "rx::TextureMtl::setPerSliceSubImage(gl::Context const*, int, MTLRegion const&, gl::InternalFormat const&, unsigned int, angle::Format const&, unsigned long, unsigned long, gl::Buffer*, unsigned char const*, rx::ImageDefinitionMtl const&)",
+        "image": "libANGLE-shared.dylib",
+        "offset": 1954432
+      },
+      {
+        "symbol": "rx::TextureMtl::setSubImageImpl(gl::Context const*, gl::ImageIndex const&, gl::Box const&, gl::InternalFormat const&, unsigned int, gl::PixelUnpackState const&, gl::Buffer*, unsigned char const*)",
+        "image": "libANGLE-shared.dylib",
+        "offset": 1939304
+      },
+      {
+        "symbol": "rx::TextureMtl::setCompressedSubImage(gl::Context const*, gl::ImageIndex const&, gl::Box const&, unsigned int, gl::PixelUnpackState const&, unsigned long, unsigned char const*)",
+        "image": "libANGLE-shared.dylib",
+        "offset": 1939736
+      },
+      {
+        "symbol": "gl::Texture::setCompressedSubImage(gl::Context const*, gl::PixelUnpackState const&, gl::TextureTarget, int, gl::Box const&, unsigned int, unsigned long, unsigned char const*)",
+        "image": "libANGLE-shared.dylib",
+        "offset": 1919616
+      },
+      {
+        "symbol": "gl::Context::compressedTexSubImage3D(gl::TextureTarget, int, int, int, int, int, int, int, unsigned int, int, void const*)",
+        "image": "libANGLE-shared.dylib",
+        "offset": 199308
+      },
+      {
+        "symbol": "GL_CompressedTexSubImage3DRobustANGLE",
+        "image": "libANGLE-shared.dylib",
+        "offset": 576380
+      },
+      {
+        "symbol": "WebKit::RemoteGraphicsContextGL::compressedTexSubImage3D0(unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)",
+        "image": "WebKit",
+        "offset": 6015004
+      },
+      {
+        "symbol": "void IPC::handleMessage<Messages::RemoteGraphicsContextGL::CompressedTexSubImage3D0, IPC::StreamServerConnection, WebKit::RemoteGraphicsContextGL, WebKit::RemoteGraphicsContextGL, void (unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&)>(IPC::StreamServerConnection&, IPC::Decoder&, WebKit::RemoteGraphicsContextGL*, void (WebKit::RemoteGraphicsContextGL::*)(unsigned int, int, int, int, int, int, int, int, unsigned int, int, std::__1::span<unsigned char const, 18446744073709551615ul>&&))",
+        "image": "WebKit",
+        "offset": 3268192
+      },
+      {
+        "symbol": "WebKit::RemoteGraphicsContextGL::didReceiveStreamMessage(IPC::StreamServerConnection&, IPC::Decoder&)",
+        "image": "WebKit",
+        "offset": 3256824
+      },
+      {
+        "symbol": "IPC::StreamServerConnection::dispatchStreamMessage(IPC::Decoder&, IPC::StreamMessageReceiver&)",
+        "image": "WebKit",
+        "offset": 16448116
+      },
+      {
+        "symbol": "IPC::StreamConnectionWorkQueue::processStreams()",
+        "image": "WebKit",
+        "offset": 16443796
+      },
+      {
+        "symbol": "WTF::Detail::CallableWrapper<IPC::StreamConnectionWorkQueue::startProcessingThread()::$_0, void>::call()",
+        "image": "WebKit",
+        "offset": 16452428
+      },
+      {
+        "symbol": "WTF::Thread::entryPoint(WTF::Thread::NewThreadContext*)",
+        "image": "JavaScriptCore",
+        "offset": 717400
+      },
+      {
+        "symbol": "WTF::wtfThreadEntryPoint(void*)",
+        "image": "JavaScriptCore",
+        "offset": 731328
+      },
+      {
+        "symbol": "_pthread_start",
+        "image": "libsystem_pthread.dylib",
+        "offset": 26172
+      },
+      {
+        "symbol": "thread_start",
+        "image": "libsystem_pthread.dylib",
+        "offset": 6708
+      }
+    ]
+  },
+  "nativeIdentityProof": [
+    {
+      "at": "2026-10-08T11:18:22.817315+00:00",
+      "gpuBytes": 169953896,
+      "identities": {
+        "webContent": {
+          "87472": {
+            "startAbstime": 84113780964422,
+            "footprintBytes": 439505024,
+            "intervalMaxBytes": 439865472
+          },
+          "87707": {
+            "startAbstime": 84113807931772,
+            "footprintBytes": 39340576,
+            "intervalMaxBytes": 39340576
+          }
+        },
+        "gpu": {
+          "87505": {
+            "startAbstime": 84113784825793,
+            "footprintBytes": 169953896,
+            "intervalMaxBytes": 170052200
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-10-08T11:18:23.824736+00:00",
+      "gpuBytes": 169527912,
+      "identities": {
+        "webContent": {
+          "87472": {
+            "startAbstime": 84113780964422,
+            "footprintBytes": 439488640,
+            "intervalMaxBytes": 439537792
+          },
+          "87707": {
+            "startAbstime": 84113807931772,
+            "footprintBytes": 39340576,
+            "intervalMaxBytes": 39340576
+          }
+        },
+        "gpu": {
+          "87505": {
+            "startAbstime": 84113784825793,
+            "footprintBytes": 169527912,
+            "intervalMaxBytes": 170216040
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-10-08T11:18:24.834116+00:00",
+      "gpuBytes": 168790632,
+      "identities": {
+        "webContent": {
+          "87472": {
+            "startAbstime": 84113780964422,
+            "footprintBytes": 436867200,
+            "intervalMaxBytes": 439505024
+          },
+          "87707": {
+            "startAbstime": 84113807931772,
+            "footprintBytes": 39340576,
+            "intervalMaxBytes": 39340576
+          }
+        },
+        "gpu": {
+          "87505": {
+            "startAbstime": 84113784825793,
+            "footprintBytes": 168790632,
+            "intervalMaxBytes": 169642600
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-10-08T11:18:25.837066+00:00",
+      "gpuBytes": 0,
+      "identities": {
+        "webContent": {
+          "87472": {
+            "startAbstime": 84113780964422,
+            "footprintBytes": 469078144,
+            "intervalMaxBytes": 471175296
+          },
+          "87707": {
+            "startAbstime": 84113807931772,
+            "footprintBytes": 39340576,
+            "intervalMaxBytes": 39340576
+          }
+        },
+        "gpu": {}
+      }
+    },
+    {
+      "at": "2026-10-08T11:18:26.854684+00:00",
+      "gpuBytes": 24512816,
+      "identities": {
+        "webContent": {
+          "87472": {
+            "startAbstime": 84113780964422,
+            "footprintBytes": 406917272,
+            "intervalMaxBytes": 473288832
+          },
+          "87707": {
+            "startAbstime": 84113807931772,
+            "footprintBytes": 39340576,
+            "intervalMaxBytes": 39340576
+          }
+        },
+        "gpu": {
+          "92912": {
+            "startAbstime": 84115819637212,
+            "footprintBytes": 24512816,
+            "intervalMaxBytes": 34408752
+          }
+        }
+      }
+    }
+  ],
+  "sourceAttribution": {
+    "runtimeRevision": "cdad59776201998220705ca0c6fc16a5e7dd38b5",
+    "chunk": "assets/ReloadPrompt-LNdeeKuh.js",
+    "chunkSha256": "2ab1565096f4fcfba14a83f88e806bf1d58e062aaf15abf42b3cf99b03d8ddd2",
+    "textureSample": "R@1:8332 maps to runPrecompile renderer.initTexture",
+    "bufferAndArraySample": "me@1:2182 maps to warmComposerFrame composer.render(0)",
+    "nativeSite": "compressedTexSubImage3D; exact array/mip not identified by storage observer",
+    "missedCollectors": [
+      "src/engine/world/Terrain.ts splatTerrainMaterial tDiff/tNorm/tArm via patchShader",
+      "src/engine/world/forest/treeSet.ts patchBarkArrays tBarkD/tBarkN/tBarkA"
+    ],
+    "collector": "src/engine/render/precompile.ts collectTextures inspects material own values and material.uniforms; misses injected compiled-shader uniforms"
+  },
+  "units": "API storage bytes, not transfer bytes or GPU-process footprint. Storage notification counts include per-mip texStorage notifications, not literal GL call counts."
+}

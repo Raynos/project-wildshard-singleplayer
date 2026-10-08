@@ -1,0 +1,80 @@
+[
+  {
+    "id": "texture:1992",
+    "at": 1791458305.611,
+    "asset": "pbr-array/diffuse:/assets/tex/forrest_ground_03/diffuse_1k.jpg,/assets/tex/leafy_grass/diffuse_1k.jpg,/assets/tex/rock_ground/diffuse_1k.jpg,/assets/tex/stony_dirt_path/diffuse_1k.jpg/Texture",
+    "owner": "engine/loadPBRArray",
+    "bytes": 2505152,
+    "width": 1024,
+    "height": 1024,
+    "depth": 4,
+    "levels": 11,
+    "internalFormat": 37844,
+    "internalFormatHex": "0x93d4"
+  },
+  {
+    "id": "texture:1993",
+    "at": 1791458305.611,
+    "asset": "pbr-array/nor_gl:/assets/tex/forrest_ground_03/nor_gl_1k.jpg,/assets/tex/leafy_grass/nor_gl_1k.jpg,/assets/tex/rock_ground/nor_gl_1k.jpg,/assets/tex/stony_dirt_path/nor_gl_1k.jpg/Texture",
+    "owner": "engine/loadPBRArray",
+    "bytes": 2505152,
+    "width": 1024,
+    "height": 1024,
+    "depth": 4,
+    "levels": 11,
+    "internalFormat": 37812,
+    "internalFormatHex": "0x93b4"
+  },
+  {
+    "id": "texture:1994",
+    "at": 1791458305.611,
+    "asset": "pbr-array/arm:/assets/tex/forrest_ground_03/arm_1k.jpg,/assets/tex/leafy_grass/arm_1k.jpg,/assets/tex/rock_ground/arm.jpg,/assets/tex/stony_dirt_path/arm_1k.jpg/Texture",
+    "owner": "engine/loadPBRArray",
+    "bytes": 699104,
+    "width": 512,
+    "height": 512,
+    "depth": 4,
+    "levels": 10,
+    "internalFormat": 37492,
+    "internalFormatHex": "0x9274"
+  },
+  {
+    "id": "texture:1997",
+    "at": 1791458305.612,
+    "asset": "pbr-array/diffuse:/assets/tex/pine_bark/diffuse_1k.jpg,/assets/tex/fir_bark/diffuse.jpg,/assets/tex/metasequoia_bark/diffuse.jpg,/assets/tex/birch_bark/diffuse.jpg,/assets/tex/bark_willow_02/diffuse.jpg/Texture",
+    "owner": "engine/loadPBRArray",
+    "bytes": 792160,
+    "width": 512,
+    "height": 512,
+    "depth": 5,
+    "levels": 10,
+    "internalFormat": 37844,
+    "internalFormatHex": "0x93d4"
+  },
+  {
+    "id": "texture:1998",
+    "at": 1791458305.612,
+    "asset": "pbr-array/nor_gl:/assets/tex/pine_bark/nor_gl_1k.jpg,/assets/tex/fir_bark/nor_gl.jpg,/assets/tex/metasequoia_bark/nor_gl.jpg,/assets/tex/birch_bark/nor_gl.jpg,/assets/tex/bark_willow_02/nor_gl.jpg/Texture",
+    "owner": "engine/loadPBRArray",
+    "bytes": 792160,
+    "width": 512,
+    "height": 512,
+    "depth": 5,
+    "levels": 10,
+    "internalFormat": 37812,
+    "internalFormatHex": "0x93b4"
+  },
+  {
+    "id": "texture:1999",
+    "at": 1791458305.612,
+    "asset": "pbr-array/arm:/assets/tex/pine_bark/arm_1k.jpg,/assets/tex/fir_bark/arm.jpg,/assets/tex/metasequoia_bark/arm.jpg,/assets/tex/birch_bark/arm.jpg,/assets/tex/bark_willow_02/arm.jpg/Texture",
+    "owner": "engine/loadPBRArray",
+    "bytes": 873880,
+    "width": 512,
+    "height": 512,
+    "depth": 5,
+    "levels": 10,
+    "internalFormat": 37492,
+    "internalFormatHex": "0x9274"
+  }
+]
