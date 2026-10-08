@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2216 members; 830 without a doc line (—).
+2217 members; 830 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1477,6 +1477,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `loadGraphBackend` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer (once; later calls return the same handler) |
 | `loadGraphCompiler` | function | @wildshard/engine/render/graphBackend | install the engine's node handler on this renderer, then load the material graph compiler (`graph/compile.ts`, |
 | `buildHoverboard` | function | @wildshard/engine/render/hoverboardGeometry | The board, built into `g` (the viewmodel's model, or the Model Explorer's specimen: src/engine/models/hoverboard.ts, E348): the |
+| `ENGINE_CHAIN_TUNING` | const | @wildshard/engine/render/look | The knobs that differ between the two chains beside which effects they hold (Game.buildComposer builds from these; a grid |
 | `EngineChainKind` | type | @wildshard/engine/render/look | the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's |
 | `EngineEffects` | interface | @wildshard/engine/render/look | — |
 | `ExtendLook` | interface | @wildshard/engine/render/look | 'extend' (the default): the level's passes go in slots around the engine's chain |

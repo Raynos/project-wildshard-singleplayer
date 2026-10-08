@@ -8832,6 +8832,12 @@
         "from": "@wildshard/engine/render/hoverboardGeometry"
       },
       {
+        "name": "ENGINE_CHAIN_TUNING",
+        "kind": "const",
+        "doc": "The knobs that differ between the two chains beside which effects they hold (Game.buildComposer builds from these; a grid",
+        "from": "@wildshard/engine/render/look"
+      },
+      {
         "name": "EngineChainKind",
         "kind": "type",
         "doc": "the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's",
