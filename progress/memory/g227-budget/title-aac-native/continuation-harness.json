@@ -1,0 +1,16 @@
+{
+  "glBlob": "89ae989dd45bbb22ee3c786b52c0c9acdd9d4577",
+  "files": {
+    "progress/memory/g227-budget/native.mjs": "7169be97be7af6b4b71ccb1546ba5ad08e80210c94e30a811f68cd7ddf01eeae",
+    "progress/memory/g227-budget/inspect.mjs": "eef4debbbb6dc040fa3c05f74520782a66be356ab695fb5da5924acff4cbda59",
+    "progress/memory/g227-budget/native-samples.mjs": "f060b0e4b3badf7f2969cf280c9b3f748eea8785c1ac04bb15b628e15a52eb9f",
+    "progress/memory/g227-budget/memory-categories.mjs": "7a473cfac683fd6efbc30c7396eddc5528cdaabd19e8285be0378654841a6f0b",
+    "scripts/frame-floor-grid.mjs": "6b3c14a4a45df0388ccf0bf65b6d3158eea27e89a17d9266b567b579d4de6563",
+    "scripts/debug-settings.mjs": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e",
+    "scripts/parity/glbytes.mjs": "3160ea023d77947366f5adb5a048ea3ec13205bafdbd695491a418e1f3b0b501"
+  },
+  "sampler": {
+    "sha256": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+    "gitBlob": "56db9728c5f8dd4aa25a8681e96443fe0603182a"
+  }
+}

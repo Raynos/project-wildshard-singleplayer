@@ -1,0 +1,49 @@
+{
+  "before": "96498873272ca4dc55129633693d648dac008512",
+  "after": "80997ab8f1f496bcf39a69d1311252d0c690f8f6",
+  "source": "39433e40772ef1764cffbe66275c26c0196ac3f9",
+  "paths": [
+    "src/engine/audio/Music.ts",
+    "src/engine/audio/Stems.ts",
+    "src/engine/audio/aacIndex.ts",
+    "src/engine/audio/aacPull.ts",
+    "src/engine/audio/aacNative.ts",
+    "src/engine/audio/aacWindows.ts",
+    "src/engine/audio/aacTrack.ts",
+    "src/engine/audio/aacSource.ts",
+    "src/engine/audio/codecs.merge.d.ts"
+  ],
+  "beforeTree": "b7e1d4bb38686517d38a0ae7adacd5f85cd9cc5f",
+  "afterTree": "eaea777134097d61a6fc4ba82e8aa1ef0935720b",
+  "runtimeBlobs": {
+    "src/engine/audio/Music.ts": {
+      "before": "1035a164d5e6930225d801249c1c156d515c5973",
+      "after": "e9820646bb7c35e0bb2e34633acd3c4df883d0d1"
+    },
+    "src/engine/audio/Stems.ts": {
+      "before": "d5788c896fc23dde6bf229342470efb07821a957",
+      "after": "8ce1655c9b97a80c07306d658bccd602ecd60e4a"
+    },
+    "src/engine/audio/aacIndex.ts": {
+      "after": "f5498e21c6ed288a9933aeed523d63e105ebaf80"
+    },
+    "src/engine/audio/aacPull.ts": {
+      "after": "35b0059b38ae5f3effab154d9c821a78e1cd119b"
+    },
+    "src/engine/audio/aacNative.ts": {
+      "after": "32d218d984a9351f0b72c1a6f79fd44f71cea171"
+    },
+    "src/engine/audio/aacWindows.ts": {
+      "after": "b38c44a1bf23515eea646955395f93bfdba01171"
+    },
+    "src/engine/audio/aacTrack.ts": {
+      "after": "9b808e578d872f9f91cf283e347ac997473cdada"
+    },
+    "src/engine/audio/aacSource.ts": {
+      "after": "bde32d01ec2a228c5d628f091025034893fe726e"
+    },
+    "src/engine/audio/codecs.merge.d.ts": {
+      "after": "7389c0fa4557d558d0dce611641ea73d593ab8b9"
+    }
+  }
+}

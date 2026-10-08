@@ -1,0 +1,16 @@
+{
+  "before": "96498873272ca4dc55129633693d648dac008512",
+  "after": "80997ab8f1f496bcf39a69d1311252d0c690f8f6",
+  "source": "39433e40772ef1764cffbe66275c26c0196ac3f9",
+  "paths": [
+    "src/engine/audio/Music.ts",
+    "src/engine/audio/Stems.ts",
+    "src/engine/audio/aacIndex.ts",
+    "src/engine/audio/aacPull.ts",
+    "src/engine/audio/aacNative.ts",
+    "src/engine/audio/aacWindows.ts",
+    "src/engine/audio/aacTrack.ts",
+    "src/engine/audio/aacSource.ts",
+    "src/engine/audio/codecs.merge.d.ts"
+  ]
+}

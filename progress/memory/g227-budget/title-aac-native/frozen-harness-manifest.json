@@ -1,0 +1,47 @@
+[
+  {
+    "file": "frozen-harness/progress/memory/g227-budget/inspect.mjs.gz",
+    "rawSha256": "eef4debbbb6dc040fa3c05f74520782a66be356ab695fb5da5924acff4cbda59",
+    "rawBytes": 14178
+  },
+  {
+    "file": "frozen-harness/progress/memory/g227-budget/memory-categories.mjs.gz",
+    "rawSha256": "7a473cfac683fd6efbc30c7396eddc5528cdaabd19e8285be0378654841a6f0b",
+    "rawBytes": 1529
+  },
+  {
+    "file": "frozen-harness/progress/memory/g227-budget/native-samples.mjs.gz",
+    "rawSha256": "f060b0e4b3badf7f2969cf280c9b3f748eea8785c1ac04bb15b628e15a52eb9f",
+    "rawBytes": 1749
+  },
+  {
+    "file": "frozen-harness/progress/memory/g227-budget/native.mjs.gz",
+    "rawSha256": "7169be97be7af6b4b71ccb1546ba5ad08e80210c94e30a811f68cd7ddf01eeae",
+    "rawBytes": 24015
+  },
+  {
+    "file": "frozen-harness/scripts/debug-settings.mjs.gz",
+    "rawSha256": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e",
+    "rawBytes": 4925
+  },
+  {
+    "file": "frozen-harness/scripts/frame-floor-grid.mjs.gz",
+    "rawSha256": "6b3c14a4a45df0388ccf0bf65b6d3158eea27e89a17d9266b567b579d4de6563",
+    "rawBytes": 15450
+  },
+  {
+    "file": "frozen-harness/scripts/parity/glbytes.mjs.gz",
+    "rawSha256": "3160ea023d77947366f5adb5a048ea3ec13205bafdbd695491a418e1f3b0b501",
+    "rawBytes": 13150
+  },
+  {
+    "file": "frozen-harness/scripts/soak/owned.mjs.gz",
+    "rawSha256": "d10167c0963804da085b9b7191146029bda64982122f54b663443e628322eec7",
+    "rawBytes": 16700
+  },
+  {
+    "file": "frozen-harness/scripts/sim-mem-phases.py.gz",
+    "rawSha256": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+    "rawBytes": 7898
+  }
+]

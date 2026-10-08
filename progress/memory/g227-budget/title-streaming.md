@@ -1,5 +1,7 @@
 # Single-track title streaming: custom loop probe
 
+This is a chronological engineering record. Earlier “no activation” statements describe those primitive steps; the Memory saver integration is now landed, and the [failure-inclusive native cohort](title-aac-native/README.md) is complete. Whole-page native saving credit remains **0**.
+
 The base piano / folk / orchestral title slots each contain one full mix, with no tension or extra layers. They do not require paired-stem alignment. They do require the authored **interior loop**: piano27.3995→59.118s, folk15.6735→63.7156s, orchestral14.7911→43.7464s. Whole-file HTML looping would change these recordings’ structure.
 
 The diagnostic [title-stream-probe.mjs](title-stream-probe.mjs) records the real piano AAC through MediaElementAudioSourceNode alongside the current AudioBufferSourceNode loop into a silent AudioWorklet. It begins0.6s before the existing loop end, polls media time every1ms and seeks to loopStart plus overshoot. It estimates **one integer sample alignment before the seam, then keeps it fixed across the seam**; no per-section alignment, gain normalization or time warp hides a gap. Only the diagnostic decodes a full reference buffer; no production source or asset changed.
@@ -79,3 +81,11 @@ The [actual Stems Deck / Music proof](title-stream-foundation/aac-music-piano.js
 Four focused admission tests cover row-OFF/paired unchanged behaviour, fractional/unsupported fallback and cancellation before publication. Source/track/activation/sound-tap checks pass 15/15, and root strict TypeScript plus typed lint pass. Sources still route through the existing Deck content sound-tap owner rather than inventing per-window content events.
 
 **Native credit remains zero.** Activation uses the existing Memory saver setting, not a new row. The next measurement must use an isolated audio-only candidate, the same cold native ruler and at least three cold runs per side, reporting median and min–max spread. The expected reduction is an allocation hypothesis (about 23.9 MB full title PCM replaced by about 3.85 MB of short PCM), not a measured whole-page saving. Native codec internals and malloc arena behaviour must be included by that measurement.
+
+## Completed failure-inclusive native cohort
+
+The [isolated audio-only comparison](title-aac-native/README.md) contains three valid cold Simulator boots per side and every failed attempt: baseline **3/3 valid, zero game failures**; AAC **3/4 valid, one original-document GPU restart**. Two pre-browser module-resolution failures are separately retained. All native resources and both previews closed.
+
+Pine-centre WC + same-pose labelled GL medians are **1163.671 → 1152.432 MB (−11.239 MB)**, with overlapping ranges **1162.768–1187.625 / 1098.791–1170.356 MB**. Both medians exceed the 1000 MB cap. The higher observed candidate failure fraction and broad footprint variation remain visible; no reliable whole-page saving or admission discount is claimed. Native contexts were interrupted at time 0; running-clock sample-exact proofs above remain separate.
+
+Every valid baseline home records the full piano title decode (23,919,360 native PCM bytes); every valid AAC pose records zero full-title decode events. This confirms the never-allocate mechanism, without turning a smaller PCM payload into an equal native-WC saving. Exact raw hashes, source trees, frozen observer provenance and recomputed medians verify with `python3 progress/memory/g227-budget/title-aac-native/verify.py`.

@@ -1,0 +1,22 @@
+{
+  "attempts": [
+    {
+      "side": "before",
+      "attempt": 3,
+      "stage": "Node module resolution before browser launch",
+      "error": "ERR_MODULE_NOT_FOUND: ws",
+      "log": "before-3.driver.log",
+      "gameBootStarted": false,
+      "measurementProduced": false
+    },
+    {
+      "side": "before",
+      "attempt": 4,
+      "stage": "Node module resolution before browser launch",
+      "error": "ERR_MODULE_NOT_FOUND: scripts/soak/owned.mjs",
+      "log": "before-4.driver.log",
+      "gameBootStarted": false,
+      "measurementProduced": false
+    }
+  ]
+}

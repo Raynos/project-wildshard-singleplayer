@@ -1,0 +1,2747 @@
+{
+  "protocol": "At least three valid independent cold boots per side. Earlier attempts alternate before/after; continuation completes each remaining side after the shared Simulator queue pause. Every failed attempt remains recorded and excluded from valid-run pose medians. Each boot has three fresh fixed-PID settled samples per pose. Decimal bytes. No GC. WC + same-pose labelled GL.",
+  "pair": {
+    "before": "96498873272ca4dc55129633693d648dac008512",
+    "after": "80997ab8f1f496bcf39a69d1311252d0c690f8f6",
+    "source": "39433e40772ef1764cffbe66275c26c0196ac3f9",
+    "paths": [
+      "src/engine/audio/Music.ts",
+      "src/engine/audio/Stems.ts",
+      "src/engine/audio/aacIndex.ts",
+      "src/engine/audio/aacPull.ts",
+      "src/engine/audio/aacNative.ts",
+      "src/engine/audio/aacWindows.ts",
+      "src/engine/audio/aacTrack.ts",
+      "src/engine/audio/aacSource.ts",
+      "src/engine/audio/codecs.merge.d.ts"
+    ]
+  },
+  "counts": {
+    "before": {
+      "attempts": 3,
+      "valid": 3,
+      "failed": 0
+    },
+    "after": {
+      "attempts": 4,
+      "valid": 3,
+      "failed": 1
+    }
+  },
+  "runs": [
+    {
+      "side": "before",
+      "round": 1,
+      "file": "before-1.json",
+      "sha256": "1eea8714b4f16df4f36bb0c221b2f58963e90848950880d36029a9bb17b2077e",
+      "version": {
+        "build": "9649887-muzejvz8",
+        "time": "2026-10-08T10:37:22.701Z"
+      },
+      "valid": true,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 569282184,
+          "glBytes": 196174747,
+          "combinedBytes": 765456931,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:46:01.794543+00:00",
+              "pid": 28833,
+              "footprintBytes": 569282184,
+              "intervalPeakBytes": 569478792,
+              "gpuProcessBytes": 184650368
+            },
+            {
+              "at": "2026-10-08T10:46:02.897295+00:00",
+              "pid": 28833,
+              "footprintBytes": 569085576,
+              "intervalPeakBytes": 569478792,
+              "gpuProcessBytes": 184650368
+            },
+            {
+              "at": "2026-10-08T10:46:03.996832+00:00",
+              "pid": 28833,
+              "footprintBytes": 577703584,
+              "intervalPeakBytes": 608603808,
+              "gpuProcessBytes": 184699520
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": true,
+              "frames": 2989920,
+              "channels": 2,
+              "pcmBytes": 23919360
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 2,
+              "pcmBytes": 22296576
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 1,
+              "pcmBytes": 11148288
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 923415343,
+            "loading": 1003415343,
+            "accounted": 504506044,
+            "input": {
+              "l0": 105894374,
+              "l1": 0,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 348526174,
+              "commons": 0,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-entry",
+          "webContentBytes": 889573432,
+          "glBytes": 248420128,
+          "combinedBytes": 1137993560,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:46:23.701477+00:00",
+              "pid": 28833,
+              "footprintBytes": 889638944,
+              "intervalPeakBytes": 895176736,
+              "gpuProcessBytes": 216779680
+            },
+            {
+              "at": "2026-10-08T10:46:24.717371+00:00",
+              "pid": 28833,
+              "footprintBytes": 889573432,
+              "intervalPeakBytes": 895176736,
+              "gpuProcessBytes": 218549152
+            },
+            {
+              "at": "2026-10-08T10:46:25.837690+00:00",
+              "pid": 28833,
+              "footprintBytes": 887296056,
+              "intervalPeakBytes": 895176736,
+              "gpuProcessBytes": 220793760
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1145612160,
+            "loading": 1225612160,
+            "accounted": 704683357,
+            "input": {
+              "l0": 105894374,
+              "l1": 369960,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-centre",
+          "webContentBytes": 941953104,
+          "glBytes": 245671812,
+          "combinedBytes": 1187624916,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:46:53.474050+00:00",
+              "pid": 28833,
+              "footprintBytes": 942231632,
+              "intervalPeakBytes": 942903376,
+              "gpuProcessBytes": 245582728
+            },
+            {
+              "at": "2026-10-08T10:46:54.568604+00:00",
+              "pid": 28833,
+              "footprintBytes": 941920336,
+              "intervalPeakBytes": 942903376,
+              "gpuProcessBytes": 245844872
+            },
+            {
+              "at": "2026-10-08T10:46:55.669649+00:00",
+              "pid": 28833,
+              "footprintBytes": 941953104,
+              "intervalPeakBytes": 942903376,
+              "gpuProcessBytes": 245975944
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 2,
+              "pcmBytes": 23631744
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 1,
+              "pcmBytes": 11815872
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1139336213,
+            "loading": 1219336213,
+            "accounted": 699029351,
+            "input": {
+              "l0": 99777680,
+              "l1": 832648,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        }
+      ]
+    },
+    {
+      "side": "before",
+      "round": 2,
+      "file": "before-2.json",
+      "sha256": "6136c6c538ee515f81beadcf46278bbb2073ffd4b8740ac6994e5e8c963ad852",
+      "version": {
+        "build": "9649887-muzejvz8",
+        "time": "2026-10-08T10:37:22.701Z"
+      },
+      "valid": true,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 511692520,
+          "glBytes": 196174747,
+          "combinedBytes": 707867267,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:50:30.240887+00:00",
+              "pid": 56187,
+              "footprintBytes": 511495912,
+              "intervalPeakBytes": 623677160,
+              "gpuProcessBytes": 189041280
+            },
+            {
+              "at": "2026-10-08T10:50:31.382997+00:00",
+              "pid": 56187,
+              "footprintBytes": 511692520,
+              "intervalPeakBytes": 623677160,
+              "gpuProcessBytes": 189041280
+            },
+            {
+              "at": "2026-10-08T10:50:32.527484+00:00",
+              "pid": 56187,
+              "footprintBytes": 511938280,
+              "intervalPeakBytes": 623677160,
+              "gpuProcessBytes": 188959360
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": true,
+              "frames": 2989920,
+              "channels": 2,
+              "pcmBytes": 23919360
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 2,
+              "pcmBytes": 22296576
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 1,
+              "pcmBytes": 11148288
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 923415343,
+            "loading": 1003415343,
+            "accounted": 504506044,
+            "input": {
+              "l0": 105894374,
+              "l1": 0,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 348526174,
+              "commons": 0,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-entry",
+          "webContentBytes": 886755408,
+          "glBytes": 248417824,
+          "combinedBytes": 1135173232,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:51:01.313055+00:00",
+              "pid": 56187,
+              "footprintBytes": 886755408,
+              "intervalPeakBytes": 893603920,
+              "gpuProcessBytes": 214256544
+            },
+            {
+              "at": "2026-10-08T10:51:02.535071+00:00",
+              "pid": 56187,
+              "footprintBytes": 886788176,
+              "intervalPeakBytes": 893603920,
+              "gpuProcessBytes": 215960480
+            },
+            {
+              "at": "2026-10-08T10:51:03.596390+00:00",
+              "pid": 56187,
+              "footprintBytes": 886083664,
+              "intervalPeakBytes": 893603920,
+              "gpuProcessBytes": 217238432
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1145612160,
+            "loading": 1225612160,
+            "accounted": 704683357,
+            "input": {
+              "l0": 105894374,
+              "l1": 369960,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-centre",
+          "webContentBytes": 917098600,
+          "glBytes": 245669508,
+          "combinedBytes": 1162768108,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:51:37.345014+00:00",
+              "pid": 56187,
+              "footprintBytes": 918032488,
+              "intervalPeakBytes": 918737000,
+              "gpuProcessBytes": 242387872
+            },
+            {
+              "at": "2026-10-08T10:51:38.445518+00:00",
+              "pid": 56187,
+              "footprintBytes": 917098600,
+              "intervalPeakBytes": 918737000,
+              "gpuProcessBytes": 243026848
+            },
+            {
+              "at": "2026-10-08T10:51:39.493070+00:00",
+              "pid": 56187,
+              "footprintBytes": 916934760,
+              "intervalPeakBytes": 918737000,
+              "gpuProcessBytes": 242830240
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 2,
+              "pcmBytes": 23631744
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 1,
+              "pcmBytes": 11815872
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1139336213,
+            "loading": 1219336213,
+            "accounted": 699029351,
+            "input": {
+              "l0": 99777680,
+              "l1": 832648,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        }
+      ]
+    },
+    {
+      "side": "before",
+      "round": 5,
+      "file": "before-5.json",
+      "sha256": "42ce6364db578bed91418fbddfed2fdd8d176f2df5debc2321e852def224c89a",
+      "version": {
+        "build": "9649887-muzejvz8",
+        "time": "2026-10-08T10:37:22.701Z"
+      },
+      "valid": true,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 566218256,
+          "glBytes": 196174747,
+          "combinedBytes": 762393003,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:04:43.555705+00:00",
+              "pid": 10493,
+              "footprintBytes": 563777040,
+              "intervalPeakBytes": 566005264,
+              "gpuProcessBytes": 183683688
+            },
+            {
+              "at": "2026-10-08T12:04:44.685790+00:00",
+              "pid": 10493,
+              "footprintBytes": 566234640,
+              "intervalPeakBytes": 566234640,
+              "gpuProcessBytes": 183863912
+            },
+            {
+              "at": "2026-10-08T12:04:45.802387+00:00",
+              "pid": 10493,
+              "footprintBytes": 566218256,
+              "intervalPeakBytes": 566726160,
+              "gpuProcessBytes": 183667304
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": true,
+              "frames": 2989920,
+              "channels": 2,
+              "pcmBytes": 23919360
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 2,
+              "pcmBytes": 22296576
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 1,
+              "pcmBytes": 11148288
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 923415343,
+            "loading": 1003415343,
+            "accounted": 504506044,
+            "input": {
+              "l0": 105894374,
+              "l1": 0,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 348526174,
+              "commons": 0,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-entry",
+          "webContentBytes": 774475712,
+          "glBytes": 244924884,
+          "combinedBytes": 1019400596,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:05:05.621598+00:00",
+              "pid": 10493,
+              "footprintBytes": 774475712,
+              "intervalPeakBytes": 779292608,
+              "gpuProcessBytes": 213797768
+            },
+            {
+              "at": "2026-10-08T12:05:06.752294+00:00",
+              "pid": 10493,
+              "footprintBytes": 774557632,
+              "intervalPeakBytes": 779292608,
+              "gpuProcessBytes": 215878536
+            },
+            {
+              "at": "2026-10-08T12:05:07.809534+00:00",
+              "pid": 10493,
+              "footprintBytes": 772657088,
+              "intervalPeakBytes": 779292608,
+              "gpuProcessBytes": 218008456
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1145612160,
+            "loading": 1225612160,
+            "accounted": 704683357,
+            "input": {
+              "l0": 105894374,
+              "l1": 369960,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-centre",
+          "webContentBytes": 917999576,
+          "glBytes": 245671812,
+          "combinedBytes": 1163671388,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:05:33.566189+00:00",
+              "pid": 10493,
+              "footprintBytes": 918327256,
+              "intervalPeakBytes": 919998424,
+              "gpuProcessBytes": 244599688
+            },
+            {
+              "at": "2026-10-08T12:05:34.658009+00:00",
+              "pid": 10493,
+              "footprintBytes": 917999576,
+              "intervalPeakBytes": 919998424,
+              "gpuProcessBytes": 245074824
+            },
+            {
+              "at": "2026-10-08T12:05:35.731741+00:00",
+              "pid": 10493,
+              "footprintBytes": 917868504,
+              "intervalPeakBytes": 919998424,
+              "gpuProcessBytes": 245992328
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/title-3d1f713a.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 2,
+              "pcmBytes": 23631744
+            },
+            {
+              "source": "http://127.0.0.1:4404/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 1,
+              "pcmBytes": 11815872
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1139336213,
+            "loading": 1219336213,
+            "accounted": 699029351,
+            "input": {
+              "l0": 99777680,
+              "l1": 832648,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        }
+      ]
+    },
+    {
+      "side": "after",
+      "round": 1,
+      "file": "after-1.json",
+      "sha256": "6548f9b7cad98d2e2c4a863f72965d73fbbbc707663967a347eba4651f14accd",
+      "version": {
+        "build": "80997ab-muzek7yh",
+        "time": "2026-10-08T10:37:38.111Z"
+      },
+      "valid": true,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 537923112,
+          "glBytes": 196174747,
+          "combinedBytes": 734097859,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:48:35.265271+00:00",
+              "pid": 45824,
+              "footprintBytes": 535531024,
+              "intervalPeakBytes": 541675024,
+              "gpuProcessBytes": 186354304
+            },
+            {
+              "at": "2026-10-08T10:48:36.318813+00:00",
+              "pid": 45824,
+              "footprintBytes": 537923112,
+              "intervalPeakBytes": 541675024,
+              "gpuProcessBytes": 186174080
+            },
+            {
+              "at": "2026-10-08T10:48:37.514383+00:00",
+              "pid": 45824,
+              "footprintBytes": 538103336,
+              "intervalPeakBytes": 541675024,
+              "gpuProcessBytes": 186190464
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 2,
+              "pcmBytes": 22296576
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 1,
+              "pcmBytes": 11148288
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 923415343,
+            "loading": 1003415343,
+            "accounted": 504506044,
+            "input": {
+              "l0": 105894374,
+              "l1": 0,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 348526174,
+              "commons": 0,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-entry",
+          "webContentBytes": 741527608,
+          "glBytes": 244924884,
+          "combinedBytes": 986452492,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:48:56.675154+00:00",
+              "pid": 45824,
+              "footprintBytes": 747212832,
+              "intervalPeakBytes": 768823256,
+              "gpuProcessBytes": 219138952
+            },
+            {
+              "at": "2026-10-08T10:48:57.806553+00:00",
+              "pid": 45824,
+              "footprintBytes": 741527608,
+              "intervalPeakBytes": 768823256,
+              "gpuProcessBytes": 221449096
+            },
+            {
+              "at": "2026-10-08T10:48:58.919637+00:00",
+              "pid": 45824,
+              "footprintBytes": 739577912,
+              "intervalPeakBytes": 768823256,
+              "gpuProcessBytes": 223693704
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1145612160,
+            "loading": 1225612160,
+            "accounted": 704683357,
+            "input": {
+              "l0": 105894374,
+              "l1": 369960,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-centre",
+          "webContentBytes": 906760248,
+          "glBytes": 245671812,
+          "combinedBytes": 1152432060,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T10:49:24.402140+00:00",
+              "pid": 45824,
+              "footprintBytes": 906809400,
+              "intervalPeakBytes": 908529720,
+              "gpuProcessBytes": 250301320
+            },
+            {
+              "at": "2026-10-08T10:49:25.485278+00:00",
+              "pid": 45824,
+              "footprintBytes": 906760248,
+              "intervalPeakBytes": 908529720,
+              "gpuProcessBytes": 250235784
+            },
+            {
+              "at": "2026-10-08T10:49:26.523254+00:00",
+              "pid": 45824,
+              "footprintBytes": 906645560,
+              "intervalPeakBytes": 908529720,
+              "gpuProcessBytes": 251235208
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 2,
+              "pcmBytes": 23631744
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 1,
+              "pcmBytes": 11815872
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1139336213,
+            "loading": 1219336213,
+            "accounted": 699029351,
+            "input": {
+              "l0": 99777680,
+              "l1": 832648,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        }
+      ]
+    },
+    {
+      "side": "after",
+      "round": 2,
+      "file": "after-2.json",
+      "sha256": "abf3156ccead7b26ac14fb2410d692e3070affae123a41af0d3aab0bdb0c7d78",
+      "version": {
+        "build": "80997ab-muzek7yh",
+        "time": "2026-10-08T10:37:38.111Z"
+      },
+      "valid": false,
+      "failure": "Error: Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue",
+      "errors": [],
+      "diagnostic": "{\"url\":\"http://127.0.0.1:4406/\",\"origin\":1791456772851,\"body\":\"\\n80997AB \u00b7 RELOAD\",\"loading\":\"\\nProject Wildshard\\nA world that does not exist yet, arriving one chunk at a time.\\n\\n\\n\\nLoading chunk \u00b700:00.0\\nLoading\\n\\ntier\\n\\n\\ndownload\u20140\\n\\n\\n\\nsetup\u20140\\n\\n\\n\\nMemory: checking \u00b7 CPU: checking\\n\\n\\n\",\"saved\":{\"life.lastEnd\":{\"kind\":\"intentional\",\"reason\":\"graphics recovery: the GPU process restarted: every canvas was wiped\",\"at\":1791456772829,\"resident\":\"driftwood-isle (playing) ~8 MB\",\"mode\":\"grid\",\"build\":\"80997ab\",\"bootedAt\":1791456772901,\"discarded\":false,\"nav\":\"navigate\"},\"life.lastUnload\":null,\"boot.trace\":null}}",
+      "lastPoses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 516525632,
+          "glBytes": 196174747
+        }
+      ]
+    },
+    {
+      "side": "after",
+      "round": 3,
+      "file": "after-3.json",
+      "sha256": "4c03e560e9542c7d281e8fe6a449202e1474d72571126f13379df2870545c8bf",
+      "version": {
+        "build": "80997ab-muzek7yh",
+        "time": "2026-10-08T10:37:38.111Z"
+      },
+      "valid": true,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 537595480,
+          "glBytes": 196174747,
+          "combinedBytes": 733770227,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:06:25.222393+00:00",
+              "pid": 22611,
+              "footprintBytes": 534957656,
+              "intervalPeakBytes": 536858200,
+              "gpuProcessBytes": 184650368
+            },
+            {
+              "at": "2026-10-08T12:06:26.334282+00:00",
+              "pid": 22611,
+              "footprintBytes": 537595480,
+              "intervalPeakBytes": 537824856,
+              "gpuProcessBytes": 184830592
+            },
+            {
+              "at": "2026-10-08T12:06:27.353619+00:00",
+              "pid": 22611,
+              "footprintBytes": 537644632,
+              "intervalPeakBytes": 537824856,
+              "gpuProcessBytes": 184666752
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 2,
+              "pcmBytes": 22296576
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 1,
+              "pcmBytes": 11148288
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 923415343,
+            "loading": 1003415343,
+            "accounted": 504506044,
+            "input": {
+              "l0": 105894374,
+              "l1": 0,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 348526174,
+              "commons": 0,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-entry",
+          "webContentBytes": 786927552,
+          "glBytes": 244924884,
+          "combinedBytes": 1031852436,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:06:47.145220+00:00",
+              "pid": 22611,
+              "footprintBytes": 787402688,
+              "intervalPeakBytes": 790663104,
+              "gpuProcessBytes": 217090976
+            },
+            {
+              "at": "2026-10-08T12:06:48.134651+00:00",
+              "pid": 22611,
+              "footprintBytes": 786927552,
+              "intervalPeakBytes": 790663104,
+              "gpuProcessBytes": 218467232
+            },
+            {
+              "at": "2026-10-08T12:06:49.192818+00:00",
+              "pid": 22611,
+              "footprintBytes": 784863168,
+              "intervalPeakBytes": 790663104,
+              "gpuProcessBytes": 220023712
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1145612160,
+            "loading": 1225612160,
+            "accounted": 704683357,
+            "input": {
+              "l0": 105894374,
+              "l1": 369960,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-centre",
+          "webContentBytes": 924684224,
+          "glBytes": 245671812,
+          "combinedBytes": 1170356036,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:07:16.022931+00:00",
+              "pid": 22611,
+              "footprintBytes": 924716992,
+              "intervalPeakBytes": 926715840,
+              "gpuProcessBytes": 246139808
+            },
+            {
+              "at": "2026-10-08T12:07:17.098182+00:00",
+              "pid": 22611,
+              "footprintBytes": 924684224,
+              "intervalPeakBytes": 926715840,
+              "gpuProcessBytes": 246959008
+            },
+            {
+              "at": "2026-10-08T12:07:18.211183+00:00",
+              "pid": 22611,
+              "footprintBytes": 924438464,
+              "intervalPeakBytes": 926715840,
+              "gpuProcessBytes": 246549408
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 2,
+              "pcmBytes": 23631744
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 1,
+              "pcmBytes": 11815872
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1139336213,
+            "loading": 1219336213,
+            "accounted": 699029351,
+            "input": {
+              "l0": 99777680,
+              "l1": 832648,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        }
+      ]
+    },
+    {
+      "side": "after",
+      "round": 4,
+      "file": "after-4.json",
+      "sha256": "3e6107e6b03a1e2804403a9eaf77759772e4aeb3ceb43e474f525fa8266e9586",
+      "version": {
+        "build": "80997ab-muzek7yh",
+        "time": "2026-10-08T10:37:38.111Z"
+      },
+      "valid": true,
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 539823752,
+          "glBytes": 196174747,
+          "combinedBytes": 735998499,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:08:13.280121+00:00",
+              "pid": 29709,
+              "footprintBytes": 539823752,
+              "intervalPeakBytes": 542166664,
+              "gpuProcessBytes": 182028952
+            },
+            {
+              "at": "2026-10-08T12:08:14.471040+00:00",
+              "pid": 29709,
+              "footprintBytes": 539676296,
+              "intervalPeakBytes": 542166664,
+              "gpuProcessBytes": 182176408
+            },
+            {
+              "at": "2026-10-08T12:08:15.536384+00:00",
+              "pid": 29709,
+              "footprintBytes": 541953672,
+              "intervalPeakBytes": 542166664,
+              "gpuProcessBytes": 182061720
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 2,
+              "pcmBytes": 22296576
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": true,
+              "frames": 2787072,
+              "channels": 1,
+              "pcmBytes": 11148288
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 923415343,
+            "loading": 1003415343,
+            "accounted": 504506044,
+            "input": {
+              "l0": 105894374,
+              "l1": 0,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 348526174,
+              "commons": 0,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-entry",
+          "webContentBytes": 761106512,
+          "glBytes": 244924884,
+          "combinedBytes": 1006031396,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:08:37.560443+00:00",
+              "pid": 29709,
+              "footprintBytes": 766201936,
+              "intervalPeakBytes": 768856120,
+              "gpuProcessBytes": 208915312
+            },
+            {
+              "at": "2026-10-08T12:08:38.596823+00:00",
+              "pid": 29709,
+              "footprintBytes": 761106512,
+              "intervalPeakBytes": 768856120,
+              "gpuProcessBytes": 210733936
+            },
+            {
+              "at": "2026-10-08T12:08:39.716054+00:00",
+              "pid": 29709,
+              "footprintBytes": 757944424,
+              "intervalPeakBytes": 768856120,
+              "gpuProcessBytes": 212978544
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1145612160,
+            "loading": 1225612160,
+            "accounted": 704683357,
+            "input": {
+              "l0": 105894374,
+              "l1": 369960,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        },
+        {
+          "label": "pine-hollow-centre",
+          "webContentBytes": 853119080,
+          "glBytes": 245671812,
+          "combinedBytes": 1098790892,
+          "nativeSamples": [
+            {
+              "at": "2026-10-08T12:09:09.109053+00:00",
+              "pid": 29709,
+              "footprintBytes": 853135464,
+              "intervalPeakBytes": 858329192,
+              "gpuProcessBytes": 236784496
+            },
+            {
+              "at": "2026-10-08T12:09:10.222304+00:00",
+              "pid": 29709,
+              "footprintBytes": 853119080,
+              "intervalPeakBytes": 858329192,
+              "gpuProcessBytes": 237046640
+            },
+            {
+              "at": "2026-10-08T12:09:11.211352+00:00",
+              "pid": 29709,
+              "footprintBytes": 852873320,
+              "intervalPeakBytes": 858329192,
+              "gpuProcessBytes": 237390704
+            }
+          ],
+          "audioContexts": [
+            {
+              "kind": "AudioContext",
+              "state": "interrupted",
+              "currentTime": 0,
+              "sampleRate": 48000
+            },
+            {
+              "kind": "OfflineAudioContext",
+              "state": "suspended",
+              "currentTime": 0,
+              "sampleRate": 48000
+            }
+          ],
+          "audioDecodes": [
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-pickup-6ed91318.m4a",
+              "live": true,
+              "frames": 96000,
+              "channels": 2,
+              "pcmBytes": 768000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-death-99b071e0.m4a",
+              "live": true,
+              "frames": 216000,
+              "channels": 2,
+              "pcmBytes": 1728000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+              "live": true,
+              "frames": 168000,
+              "channels": 2,
+              "pcmBytes": 1344000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-calm-05125ed8.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/island-tension-7faf0468.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": false,
+              "frames": null,
+              "channels": null,
+              "pcmBytes": null
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/oneshots-362ce515.m4a",
+              "live": true,
+              "frames": 7671984,
+              "channels": 1,
+              "pcmBytes": 30687936
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/sfx/pine-hollow/bed-hollow-1-17c54253.m4a",
+              "live": true,
+              "frames": 876000,
+              "channels": 1,
+              "pcmBytes": 3504000
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-calm-923e0056.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 2,
+              "pcmBytes": 23631744
+            },
+            {
+              "source": "http://127.0.0.1:4406/assets/music/piano/pine-tension-cc014e5b.m4a",
+              "live": true,
+              "frames": 2953968,
+              "channels": 1,
+              "pcmBytes": 11815872
+            }
+          ],
+          "settings": {
+            "tier": "phone",
+            "fps": "auto",
+            "tex": "auto",
+            "memorySaver": "on",
+            "volume": 0
+          },
+          "residency": {
+            "playing": 1139336213,
+            "loading": 1219336213,
+            "accounted": 699029351,
+            "input": {
+              "l0": 99777680,
+              "l1": 832648,
+              "far": 9600000,
+              "libraries": 0,
+              "sims": 536943715,
+              "commons": 11389812,
+              "products": 9160452,
+              "overlap": 80000000,
+              "page": 31325044,
+              "engineBase": 286859388
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "home-settled": {
+      "before": {
+        "webContentBytes": {
+          "median": 566218256,
+          "min": 511692520,
+          "max": 569282184,
+          "spread": 57589664,
+          "runs": [
+            569282184,
+            511692520,
+            566218256
+          ]
+        },
+        "glBytes": {
+          "median": 196174747,
+          "min": 196174747,
+          "max": 196174747,
+          "spread": 0,
+          "runs": [
+            196174747,
+            196174747,
+            196174747
+          ]
+        },
+        "combinedBytes": {
+          "median": 762393003,
+          "min": 707867267,
+          "max": 765456931,
+          "spread": 57589664,
+          "runs": [
+            765456931,
+            707867267,
+            762393003
+          ]
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "median": 537923112,
+          "min": 537595480,
+          "max": 539823752,
+          "spread": 2228272,
+          "runs": [
+            537923112,
+            537595480,
+            539823752
+          ]
+        },
+        "glBytes": {
+          "median": 196174747,
+          "min": 196174747,
+          "max": 196174747,
+          "spread": 0,
+          "runs": [
+            196174747,
+            196174747,
+            196174747
+          ]
+        },
+        "combinedBytes": {
+          "median": 734097859,
+          "min": 733770227,
+          "max": 735998499,
+          "spread": 2228272,
+          "runs": [
+            734097859,
+            733770227,
+            735998499
+          ]
+        }
+      },
+      "afterMinusBefore": {
+        "webContentBytes": -28295144,
+        "glBytes": 0,
+        "combinedBytes": -28295144
+      }
+    },
+    "pine-hollow-entry": {
+      "before": {
+        "webContentBytes": {
+          "median": 886755408,
+          "min": 774475712,
+          "max": 889573432,
+          "spread": 115097720,
+          "runs": [
+            889573432,
+            886755408,
+            774475712
+          ]
+        },
+        "glBytes": {
+          "median": 248417824,
+          "min": 244924884,
+          "max": 248420128,
+          "spread": 3495244,
+          "runs": [
+            248420128,
+            248417824,
+            244924884
+          ]
+        },
+        "combinedBytes": {
+          "median": 1135173232,
+          "min": 1019400596,
+          "max": 1137993560,
+          "spread": 118592964,
+          "runs": [
+            1137993560,
+            1135173232,
+            1019400596
+          ]
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "median": 761106512,
+          "min": 741527608,
+          "max": 786927552,
+          "spread": 45399944,
+          "runs": [
+            741527608,
+            786927552,
+            761106512
+          ]
+        },
+        "glBytes": {
+          "median": 244924884,
+          "min": 244924884,
+          "max": 244924884,
+          "spread": 0,
+          "runs": [
+            244924884,
+            244924884,
+            244924884
+          ]
+        },
+        "combinedBytes": {
+          "median": 1006031396,
+          "min": 986452492,
+          "max": 1031852436,
+          "spread": 45399944,
+          "runs": [
+            986452492,
+            1031852436,
+            1006031396
+          ]
+        }
+      },
+      "afterMinusBefore": {
+        "webContentBytes": -125648896,
+        "glBytes": -3492940,
+        "combinedBytes": -129141836
+      }
+    },
+    "pine-hollow-centre": {
+      "before": {
+        "webContentBytes": {
+          "median": 917999576,
+          "min": 917098600,
+          "max": 941953104,
+          "spread": 24854504,
+          "runs": [
+            941953104,
+            917098600,
+            917999576
+          ]
+        },
+        "glBytes": {
+          "median": 245671812,
+          "min": 245669508,
+          "max": 245671812,
+          "spread": 2304,
+          "runs": [
+            245671812,
+            245669508,
+            245671812
+          ]
+        },
+        "combinedBytes": {
+          "median": 1163671388,
+          "min": 1162768108,
+          "max": 1187624916,
+          "spread": 24856808,
+          "runs": [
+            1187624916,
+            1162768108,
+            1163671388
+          ]
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "median": 906760248,
+          "min": 853119080,
+          "max": 924684224,
+          "spread": 71565144,
+          "runs": [
+            906760248,
+            924684224,
+            853119080
+          ]
+        },
+        "glBytes": {
+          "median": 245671812,
+          "min": 245671812,
+          "max": 245671812,
+          "spread": 0,
+          "runs": [
+            245671812,
+            245671812,
+            245671812
+          ]
+        },
+        "combinedBytes": {
+          "median": 1152432060,
+          "min": 1098790892,
+          "max": 1170356036,
+          "spread": 71565144,
+          "runs": [
+            1152432060,
+            1170356036,
+            1098790892
+          ]
+        }
+      },
+      "afterMinusBefore": {
+        "webContentBytes": -11239328,
+        "glBytes": 0,
+        "combinedBytes": -11239328
+      }
+    }
+  },
+  "infrastructureFailures": [
+    {
+      "side": "before",
+      "attempt": 3,
+      "stage": "Node module resolution before browser launch",
+      "error": "ERR_MODULE_NOT_FOUND: ws",
+      "log": "before-3.driver.log",
+      "gameBootStarted": false,
+      "measurementProduced": false
+    },
+    {
+      "side": "before",
+      "attempt": 4,
+      "stage": "Node module resolution before browser launch",
+      "error": "ERR_MODULE_NOT_FOUND: scripts/soak/owned.mjs",
+      "log": "before-4.driver.log",
+      "gameBootStarted": false,
+      "measurementProduced": false
+    }
+  ],
+  "nativeSavingCreditBytes": 0,
+  "notes": [
+    "A cohort pause for other lanes separates rounds 1/2 from the continuation.",
+    "Pinned continuation GL observer exactly matches both saved round-2 injected scripts; first-round observer exact blob was not captured.",
+    "Both sides predate the compressed-array warm-up GPU fix. Candidate failure rate is reported, not erased by later valid runs.",
+    "Interrupted live AudioContext at time0; running-clock output parity is a separate proof."
+  ]
+}

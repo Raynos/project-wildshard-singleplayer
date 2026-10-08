@@ -1,0 +1,34 @@
+{
+  "progress/memory/g227-budget/native.mjs": {
+    "sha256": "7169be97be7af6b4b71ccb1546ba5ad08e80210c94e30a811f68cd7ddf01eeae",
+    "gitBlob": "b2bc0571fbbe66eceb81f004541abdb5a663f46e"
+  },
+  "progress/memory/g227-budget/inspect.mjs": {
+    "sha256": "eef4debbbb6dc040fa3c05f74520782a66be356ab695fb5da5924acff4cbda59",
+    "gitBlob": "51d3a86adc79117e8f7039234a674e22b7badefd"
+  },
+  "progress/memory/g227-budget/native-samples.mjs": {
+    "sha256": "f060b0e4b3badf7f2969cf280c9b3f748eea8785c1ac04bb15b628e15a52eb9f",
+    "gitBlob": "0cf4cba833f60802555e97090950a6edeb3f095f"
+  },
+  "progress/memory/g227-budget/memory-categories.mjs": {
+    "sha256": "7a473cfac683fd6efbc30c7396eddc5528cdaabd19e8285be0378654841a6f0b",
+    "gitBlob": "079f424431ecac8d6f92309e1a5421bb9555f64c"
+  },
+  "scripts/parity/glbytes.mjs": {
+    "sha256": "ce49d261b1ae29c3c62eb32551b33ba7989dff926294d7814956091ccdc5f6cd",
+    "gitBlob": "d026c8a45a00fd61e39f3cf0e71016c7bf608345"
+  },
+  "scripts/frame-floor-grid.mjs": {
+    "sha256": "6b3c14a4a45df0388ccf0bf65b6d3158eea27e89a17d9266b567b579d4de6563",
+    "gitBlob": "bbd6dd2ef3784e623d89b4121d26296f88383677"
+  },
+  "scripts/debug-settings.mjs": {
+    "sha256": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e",
+    "gitBlob": "f88716144989abdbee438e8a92ed259ce1ed68a6"
+  },
+  "scripts/sim-mem-phases.py": {
+    "sha256": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+    "gitBlob": "56db9728c5f8dd4aa25a8681e96443fe0603182a"
+  }
+}
