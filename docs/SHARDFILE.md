@@ -693,6 +693,16 @@ fields in item JSON. This does not introduce projectile simulation: existing
 native bow, thrown and firearm families keep their firing/reload/flight logic;
 numeric contact limits and the one shared script-host contract remain unchanged.
 
+**Runtime-owned native tools.** A tool row may declare `action: null` only when
+`runtime.binds` includes `"items"`, and that row must have `hook: null`. Its trusted
+family owns the existing input and gameplay (for example a grapple); the declared
+installer adds no generic toggle binding. Ordinary tools keep their required
+dotted action and existing toggle path. The native row retains `fuelSeconds`
+(0.001–86,400) and `intensity` (0–10) as finite compatibility placeholders; these
+do not grant a lamp or fuel mechanic to the native family. Declared UI, view,
+identity and loadout rules remain the same. External products cannot acquire
+runtime ownership by declaring this shape.
+
 First-party picker manifests may carry a built `shardfile` URL. The normal entry
 admits that same-origin source before starting the session, retaining the manifest's
 canonical slug, picker art and catalogue save instance. Offline admission reads the

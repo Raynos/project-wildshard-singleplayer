@@ -3,6 +3,19 @@
 SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
 Never message wildshard-v. The matched Simulator Safari cohort is complete and all owned resources are released.
 
+## Runtime-owned native tool format — focused green
+
+A tool action may be null only under runtime.binds items and with hook:null.
+FuelSeconds0.001..86400/intensity0..10 remain finite compatibility placeholders;
+ordinary dotted lamp actions remain unchanged. Full-schema tests cover ownership,
+hook/action refusal, bounds and the ordinary path (8focused including ranged items).
+sp-x4 owns the prerequisite nullable engine type, conditional binding and direct
+installer owner fence; do not sweep its items.ts/kit hunks. Schema/docs/new native
+fixture are this lane's. No imports, debt, map inputs or rendering changes.
+Clean full-suite proof follows; coordinator owns push. SF45 schema/ABI documentation
+coverage is next, building on existing c5fa39dd5/0710aac7f extraction/regeneration.
+No browser/Simulator/build held.
+
 ## Runtime one-shot actors — format landing
 
 Optional runtime.spawns.actors uses the exact boss-body grammar (id/kind/look/
@@ -16,8 +29,11 @@ sp-x1 owns bindRuntimeActor in hybridRows; no binder/client/physics work here.
 
 Clean3e995e5a2 plus owned patch, committed linker and pnpm gen before checks.
 13 focused tests/2 files, root strict, root-config oxlint and ratchet pass.
-Heavy-lane full413 is still queued; focused-green format lands early to unblock
-sp-x1 binder. Final full proof remains required before the task closes. Current-HEAD private index/hooks/CAS required.
+Actor format988acee55 and binderb01fdb40b are landed. Covering clean-export gate
+4bc61376d includes both; full suite939files/5366passed/24skipped in162.05s, rc0.
+Schema/docs/tests match988 byte-for-byte. Per coordinator approval queued duplicate
+413 withdrawn by verified own PID before it allocated a child; own export removed.
+Current-HEAD private index/hooks/CAS required.
 No new imports/debt, generated files, shard map inputs or rendering changes.
 Coordinator owns the push and relay to sp-x1. No browser/Simulator/build held.
 

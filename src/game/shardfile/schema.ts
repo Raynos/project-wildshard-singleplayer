@@ -169,6 +169,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...targetRules(s.targets, s, { panels: s.props?.panels ?? [], colliders: [...s.props?.colliders ?? [], ...s.meshCollision?.panels ?? []] }));
   errors.push(...itemRules(s.items, s.sim.scripts));
   if ((s.items.runtimeContexts?.length ?? 0) > 0 && s.runtime?.binds?.includes('items') !== true) errors.push('runtime input context references require runtime.binds items');
+  if (s.items.rows.some((row) => row.kind === 'tool' && row.action === null) && s.runtime?.binds?.includes('items') !== true) errors.push('native tools require runtime.binds items');
   errors.push(...skinLookRules(s));
   errors.push(...clientScriptRules(s));
   if (s.props !== null) {
