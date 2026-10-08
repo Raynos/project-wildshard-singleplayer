@@ -1,0 +1,200 @@
+[
+  {
+    "path": "native/cold-01.home-settled.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.home-settled.vmmap.txt",
+    "bytes": 7968,
+    "sha256": "6b0f16d64b86217523bb023010111b26b151e7d19381797eb9fee49db07bc12d"
+  },
+  {
+    "path": "native/cold-01.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.json",
+    "bytes": 5329756,
+    "sha256": "9455c5801ab25a9e18f4d22a9d033cac9f6e89a6438979a639b2d3446174c543"
+  },
+  {
+    "path": "native/cold-01.json.native.jsonl.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.json.native.jsonl",
+    "bytes": 540680,
+    "sha256": "b391487770e9ed828daf38d51916e062681658b94330d7e8d5eb2c637289834e"
+  },
+  {
+    "path": "native/cold-01.json.phase.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.json.phase",
+    "bytes": 4,
+    "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+  },
+  {
+    "path": "native/cold-01.json.sampler.log.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.json.sampler.log",
+    "bytes": 2416,
+    "sha256": "377c04e992c9784e9872d34328e3aecd180ec489fd8cb3f76fe69c41b4f5db48"
+  },
+  {
+    "path": "native/cold-01.log.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.log",
+    "bytes": 361,
+    "sha256": "b5d9e60a3e1100a755ab1bff477654c53762d56ac6a058d925f6a0394639ed86"
+  },
+  {
+    "path": "native/cold-01.sun-entry.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.sun-entry.vmmap.txt",
+    "bytes": 7864,
+    "sha256": "940149f28ef8c1f37a5f35461508896d4ebbeba88b27efd6fccd95ca2b3bdfed"
+  },
+  {
+    "path": "native/cold-01.sun-reentry.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.sun-reentry.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "19bdd99c0f3abb578b122f6e866decdc9cea673c223177ce7b42cb060a0d2ac0"
+  },
+  {
+    "path": "native/cold-01.sun-road-return.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.sun-road-return.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "74c5452d68af3305a1bc08375be6780e2d349c81cb7b724d6f08ea7433b7f3fd"
+  },
+  {
+    "path": "native/cold-01.sun-road.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.sun-road.vmmap.txt",
+    "bytes": 7864,
+    "sha256": "6ba255093232afaf057578b873cad70489b498733f9a22abcdb28e559f196873"
+  },
+  {
+    "path": "native/cold-01.sun-spawn.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-01.sun-spawn.vmmap.txt",
+    "bytes": 7864,
+    "sha256": "3004cb7795b946ce8dd49ecd29261a866e51baaff7babd3b41a7d4368ef18ebd"
+  },
+  {
+    "path": "native/cold-02.home-settled.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.home-settled.vmmap.txt",
+    "bytes": 8223,
+    "sha256": "a8cec7810e08c4a78f088afbeb2f3dde6e78fe42e67cc8d0dcac601a4c6dc5a6"
+  },
+  {
+    "path": "native/cold-02.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.json",
+    "bytes": 5328423,
+    "sha256": "1338039df0e68a8390bb362c6abe4ce10f3071c1477fbd20ee73cd5bd5f5f29d"
+  },
+  {
+    "path": "native/cold-02.json.native.jsonl.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.json.native.jsonl",
+    "bytes": 501581,
+    "sha256": "95efd11af8c80a88389940fbc124d71e0cd8aef9313ec20c972790e64bdeef58"
+  },
+  {
+    "path": "native/cold-02.json.phase.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.json.phase",
+    "bytes": 4,
+    "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+  },
+  {
+    "path": "native/cold-02.json.sampler.log.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.json.sampler.log",
+    "bytes": 2413,
+    "sha256": "6cdb336e47439ca5985c186324cf8e58a55ab0fb672cc9ccb6e0d1b0255c8641"
+  },
+  {
+    "path": "native/cold-02.log.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.log",
+    "bytes": 360,
+    "sha256": "ebdefbf20f10e1fa66536436c2891214a77df881467ce049c59b6c3bbf871611"
+  },
+  {
+    "path": "native/cold-02.sun-entry.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.sun-entry.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "eb7f0ca3c4d36bc476172e149ed1851281b2bef50a6d11ec8c2b6bcbc33e4853"
+  },
+  {
+    "path": "native/cold-02.sun-reentry.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.sun-reentry.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "3f8eec7915253f5fdf38be70b6cb34b08aeeb7b97a1dd8b9e1a88be7cf3f9987"
+  },
+  {
+    "path": "native/cold-02.sun-road-return.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.sun-road-return.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "3fceb105aea1cfead0b0541fdd62c068b27c5b6fe9b9502c234c57ed0cd38480"
+  },
+  {
+    "path": "native/cold-02.sun-road.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.sun-road.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "37b7cac8a1f84e1acd5d75e2f2cde18bc5d1dc19a2ef208ef209d52a8abb7ded"
+  },
+  {
+    "path": "native/cold-02.sun-spawn.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-02.sun-spawn.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "92d6a9b33bf3173ed6f24bffd459358a0e2420547f47dd47daac73c0b41f5ce1"
+  },
+  {
+    "path": "native/cold-03.home-settled.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.home-settled.vmmap.txt",
+    "bytes": 7968,
+    "sha256": "bf7e1d52f6ef2110b873c1425e93ab5a5051fb556206498100b4abf94ec6a6c8"
+  },
+  {
+    "path": "native/cold-03.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.json",
+    "bytes": 5328842,
+    "sha256": "c963b2d83e3e5e8c0c3b06bb0a586050905e55e58ab12c96b938d1b889e905ca"
+  },
+  {
+    "path": "native/cold-03.json.native.jsonl.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.json.native.jsonl",
+    "bytes": 511582,
+    "sha256": "459064aadc576908871997a474826f65a3aa3241d0d163e8d8f5cdbd59d4b39f"
+  },
+  {
+    "path": "native/cold-03.json.phase.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.json.phase",
+    "bytes": 4,
+    "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+  },
+  {
+    "path": "native/cold-03.json.sampler.log.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.json.sampler.log",
+    "bytes": 2415,
+    "sha256": "860311d49638cb2f39009ef42b8064ce7778831d1e60875843ab0fead6dcb2d0"
+  },
+  {
+    "path": "native/cold-03.log.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.log",
+    "bytes": 362,
+    "sha256": "26aa10b0fbeb2641668cf97a1b597f6778ba4ba12d906e03b9dda9f2439dbdf7"
+  },
+  {
+    "path": "native/cold-03.sun-entry.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.sun-entry.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "76ed39cf0908acf7b8eec11800536700484d6c860128cd534b91812c47770270"
+  },
+  {
+    "path": "native/cold-03.sun-reentry.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.sun-reentry.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "bc02a674fc73664de2855207a0bf50773ac6e62f709df6bbd528932b45b98795"
+  },
+  {
+    "path": "native/cold-03.sun-road-return.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.sun-road-return.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "75bdcf21e6ab056d57ba527092decdacebfbc63776448e405cb5583ece1b4758"
+  },
+  {
+    "path": "native/cold-03.sun-road.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.sun-road.vmmap.txt",
+    "bytes": 7864,
+    "sha256": "4d2d46e1f659b2cfbbbec3d4ca3049177353674c83e3147c115e5df77b92ee74"
+  },
+  {
+    "path": "native/cold-03.sun-spawn.vmmap.txt.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/cold-03.sun-spawn.vmmap.txt",
+    "bytes": 8119,
+    "sha256": "ba03846649bfed937ee3c12e7a494010aeb86427b61c72a80f79cd4c96620fab"
+  }
+]

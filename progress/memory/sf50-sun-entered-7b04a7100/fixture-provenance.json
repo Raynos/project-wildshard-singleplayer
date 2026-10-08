@@ -1,0 +1,6 @@
+{
+  "ownedPreview": "/private/tmp/wildshard-serve/20261008-085231-4450/dist",
+  "fixtureSha256": "3f5a80b2cd7ab5ffd832372bffda2abef0b423e9d7718fc8de74274fb7bd3b97",
+  "cleanIndexSha256": "18e73f71341d7d081e1948ba487e6e2e541af2fad87ce85e6c069b91e3e4b8ee",
+  "removal": "Exact owned fixture removed after cohort; all other index bytes hash-verified unchanged."
+}

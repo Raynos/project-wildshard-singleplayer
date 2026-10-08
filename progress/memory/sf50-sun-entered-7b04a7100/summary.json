@@ -1,0 +1,391 @@
+{
+  "source": "7b04a71009de93f059c8208d101f18e2c55ceeed",
+  "settings": {
+    "developer": true,
+    "tier": "phone",
+    "renderScale": 2,
+    "tex": "auto",
+    "memorySaver": "on"
+  },
+  "coverage": {
+    "attempts": 3,
+    "validColdRuns": 3,
+    "failures": 0,
+    "edge": "north",
+    "authoredSpawn": [
+      0,
+      70
+    ],
+    "actualFrameRoutesPerRun": 4
+  },
+  "limitation": "iOS Simulator Safari, same-pose kernel WebContent + labelled live GL at settled stops. No physical-iPhone, continuous combined loading/travel peak, frame-floor or all-edge native claim.",
+  "samples": {
+    "home-settled": {
+      "webContentBytes": {
+        "median": 542428712,
+        "min": 515624464,
+        "max": 561057392
+      },
+      "labelledGLBytes": {
+        "median": 180139359,
+        "min": 180139359,
+        "max": 180139359
+      },
+      "combinedBytes": {
+        "median": 722568071,
+        "min": 695763823,
+        "max": 741196751
+      },
+      "highSampleCombinedBytes": {
+        "median": 722994055,
+        "min": 698172271,
+        "max": 741901263
+      },
+      "modelPlayingBytes": {
+        "median": 905921572,
+        "min": 905921572,
+        "max": 905921572
+      },
+      "accountedBytes": {
+        "median": 488745950,
+        "min": 488745950,
+        "max": 488745950
+      }
+    },
+    "sun-road": {
+      "webContentBytes": {
+        "median": 669650544,
+        "min": 650645128,
+        "max": 752750240
+      },
+      "labelledGLBytes": {
+        "median": 95554886,
+        "min": 95554886,
+        "max": 95554886
+      },
+      "combinedBytes": {
+        "median": 765205430,
+        "min": 746200014,
+        "max": 848305126
+      },
+      "highSampleCombinedBytes": {
+        "median": 765238198,
+        "min": 746216398,
+        "max": 848305126
+      },
+      "modelPlayingBytes": {
+        "median": 526543572,
+        "min": 526543572,
+        "max": 526543572
+      },
+      "accountedBytes": {
+        "median": 146963968,
+        "min": 146963968,
+        "max": 146963968
+      }
+    },
+    "sun-entry": {
+      "webContentBytes": {
+        "median": 676122344,
+        "min": 667373288,
+        "max": 727551648
+      },
+      "labelledGLBytes": {
+        "median": 159108714,
+        "min": 159108714,
+        "max": 159108714
+      },
+      "combinedBytes": {
+        "median": 835231058,
+        "min": 826482002,
+        "max": 886660362
+      },
+      "highSampleCombinedBytes": {
+        "median": 837393746,
+        "min": 826482002,
+        "max": 886742282
+      },
+      "modelPlayingBytes": {
+        "median": 582098997,
+        "min": 582098997,
+        "max": 582098997
+      },
+      "accountedBytes": {
+        "median": 197013901,
+        "min": 197013901,
+        "max": 197013901
+      }
+    },
+    "sun-spawn": {
+      "webContentBytes": {
+        "median": 712347392,
+        "min": 670650088,
+        "max": 733187744
+      },
+      "labelledGLBytes": {
+        "median": 155854534,
+        "min": 155854534,
+        "max": 155854534
+      },
+      "combinedBytes": {
+        "median": 868201926,
+        "min": 826504622,
+        "max": 889042278
+      },
+      "highSampleCombinedBytes": {
+        "median": 868562374,
+        "min": 826553774,
+        "max": 889255270
+      },
+      "modelPlayingBytes": {
+        "median": 575309467,
+        "min": 575309467,
+        "max": 575309467
+      },
+      "accountedBytes": {
+        "median": 190897207,
+        "min": 190897207,
+        "max": 190897207
+      }
+    },
+    "sun-road-return": {
+      "webContentBytes": {
+        "median": 732237568,
+        "min": 700845800,
+        "max": 752438968
+      },
+      "labelledGLBytes": {
+        "median": 95902302,
+        "min": 95902302,
+        "max": 95902302
+      },
+      "combinedBytes": {
+        "median": 828139870,
+        "min": 796748102,
+        "max": 848341270
+      },
+      "highSampleCombinedBytes": {
+        "median": 828172638,
+        "min": 798107974,
+        "max": 848406806
+      },
+      "modelPlayingBytes": {
+        "median": 526543572,
+        "min": 526543572,
+        "max": 526543572
+      },
+      "accountedBytes": {
+        "median": 146963968,
+        "min": 146963968,
+        "max": 146963968
+      }
+    },
+    "sun-reentry": {
+      "webContentBytes": {
+        "median": 754060984,
+        "min": 712150784,
+        "max": 755273472
+      },
+      "labelledGLBytes": {
+        "median": 159349778,
+        "min": 159349778,
+        "max": 159349778
+      },
+      "combinedBytes": {
+        "median": 913410762,
+        "min": 871500562,
+        "max": 914623250
+      },
+      "highSampleCombinedBytes": {
+        "median": 913427146,
+        "min": 871697170,
+        "max": 914688786
+      },
+      "modelPlayingBytes": {
+        "median": 582098997,
+        "min": 582098997,
+        "max": 582098997
+      },
+      "accountedBytes": {
+        "median": 197013901,
+        "min": 197013901,
+        "max": 197013901
+      }
+    }
+  },
+  "worstEnteredHighSampleBytes": 914688786,
+  "withinExplorerCapAtSampledEnteredStops": true,
+  "attempts": [
+    {
+      "path": "native/cold-01.json.gz",
+      "valid": true,
+      "errors": [],
+      "gamePID": 22099,
+      "edge": "north",
+      "readings": {
+        "home-settled": {
+          "webContentBytes": 561057392,
+          "labelledGLBytes": 180139359,
+          "combinedBytes": 741196751,
+          "highSampleCombinedBytes": 741901263,
+          "modelPlayingBytes": 905921572,
+          "accountedBytes": 488745950
+        },
+        "sun-road": {
+          "webContentBytes": 752750240,
+          "labelledGLBytes": 95554886,
+          "combinedBytes": 848305126,
+          "highSampleCombinedBytes": 848305126,
+          "modelPlayingBytes": 526543572,
+          "accountedBytes": 146963968
+        },
+        "sun-entry": {
+          "webContentBytes": 727551648,
+          "labelledGLBytes": 159108714,
+          "combinedBytes": 886660362,
+          "highSampleCombinedBytes": 886742282,
+          "modelPlayingBytes": 582098997,
+          "accountedBytes": 197013901
+        },
+        "sun-spawn": {
+          "webContentBytes": 733187744,
+          "labelledGLBytes": 155854534,
+          "combinedBytes": 889042278,
+          "highSampleCombinedBytes": 889255270,
+          "modelPlayingBytes": 575309467,
+          "accountedBytes": 190897207
+        },
+        "sun-road-return": {
+          "webContentBytes": 752438968,
+          "labelledGLBytes": 95902302,
+          "combinedBytes": 848341270,
+          "highSampleCombinedBytes": 848406806,
+          "modelPlayingBytes": 526543572,
+          "accountedBytes": 146963968
+        },
+        "sun-reentry": {
+          "webContentBytes": 754060984,
+          "labelledGLBytes": 159349778,
+          "combinedBytes": 913410762,
+          "highSampleCombinedBytes": 913427146,
+          "modelPlayingBytes": 582098997,
+          "accountedBytes": 197013901
+        }
+      }
+    },
+    {
+      "path": "native/cold-02.json.gz",
+      "valid": true,
+      "errors": [],
+      "gamePID": 42103,
+      "edge": "north",
+      "readings": {
+        "home-settled": {
+          "webContentBytes": 515624464,
+          "labelledGLBytes": 180139359,
+          "combinedBytes": 695763823,
+          "highSampleCombinedBytes": 698172271,
+          "modelPlayingBytes": 905921572,
+          "accountedBytes": 488745950
+        },
+        "sun-road": {
+          "webContentBytes": 669650544,
+          "labelledGLBytes": 95554886,
+          "combinedBytes": 765205430,
+          "highSampleCombinedBytes": 765238198,
+          "modelPlayingBytes": 526543572,
+          "accountedBytes": 146963968
+        },
+        "sun-entry": {
+          "webContentBytes": 667373288,
+          "labelledGLBytes": 159108714,
+          "combinedBytes": 826482002,
+          "highSampleCombinedBytes": 826482002,
+          "modelPlayingBytes": 582098997,
+          "accountedBytes": 197013901
+        },
+        "sun-spawn": {
+          "webContentBytes": 670650088,
+          "labelledGLBytes": 155854534,
+          "combinedBytes": 826504622,
+          "highSampleCombinedBytes": 826553774,
+          "modelPlayingBytes": 575309467,
+          "accountedBytes": 190897207
+        },
+        "sun-road-return": {
+          "webContentBytes": 700845800,
+          "labelledGLBytes": 95902302,
+          "combinedBytes": 796748102,
+          "highSampleCombinedBytes": 798107974,
+          "modelPlayingBytes": 526543572,
+          "accountedBytes": 146963968
+        },
+        "sun-reentry": {
+          "webContentBytes": 712150784,
+          "labelledGLBytes": 159349778,
+          "combinedBytes": 871500562,
+          "highSampleCombinedBytes": 871697170,
+          "modelPlayingBytes": 582098997,
+          "accountedBytes": 197013901
+        }
+      }
+    },
+    {
+      "path": "native/cold-03.json.gz",
+      "valid": true,
+      "errors": [],
+      "gamePID": 60072,
+      "edge": "north",
+      "readings": {
+        "home-settled": {
+          "webContentBytes": 542428712,
+          "labelledGLBytes": 180139359,
+          "combinedBytes": 722568071,
+          "highSampleCombinedBytes": 722994055,
+          "modelPlayingBytes": 905921572,
+          "accountedBytes": 488745950
+        },
+        "sun-road": {
+          "webContentBytes": 650645128,
+          "labelledGLBytes": 95554886,
+          "combinedBytes": 746200014,
+          "highSampleCombinedBytes": 746216398,
+          "modelPlayingBytes": 526543572,
+          "accountedBytes": 146963968
+        },
+        "sun-entry": {
+          "webContentBytes": 676122344,
+          "labelledGLBytes": 159108714,
+          "combinedBytes": 835231058,
+          "highSampleCombinedBytes": 837393746,
+          "modelPlayingBytes": 582098997,
+          "accountedBytes": 197013901
+        },
+        "sun-spawn": {
+          "webContentBytes": 712347392,
+          "labelledGLBytes": 155854534,
+          "combinedBytes": 868201926,
+          "highSampleCombinedBytes": 868562374,
+          "modelPlayingBytes": 575309467,
+          "accountedBytes": 190897207
+        },
+        "sun-road-return": {
+          "webContentBytes": 732237568,
+          "labelledGLBytes": 95902302,
+          "combinedBytes": 828139870,
+          "highSampleCombinedBytes": 828172638,
+          "modelPlayingBytes": 526543572,
+          "accountedBytes": 146963968
+        },
+        "sun-reentry": {
+          "webContentBytes": 755273472,
+          "labelledGLBytes": 159349778,
+          "combinedBytes": 914623250,
+          "highSampleCombinedBytes": 914688786,
+          "modelPlayingBytes": 582098997,
+          "accountedBytes": 197013901
+        }
+      }
+    }
+  ]
+}
