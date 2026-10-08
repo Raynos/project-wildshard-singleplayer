@@ -1,0 +1,638 @@
+{
+  "base": "http://127.0.0.1:4412",
+  "tag": "cand3",
+  "scene": "driftwood",
+  "tier": "desktop",
+  "grid": {
+    "stops": [
+      {
+        "drive": {
+          "why": "arrived",
+          "seconds": 6.6,
+          "feet": {
+            "x": 231.31484751266186,
+            "y": 0.9162631145912388,
+            "z": 0.0013375104444990973
+          },
+          "current": "driftwood-isle"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "Pass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[SMAAEffect]"
+          ],
+          "programs": 198,
+          "bloom": [
+            0.4,
+            1,
+            0.08
+          ],
+          "vignette": 0.35,
+          "saturation": 0.3,
+          "contrast": 0.2,
+          "brightness": 0,
+          "ao": {
+            "enabled": true,
+            "intensity": 2.5,
+            "radius": 2.5
+          },
+          "frame": {
+            "owner": "driftwood-isle",
+            "weight": 1,
+            "lut": true,
+            "values": [
+              0.3,
+              0,
+              0.2,
+              0,
+              0
+            ],
+            "post": [
+              0.4,
+              1,
+              0.08,
+              0.35,
+              0.12,
+              2.5
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "pass",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -40.975,
+                  40.975,
+                  600
+                ],
+                "fromCam": 162.648
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -89.48,
+                  89.48,
+                  600
+                ],
+                "fromCam": 219.966
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -243.909,
+                  243.909,
+                  600
+                ],
+                "fromCam": 400.436
+              }
+            ],
+            "meshes": 162,
+            "cast": 65,
+            "receive": 143
+          }
+        }
+      },
+      {
+        "drive": {
+          "why": "timeout",
+          "seconds": 120,
+          "feet": {
+            "x": 159.599341178222,
+            "y": 0.24417379759434404,
+            "z": -0.00017805372930976976
+          },
+          "current": "driftwood-isle"
+        },
+        "chain": {
+          "passes": [
+            "RenderPass",
+            "Pass",
+            "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+            "EffectPass[SMAAEffect]"
+          ],
+          "programs": 198,
+          "bloom": [
+            0.4,
+            1,
+            0.08
+          ],
+          "vignette": 0.35,
+          "saturation": 0.3,
+          "contrast": 0.2,
+          "brightness": 0,
+          "ao": {
+            "enabled": true,
+            "intensity": 2.5,
+            "radius": 2.5
+          },
+          "frame": {
+            "owner": "driftwood-isle",
+            "weight": 1,
+            "lut": true,
+            "values": [
+              0.3,
+              0,
+              0.2,
+              0,
+              0
+            ],
+            "post": [
+              0.4,
+              1,
+              0.08,
+              0.35,
+              0.12,
+              2.5
+            ],
+            "fx": {
+              "carrier": null,
+              "weight": 0,
+              "vol": [
+                0,
+                0.55
+              ],
+              "chroma": 0,
+              "grain": 0,
+              "target": [
+                1,
+                1
+              ],
+              "depth": "pass",
+              "sceneDepth": false
+            }
+          },
+          "shadows": {
+            "enabled": true,
+            "autoUpdate": true,
+            "lights": [
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -40.975,
+                  40.975,
+                  600
+                ],
+                "fromCam": 138.634
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -89.48,
+                  89.48,
+                  600
+                ],
+                "fromCam": 169.174
+              },
+              {
+                "name": "",
+                "intensity": 2.7,
+                "cast": true,
+                "dir": [
+                  0,
+                  0.883,
+                  -0.469
+                ],
+                "map": [
+                  2048,
+                  2048
+                ],
+                "frustum": [
+                  -243.909,
+                  243.909,
+                  600
+                ],
+                "fromCam": 276.487
+              }
+            ],
+            "meshes": 162,
+            "cast": 76,
+            "receive": 143
+          }
+        }
+      }
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "road": {
+      "chain": {
+        "passes": [
+          "RenderPass",
+          "Pass",
+          "EffectPass[ChromaticAberrationEffect,VolumetricsEffect,GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,GradeLookEffect,LUT3DEffect,NoiseEffect,GridFrameGrade]",
+          "EffectPass[SMAAEffect]"
+        ],
+        "programs": 94,
+        "bloom": [
+          0.4,
+          1,
+          0.08
+        ],
+        "vignette": 0.35,
+        "saturation": 0.3,
+        "contrast": 0.2,
+        "brightness": 0,
+        "ao": {
+          "enabled": true,
+          "intensity": 2.5,
+          "radius": 2.5
+        },
+        "frame": {
+          "owner": null,
+          "weight": 0,
+          "lut": false,
+          "values": [
+            0.3,
+            0,
+            0.2,
+            0,
+            0
+          ],
+          "post": [
+            0.4,
+            1,
+            0.08,
+            0.35,
+            0.12,
+            2.5
+          ],
+          "fx": {
+            "carrier": null,
+            "weight": 0,
+            "vol": [
+              0,
+              0.55
+            ],
+            "chroma": 0,
+            "grain": 0,
+            "target": [
+              1,
+              1
+            ],
+            "depth": "pass",
+            "sceneDepth": false
+          }
+        },
+        "shadows": {
+          "enabled": true,
+          "autoUpdate": true,
+          "lights": [
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -40.975,
+                40.975,
+                600
+              ],
+              "fromCam": 168.634
+            },
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -89.48,
+                89.48,
+                600
+              ],
+              "fromCam": 228.081
+            },
+            {
+              "name": "",
+              "intensity": 2.4,
+              "cast": true,
+              "dir": [
+                -0.916,
+                0.225,
+                0.333
+              ],
+              "map": [
+                2048,
+                2048
+              ],
+              "frustum": [
+                -243.909,
+                243.909,
+                600
+              ],
+              "fromCam": 417.684
+            }
+          ],
+          "meshes": 0,
+          "cast": 0,
+          "receive": 0
+        }
+      }
+    }
+  },
+  "standalone": {
+    "shots": [
+      "driftwood-entry-w",
+      "driftwood-inside-w",
+      "driftwood-inside-n"
+    ],
+    "errors": [],
+    "shaderErrors": 0,
+    "chain": {
+      "passes": [
+        "RenderPass",
+        "Pass",
+        "EffectPass[GodRaysEffect,BloomEffect,VignetteEffect,ToneMappingEffect,HueSaturationEffect,BrightnessContrastEffect,GradeEffect,LUT3DEffect]",
+        "EffectPass[SMAAEffect]"
+      ],
+      "programs": 109,
+      "bloom": [
+        0.4,
+        1,
+        0.08
+      ],
+      "vignette": 0.35,
+      "saturation": 0.3,
+      "contrast": 0.2,
+      "brightness": 0,
+      "ao": {
+        "enabled": true,
+        "intensity": 2.5,
+        "radius": 2.5
+      },
+      "frame": null,
+      "shadows": {
+        "enabled": true,
+        "autoUpdate": true,
+        "lights": [
+          {
+            "name": "",
+            "intensity": 2.7,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -40.975,
+              40.975,
+              600
+            ],
+            "fromCam": 138.631
+          },
+          {
+            "name": "",
+            "intensity": 2.7,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -89.48,
+              89.48,
+              600
+            ],
+            "fromCam": 169.17
+          },
+          {
+            "name": "",
+            "intensity": 2.7,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -243.909,
+              243.909,
+              600
+            ],
+            "fromCam": 276.429
+          },
+          {
+            "name": "sun-shadow-fade-0",
+            "intensity": 0,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -31.497,
+              31.497,
+              600
+            ],
+            "fromCam": 226.173
+          },
+          {
+            "name": "sun-shadow-fade-1",
+            "intensity": 0,
+            "cast": true,
+            "dir": [
+              0,
+              0.883,
+              -0.469
+            ],
+            "map": [
+              2048,
+              2048
+            ],
+            "frustum": [
+              -68.823,
+              68.823,
+              600
+            ],
+            "fromCam": 268.578
+          }
+        ],
+        "meshes": 484,
+        "cast": 360,
+        "receive": 159
+      }
+    }
+  },
+  "poses": [
+    [
+      "driftwood-entry-w",
+      229.94,
+      0,
+      1.5707963267948966,
+      0.05,
+      1.13
+    ],
+    [
+      "driftwood-inside-w",
+      159.6,
+      0,
+      1.5707963267948966,
+      0.08,
+      0.24
+    ],
+    [
+      "driftwood-inside-n",
+      159.6,
+      0,
+      3.141592653589793,
+      0.08,
+      0.24
+    ]
+  ],
+  "diffs": [
+    {
+      "pose": "driftwood-entry-w",
+      "mae": 11.6,
+      "standalone": [
+        109.7,
+        152.3,
+        173.1
+      ],
+      "grid": [
+        109.1,
+        155,
+        177.5
+      ]
+    },
+    {
+      "pose": "driftwood-inside-w",
+      "mae": 37.7,
+      "standalone": [
+        83.1,
+        83.1,
+        90.1
+      ],
+      "grid": [
+        70.1,
+        74.7,
+        85.1
+      ]
+    },
+    {
+      "pose": "driftwood-inside-n",
+      "mae": 21.2,
+      "standalone": [
+        122.1,
+        166.7,
+        186.5
+      ],
+      "grid": [
+        110,
+        169,
+        196
+      ]
+    }
+  ],
+  "version": {
+    "build": "64a1f0b4b-muzz7lgb",
+    "time": "2026-10-08T20:15:44.956Z"
+  }
+}
