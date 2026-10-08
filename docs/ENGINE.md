@@ -1892,6 +1892,12 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### Declared items (SHARD-PLATFORM SF7e)
 
+`bindRuntimeBoss` in `@wildshard/game/shardfile/hybridRows` accepts optional
+`RuntimeBossOptions.identity`: `declared` (the default) gives retained boss bodies
+their declared row identity, including retries; `runtime` preserves ordinary
+runtime-assigned identities and allocation order when adopting existing saves.
+Standalone bodies retain their ordinary identities in either mode.
+
 `@wildshard/engine/combat/items` owns fixed-step cooldown, held charge, queued command aim and lantern fuel/light state. An admitted hook on the existing shared `ScriptHost` may select only its requested action for its host-bound item handle; configured contacts, damage and effects remain trusted. `@wildshard/game/shardfile/items` validates JSON rows, input contexts, loadout and module references, constructs trusted ownership aliases and resolves injected `ItemFamily` constructors. `installDeclaredItems` returns the normal primary/secondary/extras/order/install handoff plus the authoritative runtime map and fixed-step callback. `@wildshard/kit/items/declared` supplies melee and lantern factories with scoped primitive views; the fixture uses the template whip and lantern numbers and a content-addressed 740-byte AssemblyScript module. Toggle/refill use action3/action4; UI reads `remainingFuel` and `lightOn` from the same runtime. The existing template switches at SF16. Bound creature views expose `simulationBound`: the legacy manager skips their decisions, damage, separation and movement-body allocation, while retaining pose/query hitboxes.
 
 

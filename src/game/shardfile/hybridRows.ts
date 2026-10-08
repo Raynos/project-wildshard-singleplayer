@@ -225,10 +225,15 @@ export interface RuntimeBoss {
   readonly spawn: (retired?: Animal) => Animal | null;
   readonly retire: (animal: Animal) => void;
 }
+/** Boss identity policy for a runtime adopting spawn data without changing its existing save identities. */
+export interface RuntimeBossOptions {
+  /** Default: the row id in retained homes. `runtime` keeps ordinary allocation order and runtime ids. */
+  readonly identity?: 'declared' | 'runtime';
+}
 /** Bind one declared boss row to the runtime's animals; `spawned` dresses each fresh body. */
-export function bindRuntimeBoss(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, id: string, spawned?: (animal: Animal) => void): RuntimeBoss {
+export function bindRuntimeBoss(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, id: string, spawned?: (animal: Animal) => void, options: RuntimeBossOptions = {}): RuntimeBoss {
   const row = runtimeSpawnRows(source).bosses.find((boss) => boss.id === id); if (row === undefined) throw new Error(`Undeclared runtime boss ${id}`);
-  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx), [x, z] = row.at;
+  const animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx) && options.identity !== 'runtime', [x, z] = row.at;
   return { row,
     spawn: (retired) => {
       const a = retained && retired !== undefined ? animals?.replace(retired, x, z, row.yaw, row.look, {}) ?? null
