@@ -193,7 +193,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
               const made: { backdrop: LayeredBackdrop | null } = { backdrop: null };
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
                 const make = level.look === undefined ? undefined : (await level.look()).backdrop;
-                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, air: () => (scene.fog instanceof Fog ? scene.fog : null) });
+                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null) });
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
                 // its clock turns the page's saturation with its hour as standalone, where the page carries its chain

@@ -27,6 +27,10 @@ import {
   BufferGeometry, Color, ConstantAlphaFactor, CustomBlending, DirectionalLight, Fog, HemisphereLight, Material, Mesh,
   MeshBasicMaterial, OneMinusConstantAlphaFactor, Scene, Sprite, SpriteMaterial, Vector3, type Object3D, type PerspectiveCamera,
 } from 'three';
+import type { Scope } from '../app/scope';
+import { resourceScope } from '../app/resources';
+import { ownSceneTree } from '../app/sceneOwnership';
+import type { AssetService } from '../app/assets';
 import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
 
 /** the layered dome's render order: after the page's sky pieces (−20 … −10), before the grid road sky (−9) */
@@ -79,14 +83,19 @@ export class BackdropLayer {
   private readonly domes: Object3D[] = [];
   private readonly materials: { blendAlpha: number }[] = [];
   private readonly host: BackdropLayerHost;
+  private readonly scope: Scope;
+  private readonly assets: Pick<AssetService, 'isAcquired'>;
   private backdrop: SkyBackdrop | null = null;
   private weight_ = 0;
   private drawn = false;
   private disposed = false;
   private readonly onDispose: () => void;
 
-  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void }) {
+  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'> }) {
     this.host = host;
+    this.scope = (options.owner ?? resourceScope()).child('BackdropLayer');
+    this.assets = options.assets ?? { isAcquired: () => false };
+    ownSceneTree(this.holder, this.scope, this.assets);
     const real = host.targets;
     this.onDispose = options.onDispose;
     const ownFog = new Fog(real.fog.color.clone(), 1, 1e6);
@@ -143,6 +152,7 @@ export class BackdropLayer {
     if (this.backdrop !== null) throw new Error('Backdrop layer already has a backdrop');
     this.backdrop = backdrop;
     for (const child of this.holder.children.slice()) {
+      ownSceneTree(child, this.scope, this.assets);
       this.holder.remove(child);
       child.visible = false;
       child.traverse((node) => {
@@ -204,6 +214,7 @@ export class BackdropLayer {
     disc.geometry.dispose();
     if (disc.material instanceof Material) disc.material.dispose();
     this.targets.halo?.material.dispose();
+    this.scope.dispose();
     this.onDispose();
   }
 }

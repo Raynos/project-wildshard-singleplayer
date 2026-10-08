@@ -1,5 +1,6 @@
 import { SkyBackdropView } from './skyBackdrop';
 import { BackdropLayer } from './backdropLayer';
+import { app } from '../app/runtime';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
 import { captureLookChunks, scopeLookChunks, type LookScopeOptions, type RegionLookParts, type ScopedLook } from '../render/regionLook';
@@ -193,10 +194,10 @@ export class SkyRig {
    * owner's own fog object its clock colours (a grid region's: the one frame blends it as the owner's air). Null before
    * the sky is built.
    */
-  layerBackdrop(options: { readonly air?: () => THREE.Fog | null } = {}): BackdropLayer | null {
+  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope } = {}): BackdropLayer | null {
     const targets = this.targets;
     if (targets === null) return null;
-    const layer = new BackdropLayer({ targets, scene: this.scene }, { ...options, onDispose: () => { this.layers.delete(layer); } });
+    const layer = new BackdropLayer({ targets, scene: this.scene }, { ...options, assets: app.assets, onDispose: () => { this.layers.delete(layer); } });
     this.layers.add(layer);
     return layer;
   }
@@ -206,8 +207,8 @@ export class SkyRig {
    * cell. Null before the sky is built. The caller attaches the backdrop to the layer (`layer.attach`) once its memory is
    * admitted, or disposes both.
    */
-  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly air?: () => THREE.Fog | null }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
-    const layer = this.layerBackdrop(options.air === undefined ? {} : { air: options.air });
+  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
+    const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }) });
     if (layer === null) return null;
     try {
       const backdrop = await factory({ sky: this, scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });

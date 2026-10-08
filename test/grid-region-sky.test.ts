@@ -1,8 +1,10 @@
 // SHARD-PLATFORM G223: a grid region's own sky backdrop laid over the page's one sky (src/engine/world/backdropLayer.ts,
 // src/game/grid/regionSky.ts): it blends by the owner weight, and leaving (or re-entering, or disposing) returns the road
 // sky exactly.
-import { expect, it } from 'vitest';
-import { BoxGeometry, Color, DirectionalLight, Fog, HemisphereLight, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, ShaderMaterial, Sprite, SpriteMaterial, Texture, Vector3 } from 'three';
+import { expect, it, vi } from 'vitest';
+import { BoxGeometry, BufferGeometry, Color, DirectionalLight, Fog, HemisphereLight, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, ShaderMaterial, Sprite, SpriteMaterial, Texture, Vector3 } from 'three';
+import { AssetService } from '../src/engine/app/assets';
+import { SceneOwnership, sceneObjectOwner } from '../src/engine/app/sceneOwnership';
 import { Scope } from '../src/engine/app/scope';
 import type { SkyBackdrop, SkyBackdropTargets } from '../src/engine/render/look';
 import { BackdropLayer, LAYER_SKY_ORDER } from '../src/engine/world/backdropLayer';
@@ -182,4 +184,21 @@ it('charges a region sky to its owner, refuses without room and frees everything
   expect(await run(true, full, scope2, sky2)).toBe('refused');
   expect(sky2.layers.size).toBe(0);
   expect(hung).toHaveLength(0);
+});
+
+it('keeps layered sky geometry under the resident owner when its dome moves onto the retained page', () => {
+  const scene = new Scene(), page = new Scope('page'), resident = page.child('resident'), assets = new AssetService();
+  const ownership = new SceneOwnership(scene, page, assets); ownership.retain(scene);
+  for (let visit = 0; visit < 2; visit++) {
+    const layer = new BackdropLayer({ targets: pageTargets(), scene }, { owner: resident, assets, onDispose: () => undefined });
+    const backdrop = regionBackdrop(layer.holder), dome = layer.holder.getObjectByName('region-dome');
+    if (!(dome instanceof Mesh)) throw new Error('Missing dome');
+    const geometry: unknown = dome.geometry;
+    if (!(geometry instanceof BufferGeometry)) throw new Error('Missing dome geometry');
+    const dispose = vi.spyOn(geometry, 'dispose'); layer.attach(backdrop);
+    expect(sceneObjectOwner(dome)?.belongsTo(resident)).toBe(true);
+    ownership.capture(); expect(assets.isAcquired(geometry)).toBe(false);
+    layer.dispose(); expect(dispose).toHaveBeenCalledOnce(); expect(scene.getObjectByName('region-dome')).toBeUndefined();
+  }
+  resident.dispose(); page.dispose(); expect(assets.retained()).toEqual([]);
 });
