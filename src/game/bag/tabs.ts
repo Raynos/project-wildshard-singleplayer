@@ -80,12 +80,15 @@ export class BagMenu {
     try { off = this.menu.addTabFragment(tab, fragment); }
     catch (error) { if (finds) { this.findsFragments--; this.syncFinds(); } throw error; }
     let active = true;
+    let forget: () => void = () => undefined;
+    // SF57: an early remove (the shard's own scope leaving) also drops the page menu's hold, or the fragment's render
+    // closure (and the shard world it reads) lived as long as the page
     const remove = (): void => {
       if (!active) return;
-      active = false; off();
+      active = false; forget(); off();
       if (finds) { this.findsFragments--; this.syncFinds(); }
     };
-    this.menu.scope.onDispose(remove); return remove;
+    forget = this.menu.scope.capture('disposers', remove); return remove;
   }
   addFinds(id: string, finds: () => FindsView): () => void {
     if (this.findsRows.has(id)) throw new Error(`Duplicate Bag finds: ${id}`);
@@ -98,8 +101,10 @@ export class BagMenu {
   addLoot(id: string, loot: BagLoot): () => void {
     if (this.lootRows.has(id)) throw new Error(`Duplicate Bag loot: ${id}`);
     this.lootRows.set(id, loot); this.syncFinds();
-    const off = (): void => { this.lootRows.delete(id); this.syncFinds(); };
-    this.menu.scope.onDispose(off); return off;
+    let live = true;
+    let forget: () => void = () => undefined;
+    const off = (): void => { if (!live) return; live = false; forget(); this.lootRows.delete(id); this.syncFinds(); };
+    forget = this.menu.scope.capture('disposers', off); return off;
   }
   // ── GEAR (E314, board 6 C): the paper doll — every shard's weapons and skins, the shard's loot where it has one ──
   private renderGear(p: HTMLElement): void {

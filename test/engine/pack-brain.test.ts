@@ -18,15 +18,15 @@ import { creature } from '../fake/creature';
 
 const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(restoreTerrain);
-const originalEnv = { ...wildEnv }, originalPacks = Pack.all;
-afterEach(() => { Object.assign(wildEnv, originalEnv); Pack.all = originalPacks; });
+const originalEnv = { ...wildEnv };
+afterEach(() => { Object.assign(wildEnv, originalEnv); });
 function fixture(platform: boolean | 'bound', restoring = false): {
   policy: PackController | PackBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx'];
   events: unknown[]; prey: { position: Vector3; yaw: number; alive: boolean; applyDamage: () => boolean };
   ports: PackPorts<Animal>;
   construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] };
 } {
-  app.rng.seed(357); Pack.all = [];
+  app.rng.seed(357);
   const f = creature('crab', 'small'), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } });
   const model = factory.model('crab', 'small');
   const members = Array.from({ length: 4 }, (_, i) => {
@@ -93,7 +93,7 @@ describe('declared pack family', () => {
     const bound = fixture('bound');
     for (const actor of bound.members) expect(Pack.of(actor)).toBe(bound.policy);
     const before = app.rng.snapshot(); Pack.register(bound.policy);
-    expect(Pack.all).toEqual([bound.policy]); expect(app.rng.snapshot()).toEqual(before);
+    for (const actor of bound.members) expect(Pack.of(actor)).toBe(bound.policy); expect(app.rng.snapshot()).toEqual(before);
     expect(bound.policy.raid(bound.prey)).toBe(true);
   });
   it('keeps constructors pure and performs exactly the shipping setup draws and member writes once', () => {

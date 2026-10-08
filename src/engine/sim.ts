@@ -223,12 +223,13 @@ export class SimHost {
     if (this.disposed || this.callbacks.has(id)) throw new Error(`Invalid simulation registration ${id}`);
     this.callbacks.set(id, run); if (adapter !== undefined) this.adapters.set(id, adapter);
     let registered = true;
+    let forget: () => void = () => undefined;
     const remove = (): void => {
       if (!registered) return;
-      registered = false;
+      registered = false; forget(); // an early remove drops the host scope's hold on `run`
       this.callbacks.delete(id); this.adapters.delete(id);
     };
-    this.scope.onDispose(remove); return remove;
+    forget = this.scope.capture('disposers', remove); return remove;
   }
   /** One simulation tick. No wall clock, renderer, active app or device input is consulted. */
   step(command?: SimCommand): void {

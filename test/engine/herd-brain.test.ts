@@ -19,11 +19,11 @@ import { legacyDouble } from '../fake/FakeGame';
 
 const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(restoreTerrain);
-const originalEnv = { ...wildEnv }, originalHerds = HorseHerd.all;
-afterEach(() => { Object.assign(wildEnv, originalEnv); HorseHerd.all = originalHerds; });
+const originalEnv = { ...wildEnv };
+afterEach(() => { Object.assign(wildEnv, originalEnv); });
 function fixture(platform: boolean | 'bound', restoring = false): { policy: ShippingHorseHerd | HerdBrain<Animal>; members: Animal[]; context: ReturnType<typeof creature>['ctx']; events: unknown[]; ports: HerdPorts<Animal>;
   construction: { beforeRng: ReturnType<Rng['snapshot']>; afterRng: ReturnType<Rng['snapshot']>; beforeMemory: Record<string, number>[]; afterMemory: Record<string, number>[] } } {
-  app.rng.seed(357); HorseHerd.all = [];
+  app.rng.seed(357);
   const f = creature('crab', 'small'), factory = new AnimalFactory(f.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true } }), model = factory.model('crab', 'small');
   const events: unknown[] = [];
   const members = Array.from({ length: 5 }, (_, i) => {
@@ -95,7 +95,7 @@ describe('declared guarded-herd family', () => {
     for (const actor of bound.members) expect(HorseHerd.of(actor)).toBe(bound.policy);
     const elite = creature('crab', 'small').animal, before = app.rng.snapshot();
     bound.policy.adoptStallion(elite); expect(HorseHerd.of(elite)).toBe(bound.policy);
-    expect(HorseHerd.all).toEqual([bound.policy]); expect(app.rng.snapshot()).toEqual(before);
+    for (const actor of bound.members) expect(HorseHerd.of(actor)).toBe(bound.policy); expect(app.rng.snapshot()).toEqual(before);
     bound.policy.setRidden(elite); expect(bound.policy.ridden).toBe(elite); expect(elite.mem['ridden']).toBe(1);
     bound.policy.setRidden(null); bound.policy.addTrust(35); expect(bound.policy.trust).toBe(35);
   });

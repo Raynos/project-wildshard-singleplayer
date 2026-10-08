@@ -489,13 +489,14 @@ export class GameMenu {
     const refresh = opts.refresh;
     if (refresh !== undefined) this.sectionRefresh.add(refresh);
     let live = true;
+    let forget: () => void = () => undefined;
     const remove = (): void => {
-      if (!live) return; live = false;
+      if (!live) return; live = false; forget(); // SF57: an early remove drops the menu's hold on `refresh` too
       for (const e of els) { e.hidden = true; e.remove(); }
       if (refresh !== undefined) this.sectionRefresh.delete(refresh);
       cats.sync();
     };
-    this.scope.onDispose(remove);
+    forget = this.scope.capture('disposers', remove);
     if (this._open) this.applies(); else cats.sync();
     return remove;
   }

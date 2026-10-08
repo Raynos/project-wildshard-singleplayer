@@ -51,6 +51,14 @@ describe('versioned renderer-free simulation entry', () => {
       host.step(); expect(count).toBe(3);
     } finally { host.dispose(); }
   });
+  it('SF57: an early remove drops the host scope hold on its step callback', () => {
+    const host = createSimHost(SIM_LEVEL, { rapier });
+    try {
+      const baseline = host.scope.census.disposers;
+      for (let i = 0; i < 50; i++) { const remove = host.onStep(`brain.${i}`, () => undefined); remove(); remove(); }
+      expect(host.scope.census.disposers).toBe(baseline);
+    } finally { host.dispose(); }
+  });
   it('places every body at its spawn before the first step, never at the world origin (G222 playtest #7)', () => {
     const level = structuredClone(SIM_LEVEL);
     level.player.at = { x: -6, y: 0, z: 5 };

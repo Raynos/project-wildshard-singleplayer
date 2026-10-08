@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare every real-manager continuation frame without retaining a large trace.
 import { createHash } from 'node:crypto';
 import { Vector3 } from 'three';
@@ -15,10 +15,8 @@ import { manager } from '../../fake/manager';
 
 const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(terrain);
-const packs = Pack.all, herds = HorseHerd.all;
-afterEach(() => { Pack.all = packs; HorseHerd.all = herds; });
 function fixture(on?: boolean): { world: ReturnType<typeof manager>; wildlife: Wildlife } {
-  app.rng.seed(357); Pack.all = []; HorseHerd.all = [];
+  app.rng.seed(357);
   const world = manager(), wildlife = new Wildlife(world.manager, { scene: world.game.scene, sky: world.sky, seed: 357,
     layout: { packs: [{ x: 20, z: 0, variants: ['alpha', 'grey', 'scout'] }],
       herds: [{ x: -20, z: 0, mares: 2, foals: 1, stallion: true }], flocks: [{ x: 0, z: 20, count: 3, dog: false }] } });

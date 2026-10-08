@@ -1,4 +1,4 @@
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { PackBrain } from '../../../src/engine/ai/pack';
 import { HerdBrain } from '../../../src/engine/ai/herd';
 import { app } from '../../../src/engine/app/runtime';
@@ -12,10 +12,8 @@ import { creature } from '../../fake/creature';
 
 const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(terrain);
-const packs = Pack.all, herds = HorseHerd.all;
-afterEach(() => { Pack.all = packs; HorseHerd.all = herds; });
 function fixture(kind: 'wolf' | 'horse'): { members: ReturnType<typeof manager>['manager']['animals']; context: ReturnType<typeof creature>['ctx'] } {
-  app.rng.seed(357); Pack.all = []; HorseHerd.all = [];
+  app.rng.seed(357);
   const world = manager(), context = creature('crab', 'small').ctx;
   const members = [kind === 'wolf' ? 'alpha' : 'stallion', kind === 'wolf' ? 'grey' : 'bay', kind === 'wolf' ? 'scout' : 'foal-bay']
     .map((variant, i) => world.manager.spawn(kind, 10 + i * 3, -5 + i * 2, 0, variant));
@@ -32,7 +30,7 @@ describe('Nalati declared fallback factories', () => {
     expect({ memory: current.members.map(actor => Object.fromEntries(Object.entries(actor.mem))), rng: app.rng.snapshot(), home: [policy.homeX, policy.homeZ] }).toEqual(expected);
     const random = app.rng.snapshot();
     for (const actor of current.members) expect(packForThink(actor, current.context)).toBe(policy);
-    expect(Pack.all).toEqual([policy]); expect(app.rng.snapshot()).toEqual(random);
+    for (const actor of current.members) expect(Pack.of(actor)).toBe(policy); expect(app.rng.snapshot()).toEqual(random);
     const prey = current.members[1]; if (prey === undefined) throw new Error('Missing actor prey');
     expect(policy.raid(prey)).toBe(true); const saved = policy.snapshot(); policy.restore(saved);
     expect(policy.snapshot()).toBe(saved); expect(app.rng.snapshot()).toEqual(random);
@@ -46,7 +44,7 @@ describe('Nalati declared fallback factories', () => {
     expect({ memory: current.members.map(actor => Object.fromEntries(Object.entries(actor.mem))), rng: app.rng.snapshot(), centre: [policy.cx, policy.cz] }).toEqual(expected);
     const random = app.rng.snapshot();
     for (const actor of current.members) expect(herdForThink(actor, current.context)).toBe(policy);
-    expect(HorseHerd.all).toEqual([policy]); expect(app.rng.snapshot()).toEqual(random);
+    for (const actor of current.members) expect(HorseHerd.of(actor)).toBe(policy); expect(app.rng.snapshot()).toEqual(random);
     const saved = policy.snapshot(); policy.restore(saved); expect(policy.snapshot()).toBe(saved); expect(app.rng.snapshot()).toEqual(random);
   });
   it('does no setup for an owned horse or an animal outside a herd', () => {

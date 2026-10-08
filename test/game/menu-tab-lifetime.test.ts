@@ -35,3 +35,28 @@ it('removes real tab button listeners and Bag registrations without accumulating
     return bagMenu(menu).addFinds('fixture', () => ({ counters: [], next: null, sections: [], glass: [] }));
   }
 });
+
+it('SF57: an early remove drops the page menu hold on a fragment, a loot row and a settings section (their closures)', () => {
+  const scope = new Scope('menu-lifetime');
+  const map = legacyDouble<FullMap>({ mount: () => undefined, show: () => undefined, hide: () => undefined, fit: () => undefined,
+    zoom: 1, hasRoom: false, quest: null });
+  const menu = withOwner(scope, () => new GameMenu({ fullMap: map, settings: () => ({ weapons: new Set(), melee: false, tracers: false, huntersEye: false }) }));
+  new BagMenu(menu, { progress: new Progress('pine-hollow'), inventory: new Inventory('pine-hollow'), kit: () => [] });
+  const bag = bagMenu(menu);
+  const baseline = scope.census;
+  try {
+    for (let visit = 0; visit < 20; visit++) {
+      // what a resident shard registers on the page menu, removed when its own scope leaves (context.ts bag.fragment)
+      const offFragment = bag.fragment('finds', { id: 'shard.finds', render: (panel) => { panel.append(`visit ${visit}`); } });
+      const offLoot = bag.addLoot('shard.loot', { gear: () => null, finds: null, wear: () => undefined });
+      const row = document.createElement('div');
+      const offSection = menu.addSettingsSection('save', [row], { refresh: () => { row.textContent = `visit ${visit}`; } });
+      expect(scope.census.disposers).toBeGreaterThan(baseline.disposers);
+      offFragment(); offLoot(); offSection();
+      offFragment(); offLoot(); offSection();
+      expect(scope.census).toEqual(baseline);
+      expect(row.isConnected).toBe(false);
+    }
+  } finally { scope.dispose(); }
+  expect(scope.census).toMatchObject({ listeners: 0, disposers: 0 });
+});

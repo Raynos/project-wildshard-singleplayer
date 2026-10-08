@@ -16,24 +16,17 @@ export type HerdController = Pick<HerdBrain<Animal>, 'members' | 'lead' | 'stall
   | 'stallionState' | 'trust' | 'alert' | 'alertOwned' | 'calm' | 'ridden' | 'cx' | 'cz' | 'tick' | 'drive'
   | 'setRidden' | 'addTrust' | 'disturb' | 'stampede' | 'leadAway' | 'adoptStallion' | 'releaseStallion'>
   & { findWolf?: ((x: number, z: number, r: number) => Animal | null) | undefined };
+// SF57: the lookups are keyed by member only. A module-level list of every controller (`Pack.all`, `HorseHerd.all`)
+// kept each visit's packs and herds, their members and the AnimalManager behind them, for the page's life.
 const packOf = new WeakMap<Animal, PackController>(), herdOf = new WeakMap<Animal, HerdController>();
-const packs: PackController[] = [], herds: HerdController[] = [];
 
 /** One lookup for species and raid recipes; no scheduler or RNG ownership. */
 export const Pack = {
-  all: packs,
   of(actor: Animal): PackController | null { return packOf.get(actor) ?? null; },
-  register(controller: PackController): void {
-    for (const actor of controller.members) packOf.set(actor, controller);
-    if (!Pack.all.includes(controller)) Pack.all.push(controller);
-  },
+  register(controller: PackController): void { for (const actor of controller.members) packOf.set(actor, controller); },
 };
 /** Native riders and adopted elites share this lookup; registration performs no setup draws. */
 export const HorseHerd = {
-  all: herds,
   of(actor: Animal): HerdController | null { return herdOf.get(actor) ?? null; },
-  register(controller: HerdController): void {
-    for (const actor of controller.members) herdOf.set(actor, controller);
-    if (!HorseHerd.all.includes(controller)) HorseHerd.all.push(controller);
-  },
+  register(controller: HerdController): void { for (const actor of controller.members) herdOf.set(actor, controller); },
 };

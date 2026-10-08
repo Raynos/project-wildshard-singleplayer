@@ -12,9 +12,9 @@ import { invokeLegacy } from '../fake/legacyActor';
 // a flat, dry world through the terrain port, not a module mock (E422)
 const restoreTerrain = overrideTerrain({ heightAt: (): number => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: (): number => -100, streamAt: (): null => null });
 afterAll(restoreTerrain);
-const env = { ...wildEnv }, packs = Pack.all, herds = HorseHerd.all;
-beforeEach(() => { vi.spyOn(Math, 'random').mockReturnValue(0.5); Pack.all = []; HorseHerd.all = []; });
-afterEach(() => { Object.assign(wildEnv, env); Pack.all = packs; HorseHerd.all = herds; vi.restoreAllMocks(); });
+const env = { ...wildEnv };
+beforeEach(() => { vi.spyOn(Math, 'random').mockReturnValue(0.5); });
+afterEach(() => { Object.assign(wildEnv, env); vi.restoreAllMocks(); });
 
 function packFixture(): { pack: Pack; f: ReturnType<typeof creature>; step: (n: number) => void } {
   const f = creature('crab', 'small');

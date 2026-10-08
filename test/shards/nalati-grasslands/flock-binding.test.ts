@@ -5,7 +5,6 @@ import { Vector3 } from 'three';
 import { app } from '../../../src/engine/app/runtime';
 import { overrideTerrain } from '../../../src/engine/world/Heightfield';
 import * as modelLook from '../../../src/shards/nalati-grasslands/world/glbPaint';
-import { Pack, HorseHerd } from '../../../src/shards/nalati-grasslands/runtime/groupRegistry';
 import { Wildlife } from '../../../src/shards/nalati-grasslands/creatures/wildlife';
 import { createNativeFlocks } from '../../../src/shards/nalati-grasslands/runtime/flockDeclared';
 import { wildEnv } from '../../../src/shards/nalati-grasslands/creatures/env';
@@ -13,14 +12,13 @@ import { manager } from '../../fake/manager';
 
 const terrain = overrideTerrain({ heightAt: () => 0, normalAt: () => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(terrain);
-const packs = Pack.all, herds = HorseHerd.all;
 // Keep the loading fallback deterministic; shipped creature selection is unconditionally Models (E136).
 beforeEach(() => { vi.spyOn(modelLook, 'modelsOn').mockReturnValue(false); });
-afterEach(() => { Pack.all = packs; HorseHerd.all = herds; vi.restoreAllMocks(); });
+afterEach(() => { vi.restoreAllMocks(); });
 const layout = { packs: [{ x: 20, z: 0, variants: ['alpha', 'grey', 'scout'] }],
   herds: [{ x: -20, z: 0, mares: 2, foals: 1, stallion: true }], flocks: [{ x: 0, z: 20, count: 8, dog: true }] };
 function replay(on: boolean, hz: number): object {
-  app.rng.seed(357); Pack.all = []; HorseHerd.all = [];
+  app.rng.seed(357);
   const world = manager(), declared = on ? createNativeFlocks(world.sky, 357, layout.flocks) : null;
   const wildlife = new Wildlife(world.manager, { scene: world.game.scene, sky: world.sky, seed: 357, layout,
     ...(declared !== null ? { flock: declared.factory } : {}) }).build();
