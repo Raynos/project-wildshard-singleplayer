@@ -13,7 +13,7 @@ for pose in "$@"; do
   label "$dir/$after/$pose-$tier-standalone.jpg" "SHARD SELECT · $pose" "$tmp/a.png"
   cols=("$tmp/a.png")
   if [ -f "$dir/$before/$pose-$tier-grid.jpg" ]; then label "$dir/$before/$pose-$tier-grid.jpg" 'grid, parent' "$tmp/b.png"; cols+=("$tmp/b.png"); fi
-  label "$dir/$after/$pose-$tier-grid.jpg" 'grid, SF63' "$tmp/c.png"; cols+=("$tmp/c.png")
+  label "$dir/$after/$pose-$tier-grid.jpg" "${AFTER_LABEL:-grid, SF63}" "$tmp/c.png"; cols+=("$tmp/c.png")
   magick "${cols[@]}" +append "$tmp/row.png"
   rows+=("$tmp/row.png")
 done

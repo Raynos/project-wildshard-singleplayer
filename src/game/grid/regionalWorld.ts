@@ -71,7 +71,8 @@ export interface RegionalWorldPorts {
   readonly level?: (manifest: ShardManifest) => LevelSpec;
   /** The level's baked navmesh (the browser passes `loadNavmesh`); absent: none. */
   readonly navmesh?: (level: LevelSpec) => Promise<LevelFrameOptions['navmesh']>;
-  /** The level's water bodies; absent: an empty set the runtime's own registrations fill while entered. */
+  /** The level's water bodies; absent: the level's own `ground.water` (as `LevelLoader` registers them at level.data), which
+   *  the runtime's own registrations join while entered. */
   readonly water?: (level: LevelSpec) => WaterBodies;
   /** Cell installs on the owned destination (grid borders, entry sockets, transfer walls), before any gameplay. */
   readonly install?: (host: SimHost, request: RegionalRuntimeRequest) => void;
@@ -145,6 +146,10 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       await ports.pause();
       if (left()) throw new Error('Regional world left while loading its navmesh');
       const water = ports.water?.(level) ?? new WaterBodies();
+      // the level's own water bodies (its sea, a river, a pond), registered as a standalone boot registers them at level.data:
+      // swimming, wading, the board's ride height, creatures and the edge readers ask them while its frame is bound (without
+      // them a cell's sea answered null and the board rode the seabed under it, G254)
+      if (ports.water === undefined) for (const body of level.ground.water ?? []) water.add(body, resident);
       // the level's own look parts its content builds from while its frame is bound (SF63: its grass driver)
       const levelLook = level.look === undefined ? null : await level.look();
       resident.onDispose(() => { levelLook?.dispose?.(); });

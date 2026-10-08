@@ -247,6 +247,13 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     };
   }
   private rigCtx: RigAnimCtx;
+  /** A restored snapshot replaces `mem` (AnimalSim.restore copies it), so the rig poses from the restored memory, not the
+   *  object it was built with (G254: a restored grid region's Drowned Sailor posed from its pre-restore memory, its deck
+   *  offset lost, 0.6 m under the hold's floor). An externally simulated body reads its simulation's memory instead. */
+  override restore(saved: ReturnType<AnimalSim['snapshot']>): void {
+    super.restore(saved);
+    this.rigCtx.mem = this.mem;
+  }
   /** walk → trot and trot → gallop blend starts, m/s at scale 1 (SpeciesDef.gait; deer defaults 2.4 / 4.6) */
   private readonly gaitTrot: number; private readonly gaitGallop: number;
 

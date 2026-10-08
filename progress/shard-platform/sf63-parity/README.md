@@ -118,3 +118,32 @@ files, 5,369 tests passed. SF59: no program added (Driftwood stays at +61 of 64)
 - `capture.mjs`: the parity capture (grid drive plus SHARD SELECT at the same poses, the diffs, chain and shadow probes).
 - `board.sh`: the boards.
 - `parity-*.json`: one per shard, tier and build.
+
+## G254 (dw-parity): Driftwood stands and swims in its cell as from SHARD SELECT
+
+Re-captured with `capture.mjs` (tag `g254`, both tiers) on a served build of HEAD + this change; boards above are now
+SHARD SELECT | grid with G254, with a new `driftwood-wreck-w` stop beside the wreck's open hold (x 160, where every
+earlier grid drive stalled: the board rode the seabed, so the old "inside" shots were taken there, 0.75 m low).
+
+| Tier | entry-w | wreck-w | inside-w | inside-n | parent (finish: entry / inside-w / inside-n) |
+|---|---|---|---|---|---|
+| desktop | 10.3 | 13.9 | 12.2 | 12.0 | 10.8 / 38.3 / 21.7 |
+| phone | 10.2 | 14.7 | 12.6 | 10.9 | 11.6 / 39.4 / 20.6 |
+
+| Gap | Cause (measured in the page) | Fix (generic) |
+|---|---|---|
+| Player 0.75 m low in the cell | Not a double world drop: at 20 points the cell's `heightAt` and its collider rays equal SHARD SELECT's to the mm. The cell had **no water bodies**: the regional foundation's `WaterBodies` started empty (nothing registered the level's `ground.water`, which `LevelLoader` registers at level.data standalone), so `waterSurfaceAt` answered null over Driftwood's sea, the board rode the seabed, swim / wade, `app.world.water.sea` (Boundary, AnimalManager, Explore) and Nalati's river / Pine's pond were missing too | `regionalWorld.ts`: without a `water` port the foundation registers the level's own `ground.water` on its resident scope; the frame binds them while entered. Grid feet now 2.168 vs 2.169 at (120, 0); sea 0 vs 0 |
+| Drowned Sailor 0.63 m low (under the hold's deck) | Not height either: his brain set `mem.floor` 0.637 in both modes, but a restored region's creatures are rebuilt by `AnimalSim.restore`, which copies `mem` into a new object while the rig context kept the old one: `animateSailor` read the stale memory, so his deck offset was 0 (CDP heap read: `rigCtx.mem !== mem` in the grid only) | `Animal.restore` (`AnimalView.ts`) rebinds the rig context to the restored memory. He now shows in the hold on the wreck-w board |
+| Shallows opaque turquoise | The toon patch is installed per region already (`|look:driftwood-isle` on the ocean and all 201 region materials, 0 plain). The opacity was the low camera: the water's Beer–Lambert path (depth / \|V.y\|) at a grazing view from the seabed | closed with the water fix |
+
+Remaining: the wreck pose's hull reads ≈ 11 darker in red (lighting / shadow under the page's phone cascade, see above);
+hands and held sword differ (page skin); ground cover rebuilds by distance (captured by driving, as both sides now
+reach the same poses). `shadowChunks.ts` per region (item 4) not run here: a perf row.
+
+Checks (HEAD 8664edaed + this change, `d50b6f276` candidate): shader / page errors 0 / 0 in all 4 runs; programs at the inside stop
+185 (phone) / 198 (desktop), as the parent: SF59 unchanged (Driftwood +61 of 64). `test/shards/driftwood-isle/grid-heights.test.ts`
+(20 points: grid height = standalone height, grid water = standalone water, collider rays agree within 0.2 m, the frame binds the
+waterline and sea while entered and drops them on leave; red without the fix) and `test/engine/animal-restore-mem.test.ts` (red
+without the fix). Full vitest on the clean export (`pnpm gen`, heavy lane, with tsc): 941 files, 5,401 tests passed. Boot smoke
+(standalone Driftwood, Pine, grid Driftwood) PASS, faults 0. `test-facade-instancing.mjs` PASS, 0 batches. WebKit render smoke:
+red on the Driftwood minimap share (27 % / 31 % against 42 %), identically on 5b86b0e without this change: pre-existing.

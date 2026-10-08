@@ -22,6 +22,8 @@ const SCENES = {
   ] },
   driftwood: { card: 'Driftwood Isle', road: { x: 277.5, z: 0, yaw: W }, stops: [
     { at: [{ x: 230, z: 0 }], shots: [['driftwood-entry-w', W, 0.05]] },
+    // G254: beside the wreck's open hold over the shallows (where the earlier drives stalled: the board rode the seabed)
+    { at: [{ x: 160, z: 0 }], shots: [['driftwood-wreck-w', W, 0.08]] },
     { at: [{ x: 120, z: 0 }], shots: [['driftwood-inside-w', W, 0.08], ['driftwood-inside-n', N, 0.08]] },
   ] },
   pine: { card: 'Pine Hollow', road: { x: 0, z: 277.5, yaw: N }, stops: [
