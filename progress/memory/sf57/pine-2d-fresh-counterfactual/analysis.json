@@ -1,0 +1,1392 @@
+[
+  {
+    "arm": "baseline",
+    "index": 1,
+    "device": "EEB7A433-1EAF-460A-BE1A-6C301E86B1D9",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791468619.931,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 993751872,
+      "loadingPeakBytes": 644220383,
+      "phoneEstimateBytes": 1391252620.8,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791468561.984,
+          "end": 1791468572.056,
+          "samples": 10,
+          "bytes": 572450491
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 993751872,
+          "troughBytes": 507240702
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 85531,
+    "mossyFirstStorage": [
+      {
+        "at": 1791468594.456,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2078",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791468515627:0.18816614482557548",
+        "uploadSequence": 3793
+      },
+      {
+        "at": 1791468594.456,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2079",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791468515627:0.18816614482557548",
+        "uploadSequence": 3803
+      },
+      {
+        "at": 1791468594.456,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2080",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791468515627:0.18816614482557548",
+        "uploadSequence": 3813
+      }
+    ],
+    "mossyFirstStorageSpanMs": 0,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "fixed",
+    "index": 1,
+    "device": "46777E8B-C721-4626-BC82-0EA7AFE728F7",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791468775.824,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 989612076,
+      "loadingPeakBytes": 645699296,
+      "phoneEstimateBytes": 1385456906.3999999,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791468713.946,
+          "end": 1791468724.018,
+          "samples": 10,
+          "bytes": 570926707
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 989612076,
+          "troughBytes": 449105064
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 90943,
+    "mossyFirstStorage": [
+      {
+        "at": 1791468749.837,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1536",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791468668820:0.8988991792708044",
+        "uploadSequence": 3158
+      },
+      {
+        "at": 1791468749.87,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1537",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791468668820:0.8988991792708044",
+        "uploadSequence": 3168
+      },
+      {
+        "at": 1791468749.904,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1538",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791468668820:0.8988991792708044",
+        "uploadSequence": 3178
+      }
+    ],
+    "mossyFirstStorageSpanMs": 67.00015068054199,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "baseline",
+    "index": 2,
+    "device": "3F1B1C63-AB2F-4176-BDE7-5BE74293DDF1",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791468932.179,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 988441080,
+      "loadingPeakBytes": 717691940,
+      "phoneEstimateBytes": 1383817512,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791468873.911,
+          "end": 1791468883.978,
+          "samples": 10,
+          "bytes": 525411979
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 988441080,
+          "troughBytes": 453894350
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 95119,
+    "mossyFirstStorage": [
+      {
+        "at": 1791468906.709,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2078",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791468828440:0.542712325077572",
+        "uploadSequence": 3794
+      },
+      {
+        "at": 1791468906.709,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2079",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791468828440:0.542712325077572",
+        "uploadSequence": 3804
+      },
+      {
+        "at": 1791468906.709,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2080",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791468828440:0.542712325077572",
+        "uploadSequence": 3814
+      }
+    ],
+    "mossyFirstStorageSpanMs": 0,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "fixed",
+    "index": 2,
+    "device": "C903CBD4-941C-4639-8FD2-FBA87E7447D3",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791469089.487,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 992946632,
+      "loadingPeakBytes": 675788940,
+      "phoneEstimateBytes": 1390125284.8,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791469027.515,
+          "end": 1791469037.596,
+          "samples": 10,
+          "bytes": 560817875
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 992946632,
+          "troughBytes": 488065322
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 2492,
+    "mossyFirstStorage": [
+      {
+        "at": 1791469063.54,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1536",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791468982698:0.38243391726326625",
+        "uploadSequence": 3157
+      },
+      {
+        "at": 1791469063.574,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1537",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791468982698:0.38243391726326625",
+        "uploadSequence": 3167
+      },
+      {
+        "at": 1791469063.607,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1538",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791468982698:0.38243391726326625",
+        "uploadSequence": 3177
+      }
+    ],
+    "mossyFirstStorageSpanMs": 67.00015068054199,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "baseline",
+    "index": 3,
+    "device": "296C0FAE-B69B-48D6-98D4-867AFA661F9B",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791469244.845,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 835616484,
+      "loadingPeakBytes": 702350863,
+      "phoneEstimateBytes": 1169863077.6,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791469186.359,
+          "end": 1791469196.425,
+          "samples": 10,
+          "bytes": 629155539
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 835616484,
+          "troughBytes": 470453320
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 8503,
+    "mossyFirstStorage": [
+      {
+        "at": 1791469219.393,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2023",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791469139858:0.9374834642614689",
+        "uploadSequence": 3739
+      },
+      {
+        "at": 1791469219.393,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2024",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791469139858:0.9374834642614689",
+        "uploadSequence": 3749
+      },
+      {
+        "at": 1791469219.393,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2025",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791469139858:0.9374834642614689",
+        "uploadSequence": 3759
+      }
+    ],
+    "mossyFirstStorageSpanMs": 0,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "fixed",
+    "index": 3,
+    "device": "2A776C37-2B65-4C89-8E62-A1339072344E",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791469404.628,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 991117028,
+      "loadingPeakBytes": 677102927,
+      "phoneEstimateBytes": 1387563839.1999998,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791469342.832,
+          "end": 1791469352.912,
+          "samples": 10,
+          "bytes": 602646107
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 991117028,
+          "troughBytes": 500009234
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 12648,
+    "mossyFirstStorage": [
+      {
+        "at": 1791469378.681,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1536",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791469297519:0.03463042767880353",
+        "uploadSequence": 3157
+      },
+      {
+        "at": 1791469378.714,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1537",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791469297519:0.03463042767880353",
+        "uploadSequence": 3167
+      },
+      {
+        "at": 1791469378.748,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1538",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791469297519:0.03463042767880353",
+        "uploadSequence": 3177
+      }
+    ],
+    "mossyFirstStorageSpanMs": 66.99991226196289,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "baseline",
+    "index": 4,
+    "device": "BDD23F39-732E-4CA4-8303-EAF5517E3B71",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791469557.793,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 819658300,
+      "loadingPeakBytes": 641320483,
+      "phoneEstimateBytes": 1147521620,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791469499.793,
+          "end": 1791469509.883,
+          "samples": 10,
+          "bytes": 538175067
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 819658300,
+          "troughBytes": 424976542
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 16918,
+    "mossyFirstStorage": [
+      {
+        "at": 1791469532.331,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2023",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791469453966:0.4345931704080538",
+        "uploadSequence": 3739
+      },
+      {
+        "at": 1791469532.331,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2024",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791469453966:0.4345931704080538",
+        "uploadSequence": 3749
+      },
+      {
+        "at": 1791469532.331,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2025",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791469453966:0.4345931704080538",
+        "uploadSequence": 3759
+      }
+    ],
+    "mossyFirstStorageSpanMs": 0,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "fixed",
+    "index": 4,
+    "device": "7CFAA22A-E37F-4E15-B0CF-6AF11DBF1997",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791469713.467,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 1309543754,
+      "loadingPeakBytes": 1466598340,
+      "phoneEstimateBytes": 1833361255.6,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791469651.348,
+          "end": 1791469661.436,
+          "samples": 10,
+          "bytes": 564554435
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 1309543754,
+          "troughBytes": 494243026
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 20411,
+    "mossyFirstStorage": [
+      {
+        "at": 1791469687.517,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1536",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791469607415:0.6721103617411066",
+        "uploadSequence": 3156
+      },
+      {
+        "at": 1791469687.55,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1537",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791469607415:0.6721103617411066",
+        "uploadSequence": 3166
+      },
+      {
+        "at": 1791469687.584,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1538",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791469607415:0.6721103617411066",
+        "uploadSequence": 3176
+      }
+    ],
+    "mossyFirstStorageSpanMs": 67.00015068054199,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "baseline",
+    "index": 5,
+    "device": "06EF4127-9381-417A-96D2-99D52C36AD9D",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791469866.288,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 993806356,
+      "loadingPeakBytes": 653858600,
+      "phoneEstimateBytes": 1391328898.3999999,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791469808.371,
+          "end": 1791469818.465,
+          "samples": 10,
+          "bytes": 567469707
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 993806356,
+          "troughBytes": 474827002
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 23056,
+    "mossyFirstStorage": [
+      {
+        "at": 1791469840.853,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2078",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791469762755:0.5957454798928152",
+        "uploadSequence": 3794
+      },
+      {
+        "at": 1791469840.853,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2079",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791469762755:0.5957454798928152",
+        "uploadSequence": 3804
+      },
+      {
+        "at": 1791469840.853,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:2080",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791469762755:0.5957454798928152",
+        "uploadSequence": 3814
+      }
+    ],
+    "mossyFirstStorageSpanMs": 0,
+    "sampledMossyStacks": []
+  },
+  {
+    "arm": "fixed",
+    "index": 5,
+    "device": "799F77E5-3532-4245-908E-3F9B79E244A5",
+    "status": {
+      "code": 1,
+      "signal": null
+    },
+    "entryStarted": true,
+    "entryCompleted": true,
+    "entryLoss": false,
+    "bootLoss": false,
+    "loss": null,
+    "diagnosticEntry": {
+      "at": 1791470022.455,
+      "instance": "pine-hollow",
+      "settledSeconds": 20
+    },
+    "errors": [],
+    "uploadOverflow": 0,
+    "leakZero": true,
+    "grade": {
+      "contentCut": null,
+      "requiredSeconds": 1800,
+      "memoryPass": false,
+      "gatePass": false,
+      "peakBytes": 996867956,
+      "loadingPeakBytes": 708196540,
+      "phoneEstimateBytes": 1395615138.3999999,
+      "baselines": [
+        {
+          "cycle": 0,
+          "start": 1791469960.721,
+          "end": 1791469970.803,
+          "samples": 10,
+          "bytes": 578954963
+        }
+      ],
+      "baselineDeltaBytes": [
+        null
+      ],
+      "loops": [
+        {
+          "cycle": 0,
+          "complete": false,
+          "peakBytes": 996867956,
+          "troughBytes": 478038362
+        }
+      ],
+      "recovery": false,
+      "calibration": true,
+      "ratios": [],
+      "missingGlSamples": 0,
+      "sampling": true,
+      "leakZero": true,
+      "admitted": [
+        "pine-hollow"
+      ],
+      "refused": [
+        "template-2",
+        "sunscar-dunes",
+        "driftwood-isle",
+        "nalati-grasslands",
+        "far-reach"
+      ],
+      "attemptedEveryCell": false,
+      "crossroads": 0,
+      "rehearsal": true,
+      "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+    },
+    "gamePid": 25543,
+    "mossyFirstStorage": [
+      {
+        "at": 1791469996.502,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1536",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/diffuse-bf493a74.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37844,
+        "document": "1791469915989:0.9327053829480055",
+        "uploadSequence": 3156
+      },
+      {
+        "at": 1791469996.535,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1537",
+        "kind": "texture",
+        "bytes": 118336,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/pine-hollow/astc6/tex/mossy_rock/nor_gl-bcd9bcf8.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37812,
+        "document": "1791469915989:0.9327053829480055",
+        "uploadSequence": 3166
+      },
+      {
+        "at": 1791469996.568,
+        "op": "allocation",
+        "context": "context:1",
+        "id": "texture:1538",
+        "kind": "texture",
+        "bytes": 131072,
+        "owner": "engine/ktx2Texture",
+        "asset": "/assets/gpu/tex/mossy_rock/arm.phone-ebb00dd2.ktx2/Texture",
+        "labelled": true,
+        "operation": "texStorage2D",
+        "canvas": "game",
+        "stage": "travel",
+        "width": 512,
+        "height": 512,
+        "depth": 1,
+        "levels": 1,
+        "internalFormat": 37492,
+        "document": "1791469915989:0.9327053829480055",
+        "uploadSequence": 3176
+      }
+    ],
+    "mossyFirstStorageSpanMs": 65.99998474121094,
+    "sampledMossyStacks": []
+  }
+]

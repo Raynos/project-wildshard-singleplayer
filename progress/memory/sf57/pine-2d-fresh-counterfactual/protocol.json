@@ -1,0 +1,71 @@
+{
+  "purpose": "Five freshly created Simulator devices per arm, alternate baseline then sole-parent isolated fix; failure-inclusive first Pine crossing plus20ssettle. Never full soak/cap/native-saving evidence.",
+  "arms": {
+    "baseline": {
+      "sha": "b24f8c36b31f40d6584e3639209a0b401c69c844",
+      "base": "http://127.0.0.1:4406/",
+      "dist": "/private/tmp/wildshard-serve/20261008-072649-4406/dist",
+      "version": {
+        "build": "b24f8c3-muzih586",
+        "time": "2026-10-08T12:27:13.934Z"
+      },
+      "device": "b24"
+    },
+    "fixed": {
+      "sha": "edd757a1fdda21d06c36d16c76d878fd3bac59c5",
+      "base": "http://127.0.0.1:4401/",
+      "dist": "/private/tmp/wildshard-serve/20261008-090638-4401/dist",
+      "version": {
+        "build": "edd757a-muzm1nf3",
+        "time": "2026-10-08T14:07:09.703Z"
+      },
+      "device": "edd"
+    }
+  },
+  "observer": "Existing diagnostic-first-crossing protocol exactly like prior cdad/71f385 cohort: bounded raw storage/stack capture ON for BOTH arms; subsequent soak rawOFF/light only.",
+  "harnessHead": "2823495a73399d8bb148b7bafbb3d30132f5732d",
+  "sourceFingerprints": {
+    "scripts/soak/soak.mjs": "f94dff4174cb247151eac66e1831f30ad43725c861f34d67fe40a9881890de33",
+    "scripts/soak/gl.mjs": "6f3af091620853225f75a7548d640ec4a6c2fff187bfad1d09df4213bff0ea5f",
+    "scripts/soak/owned.mjs": "d10167c0963804da085b9b7191146029bda64982122f54b663443e628322eec7",
+    "scripts/soak/route.ts": "a763dc7964cea154a72a77c2dd99d436fad173fc532a895d6d94c12450173ed7",
+    "scripts/parity/glbytes.mjs": "7d9df125654bbccb62cd9d56b998c49f1b418933b4c84223cfb1370f0dd5392f",
+    "scripts/parity/resources.mjs": "fb333a3f8c2fcad4b3d3d9a7dfe92f8484acb1b334e40ce1a8395ac23cd227ed",
+    "scripts/frame-floor-grid.mjs": "d00cd4882e2be3c15e2ac56acb3f8acbdec97cf059ff97038956160e07810982",
+    "scripts/debug-settings.mjs": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e",
+    "scripts/sim-mem-phases.py": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634",
+    "scripts/ios-memory-watchdog.py": "f66122e1c3e07dc230d2ef17e3340a2fc5be44753b3a2cac294857ed67c6c7bc",
+    "scripts/soak/pine-rate.mjs": "3266fba952d31510bee1cad3356675e092d02a2da1223643064aef1d175f025a",
+    "scripts/soak/pine-events.mjs": "512714730f39712aabee10153dbfa1f27cb5b00f931f8403fe7159eca1c4dc03"
+  },
+  "runtimeChanges": [
+    {
+      "file": "src/engine/render/precompile.ts",
+      "baselineBlob": "aa0ab56a7e93b8f1858476ffb8827c464215dd65",
+      "fixedBlob": "401d08b44aae1bd858a0919c478fa4cd7b21d726"
+    },
+    {
+      "file": "src/engine/render/shaderPatches.ts",
+      "baselineBlob": "4a055448454a44317a27cae329a4de744beed2ec",
+      "fixedBlob": "c4384c68154a426bc5966d5ce510830181a0ad48"
+    },
+    {
+      "file": "src/shards/pine-hollow/world/crags.ts",
+      "baselineBlob": "01a080cb7e7a71b0f3e5c8b83871e27dcaa80e06",
+      "fixedBlob": "e033c1835bc004a81edd2bdd82e78d286c76f3b3"
+    },
+    {
+      "file": "test/precompile-injected-textures.test.ts",
+      "baselineBlob": "97f17b5ec00120096663712fa51de86076272297",
+      "fixedBlob": "57aa85eba0c5c7a4af1d4c68353370a936b3a412"
+    }
+  ],
+  "openCoverage": [
+    "30-minute soak",
+    "full catalogue",
+    "physical iPhone"
+  ],
+  "mainFix": "6a7e0c278f3c97d1c791be8bef46b2df5db39057",
+  "comparison": "Fixed sole parent is baseline; three runtime paths and one focused test, no other main changes. Runtime diff inspected. No new allowance or observer change.",
+  "previewsVerifiedAt": "2026-10-08T14:07:51.533Z"
+}
