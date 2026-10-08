@@ -2,6 +2,7 @@
 // Only initial road placements use spawn; each socket/inward/return leg uses normal input. No stuck recovery.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { chromium, devices } from 'playwright';
 import { installResources } from '../../../scripts/parity/resources.mjs';
 import { saveFixture } from '../../../scripts/debug-settings.mjs';
@@ -24,6 +25,11 @@ try {
     await page.goto(`${base}/?tier=phone&mute=1&nolock=1&sw=0`, { waitUntil: 'commit', timeout: 300_000 });
     receipt.version = await page.evaluate(async () => (await fetch('/version.json')).json());
     receipt.storageBefore = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('wildshard.save.')).map(k => [k, localStorage.getItem(k)])));
+    if (visit === 1) {
+      const key = 'wildshard.save.v2.nalati-grasslands', prior = report.pages[0].storageAfter?.[key], fresh = receipt.storageBefore[key];
+      if (typeof prior !== 'string' || prior !== fresh) throw new Error('Fresh page did not retain the exact Nalati document');
+      receipt.persistedNalati = { bytes: Buffer.byteLength(fresh), sha256: createHash('sha256').update(fresh).digest('hex'), identical: true };
+    }
     await page.locator('.ws-main-grid').click({ timeout: 300_000 });
     await page.waitForFunction(() => window.__wildshard?.shard?.grid?.state().live?.live && !document.querySelector('.ws-load'), null, { timeout: 300_000 });
     await page.evaluate(() => { window.__wildshard.world.hud.enterNow(); });
@@ -71,7 +77,7 @@ try {
           }); } catch (e) { failure = String(e?.stack ?? e); }
           const end = live();
           const depth = 250 - ((end.worldFeet.x - origin.x) * sx + (end.worldFeet.z - origin.z) * sz);
-          legs.push({ entering, start, end: end.worldFeet, current: end.current, ready: end.gameplayReady, grounded: player.onGround, depth, elapsed, wallMs: performance.now() - t0, stuck, failure, trace: trace.filter((_, i) => i % 6 === 0) });
+          legs.push({ entering, start, end: end.worldFeet, current: end.current, ready: end.gameplayReady, appState: world.game.app.state, hudPaused: world.hud.paused, crossing: read().live.crossing, grounded: player.onGround, depth, elapsed, wallMs: performance.now() - t0, stuck, failure, trace: trace.filter((_, i) => i % 6 === 0) });
           if (failure) throw new Error(failure);
           if (entering && (depth < 30 || Math.abs(end.worldFeet.y) > 0.1)) throw new Error(`Entry is not 30m inward on y=0: ${depth},${end.worldFeet.y}`);
           observations.push({ entering, systems: Object.fromEntries(Object.entries(world.game.app.systemsByPhase()).map(([phase, rows]) => [phase, rows.map(r => r.id)])) });
@@ -95,4 +101,4 @@ try {
 } catch (e) { report.failure = String(e?.stack ?? e); }
 finally { await browser.close(); writeFileSync(join(out, 'walk.json'), `${JSON.stringify(report, null, 2)}\n`); }
 console.log(JSON.stringify({ failure: report.failure ?? null, errors: report.errors.length, consoleErrors: report.consoleErrors.length, pages: report.pages.map(p => ({ visit: p.visit, failure: p.failure ?? null, routes: p.legs.length, disposalErrors: p.leak?.disposalErrors?.length ?? null })) }));
-if (report.failure || report.errors.length || report.pages.length !== 2 || report.pages.some(p => p.failure || p.legs.length !== 4 || p.leak?.disposalErrors?.length)) process.exitCode = 1;
+if (report.failure || report.errors.length || report.consoleErrors.length || report.pages.length !== 2 || report.pages.some(p => p.failure || p.legs.length !== 4 || p.leak?.disposalErrors?.length)) process.exitCode = 1;
