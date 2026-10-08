@@ -1,0 +1,346 @@
+{
+  "pin": {
+    "build": "1b0572d-muz47m2h",
+    "time": "2026-10-08T05:47:53.916Z"
+  },
+  "pass": true,
+  "seconds": 96.819,
+  "protocol": "Developer ON owned shell, real held-input D->P->N->D. No crossing reload. One muted Metal iPhone16Pro portrait browser.",
+  "driverHash": "191587a6eb428c271894e1d8610d27dd4b52d6b66a3b7aca1e872401dc8b011a",
+  "routeWitnesses": [
+    {
+      "name": null,
+      "failures": [],
+      "commits": null,
+      "seconds": null
+    },
+    {
+      "name": null,
+      "failures": [],
+      "commits": null,
+      "seconds": null
+    },
+    {
+      "name": null,
+      "failures": [],
+      "commits": null,
+      "seconds": null
+    }
+  ],
+  "damage": [
+    {
+      "instance": "driftwood-isle",
+      "id": "creature:33",
+      "kind": "sailor",
+      "before": 60,
+      "after": 59
+    },
+    {
+      "instance": "pine-hollow",
+      "id": "creature:152",
+      "kind": "boar",
+      "before": 100,
+      "after": 99
+    },
+    {
+      "instance": "nalati-grasslands",
+      "id": "creature:4",
+      "kind": "wolf",
+      "before": 55,
+      "after": 54
+    }
+  ],
+  "homeRestoredHP": 59,
+  "documentsAtBoot": 2,
+  "documentsAtEnd": 2,
+  "documentOrigin": 1791438486392,
+  "errors": [],
+  "consoleErrors": [],
+  "stops": [
+    {
+      "label": "home-first",
+      "current": "driftwood-isle",
+      "cost": {
+        "playing": 905230911,
+        "loading": 985230911,
+        "accounted": 473181000,
+        "input": {
+          "l0": 105894374,
+          "l1": 0,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 348526174,
+          "commons": 0,
+          "overlap": 80000000,
+          "products": 9160452
+        }
+      },
+      "runtimeClaims": [
+        {
+          "id": "sim:driftwood-isle",
+          "category": "sim",
+          "bytes": 341781982,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ],
+      "commons": [],
+      "glBytes": 206515667
+    },
+    {
+      "label": "pine-hollow-entered",
+      "current": "pine-hollow",
+      "cost": {
+        "playing": 1082195295,
+        "loading": 1162195295,
+        "accounted": 632608373,
+        "input": {
+          "l0": 105894374,
+          "l1": 369960,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 507583587,
+          "commons": 0,
+          "overlap": 80000000,
+          "products": 9160452
+        }
+      },
+      "runtimeClaims": [
+        {
+          "id": "sim:pine-hollow",
+          "category": "sim",
+          "bytes": 500839395,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ],
+      "commons": [],
+      "glBytes": 238609062
+    },
+    {
+      "label": "nalati-grasslands-entered",
+      "current": "nalati-grasslands",
+      "cost": {
+        "playing": 1070886773,
+        "loading": 1150886773,
+        "accounted": 622420516,
+        "input": {
+          "l0": 105894374,
+          "l1": 1111588,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 496654102,
+          "commons": 0,
+          "overlap": 80000000,
+          "products": 9160452
+        }
+      },
+      "runtimeClaims": [
+        {
+          "id": "sim:nalati-grasslands",
+          "category": "sim",
+          "bytes": 489909910,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ],
+      "commons": [],
+      "glBytes": 313433976
+    },
+    {
+      "label": "driftwood-isle-entered",
+      "current": "driftwood-isle",
+      "cost": {
+        "playing": 906290303,
+        "loading": 986290303,
+        "accounted": 474135408,
+        "input": {
+          "l0": 105894374,
+          "l1": 954408,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 348526174,
+          "commons": 0,
+          "overlap": 80000000,
+          "products": 9160452
+        }
+      },
+      "runtimeClaims": [
+        {
+          "id": "sim:driftwood-isle",
+          "category": "sim",
+          "bytes": 341781982,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ],
+      "commons": [],
+      "glBytes": 269370873
+    },
+    {
+      "label": "home-returned-durable",
+      "current": "driftwood-isle",
+      "cost": {
+        "playing": 906290303,
+        "loading": 986290303,
+        "accounted": 474135408,
+        "input": {
+          "l0": 105894374,
+          "l1": 954408,
+          "far": 9600000,
+          "libraries": 0,
+          "sims": 348526174,
+          "commons": 0,
+          "overlap": 80000000,
+          "products": 9160452
+        }
+      },
+      "runtimeClaims": [
+        {
+          "id": "sim:driftwood-isle",
+          "category": "sim",
+          "bytes": 341781982,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ],
+      "commons": [],
+      "glBytes": 269370873
+    }
+  ],
+  "after": {
+    "geometries": 0,
+    "textures": 0,
+    "programs": 0,
+    "bodies": 0,
+    "colliders": 0,
+    "listeners": {
+      "window": 0,
+      "document": 0,
+      "canvas": 0,
+      "other": 4
+    },
+    "timers": {
+      "timeouts": 0,
+      "intervals": 0,
+      "raf": 0
+    },
+    "audio": {
+      "activeVoices": 0,
+      "beds": 0,
+      "buses": 0
+    },
+    "systems": {
+      "input": 0,
+      "fixed": {
+        "pre": 0,
+        "step": 0,
+        "post": 0
+      },
+      "update": 0,
+      "late": 0,
+      "render": 0
+    },
+    "events": {
+      "listeners": 7,
+      "answerers": 5
+    },
+    "dom": {
+      "hud": 0,
+      "body": 0
+    },
+    "sceneObjects": 0
+  },
+  "scope": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "disposalErrors": [],
+  "rawFinalGLBytes": 52799368,
+  "composerGLBytes": 13140576,
+  "retainedCacheGLBytes": 39658792,
+  "memoryCapPass": false,
+  "raw": {
+    "path": "loop-1b0572d69.json.gz",
+    "decodedSHA256": "fe88b38b3507b1faf6d57c8e79518ffa533f83d169563e496a01cfcebab2a95a",
+    "decodedBytes": 4190950
+  }
+}
