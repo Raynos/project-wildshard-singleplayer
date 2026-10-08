@@ -1,0 +1,1376 @@
+{
+  "schema": 2,
+  "sha": "88753834d639d818fe73bae79aefdbbdbf591a23",
+  "runId": "26561-1791455192355",
+  "device": "frame-floor-iphone-17-pro",
+  "when": "2026-10-08T10:27:58.911Z",
+  "elapsedSeconds": 86.565,
+  "underTenMinutes": true,
+  "frames": 120,
+  "settleMs": 2000,
+  "shards": [
+    "grid"
+  ],
+  "surface": "sim",
+  "settings": {
+    "memorySaver": "on",
+    "tier": "phone",
+    "fps": "auto"
+  },
+  "deviceSaves": {},
+  "expectedSystems": [],
+  "gridScenario": "baseline",
+  "travelGlCensus": false,
+  "harnessRevision": "8fb253d43ca89e4fab500585090b7c7d11309cc4",
+  "complete": true,
+  "pass": true,
+  "desktopCap": "Settings fps=auto: no game cap; display/vsync remains enabled",
+  "simulatorCap": "Shipped phone-tier 30 fps cap; Simulator Safari on frame-floor-iphone-17-pro",
+  "measurement": "Live game; rAF timestamps between observed drawn frameCount changes grade cadence; performance.now callback intervals retained as diagnostics, Game.frameMs/workMs and game.lastFrame retained. No frame limiter bypass, CPU throttling or capture clock.",
+  "limitations": [
+    "Stationary spawn and two heaviest scanned standing parity cameras; this is a baseline, not proof of every gameplay moment.",
+    "Simulator readings measure Mac-backed Mobile Safari, not physical iPhone performance.",
+    "Safari helper HTML adds live harness pins; travel scenarios also install diagnostic WebGL allocation hooks before boot. Travel GL figures are API allocations, not native WebContent memory, and must not be added to the playing model as another claim."
+  ],
+  "results": [
+    {
+      "surface": "sim",
+      "rows": [
+        {
+          "shard": "grid",
+          "complete": true,
+          "pass": true,
+          "seconds": 46.166,
+          "floorMs": 33.3,
+          "evaluationOriginDriftMaxMs": 0,
+          "metadata": {
+            "renderer": "Apple GPU",
+            "viewport": [
+              402,
+              714
+            ],
+            "devicePixelRatio": 3,
+            "renderScale": 2,
+            "canvas": [
+              804,
+              1428
+            ],
+            "settings": {
+              "memorySaver": "on",
+              "tier": "phone",
+              "fps": "auto"
+            },
+            "gfx": {
+              "dpr": "2",
+              "aa": "auto"
+            },
+            "deviceSaves": {
+              "titleArrival.once": null,
+              "devMode": true,
+              "life.lastUnload": null,
+              "telemetry.install": "708afd19-3240-4da9-96f0-7fb78ead0cf4",
+              "telemetry.heartbeat": {
+                "session": "59e36f2e-9f94-4861-930f-26bbcbee82d8",
+                "build": "8875383-muze6g3y",
+                "level": "platform.grid",
+                "stage": "play",
+                "at": 1791455250041,
+                "fps": 30,
+                "clean": false,
+                "error": false,
+                "contextLost": false
+              },
+              "life.trace": [
+                "19:41:00 7cdp +2s world ready · first-contentful-paint 745ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:41:28 tbsa +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:41:33 tbsa +5s world ready · first-contentful-paint 528ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:42:01 m5t5 +0s boot · nav navigate · ?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:42:03 m5t5 +2s world ready · first-contentful-paint 543ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:42:33 5wkt +0s boot · nav navigate · ?chunk=far-reach&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:42:35 5wkt +3s world ready · first-contentful-paint 538ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:43:03 023n +0s boot · nav navigate · ?mute=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:43:05 023n +2s world ready · first-contentful-paint 536ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:43:06 023n +3s hide · ok · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:43:07 7xv6 +0s boot · nav navigate · ?mute=1&nolock=1&sw=0&chunk=driftwood-isle · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:43:15 7xv6 +8s world ready · first-contentful-paint 341ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:43:33 7xv6 +26s after boot · 361 frames in 6s, longest gap 17ms · first-contentful-paint 341ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:45:21 357f +0s boot · nav navigate · ?chunk=far-reach&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:45:24 357f +3s world ready · first-contentful-paint 501ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:45:52 6esg +0s boot · nav navigate · ?chunk=sunscar-dunes&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:45:54 6esg +2s world ready · first-contentful-paint 607ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "19:46:23 lxg1 +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "19:46:28 lxg1 +4s world ready · first-contentful-paint 559ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:53:57 ks9l +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "22:54:00 ks9l +3s world ready · first-contentful-paint 380ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:54:29 jg8y +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "22:54:33 jg8y +5s world ready · first-contentful-paint 720ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:55:02 9o1e +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "22:55:07 9o1e +5s world ready · first-contentful-paint 642ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:55:37 n3p8 +0s boot · nav navigate · ?chunk=_template&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "22:55:38 n3p8 +1s world ready · first-contentful-paint 638ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:55:58 8hqy +0s boot · nav navigate · ?mute=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "22:56:00 8hqy +3s world ready · first-contentful-paint 860ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:56:01 8hqy +3s hide · ok · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:56:01 mwxr +0s boot · nav navigate · no query · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "22:56:12 mwxr +11s world ready · first-contentful-paint 76ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "22:56:27 mwxr +26s after boot · 175 frames in 6s, longest gap 817ms · first-contentful-paint 76ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "00:07:16 suss +0s boot · nav navigate · ?mute=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "00:07:19 suss +3s world ready · first-contentful-paint 367ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "00:07:20 suss +3s hide · ok · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "00:07:20 17w2 +0s boot · nav navigate · no query · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "00:07:31 17w2 +11s world ready · first-contentful-paint 118ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "00:07:46 17w2 +26s after boot · 331 frames in 6s, longest gap 246ms · first-contentful-paint 118ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "00:10:17 17w2 +176s lost · context lost · canvases wiped",
+                "00:10:17 17w2 +176s reload · the GPU process restarted: every canvas was wiped",
+                "00:10:17 17w2 +176s hide · reloading · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "00:10:17 tadi +0s boot · nav navigate · no query · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "02:53:03 odte +0s boot · nav navigate · ?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "02:53:05 odte +3s world ready · first-contentful-paint 1792ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "02:53:12 od2i +0s boot · nav navigate · ?chunk=pine-hollow&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "02:53:15 od2i +3s world ready · first-contentful-paint 721ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "02:53:22 qb3r +0s boot · nav navigate · ?chunk=nalati-grasslands&mute=1&skipintro=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "02:53:26 qb3r +5s world ready · first-contentful-paint 731ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "02:53:34 fzr8 +0s boot · nav navigate · ?mute=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "02:53:37 fzr8 +2s world ready · first-contentful-paint 733ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "02:53:37 fzr8 +3s hide · ok · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "02:53:38 da70 +0s boot · nav navigate · no query · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "02:53:46 da70 +9s world ready · first-contentful-paint 49ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "02:54:04 da70 +26s after boot · 270 frames in 6s, longest gap 255ms · first-contentful-paint 49ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "05:27:14 1wk6 +0s boot · nav navigate · ?mute=1&nolock=1&sw=0 · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "05:27:17 1wk6 +3s world ready · first-contentful-paint 1277ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "05:27:17 1wk6 +3s hide · ok · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible",
+                "05:27:18 ds33 +0s boot · nav navigate · no query · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x754 dpr 3 visible",
+                "05:27:27 ds33 +9s world ready · first-contentful-paint 47ms · win 402x714 vv 402x714@1.00+0,0 canvas 0,0 402x714 dpr 3 visible"
+              ],
+              "life.traceAt": 1791455238226,
+              "boot.times": {
+                "phone:8": {
+                  "renderer": 8.516451636974097,
+                  "sky": 53.18879541482474,
+                  "terrain": 33.386875544640546,
+                  "cards": 0.04202181150560691,
+                  "forest": 3.011143510083688,
+                  "physics": 1.5067932400141029,
+                  "edge": 18.16236846380823,
+                  "grass": 1.0913936421275139e-11,
+                  "cabins": 0,
+                  "props": 423.7462327145215,
+                  "animals": 26.92861883582424,
+                  "weapon": 5.325500984710589,
+                  "menu": 22.940927777767694,
+                  "shaders": 529.1637631541405,
+                  "firstFrame": 167.73280016300362,
+                  "audio": 109.13435239072113
+                },
+                "phone:8:pine-hollow": {
+                  "renderer": 11.12109374999994,
+                  "sky": 259.3671875000001,
+                  "terrain": 129.2460937499999,
+                  "cards": 80.578125,
+                  "forest": 15.871093749999943,
+                  "physics": 4.046874999999987,
+                  "edge": 72.38671874999999,
+                  "grass": 61.324218749999986,
+                  "cabins": 388.8828125,
+                  "props": 54.074218749999986,
+                  "animals": 1103.9335937500002,
+                  "weapon": 0,
+                  "menu": 8.5976562500001,
+                  "shaders": 572.6054687499999,
+                  "firstFrame": 439.83203124999994,
+                  "audio": 263.1406249999999
+                },
+                "phone:8:nalati-grasslands": {
+                  "renderer": 11.765625,
+                  "sky": 86.90624999999997,
+                  "terrain": 270.2734375,
+                  "cards": 20.499999999999996,
+                  "forest": 46.88281250000003,
+                  "physics": 3.390625,
+                  "edge": 29.4843750000001,
+                  "grass": 49.0546875,
+                  "cabins": 0,
+                  "props": 1694.53125,
+                  "animals": 89.328125,
+                  "weapon": 0,
+                  "menu": 5.9531249999999645,
+                  "shaders": 456.06249999999994,
+                  "firstFrame": 431.953125,
+                  "audio": 500.50000000000006
+                },
+                "phone:8:nine-dragon-stack": {
+                  "renderer": 11.000000000000057,
+                  "sky": 47.25,
+                  "terrain": 0.5,
+                  "cards": 0.5,
+                  "forest": 6.75,
+                  "physics": 2.25,
+                  "edge": 9.749999999999972,
+                  "grass": 0,
+                  "cabins": 0,
+                  "props": 9995.5,
+                  "animals": 1.7499999999990905,
+                  "weapon": 30.24999999999909,
+                  "menu": 28.000000000000455,
+                  "shaders": 189.25,
+                  "firstFrame": 322.5,
+                  "audio": 0.9999999999986358
+                }
+              },
+              "ktx2set": {
+                "driftwood-isle.phone": "8-0044944b",
+                "pine-hollow.phone": "144-64077c4b",
+                "nalati-grasslands.phone": "24-1d154e18",
+                "nine-dragon-stack.phone": "13-5e02b8b7"
+              },
+              "telemetry.reported": [
+                "e3969b67-9c4f-4e5c-8fbd-e6f495d70bd3",
+                "45300d58-68f1-4330-916c-7de595eec6e0",
+                "c292f67e-297a-41f1-85a6-d8cbc76fcac1",
+                "233cec9e-0a14-40c3-bd7e-a705d3df22ba",
+                "c1534054-8b65-4f6a-80d0-1a0b8f9be819",
+                "32753940-3c85-49d8-beff-6b0c640dd7b4",
+                "203bb7fb-9937-4a47-b138-73b55603a2ad",
+                "6cc0d45d-53dd-4832-9222-6bece386359f",
+                "2873ea93-ea28-453a-b73a-84ca425705b9",
+                "7c3449ec-7ded-43a8-93f8-a16b69c411c4",
+                "6b1dd99f-8e20-46a7-9cb6-7ac9d1786b0b",
+                "c2a4d93c-3e00-4637-9388-1f4838a1858d",
+                "a61b9547-611d-48bc-8d7d-00fa3efbdd8f",
+                "1cb4b5e5-fff7-4bdc-a017-3f1a5f3f6235",
+                "bd90faa6-f86f-4c1f-8b25-f45ffa52effe",
+                "84f14c06-bc30-48a6-a46c-de87700423a9",
+                "1461cb4a-21cc-4be7-a02b-694f22415d47",
+                "968d350e-cc82-4085-89f1-07c3853d6650",
+                "ef1c9ed4-1489-44a5-bf11-e609a954d945",
+                "0e1b3034-df97-4dd5-b8f8-b1e7c1253cbd",
+                "65914f5b-b4c7-4571-96b5-78be21d1f2cb",
+                "1962b855-29c5-4318-8784-2626d8fd20a0",
+                "dc5354e6-f816-4fa3-ab83-b2aa2b48458c",
+                "b17624e1-8987-4fe6-af40-07fbf4b2ca44",
+                "7eff3429-8ac3-495f-9780-a834a49e5440",
+                "94501653-70e2-4537-974a-2d61fcc08339",
+                "d72cd513-9286-423c-adfa-910a11910629",
+                "ac7cbc8c-3ec7-4138-9093-0a87c2b2f35b",
+                "4bf1ea9e-d02c-473f-929a-0e4bc6a7d03e",
+                "b70f2e85-e2b8-43a4-872c-245cb355dc75",
+                "6b36f463-8230-4b00-9e4b-12e94baf98ff",
+                "dd2e8434-3b6a-4af9-9f79-8f4485f21bb4"
+              ],
+              "gridIntent.once": null,
+              "life.lastEnd": {
+                "kind": "intentional",
+                "reason": "shard switch to driftwood-isle (fresh page)",
+                "at": 1791455237958,
+                "resident": "driftwood-isle (playing) ~3 MB",
+                "mode": "shard",
+                "build": "8875383",
+                "bootedAt": 1791455238027,
+                "discarded": false,
+                "nav": "navigate"
+              },
+              "debug.plugin.driftwood-isle.driftwoodHybrid": "on",
+              "debug.plugin.driftwood-isle.shardDirectors": "on",
+              "debug.plugin.nalati-grasslands.shardDirectors": "on",
+              "debug.plugin.pine-hollow.shardDirectors": "on",
+              "debug.global.gridRoadCull": "on",
+              "boot.trace": {
+                "levelId": "nine-dragon-stack",
+                "levelName": "Nine Dragon Stack",
+                "id": "muugtqcl-oglxwj",
+                "build": "2306019-muugq6m5",
+                "startedAt": 1791157326501,
+                "updatedAt": 1791157337488,
+                "stage": "world ready",
+                "setup": 100,
+                "download": 100,
+                "visibility": "visible",
+                "status": "ready",
+                "detail": "16 / 16 audio files",
+                "checkpoints": [
+                  {
+                    "atMs": 16,
+                    "operation": "renderer:before",
+                    "facts": {
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+                      "devicePixelRatio": 3
+                    }
+                  },
+                  {
+                    "atMs": 19,
+                    "operation": "renderer:created",
+                    "facts": {
+                      "width": 300,
+                      "height": 150,
+                      "pixelRatio": 1,
+                      "devicePixelRatio": 3,
+                      "textures": 0,
+                      "geometries": 0,
+                      "programs": 0,
+                      "calls": 0,
+                      "triangles": 0,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10269,
+                    "operation": "compile:before",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 2,
+                      "geometries": 0,
+                      "programs": 0,
+                      "calls": 1,
+                      "triangles": 12,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10460,
+                    "operation": "compile:after",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 38,
+                      "geometries": 0,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 12,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10476,
+                    "operation": "cull:before",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 38,
+                      "geometries": 0,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 12,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10479,
+                    "operation": "cull:after",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 38,
+                      "geometries": 0,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 12,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10479,
+                    "operation": "world:before",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 38,
+                      "geometries": 0,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 12,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10528,
+                    "operation": "world:submitted",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 50,
+                      "geometries": 73,
+                      "programs": 66,
+                      "calls": 77,
+                      "triangles": 1249806,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10543,
+                    "operation": "world:next-frame",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 50,
+                      "geometries": 73,
+                      "programs": 66,
+                      "calls": 77,
+                      "triangles": 1249806,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10544,
+                    "operation": "post:before",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 50,
+                      "geometries": 73,
+                      "programs": 66,
+                      "calls": 77,
+                      "triangles": 1249806,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10544,
+                    "operation": "pass:0:RenderPass:before",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 50,
+                      "geometries": 73,
+                      "programs": 66,
+                      "calls": 77,
+                      "triangles": 1249806,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10547,
+                    "operation": "pass:0:RenderPass:submitted",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 52,
+                      "geometries": 74,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 1,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10547,
+                    "operation": "pass:1:EffectPass:before",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 52,
+                      "geometries": 74,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 1,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10548,
+                    "operation": "pass:1:EffectPass:submitted",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 53,
+                      "geometries": 75,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 1,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10548,
+                    "operation": "pass:2:EffectPass:before",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 53,
+                      "geometries": 75,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 1,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10549,
+                    "operation": "pass:2:EffectPass:submitted",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 53,
+                      "geometries": 75,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 1,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10549,
+                    "operation": "post:submitted",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 53,
+                      "geometries": 75,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 1,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  },
+                  {
+                    "atMs": 10558,
+                    "operation": "post:next-frame",
+                    "facts": {
+                      "width": 804,
+                      "height": 1428,
+                      "pixelRatio": 2,
+                      "devicePixelRatio": 3,
+                      "textures": 53,
+                      "geometries": 75,
+                      "programs": 66,
+                      "calls": 1,
+                      "triangles": 1,
+                      "contextLost": false,
+                      "gpuTextures": "auto",
+                      "multiDraw": true,
+                      "jsHeapBytes": null,
+                      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                    }
+                  }
+                ]
+              },
+              "debug.global.measureLook": "on",
+              "debug.plugin.driftwood-isle.driftwoodGpuOnlyCopies": "on",
+              "debug.plugin.driftwood-isle.driftwoodIslandInstancing": "on",
+              "debug.plugin.pine-hollow.pineMemoryTrim": "on",
+              "debug.plugin.far-reach.farReachEntries": "on",
+              "debug.plugin.nine-dragon-stack.nineDragonEntries": "on",
+              "debug.plugin.far-reach.shardDirectors": "on",
+              "debug.plugin.sunscar-dunes.shardDirectors": "on",
+              "grid.recovery.guard": null,
+              "grid.last-played": {
+                "instance": "driftwood-isle",
+                "slug": "driftwood-isle",
+                "catalogue": "{\"pitch\":555,\"cells\":[[\"driftwood-isle\",\"driftwood-isle\",0,0],[\"far-reach\",\"far-reach\",0,-1],[\"nalati-grasslands\",\"nalati-grasslands\",1,0],[\"pine-hollow\",\"pine-hollow\",0,1],[\"sunscar-dunes\",\"sunscar-dunes\",-1,0],[\"template-2\",\"_template\",1,1]]}",
+                "at": 1791446058551,
+                "road": {
+                  "x": 273.9,
+                  "z": -40.0000024914056,
+                  "yaw": 0
+                },
+                "location": {
+                  "kind": "road"
+                }
+              },
+              "grid.recovery.once": null
+            },
+            "clock": "live",
+            "bootTrace": {
+              "levelId": "nine-dragon-stack",
+              "levelName": "Nine Dragon Stack",
+              "id": "muugtqcl-oglxwj",
+              "build": "2306019-muugq6m5",
+              "startedAt": 1791157326501,
+              "updatedAt": 1791157337488,
+              "stage": "world ready",
+              "setup": 100,
+              "download": 100,
+              "visibility": "visible",
+              "status": "ready",
+              "detail": "16 / 16 audio files",
+              "checkpoints": [
+                {
+                  "atMs": 16,
+                  "operation": "renderer:before",
+                  "facts": {
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+                    "devicePixelRatio": 3
+                  }
+                },
+                {
+                  "atMs": 19,
+                  "operation": "renderer:created",
+                  "facts": {
+                    "width": 300,
+                    "height": 150,
+                    "pixelRatio": 1,
+                    "devicePixelRatio": 3,
+                    "textures": 0,
+                    "geometries": 0,
+                    "programs": 0,
+                    "calls": 0,
+                    "triangles": 0,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10269,
+                  "operation": "compile:before",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 2,
+                    "geometries": 0,
+                    "programs": 0,
+                    "calls": 1,
+                    "triangles": 12,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10460,
+                  "operation": "compile:after",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 38,
+                    "geometries": 0,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 12,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10476,
+                  "operation": "cull:before",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 38,
+                    "geometries": 0,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 12,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10479,
+                  "operation": "cull:after",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 38,
+                    "geometries": 0,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 12,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10479,
+                  "operation": "world:before",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 38,
+                    "geometries": 0,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 12,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10528,
+                  "operation": "world:submitted",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 50,
+                    "geometries": 73,
+                    "programs": 66,
+                    "calls": 77,
+                    "triangles": 1249806,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10543,
+                  "operation": "world:next-frame",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 50,
+                    "geometries": 73,
+                    "programs": 66,
+                    "calls": 77,
+                    "triangles": 1249806,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10544,
+                  "operation": "post:before",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 50,
+                    "geometries": 73,
+                    "programs": 66,
+                    "calls": 77,
+                    "triangles": 1249806,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10544,
+                  "operation": "pass:0:RenderPass:before",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 50,
+                    "geometries": 73,
+                    "programs": 66,
+                    "calls": 77,
+                    "triangles": 1249806,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10547,
+                  "operation": "pass:0:RenderPass:submitted",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 52,
+                    "geometries": 74,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 1,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10547,
+                  "operation": "pass:1:EffectPass:before",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 52,
+                    "geometries": 74,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 1,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10548,
+                  "operation": "pass:1:EffectPass:submitted",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 53,
+                    "geometries": 75,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 1,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10548,
+                  "operation": "pass:2:EffectPass:before",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 53,
+                    "geometries": 75,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 1,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10549,
+                  "operation": "pass:2:EffectPass:submitted",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 53,
+                    "geometries": 75,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 1,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10549,
+                  "operation": "post:submitted",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 53,
+                    "geometries": 75,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 1,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                },
+                {
+                  "atMs": 10558,
+                  "operation": "post:next-frame",
+                  "facts": {
+                    "width": 804,
+                    "height": 1428,
+                    "pixelRatio": 2,
+                    "devicePixelRatio": 3,
+                    "textures": 53,
+                    "geometries": 75,
+                    "programs": 66,
+                    "calls": 1,
+                    "triangles": 1,
+                    "contextLost": false,
+                    "gpuTextures": "auto",
+                    "multiDraw": true,
+                    "jsHeapBytes": null,
+                    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+                  }
+                }
+              ]
+            },
+            "console": [
+              {
+                "level": "info",
+                "text": "[lastEnd] the previous page: shard switch to driftwood-isle (fresh page) · resident driftwood-isle (playing) ~3 MB"
+              },
+              {
+                "level": "warn",
+                "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+              },
+              {
+                "level": "info",
+                "text": "[region look] driftwood-isle: 2 materials on driftwood-isle's light and fog"
+              },
+              {
+                "level": "info",
+                "text": "[island] blender: terrain 22374 tris, props 751781 tris in 66 meshes, 11949/16675 placements (phone)"
+              },
+              {
+                "level": "info",
+                "text": "[shadow] 2 casters in 86 pieces (111535 tris)"
+              },
+              {
+                "level": "info",
+                "text": "[region look] driftwood-isle: 90 materials on driftwood-isle's light and fog"
+              }
+            ],
+            "systems": [
+              "engine.input.weapon",
+              "engine.input.contexts",
+              "game.grid.origin.restore",
+              "game.grid.reveal.input",
+              "engine.input.collect",
+              "engine.lockon.input",
+              "engine.player.input",
+              "game.grid.hud.fov",
+              "physics.bodies.pre",
+              "game.grid.live.pre",
+              "grid.runtime.driftwood-isle.pieces",
+              "shard.driftwood.movers",
+              "physics.movers",
+              "physics.step",
+              "physics.bodies.post",
+              "player.step",
+              "game.grid.session",
+              "game.grid.live.post",
+              "shard.driftwood.bridge.capture",
+              "shard.driftwood.director",
+              "player.update",
+              "training-arena",
+              "hud.perf",
+              "engine.world.bounds",
+              "game.grid.origin",
+              "engine.effects",
+              "main.6",
+              "grid.runtime.driftwood-isle.forest",
+              "grid.look.driftwood-isle.frame",
+              "grid.runtime.driftwood-isle.callback.shard.driftwood.cover",
+              "grid.runtime.driftwood-isle.callback.shard.driftwood.blenderIsland",
+              "shard.driftwood.ocean",
+              "shard.driftwood.palms",
+              "shard.driftwood.gulls",
+              "shard.driftwood.bridge.pose",
+              "shard.driftwood.seabed",
+              "shard.driftwood.cove",
+              "shard.driftwood.shrine",
+              "grid.runtime.driftwood-isle.callback.world.impacts",
+              "engine.player.for",
+              "grid.runtime.driftwood-isle.animals",
+              "shard.driftwood.dusk",
+              "shard.driftwood.adventure",
+              "shard.driftwood-isle.installSpine",
+              "shard.driftwood-isle.installTrader",
+              "shard.driftwood.adventure.2",
+              "shard.driftwood-isle.installGullGuide",
+              "shard.driftwood-isle.installComplete",
+              "shard.driftwood-isle.installFinale",
+              "shard.driftwood-isle.installEcology",
+              "shard.driftwood.adventure.3",
+              "shard.driftwood.adventure.4",
+              "game.loot",
+              "keepsakes",
+              "hud.combat",
+              "shard.driftwood.firstMinutes",
+              "first hints",
+              "main.world",
+              "engine.creatures.update",
+              "main.equipment",
+              "engine.audio.listener",
+              "shard.driftwood.shrineHum",
+              "shard.driftwood.ambience",
+              "main.frame",
+              "engine.player.regen",
+              "engine.player.hud",
+              "engine.input.trace",
+              "engine.input.edges",
+              "engine.hud.pins",
+              "game.grid.frame",
+              "game.grid.reveal",
+              "game.grid.hud",
+              "grid.look.driftwood-isle",
+              "shard.driftwood.blenderIsland.instances"
+            ],
+            "spawn": {
+              "name": "spawn",
+              "x": -7.184669748028227e-9,
+              "y": -0.8486315795127304,
+              "z": -193.99999981351232,
+              "yaw": 3.141592653589793,
+              "pitch": 0
+            },
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1"
+          },
+          "cameraSource": "manifest standing parity cameras",
+          "scan": [
+            {
+              "pose": {
+                "name": "grid-deck-east",
+                "x": 277.5,
+                "y": 1.7,
+                "z": -40,
+                "yaw": 0,
+                "pitch": -0.08
+              },
+              "p95Ms": 34,
+              "workP95Ms": 7,
+              "calls": 38,
+              "triangles": 60319
+            },
+            {
+              "pose": {
+                "name": "grid-crossroads",
+                "x": 240,
+                "y": 6,
+                "z": 240,
+                "yaw": -2.356194490192345,
+                "pitch": -0.12
+              },
+              "p95Ms": 36,
+              "workP95Ms": 10,
+              "calls": 79,
+              "triangles": 511893
+            },
+            {
+              "pose": {
+                "name": "grid-deck-north",
+                "x": 0,
+                "y": 3,
+                "z": 262,
+                "yaw": 3.141592653589793,
+                "pitch": -0.05
+              },
+              "p95Ms": 34,
+              "workP95Ms": 5,
+              "calls": 33,
+              "triangles": 55783
+            }
+          ],
+          "rows": [
+            {
+              "pose": {
+                "name": "spawn",
+                "x": -7.184669748028227e-9,
+                "y": -0.8486315795127304,
+                "z": -193.99999981351232,
+                "yaw": 3.141592653589793,
+                "pitch": 0
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 34,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 37,
+              "callbackMaxMs": 37,
+              "gameP95Ms": 34,
+              "workP95Ms": 7,
+              "calls": 192,
+              "triangles": 1430784,
+              "position": {
+                "x": 0.00007741383602537927,
+                "y": 1.215239928910887,
+                "z": -194.0000112130717
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "platform.grid",
+                    "samples": 120,
+                    "p95Ms": 3,
+                    "maxMs": 4.000000000003638,
+                    "calls": 2280
+                  },
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 2,
+                    "maxMs": 3.000000000003638,
+                    "calls": 1080
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "cpuLimitMs": 8.333333333333334,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "grid-crossroads",
+                "x": 240,
+                "y": 6,
+                "z": 240,
+                "yaw": -2.356194490192345,
+                "pitch": -0.12
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 35,
+              "callbackP95Ms": 34,
+              "callbackP99Ms": 39,
+              "callbackMaxMs": 41,
+              "gameP95Ms": 34,
+              "workP95Ms": 6,
+              "calls": 80,
+              "triangles": 439312,
+              "position": {
+                "x": 240.00000165553655,
+                "y": -3.3799004107204382,
+                "z": 239.99999242511163
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "platform.grid",
+                    "samples": 120,
+                    "p95Ms": 2.000000000003638,
+                    "maxMs": 4,
+                    "calls": 2280
+                  },
+                  {
+                    "id": "driftwood-isle",
+                    "samples": 120,
+                    "p95Ms": 1,
+                    "maxMs": 2.000000000003638,
+                    "calls": 1080
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "cpuLimitMs": 8.333333333333334,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            },
+            {
+              "pose": {
+                "name": "grid-deck-east",
+                "x": 277.5,
+                "y": 1.7,
+                "z": -40,
+                "yaw": 0,
+                "pitch": -0.08
+              },
+              "frames": 120,
+              "skipped": 0,
+              "medianFps": 30.303,
+              "p50Ms": 33,
+              "p95Ms": 34,
+              "p99Ms": 34,
+              "maxMs": 36,
+              "callbackP95Ms": 35,
+              "callbackP99Ms": 35,
+              "callbackMaxMs": 36,
+              "gameP95Ms": 34,
+              "workP95Ms": 4,
+              "calls": 41,
+              "triangles": 66116,
+              "position": {
+                "x": 277.4999916410586,
+                "y": 0.019911401576973686,
+                "z": -40.00000194855919
+              },
+              "cpu": {
+                "enabled": true,
+                "frames": 120,
+                "owners": [
+                  {
+                    "id": "platform.grid",
+                    "samples": 120,
+                    "p95Ms": 2,
+                    "maxMs": 3,
+                    "calls": 2280
+                  }
+                ]
+              },
+              "contextLost": false,
+              "floorFps": 30,
+              "medianFpsRounded": 30,
+              "strictMs": 33.3,
+              "limitMs": 35,
+              "cpuLimitMs": 8.333333333333334,
+              "cpuPass": true,
+              "pass": true,
+              "strictP95Pass": false,
+              "strictPass": false,
+              "miss": null
+            }
+          ],
+          "scenarios": [],
+          "lastRoute": null,
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "criteria": {
+    "medianFps": "Integer-rounded median >= 60 desktop / >= 30 Simulator; raw medianFps retained",
+    "p95Ms": "<= 17.5 desktop / <= 35.0 Simulator; 1.05 times the nominal frame period",
+    "strictP95Ms": "<= 16.7 desktop / <= 33.3 Simulator",
+    "cpu": "Each trusted content owner p95 <= one quarter frame: 4.167 ms desktop / 8.333 ms Simulator; shell and harness observers excluded"
+  }
+}
