@@ -69,7 +69,13 @@ async function connect(base) {
 }
 async function until(driver, expression, timeout = 240000, observe = () => Promise.resolve()) {
   const start = Date.now();
-  while (Date.now() - start < timeout) { await observe(); if (await driver.evaluate(expression)) return; await sleep(1000); }
+  while (Date.now() - start < timeout) {
+    await observe();
+    const failure = await driver.evaluate("document.querySelector('#wserr .msg')?.textContent ?? null");
+    if (failure) throw new Error(`Owned-shell load failed: ${failure}`);
+    if (await driver.evaluate(expression)) return;
+    await sleep(1000);
+  }
   throw new Error(`Safari condition timed out: ${expression}`);
 }
 async function worker() {
@@ -85,6 +91,7 @@ async function worker() {
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
   const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
   const glFile = join(out, `${name}-gl.jsonl`), glRows = [];
+  if (existsSync(glFile) || existsSync(nativeFile) || existsSync(join(out, `${name}.json`))) throw new Error('Soak evidence already exists; use a fresh output directory');
   writeFileSync(glFile, '');
   const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'WebContent phys_footprint + live labelled GL API allocations; GPU process separate', sha, layout, leg, device: udid, surface: 'iPhone 16 Pro Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
   let proxy, sampler, driver;
@@ -151,6 +158,7 @@ async function worker() {
       const plans = [...result.route.plans, ...(cycle === 0 ? result.route.coveragePlans ?? [] : [])];
       for (const plan of plans) {
         result.stage = plan.name;
+        writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
         console.log(JSON.stringify({ layout, cycle, route: plan.name, seconds: (Date.now() - driveStart) / 1000 }));
         const witness = await runFloorGridRoute(page, plan, result.documentOrigin);
         const failures = gridFloorWitnessFailures(witness);
@@ -239,7 +247,7 @@ function writeHelper(base, layout) {
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
-  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};`;
+  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installSoakGl.toString()})();${fixtures};`;
   writeFileSync(join(dist, 'sf57-safari.html'), html.replace('<head>', `<head><script>${pins}</script>`));
 }
 async function prepare() {
