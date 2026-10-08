@@ -38,6 +38,7 @@ const registry = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/regist
 const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/Heightfield.ts')).href);
 const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/BakedTerrain.ts')).href);
 const placement = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/forest/placement.ts')).href);
+const { bakesTerrain } = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/terrainBake.ts')).href);
 
 /** The undergrowth decision log for `def` planted on the grid in `gridBuf` — null for a shard that grows none (main.ts: no forest carpet at sea). */
 function placementSection(def, gridBuf) {
@@ -64,7 +65,9 @@ function placementSection(def, gridBuf) {
 
 const output = byteWriter(check, 'bake-chunk');
 for (const def of SHARDS) {
-  if (!def.ground.terrain || def.ground.structures) continue;
+  // one rule with the grid's edge reader (src/game/shard/terrainBake.ts): a structures world ships no bake, and the reader
+  // never fetches one for it (C4-R1-C13)
+  if (!bakesTerrain(def.ground)) continue;
     // the bake holds the authored (unshifted) heights: a field shifted at runtime (its `datum`, Driftwood's G164 drop)
     // installs this bake shifted by it (src/engine/world/Heightfield.ts)
     const terrain = def.ground.terrain, datum = terrain.datum ?? 0, authored = { heightAt: (x, z) => terrain.heightAt(x, z) - datum };

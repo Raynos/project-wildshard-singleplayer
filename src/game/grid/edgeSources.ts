@@ -4,8 +4,10 @@
  * generation. Everything comes from the shard's own declared data, never from a shard name written here:
  *
  * - **rows**: a shardfile shard's admitted `edge` rows; a legacy shard's committed terrain bake
- *   (`public/assets/baked/<slug>/terrain.bin`, the WSTR lattice), coloured by its own map palette's ground ramp, and the
- *   platform's neutral grey when it declares none.
+ *   (`public/assets/baked/<slug>/terrain.bin`, the WSTR lattice, only for the shards `bakesTerrain` names); a structures
+ *   world's own terrain heights, or, with no landscape at all (Sky Reach), a void at road level that the platform closes
+ *   with G99's road wall and guard rail; coloured by its own map palette's ground ramp, and the platform's neutral grey
+ *   when it declares none.
  * - **entries**: admitted shardfile midpoint declarations open their exact width; undeclared legacy edges stay closed.
  * - **water**: a shard's open water (its map's `openWater` level). Above the road (G91) the dike holds it; a sea at exactly 0
  *   is kept as 0 (C2-R3-B1), so its seabed edges get the shore rule's revetment (G134 / G149); below 0 none is reported.
@@ -17,12 +19,15 @@ import type { GridCell } from './assembly';
 import type { GridEdgeObservations, GridEdgeSource } from './edgeProfiles';
 import type { ShardEntryways } from '../shardfile/entryways';
 import { findShard } from '../shard/registry';
+import { bakesTerrain } from '../shard/terrainBake';
 
 type Rgb = [number, number, number];
 interface Row { heights: number[]; colours: Rgb[]; roadHeight: 0 }
 type Rows = Record<'north' | 'east' | 'south' | 'west', Row>;
 const SIDES = ['north', 'east', 'south', 'west'] as const;
 const NEUTRAL: Rgb = [0.25, 0.25, 0.25];
+/** An unbaked shard's rows are sampled on the bake's own lattice (the engine's TERRAIN_RES). */
+const LATTICE = 256;
 const srgbToLinear = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 const unit = (c: number): number => Math.max(0, Math.min(1, Number.isFinite(c) ? c : 0));
 
@@ -36,8 +41,8 @@ function bakeHeights(bytes: Uint8Array): { res: number; heights: Float32Array } 
 }
 
 /** The four native boundary rows of a lattice (north = +z; rows run west→east and south→north), coloured per vertex. */
-function latticeRows(res: number, heights: Float32Array, colour: (x: number, z: number, h: number, slope: number) => Rgb): Rows {
-  const step = 500 / (res - 1), at = (i: number, j: number): number => heights[Math.max(0, Math.min(res - 1, j)) * res + Math.max(0, Math.min(res - 1, i))] ?? 0;
+function latticeRows(res: number, height: (i: number, j: number) => number, colour: (x: number, z: number, h: number, slope: number) => Rgb): Rows {
+  const step = 500 / (res - 1), at = (i: number, j: number): number => height(Math.max(0, Math.min(res - 1, i)), Math.max(0, Math.min(res - 1, j)));
   const row = (side: typeof SIDES[number]): Row => {
     const out: Row = { heights: [], colours: [], roadHeight: 0 };
     for (let k = 0; k < res; k++) {
@@ -50,8 +55,8 @@ function latticeRows(res: number, heights: Float32Array, colour: (x: number, z: 
   return { north: row('north'), east: row('east'), south: row('south'), west: row('west') };
 }
 
-function observe(entries: ShardEntryways, water: number | undefined): GridEdgeObservations {
-  const edge = (side: typeof SIDES[number]): GridEdgeObservations['north'] => ({ entryWidth: entries.find(row => row.edge === side)?.width ?? 0, geometry: 'ground', ...(water === undefined || !Number.isFinite(water) || water < 0 ? {} : { waterSurface: water }) });
+function observe(entries: ShardEntryways, water: number | undefined, geometry: 'ground' | 'void' = 'ground'): GridEdgeObservations {
+  const edge = (side: typeof SIDES[number]): GridEdgeObservations['north'] => ({ entryWidth: entries.find(row => row.edge === side)?.width ?? 0, geometry, ...(water === undefined || !Number.isFinite(water) || water < 0 ? {} : { waterSurface: water }) });
   return { north: edge('north'), east: edge('east'), south: edge('south'), west: edge('west') };
 }
 
@@ -70,9 +75,6 @@ export async function readGridEdges(cell: GridCell, reader: GridEdgeReaderPorts)
     try { const source = lease.admitted.source; return { kind: 'declared', profiles: structuredClone(source.edge), observations: observe(source.entryways, water) }; }
     finally { lease.release?.(); }
   }
-  const response = await reader.fetch(versionedUrl(`/assets/baked/${cell.slug}/terrain.bin`));
-  if (!response.ok) throw new Error(`terrain.bin ${cell.slug}: ${String(response.status)}`);
-  const { res, heights } = bakeHeights(new Uint8Array(await response.arrayBuffer()));
   const palette = manifest?.minimap?.palette?.ground;
   const scratch: Rgb = [0, 0, 0];
   const colour = (x: number, z: number, h: number, slope: number): Rgb => {
@@ -83,6 +85,20 @@ export async function readGridEdges(cell: GridCell, reader: GridEdgeReaderPorts)
     }
     return [...NEUTRAL];
   };
-  const rows = latticeRows(res, heights, colour);
+  const ground = manifest?.ground;
+  // Only a terrain-only shard ships a bake (bakesTerrain, the baker's own rule); a structures world is read from its manifest,
+  // never fetched (C4-R1-C13: Sky Reach's never-committed terrain.bin 404'd and closed its edges at the fallback).
+  if (ground !== undefined && !bakesTerrain(ground)) {
+    const terrain = ground.terrain;
+    // no landscape at all (islands over the void): every edge is a void at road level, so the platform builds G99's road
+    // wall and guard rail along it; with a landscape under the structures, its own authored heights (the bake's datum rule)
+    if (terrain === undefined) return { kind: 'declared', profiles: latticeRows(LATTICE, () => 0, colour), observations: observe([], water, 'void') };
+    const datum = terrain.datum ?? 0, step = 500 / (LATTICE - 1);
+    return { kind: 'declared', profiles: latticeRows(LATTICE, (i, j) => terrain.heightAt(-250 + i * step, -250 + j * step) - datum, colour), observations: observe([], water) };
+  }
+  const response = await reader.fetch(versionedUrl(`/assets/baked/${cell.slug}/terrain.bin`));
+  if (!response.ok) throw new Error(`terrain.bin ${cell.slug}: ${String(response.status)}`);
+  const { res, heights } = bakeHeights(new Uint8Array(await response.arrayBuffer()));
+  const rows = latticeRows(res, (i, j) => heights[j * res + i] ?? 0, colour);
   return { kind: 'declared', profiles: rows, observations: observe([], water) };
 }
