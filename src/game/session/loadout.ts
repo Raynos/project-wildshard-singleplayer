@@ -21,8 +21,9 @@ import { listShardModels } from '@wildshard/engine/models/roster';
 import { LockOnSystem } from '@wildshard/engine/player/LockOnTarget';
 import { TouchControls } from '@wildshard/engine/player/TouchControls';
 import { HUD } from '@wildshard/engine/ui/HUD';
-import { onSettingChange, setting } from '@wildshard/engine/ui/Settings';
+import { setting } from '@wildshard/engine/ui/Settings';
 import { hudAdapters } from '@wildshard/engine/ui/hudAdapters';
+import { bindClockSettings } from './clockSettings';
 
 async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   const { kit, stage, boot, step, fieldModels, world, game, sky, player, forest, chunk, registry, nolock } = ctx;
@@ -45,7 +46,7 @@ async function buildLoadout(ctx: Awaited<ReturnType<typeof worldStage>>) {
   // The resident clock drives Settings, Explore light presets and the HUD day badge.
   const worldClock = dayNight ?? app.dayCycle;
   app.registerDayCycle(worldClock, game.levelScope);
-  if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
+  if (worldClock) bindClockSettings(worldClock, game.levelScope); // pause menu ▸ Settings ▸ Time of day (E55)
 
   // ── player kit: the shard's weapon + the rifle slot where the shard has one (EquipmentService.ts: 1…N / Q, the touch SWAP ring), HUD, audio ──
   const shardSword = (await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.sword?.() ?? null])))[1]; // the viewmodels' textures from the worker + the lever-action's model (usually long done) + the shard's own sword (ShardManifest.sword); the build below is synchronous
