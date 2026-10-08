@@ -38,13 +38,13 @@ function installDrawRetirement(renderer: UploadTarget, state: UploadState): void
     }
     return get(object);
   };
-  renderer.renderBufferDirect = (...args) => {
+  renderer.renderBufferDirect = (camera, scene, geometry, material, object, group) => {
     depth++; let complete = false;
-    try { draw(...args); complete = true; }
+    try { draw(camera, scene, geometry, material, object, group); complete = true; }
     finally {
       depth--;
       if (depth === 0) {
-        if (complete) for (const texture of bound) {
+        if (complete && bound.size > 0) for (const texture of bound) {
           const properties: unknown = get(texture);
           if (typeof properties === 'object' && properties !== null) retired.set(texture, Reflect.get(properties, '__webglTexture'));
           finalizeCompressedMipmaps(texture); state.final.delete(texture);

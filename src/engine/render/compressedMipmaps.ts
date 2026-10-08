@@ -11,14 +11,21 @@ export function compressedTextureKey(texture: Texture): string {
 
 const retained = new WeakSet<Texture>();
 const releasable = new WeakSet<Texture>();
-const retired = new WeakMap<Texture, { key: string; version: number; sourceVersion: number }>();
+const SAMPLER_FIELDS = ['wrapS', 'wrapT', 'wrapR', 'magFilter', 'minFilter', 'anisotropy', 'internalFormat',
+  'format', 'type', 'generateMipmaps', 'premultiplyAlpha', 'flipY', 'unpackAlignment', 'colorSpace'] as const;
+const retired = new WeakMap<Texture, { sampler: readonly unknown[]; version: number; sourceVersion: number }>();
 
 /** Fail before Three accesses released pixels after a sampler/storage/source mutation. */
 export function assertCompressedMipmapsUnchanged(texture: Texture): void {
   const previous = retired.get(texture);
-  if (previous !== undefined && (previous.key !== compressedTextureKey(texture) || previous.version !== texture.version || previous.sourceVersion !== texture.source.version)) {
-    throw new Error(`Compressed texture ${texture.name || texture.id} changed after mip retirement; configure its sampler before first draw`);
+  if (previous === undefined) return;
+  let changed = previous.version !== texture.version || previous.sourceVersion !== texture.source.version;
+  // Property access is a draw hot path: compare scalar fields without building arrays or keys.
+  for (let index = 0; !changed && index < SAMPLER_FIELDS.length; index++) {
+    const field = SAMPLER_FIELDS[index];
+    if (field !== undefined && Reflect.get(texture, field) !== previous.sampler[index]) changed = true;
   }
+  if (changed) throw new Error(`Compressed texture ${texture.name || texture.id} changed after mip retirement; configure its sampler before first draw`);
 }
 
 /** Register the loader's CPU-copy retirement, without making an early upload final. */
@@ -36,7 +43,7 @@ export function compressedMipmapsUploaded(texture: Texture): void {
 export function finalizeCompressedMipmaps(texture: Texture): void {
   retained.delete(texture);
   if (releasable.has(texture)) {
-    retired.set(texture, { key: compressedTextureKey(texture), version: texture.version, sourceVersion: texture.source.version });
+    retired.set(texture, { sampler: SAMPLER_FIELDS.map((field): unknown => Reflect.get(texture, field)), version: texture.version, sourceVersion: texture.source.version });
     texture.mipmaps = [];
   }
 }
