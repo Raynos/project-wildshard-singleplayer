@@ -1,3 +1,4 @@
+import { SIGNAL_DUNES_RUNTIME_COST } from './budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { AUDIO } from './data/audio';
@@ -12,5 +13,5 @@ const row = (side: keyof typeof SIGNAL_DUNES_EDGES): { heights: number[]; colour
   heights: [...SIGNAL_DUNES_EDGES[side].heights], colours: SIGNAL_DUNES_EDGES[side].colours.map(([r, g, b]): [number, number, number] => [r, g, b]), roadHeight: 0,
 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 }), accent: 'orchid', runtime: { entry: 'runtime/index.ts' }, audio: AUDIO,
+export default parseShardfile({ ...emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 }), accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST }, audio: AUDIO,
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

@@ -2,7 +2,7 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './strings';
 import { SEED, SPAWN, TOWER, TRAIL, PLAY_HALF } from './layout';
-import { BUDGETS } from './budgets';
+import { BUDGETS, SIGNAL_DUNES_RUNTIME_COST } from './budgets';
 import { DUSK_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources, lateReads } from './boot/files';
@@ -16,6 +16,9 @@ const eye = (x: number, z: number, lift = 1.6): [number, number, number] => [x, 
 const feet = (x: number, z: number): [number, number, number] => [x, ground(x, z), z];
 
 export const SUNSCAR_DUNES: ShardManifest = {
+  runtimeCost: SIGNAL_DUNES_RUNTIME_COST,
+  gridShardfile: '/shardfiles/sunscar-dunes/shard.json',
+  trustedRuntime: { get slug() { return SUNSCAR_DUNES.slug; }, entry: 'runtime/index.ts' },
   budgets: BUDGETS, api: 1, slug: 'sunscar-dunes', order: 50, status: 'experimental', name: STRINGS.name, label: '(+2, −1)', seed: SEED,
   accent: 'orchid', // G104: the HUD accent inside its grid cell
   biome: STRINGS.biome, blurb: STRINGS.blurb, 
