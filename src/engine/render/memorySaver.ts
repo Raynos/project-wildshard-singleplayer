@@ -1,8 +1,8 @@
 /**
- * SF22d (E435): the Memory saver, pause ▸ Settings ▸ Debug ▸ Loading & memory, default off, a reload. The engine's memory
+ * SF22d (E435): the Memory saver, pause ▸ Settings ▸ Debug ▸ Loading & memory, a reload. Defaults on in Developer (E451), off publicly. The engine's memory
  * cuts from the Pine Hollow / Driftwood breakdown (docs/design/mmo/research/e435/memory-pine-driftwood.md, `4ec64f071`)
- * that change no look, behind one row until a phone reading backs them (RENDERING.md: a risky memory change ships
- * default-off):
+ * that change no look. Saved picks override the Developer default; Developer off fences them off until a phone
+ * reading backs the public default (RENDERING.md). Jake’s Developer playtests supply that reading:
  *
  * 1. three.js's CPU copies go once they are on the GPU. A texture file's decoded image (loadTexture's ImageBitmap or
  *    <img>) is let go at its upload (`watchTexture`) and the image cache of `loadImage` lets go of it too (assets.ts);
@@ -199,7 +199,7 @@ function watchUploads(context: WebGL2RenderingContext): void {
 
 /**
  * The renderer's hooks: every texture is looked at when three first asks for its properties (before its upload), every
- * geometry when it first draws. Off (the row's default) nothing is installed.
+ * geometry when it first draws. When off (the public default), nothing is installed.
  */
 export function installMemorySaver(renderer: Renderer): void {
   if (!memorySaverOn()) return;

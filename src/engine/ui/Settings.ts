@@ -61,7 +61,12 @@ function load(savedStorage: Pick<Storage, 'getItem'>): { bools: Record<SettingKe
  *  page's life — the URL value wins until the player picks in the menu, and is never persisted on its own. A `boot` pick
  *  only changes what is saved: `value` stays what the page was built with until the reload. */
 class Choice<T extends string> {
-  value: T; stored: T;
+  private current: T | undefined;
+  private pick: T | undefined;
+  private readonly fallback: () => T;
+  get stored(): T { return this.pick ?? this.fallback(); }
+  get value(): T { return this.current ?? this.stored; }
+  get hasSavedPick(): boolean { return this.pick !== undefined; }
   /** the URL set `value` for this load */
   readonly fromUrl: boolean;
   readonly listeners = new Set<(v: T) => void>();
@@ -71,29 +76,37 @@ class Choice<T extends string> {
   readonly values: readonly T[];
   readonly boot: boolean;
   private readonly persist: () => void;
-  constructor(key: string, values: readonly T[], fallback: T, url: (q: URLSearchParams) => string | null, boot: boolean, ctx: { saved: Partial<Record<string, unknown>>; persist: () => void; search: () => string }) {
+  constructor(key: string, values: readonly T[], fallback: T | (() => T), url: (q: URLSearchParams) => string | null, boot: boolean, ctx: { saved: Partial<Record<string, unknown>>; persist: () => void; search: () => string }) {
     this.key = key; this.values = values; this.boot = boot; this.persist = ctx.persist;
-    this.stored = this.valid(ctx.saved[key]) ?? fallback;
+    this.fallback = typeof fallback === 'function' ? fallback : () => fallback;
+    this.pick = this.valid(ctx.saved[key]);
     let u: T | undefined;
     try { u = this.valid(url(new URLSearchParams(ctx.search()))); } catch { u = undefined; }
     this.fromUrl = u !== undefined;
-    this.value = u ?? this.stored;
+    this.current = u ?? (boot ? this.stored : undefined);
   }
   valid(v: unknown): T | undefined { return this.values.find((x) => x === v); }
   set(v: T): void {
     if (this.valid(v) === undefined) return;
     if (this.boot) {
-      if (this.stored === v) return;
-      this.stored = v;
+      if (this.stored === v && this.hasSavedPick) return;
+      const changed = this.stored !== v;
+      this.pick = v;
       this.persist();
-      this.listeners.forEach((fn) => fn(v));
+      if (changed) this.listeners.forEach((fn) => fn(v));
       return;
     }
-    if (this.value === v && this.stored === v) return;
+    if (this.value === v && this.stored === v && this.hasSavedPick) return;
     const changed = this.value !== v;
-    this.value = v; this.stored = v;
+    this.current = v; this.pick = v;
     this.persist();
     if (changed) this.listeners.forEach((fn) => fn(v));
+  }
+  override(v: T | null): void {
+    if (this.boot) return;
+    const previous = this.value;
+    this.current = v ?? undefined;
+    if (previous !== this.value) this.listeners.forEach((fn) => fn(this.value));
   }
   on(fn: (v: T) => void): () => void { this.listeners.add(fn); const off = (): void => { this.listeners.delete(fn); }; onOwnerDispose(off); return off; }
 }
@@ -110,7 +123,7 @@ export const OPTION_VALUES = {
   // the saved settings
   tex: ['auto', 'ktx2', 'img'],
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
-  // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
+  // The first value is the public default; OPTION_SPECS may supply a Developer default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload
   graphMaterials: ['off', 'on'],                       // SF59: shardfile graph materials compile through the lazy TSL back-end (src/game/shardfile/clientGraphs.ts); off = their family presets — a reload
 } as const;
@@ -121,7 +134,7 @@ export const BOOT_OPTIONS: readonly OptionKey[] = ['tier', 'touch'];
 /** a debug-menu-only option (E162): no URL override; its default is its first value */
 const DEBUG_ONLY = { def: null, params: [], url: (): null => null } as const;
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
-const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
+const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; developerDefault?: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
   tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
@@ -129,11 +142,11 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
   tex: { def: 'auto', params: [], url: () => null },
   
-  memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY,
+  memorySaver: { ...DEBUG_ONLY, developerDefault: 'on' }, graphMaterials: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 /** Diagnostic choices are ignored by the public build; their saved picks remain available in Developer mode. */
-export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps'];
+export const DEVELOPER_OPTIONS: readonly OptionKey[] = ['time', 'weather', 'fps', 'memorySaver'];
 
 /** the URL params that override option `k` */
 export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
@@ -181,10 +194,15 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const ctx = { saved, persist: (): void => { writer.persist(); }, search };
   // Music style is a player preference; SFX comparison stays in the registry. Neither has a URL override (E162).
   const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', () => null, false, ctx);
+  const defaultOption = <K extends OptionKey>(k: K, inDeveloper = developer.enabled()): OptionValue<K> => {
+    const spec = OPTION_SPECS[k];
+    const value = (inDeveloper ? spec.developerDefault : undefined) ?? spec.def ?? OPTION_VALUES[k][0];
+    if (value === undefined) throw new Error(`Settings: option ${k} has no default`);
+    return value;
+  };
   const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => {
     const values: readonly OptionValue<K>[] = OPTION_VALUES[k];
-    const def = OPTION_SPECS[k].def ?? values[0];
-    if (def === undefined) throw new Error(`Settings: option ${k} has no values`);
+    const def = (): OptionValue<K> => defaultOption(k);
     return new Choice<OptionValue<K>>(k, values, def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k), ctx);
   };
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
@@ -197,15 +215,16 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   };
   const persist = (): void => {
     const picks: Partial<Record<string, string>> = {};
-    for (const k of OPTION_KEYS) picks[k] = options[k].stored;
+    for (const k of OPTION_KEYS) {
+      // A mode-dependent default must not become an override when an unrelated preference is saved.
+      if (OPTION_SPECS[k].developerDefault === undefined || options[k].hasSavedPick) picks[k] = options[k].stored;
+    }
     try { savedStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, ...picks })); } catch { /* not persisted this session */ }
   };
   writer.persist = persist;
   const readOption = <K extends OptionKey>(key: K): OptionValue<K> => {
     if (developer.enabled() || !DEVELOPER_OPTIONS.includes(key) || options[key].fromUrl) return options[key].value;
-    const initial = OPTION_SPECS[key].def ?? OPTION_VALUES[key][0];
-    if (initial === undefined) throw new Error(`Settings: option ${key} has no default`);
-    return initial;
+    return defaultOption(key, false);
   };
   const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();
   const numListeners = new Map<NumberKey, Set<(v: number) => void>>();
@@ -229,12 +248,7 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
     },
     /** a live option's value for this page only, never saved; `null` returns it to the saved pick */
     overrideSetting: <K extends OptionKey>(k: K, v: OptionValue<K> | null): void => {
-      const o = options[k];
-      if (o.boot) return;
-      const next = v ?? o.stored;
-      if (o.value === next) return;
-      o.value = next;
-      o.listeners.forEach((fn) => fn(next));
+      options[k].override(v);
     },
     onSettingChange: <K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): (() => void) => {
       const off = options[k].on((value) => { fn(!developer.enabled() && DEVELOPER_OPTIONS.includes(k) && !options[k].fromUrl ? readOption(k) : value); });
