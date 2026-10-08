@@ -42,9 +42,21 @@ export function installLoadingGlJournal() {
   window.__sf57GLEvents = JSON.parse(sessionStorage.getItem(key) ?? '[]');
   sessionStorage.removeItem(key);
   let sequence = 0;
+  // Optional short entry diagnostics keep storage calls, including same-sized uploads.
+  // The exact state journal below still coalesces unchanged allocations. Overflow is explicit.
+  const uploadKey = 'sf57.uploads', previousUploads = JSON.parse(sessionStorage.getItem(uploadKey) ?? '{"rows":[],"overflow":0}');
+  sessionStorage.removeItem(uploadKey);
+  window.__sf57GLUploads = previousUploads.rows; window.__sf57UploadOverflow = previousUploads.overflow;
+  let uploadSequence = 0;
   // Renderer draw hooks repeat labels each frame. Keep exact state changes, not those unchanged assertions.
   const labels = new Map(), allocations = new Map();
   const push = row => {
+    if (window.__sf57TraceUploads === true && row.op === 'allocation' && typeof row.bytes === 'number'
+      && ['bufferData', 'texImage2D', 'texImage3D', 'copyTexImage2D', 'compressedTexImage2D',
+        'compressedTexImage3D', 'texStorage2D', 'texStorage3D', 'generateMipmap', 'renderbufferStorage', 'renderbufferStorageMultisample'].includes(row.operation)) {
+      if (window.__sf57GLUploads.length < 10000) window.__sf57GLUploads.push({ ...row, document: documentId, uploadSequence: uploadSequence++ });
+      else window.__sf57UploadOverflow++;
+    }
     if (row.op === 'label') {
       const previous = labels.get(row.id);
       if (previous?.owner === row.owner && previous.asset === row.asset) return;
@@ -78,6 +90,9 @@ export function installLoadingGlJournal() {
     if (window.__sc_gl_change !== push) return;
     push({ op: 'end', at: Date.now() / 1000 }); window.__sc_gl_change = null;
     sessionStorage.setItem(key, JSON.stringify(window.__sf57GLEvents));
+    if (window.__sf57TraceUploads === true) sessionStorage.setItem(uploadKey, JSON.stringify({
+      rows: window.__sf57GLUploads.slice(-1000), overflow: window.__sf57UploadOverflow + Math.max(0, window.__sf57GLUploads.length - 1000),
+    }));
   }, { once: true });
 }
 

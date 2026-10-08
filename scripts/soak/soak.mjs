@@ -98,9 +98,11 @@ async function worker() {
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
   const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
   const glFile = join(out, `${name}-gl.jsonl`), glRows = [], glEvents = [], glEventsFile = join(out, `${name}-gl-events.jsonl`);
+  const uploadsFile = join(out, `${name}-gl-uploads.jsonl`);
   if (existsSync(glFile) || existsSync(glEventsFile) || existsSync(nativeFile) || existsSync(join(out, `${name}.json`))) throw new Error('Soak evidence already exists; use a fresh output directory');
   writeFileSync(glFile, '');
   writeFileSync(glEventsFile, '');
+  writeFileSync(uploadsFile, '');
   const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'Playing: fixed game WebContent PID physical footprint / per-sample interval high + live labelled GL. Loading: conservative all-WebContent overlap + GL. Phase maxima remain separate summary; all-WebContent and GPU process also printed separately.', sha, layout, leg, device: udid, surface: 'portrait iPhone Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
   if (diagnosticFirstCrossing) result.purpose = 'DIAGNOSTIC FIRST CROSSING: intentionally shorter than five minutes; never qualifies';
   let proxy, sampler, driver;
@@ -109,8 +111,10 @@ async function worker() {
   const collectGl = async () => {
     if (!driver) return;
     // Drain both journals in one protocol response so a boot process swap cannot lose a drained half.
-    const { rows, events, errors, diagnostics } = await driver.evaluate('({rows:window.__sf57GL?.splice(0) ?? [],events:window.__sf57GLEvents?.splice(0) ?? [],errors:window.__sf57Errors ?? [],diagnostics:window.__sf57Diagnostics ?? []})');
+    const { rows, events, errors, diagnostics, uploads, overflow } = await driver.evaluate('({rows:window.__sf57GL?.splice(0) ?? [],events:window.__sf57GLEvents?.splice(0) ?? [],errors:window.__sf57Errors ?? [],diagnostics:window.__sf57Diagnostics ?? [],uploads:window.__sf57GLUploads?.splice(0) ?? [],overflow:window.__sf57UploadOverflow ?? 0})');
     result.diagnostics = diagnostics;
+    result.uploadOverflow = Math.max(result.uploadOverflow ?? 0, overflow);
+    for (const row of uploads) appendFileSync(uploadsFile, `${JSON.stringify(row)}\n`);
     for (const row of events) {
       glEvents.push(row); appendFileSync(glEventsFile, `${JSON.stringify(row)}\n`);
     }
@@ -262,6 +266,7 @@ async function worker() {
   result.nativeSummary = native.find((row) => row.type === 'summary');
   result.glFile = glFile; result.glSamples = glRows.length; result.nativeFile = nativeFile; result.sampleCount = samples.length;
   result.glEventsFile = glEventsFile; result.glEvents = glEvents.length;
+  result.uploadsFile = uploadsFile;
   writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
   console.log(JSON.stringify({ layout, ...result.grade, failure: result.failure }));
 }
@@ -272,9 +277,10 @@ async function drivePrepared(manifest) {
   while (!existsSync(join(out, 'GO'))) await sleep(1000);
   const policy = soakRunPolicy(manifest.dryRun === true, contentCut);
   if (manifest.diagnosticFirstCrossing === true && (!policy.dryRun || manifest.rehearsal === false)) throw new Error('First-crossing diagnostics require a nonqualifying dry run');
+  if (manifest.device !== undefined && (typeof manifest.device !== 'string' || !/^sf57-sp-x3-[a-z0-9-]+$/u.test(manifest.device))) throw new Error('Invalid owned diagnostic device');
   for (const { layout, base } of bases) {
     for (const leg of manifest.legs ?? ['cells', 'road']) {
-      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), `sf57-sp-x3-${layout}-${process.pid}`, process.execPath, import.meta.filename,
+      await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), manifest.device ?? `sf57-sp-x3-${layout}-${process.pid}`, process.execPath, import.meta.filename,
         '--worker', ...(policy.dryRun ? ['--dry-run'] : []), ...(manifest.diagnosticFirstCrossing === true ? ['--diagnostic-first-crossing'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, `--route-scope=${routeScope}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
     }
   }
@@ -284,14 +290,14 @@ async function closePreviews(bases) {
   await releaseSoakPreviews(bases, async base => { await run(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port]); },
     process.argv.includes('--borrowed-preview'));
 }
-function writeHelper(base, layout) {
+function writeHelper(base, layout, traceUploads = false) {
   const record = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
   const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8')
     .replaceAll(/<script data-sf57-fixture>[\s\S]*?<\/script>/gu, '');
   const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' })].join(';');
-  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();(${installSoakDiagnostics.toString()})();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();${fixtures};`;
+  const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.__sf57TraceUploads=${traceUploads};(${installSoakDiagnostics.toString()})();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();${fixtures};`;
   const helper = html.replace('<head>', `<head><script data-sf57-fixture>${pins}</script>`);
   // The ordinary main-menu action can return to index.html before any measurement begins.
   writeFileSync(join(dist, 'index.html'), helper);
@@ -319,7 +325,7 @@ async function prepare() {
       const version = await (await fetch(`${base}version.json`)).json();
       if (!JSON.stringify(version).includes(sha.slice(0, 7))) throw new Error('Preview pin mismatch');
       bases.push({ layout, base, version });
-      writeHelper(base, layout);
+      writeHelper(base, layout, manifest.diagnosticFirstCrossing === true);
     }
     writeFileSync(join(out, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
     console.log(`PREPARED ${join(out, 'manifest.json')} — waiting for coordinator quiet; touch ${join(out, 'GO')} only after go`);
@@ -334,7 +340,7 @@ else if (flag('prepared')) {
   try {
     for (const { base, version, layout } of manifest.bases) {
       if (JSON.stringify(await (await fetch(`${base}version.json`)).json()) !== JSON.stringify(version)) throw new Error('Prepared preview changed');
-      writeHelper(base, layout);
+      writeHelper(base, layout, manifest.diagnosticFirstCrossing === true);
     }
     console.log(`PREPARED (reused) ${flag('prepared')} — waiting for GO`);
     await drivePrepared(manifest);

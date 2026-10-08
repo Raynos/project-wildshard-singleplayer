@@ -81,6 +81,26 @@ void test('SF57 journal survives boot navigation and records explicit playing cy
   } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
 });
 
+void test('SF57 optional upload trace counts same-sized calls, bounds blocked queues and records navigation truncation', () => {
+  const oldWindow = globalThis.window, oldStorage = globalThis.sessionStorage, storage = new Map();
+  let hide;
+  try {
+    globalThis.sessionStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { storage.set(key, value); }, removeItem: key => { storage.delete(key); } };
+    const page = (id, trace) => ({ __sf57DocumentId: id, __sf57TraceUploads: trace, addEventListener: (_name, listener) => { hide = listener; } });
+    globalThis.window = page('first', true); installLoadingGlJournal();
+    const row = { op: 'allocation', operation: 'bufferData', kind: 'buffer', id: 'buffer:1', bytes: 64, at: 1 };
+    for (let index = 0; index < 10001; index++) window.__sc_gl_change(row);
+    assert.equal(window.__sf57GLEvents.length, 2, 'Exact state journal still coalesces unchanged storage');
+    assert.equal(window.__sf57GLUploads.length, 10000); assert.equal(window.__sf57UploadOverflow, 1);
+    hide(); globalThis.window = page('second', true); installLoadingGlJournal();
+    assert.equal(window.__sf57GLUploads.length, 1000); assert.equal(window.__sf57UploadOverflow, 9001);
+    assert.equal(window.__sf57GLUploads[0].document, 'first');
+    assert.equal(window.__sf57GLUploads[0].uploadSequence, 9000);
+    window.__sf57GLUploads.splice(0); window.__sf57TraceUploads = false;
+    window.__sc_gl_change(row); assert.equal(window.__sf57GLUploads.length, 0, 'Ordinary soak does not collect storage-call traces');
+  } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
+});
+
 void test('SF57 preserves labelled GL allocations, reconciliation and allocator telemetry each second', () => {
   const oldWindow = globalThis.window, oldInterval = globalThis.setInterval;
   let tick, lost;
