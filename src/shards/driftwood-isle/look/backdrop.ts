@@ -148,6 +148,18 @@ class DriftwoodSky {
   }
 }
 
+/** the PMREM cube size of the dome's environment: a 336 × 256 half-float cube-UV atlas */
+const ENV_SIZE = 64;
+/**
+ * The GPU bytes of one of PMREM's cube-UV atlases at ENV_SIZE (three's PMREMGenerator: 3·max(size, 112) × 4·size, RGBA
+ * half float); `depth`: the environment target `fromScene` renders with a depth buffer (counted at 4 bytes a texel, its
+ * widest format), the generator's ping-pong has none.
+ */
+function envTargetBytes(depth: boolean): number {
+  const texels = 3 * Math.max(ENV_SIZE, 16 * 7) * 4 * ENV_SIZE;
+  return texels * 8 + (depth ? texels * 4 : 0);
+}
+
 /** the sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
 const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
 
@@ -157,12 +169,17 @@ export const STYLIZED_BACKDROP: SkyBackdropFactory = async ({ sky, scene, render
   const st = new StylizedSky(sky.sunDir).build();
   scene.add(st.dome);
   scene.background = null;
+  // One owner for the environment (SF57): this backdrop holds its PMREM generator (whose ping-pong target is a second
+  // cube-UV atlas) and the one live environment target, and frees both when it leaves. A grid region builds this backdrop
+  // as a layer each time Driftwood is admitted (G223); without a dispose every visit left both behind (+1.72 MB a circuit).
   let pmrem: THREE.PMREMGenerator | null = null;
   let envRT: THREE.WebGLRenderTarget | null = null;
+  let disposed = false;
   /** re-render the dome into the PMREM environment (the clock calls it when the sky has moved on; ~1 ms of GPU) */
   const refreshEnvironment = (): void => {
+    if (disposed) return;
     pmrem ??= new THREE.PMREMGenerator(renderer);
-    const rt = pmrem.fromScene(st.envScene, 0, 1, 3000, { size: 64 });
+    const rt = pmrem.fromScene(st.envScene, 0, 1, 3000, { size: ENV_SIZE });
     envRT?.dispose();
     envRT = rt;
     scene.environment = rt.texture;
@@ -196,5 +213,15 @@ export const STYLIZED_BACKDROP: SkyBackdropFactory = async ({ sky, scene, render
     update: (dt) => { clock?.update(dt); st.update(dt); toonUniforms.uCloudTime.value += dt; },
     rebuild: () => { pmrem = null; envRT = null; refreshEnvironment(); }, // a fresh generator: the old one's targets belong to the lost context
     attachPost: () => undefined, // the clean chain: no post the clock turns
+    dispose: () => {
+      if (disposed) return;
+      disposed = true;
+      if (envRT !== null && scene.environment === envRT.texture) scene.environment = null;
+      envRT?.dispose(); envRT = null;
+      pmrem?.dispose(); pmrem = null; // its ping-pong target, blur and GGX passes
+    },
+    gpuBytes: () => (envRT === null ? 0 : envTargetBytes(true)) + (pmrem === null ? 0 : envTargetBytes(false)),
+    // a refresh holds the new target beside the old one for a moment, with the generator's ping-pong
+    gpuCeiling: () => 2 * envTargetBytes(true) + envTargetBytes(false),
   };
 };
