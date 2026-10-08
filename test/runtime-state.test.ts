@@ -52,7 +52,7 @@ describe('runtime-owned declared state', () => {
       expect(ammo.read()).toBe(3);
       expect(() => installRuntimeState(store, scope, data, 'pine-hollow', 'unknown', () => null)).toThrow('host-owned');
       const fields = structuredClone(data.state.shared); for (const field of fields) field.privacy = 'public';
-      const publicState = parseShardfile({ ...data, state: { ...data.state, shared: fields } });
+      const publicState = { ...data, state: { ...data.state, shared: fields } }; // Deliberately bypass full admission to test the installer fence too.
       expect(() => withoutRuntimeRows(publicState)).toThrow('host-owned');
       expect(() => installRuntimeState(store, scope, publicState, 'pine-hollow', 'lodge.board', () => null)).toThrow('host-owned');
     } finally { scope.dispose(); }

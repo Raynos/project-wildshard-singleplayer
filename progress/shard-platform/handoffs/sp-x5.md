@@ -3,7 +3,7 @@
 SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
 Never message wildshard-v. The matched Simulator Safari cohort is complete and all owned resources are released.
 
-## SF70 format — current landing
+## SF70 format — landed36c03f7ba
 
 Ranged / bow / thrown item context profiles are strict declared data. Optional
 items.runtimeContexts references already registered contexts only when runtime.binds
@@ -23,9 +23,28 @@ The source lands with hooks, current-HEAD private index and old-value CAS.
 Only own hunks are included, especially the10-line ENGINE manual addition; foreign
 ENGINE appendix and runtime-state work remain untouched. Coordinator owns pushes.
 
-Next queued format task: runtime-state composition/docs/full-schema tests after
-sp-x4 sends its defining SHA through the coordinator. No runtimeState/hybridRows/
-runtimeBinds edits are owned here. No browser, Simulator, preview or build held.
+## Runtime-state format —245591848 composition
+
+The sole RuntimeSchema already admits state through runtime.binds; no parallel
+runtime.state payload. Full schema now refuses bound player/public/owner fields,
+matching the existing installer fence: only host-owned shared fields, with ordinary
+stable IDs, typed defaults, bounds, capacity and4096-character strings. Unbound
+simulation state remains unchanged. SHARDFILE.md documents all5 sections, scoped
+bindRuntimeState, stable placement ids, per-field legacy initialization, migrations,
+invalid-value/disposed/future fences and save-result handling.
+
+21 focused tests in3 files and root strict /root-config oxlint /ratchet pass.
+Clean245591848 plus own patch, committed5876 linker, pnpm gen before checks.
+Heavy-lane full:937 files,5379 passed/14 skipped, only stale AG7 failed
+(game->engine757->759 from the landed port). Per coordinator policy, regenerated
+only the export graph and reran arch-guards:111/111 pass in40.48s. Full-source
+run188.96s; no generated working-tree edit or full requeue for unchanged source. Only schema/docs/full-schema fixtures plus one
+runtime-state test hunk (typed invalid source bypasses full admission to test the
+low-level defense) are owned here. No runtimeState/hybridRows/runtimeBinds edits,
+new graph edges/debt, generated files, rendering or map-hash changes.
+Current-HEAD private index/hooks/old-value CAS required; coordinator pushes.
+No browser, Simulator, preview or build is held. Safari CPU attribution remains
+blocked below; no new graphics work or protocol experiment is queued.
 
 ## Landed source
 

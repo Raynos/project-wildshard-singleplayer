@@ -579,8 +579,8 @@ compositor, whose trusted registry matches both shard slug and entry. Content ca
 select an import URL. Neighbours retain data without running trusted play hooks;
 entering a cell installs those hooks in its child scope and leaving disposes them.
 The trusted compositor may explicitly request `trustedRuntime` for a first-party
-runtime declaration. Optional `runtime.binds` is a unique array of at most four
-section names: `"quests"`, `"ledger"`, `"items"`, `"spawns"`. Omitted or `[]` means none; unknown
+runtime declaration. Optional `runtime.binds` is a unique array of at most five
+section names: `"quests"`, `"ledger"`, `"items"`, `"spawns"`, `"state"`. Omitted or `[]` means none; unknown
 names, duplicates, null and unknown runtime keys are refused. The defining
 `RuntimeBindsSchema` is composed by `RuntimeSchema` at the full schema's `runtime`
 slot; it is not a second permissive format or a source-code hook.
@@ -599,6 +599,14 @@ be unique across both arrays. Unknown fields and non-data values are refused.
 These rows place the trusted runtime's registered species and looks; their brains,
 rigs and encounter logic remain runtime-owned. They do not create local-simulation
 `creatures` rows or grant trust to a product.
+
+`runtime.binds: ["state"]` binds the existing top-level `state` declaration; there
+is no separate `runtime.state` payload. Full admission requires an empty `state.player`
+array and `privacy: "host"` on every shared field. Empty shared state is valid.
+The normal state schema still checks unique stable IDs and names, typed defaults,
+finite numeric bounds and capacity. String values (including serialized JSON) are
+bounded at 4096 characters; JSON is opaque text, never an author callback. Ordinary
+unbound state keeps its existing public/player ownership rules.
 
 Every bound section remains ordinary declared data and passes its full schema,
 reference and budget checks before binding. The admitted source retains those rows.
@@ -627,6 +635,16 @@ The trusted runtime explicitly calls the game-owned installers in
   boss retries use the declared stable identity; standalone spawns keep their
   ordinary identity allocation. Bodies retire with the play scope. Row admission
   does not run either installer or register species.
+- `state`: `bindRuntimeState(ctx, source, key, legacyRead, instance=source.identity.slug)`
+  binds a declared host-owned shared field by name. Grid callers pass the stable
+  placement instance. Its `read()` / `write(value)` use `platform.runtime-state`,
+  with the same typed/default/bounds checks and stable-ID data migrations as declared
+  logical state. Initialization is tracked per field: the trusted legacy reader
+  supplies its initial value once, with the declared default when it returns null.
+  Invalid initial values are refused before marking that field initialized. Writes
+  return the save result;
+  disposed owners and future-version saves are fenced. Bound state stays in the
+  admitted source and is removed only from the data client's installation view.
 
 `binds` grants no runtime trust or automatic installation. The registered first-party
 entry must still match the same slug and entry exactly, and a runtime cannot bind a

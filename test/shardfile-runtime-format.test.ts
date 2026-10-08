@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { parseShardfile } from '../src/game/shardfile/schema';
+import { parseShardfile, shardfileRules } from '../src/game/shardfile/schema';
 import { admitProduct, type ProductOptions } from '../src/game/shardfile/product';
 import { emptyShardfileSource, installShardfileProduct, shardfileSource } from '../src/game/shardfile/loader';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';
@@ -26,7 +26,7 @@ it('defaults runtime to null and admits only a bounded relative TypeScript entry
 it('admits only the unique bounded runtime-owned section names through the full shardfile schema', () => {
   const source = empty(), entry = 'runtime/index.ts';
   expect(parseShardfile({ ...source, runtime: { entry } }).runtime?.binds).toBeUndefined();
-  for (const binds of [[], ['quests'], ['ledger', 'items'], ['quests', 'ledger', 'items']]) {
+  for (const binds of [[], ['quests'], ['ledger', 'items'], ['quests', 'ledger', 'items'], ['state']]) {
     expect(parseShardfile({ ...source, runtime: { entry, binds } }).runtime?.binds).toEqual(binds);
   }
   for (const binds of [['quests', 'quests'], ['world'], ['quests', 'ledger', 'items', 'spawns', 'quests'], null, 'quests']) {
@@ -36,9 +36,44 @@ it('admits only the unique bounded runtime-owned section names through the full 
   expect(() => parseShardfile({ ...source, runtime: { entry, binds: ['quests'], install: 'quests' } })).toThrow();
 });
 
+it('admits runtime-bound state through the ordinary state schema with its bounded scalar defaults', () => {
+  const source = empty(), state = { ...source.state, shared: [
+    { id: 1, name: 'runtime.ready', type: 'bool', privacy: 'host', default: false },
+    { id: 2, name: 'ammo.rounds', type: 'i32', privacy: 'host', default: 4, min: 0, max: 100 },
+    { id: 3, name: 'runtime.progress', type: 'f64', privacy: 'host', default: 0.5, min: 0, max: 1 },
+    { id: 4, name: 'lodge.board', type: 'string', privacy: 'host', default: '{}' },
+  ] };
+  const runtime = { entry: 'runtime/index.ts', binds: ['state'] };
+  const admit = (input: unknown) => parseShardfile({ ...source, runtime, state: input });
+  expect(admit(state).state).toEqual(state);
+  expect(admit(source.state).runtime?.binds).toEqual(['state']);
+  const text = { id: 4, name: 'lodge.board', type: 'string', privacy: 'host', default: 'x'.repeat(4096) };
+  expect(admit({ ...state, shared: [text] }).state.shared[0]?.default).toBe(text.default);
+  for (const field of [{ ...text, default: 'x'.repeat(4097) }, { ...text, default: () => '{}' },
+    { ...text, min: 0 }, { ...text, id: 0 }, { ...text, id: 0x80000000 },
+    { ...text, type: 'i32', default: 1.5 }, { ...text, type: 'bool', default: 1 },
+    { ...text, type: 'f64', default: Infinity }, { ...text, type: 'f64', default: 2, min: 0, max: 1 }]) {
+    expect(() => admit({ ...state, shared: [field] })).toThrow();
+  }
+  expect(() => admit({ ...state, shared: [text, text] })).toThrow();
+  expect(() => parseShardfile({ ...source, runtime: { ...runtime, state } })).toThrow();
+});
+
+it('refuses simulation-owned fields at full admission only when runtime binds state', () => {
+  const source = empty(), field = { id: 1, name: 'runtime.memo', type: 'string', privacy: 'host', default: '{}' };
+  const runtime = { entry: 'runtime/index.ts', binds: ['state'] };
+  for (const state of [{ ...source.state, shared: [{ ...field, privacy: 'public' }] },
+    { ...source.state, shared: [{ ...field, privacy: 'owner' }] }, { ...source.state, player: [field] }]) {
+    const unbound = parseShardfile({ ...source, state });
+    expect(unbound.state).toEqual(state);
+    expect(shardfileRules({ ...unbound, runtime: { entry: runtime.entry, binds: ['state'] } })).toContain('runtime-bound state supports only host-owned shared fields');
+    expect(() => parseShardfile({ ...source, runtime, state })).toThrow('shardfile semantic rules');
+  }
+});
+
 it('admits runtime spawn rows exactly when the full schema declares their binding', () => {
   const source = empty(), entry = 'runtime/index.ts', spawns = { homes: [], bosses: [] };
-  for (const binds of [['spawns'], ['quests', 'ledger', 'items', 'spawns']]) {
+  for (const binds of [['spawns'], ['quests', 'ledger', 'items', 'spawns'], ['quests', 'ledger', 'items', 'spawns', 'state']]) {
     const runtime = { entry, binds, spawns };
     expect(parseShardfile({ ...source, runtime }).runtime).toEqual(runtime);
     expect(() => parseShardfile({ ...source, runtime: { entry, binds } })).toThrow('runtime spawns');
@@ -93,7 +128,7 @@ it('keeps runtime-bound quest rows under ordinary format validation before any b
 });
 
 it('refuses external runtime declarations before fetching or publishing, including cached declarations', async () => {
-  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'ledger', 'items', 'spawns'], spawns: { homes: [], bosses: [] } };
+  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: { homes: [], bosses: [] } };
   let published = false;
   const cache = { product: () => Promise.resolve({ source, firstParty: true }), asset: () => Promise.resolve(null),
     putAsset: () => Promise.resolve(), putProduct: () => { published = true; return Promise.resolve(); } };
@@ -113,7 +148,8 @@ it('requires explicit hybrid composition while exposing the admitted first-party
 });
 
 it('makes only explicitly trusted empty hybrid data stages no-ops, preserving the exact legacy service census', async () => {
-  const source = empty(); source.runtime = { entry: 'runtime/index.ts' };
+  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['state'] };
+  source.state.shared.push({ id: 1, name: 'runtime.memo', type: 'string', privacy: 'host', default: '{}' });
   const data = await shardfileSource(source, options, { ...bindings, trustedRuntime: true }), loaded = await data.load?.();
   if (loaded === undefined) throw new Error('Missing admitted data plugin');
   const app = new App(), scope = app.engineScope.child('empty-hybrid'), installation = createLevelInstallation(app, scope, {}, () => ({ set: () => undefined, detail: () => undefined }));
