@@ -8,6 +8,19 @@ import { progressSave } from '../../../src/game/saves';
 import { DRIFTWOOD_QUEST, QUEST_DONE } from '../../../src/shards/driftwood-isle/quest/questLine';
 import source from '../../../src/shards/driftwood-isle/shard.config';
 import { DRIFTWOOD_RUNTIME_COST } from '../../../src/shards/driftwood-isle/data/runtimeCost';
+import { DRIFTWOOD_ISLE } from '../../../src/shards/driftwood-isle/manifest';
+
+it('discovers the home through the same exact trusted entry as a fresh owned regional admission', async () => {
+  expect(DRIFTWOOD_ISLE.gridShardfile).toBe('/shardfiles/driftwood-isle/shard.json');
+  expect(DRIFTWOOD_ISLE.trustedRuntime).toEqual({ slug: source.identity.slug, entry: source.runtime?.entry });
+  const load = DRIFTWOOD_ISLE.load;
+  if (load === undefined) throw new Error('Missing ordinary lazy loader');
+  const loaded = await load(), resolve = loaded.resolveTrustedRuntime;
+  if (resolve === undefined) throw new Error('Missing admitted runtime resolver');
+  expect(resolve('runtime/hybrid.ts')).toBe((await import('../../../src/shards/driftwood-isle/runtime/hybrid')).default);
+  expect(resolve('runtime/hybrid.ts')).not.toBe(loaded.default);
+  expect(() => resolve('runtime/index.ts')).toThrow('Unknown trusted runtime entry');
+});
 
 it('declares the trusted entry and uses one completed quest and achievement save in standalone and the placed grid cell', () => {
   expect(source.runtime).toEqual({ entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST });

@@ -115,6 +115,8 @@ export const PRACTICE_CRAB = { x: -7, z: -143 };
 /** the boar variants the island rolls (E318): the common four, never Pine Hollow's Scarback or Old Ironhide (whose drop is a gun) */
 
 export const DRIFTWOOD_ISLE: ShardManifest = {
+  gridShardfile: '/shardfiles/driftwood-isle/shard.json',
+  trustedRuntime: { get slug() { return DRIFTWOOD_ISLE.slug; }, entry: 'runtime/hybrid.ts' },
   runtimeCost: DRIFTWOOD_RUNTIME_COST,
   // Migrated verbatim from parity’s camera table; omitted y keeps the existing ground/land placement.
   dev: { poses: () => Promise.resolve(Object.fromEntries([{name:'pier',x:0,z:-194,yaw:Math.PI,pitch:0},{name:'beach',x:-10,z:-150,yaw:4.3,pitch:0},{name:'wreck',x:105,z:0,yaw:-Math.PI/2,pitch:0}].map((probe) => [probe.name, {

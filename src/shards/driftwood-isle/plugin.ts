@@ -1,9 +1,16 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import RuntimePlugin from './runtime/index';
+import HybridRuntimePlugin from './runtime/hybrid';
 
 /** Compatibility fixture adapter delegates unchanged hooks to the declared trusted entry. */
 export class DriftwoodPlugin extends RuntimePlugin {}
+
+/** Resolve the admitted regional entry after the ordinary lazy plugin import; standalone still uses its default. */
+export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
+  if (entry !== 'runtime/hybrid.ts') throw new Error('Unknown trusted runtime entry');
+  return HybridRuntimePlugin;
+}
 
 /** Driftwood's only boot (SF46, G112 / G172): admit the shardfile, then run the trusted world, loadout and adventure. */
 class DriftwoodHybrid extends ShardPlugin {
