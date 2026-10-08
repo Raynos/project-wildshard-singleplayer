@@ -25,7 +25,7 @@ function channels(source: NativeLatticeSource): [string, NativeLatticeAttribute]
   if (!nativeResolution(source.resolution) || source.positions.length !== vertices * 3 || !(source.positions instanceof Float32Array || source.positions instanceof Float64Array)
     || !(source.indices instanceof Uint32Array) || source.indices.length % 3 !== 0 || source.indices.length > (source.resolution - 1) ** 2 * 6 || source.indices.some(i => i >= vertices)) throw new Error('Native lattice requires its bounded original 256/257 mesh');
   if (source.positions.some(value => !Number.isFinite(value) || Math.abs(value) > HALF)) throw new Error('Native lattice outside finite cell bounds');
-  const entries = Object.entries(source.attributes).sort(([a], [b]) => a.localeCompare(b));
+  const entries = Object.entries(source.attributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
   if (entries.length > 16 || entries.reduce((n, [, channel]) => n + channel.itemSize, 0) > 64) throw new Error('Native lattice attribute cap');
   for (const [name, channel] of entries) {
     if (!/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(name) || name === 'position' || !Number.isInteger(channel.itemSize) || channel.itemSize < 1 || channel.itemSize > 4

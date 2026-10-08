@@ -31,7 +31,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       if (a.itemSize !== width || a.count !== p.count) throw new Error('Mismatched GLB attributes');
       attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, `VEC${width}`, false, key === 'position');
     }
-    const custom = Object.entries(customAttributes).sort(([a], [b]) => a.localeCompare(b));
+    const custom = Object.entries(customAttributes).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
     if (custom.length > 16) throw new Error('GLB custom attribute cap');
     for (const [semantic, channel] of custom) {
       if (!/^_[A-Z][A-Z0-9_]{0,63}$/.test(semantic) || !geometry.hasAttribute(channel)) throw new Error(`Invalid GLB custom attribute ${semantic}`);
