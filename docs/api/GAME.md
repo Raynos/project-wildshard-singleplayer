@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-667 members; 112 without a doc line (—).
+673 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -631,8 +631,14 @@ The game layer's public modules (src/game/package.json `exports`).
 | `UI_DECLARATIONS_MAX` | const | @wildshard/game/shardfile/ui | The most declarations one shardfile's `ui` section may hold. |
 | `uiRules` | function | @wildshard/game/shardfile/ui | Reference rules: unique ids, counters read a declared numeric field, one boss panel per encounter, one relabel per disc, one spec per bag tab. |
 | `UiSchema` | const | @wildshard/game/shardfile/ui | The declared UI kinds of shardfile v0: plain data the platform draws in its own HUD style and slots. |
+| `acceptValidatedCost` | function | @wildshard/game/shardfile/validate | Reapply the current trusted memory policy to a previously validated exact declaration. |
 | `preflightDeclaredCosts` | function | @wildshard/game/shardfile/validate | Check declared residency before immutable reads; exact parsed headers are checked again on admission. |
 | `validateShardfileAssets` | function | @wildshard/game/shardfile/validate | Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated. |
+| `builtValidationReceipt` | function | @wildshard/game/shardfile/validationReceipt | Only the client build's own validated first-party catalogue can skip a first asset-header validation. |
+| `readValidationReceipt` | function | @wildshard/game/shardfile/validationReceipt | Cache metadata is trusted local storage, but stale or malformed verdicts are never accepted. |
+| `ValidationReceipt` | interface | @wildshard/game/shardfile/validationReceipt | Build-owned verdict. It is never read from authored shardfile data or a network sidecar. |
+| `validationRevision` | function | @wildshard/game/shardfile/validationReceipt | The build hashes the engine/game validator sources; unbundled clients always validate in full. |
+| `validationSourceBytes` | function | @wildshard/game/shardfile/validationReceipt | Sorted JSON makes the build and browser hash exactly the same admitted declaration. |
 | `SHARDFILE_PREVIOUS_VERSION` | const | @wildshard/game/shardfile/version | Explicit previous wire form; only visited first-party offline caches may use its bounded trusted reader. |
 | `SHARDFILE_VERSION` | const | @wildshard/game/shardfile/version | Canonical format/script-ABI wire revision. The format stays 0.x; every breaking revision migrates first-party data. |
 | `shardfileRevision` | function | @wildshard/game/shardfile/version | Parse the decimal revision as a safe integer, never as a floating-point version (0.10 follows 0.9). |

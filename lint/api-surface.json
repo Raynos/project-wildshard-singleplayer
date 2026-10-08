@@ -17196,6 +17196,12 @@
         "from": "@wildshard/game/shardfile/ui"
       },
       {
+        "name": "acceptValidatedCost",
+        "kind": "function",
+        "doc": "Reapply the current trusted memory policy to a previously validated exact declaration.",
+        "from": "@wildshard/game/shardfile/validate"
+      },
+      {
         "name": "preflightDeclaredCosts",
         "kind": "function",
         "doc": "Check declared residency before immutable reads; exact parsed headers are checked again on admission.",
@@ -17206,6 +17212,36 @@
         "kind": "function",
         "doc": "Admit exact bytes, graph closure, script growth and worst-location residency before a runtime is allocated.",
         "from": "@wildshard/game/shardfile/validate"
+      },
+      {
+        "name": "builtValidationReceipt",
+        "kind": "function",
+        "doc": "Only the client build's own validated first-party catalogue can skip a first asset-header validation.",
+        "from": "@wildshard/game/shardfile/validationReceipt"
+      },
+      {
+        "name": "readValidationReceipt",
+        "kind": "function",
+        "doc": "Cache metadata is trusted local storage, but stale or malformed verdicts are never accepted.",
+        "from": "@wildshard/game/shardfile/validationReceipt"
+      },
+      {
+        "name": "ValidationReceipt",
+        "kind": "interface",
+        "doc": "Build-owned verdict. It is never read from authored shardfile data or a network sidecar.",
+        "from": "@wildshard/game/shardfile/validationReceipt"
+      },
+      {
+        "name": "validationRevision",
+        "kind": "function",
+        "doc": "The build hashes the engine/game validator sources; unbundled clients always validate in full.",
+        "from": "@wildshard/game/shardfile/validationReceipt"
+      },
+      {
+        "name": "validationSourceBytes",
+        "kind": "function",
+        "doc": "Sorted JSON makes the build and browser hash exactly the same admitted declaration.",
+        "from": "@wildshard/game/shardfile/validationReceipt"
       },
       {
         "name": "SHARDFILE_PREVIOUS_VERSION",

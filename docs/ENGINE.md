@@ -2254,7 +2254,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-667 exports, grouped by the module to import them from.
+673 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2371,7 +2371,8 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/game/shardfile/terrain`: `ShardTerrain`, `TerrainSchema`, `validateTerrainAssets`
 - `@wildshard/game/shardfile/traversal`: `parseTraversal`, `ShardTraversal`, `TraversalSchema`
 - `@wildshard/game/shardfile/ui`: `ShardUi`, `ShardUiDeclaration`, `UI_DECLARATIONS_MAX`, `uiRules`, `UiSchema`
-- `@wildshard/game/shardfile/validate`: `preflightDeclaredCosts`, `validateShardfileAssets`
+- `@wildshard/game/shardfile/validate`: `acceptValidatedCost`, `preflightDeclaredCosts`, `validateShardfileAssets`
+- `@wildshard/game/shardfile/validationReceipt`: `builtValidationReceipt`, `readValidationReceipt`, `ValidationReceipt`, `validationRevision`, `validationSourceBytes`
 - `@wildshard/game/shardfile/version`: `SHARDFILE_PREVIOUS_VERSION`, `SHARDFILE_VERSION`, `shardfileRevision`
 - `@wildshard/game/shardfile/water`: `shardfileWater`, `ShardWater`, `WaterSchema`
 - `@wildshard/game/travel/travel`: `applyTravelCarry`, `bindTravelInventory`, `consumeTravelHandoff`, `travel`, `TravelHandoff`, `TravelRequest`, `travelService`, `travelSlot`, `TravelSource`
