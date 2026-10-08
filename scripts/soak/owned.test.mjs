@@ -2,10 +2,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews, soakRouteScope, loadingGlSamples, soakBootPoll } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
+
+void test('SF57 first-crossing diagnostics cannot run as a full or qualifying soak', () => {
+  for (const flags of [[], ['--qualifying'], ['--dry-run', '--qualifying']]) {
+    const child = spawnSync(process.execPath, ['scripts/soak/soak.mjs', '--worker', '--diagnostic-first-crossing', ...flags],
+      { encoding: 'utf8', env: { ...process.env, SIM_UDID: 'not-a-real-device' } });
+    assert.equal(child.status, 1); assert.match(child.stderr, /First-crossing diagnostics require a nonqualifying dry run/u);
+  }
+});
 
 void test('SF57 reconciles same-millisecond census cuts by exact sequence, never by a guessed ordering', () => {
   const events = [{ at: 0, op: 'begin' }, { at: 1, op: 'cycle', cycle: 0 },

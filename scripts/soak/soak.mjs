@@ -90,6 +90,8 @@ async function worker() {
   const name = `${layout}-${leg}`;
   const contentCut = flag('content-cut-data') === '' ? null : parseSoakContentCut(JSON.parse(flag('content-cut-data')));
   const policy = soakRunPolicy(process.argv.includes('--dry-run'), contentCut);
+  const diagnosticFirstCrossing = process.argv.includes('--diagnostic-first-crossing');
+  if (diagnosticFirstCrossing && (!policy.dryRun || process.argv.includes('--qualifying'))) throw new Error('First-crossing diagnostics require a nonqualifying dry run');
   const rehearsal = policy.dryRun || !process.argv.includes('--qualifying');
   const routeScope = soakRouteScope(flag('route-scope', 'catalogue'), process.argv.includes('--qualifying'));
   const duration = policy.seconds;
@@ -100,6 +102,7 @@ async function worker() {
   writeFileSync(glFile, '');
   writeFileSync(glEventsFile, '');
   const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'Playing: fixed game WebContent PID physical footprint / per-sample interval high + live labelled GL. Loading: conservative all-WebContent overlap + GL. Phase maxima remain separate summary; all-WebContent and GPU process also printed separately.', sha, layout, leg, device: udid, surface: 'portrait iPhone Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
+  if (diagnosticFirstCrossing) result.purpose = 'DIAGNOSTIC FIRST CROSSING: intentionally shorter than five minutes; never qualifies';
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
   let lastResidents = [];
@@ -186,6 +189,7 @@ async function worker() {
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         result.seconds = (Date.now() - driveStart) / 1000;
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
+        if (diagnosticFirstCrossing) { complete = true; break; }
         // Finish the fenced leg; a completed last leg still receives its lap count and settled baseline below.
         if (result.seconds >= duration && plan !== plans.at(-1)) { complete = true; break; }
       }
@@ -261,10 +265,11 @@ async function drivePrepared(manifest) {
   const contentCut = manifest.contentCut === null || manifest.contentCut === undefined ? null : parseSoakContentCut(manifest.contentCut);
   while (!existsSync(join(out, 'GO'))) await sleep(1000);
   const policy = soakRunPolicy(manifest.dryRun === true, contentCut);
+  if (manifest.diagnosticFirstCrossing === true && (!policy.dryRun || manifest.rehearsal === false)) throw new Error('First-crossing diagnostics require a nonqualifying dry run');
   for (const { layout, base } of bases) {
     for (const leg of manifest.legs ?? ['cells', 'road']) {
       await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), `sf57-sp-x3-${layout}-${process.pid}`, process.execPath, import.meta.filename,
-        '--worker', ...(policy.dryRun ? ['--dry-run'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, `--route-scope=${routeScope}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
+        '--worker', ...(policy.dryRun ? ['--dry-run'] : []), ...(manifest.diagnosticFirstCrossing === true ? ['--diagnostic-first-crossing'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, `--route-scope=${routeScope}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
     }
   }
   console.log(`SF57 DONE ${out}`);
