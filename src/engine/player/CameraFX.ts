@@ -13,8 +13,8 @@ import { worldTime } from '../core/time';
  *   • SHAKE — `addTrauma(0..1)` when the player is hit: a trauma² shake (yaw / pitch / roll from smooth sines), trauma
  *     decaying at TRAUMA_DECAY / s, so a small hit is a shiver and a big one a jolt.
  *
- * All of it runs on `worldTime.realDt` — it keeps moving through a hit-stop. One instance per game (`CameraFX.for(game)`
- * registers its own `game.onUpdate`, so create it after bootstrap: its updater then runs after Player.update). If
+ * All of it runs on `worldTime.realDt` — it keeps moving through a hit-stop. One instance per physical camera (`CameraFX.for(game)`
+ * registers its own player-lifetime updater, so create it after bootstrap: its updater then runs after Player.update). If
  * nothing rewrote the camera since the last frame (the tour camera, a paused player), the previous frame's offset is
  * taken back first, so offsets never accumulate. No allocations per frame.
  */
@@ -27,10 +27,19 @@ const SHAKE_YAW = 0.035, SHAKE_PITCH = 0.03, SHAKE_ROLL = 0.05; // rad at trauma
 const DEG = Math.PI / 180;
 
 export class CameraFX {
-  private static byGame = new WeakMap<Game, CameraFX>();
+  private static byCamera = new WeakMap<THREE.PerspectiveCamera, CameraFX>();
   static for(game: Game): CameraFX {
-    let fx = CameraFX.byGame.get(game);
-    if (fx === undefined) { fx = new CameraFX(game.camera); CameraFX.byGame.set(game, fx); const f = fx; game.onUpdate((_dt, t) => { f.update(t); }, 'engine.player.for'); }
+    const camera = game.camera;
+    let fx = CameraFX.byCamera.get(camera);
+    if (fx === undefined) {
+      const scope = game.playerScope;
+      if (scope.disposed) throw new Error('Cannot bind camera effects after the player lifetime');
+      fx = new CameraFX(camera);
+      const bound = fx;
+      game.onPlayerUpdate((_dt, t) => { bound.update(t); }, 'engine.player.for');
+      CameraFX.byCamera.set(camera, bound);
+      scope.onDispose(() => { if (CameraFX.byCamera.get(camera) === bound) CameraFX.byCamera.delete(camera); });
+    }
     return fx;
   }
 

@@ -134,6 +134,8 @@ export class Game {
   // Every entry is a GameSystem (src/engine/core/faults.ts, E133): called inside its own try/catch, switched off if it keeps throwing.
   readonly engineScope = app.engineScope.child('game');
   readonly levelScope = currentOwner() ?? new Scope('level');
+  /** Original player/camera lifetime; scoped world facades cannot replace it with a regional lifetime. */
+  readonly playerScope = this.levelScope;
   get tier(): Tier { return TIER; }
   private ownership: SceneOwnership | null = null;
   private readonly uploads = new UploadOwnership(this.levelScope, app.assets);
@@ -577,9 +579,12 @@ export class Game {
     if (content) this.app.addContentSystem({ id, phase, run: fn, core }, scope);
     else this.app.addSystem({ id, phase, run: fn, core }, scope);
     this.faultSystems.set(id, makeSystem(fn, id, core, id));
-    scope.onDispose(() => { this.faultSystems.delete(id); });
+    const faults = this.faultSystems;
+    scope.onDispose(() => { faults.delete(id); });
   }
   onUpdate(fn: (dt: number, t: number) => void, label?: string, core = false): void { this.register('update', fn, label, core); }
+  /** One player-owned callback survives world-frame changes and ends with the original player scope. */
+  onPlayerUpdate(fn: (dt: number, t: number) => void, label: string): void { this.register('update', fn, label, false, this.playerScope, false); }
   /** E357 F2: a temporary harness observer of simulation frames, removed when its walk finishes. */
   watchFrames(fn: (dt: number) => void): () => void {
     const scope = this.levelScope.child('observer');
