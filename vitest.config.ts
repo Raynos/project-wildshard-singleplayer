@@ -20,11 +20,11 @@ export default defineConfig({
     // 2026-10-03: under coverage on the CI runner, tests that parse every shard (gen-shards AG10, gen-budget-derivations)
     // ran past vitest's 5 s default and failed main's runs one after another (each passes in ~2 s locally); 20 s is the floor
     testTimeout: 20_000,
-    include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts', 'drafts/test/**/*.test.ts'], // API tests live outside api/ so Vercel does not deploy them as functions.
     environment: 'node',
     // These real subprocess/worker proofs keep their deadlines, after the main pool has drained.
     projects: [
-      { extends: true, test: { name: 'unit', exclude: HEAVY_INTEGRATION_TESTS, sequence: { groupOrder: 0 } } },
+      // Vite merges inherited arrays by concatenation: keep include out of the parent or integration runs all files.
+      { extends: true, test: { name: 'unit', include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts', 'drafts/test/**/*.test.ts'], exclude: HEAVY_INTEGRATION_TESTS, sequence: { groupOrder: 0 } } },
       { extends: true, test: { name: 'integration', include: HEAVY_INTEGRATION_TESTS, fileParallelism: false, sequence: { groupOrder: 1 } } },
     ],
     // Actor and engine contracts stay in Node. Only the legacy sword viewmodel opts into happy-dom via its header.
