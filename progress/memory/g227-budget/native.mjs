@@ -102,7 +102,7 @@ try {
   if (!home || !directNalati) throw new Error('Missing home/Nalati catalogue cell');
   const plans = routeMode.startsWith('nalati') ? [{name:'nalati-direct',from:home.instance,to:directNalati.instance,
     start:{x:230,z:0},waypoints:[{x:directNalati.cell[0]*555-230,z:directNalati.cell[1]*555}],requiredResidents:[directNalati.instance]}]
-    : gridFloorPlans(state, 'runtime-travel');
+    : routeMode === 'pine-centre' ? gridFloorPlans(state, 'runtime-travel').slice(0, 1) : gridFloorPlans(state, 'runtime-travel');
   for (const plan of plans) {
     report.stage = 'route:' + plan.name; writeFileSync(phaseFile, report.stage); save();
     report.routes.push(await runFloorGridRoute(page, plan, documentOrigin));
@@ -132,7 +132,7 @@ try {
   };
   if (routeMode === 'nalati-centre-heap') {
     await heapAt('nalati-grasslands-centre');
-  } else {
+  } else if (routeMode !== 'pine-centre') {
   // A real-input road-only counterfactual, far beyond the former source's retained ring.
   // It measures the page/platform/cache remainder after owned runtime retirement, not hidden meshes.
   const nalati = state.cells.find(cell => cell.slug === 'nalati-grasslands');
