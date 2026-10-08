@@ -1,0 +1,2343 @@
+{
+  "protocol": "3 valid cold Simulator runs per side; every attempt and failure recorded. Alternating before/after. Memory saver ON; settled native.mjs nalati-route only; fixed PID and fresh independent timestamps; no SF57 journal or heap snapshot. Native saving credited only from valid medians with spread; not physical phone caps.",
+  "before": "96c90a1373f5fa93d61cba12b067f6d97d218696",
+  "after": "0690fca6aba45cbed6303d9cf1dc68c46fcc1a5e",
+  "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+  "attemptCounts": {
+    "before": {
+      "valid": 3,
+      "failed": 1
+    },
+    "after": {
+      "valid": 3,
+      "failed": 0
+    }
+  },
+  "summary": {
+    "home-settled": {
+      "before": {
+        "webContentBytes": {
+          "runs": [
+            562794144,
+            508235328,
+            534990424
+          ],
+          "median": 534990424,
+          "min": 508235328,
+          "max": 562794144,
+          "spread": 54558816
+        },
+        "glBytes": {
+          "runs": [
+            180446095,
+            180446095,
+            180446095
+          ],
+          "median": 180446095,
+          "min": 180446095,
+          "max": 180446095,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            743240239,
+            688681423,
+            715436519
+          ],
+          "median": 715436519,
+          "min": 688681423,
+          "max": 743240239,
+          "spread": 54558816
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "runs": [
+            492867088,
+            523275840,
+            547556976
+          ],
+          "median": 523275840,
+          "min": 492867088,
+          "max": 547556976,
+          "spread": 54689888
+        },
+        "glBytes": {
+          "runs": [
+            180446095,
+            180446095,
+            180446095
+          ],
+          "median": 180446095,
+          "min": 180446095,
+          "max": 180446095,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            673313183,
+            703721935,
+            728003071
+          ],
+          "median": 703721935,
+          "min": 673313183,
+          "max": 728003071,
+          "spread": 54689888
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": -11714584,
+        "glBytes": 0,
+        "sumBytes": -11714584
+      }
+    },
+    "nalati-grasslands-entry": {
+      "before": {
+        "webContentBytes": {
+          "runs": [
+            762416968,
+            720686896,
+            739086104
+          ],
+          "median": 739086104,
+          "min": 720686896,
+          "max": 762416968,
+          "spread": 41730072
+        },
+        "glBytes": {
+          "runs": [
+            280657784,
+            280657784,
+            280657784
+          ],
+          "median": 280657784,
+          "min": 280657784,
+          "max": 280657784,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            1043074752,
+            1001344680,
+            1019743888
+          ],
+          "median": 1019743888,
+          "min": 1001344680,
+          "max": 1043074752,
+          "spread": 41730072
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "runs": [
+            752275176,
+            765415144,
+            842551016
+          ],
+          "median": 765415144,
+          "min": 752275176,
+          "max": 842551016,
+          "spread": 90275840
+        },
+        "glBytes": {
+          "runs": [
+            280657784,
+            280657784,
+            280657784
+          ],
+          "median": 280657784,
+          "min": 280657784,
+          "max": 280657784,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            1032932960,
+            1046072928,
+            1123208800
+          ],
+          "median": 1046072928,
+          "min": 1032932960,
+          "max": 1123208800,
+          "spread": 90275840
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": 26329040,
+        "glBytes": 0,
+        "sumBytes": 26329040
+      }
+    },
+    "nalati-grasslands-centre": {
+      "before": {
+        "webContentBytes": {
+          "runs": [
+            822284128,
+            802164528,
+            823332632
+          ],
+          "median": 822284128,
+          "min": 802164528,
+          "max": 823332632,
+          "spread": 21168104
+        },
+        "glBytes": {
+          "runs": [
+            277163956,
+            277163956,
+            277163956
+          ],
+          "median": 277163956,
+          "min": 277163956,
+          "max": 277163956,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            1099448084,
+            1079328484,
+            1100496588
+          ],
+          "median": 1099448084,
+          "min": 1079328484,
+          "max": 1100496588,
+          "spread": 21168104
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "runs": [
+            851627752,
+            817385192,
+            855756520
+          ],
+          "median": 851627752,
+          "min": 817385192,
+          "max": 855756520,
+          "spread": 38371328
+        },
+        "glBytes": {
+          "runs": [
+            277163956,
+            277163956,
+            277163956
+          ],
+          "median": 277163956,
+          "min": 277163956,
+          "max": 277163956,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            1128791708,
+            1094549148,
+            1132920476
+          ],
+          "median": 1128791708,
+          "min": 1094549148,
+          "max": 1132920476,
+          "spread": 38371328
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": 29343624,
+        "glBytes": 0,
+        "sumBytes": 29343624
+      }
+    },
+    "neutral-road": {
+      "before": {
+        "webContentBytes": {
+          "runs": [
+            830246800,
+            811306848,
+            830000968
+          ],
+          "median": 830000968,
+          "min": 811306848,
+          "max": 830246800,
+          "spread": 18939952
+        },
+        "glBytes": {
+          "runs": [
+            103199526,
+            103199526,
+            103199526
+          ],
+          "median": 103199526,
+          "min": 103199526,
+          "max": 103199526,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            933446326,
+            914506374,
+            933200494
+          ],
+          "median": 933200494,
+          "min": 914506374,
+          "max": 933446326,
+          "spread": 18939952
+        }
+      },
+      "after": {
+        "webContentBytes": {
+          "runs": [
+            859623192,
+            827739952,
+            864014152
+          ],
+          "median": 859623192,
+          "min": 827739952,
+          "max": 864014152,
+          "spread": 36274200
+        },
+        "glBytes": {
+          "runs": [
+            103199526,
+            103199526,
+            103199526
+          ],
+          "median": 103199526,
+          "min": 103199526,
+          "max": 103199526,
+          "spread": 0
+        },
+        "sumBytes": {
+          "runs": [
+            962822718,
+            930939478,
+            967213678
+          ],
+          "median": 962822718,
+          "min": 930939478,
+          "max": 967213678,
+          "spread": 36274200
+        }
+      },
+      "afterMinusBeforeMedian": {
+        "webContentBytes": 29622224,
+        "glBytes": 0,
+        "sumBytes": 29622224
+      }
+    }
+  },
+  "attempts": [
+    {
+      "side": "before",
+      "number": 1,
+      "startedUtc": "2026-10-08T12:24:35.843467+00:00",
+      "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-1.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-1.log",
+      "version": {
+        "build": "96c90a1-muzfanj0",
+        "time": "2026-10-08T10:58:11.760Z"
+      },
+      "status": "failed",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4403/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-1.json",
+        "/private/tmp/wildshard-serve/20261008-055735-4403/dist",
+        "nalati-route",
+        "on"
+      ],
+      "exitCode": 1,
+      "finishedUtc": "2026-10-08T12:24:44.325230+00:00",
+      "failures": [
+        "owned command exit 1",
+        "no report produced"
+      ]
+    },
+    {
+      "side": "before",
+      "number": 2,
+      "startedUtc": "2026-10-08T12:25:17.928980+00:00",
+      "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-2.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-2.log",
+      "version": {
+        "build": "96c90a1-muzfanj0",
+        "time": "2026-10-08T10:58:11.760Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4403/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-2.json",
+        "/private/tmp/wildshard-serve/20261008-055735-4403/dist",
+        "nalati-route",
+        "on"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T12:28:38.820176+00:00",
+      "rawSha256": "9fee86868614d938f904b11f56646331eec77a7c7a53b2e10e6c22359ce7aa0d",
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 562794144,
+          "glBytes": 180446095,
+          "sumBytes": 743240239,
+          "sampleTimestamps": [
+            "2026-10-08T12:25:56.521715+00:00",
+            "2026-10-08T12:25:57.574976+00:00",
+            "2026-10-08T12:25:58.749134+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 762416968,
+          "glBytes": 280657784,
+          "sumBytes": 1043074752,
+          "sampleTimestamps": [
+            "2026-10-08T12:26:22.383571+00:00",
+            "2026-10-08T12:26:23.410178+00:00",
+            "2026-10-08T12:26:24.561947+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 822284128,
+          "glBytes": 277163956,
+          "sumBytes": 1099448084,
+          "sampleTimestamps": [
+            "2026-10-08T12:26:53.393981+00:00",
+            "2026-10-08T12:26:54.533330+00:00",
+            "2026-10-08T12:26:55.658651+00:00"
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 830246800,
+          "glBytes": 103199526,
+          "sumBytes": 933446326,
+          "sampleTimestamps": [
+            "2026-10-08T12:28:25.642778+00:00",
+            "2026-10-08T12:28:26.682545+00:00",
+            "2026-10-08T12:28:27.842520+00:00"
+          ]
+        }
+      ],
+      "gamePID": 16375,
+      "failureStage": "neutral-road",
+      "sampler": {
+        "pid": 16579,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-2.json.sampler.log"
+      },
+      "failures": []
+    },
+    {
+      "side": "after",
+      "number": 1,
+      "startedUtc": "2026-10-08T12:28:54.274384+00:00",
+      "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-1.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-1.log",
+      "version": {
+        "build": "0690fca-muzfb0il",
+        "time": "2026-10-08T10:58:28.280Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4408/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-1.json",
+        "/private/tmp/wildshard-serve/20261008-055735-4408/dist",
+        "nalati-route",
+        "on"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T12:32:17.501540+00:00",
+      "rawSha256": "25fcb96be3f9f14e02b3fc61fdd46bcb64c96b2dfe702496d2dcec0a6363edcf",
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 492867088,
+          "glBytes": 180446095,
+          "sumBytes": 673313183,
+          "sampleTimestamps": [
+            "2026-10-08T12:29:34.991717+00:00",
+            "2026-10-08T12:29:36.196662+00:00",
+            "2026-10-08T12:29:37.296614+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 752275176,
+          "glBytes": 280657784,
+          "sumBytes": 1032932960,
+          "sampleTimestamps": [
+            "2026-10-08T12:30:00.983112+00:00",
+            "2026-10-08T12:30:02.115650+00:00",
+            "2026-10-08T12:30:03.141326+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 851627752,
+          "glBytes": 277163956,
+          "sumBytes": 1128791708,
+          "sampleTimestamps": [
+            "2026-10-08T12:30:31.974442+00:00",
+            "2026-10-08T12:30:33.125588+00:00",
+            "2026-10-08T12:30:34.260274+00:00"
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 859623192,
+          "glBytes": 103199526,
+          "sumBytes": 962822718,
+          "sampleTimestamps": [
+            "2026-10-08T12:32:03.886435+00:00",
+            "2026-10-08T12:32:04.968184+00:00",
+            "2026-10-08T12:32:06.099906+00:00"
+          ]
+        }
+      ],
+      "gamePID": 33273,
+      "failureStage": "neutral-road",
+      "sampler": {
+        "pid": 33531,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-1.json.sampler.log"
+      },
+      "failures": []
+    },
+    {
+      "side": "before",
+      "number": 3,
+      "startedUtc": "2026-10-08T12:32:52.083077+00:00",
+      "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-3.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-3.log",
+      "version": {
+        "build": "96c90a1-muzfanj0",
+        "time": "2026-10-08T10:58:11.760Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4403/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-3.json",
+        "/private/tmp/wildshard-serve/20261008-055735-4403/dist",
+        "nalati-route",
+        "on"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T12:36:15.529814+00:00",
+      "rawSha256": "b225f3bf2adf5dfba01d8ed05aa95fa040ef06976fe72e41e4ad6e6a80ea3fa4",
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 508235328,
+          "glBytes": 180446095,
+          "sumBytes": 688681423,
+          "sampleTimestamps": [
+            "2026-10-08T12:33:34.033720+00:00",
+            "2026-10-08T12:33:35.187583+00:00",
+            "2026-10-08T12:33:36.237676+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 720686896,
+          "glBytes": 280657784,
+          "sumBytes": 1001344680,
+          "sampleTimestamps": [
+            "2026-10-08T12:33:59.830122+00:00",
+            "2026-10-08T12:34:00.989100+00:00",
+            "2026-10-08T12:34:02.026863+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 802164528,
+          "glBytes": 277163956,
+          "sumBytes": 1079328484,
+          "sampleTimestamps": [
+            "2026-10-08T12:34:30.576595+00:00",
+            "2026-10-08T12:34:31.726839+00:00",
+            "2026-10-08T12:34:32.782870+00:00"
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 811306848,
+          "glBytes": 103199526,
+          "sumBytes": 914506374,
+          "sampleTimestamps": [
+            "2026-10-08T12:36:02.289989+00:00",
+            "2026-10-08T12:36:03.466232+00:00",
+            "2026-10-08T12:36:04.534180+00:00"
+          ]
+        }
+      ],
+      "gamePID": 46623,
+      "failureStage": "neutral-road",
+      "sampler": {
+        "pid": 46639,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-3.json.sampler.log"
+      },
+      "failures": []
+    },
+    {
+      "side": "after",
+      "number": 2,
+      "startedUtc": "2026-10-08T12:36:42.877982+00:00",
+      "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-2.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-2.log",
+      "version": {
+        "build": "0690fca-muzfb0il",
+        "time": "2026-10-08T10:58:28.280Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4408/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-2.json",
+        "/private/tmp/wildshard-serve/20261008-055735-4408/dist",
+        "nalati-route",
+        "on"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T12:40:02.398721+00:00",
+      "rawSha256": "25365f916e876342391fd22acc7de8dc666d39aee34e3fb194059888fd023690",
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 523275840,
+          "glBytes": 180446095,
+          "sumBytes": 703721935,
+          "sampleTimestamps": [
+            "2026-10-08T12:37:21.438102+00:00",
+            "2026-10-08T12:37:22.599711+00:00",
+            "2026-10-08T12:37:23.663873+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 765415144,
+          "glBytes": 280657784,
+          "sumBytes": 1046072928,
+          "sampleTimestamps": [
+            "2026-10-08T12:37:46.707373+00:00",
+            "2026-10-08T12:37:47.766912+00:00",
+            "2026-10-08T12:37:48.916409+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 817385192,
+          "glBytes": 277163956,
+          "sumBytes": 1094549148,
+          "sampleTimestamps": [
+            "2026-10-08T12:38:17.579605+00:00",
+            "2026-10-08T12:38:18.647803+00:00",
+            "2026-10-08T12:38:19.825260+00:00"
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 827739952,
+          "glBytes": 103199526,
+          "sumBytes": 930939478,
+          "sampleTimestamps": [
+            "2026-10-08T12:39:49.296945+00:00",
+            "2026-10-08T12:39:50.357089+00:00",
+            "2026-10-08T12:39:51.522094+00:00"
+          ]
+        }
+      ],
+      "gamePID": 58270,
+      "failureStage": "neutral-road",
+      "sampler": {
+        "pid": 58485,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-2.json.sampler.log"
+      },
+      "failures": []
+    },
+    {
+      "side": "before",
+      "number": 4,
+      "startedUtc": "2026-10-08T12:40:34.904661+00:00",
+      "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-4.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-4.log",
+      "version": {
+        "build": "96c90a1-muzfanj0",
+        "time": "2026-10-08T10:58:11.760Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4403/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-4.json",
+        "/private/tmp/wildshard-serve/20261008-055735-4403/dist",
+        "nalati-route",
+        "on"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T12:43:55.788378+00:00",
+      "rawSha256": "517f41d77406df71c04e702c871396499ceb9fd795c3402793aabc3125719398",
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 534990424,
+          "glBytes": 180446095,
+          "sumBytes": 715436519,
+          "sampleTimestamps": [
+            "2026-10-08T12:41:14.733396+00:00",
+            "2026-10-08T12:41:15.799389+00:00",
+            "2026-10-08T12:41:16.874549+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 739086104,
+          "glBytes": 280657784,
+          "sumBytes": 1019743888,
+          "sampleTimestamps": [
+            "2026-10-08T12:41:40.220467+00:00",
+            "2026-10-08T12:41:41.280764+00:00",
+            "2026-10-08T12:41:42.349275+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 823332632,
+          "glBytes": 277163956,
+          "sumBytes": 1100496588,
+          "sampleTimestamps": [
+            "2026-10-08T12:42:10.907862+00:00",
+            "2026-10-08T12:42:12.054050+00:00",
+            "2026-10-08T12:42:13.207472+00:00"
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 830000968,
+          "glBytes": 103199526,
+          "sumBytes": 933200494,
+          "sampleTimestamps": [
+            "2026-10-08T12:43:42.669803+00:00",
+            "2026-10-08T12:43:43.738361+00:00",
+            "2026-10-08T12:43:44.921142+00:00"
+          ]
+        }
+      ],
+      "gamePID": 69246,
+      "failureStage": "neutral-road",
+      "sampler": {
+        "pid": 69381,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-4.json.sampler.log"
+      },
+      "failures": []
+    },
+    {
+      "side": "after",
+      "number": 3,
+      "startedUtc": "2026-10-08T12:44:02.479740+00:00",
+      "helperSha": "bd18867dea2fdfe03a1fd384e9d9eb9bb46790de",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-3.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-3.log",
+      "version": {
+        "build": "0690fca-muzfb0il",
+        "time": "2026-10-08T10:58:28.280Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4408/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-3.json",
+        "/private/tmp/wildshard-serve/20261008-055735-4408/dist",
+        "nalati-route",
+        "on"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T12:47:22.809809+00:00",
+      "rawSha256": "c911780aac3af6d01d131ba08cca616a80d665602c8c08083c2905407673fe48",
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 547556976,
+          "glBytes": 180446095,
+          "sumBytes": 728003071,
+          "sampleTimestamps": [
+            "2026-10-08T12:44:40.969934+00:00",
+            "2026-10-08T12:44:42.037247+00:00",
+            "2026-10-08T12:44:43.190627+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-entry",
+          "webContentBytes": 842551016,
+          "glBytes": 280657784,
+          "sumBytes": 1123208800,
+          "sampleTimestamps": [
+            "2026-10-08T12:45:06.940361+00:00",
+            "2026-10-08T12:45:08.075678+00:00",
+            "2026-10-08T12:45:09.126770+00:00"
+          ]
+        },
+        {
+          "label": "nalati-grasslands-centre",
+          "webContentBytes": 855756520,
+          "glBytes": 277163956,
+          "sumBytes": 1132920476,
+          "sampleTimestamps": [
+            "2026-10-08T12:45:37.746595+00:00",
+            "2026-10-08T12:45:38.801714+00:00",
+            "2026-10-08T12:45:39.944948+00:00"
+          ]
+        },
+        {
+          "label": "neutral-road",
+          "webContentBytes": 864014152,
+          "glBytes": 103199526,
+          "sumBytes": 967213678,
+          "sampleTimestamps": [
+            "2026-10-08T12:47:09.719663+00:00",
+            "2026-10-08T12:47:10.787316+00:00",
+            "2026-10-08T12:47:11.943975+00:00"
+          ]
+        }
+      ],
+      "gamePID": 77689,
+      "failureStage": "neutral-road",
+      "sampler": {
+        "pid": 77802,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-3.json.sampler.log"
+      },
+      "failures": []
+    }
+  ],
+  "witnesses": [
+    {
+      "side": "before",
+      "number": 2,
+      "version": {
+        "build": "96c90a1-muzfanj0",
+        "time": "2026-10-08T10:58:11.760Z"
+      },
+      "gamePID": 16375,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto",
+        "tex": "auto",
+        "memorySaver": "on",
+        "volume": 0
+      },
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": null,
+        "debug.plugin.pine-hollow.pineHybrid": null,
+        "debug.plugin.nalati-grasslands.nalatiHybrid": null
+      },
+      "audioContexts": [
+        {
+          "kind": "AudioContext",
+          "state": "interrupted",
+          "currentTime": 0,
+          "sampleRate": 48000
+        },
+        {
+          "kind": "OfflineAudioContext",
+          "state": "suspended",
+          "currentTime": 0,
+          "sampleRate": 48000
+        }
+      ],
+      "centreCpuBackingBytes": 69215552,
+      "kurganBackingBytes": 12022128,
+      "samples": {
+        "home-settled": [
+          {
+            "at": "2026-10-08T12:25:56.521715+00:00",
+            "pid": 16375,
+            "footprintBytes": 562532000,
+            "intervalPeakBytes": 563121824,
+            "gpuProcessBytes": 184470168
+          },
+          {
+            "at": "2026-10-08T12:25:57.574976+00:00",
+            "pid": 16375,
+            "footprintBytes": 562794144,
+            "intervalPeakBytes": 563318432,
+            "gpuProcessBytes": 184650392
+          },
+          {
+            "at": "2026-10-08T12:25:58.749134+00:00",
+            "pid": 16375,
+            "footprintBytes": 563203744,
+            "intervalPeakBytes": 563334816,
+            "gpuProcessBytes": 184732312
+          }
+        ],
+        "nalati-grasslands-entry": [
+          {
+            "at": "2026-10-08T12:26:22.383571+00:00",
+            "pid": 16375,
+            "footprintBytes": 763350856,
+            "intervalPeakBytes": 767758152,
+            "gpuProcessBytes": 200821544
+          },
+          {
+            "at": "2026-10-08T12:26:23.410178+00:00",
+            "pid": 16375,
+            "footprintBytes": 762302280,
+            "intervalPeakBytes": 767758152,
+            "gpuProcessBytes": 200821544
+          },
+          {
+            "at": "2026-10-08T12:26:24.561947+00:00",
+            "pid": 16375,
+            "footprintBytes": 762416968,
+            "intervalPeakBytes": 767758152,
+            "gpuProcessBytes": 201050920
+          }
+        ],
+        "nalati-grasslands-centre": [
+          {
+            "at": "2026-10-08T12:26:53.393981+00:00",
+            "pid": 16375,
+            "footprintBytes": 822513504,
+            "intervalPeakBytes": 823856992,
+            "gpuProcessBytes": 201116456
+          },
+          {
+            "at": "2026-10-08T12:26:54.533330+00:00",
+            "pid": 16375,
+            "footprintBytes": 822169440,
+            "intervalPeakBytes": 823856992,
+            "gpuProcessBytes": 201116456
+          },
+          {
+            "at": "2026-10-08T12:26:55.658651+00:00",
+            "pid": 16375,
+            "footprintBytes": 822284128,
+            "intervalPeakBytes": 823856992,
+            "gpuProcessBytes": 201411368
+          }
+        ],
+        "neutral-road": [
+          {
+            "at": "2026-10-08T12:28:25.642778+00:00",
+            "pid": 16375,
+            "footprintBytes": 830181264,
+            "intervalPeakBytes": 831016848,
+            "gpuProcessBytes": 201329448
+          },
+          {
+            "at": "2026-10-08T12:28:26.682545+00:00",
+            "pid": 16375,
+            "footprintBytes": 830246800,
+            "intervalPeakBytes": 831016848,
+            "gpuProcessBytes": 201329448
+          },
+          {
+            "at": "2026-10-08T12:28:27.842520+00:00",
+            "pid": 16375,
+            "footprintBytes": 830476176,
+            "intervalPeakBytes": 831016848,
+            "gpuProcessBytes": 201329448
+          }
+        ]
+      },
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 16579,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-2.json.sampler.log"
+      }
+    },
+    {
+      "side": "after",
+      "number": 1,
+      "version": {
+        "build": "0690fca-muzfb0il",
+        "time": "2026-10-08T10:58:28.280Z"
+      },
+      "gamePID": 33273,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto",
+        "tex": "auto",
+        "memorySaver": "on",
+        "volume": 0
+      },
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": null,
+        "debug.plugin.pine-hollow.pineHybrid": null,
+        "debug.plugin.nalati-grasslands.nalatiHybrid": null
+      },
+      "audioContexts": [
+        {
+          "kind": "AudioContext",
+          "state": "interrupted",
+          "currentTime": 0,
+          "sampleRate": 48000
+        },
+        {
+          "kind": "OfflineAudioContext",
+          "state": "suspended",
+          "currentTime": 0,
+          "sampleRate": 48000
+        }
+      ],
+      "centreCpuBackingBytes": 57193424,
+      "kurganBackingBytes": 0,
+      "samples": {
+        "home-settled": [
+          {
+            "at": "2026-10-08T12:29:34.991717+00:00",
+            "pid": 33273,
+            "footprintBytes": 491277840,
+            "intervalPeakBytes": 494112272,
+            "gpuProcessBytes": 184715904
+          },
+          {
+            "at": "2026-10-08T12:29:36.196662+00:00",
+            "pid": 33273,
+            "footprintBytes": 492867088,
+            "intervalPeakBytes": 494112272,
+            "gpuProcessBytes": 184535680
+          },
+          {
+            "at": "2026-10-08T12:29:37.296614+00:00",
+            "pid": 33273,
+            "footprintBytes": 493850128,
+            "intervalPeakBytes": 494112272,
+            "gpuProcessBytes": 184814208
+          }
+        ],
+        "nalati-grasslands-entry": [
+          {
+            "at": "2026-10-08T12:30:00.983112+00:00",
+            "pid": 33273,
+            "footprintBytes": 752176872,
+            "intervalPeakBytes": 763612904,
+            "gpuProcessBytes": 200936208
+          },
+          {
+            "at": "2026-10-08T12:30:02.115650+00:00",
+            "pid": 33273,
+            "footprintBytes": 752275176,
+            "intervalPeakBytes": 763612904,
+            "gpuProcessBytes": 200985360
+          },
+          {
+            "at": "2026-10-08T12:30:03.141326+00:00",
+            "pid": 33273,
+            "footprintBytes": 752307944,
+            "intervalPeakBytes": 763612904,
+            "gpuProcessBytes": 200870672
+          }
+        ],
+        "nalati-grasslands-centre": [
+          {
+            "at": "2026-10-08T12:30:31.974442+00:00",
+            "pid": 33273,
+            "footprintBytes": 851562216,
+            "intervalPeakBytes": 853626600,
+            "gpuProcessBytes": 201083664
+          },
+          {
+            "at": "2026-10-08T12:30:33.125588+00:00",
+            "pid": 33273,
+            "footprintBytes": 851627752,
+            "intervalPeakBytes": 853626600,
+            "gpuProcessBytes": 201100048
+          },
+          {
+            "at": "2026-10-08T12:30:34.260274+00:00",
+            "pid": 33273,
+            "footprintBytes": 851709672,
+            "intervalPeakBytes": 853626600,
+            "gpuProcessBytes": 201116432
+          }
+        ],
+        "neutral-road": [
+          {
+            "at": "2026-10-08T12:32:03.886435+00:00",
+            "pid": 33273,
+            "footprintBytes": 859623192,
+            "intervalPeakBytes": 860622616,
+            "gpuProcessBytes": 201558800
+          },
+          {
+            "at": "2026-10-08T12:32:04.968184+00:00",
+            "pid": 33273,
+            "footprintBytes": 859639576,
+            "intervalPeakBytes": 860622616,
+            "gpuProcessBytes": 201558800
+          },
+          {
+            "at": "2026-10-08T12:32:06.099906+00:00",
+            "pid": 33273,
+            "footprintBytes": 859606808,
+            "intervalPeakBytes": 860622616,
+            "gpuProcessBytes": 201558800
+          }
+        ]
+      },
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 33531,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-1.json.sampler.log"
+      }
+    },
+    {
+      "side": "before",
+      "number": 3,
+      "version": {
+        "build": "96c90a1-muzfanj0",
+        "time": "2026-10-08T10:58:11.760Z"
+      },
+      "gamePID": 46623,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto",
+        "tex": "auto",
+        "memorySaver": "on",
+        "volume": 0
+      },
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": null,
+        "debug.plugin.pine-hollow.pineHybrid": null,
+        "debug.plugin.nalati-grasslands.nalatiHybrid": null
+      },
+      "audioContexts": [
+        {
+          "kind": "AudioContext",
+          "state": "interrupted",
+          "currentTime": 0,
+          "sampleRate": 48000
+        },
+        {
+          "kind": "OfflineAudioContext",
+          "state": "suspended",
+          "currentTime": 0,
+          "sampleRate": 48000
+        }
+      ],
+      "centreCpuBackingBytes": 69215552,
+      "kurganBackingBytes": 12022128,
+      "samples": {
+        "home-settled": [
+          {
+            "at": "2026-10-08T12:33:34.033720+00:00",
+            "pid": 46623,
+            "footprintBytes": 507956800,
+            "intervalPeakBytes": 509726272,
+            "gpuProcessBytes": 187501208
+          },
+          {
+            "at": "2026-10-08T12:33:35.187583+00:00",
+            "pid": 46623,
+            "footprintBytes": 508235328,
+            "intervalPeakBytes": 509726272,
+            "gpuProcessBytes": 187320984
+          },
+          {
+            "at": "2026-10-08T12:33:36.237676+00:00",
+            "pid": 46623,
+            "footprintBytes": 510430784,
+            "intervalPeakBytes": 512904768,
+            "gpuProcessBytes": 187812504
+          }
+        ],
+        "nalati-grasslands-entry": [
+          {
+            "at": "2026-10-08T12:33:59.830122+00:00",
+            "pid": 46623,
+            "footprintBytes": 720654128,
+            "intervalPeakBytes": 737464112,
+            "gpuProcessBytes": 203967248
+          },
+          {
+            "at": "2026-10-08T12:34:00.989100+00:00",
+            "pid": 46623,
+            "footprintBytes": 720686896,
+            "intervalPeakBytes": 737464112,
+            "gpuProcessBytes": 203803408
+          },
+          {
+            "at": "2026-10-08T12:34:02.026863+00:00",
+            "pid": 46623,
+            "footprintBytes": 720785200,
+            "intervalPeakBytes": 737464112,
+            "gpuProcessBytes": 203803408
+          }
+        ],
+        "nalati-grasslands-centre": [
+          {
+            "at": "2026-10-08T12:34:30.576595+00:00",
+            "pid": 46623,
+            "footprintBytes": 802623280,
+            "intervalPeakBytes": 802836272,
+            "gpuProcessBytes": 204311312
+          },
+          {
+            "at": "2026-10-08T12:34:31.726839+00:00",
+            "pid": 46623,
+            "footprintBytes": 802164528,
+            "intervalPeakBytes": 802885424,
+            "gpuProcessBytes": 204196624
+          },
+          {
+            "at": "2026-10-08T12:34:32.782870+00:00",
+            "pid": 46623,
+            "footprintBytes": 802164528,
+            "intervalPeakBytes": 802885424,
+            "gpuProcessBytes": 204196624
+          }
+        ],
+        "neutral-road": [
+          {
+            "at": "2026-10-08T12:36:02.289989+00:00",
+            "pid": 46623,
+            "footprintBytes": 863833952,
+            "intervalPeakBytes": 881332064,
+            "gpuProcessBytes": 204213008
+          },
+          {
+            "at": "2026-10-08T12:36:03.466232+00:00",
+            "pid": 46623,
+            "footprintBytes": 811290464,
+            "intervalPeakBytes": 881332064,
+            "gpuProcessBytes": 204213008
+          },
+          {
+            "at": "2026-10-08T12:36:04.534180+00:00",
+            "pid": 46623,
+            "footprintBytes": 811306848,
+            "intervalPeakBytes": 881332064,
+            "gpuProcessBytes": 204213008
+          }
+        ]
+      },
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 46639,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-3.json.sampler.log"
+      }
+    },
+    {
+      "side": "after",
+      "number": 2,
+      "version": {
+        "build": "0690fca-muzfb0il",
+        "time": "2026-10-08T10:58:28.280Z"
+      },
+      "gamePID": 58270,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto",
+        "tex": "auto",
+        "memorySaver": "on",
+        "volume": 0
+      },
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": null,
+        "debug.plugin.pine-hollow.pineHybrid": null,
+        "debug.plugin.nalati-grasslands.nalatiHybrid": null
+      },
+      "audioContexts": [
+        {
+          "kind": "AudioContext",
+          "state": "interrupted",
+          "currentTime": 0,
+          "sampleRate": 48000
+        },
+        {
+          "kind": "OfflineAudioContext",
+          "state": "suspended",
+          "currentTime": 0,
+          "sampleRate": 48000
+        }
+      ],
+      "centreCpuBackingBytes": 57193424,
+      "kurganBackingBytes": 0,
+      "samples": {
+        "home-settled": [
+          {
+            "at": "2026-10-08T12:37:21.438102+00:00",
+            "pid": 58270,
+            "footprintBytes": 522964544,
+            "intervalPeakBytes": 526896704,
+            "gpuProcessBytes": 184158800
+          },
+          {
+            "at": "2026-10-08T12:37:22.599711+00:00",
+            "pid": 58270,
+            "footprintBytes": 523275840,
+            "intervalPeakBytes": 526896704,
+            "gpuProcessBytes": 184175184
+          },
+          {
+            "at": "2026-10-08T12:37:23.663873+00:00",
+            "pid": 58270,
+            "footprintBytes": 524750400,
+            "intervalPeakBytes": 526896704,
+            "gpuProcessBytes": 184191568
+          }
+        ],
+        "nalati-grasslands-entry": [
+          {
+            "at": "2026-10-08T12:37:46.707373+00:00",
+            "pid": 58270,
+            "footprintBytes": 765333224,
+            "intervalPeakBytes": 765562600,
+            "gpuProcessBytes": 200346384
+          },
+          {
+            "at": "2026-10-08T12:37:47.766912+00:00",
+            "pid": 58270,
+            "footprintBytes": 765464296,
+            "intervalPeakBytes": 765660904,
+            "gpuProcessBytes": 200346384
+          },
+          {
+            "at": "2026-10-08T12:37:48.916409+00:00",
+            "pid": 58270,
+            "footprintBytes": 765415144,
+            "intervalPeakBytes": 765660904,
+            "gpuProcessBytes": 200330000
+          }
+        ],
+        "nalati-grasslands-centre": [
+          {
+            "at": "2026-10-08T12:38:17.579605+00:00",
+            "pid": 58270,
+            "footprintBytes": 817483496,
+            "intervalPeakBytes": 817729256,
+            "gpuProcessBytes": 200542992
+          },
+          {
+            "at": "2026-10-08T12:38:18.647803+00:00",
+            "pid": 58270,
+            "footprintBytes": 817172200,
+            "intervalPeakBytes": 817729256,
+            "gpuProcessBytes": 200542992
+          },
+          {
+            "at": "2026-10-08T12:38:19.825260+00:00",
+            "pid": 58270,
+            "footprintBytes": 817385192,
+            "intervalPeakBytes": 817729256,
+            "gpuProcessBytes": 200542992
+          }
+        ],
+        "neutral-road": [
+          {
+            "at": "2026-10-08T12:39:49.296945+00:00",
+            "pid": 58270,
+            "footprintBytes": 827707184,
+            "intervalPeakBytes": 828395312,
+            "gpuProcessBytes": 200477456
+          },
+          {
+            "at": "2026-10-08T12:39:50.357089+00:00",
+            "pid": 58270,
+            "footprintBytes": 827739952,
+            "intervalPeakBytes": 828395312,
+            "gpuProcessBytes": 200477456
+          },
+          {
+            "at": "2026-10-08T12:39:51.522094+00:00",
+            "pid": 58270,
+            "footprintBytes": 827789104,
+            "intervalPeakBytes": 828395312,
+            "gpuProcessBytes": 200477456
+          }
+        ]
+      },
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 58485,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-2.json.sampler.log"
+      }
+    },
+    {
+      "side": "before",
+      "number": 4,
+      "version": {
+        "build": "96c90a1-muzfanj0",
+        "time": "2026-10-08T10:58:11.760Z"
+      },
+      "gamePID": 69246,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto",
+        "tex": "auto",
+        "memorySaver": "on",
+        "volume": 0
+      },
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": null,
+        "debug.plugin.pine-hollow.pineHybrid": null,
+        "debug.plugin.nalati-grasslands.nalatiHybrid": null
+      },
+      "audioContexts": [
+        {
+          "kind": "AudioContext",
+          "state": "interrupted",
+          "currentTime": 0,
+          "sampleRate": 48000
+        },
+        {
+          "kind": "OfflineAudioContext",
+          "state": "suspended",
+          "currentTime": 0,
+          "sampleRate": 48000
+        }
+      ],
+      "centreCpuBackingBytes": 69215552,
+      "kurganBackingBytes": 12022128,
+      "samples": {
+        "home-settled": [
+          {
+            "at": "2026-10-08T12:41:14.733396+00:00",
+            "pid": 69246,
+            "footprintBytes": 533761624,
+            "intervalPeakBytes": 535809624,
+            "gpuProcessBytes": 188074624
+          },
+          {
+            "at": "2026-10-08T12:41:15.799389+00:00",
+            "pid": 69246,
+            "footprintBytes": 534990424,
+            "intervalPeakBytes": 536088152,
+            "gpuProcessBytes": 187894400
+          },
+          {
+            "at": "2026-10-08T12:41:16.874549+00:00",
+            "pid": 69246,
+            "footprintBytes": 536350296,
+            "intervalPeakBytes": 536350296,
+            "gpuProcessBytes": 188172928
+          }
+        ],
+        "nalati-grasslands-entry": [
+          {
+            "at": "2026-10-08T12:41:40.220467+00:00",
+            "pid": 69246,
+            "footprintBytes": 739086104,
+            "intervalPeakBytes": 748801816,
+            "gpuProcessBytes": 204000016
+          },
+          {
+            "at": "2026-10-08T12:41:41.280764+00:00",
+            "pid": 69246,
+            "footprintBytes": 739200792,
+            "intervalPeakBytes": 748801816,
+            "gpuProcessBytes": 203803408
+          },
+          {
+            "at": "2026-10-08T12:41:42.349275+00:00",
+            "pid": 69246,
+            "footprintBytes": 739053336,
+            "intervalPeakBytes": 748801816,
+            "gpuProcessBytes": 204000016
+          }
+        ],
+        "nalati-grasslands-centre": [
+          {
+            "at": "2026-10-08T12:42:10.907862+00:00",
+            "pid": 69246,
+            "footprintBytes": 823332632,
+            "intervalPeakBytes": 824643352,
+            "gpuProcessBytes": 203918096
+          },
+          {
+            "at": "2026-10-08T12:42:12.054050+00:00",
+            "pid": 69246,
+            "footprintBytes": 823283480,
+            "intervalPeakBytes": 824643352,
+            "gpuProcessBytes": 203918096
+          },
+          {
+            "at": "2026-10-08T12:42:13.207472+00:00",
+            "pid": 69246,
+            "footprintBytes": 823430936,
+            "intervalPeakBytes": 824643352,
+            "gpuProcessBytes": 203918096
+          }
+        ],
+        "neutral-road": [
+          {
+            "at": "2026-10-08T12:43:42.669803+00:00",
+            "pid": 69246,
+            "footprintBytes": 829853512,
+            "intervalPeakBytes": 831655752,
+            "gpuProcessBytes": 203934480
+          },
+          {
+            "at": "2026-10-08T12:43:43.738361+00:00",
+            "pid": 69246,
+            "footprintBytes": 830000968,
+            "intervalPeakBytes": 831655752,
+            "gpuProcessBytes": 203934480
+          },
+          {
+            "at": "2026-10-08T12:43:44.921142+00:00",
+            "pid": 69246,
+            "footprintBytes": 830066504,
+            "intervalPeakBytes": 831655752,
+            "gpuProcessBytes": 203983632
+          }
+        ]
+      },
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 69381,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-before-attempt-4.json.sampler.log"
+      }
+    },
+    {
+      "side": "after",
+      "number": 3,
+      "version": {
+        "build": "0690fca-muzfb0il",
+        "time": "2026-10-08T10:58:28.280Z"
+      },
+      "gamePID": 77689,
+      "settings": {
+        "tier": "phone",
+        "fps": "auto",
+        "tex": "auto",
+        "memorySaver": "on",
+        "volume": 0
+      },
+      "devicePicks": {
+        "debug.plugin.pine-hollow.pineMemoryTrim": null,
+        "debug.plugin.pine-hollow.pineHybrid": null,
+        "debug.plugin.nalati-grasslands.nalatiHybrid": null
+      },
+      "audioContexts": [
+        {
+          "kind": "AudioContext",
+          "state": "interrupted",
+          "currentTime": 0,
+          "sampleRate": 48000
+        },
+        {
+          "kind": "OfflineAudioContext",
+          "state": "suspended",
+          "currentTime": 0,
+          "sampleRate": 48000
+        }
+      ],
+      "centreCpuBackingBytes": 57193424,
+      "kurganBackingBytes": 0,
+      "samples": {
+        "home-settled": [
+          {
+            "at": "2026-10-08T12:44:40.969934+00:00",
+            "pid": 77689,
+            "footprintBytes": 547556976,
+            "intervalPeakBytes": 547573360,
+            "gpuProcessBytes": 183536256
+          },
+          {
+            "at": "2026-10-08T12:44:42.037247+00:00",
+            "pid": 77689,
+            "footprintBytes": 547425904,
+            "intervalPeakBytes": 547606128,
+            "gpuProcessBytes": 183536256
+          },
+          {
+            "at": "2026-10-08T12:44:43.190627+00:00",
+            "pid": 77689,
+            "footprintBytes": 547933808,
+            "intervalPeakBytes": 548425328,
+            "gpuProcessBytes": 183732864
+          }
+        ],
+        "nalati-grasslands-entry": [
+          {
+            "at": "2026-10-08T12:45:06.940361+00:00",
+            "pid": 77689,
+            "footprintBytes": 842682088,
+            "intervalPeakBytes": 843239144,
+            "gpuProcessBytes": 200280872
+          },
+          {
+            "at": "2026-10-08T12:45:08.075678+00:00",
+            "pid": 77689,
+            "footprintBytes": 842501864,
+            "intervalPeakBytes": 843239144,
+            "gpuProcessBytes": 200297256
+          },
+          {
+            "at": "2026-10-08T12:45:09.126770+00:00",
+            "pid": 77689,
+            "footprintBytes": 842551016,
+            "intervalPeakBytes": 843239144,
+            "gpuProcessBytes": 200231720
+          }
+        ],
+        "nalati-grasslands-centre": [
+          {
+            "at": "2026-10-08T12:45:37.746595+00:00",
+            "pid": 77689,
+            "footprintBytes": 856018664,
+            "intervalPeakBytes": 856592104,
+            "gpuProcessBytes": 200330024
+          },
+          {
+            "at": "2026-10-08T12:45:38.801714+00:00",
+            "pid": 77689,
+            "footprintBytes": 855756520,
+            "intervalPeakBytes": 856592104,
+            "gpuProcessBytes": 200428328
+          },
+          {
+            "at": "2026-10-08T12:45:39.944948+00:00",
+            "pid": 77689,
+            "footprintBytes": 855641832,
+            "intervalPeakBytes": 856592104,
+            "gpuProcessBytes": 200362792
+          }
+        ],
+        "neutral-road": [
+          {
+            "at": "2026-10-08T12:47:09.719663+00:00",
+            "pid": 77689,
+            "footprintBytes": 863948616,
+            "intervalPeakBytes": 864669512,
+            "gpuProcessBytes": 200444712
+          },
+          {
+            "at": "2026-10-08T12:47:10.787316+00:00",
+            "pid": 77689,
+            "footprintBytes": 864014152,
+            "intervalPeakBytes": 864669512,
+            "gpuProcessBytes": 200444712
+          },
+          {
+            "at": "2026-10-08T12:47:11.943975+00:00",
+            "pid": 77689,
+            "footprintBytes": 864079688,
+            "intervalPeakBytes": 864669512,
+            "gpuProcessBytes": 200444712
+          }
+        ]
+      },
+      "closed": true,
+      "errors": [],
+      "sampler": {
+        "pid": 77802,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/kurgan-native-after-attempt-3.json.sampler.log"
+      }
+    }
+  ],
+  "sourceWitness": {
+    "centreCpuBytesAvoided": 12022128,
+    "centreGlChangeBytes": 0
+  },
+  "nativeCreditBytes": 0,
+  "limitation": "Three valid cold runs per arm, not a physical-phone cap reading. Native medians/ranges are reported; overlapping variation is not credited as a saving. One baseline launch failed before game load because the scratch helper lacked the checkout-inherited ws package; its log is retained and the same dependency was linked explicitly without changing helper source.",
+  "rawArchive": {
+    "path": "six-cold-raw.tar.xz",
+    "bytes": 878472,
+    "sha256": "0ba02efd4e1919cf62899977ddb8135c9c08690c6e4b7d0b742e48186e624f9b",
+    "files": [
+      {
+        "path": "kurgan-cohort-driver.log",
+        "bytes": 17565,
+        "sha256": "5e3364c4330226b4c073f5d9b92b786a67f23414b8a99fa82cf7aa8e298edb8f"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.home-settled.footprint.txt",
+        "bytes": 2646,
+        "sha256": "2e739c8ae937c40d16fac165bb957e6d68807c4f7312816b08f8979429593bee"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.home-settled.vmmap.txt",
+        "bytes": 8138,
+        "sha256": "9b2a4921c3f0a9f0ca4b162399f7ead0d71ca58a5ce489e2c169663ae68a458b"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.home-settled.vmmapVerbose.txt",
+        "bytes": 1365961,
+        "sha256": "7c2dd6cf702a37fbc97b2095b3403134ae8ac98a9c5525e829903de90233989e"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.json",
+        "bytes": 4393379,
+        "sha256": "25fcb96be3f9f14e02b3fc61fdd46bcb64c96b2dfe702496d2dcec0a6363edcf"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.json.native.jsonl",
+        "bytes": 499311,
+        "sha256": "25a9b3f976ed781086aeaea30f05b00e31ac530b1676367354175f21f58dd0c7"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.json.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.json.sampler.log",
+        "bytes": 1265,
+        "sha256": "f8009b6982dcca334f819b9636c4f833e09a91d2315076f262a3d7424bbe9fa6"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.log",
+        "bytes": 273,
+        "sha256": "95f172920e5ee18ecd03cef8a0c43cf1e6ad5fbf86275c0a0423ddbecc64a328"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.nalati-grasslands-centre.footprint.txt",
+        "bytes": 2646,
+        "sha256": "5462cafe0c3ea04c1bacfa2d3435651429600729c5eb8455e0746ec7c1a2b060"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.nalati-grasslands-centre.vmmap.txt",
+        "bytes": 8497,
+        "sha256": "78d2da7d7b72a7271e42854776b7423b90f3228d794294f1ff1b9f5af7e9f45a"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.nalati-grasslands-centre.vmmapVerbose.txt",
+        "bytes": 1412158,
+        "sha256": "1d23944c09a1a7b4c0ff913c8dde102b4bb0be9046830a38764a6fc575059c2d"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.nalati-grasslands-entry.footprint.txt",
+        "bytes": 2646,
+        "sha256": "cbc32f6001d2ead0974580dafb3470de323af81ba814a0b5a42114d41bcba074"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.nalati-grasslands-entry.vmmap.txt",
+        "bytes": 8393,
+        "sha256": "136f78f97b9a2fc1bcfc7b34d07d5b0a5dab4166ae2690984ccc09a23f93ccda"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.nalati-grasslands-entry.vmmapVerbose.txt",
+        "bytes": 1412000,
+        "sha256": "cfa4dbe9f56c70d88f4efb9c1d87453018eb7cbf89e3f9cbcb6ffd986f66542e"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.neutral-road.footprint.txt",
+        "bytes": 2646,
+        "sha256": "93109cb4db9b28e1d97293c1d5d3ac2159e39c7ffc27ae563cead093f02954c2"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.neutral-road.vmmap.txt",
+        "bytes": 8138,
+        "sha256": "31eb0d058bd02fadb3546af47af3d3b540989ec9a1a0ff48b9c4054dcd083af7"
+      },
+      {
+        "path": "kurgan-native-after-attempt-1.neutral-road.vmmapVerbose.txt",
+        "bytes": 1414025,
+        "sha256": "08f68b4fea0626a05156733579ccec754c81cd101a0a59612e2aefa800be9c10"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.home-settled.footprint.txt",
+        "bytes": 2646,
+        "sha256": "d59c551d97566d7f39a48f5b6b783b302ed9b8f6c787d87cbbbc29dc5b424338"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.home-settled.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "277d03edc4515fa9fcee2f4343aabd6fd47e8b1feb7389c1a05ce50a81a34197"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.home-settled.vmmapVerbose.txt",
+        "bytes": 1359942,
+        "sha256": "213a3669763bb30177be0d6b62c275fcdcbd90120f439d93601ecd5684c82f8a"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.json",
+        "bytes": 4391401,
+        "sha256": "25365f916e876342391fd22acc7de8dc666d39aee34e3fb194059888fd023690"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.json.native.jsonl",
+        "bytes": 483063,
+        "sha256": "c4ba008dd42eb8ab06a83cc4c180110cd3e3b52d8237fd25f3f40eda78b66144"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.json.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.json.sampler.log",
+        "bytes": 1269,
+        "sha256": "ba58f75d5ded681f14c7db66cea79436c5226e33caa10d0aa4cf480684001f90"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.log",
+        "bytes": 272,
+        "sha256": "51424c76e6a2aaec430b56812d25de88467cbc6351e6784545abc59908db6533"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.nalati-grasslands-centre.footprint.txt",
+        "bytes": 2646,
+        "sha256": "9502c6671920ffa98b8367b122d613b44611bd85b773d71870ac13df81e8d7fd"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.nalati-grasslands-centre.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "fb717b4e20efd86cb88ff472c32efe35a170e605785e542c0818558f93dd8be0"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.nalati-grasslands-centre.vmmapVerbose.txt",
+        "bytes": 1405144,
+        "sha256": "7f974e3e43b8634dba14b9c62351eac50268050cb1730e564b903e79e60833e0"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.nalati-grasslands-entry.footprint.txt",
+        "bytes": 2646,
+        "sha256": "3b3b62577610f2161de9dc7b65ad335e7be0fc0459d98a831035831b874a3893"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.nalati-grasslands-entry.vmmap.txt",
+        "bytes": 7864,
+        "sha256": "1d1661fc62538cbcaee228f648fa18c475226449ec665b1bb790d848297cdc1c"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.nalati-grasslands-entry.vmmapVerbose.txt",
+        "bytes": 1404826,
+        "sha256": "036adb9b7293995749b71ac0559a512a5deb54502575dcec4fb553e621063b2e"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.neutral-road.footprint.txt",
+        "bytes": 2646,
+        "sha256": "8ffea9daad7f71567bed528791e978e3b18853a812202eb342102b9d17e65d1b"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.neutral-road.vmmap.txt",
+        "bytes": 7864,
+        "sha256": "232a088dec3837794631eafec01eea699bbcdbfc5a421eaf3ccb390f13613487"
+      },
+      {
+        "path": "kurgan-native-after-attempt-2.neutral-road.vmmapVerbose.txt",
+        "bytes": 1416070,
+        "sha256": "c25dd39c2e0b0d8cd923aee9b531ea2915e99f79c0beeac2f83ede1a81b46d56"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.home-settled.footprint.txt",
+        "bytes": 2646,
+        "sha256": "99f1c43a594a87bbccc0c20176f7b5495d1c52738710fa3104a5ff6591bc575a"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.home-settled.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "b669549627883cc2da07a1bc5ec2c719cc35ca31a7aef9e8a7712cf15e274bc2"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.home-settled.vmmapVerbose.txt",
+        "bytes": 1358432,
+        "sha256": "23d44e2ee81f52ad5c5a38b7fa7c93113b657b9f5a2450ee3988be031c5d401e"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.json",
+        "bytes": 4391652,
+        "sha256": "c911780aac3af6d01d131ba08cca616a80d665602c8c08083c2905407673fe48"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.json.native.jsonl",
+        "bytes": 485734,
+        "sha256": "f14581e8d1ca90b5fe032a45ddbfc034045038b98eda5fe7798c841aeec44901"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.json.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.json.sampler.log",
+        "bytes": 1263,
+        "sha256": "1b0bea1b9fffc279c1b3ffc48904b2119d2eaa7f87603ca46addf753cfe999d2"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.log",
+        "bytes": 272,
+        "sha256": "f96f349aae45db40311cad8fdb2e3471b54a54c8c0604d9a2f85608e4100460d"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.nalati-grasslands-centre.footprint.txt",
+        "bytes": 2646,
+        "sha256": "88cf7a73a31acb0331cc7da5b39680bcec0c8aa920c1e190f8a14efcc449262b"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.nalati-grasslands-centre.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "55757e0a46ed9040c534e39823076917c0e588059f8738a5e770f804d6576274"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.nalati-grasslands-centre.vmmapVerbose.txt",
+        "bytes": 1404472,
+        "sha256": "c1799da4adde5aff987e4e87fbbaa096154600c6ccd87340baba3cc930e5eb3e"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.nalati-grasslands-entry.footprint.txt",
+        "bytes": 2646,
+        "sha256": "65914cac85a1a7de3ab89ee760ca9e4dad898ad9530e23876600130dd641851c"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.nalati-grasslands-entry.vmmap.txt",
+        "bytes": 7864,
+        "sha256": "cc78ab710e98a8c78fc1b0484950b3e6e834104ed883daad0db0e5def5ceb993"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.nalati-grasslands-entry.vmmapVerbose.txt",
+        "bytes": 1404241,
+        "sha256": "2a6f05cceef1b747e8c93aa6e234441cf5767f92d13040edac185573e0a14bd8"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.neutral-road.footprint.txt",
+        "bytes": 2646,
+        "sha256": "40dc8263e3adab94784fa1422ab4db70d7298a0c8d2f355fcb9b748ca20ee70f"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.neutral-road.vmmap.txt",
+        "bytes": 7864,
+        "sha256": "f6ea327a299d39b63a1f71d90005644404aec3ee681ac31b8438b1bb0353b062"
+      },
+      {
+        "path": "kurgan-native-after-attempt-3.neutral-road.vmmapVerbose.txt",
+        "bytes": 1414994,
+        "sha256": "2b06de1271f4670c96d981852cf79d3c6398a6e6ea4c6e4bce38a85bff13d303"
+      },
+      {
+        "path": "kurgan-native-attempts.json",
+        "bytes": 18148,
+        "sha256": "3007ccfcd619f0a95b45d7788f17bd56cd6fb40a822364971fe2528e69b986d2"
+      },
+      {
+        "path": "kurgan-native-before-attempt-1.log",
+        "bytes": 1074,
+        "sha256": "3a6d943af3261a97af42148e4fe33b75a68798aba65540d9d4a744755d6996ac"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.home-settled.footprint.txt",
+        "bytes": 2646,
+        "sha256": "ca69e71bc1949f5b2e1d641247d7b24964dd314a4c6df292ca20485a9ce094fb"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.home-settled.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "b08abd4fa761f59355236ae4ed2abd61ebf8bf7d70d7dc9dbd15282bc4c79dcd"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.home-settled.vmmapVerbose.txt",
+        "bytes": 1358292,
+        "sha256": "0cf67d26a3344f487fe1fe36848308cfc8153d0ac396d037e660ad22602b9b84"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.json",
+        "bytes": 4393961,
+        "sha256": "9fee86868614d938f904b11f56646331eec77a7c7a53b2e10e6c22359ce7aa0d"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.json.native.jsonl",
+        "bytes": 491028,
+        "sha256": "44e6cb87cca9be1e5f9b7a7d36cedadb1b03f4c70e38a3f5e5d297fc69cf054b"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.json.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.json.sampler.log",
+        "bytes": 1268,
+        "sha256": "3e842a31a92a5848ebce06a148c4fa384529d43cf485197e36ff67d154d32fc2"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.log",
+        "bytes": 271,
+        "sha256": "70a1c84ab37480099d2a5b3e0b700ee4431c13b49401e57077928886bb722a80"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.nalati-grasslands-centre.footprint.txt",
+        "bytes": 2646,
+        "sha256": "65e6fc3cc6449228fb423643763c4339c8fae1c419795a656d941307e6a97bcf"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.nalati-grasslands-centre.vmmap.txt",
+        "bytes": 8223,
+        "sha256": "487a77666ca43cfc95d21d3ea6e114ae5b288ec016bb539853454e9abaac8cec"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.nalati-grasslands-centre.vmmapVerbose.txt",
+        "bytes": 1402060,
+        "sha256": "0b6cfa9bf0f8a3fea4f34f49ab656cbc46b1dd9ff77253976732adccefc63cdc"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.nalati-grasslands-entry.footprint.txt",
+        "bytes": 2646,
+        "sha256": "4baaf0c2f5d136faad97ca44b498d3ce0c44f1ad4ce2fa5daf685b861430eb6e"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.nalati-grasslands-entry.vmmap.txt",
+        "bytes": 8223,
+        "sha256": "dc5dd385c335ca3ce273abb5747647c73610ff3525dba3fb8873c362584a0dfc"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.nalati-grasslands-entry.vmmapVerbose.txt",
+        "bytes": 1401475,
+        "sha256": "591bf96e0f3cf7add4ccaea267b18bb0933602afed7117f75f9f2062bb48dca8"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.neutral-road.footprint.txt",
+        "bytes": 2646,
+        "sha256": "5fff3ccd7cab6a64e2f2a3d7ab4e3eaf60cbcb6e58eb10d3fe75f10cd4cdf940"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.neutral-road.vmmap.txt",
+        "bytes": 8119,
+        "sha256": "4e47dc3a67aa4ea38b208b05f5e9450bbad8b9148e6ee3b37cb72f4a431853da"
+      },
+      {
+        "path": "kurgan-native-before-attempt-2.neutral-road.vmmapVerbose.txt",
+        "bytes": 1412682,
+        "sha256": "26ecf3b0f3ec22e47d8c349efa087e01a367385242fce662b89d954ff4f48cb0"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.home-settled.footprint.txt",
+        "bytes": 2646,
+        "sha256": "5da8297891830a4621ceaad23b127598a0c27eeec73a90c1037a868f0b54d9d4"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.home-settled.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "a7a81f041f84b53e5453c00bd27c0e64e0f176dbadc506860a9f4f11b184c8c9"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.home-settled.vmmapVerbose.txt",
+        "bytes": 1363006,
+        "sha256": "d641f673e0ad2c7b737009ad3a768e16ac7ecd65a9484a56b8a0c073e35e99a3"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.json",
+        "bytes": 4394802,
+        "sha256": "b225f3bf2adf5dfba01d8ed05aa95fa040ef06976fe72e41e4ad6e6a80ea3fa4"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.json.native.jsonl",
+        "bytes": 487909,
+        "sha256": "65e0309bc9852b4fb7a8b98f6d32a7f4c525338aae3f2459b19af88f08052111"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.json.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.json.sampler.log",
+        "bytes": 1267,
+        "sha256": "b3d00625fa9057de829eba89b03b02c04a1037c5780a3d12fc19788e67e55059"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.log",
+        "bytes": 273,
+        "sha256": "a0b171dd211522dac3125162566b89b08e8d5f23febb3b1e169f525874b30e90"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.nalati-grasslands-centre.footprint.txt",
+        "bytes": 2646,
+        "sha256": "f4b1ad74c82ea7404760ea764ce00a2eb3b1e8b3465d14ee9f73c265a61387a7"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.nalati-grasslands-centre.vmmap.txt",
+        "bytes": 8223,
+        "sha256": "dd9b1361710606258eb97cfd19cd4241ae8e66882499a6873a8054dad1935498"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.nalati-grasslands-centre.vmmapVerbose.txt",
+        "bytes": 1413434,
+        "sha256": "9a2bd8df7d98d74596eb6aca9737f265f9eddf2fdc6e1e9cd0b508cc365db907"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.nalati-grasslands-entry.footprint.txt",
+        "bytes": 2646,
+        "sha256": "f397dd7094fc7dbc59f830cce871c4d6a263306e85a9823bb653931d17d80e20"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.nalati-grasslands-entry.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "af8dd67bab687616abad66f239256dee87c344457db01a1f992a70355dc15dde"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.nalati-grasslands-entry.vmmapVerbose.txt",
+        "bytes": 1408776,
+        "sha256": "f02ea654f204abdeadeba0ab11d2b812d5a41bff050e295eb7de539ae15f354a"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.neutral-road.footprint.txt",
+        "bytes": 2646,
+        "sha256": "b15097189fb36575572d55f66d5438309e5c5817b78249d375dbbfcc2b957ed5"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.neutral-road.vmmap.txt",
+        "bytes": 8119,
+        "sha256": "f16b8facabd46dacd6b7eacb5504bdcaceea98aedd5a57cc92254d6ef5701f45"
+      },
+      {
+        "path": "kurgan-native-before-attempt-3.neutral-road.vmmapVerbose.txt",
+        "bytes": 1422051,
+        "sha256": "e03640265518a301b563911e0c381ce33e147e75dfc2205f5184fe501a54bbca"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.home-settled.footprint.txt",
+        "bytes": 2646,
+        "sha256": "d637b2975f681f6a24b5d2357cd38d9987757847d65eb23835ea8e7656e8f4df"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.home-settled.vmmap.txt",
+        "bytes": 7968,
+        "sha256": "afbeabc677f3b26a4dbb8ad8367c5686bbc3c1c3d411362501e3d566475478d5"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.home-settled.vmmapVerbose.txt",
+        "bytes": 1360162,
+        "sha256": "3a77ac27d5054f1b775047e2789727444bfdfe59f160d1d545fe00ace85da5e1"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.json",
+        "bytes": 4394212,
+        "sha256": "517f41d77406df71c04e702c871396499ceb9fd795c3402793aabc3125719398"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.json.native.jsonl",
+        "bytes": 482538,
+        "sha256": "200118c20546da866e0605b4da729be88a204704502a75c68c0574a4f00b2840"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.json.phase",
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.json.sampler.log",
+        "bytes": 1263,
+        "sha256": "450cf0218c7c6cb75c1574edfff7a54c98801a8238e8a13e511d22e373b7739c"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.log",
+        "bytes": 273,
+        "sha256": "617c9edcab6fe85a8aeb06c4e90bb41984c1965a3bb9af4601192da4344ca9ee"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.nalati-grasslands-centre.footprint.txt",
+        "bytes": 2646,
+        "sha256": "b1f120bc2f8174d0d6c19374403e6b3464ca99b4ecb8dbce3fb44a5d16beaf68"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.nalati-grasslands-centre.vmmap.txt",
+        "bytes": 8223,
+        "sha256": "a276d738aca8c0dcb8e348355c53529ab2c3ddb1087eae1e83e3dc29a4b232c0"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.nalati-grasslands-centre.vmmapVerbose.txt",
+        "bytes": 1408679,
+        "sha256": "cc57d2e6bd9e040d9d3e2e7a15fea6b5aaa541dc7cf8fe1b8065c110300b4472"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.nalati-grasslands-entry.footprint.txt",
+        "bytes": 2646,
+        "sha256": "df49407e61d8a59821127d9b933cfeb7b93726f76d43a9f59827d658d216cc82"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.nalati-grasslands-entry.vmmap.txt",
+        "bytes": 8223,
+        "sha256": "1485c2687aec334140983bbc2443a0c545e5ccce9af558fae96285818140e97f"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.nalati-grasslands-entry.vmmapVerbose.txt",
+        "bytes": 1405945,
+        "sha256": "a97848b98ff2657723e85f65882c477a7d7143c9574dfc873d0c87149d46abf2"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.neutral-road.footprint.txt",
+        "bytes": 2646,
+        "sha256": "a13aa27012d79ce77da0adeab44c10a6e78d3a997a3c44746ee495597d552c60"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.neutral-road.vmmap.txt",
+        "bytes": 8119,
+        "sha256": "6f4eb68d9294a1dfad97128fa5956eb2eb4a845eb36ba3864d5fe36cbda28e63"
+      },
+      {
+        "path": "kurgan-native-before-attempt-4.neutral-road.vmmapVerbose.txt",
+        "bytes": 1416963,
+        "sha256": "6fb78e534939bf7b647d3554391342f09da7c46df0292ec3d32f7bf9d2fecc62"
+      },
+      {
+        "path": "kurgan-native-driver/progress/memory/g227-budget/inspect.mjs",
+        "bytes": 14178,
+        "sha256": "eef4debbbb6dc040fa3c05f74520782a66be356ab695fb5da5924acff4cbda59"
+      },
+      {
+        "path": "kurgan-native-driver/progress/memory/g227-budget/memory-categories.mjs",
+        "bytes": 1529,
+        "sha256": "7a473cfac683fd6efbc30c7396eddc5528cdaabd19e8285be0378654841a6f0b"
+      },
+      {
+        "path": "kurgan-native-driver/progress/memory/g227-budget/native-samples.mjs",
+        "bytes": 1749,
+        "sha256": "f060b0e4b3badf7f2969cf280c9b3f748eea8785c1ac04bb15b628e15a52eb9f"
+      },
+      {
+        "path": "kurgan-native-driver/progress/memory/g227-budget/native.mjs",
+        "bytes": 24015,
+        "sha256": "7169be97be7af6b4b71ccb1546ba5ad08e80210c94e30a811f68cd7ddf01eeae"
+      },
+      {
+        "path": "kurgan-native-driver/scripts/debug-settings.mjs",
+        "bytes": 4925,
+        "sha256": "31d4a3a52e0fc320707f60cb50ec7f4e14b456f8c433a0482efacfd09125e91e"
+      },
+      {
+        "path": "kurgan-native-driver/scripts/frame-floor-grid.mjs",
+        "bytes": 15450,
+        "sha256": "6b3c14a4a45df0388ccf0bf65b6d3158eea27e89a17d9266b567b579d4de6563"
+      },
+      {
+        "path": "kurgan-native-driver/scripts/ios-memory-watchdog.py",
+        "bytes": 15279,
+        "sha256": "f66122e1c3e07dc230d2ef17e3340a2fc5be44753b3a2cac294857ed67c6c7bc"
+      },
+      {
+        "path": "kurgan-native-driver/scripts/parity/glbytes.mjs",
+        "bytes": 13801,
+        "sha256": "ce49d261b1ae29c3c62eb32551b33ba7989dff926294d7814956091ccdc5f6cd"
+      },
+      {
+        "path": "kurgan-native-driver/scripts/sim-mem-phases.py",
+        "bytes": 7898,
+        "sha256": "e147e32a4b02900ea37190eebbc461c82e6f0ddfdd949c71c027c041a1075634"
+      },
+      {
+        "path": "kurgan-native-driver/scripts/soak/owned.mjs",
+        "bytes": 16544,
+        "sha256": "dc1d01e96a219a9229da41b1886b77ce75a1fe44fe941d3e111e49dad860273f"
+      },
+      {
+        "path": "kurgan-native-manifest.json",
+        "bytes": 2647,
+        "sha256": "44d43e2abffd50d3207ee71491f9bec51450cab0ef1ce9d3c93351b0a661336a"
+      },
+      {
+        "path": "pack-kurgan-cohort.py",
+        "bytes": 4753,
+        "sha256": "29bdea1478a1320d80e70bd346922181704113175372571e1aefcbe3491d480d"
+      },
+      {
+        "path": "run-kurgan-native-attempt.py",
+        "bytes": 3885,
+        "sha256": "4fd48115d291494057ef5d4c23220269e22bbeba97ce15ffc96bee919df3f3ee"
+      }
+    ]
+  }
+}
