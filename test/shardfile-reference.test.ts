@@ -7,8 +7,8 @@ import { resolve } from 'node:path';
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 import { ShardfileSchema } from '../src/game/shardfile/schema';
-import { SCRIPT_EXPORTS, SCRIPT_IMPORTS } from '../src/engine/script/abi';
-import { schemaInventory, abiInventory, renderReference } from '../scripts/docs/schema-reference.mjs';
+import { SCRIPT_ABI, SCRIPT_EXPORTS, SCRIPT_IMPORTS } from '../src/engine/script/abi';
+import { schemaInventory, abiInventory, renderReference, referenceCoverage, assertReferenceCoverage } from '../scripts/docs/schema-reference.mjs';
 import { shardfileReference } from '../scripts/docs/gen-shardfile-reference.mjs';
 
 describe('schema-derived shardfile reference', () => {
@@ -47,6 +47,7 @@ describe('schema-derived shardfile reference', () => {
     expect(rows[0]?.type).toBe('strict_object'); expect(rows[0]?.constraints).toContain('raw_check');
     expect(rows[0]?.constraints).toContain('check [function; not executed] "cross-field rule"');
     expect(rows[1]?.constraints).toEqual(['regex /^a$/u']); expect(called).toBe(0);
+    expect(schemaInventory(v.pipe(schema))).toEqual(rows);
   });
   it('refuses unrecognized schema and action metadata rather than silently dropping fields', () => {
     expect(() => schemaInventory({ kind: 'schema', type: 'new_schema' })).toThrow('Unsupported schema');
@@ -75,9 +76,43 @@ describe('schema-derived shardfile reference', () => {
     expect(rows.find(row => row.path === '$.entryways[].width')?.literal).toBe('8');
     expect(rows.filter(row => /^\$\.[a-zA-Z]+$/u.test(row.path)).length).toBeGreaterThan(30);
   });
+  it('fails coverage when a field or ABI call has no entry, is repeated or is obsolete', () => {
+    const fields = schemaInventory(v.strictObject({ value: v.number(), label: v.string() }));
+    const abi = abiInventory({ query: SCRIPT_IMPORTS['query'] ?? [] }, { on_tick: [] });
+    const document = renderReference(fields, abi, SCRIPT_ABI);
+    const coverage = assertReferenceCoverage(fields, abi, document);
+    expect(coverage.fields).toEqual({ total: 3, documented: 3, missing: [], extra: [], duplicates: [] });
+    expect(coverage.abi).toEqual({ total: 2, documented: 2, missing: [], extra: [], duplicates: [] });
+    const missing = document.split('\n').filter(line => !line.startsWith('| $.label |') && !line.startsWith('| import | query |')).join('\n');
+    expect(referenceCoverage(fields, abi, missing).fields.missing).toEqual(['$.label']);
+    expect(referenceCoverage(fields, abi, missing).abi.missing).toEqual(['import.query']);
+    expect(() => assertReferenceCoverage(fields, abi, missing)).toThrow('fields missing: $.label; abi missing: import.query');
+    expect(() => assertReferenceCoverage(fields, abi, `${document}| $.label | string | required | |\n`)).toThrow('fields duplicates: $.label');
+    expect(() => assertReferenceCoverage(fields, abi, `${document}| $.obsolete | number | required | |\n| export | old_tick | — | void |\n`)).toThrow('fields extra: $.obsolete; abi extra: export.old_tick');
+  });
+  it('covers the current runtime bindings, every spawn category, state and SF70 item profiles', () => {
+    const fields = schemaInventory(ShardfileSchema), abi = abiInventory(SCRIPT_IMPORTS, SCRIPT_EXPORTS);
+    const document = renderReference(fields, abi, SCRIPT_ABI), paths = new Set(fields.map(row => row.path));
+    const coverage = assertReferenceCoverage(fields, abi, document);
+    expect(coverage.fields.documented).toBe(fields.length); expect(coverage.abi.documented).toBe(abi.length);
+    expect(fields.find(row => row.path === '$.runtime.binds[]')?.values).toEqual(['"quests"', '"ledger"', '"items"', '"spawns"', '"state"']);
+    for (const category of ['homes', 'bosses', 'actors']) for (const key of ['id', 'kind', 'look', 'at', 'yaw']) {
+      expect(paths.has(`$.runtime.spawns.${category}[].${key}`)).toBe(true);
+    }
+    expect(paths.has('$.runtime.spawns.homes[].respawn')).toBe(true);
+    expect(paths.has('$.state.shared[].default')).toBe(true);
+    expect(paths.has('$.items.runtimeContexts[]')).toBe(true);
+    for (let branch = 0; branch < 4; branch++) for (const key of ['keysFrom', 'actions', 'touch', 'lockable']) {
+      expect(paths.has(`$.items.contexts[]<${branch}>.${key}`)).toBe(true);
+    }
+    expect(fields.find(row => row.path === '$.items.rows[]<1>.action')?.wrappers.some(wrapper => wrapper.kind === 'nullable')).toBe(true);
+  });
   it('generates the same real schema reference in plain Node twice without an app', () => {
     const first = shardfileReference(resolve('.')), second = shardfileReference(resolve('.'));
     expect(first).toBe(second); expect(first).toContain('$.identity.seed'); expect(first).toContain('| export | on_tick | — | void |');
+    expect(first).toContain('$sdk["./worldSource"].WorldSourceSchema.glb');
+    expect(first).toContain('$sdk["./ledger"].LedgerFactSchema.origin.kind');
+    expect(first).toContain('$sdk["./shardfile"].ShardfileSchema.runtime.spawns.actors[].id');
     const dir = mkdtempSync(resolve(tmpdir(), 'sf45-reference-'));
     try {
       mkdirSync(resolve(dir, 'docs/api'), { recursive: true }); writeFileSync(resolve(dir, 'docs/api/SHARDFILE.md'), first);

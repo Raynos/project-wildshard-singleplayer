@@ -22,7 +22,7 @@ function fixture(run: (root: string, put: (file: string, value: string) => void,
   return (async () => {
     try {
       cpSync('lint', resolve(root, 'lint'), { recursive: true });
-      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs']) {
+      for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
         mkdirSync(dirname(resolve(root, file)), { recursive: true }); cpSync(file, resolve(root, file));
       }
       for (const file of ['.oxlintrc.json', '.oxlintrc.ratchet.json']) cpSync(file, resolve(root, file));
@@ -94,6 +94,27 @@ describe('SF6b clean committed regeneration', () => {
       expect(reach.status).toBe(1); expect(reach.stderr).toContain('reaches into');
     });
   });
+  it('discovers a newly exported SDK schema and refuses missing fields or ABI calls in the committed reference', async () => {
+    await fixture(async (root, put, git) => {
+      put('src/sdk/package.json', JSON.stringify({ name: '@wildshard/sdk', exports: { './worldSource': './worldSource.ts' } }));
+      put('src/sdk/worldSource.ts', "import * as v from 'valibot';\n/** Build-only authored world input. */\nexport const WorldSourceSchema = v.strictObject({ glb: v.string(), scale: v.optional(v.number(), 1) });\n");
+      put('src/engine/script/abi.ts', 'export const SCRIPT_IMPORTS = { fuel: [127, 0], query: [127, 127, 127, 127] };\nexport const SCRIPT_EXPORTS = { on_tick: [] };\nexport const SCRIPT_ABI = { version: 0 };\n');
+      git(['add', '--', 'src/sdk/worldSource.ts']);
+      git(['commit', '-qm', 'SDK schema and ABI source', '--', 'src/sdk/package.json', 'src/sdk/worldSource.ts', 'src/engine/script/abi.ts']);
+      expect(() => checkShardfileReference(root)).toThrow('Schema documentation coverage');
+      const sha = await regenerateCommitted(root), path = resolve(root, 'docs/api/SHARDFILE.md');
+      const document = readFileSync(path, 'utf8');
+      expect(document).toContain('$sdk["./worldSource"].WorldSourceSchema.scale');
+      expect(document).toContain('| import | query | i32, i32, i32 | i32 |');
+      checkShardfileReference(root);
+      put('docs/api/SHARDFILE.md', document.split('\n').filter(line => !line.startsWith('| $sdk["./worldSource"].WorldSourceSchema.glb |')).join('\n'));
+      expect(() => checkShardfileReference(root)).toThrow('fields missing: $sdk["./worldSource"].WorldSourceSchema.glb');
+      put('docs/api/SHARDFILE.md', document.split('\n').filter(line => !line.startsWith('| import | query |')).join('\n'));
+      expect(() => checkShardfileReference(root)).toThrow('abi missing: import.query');
+      put('docs/api/SHARDFILE.md', document);
+      await expect(checkCommitted(root, sha)).resolves.toBeUndefined();
+    });
+  }, 30_000);
   it('checks staged generated edits while allowing source-only commits and manual prose or policy edits', async () => {
     await fixture((root, put, git) => {
       const baseline = readFileSync(resolve(root, 'lint/api-surface.json'), 'utf8');

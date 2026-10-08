@@ -1,6 +1,6 @@
 # Script ABI v0
 
-The provisional shardfile version 0 uses the numeric core-Wasm ABI in
+The provisional shardfile revision `0.x` uses numeric core-Wasm ABI version 0 in
 `@wildshard/engine/script/abi`. `scripts/compile-script.mjs` compiles author source
 in Node with pinned AssemblyScript 0.28.20 and Binaryen 132.0.0. The stub runtime
 uses the host's imported `env.memory`, initially one page and at most 64 pages
@@ -9,6 +9,16 @@ uses the host's imported `env.memory`, initially one page and at most 64 pages
 to fit several modules in the sim budget; the default is 64 and v0 refuses
 values outside 1..64. Runtime cost counts three maximum-sized guest copies
 per unique module, independent of the number of entity/actor bindings.
+
+The [generated schema and ABI reference](api/SHARDFILE.md) derives every required
+import/export call signature and the toolchain/limits table from the defining
+`SCRIPT_IMPORTS`, `SCRIPT_EXPORTS` and `SCRIPT_ABI` constants. Missing, duplicate,
+obsolete or stale call entries fail checks; adding a call requires regenerating
+the committed reference through the serialized pusher. `env.memory` is the
+host-supplied memory import, not a function call. Instrumented `__state_<index>`
+exports depend on each admitted module's mutable globals; admission verifies those
+module-specific snapshots separately. The sections below explain call ordering,
+record layout and authority, which a numeric signature alone cannot express.
 
 Required exports are `abi_version():i32` (returns 0), `__start():void`,
 `init(lo:i32,hi:i32):void`, `in_ptr():i32`, `in_cap():i32` (bytes),

@@ -3,7 +3,24 @@
 SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
 Never message wildshard-v. The matched Simulator Safari cohort is complete and all owned resources are released.
 
-## Runtime-owned native tool format — focused green
+## SF45 — schema / ABI documentation coverage
+
+Build on c5fa39dd5/0710aac7f. The actual compiled schema plus every public SDK
+*Schema constant is inventoried (SDK package exports + TypeScript declarations,
+then trusted runtime metadata); no predicates/default factories execute. Recursive
+pipeline wrappers now preserve nested fields/checks. Current inventory5046paths
+(2148compiled +2898SDK across16schema roots) and16admitted ABI calls. Explicit
+missing/duplicate/obsolete coverage failures compose with exact generated-byte
+checks for changed bounds/defaults/signatures. Runtime binds/spawn categories,
+state, SF70 contexts and action:null native tools are covered. SDK/SCRIPT-ABI guides
+link the same generated reference; custom-validator internals remain opaque.
+Generated output stays with serialized pusher. No generated files, imports/debt,
+map inputs or graphical changes. Clean f6505e2ec plus owned hunks:21focused tests/3files, root and scripts
+strict, root-config oxlint and ratchet green. Combined full434 queued (also covers
+b19 native-tool format; duplicate429 withdrawn before child allocation). Current-HEAD
+private index/hooks/old-value CAS required; final full proof remains pending. Coordinator pushes.
+
+## Runtime-owned native tool format — b19bccf66
 
 A tool action may be null only under runtime.binds items and with hook:null.
 FuelSeconds0.001..86400/intensity0..10 remain finite compatibility placeholders;

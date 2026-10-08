@@ -1,5 +1,19 @@
 # Build and preview an author project
 
+The [SDK API catalogue](api/SDK.md) is generated from the package's defining public
+modules and their JSDoc. The [schema and ABI reference](api/SHARDFILE.md) lists every
+compiled shardfile field, every public SDK `*Schema` constant (including the
+build-only `WorldSourceSchema`), and every admitted Wasm import/export call.
+SDK schema paths use `$sdk["./module"].Schema`; `$` is the compiled shardfile.
+Types, optionality, defaults, literals, union branches and bounds come from the
+actual accepting schemas. New public schema constants are discovered through
+`src/sdk/package.json`; they cannot silently miss the reference. Missing,
+duplicate, obsolete or stale entries fail checks, and the serialized pusher
+regenerates the appendix from committed source. Custom predicates remain named
+opaque checks; [SHARDFILE.md](SHARDFILE.md) explains reference integrity and runtime
+ownership, including `runtime.binds`, spawn homes/bosses/one-shot actors,
+runtime-bound state, ranged/thrown contexts and native tools with no toggle action.
+
 Use the installed SDK's `wildshard dev <project> [port]` to preview the normal
 game client with the project's shardfile. Port 0 (the default) chooses a free
 local port. The CLI prints the URL. It validates and builds a static product;
