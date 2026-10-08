@@ -26,6 +26,7 @@ export function installLoadingGlJournal() {
   };
   push({ op: 'begin', at: Date.now() / 1000 });
   window.__sc_gl_change = push;
+  window.__sf57GLPosition = () => ({ document: documentId, sequence: sequence - 1 });
   window.__sf57MarkGLCycle = cycle => {
     if (window.__sc_gl_change !== push || !Number.isSafeInteger(cycle) || cycle < 0) throw new Error('Invalid GL journal cycle');
     window.__sf57 = { ...window.__sf57, cycles: cycle };
@@ -56,6 +57,7 @@ export function installSoakGl() {
     return { at: Date.now() / 1000, totalBytes: contexts.reduce((sum, context) => sum + context.totalBytes, 0),
       textures: contexts.reduce((sum, context) => sum + context.texBytes, 0), renderbuffers: contexts.reduce((sum, context) => sum + context.rbBytes, 0), buffers: contexts.reduce((sum, context) => sum + context.bufBytes, 0),
       unlabelled: contexts.reduce((sum, context) => sum + context.unlabelled, 0), reconciled: contexts.every((context) => context.reconciled),
+      journal: window.__sf57GLPosition?.() ?? null,
       assets: [...groups.values()].sort((a, b) => b.bytes - a.bytes || a.asset.localeCompare(b.asset)),
       accountedBytes: grid?.accountedBytes ?? null,
       current: grid?.live?.live?.current ?? null, inside: grid?.inside ?? null,

@@ -7,6 +7,25 @@ import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
 
+void test('SF57 reconciles same-millisecond census cuts by exact sequence, never by a guessed ordering', () => {
+  const events = [{ at: 0, op: 'begin' }, { at: 1, op: 'cycle', cycle: 0 },
+    { at: 2, op: 'allocation', id: 'texture:1', kind: 'texture', bytes: 4096, labelled: true },
+    { at: 2, op: 'allocation', id: 'texture:2', kind: 'texture', bytes: 5460, labelled: true },
+    { at: 3, op: 'stop' }].map((row, sequence) => Object.assign(row, { document: 'exact-cut', sequence }));
+  const snapshot = { at: 2, totalBytes: 0, unlabelled: 0, reconciled: true, textures: 0, cycle: 0,
+    journal: { document: 'exact-cut', sequence: 1 } };
+  const replay = loadingGlSamples(events, [2, 2.5], [snapshot]);
+  assert.equal(replay.get(2).totalBytes, 9556, 'The native timestamp includes all mutations through that millisecond');
+  assert.equal(replay.get(2.5).totalBytes, 9556, 'The earlier census cut does not remove later real allocations');
+  assert.equal(loadingGlSamples(events, [2.5], [{ ...snapshot, journal: null }]).size, 0, 'Legacy ambiguity remains refused');
+  for (const journal of [{ document: 'unknown', sequence: 1 }, { document: 'exact-cut', sequence: 99 },
+    { document: 'exact-cut', sequence: .5 }, { document: 'exact-cut', sequence: 4 }]) {
+    assert.equal(loadingGlSamples(events, [2.5], [{ ...snapshot, journal }]).size, 0);
+  }
+  assert.equal(loadingGlSamples(events, [2.5], [{ ...snapshot, at: 2.1 }]).size, 0, 'A stale sequence cannot mask earlier allocations');
+  assert.equal(loadingGlSamples(events, [2.5], [{ ...snapshot, totalBytes: 1 }]).size, 0, 'An exact cut still requires byte equality');
+});
+
 void test('SF57 loading mutation replay covers blocked timers, resizes, labels and document retirement without interpolation', () => {
   const events = [
     { at: 0, op: 'begin' }, { at: 1, op: 'allocation', id: 'buffer:1', kind: 'buffer', bytes: 64, labelled: false },

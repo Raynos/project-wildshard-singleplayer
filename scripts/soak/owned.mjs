@@ -129,10 +129,29 @@ export function loadingGlSamples(events, timestamps, observed = []) {
     endings.set(event.document, event.op);
   }
   if ([...endings.values()].some(op => op !== 'end' && op !== 'stop') || sorted.filter(row => row.op === 'stop').length !== 1) return result;
+  const positions = new Map(sorted.map((event, index) => [`${event.document}:${event.sequence}`, index]));
+  const cutoff = at => {
+    let low = 0, high = sorted.length;
+    while (low < high) { const middle = Math.floor((low + high) / 2); if (sorted[middle].at <= at) low = middle + 1; else high = middle; }
+    return low;
+  };
+  const targets = timestamps.map(at => ({ at, through: cutoff(at) }));
+  for (const snapshot of observed) {
+    if (snapshot.at < first.at || snapshot.at > last.at) continue;
+    let through = cutoff(snapshot.at);
+    if (snapshot.journal !== undefined && snapshot.journal !== null) {
+      const { document, sequence } = snapshot.journal, index = positions.get(`${document}:${sequence}`);
+      if (typeof document !== 'string' || !Number.isSafeInteger(sequence) || index === undefined
+        || sorted[index].at > snapshot.at || (sorted[index + 1] && sorted[index + 1].at < snapshot.at)) return new Map();
+      through = index + 1;
+    }
+    targets.push({ at: snapshot.at, through, snapshot });
+  }
   const resources = new Map(), labels = new Map(); let cursor = 0, cycle = null;
-  for (const at of [...new Set([...timestamps, ...observed.map(row => row.at)])].sort((a, b) => a - b)) {
+  // A census and later uploads may share Date.now's millisecond. The captured sequence is its exact cut.
+  for (const { at, through, snapshot } of targets.sort((a, b) => a.through - b.through || a.at - b.at)) {
     if (at < first.at || at > last.at) continue;
-    while (cursor < sorted.length && sorted[cursor].at <= at) {
+    while (cursor < through) {
       const event = sorted[cursor++], key = `${event.document}:${event.id}`;
       if (event.op === 'begin') cycle = null;
       else if (event.op === 'cycle') cycle = event.cycle;
@@ -144,7 +163,7 @@ export function loadingGlSamples(events, timestamps, observed = []) {
         const tag = { owner: event.owner, asset: event.asset, labelled: true }; labels.set(key, tag);
         if (resources.has(key)) resources.set(key, { ...resources.get(key), ...tag });
       } else if (event.op === 'allocation') {
-        if (event.bytes === null) resources.delete(key);
+        if (event.bytes === null) { resources.delete(key); labels.delete(key); }
         else resources.set(key, { ...event, ...labels.get(key) });
       }
     }
@@ -155,14 +174,12 @@ export function loadingGlSamples(events, timestamps, observed = []) {
       else if (resource.kind === 'renderbuffer') renderbuffers += resource.bytes;
       else if (resource.kind === 'buffer') buffers += resource.bytes;
     }
-    result.set(at, { at, totalBytes, textures, renderbuffers, buffers, unlabelled,
+    const replay = { at, totalBytes, textures, renderbuffers, buffers, unlabelled,
       reconciled: totalBytes === textures + renderbuffers + buffers, accountedBytes: null, cycle,
-      source: 'complete GL allocation journal', journalFrom: first.at, journalThrough: last.at });
-  }
-  for (const snapshot of observed) {
-    const replay = result.get(snapshot.at);
-    if (replay && (replay.totalBytes !== snapshot.totalBytes || replay.unlabelled !== snapshot.unlabelled || replay.reconciled !== snapshot.reconciled
+      source: 'complete GL allocation journal', journalFrom: first.at, journalThrough: last.at };
+    if (snapshot && (replay.totalBytes !== snapshot.totalBytes || replay.unlabelled !== snapshot.unlabelled || replay.reconciled !== snapshot.reconciled
       || ['textures', 'renderbuffers', 'buffers', 'cycle'].some(key => snapshot[key] !== undefined && replay[key] !== snapshot[key]))) return new Map();
+    result.set(at, replay);
   }
   return result;
 }

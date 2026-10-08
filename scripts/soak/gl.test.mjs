@@ -22,6 +22,7 @@ void test('SF57 journal suppresses repeated assertions but preserves exact resiz
     const events = window.__sf57GLEvents;
     assert.equal(events.length, 11, 'Twenty thousand unchanged assertions create no journal entries');
     assert.deepEqual(events.map(row => row.sequence), Array.from({ length: 11 }, (_, index) => index));
+    assert.deepEqual(window.__sf57GLPosition(), { document: 'mutations', sequence: 10 });
     const at = events.at(-1).at, replay = loadingGlSamples(events, [at]).get(at);
     assert.equal(replay.totalBytes, 64); assert.equal(replay.unlabelled, 0); assert.equal(replay.cycle, 0);
   } finally { globalThis.window = oldWindow; globalThis.sessionStorage = oldStorage; }
@@ -58,11 +59,13 @@ void test('SF57 preserves labelled GL allocations, reconciliation and allocator 
   try {
     globalThis.setInterval = (callback, period) => { assert.equal(period, 1000); tick = callback; return 1; };
     globalThis.window = { __sc_gl: () => contexts, __sf57Errors: [], __sf57: { cycles: 2 },
+      __sf57GLPosition: () => ({ document: 'census', sequence: 42 }),
       __wildshard: { shard: { grid: { state: () => ({ accountedBytes: 400_000_000, rings: { inFlight: 0, queued: 0 }, live: { live: { pending: [], gameplayReady: true } } }) } } },
       addEventListener: (name, listener) => { assert.equal(name, 'webglcontextlost'); lost = listener; } };
     installSoakGl(); tick();
     const row = window.__sf57GL[0];
     assert.equal(row.totalBytes, 100); assert.equal(row.accountedBytes, 400_000_000); assert.equal(row.cycle, 2);
+    assert.deepEqual(row.journal, { document: 'census', sequence: 42 });
     assert.deepEqual(row.assets, [{ owner: 'template-1', asset: 'model:a', bytes: 70, resources: 2 }]);
     assert.equal(row.reconciled, true); contexts[0].reconciled = false; contexts[0].unlabelled = 1; tick();
     assert.equal(window.__sf57GL[1].reconciled, false); assert.equal(window.__sf57GL[1].unlabelled, 1);
