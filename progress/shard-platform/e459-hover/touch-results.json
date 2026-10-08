@@ -1,0 +1,535 @@
+{
+  "before": "0e6d69988",
+  "afterBuiltCandidate": "cebc8f4a5d3b8374e1fdd0d2a14b1b9687236804",
+  "afterBuild": "cebc8f4-muzpo6y2",
+  "profile": "iPhone 16 Pro",
+  "muted": true,
+  "developer": true,
+  "results": {
+    "before": {
+      "chromium": {
+        "template": {
+          "mode": "template",
+          "pass": false,
+          "before": {
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.9633333343081176,
+              "z": 0
+            }
+          },
+          "mounted": null,
+          "unmounted": null,
+          "after": {
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0.0009456240504732705,
+              "y": -0.32953783046104945,
+              "z": 0.0009441354081900499
+            }
+          },
+          "error": "TimeoutError: page.waitForFunction: Timeout 5000ms exceeded.",
+          "faults": []
+        },
+        "road": {
+          "mode": "road",
+          "pass": true,
+          "before": {
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": false
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989023143604,
+              "y": 0.019967157852806894,
+              "z": 277.50001768431576
+            },
+            "current": null,
+            "ready": true
+          },
+          "mounted": {
+            "state": "play",
+            "hover": true,
+            "blend": 0.518822054351149,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989020118994,
+              "y": 0.07248414522440333,
+              "z": 277.5000175551388
+            },
+            "current": null,
+            "ready": true
+          },
+          "unmounted": {
+            "state": "play",
+            "hover": false,
+            "blend": 0.638637518176919,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989020118994,
+              "y": 0.2872832451717439,
+              "z": 277.5000175551388
+            },
+            "current": null,
+            "ready": true
+          },
+          "faults": []
+        }
+      },
+      "webkit": {
+        "template": {
+          "mode": "template",
+          "pass": false,
+          "before": {
+            "shard": "_template",
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.9633333343081176,
+              "z": 0
+            }
+          },
+          "mounted": null,
+          "unmounted": null,
+          "after": {
+            "shard": "_template",
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0.0009423687313301343,
+              "y": -0.32963772442599293,
+              "z": 0.0009408800804067141
+            }
+          },
+          "error": "TimeoutError: page.waitForFunction: Timeout 5000ms exceeded.",
+          "faults": []
+        },
+        "road": {
+          "mode": "road",
+          "pass": true,
+          "before": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": false
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.4998904089559,
+              "y": 0.020067150545219237,
+              "z": 277.5000172243977
+            },
+            "current": null,
+            "ready": true
+          },
+          "mounted": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": true,
+            "blend": 0.509552366657536,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989023143604,
+              "y": 0.07248414656317953,
+              "z": 277.50001650474775
+            },
+            "current": null,
+            "ready": true
+          },
+          "unmounted": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": false,
+            "blend": 0.5762532447921112,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989023143604,
+              "y": 0.18118490024910053,
+              "z": 277.50001650474775
+            },
+            "current": null,
+            "ready": true
+          },
+          "faults": []
+        }
+      }
+    },
+    "after": {
+      "chromium": {
+        "template": {
+          "mode": "template",
+          "pass": true,
+          "before": {
+            "shard": "_template",
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": false
+              },
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.9083333346061409,
+              "z": 0
+            }
+          },
+          "mounted": {
+            "shard": "_template",
+            "state": "play",
+            "hover": true,
+            "blend": 0.5109041679213618,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              },
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.19852786949299195,
+              "z": 0
+            }
+          },
+          "unmounted": {
+            "shard": "_template",
+            "state": "play",
+            "hover": false,
+            "blend": 0.5760517331273869,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              },
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.10158991586123758,
+              "z": 0
+            }
+          },
+          "faults": []
+        },
+        "road": {
+          "mode": "road",
+          "pass": true,
+          "before": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": false
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989023143604,
+              "y": 0.020028874977288114,
+              "z": 277.50001650474775
+            },
+            "current": null,
+            "ready": true
+          },
+          "mounted": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": true,
+            "blend": 0.5120396417120457,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.4998903055999,
+              "y": 0.0724841624975267,
+              "z": 277.50001738766036
+            },
+            "current": null,
+            "ready": true
+          },
+          "unmounted": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": false,
+            "blend": 0.6333775818599144,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.4998903055999,
+              "y": 0.28728326055210535,
+              "z": 277.50001738766036
+            },
+            "current": null,
+            "ready": true
+          },
+          "faults": []
+        }
+      },
+      "webkit": {
+        "template": {
+          "mode": "template",
+          "pass": true,
+          "before": {
+            "shard": "_template",
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": false
+              },
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.9083333346061409,
+              "z": 0
+            }
+          },
+          "mounted": {
+            "shard": "_template",
+            "state": "play",
+            "hover": true,
+            "blend": 0.561775392980992,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              },
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.14777420738215533,
+              "z": 0
+            }
+          },
+          "unmounted": {
+            "shard": "_template",
+            "state": "play",
+            "hover": false,
+            "blend": 0.6318913301040333,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              },
+              {
+                "id": "tool.template-lantern",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 0,
+              "y": 0.02440115105380619,
+              "z": 0
+            }
+          },
+          "faults": []
+        },
+        "road": {
+          "mode": "road",
+          "pass": true,
+          "before": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": false,
+            "blend": 0,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": false
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.4998901268837,
+              "y": 0.01992888229215173,
+              "z": 277.50001667279577
+            },
+            "current": null,
+            "ready": true
+          },
+          "mounted": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": true,
+            "blend": 0.509562781990912,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989020118994,
+              "y": 0.07248414522440333,
+              "z": 277.5000175551388
+            },
+            "current": null,
+            "ready": true
+          },
+          "unmounted": {
+            "shard": "platform.grid",
+            "state": "play",
+            "hover": false,
+            "blend": 0.5743004947681116,
+            "tools": [
+              {
+                "id": "tool.hoverboard",
+                "enabled": true,
+                "visible": true
+              }
+            ],
+            "allowed": true,
+            "feet": {
+              "x": 277.49989020118994,
+              "y": 0.18118489891032433,
+              "z": 277.5000175551388
+            },
+            "current": null,
+            "ready": true
+          },
+          "faults": []
+        }
+      }
+    }
+  }
+}
