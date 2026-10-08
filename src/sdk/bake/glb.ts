@@ -3,7 +3,11 @@ import { parseGlb } from '../assets';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 /** A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. */
-export interface GlbPrimitive { geometry: BufferGeometry; material: MeshStandardMaterial; instances?: readonly Matrix4[]; castShadow?: boolean }
+export interface GlbPrimitive {
+  geometry: BufferGeometry; material: MeshStandardMaterial; instances?: readonly Matrix4[]; castShadow?: boolean;
+  /** Explicit glTF application semantic → geometry channel, e.g. `_SPLAT: 'splat'`; absent preserves old bytes. */
+  customAttributes?: Readonly<Record<string, string>>;
+}
 /** A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. */
 export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): Uint8Array {
   const chunks: Uint8Array[] = [], views: Json[] = [], accessors: Json[] = [], meshes: Json[] = [], nodes: Json[] = [], materials: Json[] = [];
@@ -17,7 +21,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (bounds) { a['min'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.min(n, sample) : n, Infinity)); a['max'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.max(n, sample) : n, -Infinity)); }
     accessors.push(a); return accessors.length - 1;
   };
-  for (const { geometry, material, instances, castShadow = true } of primitives) {
+  for (const { geometry, material, instances, castShadow = true, customAttributes = {} } of primitives) {
     if (material.map !== null || material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null || material.alphaMap !== null) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -26,6 +30,14 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       const a = geometry.getAttribute(key); if (!geometry.hasAttribute(key)) continue;
       if (a.itemSize !== width || a.count !== p.count) throw new Error('Mismatched GLB attributes');
       attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, `VEC${width}`, false, key === 'position');
+    }
+    const custom = Object.entries(customAttributes).sort(([a], [b]) => a.localeCompare(b));
+    if (custom.length > 16) throw new Error('GLB custom attribute cap');
+    for (const [semantic, channel] of custom) {
+      if (!/^_[A-Z][A-Z0-9_]{0,63}$/.test(semantic) || !geometry.hasAttribute(channel)) throw new Error(`Invalid GLB custom attribute ${semantic}`);
+      const a = geometry.getAttribute(channel), width = a.itemSize;
+      if (!Number.isInteger(width) || width < 1 || width > 4 || a.count !== p.count) throw new Error(`Mismatched GLB custom attribute ${semantic}`);
+      attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, width === 1 ? 'SCALAR' : `VEC${width}`);
     }
     const index = geometry.getIndex(), indices = index === null ? Array.from({ length: p.count }, (_, i) => i) : Array.from(index.array);
     if (indices.length % 3 !== 0 || indices.some((i) => !Number.isInteger(i) || i < 0 || i >= p.count)) throw new Error('Invalid triangle indices');
