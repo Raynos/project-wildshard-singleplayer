@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { Scene } from 'three';
 import type { SkyBackdropContext } from '../src/engine/render/look';
-import { gridPageShell, gridPageShellLevel } from '../src/game/grid/pageShell';
+import { gridPageShell, gridPageShellLevel, useOwnedGridHome } from '../src/game/grid/pageShell';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { needsTerrainCollider } from '../src/engine/level/spec';
 import { navmeshUrl } from '../src/engine/physics/navmeshUrl';
@@ -34,4 +34,12 @@ it('keeps catalogue identity while excluding every resident home asset and autho
   expect(level.id).toBe('platform.grid'); expect(needsTerrainCollider(level)).toBe(false);
   expect(navmeshUrl(level.id)).toBeNull(); expect(level.creatures).toBeUndefined(); expect(level.roster).toBeUndefined();
   expect(terrainFor(shell).heightAt(0, 0)).toBeLessThan(-500);
+});
+
+it('gates the owned shell to Developer and preserves the shipped borrowed home otherwise', () => {
+  expect(useOwnedGridHome('grid', false, PINE_HOLLOW)).toBe(false);
+  expect(useOwnedGridHome('grid', true, PINE_HOLLOW)).toBe(true);
+  expect(useOwnedGridHome('shard', true, PINE_HOLLOW)).toBe(false);
+  expect(useOwnedGridHome('grid', true, { gridShardfile: '/fixture/shard.json' })).toBe(false);
+  expect(useOwnedGridHome('grid', true, { trustedRuntime: { slug: 'pine-hollow', entry: 'runtime/index.ts' } })).toBe(false);
 });

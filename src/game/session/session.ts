@@ -26,6 +26,7 @@ import { setBootCatalog } from '@wildshard/engine/boot/catalog';
 import { setAliveSource, type AliveInfo } from '@wildshard/engine/boot/lastEnd';
 import { consumeTitleArrival } from '@wildshard/engine/boot/titleArrival';
 import { reportError } from '@wildshard/engine/core/errorReport';
+import { isDev } from '@wildshard/engine/core/devMode';
 import { pageSeed } from '@wildshard/engine/core/rng';
 import { LevelLoadError } from '@wildshard/engine/level/load';
 import { registerPlayground } from '@wildshard/engine/practice/playground/catalog';
@@ -39,7 +40,7 @@ import { installGridDebug } from '../grid/debug';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '../grid/memoryAdmission';
-import { gridPageShell, gridPageShellLevel, GridPageShellPlugin } from '../grid/pageShell';
+import { gridPageShell, gridPageShellLevel, GridPageShellPlugin, useOwnedGridHome } from '../grid/pageShell';
 
 declare const __BUILD_ID__: string;
 
@@ -59,7 +60,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     session.arrival = consumeTitleArrival(selected);
     // SF21a: the one-shot EXPERIMENTAL Wildshard intent, consumed by every boot; grid mode drops the URL to the title's
     const mode = options.mode ?? bootPageMode(selected);
-    session.ownedGridHome = mode === 'grid' && manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined;
+    session.ownedGridHome = useOwnedGridHome(mode, isDev(), manifest);
     const pageManifest = session.ownedGridHome ? gridPageShell(manifest) : manifest;
     if (mode === 'grid' && options.residency === undefined) throw new Error('Grid boot requires residency admission before hydration');
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: '', mode }));

@@ -5,6 +5,12 @@ import { ShardPlugin } from '../shard/plugin';
 import { toLevelSpec } from '../shard/spec';
 import { EmptyEquipment } from '../shardfile/emptyEquipment';
 import { emptyLook } from '../shardfile/emptyLook';
+import type { PageMode } from './boot';
+
+/** G226 is unfinished: only Developer grid boots may replace the shipped borrowed home with an owned shell. */
+export function useOwnedGridHome(mode: PageMode, developer: boolean, manifest: Pick<ShardManifest, 'trustedRuntime' | 'gridShardfile'>): boolean {
+  return mode === 'grid' && developer && manifest.trustedRuntime !== undefined && manifest.gridShardfile !== undefined;
+}
 
 /**
  * G226: the page owns the renderer, player and platform controls, never an opaque home world. Keep only identity and
