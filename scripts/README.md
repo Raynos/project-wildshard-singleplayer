@@ -67,6 +67,9 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [debug-settings.mjs](./debug-settings.mjs)
 - [deploy-pin.mjs](./deploy-pin.mjs)
 - [deploy-version.mjs](./deploy-version.mjs)
+- [heavy-lane-lease.d.mts](./heavy-lane-lease.d.mts)
+- [heavy-lane-lease.mjs](./heavy-lane-lease.mjs)
+- [heavy-lane.py](./heavy-lane.py)
 - [native-android-e2e.mjs](./native-android-e2e.mjs)
 - [native-android.sh](./native-android.sh)
 - [native-icons.py](./native-icons.py)
@@ -79,6 +82,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [serve-build.sh](./serve-build.sh)
 - [sim-lane.sh](./sim-lane.sh)
 - [vercel-tree-gate.sh](./vercel-tree-gate.sh)
+- [vitest-lane.ts](./vitest-lane.ts)
 
 ## Bench, performance and memory
 
