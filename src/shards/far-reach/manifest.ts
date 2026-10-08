@@ -9,6 +9,8 @@ import { SKY_REACH_MINIMAP } from './look/minimap';
 
 export const SKY_REACH: ShardManifest = {
   runtimeCost: SKY_REACH_RUNTIME_COST,
+  gridShardfile: '/shardfiles/far-reach/shard.json',
+  trustedRuntime: { get slug() { return SKY_REACH.slug; }, entry: 'runtime/index.ts' },
   budgets: BUDGETS, api: 1, slug: 'far-reach', order: 60, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: 6417,
   accent: 'pink', // G104: the HUD accent inside its grid cell
   biome: STRINGS.biome, blurb: STRINGS.blurb, 

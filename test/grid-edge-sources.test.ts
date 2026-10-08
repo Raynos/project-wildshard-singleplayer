@@ -24,7 +24,7 @@ const fetchPublic = (fetched: string[]) => (url: string): Promise<Response> => {
 it('opens every Developer and DEVSERVER cell\'s legacy edges without a fallback, fetching only committed bakes', async () => {
   const assembly = new GridAssembly({ developer: true, devserver: true });
   const legacy = assembly.cells.filter(cell => { const manifest = findShard(cell.slug); return manifest?.shardfile === undefined && manifest?.gridShardfile === undefined; });
-  expect(legacy.map(cell => cell.slug)).toContain('far-reach');
+  expect(legacy.map(cell => cell.slug)).not.toContain('far-reach');
   const fetched: string[] = [];
   const cells = await loadGridEdgeProfiles(legacy, cell => readGridEdges(cell, { product: () => null, fetch: fetchPublic(fetched) }));
   expect(cells).toHaveLength(legacy.length);
