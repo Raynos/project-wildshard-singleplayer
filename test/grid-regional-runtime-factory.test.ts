@@ -60,7 +60,7 @@ function fixture() {
   const region = { host, dispose: () => { destroyed = true; host.dispose(); } };
   const animals = new AnimalManager(scene, world.sky, world.forest, { style: 'toon', render: { waitForModels: false, lowPoly: true, furRim: false, tintRange: 0, oneMaterial: true } });
   // Foundation double supplies no blood/rig build; the real shell updates its built manager on entered ticks.
-  vi.spyOn(animals, 'update').mockImplementation(noop);
+  const herd = vi.spyOn(animals, 'update').mockImplementation(noop);
   const calls: string[] = [], regional = createRegionalRuntimeFactory({ home: { x: 0, z: 0 }, prepareFoundation: prepared => Promise.resolve({ region,
     ground: { heightAt: () => 0, waterSurfaceAt: () => null },
     world: view => {
@@ -78,7 +78,7 @@ function fixture() {
     afterKit: () => { calls.push('shell.kit'); return Promise.resolve({ animals, wearSkin: noop }); },
     checkpoint: () => { nativeCheckpoints++; return nativeDurable; },
   }) });
-  return { app, scope, home, homeRegistry, world, play, runtime, request, claim, allocator, host, calls, regional,
+  return { app, scope, home, homeRegistry, world, play, runtime, request, claim, allocator, host, calls, regional, herd,
     nativeCheckpoints: () => nativeCheckpoints, refuse: () => { nativeDurable = false; }, destroyed: () => destroyed };
 }
 
@@ -125,12 +125,16 @@ it('composes two retained entries with real equipment, instance saves, destinati
       prepared.loadout.interior(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
       expect(root?.visible).toBe(true); expect(prepared.checkpoint()).toBe(true);
       expect(f.home.world.colliders.len()).toBe(0); expect(f.host.physics.world.colliders.len()).toBe(2);
+      const seen = f.herd.mock.calls.length; // E452: the page loop ticks the regional herd only while entered
+      expect(f.app.systemsByPhase().update.map(system => system.id)).toContain('grid.runtime.pine-hollow.animals');
       for (const system of f.app.systemsByPhase().update) system.run(1 / 60, visit);
+      expect(f.herd.mock.calls.length).toBe(seen + 1);
       prepared.loadout.stow(); session.leave();
       expect(root?.visible).toBe(false); expect(f.app.registry).toBe(f.homeRegistry);
       expect(Object.getOwnPropertyDescriptors(f.runtime)).toEqual(before);
+      expect(f.app.systemsByPhase().update.map(system => system.id)).not.toContain('grid.runtime.pine-hollow.animals');
       for (let tick = 0; tick < 600; tick++) for (const system of f.app.systemsByPhase().update) system.run(1 / 60, tick);
-      expect(ticks).toBe(visit + 1);
+      expect(ticks).toBe(visit + 1); expect(f.herd.mock.calls.length).toBe(seen + 1); // parked on leave
     }
     expect(builds).toBe(1); expect(f.calls.filter(call => call === 'binding.enter')).toHaveLength(2);
     expect(f.calls.filter(call => call === 'trusted.play')).toHaveLength(1);
