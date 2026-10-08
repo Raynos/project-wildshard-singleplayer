@@ -185,8 +185,8 @@ async function worker() {
         if (failures.length > 0) throw new Error(`${plan.name}: ${failures.join('; ')}`);
         result.seconds = (Date.now() - driveStart) / 1000;
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
-        // Finish the current fenced leg instead of silently abandoning movement at the deadline.
-        if (result.seconds >= duration) { complete = true; break; }
+        // Finish the fenced leg; a completed last leg still receives its lap count and settled baseline below.
+        if (result.seconds >= duration && plan !== plans.at(-1)) { complete = true; break; }
       }
       if (!complete) {
         result.circuits++;
@@ -218,7 +218,7 @@ async function worker() {
       result.diagnostic = await driver.evaluate('JSON.stringify({url:location.href,documentId:window.__sf57DocumentId,stop:window.__frameFloorGridStop,state:window.__wildshard?.shard?.grid?.state(),errors:window.__sf57Errors,body:document.body.innerText.slice(-4000)})').catch(() => null);
       result.listenerBeforeUnload = await driver.evaluate('window.__parityResources?.().listenerDetails').catch(() => null);
       await driver.evaluate('window.__wildshard?.world?.game.app.input.clear();true').catch(() => undefined);
-      if (!(await driver.evaluate('Boolean(window.__sf57Leak)'))) {
+      if (await driver.evaluate('Boolean(window.__wildshard?.world?.game)') && !(await driver.evaluate('Boolean(window.__sf57Leak)'))) {
         phase('unloaded');
         try {
           await driver.evaluate('window.__wildshard?.leak().then(value=>{window.__sf57Leak=value;},error=>{window.__sf57Leak={error:String(error)};});true');
