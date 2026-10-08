@@ -21,6 +21,7 @@ import { advance } from './parity/frames.mjs';
 import { browserPool, parallel } from './parity/pool.mjs';
 import { fastSelection, nextRotation } from './parity/profile.mjs';
 import { budgetLines, budgetViews } from './parity/budgets.mjs';
+import { waitForToastIdle } from './parity/hud.mjs';
 import { telemetryFixtureAccepts } from './parity/telemetry.mjs';
 
 /** @typedef {import('./parity/value.mjs').RecordValue} RecordValue */
@@ -94,6 +95,7 @@ export async function capture(browser,url,opts) {
     /** @type {RecordValue} */const result={boot:object(boot)};
     if(errors.length > 0)return result;
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
+    boot.hud=await within(page.evaluate(waitForToastIdle,opts.tier==='desktop'?60:30),11_000,'startup toast idle');
     const clockWitness=await page.evaluate(()=>{
       const clock=window.__wildshard.world.game.sky.dayNight;
       return {developer:Object.hasOwn(document.documentElement.dataset,'dev'),overlayStyle:Boolean(document.getElementById('parity-developer-overlays')),fpsBadges:[...document.querySelectorAll('.ws-perf,.ws-perf-panel')].map((node)=>getComputedStyle(node).visibility),clock:clock?{paused:clock.paused,phase:clock.phase}:null,developerAlerts:[...document.querySelectorAll('.ws-game-dev-alert')].filter((node)=>node instanceof HTMLElement&&!node.hidden).map((node)=>node.textContent||'Developer script failure')};
