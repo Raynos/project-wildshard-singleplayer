@@ -1,0 +1,159 @@
+{
+  "protocol": "Actual Stems Deck plus bounded AAC scheduler versus the original decoded Deck; authored loop, bar/fade and paired incoming Deck unchanged. Offline only, no native saving claim.",
+  "genre": "piano",
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "result": {
+    "cases": [
+      {
+        "scenario": "loop-fade",
+        "t0": 0.050021,
+        "comparedSamples": 6148804,
+        "maxAbs": 0,
+        "rms": 0,
+        "peakWindows": 22,
+        "residue": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "exact": true
+      },
+      {
+        "scenario": "bar-handoff",
+        "t0": 0.050021,
+        "comparedSamples": 772804,
+        "maxAbs": 0,
+        "rms": 0,
+        "peakWindows": 20,
+        "residue": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "exact": true
+      }
+    ],
+    "fences": [
+      {
+        "rate": 48000,
+        "retire": false,
+        "decodes": 0,
+        "original": false,
+        "source": "stems",
+        "residue": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      },
+      {
+        "rate": 44100,
+        "retire": false,
+        "decodes": 1,
+        "original": true,
+        "source": "stems",
+        "residue": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      },
+      {
+        "rate": 44100,
+        "retire": true,
+        "decodes": 1,
+        "original": false,
+        "source": "synth",
+        "residue": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        }
+      }
+    ],
+    "replay": {
+      "decodes": 0,
+      "source": "stems",
+      "residue": {
+        "geometries": 0,
+        "materials": 0,
+        "textures": 0,
+        "renderTargets": 0,
+        "meshes": 0,
+        "resources": 0,
+        "bodies": 0,
+        "sounds": 0,
+        "listeners": 0,
+        "timers": 0,
+        "rafs": 0,
+        "disposers": 0,
+        "systems": 0,
+        "colliders": 0,
+        "nodes": 0
+      }
+    },
+    "exact": true
+  },
+  "closed": true
+}

@@ -1,4 +1,5 @@
 import { resourceScope } from '../app/resources';
+import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
 import { tap, ambientTick } from '../core/harnessTap';
 // src/engine/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (project/archive/2026-09-23-music.md).
@@ -38,6 +39,7 @@ import { tap, ambientTick } from '../core/harnessTap';
 import type { Audio } from './Audio';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle as MusicGenre } from '../ui/Settings';
 import { Deck, decodeStyle, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
+import { AacTrack } from './aacTrack';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
 import { audioLog } from './audioLog';
 import type { ScoreSource } from './SetScore';
@@ -508,6 +510,7 @@ export class Music {
   /** the genre being decoded for a switch (the old one plays on meanwhile) */
   private decoding: MusicGenre | undefined;
   private deck: Deck | undefined;
+  private readonly resolvingTracks = new WeakSet<AacTrack>();
   /** the synth sequencer is scheduling (its timer runs); `synthGen` voids a pending stop when it is restarted mid-fade */
   private synthOn = false;
   private synthGen = 0;
@@ -717,9 +720,34 @@ export class Music {
   }
 
   /** a decoded slot takes over on a bar: from the synth (its bar grid) or from the other deck (that deck's grid), faded over ≥ 1 bar */
+  private async resolveTrack(a: SlotAudio, track: AacTrack, original: boolean): Promise<void> {
+    try {
+      const buffer = original ? await track.decoded() : undefined;
+      if (!original) await track.prime(this.scope);
+      if (this.scope.disposed) return;
+      if (buffer) a.calm = buffer;
+      if (this.playing && this._genre === a.genre && this.wantSlot() === a.slot) this.sync();
+    } catch (error: unknown) {
+      if (this.scope.disposed) return;
+      this.failed.add(a.genre);
+      console.info(`[music] ${a.genre}/${a.slot}: ${String(error)} — the synth plays on`);
+      this.sync();
+    } finally { this.resolvingTracks.delete(track); }
+  }
   private startDeck(a: SlotAudio, minFade = 0): void {
-    if (!this.rig) return;
-    const now = this.rig.ctx.currentTime, old = this.deck;
+    const rig = this.rig;
+    if (!rig) return;
+    // The device context is created only by a gesture. Unsupported rates keep the original decoder;
+    // the old deck continues while that fallback resolves, and stale completion cannot install a slot.
+    if (a.calm instanceof AacTrack && (rig.ctx.sampleRate !== a.calm.sampleRate || !a.calm.ready)) {
+      const track = a.calm;
+      if (this.resolvingTracks.has(track)) return;
+      this.resolvingTracks.add(track);
+      void this.resolveTrack(a, track, rig.ctx.sampleRate !== track.sampleRate);
+      if (!this.deck && !this.synthOn) this.startSynth(rig.ctx.currentTime + .05, 1);
+      return;
+    }
+    const now = rig.ctx.currentTime, old = this.deck;
     const bar = (60 / a.spec.bpm) * a.spec.beatsPerBar;
     let t: number, fade: number;
     if (old) {
@@ -730,7 +758,11 @@ export class Music {
     } else {
       t = now + 0.05; fade = 1; // from silence (play() with the stems already decoded)
     }
-    this.deck = new Deck(this.rig.ctx, a, this.rig.stemBus, t, fade, this.tension(), this.source?.phase ?? 1);
+    const deck = withOwner(this.scope, () => new Deck(rig.ctx, a, rig.stemBus, t, fade, this.tension(), this.source?.phase ?? 1, error => {
+      console.info(`[music] ${a.genre}/${a.slot}: ${String(error)} — the synth plays on`);
+      if (this.deck === deck) { this.deck = undefined; this.failed.add(a.genre); this.sync(); }
+    }));
+    this.deck = deck;
     audioLog('music', `deck:${a.slot}`, true, a.genre);
     this.stopSynth(t, fade);
     this.source?.onDeck?.(a.slot);

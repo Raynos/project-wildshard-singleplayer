@@ -3,6 +3,9 @@ import { resourceScope } from '../app/resources';
 import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
+import { setting, type MusicStyle as MusicGenre } from '../ui/Settings';
+import { AacTrack } from './aacTrack';
+import { AacSource } from './aacSource';
 // src/engine/audio/Stems.ts — the MiniMax-Music3 stem player behind src/engine/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
 //
 //   public/assets/music/<genre>/music.json   { genre, model, credit, slots: { <slot>: { calm, tension, bpm, beatsPerBar,
@@ -21,7 +24,6 @@ import { tap } from '../core/harnessTap';
 // A level's own set (`stems.py --set <set>`): public/assets/music/<set>-<genre>/music.json — the same manifest; a boss slot
 // carries `layers` (bass, drums) and `phases` (each boss phase's layer gains). `decodeStyle(genre, slots, …, set)` reads it.
 // A deck of the boss plays its layers at the current phase's gains (Deck.setPhase), moved on the bar like the tension stem.
-import type { MusicStyle as MusicGenre } from '../ui/Settings';
 
 /** the build's file table (vite.config.ts writes it from public/assets): a file the build does not have is never fetched —
  *  no 404 in the console, no request at all while the generated music has not landed */
@@ -69,7 +71,7 @@ export function parseManifest(raw: unknown): MusicManifest | undefined {
 }
 
 /** a decoded slot: its spec and the stems (tension absent for the title cut; layers only on the boss) */
-export interface SlotAudio { genre: MusicGenre; slot: SlotName; spec: SlotSpec; calm: AudioBuffer; tension: AudioBuffer | undefined; layers: AudioBuffer[] }
+export interface SlotAudio { genre: MusicGenre; slot: SlotName; spec: SlotSpec; calm: AudioBuffer | AacTrack; tension: AudioBuffer | undefined; layers: AudioBuffer[] }
 
 /** one genre, decoded: the slots this shard can play and the stings, plus what each file cost */
 export type StyleBank = GenreBank;
@@ -115,22 +117,30 @@ export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[],
   if (!m) throw new Error(`no music.json for '${musicSetDir(genre, set)}' in this build`);
   const base = `/assets/music/${musicSetDir(genre, set)}/`;
   const bank: StyleBank = { genre, set, slots: new Map(), stings: new Map(), log: [] };
-  const one = async (file: string): Promise<AudioBuffer> => {
+  const owner = resourceScope();
+  const readOne = async <T>(file: string, convert: (bytes: ArrayBuffer) => Promise<T>): Promise<T> => {
     const t = performance.now(), url = `${base}${file}`;
     try {
       if (!shipped(url)) throw new Error(`${url} is not in this build`);
       const bytes = await read(url), size = bytes.byteLength; // decodeAudioData detaches the buffer
-      const buf = await decode(bytes);
+      const buf = await convert(bytes);
       bank.log.push({ file, bytes: size, ms: Math.round(performance.now() - t) });
       return buf;
     } finally { onFile?.(); }
   };
+  const one = (file: string): Promise<AudioBuffer> => readOne(file, decode);
   await Promise.all([
     ...slots.map(async (slot) => {
       const spec = m.slots[slot];
       if (!spec) return;
       try {
-        const [calm, tension, ...layers] = await Promise.all([one(spec.calm), spec.tension === undefined ? Promise.resolve(undefined) : one(spec.tension), ...spec.layers.map(one)]);
+        const single = setting('memorySaver') === 'on' && spec.tension === undefined && spec.layers.length === 0;
+        const calmFile = single ? readOne(spec.calm, async bytes => {
+          const prepared = await AacTrack.prepare(new Uint8Array(bytes), spec.loopStart, spec.loopEnd, decode, undefined, owner);
+          if (owner.disposed) throw new Error('Music preparation owner retired');
+          return prepared ?? await decode(bytes);
+        }) : one(spec.calm);
+        const [calm, tension, ...layers] = await Promise.all([calmFile, spec.tension === undefined ? Promise.resolve(undefined) : one(spec.tension), ...spec.layers.map(one)]);
         // the loop must fit the file (a bad loopEnd would loop into silence)
         if (spec.loopEnd > calm.duration + 0.05) throw new Error(`${slot}: loopEnd ${spec.loopEnd} past the file (${calm.duration.toFixed(2)} s)`);
         // stems of one recording: a stem of another length would drift off the calm one — drop it rather than play it wrong
@@ -157,6 +167,7 @@ export class Deck {
   readonly layerGains: GainNode[] = [];
   readonly bar: number;
   private srcs: AudioBufferSourceNode[] = [];
+  private stream: AacSource | undefined;
   private tension = 0;
   private _phase: BossPhase = 1;
   stopAt = Infinity;
@@ -167,7 +178,10 @@ export class Deck {
   readonly genre: MusicGenre;
   readonly t0: number;
   private readonly ctx: BaseAudioContext;
-  constructor(ctx: BaseAudioContext, audio: SlotAudio, dest: AudioNode, t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1) {
+  constructor(ctx: BaseAudioContext, audio: SlotAudio, dest: AudioNode, t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1, failed?: (error: unknown) => void) {
+    if (audio.calm instanceof AacTrack && (ctx.sampleRate !== audio.calm.sampleRate || audio.tension !== undefined || audio.layers.length > 0)) {
+      this.scope.dispose(); throw new Error('Bounded AAC deck requires unpaired 48 kHz playback');
+    }
     this.ctx = ctx;
     this.heldAudio = audio;
     this.spec = audio.spec;
@@ -185,6 +199,7 @@ export class Deck {
     this.scope.onDispose(() => {
       for (const source of this.srcs) source.buffer = null;
       this.srcs = [];
+      this.stream = undefined;
       this.heldAudio = undefined;
       this.out.disconnect();
       this.tensionGain?.disconnect();
@@ -198,7 +213,12 @@ export class Deck {
       const s = withOwner(this.scope, () => ownAudioSource(ctx.createBufferSource())); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
       s.connect(to); s.start(t0, 0); this.srcs.push(s);
     };
-    mk(audio.calm, this.out);
+    if (audio.calm instanceof AacTrack) {
+      try {
+        this.stream = new AacSource(audio.calm, { context: ctx, output: this.out, scope: this.scope,
+          ended: () => this.dispose(), failed: error => { this.dispose(); failed?.(error); } }, t0);
+      } catch (error) { this.scope.dispose(); throw error; }
+    } else mk(audio.calm, this.out);
     if (audio.tension) {
       this.tension = tension;
       this.tensionGain = ctx.createGain(); this.tensionGain.gain.value = tension; this.tensionGain.connect(this.out);
@@ -270,6 +290,7 @@ export class Deck {
     if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(t); else { g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); }
     g.linearRampToValueAtTime(0, t + secs);
     for (const s of this.srcs) { try { s.stop(t + secs + 0.05); } catch { /* already stopped */ } }
+    if (this.stream) { this.stream.stop(t + secs + 0.05); return; }
     const last = this.srcs[0];
     if (last) { if (firstFade) this.scope.listen(last, 'ended', () => this.dispose(), { once: true }); }
     else this.dispose();
