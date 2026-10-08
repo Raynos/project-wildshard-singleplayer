@@ -45,10 +45,12 @@ try {
   const probe = await send('Runtime.evaluate', { expression: '1+1', returnByValue: true });
   if (probe.result.value !== 2) throw new Error('Local WebKit protocol probe failed');
   report.stage = 'grid-entry'; save();
-  await page.locator('.ws-main-grid').waitFor({ timeout: 180000 });
+  await page.waitForFunction(() => Boolean(document.querySelector('.ws-main-grid')) || Boolean(document.getElementById('wserr')), undefined, { timeout: 180000 });
+  if (await page.locator('#wserr').count()) throw new Error('Title boot failed: ' + await page.locator('#wserr').innerText());
   await page.locator('.ws-main-grid').click();
   report.stage = 'grid-load'; save();
-  await page.waitForFunction(() => !document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live), undefined, { timeout: 240000 });
+  await page.waitForFunction(() => Boolean(document.getElementById('wserr')) || (!document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live)), undefined, { timeout: 240000 });
+  if (await page.locator('#wserr').count()) throw new Error('Grid boot failed: ' + await page.locator('#wserr').innerText());
   await page.evaluate(() => window.__wildshard.world.hud.enterNow());
   await page.waitForFunction(() => window.__wsReveal?.endedMs != null, undefined, { timeout: 45000 });
   const origin = await page.evaluate(gridFloorDocumentIdentity);
