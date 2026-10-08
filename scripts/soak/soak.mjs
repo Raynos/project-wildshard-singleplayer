@@ -7,13 +7,18 @@
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
 // --borrowed-preview with --prepared retains another owner's explicitly shared preview after cleanup.
+// --diagnostic-circuits=4 adds settled SF64/native/category probes and heaps after circuits 2/4; never qualifies.
 // --route-scope=prepared rehearses D/P/N/templates only; omitted catalogue coverage remains open, never qualifying.
 // A long-lived parent retains both previews. --prepare writes its manifest and waits for <directory>/GO.
-// No document navigation, manual eviction or GC is allowed between drive start and the final leak census.
+// Qualifying runs allow no document navigation, manual eviction or GC between drive start and the final leak census.
+// The separate four-circuit diagnostic snapshots only at settled boundaries and may trigger collection.
 import { spawn, execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync } from 'node:fs';
 import { join, resolve as resolvePath } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { soakInspector } from './inspector.mjs';
+import { circuitDiagnostic, circuitPlans, captureBoundary } from './boundary.mjs';
+import { memoryCategories } from './memory-categories.mjs';
 import { GL_INIT } from '../parity/glbytes.mjs';
 import { installSoakGl, installSoakWasm, installLoadingGlJournal, installSoakDiagnostics } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
@@ -30,39 +35,13 @@ const run = (command, args, options = {}) => new Promise((resolve, reject) => {
   child.stdout.on('data', (data) => { output += data; if (options.echo) process.stdout.write(data); });
   child.on('error', reject); child.on('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} exited ${code}`)));
 });
-function inspector(url) {
-  const ws = new WebSocket(url), pending = new Map();
-  let serial = 0, target = null;
-  const opened = new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { once: true }); ws.addEventListener('error', reject, { once: true }); });
-  const receive = (message) => {
-    const waiter = pending.get(message.id);
-    if (waiter) { pending.delete(message.id); clearTimeout(waiter.timer); if (message.error) waiter.reject(new Error(message.error.message)); else waiter.resolve(message.result); }
-  };
-  ws.addEventListener('message', (event) => {
-    const message = JSON.parse(String(event.data));
-    if (message.method === 'Target.targetCreated' && message.params.targetInfo.type === 'page') target = message.params.targetInfo.targetId;
-    else if (message.method === 'Target.didCommitProvisionalTarget') target = message.params.newTargetId;
-    else if (message.method === 'Target.dispatchMessageFromTarget') receive(JSON.parse(message.params.message));
-    else receive(message);
-  });
-  return { opened, close: () => { for (const waiter of pending.values()) { clearTimeout(waiter.timer); waiter.reject(new Error('Inspector closed')); } pending.clear(); ws.close(); }, evaluate: async (expression) => {
-    const result = await new Promise((resolve, reject) => {
-      const id = ++serial, timer = setTimeout(() => { pending.delete(id); reject(new Error('Safari inspector timeout')); }, 10000);
-      pending.set(id, { resolve, reject, timer });
-      const message = { id, method: 'Runtime.evaluate', params: { expression, returnByValue: true } };
-      ws.send(JSON.stringify(target ? { id: ++serial, method: 'Target.sendMessageToTarget', params: { targetId: target, message: JSON.stringify(message) } } : message));
-    });
-    if (result.wasThrown) throw new Error(result.result?.description ?? 'Safari evaluation threw');
-    return result.result?.value;
-  } };
-}
 async function connect(base) {
   for (let attempt = 0; attempt < 120; attempt++) {
     for (let port = 9232; port <= 9240; port++) {
       try {
         const pages = await (await fetch(`http://127.0.0.1:${port}/json`, { signal: AbortSignal.timeout(500) })).json();
         const page = pages.find((entry) => entry.url?.startsWith(base));
-        if (page) { const driver = inspector(page.webSocketDebuggerUrl); await driver.opened; await sleep(500); return driver; }
+        if (page) { const driver = soakInspector(page.webSocketDebuggerUrl); await driver.opened; await sleep(500); return driver; }
       } catch { /* Simulator discovery is asynchronous. */ }
     }
     await sleep(500);
@@ -94,6 +73,7 @@ async function worker() {
   if (diagnosticFirstCrossing && (!policy.dryRun || process.argv.includes('--qualifying'))) throw new Error('First-crossing diagnostics require a nonqualifying dry run');
   const rehearsal = policy.dryRun || !process.argv.includes('--qualifying');
   const routeScope = soakRouteScope(flag('route-scope', 'catalogue'), process.argv.includes('--qualifying'));
+  const diagnosticCircuits = circuitDiagnostic(flag('diagnostic-circuits'), { qualifying: !rehearsal, dryRun: policy.dryRun, contentCut, firstCrossing: diagnosticFirstCrossing, layout, leg, routeScope });
   const duration = policy.seconds;
   const xcrun = (args) => execFileSync('xcrun', ['simctl', ...args], { encoding: 'utf8' }).trim();
   const phaseFile = join(out, `${name}.phase`), nativeFile = join(out, `${name}-native.jsonl`);
@@ -105,6 +85,10 @@ async function worker() {
   writeFileSync(uploadsFile, '');
   const result = { schema: 3, purpose: policy.dryRun ? 'DRY RUN: never qualifies as a thirty-minute soak' : rehearsal ? 'REHEARSAL: conversions not prepared' : 'QUALIFYING: prepared conversions, continuous route', policy, contentCut, engineBase: 300_000_000, measurement: 'Playing: fixed game WebContent PID physical footprint / per-sample interval high + live labelled GL. Loading: conservative all-WebContent overlap + GL. Phase maxima remain separate summary; all-WebContent and GPU process also printed separately.', sha, layout, leg, device: udid, surface: 'portrait iPhone Simulator Safari', entries: [], crossroads: [], evictions: [], windows: [], errors: [], events: [], routes: [], leak: null };
   if (diagnosticFirstCrossing) result.purpose = 'DIAGNOSTIC FIRST CROSSING: intentionally shorter than five minutes; never qualifies';
+  if (diagnosticCircuits !== null) {
+    result.purpose = 'FOUR-CIRCUIT ATTRIBUTION: intrusive settled snapshots, never a duration/cap/performance clearance';
+    result.diagnosticCircuits = diagnosticCircuits; result.boundaries = [];
+  }
   let proxy, sampler, driver;
   const phase = (value) => writeFileSync(phaseFile, value);
   let lastResidents = [];
@@ -179,14 +163,22 @@ async function worker() {
     result.gamePid = soakGamePid(readFileSync(nativeFile, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)));
     const initialStart = Date.now() / 1000; await measuredWait(10);
     result.windows.push({ cycle: 0, start: initialStart, end: Date.now() / 1000 });
+    const boundary = async cycle => {
+      phase(`diagnostic-${cycle}`);
+      const row = await captureBoundary({ driver, pid: result.gamePid, out, cycle, document: result.documentId,
+        origin: result.documentOrigin, categories: memoryCategories, collect: collectGl });
+      result.boundaries.push(row);
+      writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
+    };
+    if (diagnosticCircuits !== null) await boundary(0);
     const driveStart = Date.now(); result.driveStarted = new Date(driveStart).toISOString(); result.circuits = 0;
     phase('drive');
     let complete = false;
     while (!complete) {
       const cycle = result.circuits;
       await driver.evaluate(`window.__sf57MarkGLCycle(${cycle});true`);
-      // The first warm-up lap also drives every one of the sixteen crossroads; later laps repeat the exact cell loop.
-      const plans = [...result.route.plans, ...(cycle === 0 ? result.route.coveragePlans ?? [] : [])];
+      // Ordinary warm-up covers all sixteen crossroads; the explicitly labelled attribution mode repeats only cell circuits.
+      const plans = circuitPlans(result.route, cycle, diagnosticCircuits);
       for (const plan of plans) {
         result.stage = plan.name;
         writeFileSync(join(out, `${name}.json`), `${JSON.stringify(result, null, 2)}\n`);
@@ -207,7 +199,7 @@ async function worker() {
           complete = true; break;
         }
         // Finish the fenced leg; a completed last leg still receives its lap count and settled baseline below.
-        if (result.seconds >= duration && plan !== plans.at(-1)) { complete = true; break; }
+        if (diagnosticCircuits === null && result.seconds >= duration && plan !== plans.at(-1)) { complete = true; break; }
       }
       if (!complete) {
         result.circuits++;
@@ -215,7 +207,8 @@ async function worker() {
         const start = Date.now() / 1000; await measuredWait(10);
         result.windows.push({ cycle: result.circuits, start, end: Date.now() / 1000 });
         result.seconds = (Date.now() - driveStart) / 1000;
-        if (result.seconds >= duration) complete = true;
+        if (diagnosticCircuits !== null) await boundary(result.circuits);
+        if (diagnosticCircuits === null ? result.seconds >= duration : result.circuits >= diagnosticCircuits) complete = true;
         else phase('drive');
       }
     }
@@ -266,9 +259,15 @@ async function worker() {
     evictions: result.evictions.length, errors: result.errors, leak: result.leak?.after ? result.leak : null,
     expected: result.expected ?? [], entries: result.entries, crossroads: result.crossroads, engineBase: result.engineBase, rehearsal, leg, contentCut });
   result.perLap = soakLapMemory(samples, result.circuits ?? 0);
-  result.functionalPass = result.failure === undefined && result.errors.length === 0 && (result.seconds ?? 0) >= duration
-    && result.routes.length > 0 && result.routes.every(route => route.failures.length === 0) && result.grade.sampling && result.grade.leakZero;
-  if (!result.functionalPass) process.exitCode = 1;
+  result.functionalPass = result.failure === undefined && result.errors.length === 0 && (diagnosticCircuits === null ? (result.seconds ?? 0) >= duration : result.circuits === diagnosticCircuits)
+    && result.routes.length > 0 && result.routes.every(route => route.failures.length === 0) && (diagnosticCircuits !== null || result.grade.sampling) && result.grade.leakZero;
+  if (diagnosticCircuits !== null) {
+    result.grade.gatePass = false; result.grade.memoryPass = false;
+    result.grade.limitation = 'Intrusive four-circuit attribution, not a qualifying duration/cap/performance proof';
+    result.diagnosticComplete = result.functionalPass && result.boundaries.length === diagnosticCircuits + 1
+      && result.boundaries.every(row => row.errors.length === 0 && row.before.memory !== null);
+  }
+  if (!result.functionalPass || result.diagnosticComplete === false) process.exitCode = 1;
   result.nativeSummary = native.find((row) => row.type === 'summary');
   result.glFile = glFile; result.glSamples = glRows.length; result.nativeFile = nativeFile; result.sampleCount = samples.length;
   result.glEventsFile = glEventsFile; result.glEvents = glEvents.length;
@@ -280,14 +279,17 @@ async function drivePrepared(manifest) {
   const { sha, out, bases } = manifest;
   const routeScope = soakRouteScope(manifest.routeScope ?? 'catalogue', manifest.rehearsal === false);
   const contentCut = manifest.contentCut === null || manifest.contentCut === undefined ? null : parseSoakContentCut(manifest.contentCut);
-  while (!existsSync(join(out, 'GO'))) await sleep(1000);
   const policy = soakRunPolicy(manifest.dryRun === true, contentCut);
   if (manifest.diagnosticFirstCrossing === true && (!policy.dryRun || manifest.rehearsal === false)) throw new Error('First-crossing diagnostics require a nonqualifying dry run');
   if (manifest.device !== undefined && (typeof manifest.device !== 'string' || !/^sf57-sp-x3-[a-z0-9-]+$/u.test(manifest.device))) throw new Error('Invalid owned diagnostic device');
+  for (const { layout } of bases) for (const leg of manifest.legs ?? ['cells', 'road']) {
+    circuitDiagnostic(manifest.diagnosticCircuits, { qualifying: manifest.rehearsal === false, dryRun: policy.dryRun, contentCut, firstCrossing: manifest.diagnosticFirstCrossing === true, layout, leg, routeScope });
+  }
+  while (!existsSync(join(out, 'GO'))) await sleep(1000);
   for (const { layout, base } of bases) {
     for (const leg of manifest.legs ?? ['cells', 'road']) {
       await run(join(root, 'scripts/sim-lane.sh'), ['run', '--max', String(policy.leaseMinutes), manifest.device ?? `sf57-sp-x3-${layout}-${process.pid}`, process.execPath, import.meta.filename,
-        '--worker', ...(policy.dryRun ? ['--dry-run'] : []), ...(manifest.diagnosticFirstCrossing === true ? ['--diagnostic-first-crossing'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, `--route-scope=${routeScope}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
+        '--worker', ...(manifest.diagnosticCircuits === undefined ? [] : [`--diagnostic-circuits=${manifest.diagnosticCircuits}`]), ...(policy.dryRun ? ['--dry-run'] : []), ...(manifest.diagnosticFirstCrossing === true ? ['--diagnostic-first-crossing'] : []), `--base=${base}`, `--layout=${layout}`, `--leg=${leg}`, `--out=${out}`, `--rev=${sha}`, `--route-scope=${routeScope}`, ...(manifest.rehearsal === false ? ['--qualifying'] : []), ...(contentCut === null ? [] : [`--content-cut-data=${JSON.stringify(contentCut)}`])], { cwd: out, echo: true });
     }
   }
   console.log(`SF57 DONE ${out}`);
@@ -324,6 +326,11 @@ async function prepare() {
   if (manifest.legs.length === 0 || new Set(manifest.legs).size !== manifest.legs.length || manifest.legs.some(leg => leg !== 'cells' && leg !== 'road')) throw new Error('Select cells and/or road legs');
   const layouts = flag('layouts', 'dev,shipped').split(',');
   if (layouts.length === 0 || new Set(layouts).size !== layouts.length || layouts.some((layout) => layout !== 'shipped' && layout !== 'dev')) throw new Error('Select shipped and/or dev layouts');
+  const diagnostic = flag('diagnostic-circuits');
+  for (const layout of layouts) for (const leg of manifest.legs) {
+    const count = circuitDiagnostic(diagnostic, { qualifying: !manifest.rehearsal, dryRun: manifest.dryRun, contentCut, firstCrossing: false, layout, leg, routeScope });
+    if (count !== null) manifest.diagnosticCircuits = count;
+  }
   try {
     for (const layout of layouts) {
       const base = await run(join(root, 'scripts/serve-build.sh'), ['--rev', sha, '--name', `sf57-${layout}-${process.pid}`, '--hours', contentCut === null ? '3' : '6'],
