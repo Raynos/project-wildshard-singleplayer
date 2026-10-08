@@ -133,6 +133,12 @@ async function worker() {
     xcrun(['openurl', udid, `${base}version.json`]); driver = await connect(`${base}version.json`);
     await driver.evaluate(`${GL_INIT};window.__sf57Errors=[];localStorage.clear();sessionStorage.clear();(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();window.__sf57GL.push(window.__sf57ReadGL());true`);
     await collectGl();
+    if (diagnosticFirstCrossing) {
+      await driver.evaluate(`window.__sf57ColdReset={done:false};(async()=>{for(const registration of await navigator.serviceWorker.getRegistrations())await registration.unregister();for(const key of await caches.keys())await caches.delete(key);window.__sf57ColdReset={done:true};})().catch(error=>{window.__sf57ColdReset={done:true,error:String(error)};});true`);
+      await until(driver, 'window.__sf57ColdReset.done', 30000);
+      const resetError = await driver.evaluate('window.__sf57ColdReset.error ?? null');
+      if (resetError) throw new Error(`Cold diagnostic cache reset failed: ${resetError}`);
+    }
     phase('loading');
     sampler = spawn('python3', [join(root, 'scripts/sim-mem-phases.py'), '--device', udid, '--phase-file', phaseFile, '--out', nativeFile, '--interval', '1', '--sample-interval-high', ...(diagnosticFirstCrossing ? ['--process-identities'] : []), '--max', String(policy.samplerSeconds)], { stdio: ['ignore', 'inherit', 'inherit'] });
     /** @type {{ error: string | null }} */ const samplerResult = { error: null };
