@@ -1,0 +1,273 @@
+{
+  "runtimeRevision": "cdad59776201998220705ca0c6fc16a5e7dd38b5",
+  "harnessRevision": "25e4c98e6aaddd2116cc7945c44876391fa7f152",
+  "observerFix": "4f6bf8d21",
+  "verdict": "REJECTED REHEARSAL: GL journal reconciliation refused; remaining DFG_LUT texture. No cap, saving, calibrated allocator, stable laps or SF57 completion claim.",
+  "seconds": 306.081,
+  "errors": [],
+  "circuits": 0,
+  "routes": [
+    {
+      "name": "driftwood-isle-to-pine-hollow",
+      "elapsedSeconds": 34.185,
+      "failures": []
+    },
+    {
+      "name": "pine-hollow-to-nalati-grasslands",
+      "elapsedSeconds": 57.246,
+      "failures": []
+    },
+    {
+      "name": "nalati-grasslands-to-template-2",
+      "elapsedSeconds": 40.734,
+      "failures": []
+    },
+    {
+      "name": "template-2-to-driftwood-isle",
+      "elapsedSeconds": 52.7,
+      "failures": []
+    },
+    {
+      "name": "home-to-road-tour",
+      "elapsedSeconds": 78.266,
+      "failures": []
+    },
+    {
+      "name": "road-0",
+      "elapsedSeconds": 0.051999999999941794,
+      "failures": []
+    },
+    {
+      "name": "road-1",
+      "elapsedSeconds": 20.829,
+      "failures": []
+    },
+    {
+      "name": "road-2",
+      "elapsedSeconds": 20.669,
+      "failures": []
+    }
+  ],
+  "glSamples": 358,
+  "glEvents": 19186,
+  "sampleCount": 392,
+  "glSampling": {
+    "journal": 0,
+    "observed": 378,
+    "missing": 14,
+    "policy": "Complete reconciled mutation coverage with explicit cycle markers may supply exact GL bytes; reconstructed rows have null allocator and no settled state. Calibration uses real samples only; the actual-census join stays at 1.5 seconds."
+  },
+  "nativeSummary": {
+    "type": "summary",
+    "t": "2026-10-08T09:57:16.860421+00:00",
+    "phases": {
+      "loading": {
+        "samples": 48,
+        "seconds": 47.3,
+        "gamePid": 39658,
+        "gameHighGB": 0.473,
+        "gameSampledGB": 0.473,
+        "allWebContentGB": 0.499,
+        "gpuProcessGB": 0.166
+      },
+      "baseline-0": {
+        "samples": 20,
+        "seconds": 19.1,
+        "gamePid": 39658,
+        "gameHighGB": 0.382,
+        "gameSampledGB": 0.364,
+        "allWebContentGB": 0.421,
+        "gpuProcessGB": 0.164
+      },
+      "drive": {
+        "samples": 304,
+        "seconds": 304.9,
+        "gamePid": 39658,
+        "gameHighGB": 0.848,
+        "gameSampledGB": 0.801,
+        "allWebContentGB": 0.888,
+        "gpuProcessGB": 0.308
+      },
+      "unloaded": {
+        "samples": 20,
+        "seconds": 19.1,
+        "gamePid": 39658,
+        "gameHighGB": 0.522,
+        "gameSampledGB": 0.522,
+        "allWebContentGB": 0.562,
+        "gpuProcessGB": 0.285
+      }
+    },
+    "lost": [
+      {
+        "pid": 39824,
+        "phase": "loading",
+        "elapsed": 1
+      },
+      {
+        "pid": 39928,
+        "phase": "loading",
+        "elapsed": 1
+      },
+      {
+        "pid": 39930,
+        "phase": "loading",
+        "elapsed": 1
+      },
+      {
+        "pid": 39849,
+        "phase": "loading",
+        "elapsed": 2
+      },
+      {
+        "pid": 39895,
+        "phase": "loading",
+        "elapsed": 2
+      }
+    ]
+  },
+  "rawGrade": {
+    "contentCut": null,
+    "requiredSeconds": 1800,
+    "memoryPass": false,
+    "gatePass": false,
+    "peakBytes": 1035958192,
+    "loadingPeakBytes": 614497215,
+    "phoneEstimateBytes": 1450341468.8,
+    "baselines": [
+      {
+        "cycle": 0,
+        "start": 1791453099.918,
+        "end": 1791453110.018,
+        "samples": 10,
+        "bytes": 539172019
+      }
+    ],
+    "baselineDeltaBytes": [
+      null
+    ],
+    "loops": [
+      {
+        "cycle": 0,
+        "complete": false,
+        "peakBytes": 1035958192,
+        "troughBytes": 455710454
+      }
+    ],
+    "recovery": false,
+    "calibration": true,
+    "ratios": [],
+    "missingGlSamples": 14,
+    "sampling": false,
+    "leakZero": false,
+    "admitted": [
+      "pine-hollow",
+      "template-2",
+      "driftwood-isle",
+      "nalati-grasslands"
+    ],
+    "refused": [
+      "sunscar-dunes",
+      "far-reach"
+    ],
+    "attemptedEveryCell": false,
+    "crossroads": 3,
+    "rehearsal": true,
+    "limitation": "Some cells were not admitted; see refusal records. A far proxy is not an entry. This rehearsal cannot close SF57; rerun after SF46–48."
+  },
+  "listenerBefore": {
+    "window": 0,
+    "document": 0,
+    "canvas": 0,
+    "other": 0
+  },
+  "listenerAfter": {
+    "window": 0,
+    "document": 0,
+    "canvas": 0,
+    "other": 0
+  },
+  "scope": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "disposalErrors": [],
+  "retainedTextures": [
+    {
+      "type": "No",
+      "uuid": "8ef469f4-e932-41bf-963c-661288abcac1",
+      "name": "DFG_LUT",
+      "owner": {
+        "name": "grid.object:jetty-0",
+        "disposed": true,
+        "level": true
+      },
+      "retained": false,
+      "texture": true,
+      "programs": [],
+      "source": "c1824ce6-4c2a-4ed7-bddd-48511c5631a1",
+      "image": {
+        "width": 16,
+        "height": 16,
+        "src": null
+      },
+      "allocation": null
+    }
+  ],
+  "journalDiscrepancies": {
+    "snapshots": 358,
+    "exact": 60,
+    "lostProbeOnly": 297,
+    "lostProbeAndSameMillisecondUploads": 1,
+    "lostProbeBytes": 36,
+    "lostProbeTextures": 4,
+    "ambiguousSnapshotAt": 1791453193.276,
+    "ambiguousUploadBytes": 9556,
+    "firstMismatchAt": 1791453123.336
+  },
+  "artifacts": [
+    {
+      "file": "dev-cells.json.br",
+      "rawBytes": 3401798,
+      "rawSha256": "89a0e4b7f93771ecb880081af95fdd0905843487494990ad35dc5f37443daa2b",
+      "compressedBytes": 87129
+    },
+    {
+      "file": "dev-cells-native.jsonl.br",
+      "rawBytes": 95164,
+      "rawSha256": "f98eefee0ce7f0da4c2d274cd441662e74801a1dca0d051f11941352bc19783f",
+      "compressedBytes": 12327
+    },
+    {
+      "file": "dev-cells-gl.jsonl.br",
+      "rawBytes": 20446325,
+      "rawSha256": "1d8453d1216793a5f7bde39b03438da864993f956f1a87dc6cde1289cb4310db",
+      "compressedBytes": 45152
+    },
+    {
+      "file": "dev-cells-gl-events.jsonl.br",
+      "rawBytes": 5150924,
+      "rawSha256": "4ee878dc27153d07053701c753dbd6cfcb98fe4090a14f497f8e742d5c6e1101",
+      "compressedBytes": 168244
+    },
+    {
+      "file": "manifest.json.br",
+      "rawBytes": 862,
+      "rawSha256": "6f76596b7c9d4205b5fce43069d6e1f68600a448394836e934e8dc6c0c99987b",
+      "compressedBytes": 514
+    }
+  ]
+}

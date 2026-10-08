@@ -1,0 +1,13 @@
+# SF57 rejected reconciliation rehearsal
+
+Runtime `cdad59776201998220705ca0c6fc16a5e7dd38b5`; harness `25e4c98e6aaddd2116cc7945c44876391fa7f152`, including the unchanged-event filter `4f6bf8d21`. Developer ON, Simulator Safari, live clock, 2x render scale, muted. This is the approved D/P/N/template functional subset, not qualifying full-catalogue coverage. Concurrent Mac diagnostics and queued validation mean no quiet cap or saving claim.
+
+The prepared borrowed-preview run (`node scripts/soak/soak.mjs --prepared=<manifest> --borrowed-preview`) completed 306.081 seconds, all four cell legs, three crossroads and zero game errors. It completed zero full circuits. Native sampling covered loading (48 samples), baseline (20), drive (304) and unload (20), with one fixed game PID, 39658. The no-op filter reduced the journal to 19,186 events / 5,150,924 raw bytes; the intended 20-second baseline now took 20.2 seconds.
+
+**Rejected:** 14 native samples lack GL joins because strict replay reconciliation refused the journal. Of 358 observed GL censuses, 60 agree exactly, 297 differ solely by four lost-context `builtin/probe-renderer` textures totalling 36 bytes, and one also has 9,556 bytes of uploads later in the same Date.now millisecond as the census. The probe loss first diverges at 1791453123.336; the ambiguous upload snapshot is 1791453193.276. No missing mutation or ordering is invented to repair the old evidence. Follow-up source commits journal context retirement and capture exact document/sequence census cuts; a fresh run is required.
+
+Unload adjusted listener deltas and all Scope counters are zero, with zero disposal errors. One texture remains: `DFG_LUT`, UUID `8ef469f4-e932-41bf-963c-661288abcac1`, owner `grid.object:jetty-0` (`disposed: true`, `level: true`), 16x16, unretained, allocation null. This exact ownership diagnostic was sent to sp-x1; no exemption or renderer change is included here.
+
+The raw grader prints a 1,035,958,192-byte playing peak and 614,497,215-byte loading peak. Those incomplete samples are **not** a cap pass, saving, stable-lap or calibrated allocator result. Empty calibration ratios do not prove calibration. Raw phase maxima remain separate from fresh per-sample kernel highs and GPU-process footprint remains separate from WC+GL. The 30-minute run, full catalogue (Far/Sun), shipped layout and road-only coverage remain open.
+
+Five raw files are archived as Brotli, with decompressed byte lengths and SHA-256 in `summary.json`; each round trip was verified before cleanup. Simulator, Safari, Inspector/proxy and native sampler closed. The borrowed preview remains owned by sp-x5; only the exact SF57 fixture block was released for its removal.
