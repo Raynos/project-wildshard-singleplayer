@@ -44,7 +44,7 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
 export const PINE_HOLLOW: ShardManifest = {
   runtimeCost: PINE_RUNTIME_COST,
   gridShardfile: '/shardfiles/pine-hollow/shard.json',
-  trustedRuntime: { get slug() { return PINE_HOLLOW.slug; }, entry: 'runtime/index.ts', load: () => import('./runtime/index') },
+  trustedRuntime: { get slug() { return PINE_HOLLOW.slug; }, entry: 'runtime/index.ts' },
   // Migrated verbatim from parity’s camera table; omitted y keeps the existing ground/land placement.
   dev: { poses: () => Promise.resolve(Object.fromEntries([{name:'gate',x:0,z:-200,yaw:Math.PI,pitch:0},{name:'cabin',x:-14,z:-62,yaw:Math.PI,pitch:0},{name:'pond',x:-56,z:95,yaw:Math.PI,pitch:0}].map((probe) => [probe.name, {
     probe, eye: [probe.x, (PINE_HOLLOW.ground.terrain?.heightAt(probe.x, probe.z) ?? 0) + 1.68, probe.z] as const, yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI,
@@ -59,7 +59,7 @@ export const PINE_HOLLOW: ShardManifest = {
   render: async () => (await import('./look/render')).shardRender(),
   api: 1,
   audio: { bed: PINE_AUDIO_SAMPLES.bed, samples: { loopGains: PINE_AUDIO_SAMPLES.loopGains }, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./runtime/audio/files').then((m) => m.createPineAudio()) },
-  load: () => import('./plugin'),
+  load: (entry) => entry === undefined ? import('./plugin') : entry === 'runtime/index.ts' ? import('./runtime/index') : Promise.reject(new Error('Unknown trusted runtime entry')),
   boot: { viewmodelSets: ['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'], audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',
   loadout: { weapons: ['weapon.crossbow', 'weapon.lever-rifle', 'weapon.longbow'], tools: ['tool.hoverboard'], start: ['weapon.crossbow', 'tool.hoverboard'] },
