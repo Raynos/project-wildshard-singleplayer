@@ -145,7 +145,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
   // The installed play owner confirms its progress and pack writes; source clients supply their own durable handoff.
   gridLive = grid?.attach({ traveller: player, health: playerHealth, equipment: weapons, events: app.events,
     ownedHome: session.ownedGridHome === true,
-    runtimePage: () => boot.context === undefined || boot.runtime.play === null ? null : { world, play: boot.runtime.play, context: boot.context },
+    runtimePage: () => boot.context === undefined || boot.runtime.play === null ? null : { world, play: boot.runtime.play, context: boot.context, ...(ctx.enteredEquipment === undefined ? {} : { equipment: ctx.enteredEquipment }) },
     onSafeZone: () => { app.effects?.clearHarmful(playerHealth); },
     scriptNotices: { toast: (text) => { hud.toast(text, 'warn'); }, devAlert: (text) => { hud.devAlert(text); } },
     saves: app.saves, ...(authoredBounds === undefined ? {} : { homeFallFloor: authoredBounds.floor }), checkpoint: legacyHomeCheckpoint(() => boot.runtime.play), catalogue: [],

@@ -23,6 +23,7 @@ import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { Progress } from '../Progress';
 import { Inventory } from '../Inventory';
 import { Owned } from '../loot/Owned';
+import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';
 
 function sameMeasurement(a: RuntimeCost, b: RuntimeCost): boolean {
@@ -49,6 +50,8 @@ export function regionalRuntimeAccountedBytes(admitted: Pick<AdmittedProduct, 's
 
 /** Existing page services lent to a regional shell; it never constructs another renderer, player or input loop. */
 export interface RegionalRuntimePage {
+  /** Stable page controls delegate to the entered kit; absent for ordinary borrowed-home pages. */
+  readonly equipment?: EnteredEquipment;
   readonly world: ShardWorld;
   readonly play: ShardPlayHost;
   readonly context: ShardContext;
@@ -232,11 +235,13 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 });
               });
             },
-            afterPlay: () => {
+            afterPlay: entered => {
               if (localPlay === null) throw new Error('Regional play services are not installed');
               // Trusted play can install encounter creatures; validate the complete herd before publishing readiness.
               ports.continuation?.restore(localPlay.animals);
               restored = true;
+              const equipment = request.page.equipment, weapons = localPlay.weapons;
+              if (equipment !== undefined) installEnteredRuntimeService(entered, entry => { equipment.bind(weapons, entry); });
               for (const animal of localPlay.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
             },
           };

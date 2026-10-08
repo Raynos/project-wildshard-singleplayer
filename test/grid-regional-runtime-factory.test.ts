@@ -22,6 +22,8 @@ import { MemoryAdmission } from '../src/game/grid/memoryAdmission';
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type RegionalRuntimeRequest, type RegionalRuntimeFactoryPorts } from '../src/game/grid/regionalRuntime';
 import { HybridRuntimeSession } from '../src/game/shardfile/hybrid';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
+import { EquipmentService } from '../src/engine/combat/EquipmentService';
+import { EnteredEquipment } from '../src/game/grid/enteredEquipment';
 import { shardContext, type ShardContext } from '../src/game/shard/context';
 import { ShardPlugin } from '../src/game/shard/plugin';
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
@@ -59,8 +61,9 @@ function fixture(continuation?: RegionalRuntimeFactoryPorts['continuation']) {
   const admitted = { source: pineSource, assets: new Map<string, Uint8Array>(), cached: false };
   const claim = allocator.reserve({ id: 'sim:pine-hollow', category: 'sim', owner: 'pine-hollow', bytes: regionalRuntimeAccountedBytes(admitted, PINE_HOLLOW), distance: 0, needed: true });
   if (claim === null) throw new Error('Fixture whole-runtime lease refused');
+  const road = new EquipmentService(new EmptyEquipment(), { scope }), equipment = new EnteredEquipment(road);
   const request: RegionalRuntimeRequest = { cell: { instance: 'pine-hollow', slug: 'pine-hollow', cell: [1, 0], origin: { x: 555, y: 0, z: 0 } },
-    admitted, manifest: PINE_HOLLOW, allocator, claim, scope, page: { world, play, context } };
+    admitted, manifest: PINE_HOLLOW, allocator, claim, scope, page: { world, play, context, equipment } };
   let nativeCheckpoints = 0, nativeDurable = true, destroyed = false;
   const host = createSimHost({ ...SIM_LEVEL, id: 'pine-hollow', entities: [], quests: [], ground: { size: 500, height: 0 } }, { rapier, playerBody: false });
   const region = { host, dispose: () => { destroyed = true; host.dispose(); } };
@@ -84,7 +87,7 @@ function fixture(continuation?: RegionalRuntimeFactoryPorts['continuation']) {
     afterKit: () => { calls.push('shell.kit'); return Promise.resolve({ animals, wearSkin: noop }); },
     checkpoint: () => { nativeCheckpoints++; return nativeDurable; },
   }) });
-  return { app, scope, home, homeRegistry, world, play, runtime, request, claim, allocator, host, calls, regional, herd, animals,
+  return { app, scope, home, homeRegistry, world, play, runtime, road, equipment, request, claim, allocator, host, calls, regional, herd, animals,
     nativeCheckpoints: () => nativeCheckpoints, refuse: () => { nativeDurable = false; }, destroyed: () => destroyed };
 }
 
@@ -101,6 +104,7 @@ it('requires a real foundation and exact whole-runtime lease before constructing
 it('composes two retained entries with real equipment, instance saves, destination colliders and refusal-preserving checkpoints', async () => {
   const f = fixture(), before = Object.getOwnPropertyDescriptors(f.runtime);
   const prepared = await f.regional(f.request), root = f.world.game.scene.children[0];
+  const fire = vi.fn(noop); f.equipment.service.onFire = fire;
   let builds = 0, ticks = 0, local: ShardPlayHost | null = null;
   class Runtime extends ShardPlugin {
     override world(ctx: ShardContext): void {
@@ -139,12 +143,15 @@ it('composes two retained entries with real equipment, instance saves, destinati
     for (let visit = 0; visit < 2; visit++) {
       prepared.loadout.interior(); expect(await session.enter({ instance: 'pine-hollow', slug: 'pine-hollow' })).toBe(true);
       expect(root?.visible).toBe(true); expect(prepared.checkpoint()).toBe(true);
+      expect(f.equipment.service.current).not.toBe(f.road.current);
+      f.equipment.service.current.onFire?.(); expect(fire).toHaveBeenCalledTimes(visit + 1);
       expect(f.home.world.colliders.len()).toBe(0); expect(f.host.physics.world.colliders.len()).toBe(2);
       const seen = f.herd.mock.calls.length; // E452: the page loop ticks the regional herd only while entered
       expect(f.app.systemsByPhase().update.map(system => system.id)).toContain('grid.runtime.pine-hollow.animals');
       for (const system of f.app.systemsByPhase().update) system.run(1 / 60, visit);
       expect(f.herd.mock.calls.length).toBe(seen + 1);
       prepared.loadout.stow(); session.leave();
+      expect(f.equipment.service.current).toBe(f.road.current);
       expect(root?.visible).toBe(false); expect(f.app.registry).toBe(f.homeRegistry);
       expect(Object.getOwnPropertyDescriptors(f.runtime)).toEqual(before);
       expect(f.app.systemsByPhase().update.map(system => system.id)).not.toContain('grid.runtime.pine-hollow.animals');
