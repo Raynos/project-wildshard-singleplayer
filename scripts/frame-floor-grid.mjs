@@ -4,6 +4,20 @@ export function gridFloorPlans(state, scenario) {
   if (!home) throw new Error('Grid floor has no assembled home');
   const origin = cell => ({ x: cell.cell[0] * 555, z: cell.cell[1] * 555 });
   const h = origin(home), plans = [];
+  if (scenario === 'sun-entry') {
+    const sun = state.cells.find(cell => cell.slug === 'sunscar-dunes');
+    if (!sun) throw new Error('Developer grid floor requires Signal Dunes');
+    const s = origin(sun), road = { x: s.x, z: s.z + 277.5 }, entry = { x: s.x, z: s.z + 210 };
+    // Match the cold native ruler: seed the road once, then walk inside on the real terrain.
+    plans.push({ name: 'sun-road-entry', from: null, to: sun.instance, movement: 'road-hover', start: road,
+      waypoints: [entry], requiredResidents: [sun.instance] },
+    { name: 'sun-authored-spawn', from: sun.instance, to: sun.instance, movement: 'road-hover',
+      waypoints: [{ x: s.x, z: s.z + 70 }], requiredResidents: [sun.instance] },
+    { name: 'sun-road-return', from: sun.instance, to: null, movement: 'road-hover',
+      waypoints: [entry, road], requiredResidents: [] },
+    { name: 'sun-reentry', from: null, to: sun.instance, movement: 'road-hover',
+      waypoints: [entry], requiredResidents: [sun.instance] });
+  }
   if (scenario === 'template' || scenario === 'all') {
     const peer = state.cells.filter(cell => cell.slug === '_template' && cell.instance !== home.instance)
       .sort((a, b) => a.instance.localeCompare(b.instance))[0];

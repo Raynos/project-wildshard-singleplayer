@@ -32,9 +32,10 @@ if (publicGrid && shards.length !== 1) throw new Error('Public grid requires its
 const gridScenario = flag('grid-scenario', 'baseline');
 // Allocation hooks only for diagnostic travel runs; ordinary standing baselines remain uninstrumented.
 const travelGl = gridScenario === 'baseline' ? '' : GL_INIT;
-if (!['baseline', 'template', 'runtime-travel', 'all'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
+if (!['baseline', 'template', 'runtime-travel', 'sun-entry', 'all'].includes(gridScenario) || (gridScenario !== 'baseline' && !shards.includes('grid'))) throw new Error('Invalid grid scenario');
+if (publicGrid && gridScenario === 'sun-entry') throw new Error('Signal Dunes entered floor requires Developer mode');
 if (args.includes('--help')) {
-  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--grid-scenario=baseline|template|runtime-travel|all]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
+  console.log('node scripts/frame-floor.mjs [--shards=a,b] [--surface=desktop|sim|both] [--developer=on|off] [--frames=120] [--settle=2] [--device=<name>] [--rev=<sha>] [--setting=key=value] [--device-save=key=value] [--grid-scenario=baseline|template|runtime-travel|sun-entry|all]\nRuns an isolated clean pinned export; desktop uncapped at 1440×900/2×, Safari iPhone 17 Pro phone tier/2×. Grid scenarios drive actual input and require frame/interior/residency witnesses. Public grid seeds only the existing tap intent; admission remains hard. Owns its lanes. Exit 2: floor miss, 3: incomplete.');
   process.exit(0);
 }
 if (shards.length === 0 || shards.some((s) => !ALL.includes(s)) || new Set(shards).size !== shards.length || !['desktop', 'sim', 'both'].includes(surface) || !Number.isInteger(frames) || frames < 30 || frames > 600 || !Number.isFinite(settleMs) || settleMs < 1000 || settleMs > 10000) throw new Error('Invalid shards, surface, frames (30–600) or settle (1–10 seconds)');

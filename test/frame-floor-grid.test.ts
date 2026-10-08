@@ -34,6 +34,23 @@ it('requires the entered runtime resident and the prior owned runtime retired un
   expect(() => gridFloorPlans({ home: 'home', cells: cells.slice(0, 2) }, 'runtime-travel')).toThrow('Pine and Nalati');
 });
 
+it('drives the Sun entry, authored spawn, road return and reentry with one road seed and terrain walking', () => {
+  const sun = { instance: 'sun', slug: 'sunscar-dunes', cell: [-2, 1] as const };
+  const plans = gridFloorPlans({ home: 'home', cells: [...cells, sun] }, 'sun-entry');
+  expect(plans).toEqual([
+    { name: 'sun-road-entry', from: null, to: 'sun', movement: 'road-hover', start: { x: -1110, z: 832.5 },
+      waypoints: [{ x: -1110, z: 765 }], requiredResidents: ['sun'] },
+    { name: 'sun-authored-spawn', from: 'sun', to: 'sun', movement: 'road-hover',
+      waypoints: [{ x: -1110, z: 625 }], requiredResidents: ['sun'] },
+    { name: 'sun-road-return', from: 'sun', to: null, movement: 'road-hover',
+      waypoints: [{ x: -1110, z: 765 }, { x: -1110, z: 832.5 }], requiredResidents: [] },
+    { name: 'sun-reentry', from: null, to: 'sun', movement: 'road-hover',
+      waypoints: [{ x: -1110, z: 765 }], requiredResidents: ['sun'] },
+  ]);
+  expect(() => gridFloorPlans({ home: 'home', cells }, 'sun-entry')).toThrow('requires Signal Dunes');
+  expect(gridFloorPlans({ home: 'home', cells: [...cells, sun] }, 'all')).toEqual(gridFloorPlans({ home: 'home', cells }, 'all'));
+});
+
 function witness(): FloorGridWitness {
   const plan = gridFloorPlans({ home: 'home', cells }, 'runtime-travel')[1];
   if (plan === undefined) throw new Error('Missing route fixture');

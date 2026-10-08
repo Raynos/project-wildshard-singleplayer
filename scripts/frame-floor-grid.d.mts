@@ -16,7 +16,7 @@ export interface FloorGridProgress { documentOrigin: number; sampledAt: number; 
 export interface FloorGridFailure { kind: string; stop: FloorGridProgress['stop']; lastSample: FloorGridProgress; recoveryReason: string; nextDocumentOrigin: number }
 export function installFloorGridProgress(): void;
 export function gridFloorRuntimeFailure(last: FloorGridProgress | null, diagnostic: { documentOrigin: number; lastEnd?: { reason: string; at: number }; lastUnload?: { reason: string; t: number } } | null): FloorGridFailure | null;
-export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'all'): FloorGridPlan[];
+export function gridFloorPlans(state: Pick<FloorGridState, 'home' | 'cells'>, scenario: 'baseline' | 'template' | 'runtime-travel' | 'sun-entry' | 'all'): FloorGridPlan[];
 export interface FloorGridDocumentIdentity { readonly timeOrigin: number; readonly token: string }
 export function gridFloorDocumentIdentity(): FloorGridDocumentIdentity;
 export function driveFloorGrid(plan: FloorGridPlan, documentOrigin: number | FloorGridDocumentIdentity): Promise<FloorGridWitness>;
