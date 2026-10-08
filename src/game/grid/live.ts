@@ -71,6 +71,8 @@ export class LiveGridHost {
   private readonly requests = new Map<string, Promise<void>>();
   private readonly issues = new Map<string, string>();
   private readonly refusals = new Map<string, unknown>();
+  /** One failed cold unload per excursion; quota failures retain their full claim until retry or re-approach. */
+  private readonly coldUnloadRefused = new Set<string>();
   private readonly frames = new Set<() => void>();
   private readonly transitions: { from: string | null; to: string | null }[] = [];
   private crossings = 0;
@@ -164,7 +166,7 @@ export class LiveGridHost {
     const instance = cell.instance;
     let admission: LiveGridAdmission | undefined;
     try {
-      await previous; this.assertAlive();
+      await previous; this.assertAlive(); this.retireColdRegions();
       const admitted = await this.ports.admit(cell);
       admission = admitted;
       this.assertAlive();
@@ -198,8 +200,25 @@ export class LiveGridHost {
     finally { this.requests.delete(instance); }
   }
   private distance(cell: GridCell): number { const p = this.worldFeet(); return Math.hypot(Math.max(0, Math.abs(p.x - cell.origin.x) - CHUNK_HALF), Math.max(0, Math.abs(p.z - cell.origin.z) - CHUNK_HALF)); }
+  /** Dispose cold frozen worlds before a new product/sim claim, with a ten-metre release band at the readiness bound. */
+  private retireColdRegions(): void {
+    for (const cell of this.assembly.cells) {
+      if (cell.instance === this.ports.home.instance) continue;
+      const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
+      const resident = this.residents.get(cell.instance); resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 });
+      if (distance <= estimate.distance + 10) this.coldUnloadRefused.delete(cell.instance);
+      else if (resident !== undefined && cell.instance !== this.active && resident.reservations === 0 && !resident.evicting
+        && !this.coldUnloadRefused.has(cell.instance) && !this.unload(cell.instance)) this.coldUnloadRefused.add(cell.instance);
+    }
+  }
   /** Retry after a durability/budget change, instead of fetching the same failed request every tick. */
-  retry(instance: string): void { if (this.requests.has(instance)) throw new Error('Live admission is still pending'); this.issues.delete(instance); this.refusals.delete(instance); this.readiness.invalidate(instance); }
+  retry(instance: string): void {
+    if (this.requests.has(instance)) throw new Error('Live admission is still pending');
+    this.coldUnloadRefused.delete(instance);
+    // A quota-refused unload kept a complete native region: retry must not invalidate its valid readiness ticket.
+    if (this.residents.has(instance)) return;
+    this.issues.delete(instance); this.refusals.delete(instance); this.readiness.invalidate(instance);
+  }
   /** Preserve the original error identity for classified UI, instead of inferring failure type from a message. */
   refusal(instance: string): unknown { return this.refusals.get(instance); }
   /** Before the existing page physics/player step: radial requests are U-turn safe, and current-world walls synchronize first. */
@@ -210,12 +229,12 @@ export class LiveGridHost {
     // Unsupported far proxies do not consume the count before enterable cells inside the cold readiness bound.
     const nearby = this.assembly.cells.filter((cell) => cell.instance !== this.ports.home.instance && (this.ports.prefetchable?.(cell) ?? true))
       .sort((a, b) => this.distance(a) - this.distance(b) || a.instance.localeCompare(b.instance)).slice(0, this.limit - 1);
-    const requested = new Set(nearby.map((cell) => cell.instance));
-    for (const cell of this.assembly.cells) {
-      if (cell.instance === this.ports.home.instance) continue;
+    // Retire cold, frozen worlds before requesting another one. The ten-metre release band avoids rebuilding at the
+    // cold-request threshold; active/prepared frames remain protected by prepareUnload, without changing motor bands.
+    this.retireColdRegions();
+    for (const cell of nearby) {
       const estimate = readinessModel(this.ports.readiness.bundle(cell), this.ports.readiness.link), distance = this.distance(cell);
-      const resident = this.residents.get(cell.instance); resident?.lease.update({ distance, needed: cell.instance === this.active || resident.reservations > 0 });
-      if (requested.has(cell.instance) && distance <= estimate.distance && !this.issues.has(cell.instance)) void this.ensure(cell.instance).catch(() => undefined);
+      if (distance <= estimate.distance && !this.issues.has(cell.instance)) void this.ensure(cell.instance).catch(() => undefined);
     }
     const walls = this.active === this.ports.home.instance ? this.ports.home.walls : this.region(this.active)?.walls;
     walls?.sync(this.readiness);
