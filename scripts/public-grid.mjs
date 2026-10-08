@@ -33,20 +33,16 @@ export function readPublicGridWitness() {
     runtimeLevel:window.__wildshard.world.game.level.id};
 }
 
-/** Refuse a mislabelled public receipt or any native region admitted through a Developer override.
- * @param {import('./public-grid.mjs').PublicGridWitness} witness @param {boolean} requireRefusals */
-export function publicGridWitnessFailures(witness, requireRefusals) {
+/** G233 requires over-cap regions absent from the public catalogue, even when admission would refuse them.
+ * @param {import('./public-grid.mjs').PublicGridWitness} witness @param {boolean} requireTemplate */
+export function publicGridWitnessFailures(witness, requireTemplate) {
   const failures = [], state = witness.state;
   if (witness.developer || witness.savedDeveloper !== false) failures.push('Developer is not saved and effective OFF');
   if (state.home !== 'driftwood-isle' || witness.runtimeLevel !== 'driftwood-isle') failures.push('Public home is not borrowed Driftwood');
   if (witness.homeResidency?.instance !== state.home || !Number.isSafeInteger(witness.homeResidency.bytes) || witness.homeResidency.bytes <= 0) failures.push('Borrowed home has no positive admitted residency claim');
-  if (state.cells.some(row => !['driftwood-isle','_template','pine-hollow','nalati-grasslands'].includes(row.slug))) failures.push('Developer-only catalogue override installed');
+  if (state.cells.some(row => !['driftwood-isle','_template'].includes(row.slug))) failures.push('Developer-only region is present in the public catalogue');
   if (state.live.live.residents.some(id => !state.cells.some(row => row.instance === id && ['driftwood-isle','_template'].includes(row.slug)))) failures.push('A refused native shard became a runtime resident');
-  if (requireRefusals && ['pine-hollow','nalati-grasslands'].some(slug => {
-    if (['upgrade','too-big','safety','load'].includes(witness.refusals[slug] ?? '')) return false;
-    // Live-sim refusal is owned by the grid, while the session cache records product/load refusals.
-    return !(witness.cellScreens ?? []).some(row => row.status === 'refused' && typeof row.issue === 'string' && row.issue.length > 0
-      && state.cells.some(cell => cell.instance === row.instance && cell.slug === slug));
-  })) failures.push('Pine/Nalati hard-admission refusal was not witnessed');
+  if (requireTemplate && !state.cells.some(row => row.slug === '_template' && row.instance === state.inside
+    && row.instance === state.live.live.current && state.live.live.residents.includes(row.instance))) failures.push('Public template entry and residency were not witnessed');
   return failures;
 }
