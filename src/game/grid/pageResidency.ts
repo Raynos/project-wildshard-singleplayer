@@ -7,12 +7,15 @@ export interface HomeResidencyClaim {
   readonly allocator: ResidencyAllocator;
   /** Acquire the registry's own lifetime reference. Release it when that registry disposes. */
   readonly retain: () => ResidencyLease;
+  /** Transfer the sole boot reference to an owned initial runtime, once, without releasing its accounted bytes. */
+  readonly handoff: () => ResidencyLease;
 }
 
 /**
  * SF18b / G144: construct before manifest hydration, then inject this allocator into the home loader and GridSession.
  * The composition root owns disposal, including failed or cancelled boots. Admission precedes world allocation; the
- * home remains needed for the page lifetime. Trusted runtime homes supply reviewed resident-cost metadata rather than
+ * borrowed home remains needed for the page lifetime; an owned grid home takes the boot reference with handoff().
+ * Trusted runtime homes supply reviewed resident-cost metadata rather than
  * the empty transitional shardfile's budget. This owner installs no service by import and creates no world or timer.
  */
 export class PageResidency {
@@ -43,7 +46,21 @@ export class PageResidency {
       return lease;
     };
     this.bootLease = reserve();
-    this.claim = Object.freeze({ instance, bytes, allocator: this.allocator, retain: reserve });
+    let handedOff = false;
+    const retain = (): ResidencyLease => {
+      if (handedOff) throw new Error('Home residency has been handed off');
+      return reserve();
+    };
+    const handoff = (): ResidencyLease => {
+      if (this.closed) throw new Error('Page residency is disposed');
+      const lease = this.bootLease;
+      if (handedOff || lease === undefined) throw new Error('Home residency has already been handed off');
+      const entry = this.allocator.entries().find((row) => row.id === id);
+      if (entry?.refs !== 1) throw new Error('Home residency handoff requires its sole boot reference');
+      handedOff = true; this.bootLease = undefined;
+      return lease;
+    };
+    this.claim = Object.freeze({ instance, bytes, allocator: this.allocator, retain, handoff });
     return this.claim;
   }
 

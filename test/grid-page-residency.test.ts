@@ -58,4 +58,34 @@ describe('early page residency', () => {
     expect(() => owner.admitHome('home', 20_000_000)).toThrow('page owner');
     foreign?.release(); owner.dispose();
   });
+
+  it('hands the exact sole boot claim to an owned runtime without a release or cost change', () => {
+    const owner = new PageResidency(), home = owner.admitHome('home', 20_000_000);
+    const before = owner.allocator.cost(), runtime = home.handoff();
+    expect(runtime.id).toBe('sim:home');
+    expect(owner.allocator.cost()).toEqual(before);
+    expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:home', refs: 1, bytes: home.bytes }]);
+    expect(owner.home()).toBe(home);
+    expect(() => home.handoff()).toThrow('already been handed off');
+    expect(() => home.retain()).toThrow('handed off');
+    owner.dispose();
+    expect(owner.allocator.cost()).toEqual(before);
+    runtime.release();
+    expect(owner.allocator.entries()).toEqual([]);
+    expect(() => home.retain()).toThrow();
+    expect(() => home.handoff()).toThrow('disposed');
+  });
+
+  it('refuses handoff while an allocated borrowed consumer still owns a reference', () => {
+    const owner = new PageResidency(), home = owner.admitHome('home', 20_000_000), borrowed = home.retain();
+    expect(() => home.handoff()).toThrow('sole boot reference');
+    expect(owner.allocator.entries()).toMatchObject([{ id: 'sim:home', refs: 2 }]);
+    borrowed.release();
+    const runtime = home.handoff();
+    runtime.release();
+    expect(() => home.retain()).toThrow('handed off');
+    expect(owner.admitHome('home', home.bytes)).toBe(home);
+    expect(owner.allocator.entries()).toEqual([]);
+    owner.dispose();
+  });
 });
