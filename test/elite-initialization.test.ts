@@ -17,7 +17,7 @@ it('materializes eligible encounters before strict HP restore without AI, timers
   const local = new MemoryStorage(), logical = regionalRuntimeCheckpoint(new SaveStore({ local, session: null }), { id: 'pine-hollow', shard: 'pine-hollow' }, 1);
   const saved = { timer: 10, discovered: false, skinTaken: false, kills: 0, retired: false };
   elitesSave.write({ cooldown: saved, retired: { ...saved, timer: 0, retired: true } }, 'pine-hollow');
-  const tick = vi.fn(), trophy = vi.fn(), toast = vi.fn();
+  const tick = vi.fn((): void => undefined), trophy = vi.fn((): void => undefined), toast = vi.fn((): void => undefined);
   for (let visit = 0; visit < 2; visit++) {
     const scope = new Scope('elite-restore');
     try {
