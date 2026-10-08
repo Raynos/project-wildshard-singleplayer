@@ -29,10 +29,12 @@ async function connect(base) {
   if (inspector) { inspector.close(); inspector = null; }
   const deadline = Date.now() + 60000;
   while (Date.now() < deadline) {
-    try {
-      const pages = await (await fetch('http://127.0.0.1:9232/json')).json(), page = pages.find(row => row.url?.startsWith(base));
-      if (page) { inspector = soakInspector(page.webSocketDebuggerUrl); await inspector.opened; await sleep(600); await inspector.evaluate('performance.now()'); return; }
-    } catch { if (inspector) { inspector.close(); inspector = null; } }
+    for (let port = 9232; port <= 9240; port++) {
+      try {
+        const pages = await (await fetch(`http://127.0.0.1:${port}/json`, { signal: AbortSignal.timeout(500) })).json(), page = pages.find(row => row.url?.startsWith(base));
+        if (page) { inspector = soakInspector(page.webSocketDebuggerUrl); await inspector.opened; await sleep(600); await inspector.evaluate('performance.now()'); return; }
+      } catch { if (inspector) { inspector.close(); inspector = null; } }
+    }
     await sleep(300);
   }
   throw new Error('Safari Inspector page did not become ready');
@@ -59,7 +61,10 @@ for (const arm of arms) {
     const file = resolvePath(out, `${arm.name}-${shard}-${cache}.json`);
     try {
       if (cache === 'cold') {
-        execFileSync('xcrun', ['simctl', 'openurl', udid, new URL('/sf67-start.html', arm.base).href]);
+        execFileSync('xcrun', ['simctl', 'openurl', udid, new URL('/version.json', arm.base).href]);
+        await connect(new URL('/version.json', arm.base).href);
+        await inspector.evaluate(`setTimeout(() => location.replace('/sf67-start.html'), 100); true`);
+        await sleep(500);
         await connect(arm.base);
       } else {
         // Reuse this exact tab/cache context; opening another tab could attach to the old playing page.
@@ -81,7 +86,11 @@ for (const arm of arms) {
         try { await inspector.send(method, params); } catch (error) { result.protocolErrors.push(`${method}: ${String(error)}`); }
       }
       await gesture(`(() => { setTimeout(() => { sessionStorage.setItem('sf67.tap', String(performance.timeOrigin + performance.now())); const compiled = document.querySelector('.ws-menu-shardfile'); const button = compiled && getComputedStyle(compiled).display !== 'none' && !compiled.disabled ? compiled : document.querySelector('.ws-menu-play'); button.click(); }, 0); return true; })()`);
-      await wait(`location.search.includes('chunk=${shard}') && window.__sf67?.play > 0`, arm.base);
+      // A fresh Safari document may get another Inspector target. HTML keeps the clock across this reconnect.
+      await sleep(500);
+      const gameUrl = new URL(`/?chunk=${shard}`, arm.base).href;
+      await connect(gameUrl);
+      await wait(`location.search.includes('chunk=${shard}') && window.__sf67?.play > 0`, gameUrl);
       const raw = await inspector.evaluate(`JSON.stringify({ data: window.__sf67, tapEpoch: Number(sessionStorage.getItem('sf67.tap')), ua: navigator.userAgent, viewport: { width: innerWidth, height: innerHeight, dpr: devicePixelRatio }, sw: !!navigator.serviceWorker?.controller, resources: performance.getEntriesByType('resource').map(row => ({ url: row.name, at: row.startTime, duration: row.duration, transferred: row.transferSize, encoded: row.encodedBodySize })) })`);
       Object.assign(result, JSON.parse(raw));
       if (!(result.data.origin >= result.tapEpoch) || !result.data.url.includes(`chunk=${shard}`)) throw new Error('Stale document after shard selection');
