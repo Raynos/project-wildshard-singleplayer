@@ -4,7 +4,7 @@
     "default": 40,
     "_template": 24,
     "driftwood-isle": 45,
-    "far-reach": 17,
+    "far-reach": 20,
     "nalati-grasslands": 44,
     "nine-dragon-stack": 43,
     "pine-hollow": 43,
@@ -12,7 +12,8 @@
   },
   "raised": {
     "_template 23 → 24, pine-hollow 42 → 43, sunscar-dunes 32 → 33": "E405 AG5 (2026-10-03): #engine/data also carries Rng (src/engine/core/rng.ts) so the creature tables' manifests leave the engine index; one file for the manifests that import #engine/data",
-    "far-reach 16 → 17": "SHARD-PLATFORM SF22a (E435, e1f4ae324): the reviewed measured runtimeCost leaf (data/runtimeCost.ts, plain data, no imports) the grid admission reads before boot, shared by the manifest and shard.config like every measured shard"
+    "far-reach 16 → 17": "SHARD-PLATFORM SF22a (E435, e1f4ae324): the reviewed measured runtimeCost leaf (data/runtimeCost.ts, plain data, no imports) the grid admission reads before boot, shared by the manifest and shard.config like every measured shard",
+    "far-reach 17 → 20": "SHARD-PLATFORM sky-mem (E435, 26c5cd8e1): the boot names its HD models' KTX2 stand-ins through @wildshard/engine/boot/filePolicy and its ktx2.generated GPU file table, as every KTX2 shard's boot does (Driftwood, Pine, Nine Dragon); the KTX2 set itself is a default-off A/B awaiting Jake's pick"
   },
   "lowered": {
     "driftwood-isle 273 → 45, nalati-grasslands 226 → 44, nine-dragon-stack 271 → 43": "E405 AG5 (2026-10-03): the manifests' closure files import their rows from the node-safe #engine/data and #kit/data entries, not the engine and kit indexes"
