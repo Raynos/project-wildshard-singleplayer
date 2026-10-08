@@ -59,7 +59,7 @@ it('copies and removes borrowed texture declarations with active patches without
   expect(shaderPatchTextures(copy)).toEqual([]); expect(dispose).not.toHaveBeenCalled();
 });
 
-async function warmArrays(error: number, cancelAfterFirst = false): Promise<{ events: string[]; failure: unknown }> {
+async function warmArrays(error: number, cancelAfterFirst = false, twoDimensional = false): Promise<{ events: string[]; failure: unknown }> {
   const previous = scopeEnvironment(), events: string[] = [];
   let frame = 0, current = true, uploads = 0;
   installScopeEnvironment({ targetKind: () => 'other', frame: render => {
@@ -76,7 +76,9 @@ async function warmArrays(error: number, cancelAfterFirst = false): Promise<{ ev
   try {
     await warmComposerFrame({ render: () => { events.push(`composer:${frame}`); } }, renderer,
       () => runPrecompile(renderer, new THREE.PerspectiveCamera(), [], 0, undefined,
-        Array.from({ length: 6 }, () => arrayTexture(4, 4)), () => current), () => current);
+        Array.from({ length: 6 }, () => twoDimensional
+          ? new THREE.CompressedTexture([{ data: new Uint8Array(16), width: 4, height: 4 }], 4, 4, THREE.RGBA_ASTC_4x4_Format)
+          : arrayTexture(4, 4)), () => current), () => current);
   } catch (caught) { failure = caught; }
   finally { installScopeEnvironment(previous); }
   expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(uploads);
@@ -105,4 +107,42 @@ it('cancels between isolated arrays when the entered owner leaves', async () => 
   expect(String(failure)).toContain('Shader warm-up owner left');
   expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
   expect(events.some(event => event.startsWith('composer:'))).toBe(false);
+});
+
+
+it('isolates and fences every compressed 2D upload before a composer draw as well', async () => {
+  const { events, failure } = await warmArrays(0, false, true);
+  expect(failure).toBeUndefined();
+  const uploads = events.filter(event => event.startsWith('upload:'));
+  expect(uploads).toHaveLength(6); expect(new Set(uploads).size).toBe(6);
+  for (const upload of uploads) expect(events[events.indexOf(upload) + 1]).toBe(upload.replace('upload:', 'fence:'));
+  expect(events.at(-1)).toMatch(/^composer:/u);
+});
+
+it('discovers undeclared patch sampler arrays during compilation and uploads before the first draw', async () => {
+  const previous = scopeEnvironment(), events: string[] = [];
+  installScopeEnvironment({ targetKind: () => 'other', frame: render => {
+    queueMicrotask(() => { events.push('paint'); render(0); }); return 1;
+  }, cancelFrame: () => undefined });
+  const material = new THREE.MeshStandardMaterial(), texture = arrayTexture(4, 4);
+  patchShader(material, 'fixture.hidden-samplers', PATCH_ORDER.material, shader => {
+    shader.uniforms['hidden'] = { value: [texture] };
+  });
+  const scene = new THREE.Scene(); scene.add(new THREE.Mesh(new THREE.BufferGeometry(), material));
+  const jobs = sceneJobs(scene, null).jobs;
+  expect(collectTextures(jobs)).toEqual([]);
+  const renderer = rendererRecorder({ extensions: { has: () => false }, info: { programs: [] },
+    getRenderTarget: () => null, setRenderTarget: () => undefined,
+    compile: () => {
+      Reflect.apply(material.onBeforeCompile.bind(material), undefined, [{ vertexShader: '', fragmentShader: '', uniforms: {} }, null]);
+    },
+    initTexture: (value: THREE.Texture) => { expect(value).toBe(texture); events.push('upload'); },
+    getContext: () => ({ NO_ERROR: 0, getError: () => { events.push('fence'); return 0; } }),
+  });
+  try {
+    await warmComposerFrame({ render: () => { events.push('draw'); } }, renderer,
+      () => runPrecompile(renderer, new THREE.PerspectiveCamera(), jobs, 1), () => true);
+    expect(collectTextures(jobs)).toEqual([texture]);
+    expect(events.slice(-4)).toEqual(['upload', 'fence', 'paint', 'draw']);
+  } finally { installScopeEnvironment(previous); }
 });

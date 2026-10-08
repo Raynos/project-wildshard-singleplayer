@@ -55,6 +55,8 @@ export interface ShaderPatchOptions {
 interface Entry { readonly id: string; readonly order: number; readonly seq: number; readonly fn: ShaderPatchFn; readonly textures?: readonly THREE.Texture[] }
 interface State {
   entries: Entry[];
+  /** Uniform textures observed when these callbacks actually compile. */
+  observedTextures: Set<THREE.Texture>;
   /** the key function, or null for three's default (the last patch function's source text) */
   key: (() => string) | null;
   /** whether a site gave this material a key of its own (Sky.fillSlots leaves those alone) */
@@ -63,6 +65,17 @@ interface State {
   readonly keyFn: () => string;
   /** the material's own hook and key before its first patch: an undo that empties the chain puts them back */
   readonly before: { hook: PropertyDescriptor | undefined; key: PropertyDescriptor | undefined };
+}
+
+// A patch may borrow samplers without declaring them ahead of compilation. Capture the actual
+// compiled uniforms as well, including sampler arrays, before any first draw can upload them.
+function observeUniformTextures(shader: ShaderSource, textures: Set<THREE.Texture>): void {
+  const isTexture = (value: unknown): value is THREE.Texture => value instanceof THREE.Texture;
+  const add = (value: unknown): void => {
+    if (isTexture(value)) textures.add(value);
+    else if (Array.isArray(value)) for (const item of value) add(item);
+  };
+  for (const uniform of Object.values(shader.uniforms)) add(uniform.value);
 }
 
 const states = new WeakMap<THREE.Material, State>();
@@ -85,7 +98,7 @@ function stateOf(mat: THREE.Material, mode: 'chain' | 'replace'): State {
   // a known material whose runner is still in place; else (first patch, or a foreign hook replaced the runner)
   // start over from what the material runs now
   if (known !== undefined && mat.onBeforeCompile === known.runner) {
-    if (mode === 'replace') known.entries = [];
+    if (mode === 'replace') { known.entries = []; known.observedTextures.clear(); }
     return known;
   }
   const entries: Entry[] = [];
@@ -94,8 +107,11 @@ function stateOf(mat: THREE.Material, mode: 'chain' | 'replace'): State {
   const prevKey = known !== undefined && mat.customProgramCacheKey === known.keyFn ? known.key : ownKey(mat);
   const before = { hook: Object.getOwnPropertyDescriptor(mat, 'onBeforeCompile'), key: Object.getOwnPropertyDescriptor(mat, 'customProgramCacheKey') };
   const state: State = {
-    entries, key: prevKey, explicitKey: prevKey !== null, before,
-    runner: (shader, renderer) => { for (const e of state.entries) e.fn(shader, renderer); },
+    entries, observedTextures: new Set(), key: prevKey, explicitKey: prevKey !== null, before,
+    runner: (shader, renderer) => {
+      for (const e of state.entries) e.fn(shader, renderer);
+      observeUniformTextures(shader, state.observedTextures);
+    },
     keyFn: () => (state.key === null ? defaultKey(state.entries) : state.key()),
   };
   states.set(mat, state);
@@ -137,6 +153,7 @@ export function patchShader(mat: THREE.Material, id: string, order: number, fn: 
   const undo = (): void => {
     if (!state.entries.includes(entry)) return;
     state.entries = state.entries.filter((e) => e !== entry);
+    state.observedTextures.clear();
     state.key = keyBefore; state.explicitKey = explicitBefore;
     if (mat.onBeforeCompile !== state.runner || !state.entries.every((e) => e.id === 'inherited')) return;
     // nothing of the registry's is left: put the material's own hook and key back exactly as they were
@@ -162,8 +179,11 @@ export function copyShaderPatches(from: THREE.Material, to: THREE.Material): voi
   const before = { hook: Object.getOwnPropertyDescriptor(to, 'onBeforeCompile'), key: Object.getOwnPropertyDescriptor(to, 'customProgramCacheKey') };
   const key = from.customProgramCacheKey === source.keyFn ? source.key : ownKey(from);
   const state: State = {
-    entries: [...source.entries], key, explicitKey: source.explicitKey, before,
-    runner: (shader, renderer) => { for (const e of state.entries) e.fn(shader, renderer); },
+    entries: [...source.entries], observedTextures: new Set(source.observedTextures), key, explicitKey: source.explicitKey, before,
+    runner: (shader, renderer) => {
+      for (const e of state.entries) e.fn(shader, renderer);
+      observeUniformTextures(shader, state.observedTextures);
+    },
     keyFn: () => (state.key === null ? defaultKey(state.entries) : state.key()),
   };
   states.set(to, state);
@@ -213,7 +233,7 @@ export function patchIds(mat: THREE.Material): string[] {
 export function shaderPatchTextures(mat: THREE.Material): readonly THREE.Texture[] {
   const state = states.get(mat);
   if (state === undefined || mat.onBeforeCompile !== state.runner) return [];
-  return [...new Set(state.entries.flatMap(entry => entry.textures ?? []))];
+  return [...new Set([...state.entries.flatMap(entry => entry.textures ?? []), ...state.observedTextures])];
 }
 
 /** Every patch id used so far, with how many materials took it (Debug, the inventory). */

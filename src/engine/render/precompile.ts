@@ -4,7 +4,6 @@ import { engineString } from '../strings';
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
 import { newProgramsSince, snapshotPrograms, type ProgramLike } from '../boot/perflog';
-import { TIER } from '../core/tier';
 import { recordBootCheckpoint, bootTraceActive } from '../boot/bootTrace';
 import type { Renderer } from './renderer';
 import type { Game } from '../core/Game';
@@ -342,17 +341,18 @@ export async function runPrecompile(
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
-  // Phase C: upload every texture (12 ms slices) so the first draw finds them resident.
+  // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
+  const uploadTextures = [...new Set([...textures, ...collectTextures(jobs)])];
+  // Phase C: each compressed texture owns a fenced painted slice; other uploads use 12 ms slices.
   tSlice = performance.now();
   const base = jobs.length + units;
-  for (const [i, tex] of textures.entries()) {
+  for (const [i, tex] of uploadTextures.entries()) {
     checkCurrent();
-    // ANGLE's compressed-array path needs an isolated painted slice and the E257
+    // Both ANGLE compressed upload paths need an isolated painted slice and a
     // GPU-process round trip before any composer draw, independent of JS upload time.
-    const compressedArray = tex instanceof THREE.CompressedArrayTexture;
-    if (compressedArray) { await frame(); checkCurrent(); tSlice = performance.now(); }
-    const compressed = compressedArray || TIER === 'phone' && tex instanceof THREE.CompressedTexture;
-    if (compressed) recordBootCheckpoint('texture:upload', { index: i, total: textures.length, name: tex.name, format: tex.format,
+    const compressed = tex instanceof THREE.CompressedTexture;
+    if (compressed) { await frame(); checkCurrent(); tSlice = performance.now(); }
+    if (compressed) recordBootCheckpoint('texture:upload', { index: i, total: uploadTextures.length, name: tex.name, format: tex.format,
       mips: tex.mipmaps.length, width: tex.mipmaps[0]?.width ?? 0, height: tex.mipmaps[0]?.height ?? 0 });
     renderer.initTexture(tex);
     if (compressed) {
@@ -361,10 +361,10 @@ export async function runPrecompile(
       // Validate once per texture during boot, before queuing the next chain of mip levels.
       const gl = renderer.getContext();
       const error = gl.getError();
-      if (error !== gl.NO_ERROR) throw new Error(`Graphics error ${error} after compressed texture ${i + 1}/${textures.length} (${tex.name || tex.format})`);
+      if (error !== gl.NO_ERROR) throw new Error(`Graphics error ${error} after compressed texture ${i + 1}/${uploadTextures.length} (${tex.name || tex.format})`);
     }
-    onProgress?.(base + i + 1, base + textures.length, `${i + 1} / ${textures.length} textures uploaded`);
-    if (compressedArray || performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
+    onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
+    if (compressed || performance.now() - tSlice > 12) { await frame(); checkCurrent(); tSlice = performance.now(); }
   }
   checkCurrent();
   return { materials, jobs: jobs.length, programs: n, parallel };

@@ -567,7 +567,7 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
           reflectedLight.indirectDiffuse *= amb;
           reflectedLight.indirectSpecular *= amb * mix( 0.35, 1.0, vCD.g );
         }`);
-  });
+  }, { textures: [rock.map, rock.normalMap, rock.armMap] });
   return mat;
 }
 
