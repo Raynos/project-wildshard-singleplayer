@@ -1,0 +1,96 @@
+{
+  "runtime": "6aadc5dfb63bfca6c9c35309c433408924d766ad",
+  "build": "6aadc5d-muzpnt5t",
+  "files": [
+    {
+      "file": "primary-_template-cold.json.gz",
+      "rawBytes": 213949,
+      "sha256": "1727320ffc606d7d36f65f4d055972dc1ee9ef5592e357b8cc5a6c1a7d4b7bd9"
+    },
+    {
+      "file": "primary-_template-warm.json.gz",
+      "rawBytes": 143080,
+      "sha256": "7557a268f0fbd2040fbd135f58e35d98cbdd818760d5dbb69e60715271320a05"
+    },
+    {
+      "file": "primary-driftwood-isle-cold.json.gz",
+      "rawBytes": 130601,
+      "sha256": "659148e0f79bb7c3779b86ae2c35ca4ed34331db5c8f9664f5c449882f13147e"
+    },
+    {
+      "file": "primary-driftwood-isle-warm.json.gz",
+      "rawBytes": 130699,
+      "sha256": "452f7586215eeb9d3e03371de8575d56c049f8d38e877bdd16e6bb5f895a35ae"
+    },
+    {
+      "file": "primary-far-reach-cold.json.gz",
+      "rawBytes": 120544,
+      "sha256": "b1974b4a224077b60aaffd6dc210678c1142ea520b21ae9992b1ad133d959569"
+    },
+    {
+      "file": "primary-far-reach-warm.json.gz",
+      "rawBytes": 119690,
+      "sha256": "29e0d1df284e8a4863d8d018457ba566db5e624cb091aee38c4d083adbf028af"
+    },
+    {
+      "file": "primary-nalati-grasslands-cold.json.gz",
+      "rawBytes": 182280,
+      "sha256": "c9a3ba491413ae9133e4dadd5fa91c889985c77d15bd39df4c58d940fb6035b7"
+    },
+    {
+      "file": "primary-nalati-grasslands-warm.json.gz",
+      "rawBytes": 180455,
+      "sha256": "0343bfc31a2d5a1f82f747d8a6628a4ecba771760c6b3f8db2edaf3ec08c13b9"
+    },
+    {
+      "file": "primary-nine-dragon-stack-cold.json.gz",
+      "rawBytes": 81623,
+      "sha256": "6c7c86ac206ab238084cb3f6112f97f8222b2aa649cfa925a9faf828677f91d6"
+    },
+    {
+      "file": "primary-nine-dragon-stack-warm.json.gz",
+      "rawBytes": 87156,
+      "sha256": "e30b3e2e6872b9f91d8dba604ef677416f0e0a6ec8d85d92b82e480d977d2ba0"
+    },
+    {
+      "file": "primary-pine-hollow-failure.json.gz",
+      "rawBytes": 88802,
+      "sha256": "73c3c7dc3bd421cf3f3669a00832a914c783da1d8b7fd177ca8056ca2ed18b56"
+    },
+    {
+      "file": "primary-summary.json.gz",
+      "rawBytes": 12470,
+      "sha256": "79089124239d41af55273fae792beeda42cf977603fb33e2425e9dd014e080ca"
+    },
+    {
+      "file": "primary-sunscar-dunes-cold.json.gz",
+      "rawBytes": 101741,
+      "sha256": "e6a3d7318c2e9eedc0cdcbe6b4f2165485b597befa4cca4974caea1be09df4b8"
+    },
+    {
+      "file": "primary-sunscar-dunes-warm.json.gz",
+      "rawBytes": 102260,
+      "sha256": "831459e3425e65d6cd8d5bd51a4e8d8b9c044aa7a2e5963dbe7f5e3cb24b8e4b"
+    },
+    {
+      "file": "cpu4-diagnostic-_template-cold.json.gz",
+      "rawBytes": 253600,
+      "sha256": "24e5ce6f717b69acd68e6580db1c2e20affda59c0c4c16b745e528c408abcc7b"
+    },
+    {
+      "file": "cpu4-diagnostic-_template-warm.json.gz",
+      "rawBytes": 186511,
+      "sha256": "58d4e999e63ae32df8fdac3be6827c36e4fb2c580b60d292bbd6046ea5f65d66"
+    },
+    {
+      "file": "cpu4-diagnostic-summary.json.gz",
+      "rawBytes": 2808,
+      "sha256": "dd2853e286af5390f6e4a9583be8d375bde82a40bd349562ade7edcfd36facca"
+    },
+    {
+      "file": "harness-card-selection-refusal.json.gz",
+      "rawBytes": 134916,
+      "sha256": "351f9eb7c5cf2165cafd92729c8f9fab9c49b8513e9bd7a26d26dc5f83cdd07a"
+    }
+  ]
+}
