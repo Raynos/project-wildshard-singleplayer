@@ -164,7 +164,7 @@ try {
     if (Math.abs(islandY - entry.isle.y) > .5) throw new Error('Sky bridge failed to reach playable island ground');
     report.recoveries = await evaluate('window.__skyNativeRecoveries');
     const gameErrors = await evaluate('window.__g227Errors');
-    const edgeFallbacks = await evaluate("window.__g227Warnings.filter(message=>/edge.*fallback|fallback.*edge/iu.test(message))");
+    const edgeFallbacks = await evaluate("window.__g227Warnings.filter(message=>/edges stay at road level|platform keeps road-level edges|edge.*fallback|fallback.*edge/iu.test(message))");
     if (report.recoveries.length !== 0 || gameErrors.length !== 0 || edgeFallbacks.length !== 0) throw new Error('Sky route had a recovery, game error or edge fallback');
     report.enteredCost = report.snapshots.filter(row => row.label.startsWith('sky-') && row.label !== 'sky-road').map(row => {
       const glBytes=row.census.gl.reduce((sum,context)=>sum+context.totalBytes,0);

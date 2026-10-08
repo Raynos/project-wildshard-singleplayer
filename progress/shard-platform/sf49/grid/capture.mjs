@@ -117,7 +117,7 @@ try {
       row.recoveries = await page.evaluate(() => window.__sf49Recoveries);
       row.leak = await page.evaluate(() => window.__wildshard.leak());
       row.finalGL = await page.evaluate(() => window.__sc_gl().map(({ gl, ...row }) => row));
-      row.edgeFallbacks = row.warnings.filter(message => /edge.*fallback|fallback.*edge/iu.test(message));
+      row.edgeFallbacks = row.warnings.filter(message => /edges stay at road level|platform keeps road-level edges|edge.*fallback|fallback.*edge/iu.test(message));
       row.pass = row.edgeFallbacks.length === 0 && row.recoveries.length === 0 && row.onIsland && row.gateOpenAtRest && row.gateShutAway && row.errors.length === 0 && row.consoleErrors.length === 0
         && row.documents.length === row.bootDocuments && row.leak.disposalErrors.length === 0 && row.leak.after.bodies === 0
         && row.leak.after.colliders === 0 && Object.values(row.leak.scope).every(count => count === 0);
