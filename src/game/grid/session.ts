@@ -151,12 +151,11 @@ function neighbourTiles(scope: Scope): { instances: Map<string, ClientRingInstan
 
 /** The far proxy and its row, fetched from the shard's baked folder (`public/assets/baked/<slug>/far.*`). */
 async function loadFar(slug: string): Promise<{ prepared: FarPrepared; bytes: number }> {
-  const base = `/assets/baked/${slug}/far`;
-  const response = await fetch(versionedUrl(`${base}.json`));
+  const response = await fetch(versionedUrl(`/assets/baked/${slug}/far.json`));
   if (!response.ok) throw new Error(`far.json ${slug}: ${String(response.status)}`);
   const row: unknown = await response.json();
   const look = farLook(row), bytes = farBytes(row);
-  const gltf = await new GLTFLoader().loadAsync(versionedUrl(`${base}.glb`));
+  const gltf = await new GLTFLoader().loadAsync(versionedUrl(`/assets/baked/${slug}/far.glb`));
   const meshes: BufferGeometry[] = [];
   gltf.scene.traverse((node) => { if (!(node instanceof Mesh)) return; const found: unknown = node.geometry; if (found instanceof BufferGeometry) meshes.push(found as BufferGeometry); });
   const geometry = meshes[0];

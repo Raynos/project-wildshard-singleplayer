@@ -33,7 +33,7 @@ function coatReads(tier: Tier, tex: TexMode): string[] {
  */
 function viewmodelReads(tier: Tier, tex: TexMode): string[] {
   if (tex !== 'ktx2') return [];
-  return Object.keys(table[tier]).filter((url) => url.startsWith(`${bakedDir}viewmodel/`)).sort().flatMap((url) => table[tier][url] ?? []);
+  return Object.keys(table[tier]).filter((url) => url.startsWith(`procedural:${bakedDir}viewmodel/`)).sort().flatMap((url) => table[tier][url] ?? []);
 }
 /** World files formerly fetched outside the loading contract. */
 export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {

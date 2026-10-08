@@ -51,7 +51,7 @@ const CLASS = {
 };
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 const pub = (abs) => `/${relative(PUB, abs).split('\\').join('/')}`;
-const bakeUrl = (set, plane) => `/assets/baked/${slug}/viewmodel/${set}.${plane}.png`; // viewmodelTextures.ts viewmodelBakeUrl
+const bakeUrl = (set, plane) => `procedural:/assets/baked/${slug}/viewmodel/${set}.${plane}.png`; // viewmodelTextures.ts viewmodelBakeUrl
 
 /** a minimal RGBA8 PNG (filter 0 rows, zlib): lossless, so the planes reach basisu exactly as makePixels drew them */
 function png(w, h, rgba) {
@@ -77,7 +77,7 @@ if (!output) throw new Error('bake-viewmodel-sets: vite produced no chunk');
 
 const prior = existsSync(TABLE) ? JSON.parse(readFileSync(TABLE, 'utf8')) : {};
 const cache = prior.cache ?? {};
-const mine = (url) => url.startsWith(`/assets/baked/${slug}/viewmodel/`);
+const mine = (url) => url.replace(/^procedural:/u, '').startsWith(`/assets/baked/${slug}/viewmodel/`);
 const next = Object.fromEntries(Object.entries(prior.phone ?? {}).filter(([url]) => !mine(url)));
 const used = new Set();
 const TMP = join(tmpdir(), `bake-viewmodel-sets-${process.pid}`);

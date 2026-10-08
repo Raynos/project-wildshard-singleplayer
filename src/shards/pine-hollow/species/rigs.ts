@@ -20,5 +20,5 @@ export function pineCreatureRigUrl(name: PineRigName, tier: 'phone' | 'desktop' 
  *  `<hull>[.phone].<kind>.<variant>.coat.png` — a name, not a file: only its `/assets/gpu/` stand-in exists, and only the
  *  KTX2 path asks for it (boot/files.ts lists the `.coat.png` entries) */
 export function pineCoatUrl(name: PineRigName, kind: string, variant: string, tier: 'phone' | 'desktop' = TIER): string {
-  return pineCreatureRigUrl(name, tier).replace(/\.rigged\.glb$/u, `.${kind}.${variant}.coat.png`);
+  return `procedural:${pineCreatureRigUrl(name, tier).replace(/\.rigged\.glb$/u, `.${kind}.${variant}.coat.png`)}`;
 }

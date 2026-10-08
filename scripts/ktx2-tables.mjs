@@ -7,7 +7,8 @@ export function splitKtx2(map, shards) {
   const tables = new Map([['engine', { phone: {}, desktop: {} }], ...shards.map((m) => [m.slug, { phone: {}, desktop: {} }])]);
   const owners = shards.map((m) => ({ slug: m.slug, patterns: [...defaultAssetGlobs(m.slug), ...(m.assetGlobs ?? [])].map(globToRegExp) }));
   for (const tier of ['phone', 'desktop']) for (const [url, target] of Object.entries(map[tier])) {
-    const path = `public${url.split('#')[0]}`;
+    // Procedural texture keys name CPU-generated pixels, not downloadable source images.
+    const path = `public${url.replace(/^procedural:/u, '').split('#')[0]}`;
     const matches = owners.filter((owner) => owner.patterns.some((pattern) => pattern.test(path)));
     if (matches.length > 1) throw new Error(`KTX2 table has ambiguous ownership: ${url}`);
     tables.get(matches[0]?.slug ?? 'engine')[tier][url] = target;
