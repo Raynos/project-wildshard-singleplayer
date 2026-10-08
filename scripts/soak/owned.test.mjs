@@ -2,10 +2,20 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews } from './owned.mjs';
 import { soakCatalogue } from './route.ts';
 
 const catalogue = JSON.parse(readFileSync('src/game/grid/singleplayer.json', 'utf8')).grid;
+
+void test('SF57 borrowed previews survive cleanup; owned previews all stop even after one refusal', async () => {
+  const bases = [{ base: 'http://127.0.0.1:4401/' }, { base: 'http://127.0.0.1:4402/' }];
+  const stopped = [];
+  const stop = base => { stopped.push(base); return Promise.reject(new Error('already closed')); };
+  await releaseSoakPreviews(bases, stop, true);
+  assert.deepEqual(stopped, []);
+  await releaseSoakPreviews(bases, stop, false);
+  assert.deepEqual(stopped, bases.map(row => row.base));
+});
 
 for (const layout of ['dev', 'shipped']) void test(`SF57 ${layout} enters every production instance and returns to one exact home baseline`, () => {
   const cells = soakCatalogue(catalogue, layout), route = ownedSoakPlans({ cells, home: 'driftwood-isle' });

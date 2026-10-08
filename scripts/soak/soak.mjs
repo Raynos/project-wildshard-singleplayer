@@ -6,6 +6,7 @@
 // --layouts=shipped runs the M2 layout; the default shipped,dev also prepares the M3 Developer evidence.
 // node scripts/soak/soak.mjs --rev=<pushed SHA> --prepare [--out=<directory>]
 // --prepared=<manifest.json> reuses pinned previews, without rebuilding, after a preparation-parent restart.
+// --borrowed-preview with --prepared retains another owner's explicitly shared preview after cleanup.
 // A long-lived parent retains both previews. --prepare writes its manifest and waits for <directory>/GO.
 // No document navigation, manual eviction or GC is allowed between drive start and the final leak census.
 import { spawn, execFileSync } from 'node:child_process';
@@ -17,7 +18,7 @@ import { installSoakGl, installSoakWasm } from './gl.mjs';
 import { installResources } from '../parity/resources.mjs';
 import { saveFixtureCode } from '../debug-settings.mjs';
 import { soakCatalogue, validateSoakCatalogue, gradeSoak, parseSoakContentCut } from './route.ts';
-import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid } from './owned.mjs';
+import { ownedSoakPlans, soakRunPolicy, joinSoakSamples, soakAsyncEvaluator, soakLapMemory, soakGamePid, releaseSoakPreviews } from './owned.mjs';
 import { gridFloorDocumentIdentity, stageFloorGrid, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 const root = resolvePath(import.meta.dirname, '../..');
@@ -242,7 +243,8 @@ async function drivePrepared(manifest) {
   console.log(`SF57 DONE ${out}`);
 }
 async function closePreviews(bases) {
-  for (const { base } of bases) await run(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port]).catch(() => undefined);
+  await releaseSoakPreviews(bases, async base => { await run(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port]); },
+    process.argv.includes('--borrowed-preview'));
 }
 function writeHelper(base, layout) {
   const record = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
@@ -285,6 +287,7 @@ async function prepare() {
     await drivePrepared(manifest);
   } finally { await closePreviews(bases); }
 }
+if (process.argv.includes('--borrowed-preview') && (!flag('prepared') || process.argv.includes('--prepare'))) throw new Error('Borrowed previews require --prepared');
 if (process.argv.includes('--worker')) await worker();
 else if (process.argv.includes('--prepare')) await prepare();
 else if (flag('prepared')) {

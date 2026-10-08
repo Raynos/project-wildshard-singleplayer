@@ -61,6 +61,13 @@ export function soakRunPolicy(/** @type {boolean} */ dryRun, /** @type {import('
   return { seconds, samplerSeconds: seconds + 700, leaseMinutes: Math.ceil((seconds + 850) / 60), dryRun };
 }
 
+/** A borrowed preview stays with its owner, including when the soak fails. */
+export async function releaseSoakPreviews(/** @type {readonly {base:string}[]} */ bases,
+  /** @type {(base:string)=>Promise<void>} */ stop, /** @type {boolean} */ borrowed) {
+  if (borrowed) return;
+  for (const { base } of bases) await stop(base).catch(() => undefined);
+}
+
 /** Match native and GL samples by wall timestamp, retaining missing reads as failures. GPU stays separate. */
 export function joinSoakSamples(native, gl, gamePid = /** @type {number | null} */ (null)) {
   let cursor = 0;
