@@ -1,0 +1,42 @@
+{
+  "protocol": "Actual defining AAC reader/native decoder/window planner into native AudioBufferSourceNodes versus original whole-file source; same fades, authored loop, integral source frames, several absolute start phases. Offline only, no native saving claim.",
+  "genre": "piano",
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "result": {
+    "cases": [
+      {
+        "t0": 0.1,
+        "comparedSamples": 393600,
+        "maxAbs": 0,
+        "rms": 0,
+        "largestBufferFrames": 24064,
+        "peakDecoderFrames": 1088,
+        "sources": 9,
+        "exact": true
+      },
+      {
+        "t0": 2.3076923076923075,
+        "comparedSamples": 605540,
+        "maxAbs": 0,
+        "rms": 0,
+        "largestBufferFrames": 24064,
+        "peakDecoderFrames": 1088,
+        "sources": 9,
+        "exact": true
+      },
+      {
+        "t0": 0.050021,
+        "comparedSamples": 388804,
+        "maxAbs": 0,
+        "rms": 0,
+        "largestBufferFrames": 24064,
+        "peakDecoderFrames": 1088,
+        "sources": 9,
+        "exact": true
+      }
+    ],
+    "exact": true
+  },
+  "closed": true
+}
