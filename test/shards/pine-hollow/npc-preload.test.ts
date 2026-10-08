@@ -41,7 +41,7 @@ describe('Pine people boot barrier (E357 R9)', { timeout: 30_000 }, () => {
 
   });
 
-  it('reloads retired source maps and materials instead of reusing a disposed regional NPC', async () => {
+  it.each(['map', 'geometry'] as const)('reloads a retired NPC %s instead of reusing disposed regional resources', async retired => {
     const load = vi.fn(() => {
       const gltf = person();
       gltf.scene.traverse(object => {
@@ -59,7 +59,8 @@ describe('Pine people boot barrier (E357 R9)', { timeout: 30_000 }, () => {
       expect(rig.mesh.material.map).toBe(source.map);
       expect(source.map).not.toBe(previous);
       previous = source.map;
-      source.map.dispose(); rig.mesh.material.dispose(); rig.mesh.geometry.dispose();
+      if (retired === 'map') source.map.dispose(); else rig.mesh.geometry.dispose();
+      rig.mesh.material.dispose();
       expect(models.rig('miller', sky)).toBeNull();
       expect(load).toHaveBeenCalledTimes(entry + 1);
     }

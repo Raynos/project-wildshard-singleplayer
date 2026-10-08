@@ -100,12 +100,12 @@ export class NpcModels {
         const hit = found[0] ?? null;
         if (hit !== null) {
           this.sources.set(kind, hit);
-          cacheUntilDisposed(hit, () => {
+          const rig = legRigOf(kind, hit.geometry);
+          cacheUntilDisposed({ ...hit, rigGeometry: rig.geometry }, () => {
             if (this.sources.get(kind) !== hit) return;
             this.sources.delete(kind); this.loading.delete(kind); this.sharedMats.delete(kind);
           });
         }
-        if (hit !== null) legRigOf(kind, hit.geometry);   // E322 F-M3: the rig now, one person a frame, not all three on their first update
         return hit;
       }).catch((e: unknown) => { console.warn(`[pine-hollow] npc model ${kind} failed`, e); return null; });
       this.loading.set(kind, p);
