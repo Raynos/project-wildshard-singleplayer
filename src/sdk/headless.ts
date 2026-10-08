@@ -53,15 +53,15 @@ export interface SimulationObservations {
   fuel: { p95: number; max: number; limit: number; samples: number };
   scripts: { p95Micros: number; maxMicros: number; samples: number };
 }
-async function observe(sim: HeadlessSimulation): Promise<SimulationObservations> {
+async function observe(sim: Pick<HeadlessSimulation, 'step' | 'lastTickMicros'>): Promise<SimulationObservations> {
   const measured: number[] = [], fuel: number[] = [], scripts: number[] = [];
   for (let tick = 0; tick < 60; tick++) { const commit = await sim.step(); measured.push(sim.lastTickMicros); fuel.push(commit.fuelUsed ?? 0); scripts.push(commit.scriptMicros ?? 0); }
   measured.sort((a, b) => a - b); fuel.sort((a, b) => a - b); scripts.sort((a, b) => a - b);
   return { timing: { medianMicros: ((measured[29] ?? 0) + (measured[30] ?? 0)) / 2, p95Micros: measured[56] ?? 0, maxMicros: measured.at(-1) ?? 0, samples: measured.length }, fuel: { p95: fuel[56] ?? 0, max: fuel.at(-1) ?? 0, limit: SCRIPT_LIMITS.fuelPerTick, samples: fuel.length }, scripts: { p95Micros: scripts[56] ?? 0, maxMicros: scripts.at(-1) ?? 0, samples: scripts.length } };
 }
 /** Build report observations stop at 60 ticks; they never run the expensive entry walk reserved for validate. */
-export async function measureSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<SimulationObservations> {
-  const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
+export async function measureSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, start: (shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>) => Promise<Pick<HeadlessSimulation, 'step' | 'lastTickMicros' | 'dispose'>> = (source, bytes) => HeadlessSimulation.create(source, bytes, undefined, { deadline: 'advisory' })): Promise<SimulationObservations> {
+  const sim = await start(shard, assets);
   try { return await observe(sim); } finally { await sim.dispose(); }
 }
 /** Offline admission proves bounded execution and entries; wall timing is advisory. The independent request watchdog still bounds a broken worker. */
