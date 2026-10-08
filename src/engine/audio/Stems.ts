@@ -1,5 +1,6 @@
 import { musicManifests, publicBytes } from '../boot/tables';
 import { resourceScope } from '../app/resources';
+import { withOwner } from '../app/ownership';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
 // src/engine/audio/Stems.ts — the MiniMax-Music3 stem player behind src/engine/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
@@ -160,10 +161,18 @@ export class Deck {
   private _phase: BossPhase = 1;
   stopAt = Infinity;
 
-  readonly audio: SlotAudio;
+  private heldAudio: SlotAudio | undefined;
+  private readonly spec: SlotSpec;
+  readonly slot: SlotName;
+  readonly genre: MusicGenre;
   readonly t0: number;
+  private readonly ctx: BaseAudioContext;
   constructor(ctx: BaseAudioContext, audio: SlotAudio, dest: AudioNode, t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1) {
-    this.audio = audio;
+    this.ctx = ctx;
+    this.heldAudio = audio;
+    this.spec = audio.spec;
+    this.slot = audio.slot;
+    this.genre = audio.genre;
     this.t0 = t0;
     tap.sound?.(`stems.bed:${audio.slot}`);
     const { spec } = audio;
@@ -172,8 +181,21 @@ export class Deck {
     this.out.gain.setValueAtTime(fadeIn > 0 ? 0 : 1, 0);
     if (fadeIn > 0) { this.out.gain.setValueAtTime(0, t0); this.out.gain.linearRampToValueAtTime(1, t0 + fadeIn); }
     this.out.connect(dest);
+    // Registered first: source handles/listeners retire before their PCM references.
+    this.scope.onDispose(() => {
+      for (const source of this.srcs) source.buffer = null;
+      this.srcs = [];
+      this.heldAudio = undefined;
+      this.out.disconnect();
+      this.tensionGain?.disconnect();
+      for (const gain of this.layerGains) gain.disconnect();
+      this.layerGains.length = 0;
+    });
+    this.scope.listen(ctx, 'statechange', () => {
+      if (this.stopAt !== Infinity && this.ctx.state !== 'running') this.dispose();
+    });
     const mk = (buf: AudioBuffer, to: AudioNode) => {
-      const s = ownAudioSource(ctx.createBufferSource()); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
+      const s = withOwner(this.scope, () => ownAudioSource(ctx.createBufferSource())); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
       s.connect(to); s.start(t0, 0); this.srcs.push(s);
     };
     mk(audio.calm, this.out);
@@ -189,14 +211,22 @@ export class Deck {
       mk(buf, g);
     });
   }
+  /** Live decoded stems; retirement releases them, while slot/bar metadata remains readable. */
+  get audio(): SlotAudio {
+    if (!this.heldAudio) throw new Error('Deck has retired');
+    return this.heldAudio;
+  }
+  /** Stop and release this deck once, including when its context cannot deliver ended. */
+  dispose(): void { this.scope.dispose(); }
   get phase(): BossPhase { return this._phase; }
 
   /** the boss's phase: its layers move to that phase's gains on the next bar (in over a beat, out over two bars) */
   setPhase(phase: BossPhase, now: number): void {
-    const want = this.audio.spec.phases[phase];
+    if (this.scope.disposed) return;
+    const want = this.spec.phases[phase];
     if (phase === this._phase || !want || this.layerGains.length === 0) return;
-    const tb = this.nextBar(now + 0.02), beat = this.bar / this.audio.spec.beatsPerBar, up = phase > this._phase;
-    const before = this.audio.spec.phases[this._phase] ?? [];
+    const tb = this.nextBar(now + 0.02), beat = this.bar / this.spec.beatsPerBar, up = phase > this._phase;
+    const before = this.spec.phases[this._phase] ?? [];
     this.layerGains.forEach((g, i) => {
       const cp: { cancelAndHoldAtTime?: (t: number) => void } = g.gain;
       if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(tb); else { g.gain.cancelScheduledValues(tb); g.gain.setValueAtTime(before[i] ?? 0, tb); }
@@ -204,21 +234,20 @@ export class Deck {
     });
     this._phase = phase;
   }
-  get slot(): SlotName { return this.audio.slot; }
-  get genre(): MusicGenre { return this.audio.genre; }
   get level(): number { return this.tension; }
 
   /** the first bar line at or after `t` — bars run from loopStart in file time, and the loop is whole bars, so the grid never breaks */
   nextBar(t: number): number {
-    const a = this.t0 + this.audio.spec.loopStart;
+    const a = this.t0 + this.spec.loopStart;
     return Math.max(this.t0, a + Math.ceil((t - a) / this.bar - 1e-6) * this.bar);
   }
 
   /** move the tension layer to `level` on the next bar: in over one beat (it lands on the downbeat), out over two bars */
   setTension(level: number, now: number): void {
+    if (this.scope.disposed) return;
     const g = this.tensionGain;
     if (!g || Math.abs(level - this.tension) < 1e-3) return;
-    const tb = this.nextBar(now + 0.02), beat = this.bar / this.audio.spec.beatsPerBar;
+    const tb = this.nextBar(now + 0.02), beat = this.bar / this.spec.beatsPerBar;
     const cp: { cancelAndHoldAtTime?: (t: number) => void } = g.gain;
     if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(tb); else { g.gain.cancelScheduledValues(tb); g.gain.setValueAtTime(this.tension, tb); }
     g.gain.linearRampToValueAtTime(level, tb + (level > this.tension ? beat : this.bar * 2));
@@ -227,14 +256,18 @@ export class Deck {
 
   /** fade out over `secs` from `t` and stop the sources after it */
   fadeOut(t: number, secs: number): void {
+    if (this.scope.disposed) return;
+    const firstFade = this.stopAt === Infinity;
+    this.stopAt = t + secs;
+    // A paused clock cannot reach the scheduled stop. Retiring it is inaudible.
+    if (this.ctx.state !== 'running') { this.dispose(); return; }
     const g = this.out.gain;
     const cp: { cancelAndHoldAtTime?: (t: number) => void } = g;
     if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(t); else { g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); }
     g.linearRampToValueAtTime(0, t + secs);
-    this.stopAt = t + secs;
     for (const s of this.srcs) { try { s.stop(t + secs + 0.05); } catch { /* already stopped */ } }
-    const done = () => { try { this.out.disconnect(); } catch { /* gone */ } this.srcs = []; this.scope.dispose(); };
     const last = this.srcs[0];
-    if (last) this.scope.listen(last, 'ended', done, { once: true }); else done();
+    if (last) { if (firstFade) this.scope.listen(last, 'ended', () => this.dispose(), { once: true }); }
+    else this.dispose();
   }
 }
