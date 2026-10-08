@@ -1,5 +1,5 @@
 import { declaredSkyRows } from './runtime/brains';
-import { installLoot } from '@wildshard/game/loot/runtime';
+import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installSilentScore } from '@wildshard/kit/audio/forest';
@@ -68,6 +68,14 @@ export const RAISE_RATE = 0.55;
 /** How close a GUST must reach a vane to turn it (metres; the cone is the fan's GUST cone, a little longer). */
 export const VANE_REACH = GUST.reach + 2;
 
+/** Every runtime collection is a finite authored roster; refuse overflow instead of silently dropping content. */
+const MAX_RUNTIME_ROWS = 64;
+function boundedRows<T>(rows: readonly T[]): readonly T[] {
+  if (rows.length > MAX_RUNTIME_ROWS) throw new RangeError('Sky runtime roster exceeds its finite row bound');
+  return rows;
+}
+const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => vaneFlag(v.id))];
+
 export class SkyReachPlugin extends ShardPlugin {
   readonly player = new Vector3();
   built: BuiltWorld | null = null; fan: WarFan | null = null; quest: QuestState | null = null; boss: StormRocBoss | null = null;
@@ -98,7 +106,8 @@ export class SkyReachPlugin extends ShardPlugin {
     const [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true), loadPainted(TEX_URL.branches, 'far.branches'),
       loadPainted(TEX_URL.millStone, 'far.mill-stone', true), loadPainted(TEX_URL.millCanvas, 'far.mill-canvas'), loadPainted(TEX_URL.millIvy, 'far.mill-ivy'),
       loadPainted(TEX_URL.stormeye, 'far.stormeye')]);
-    for (const t of [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex]) if (t !== null) ctx.scope.own(t);
+    const textures = [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex];
+    for (let i = 0; i < 7; i++) { const texture = textures[i]; if (texture !== null && texture !== undefined) ctx.scope.own(texture); }
     // the storm's painted underside (E399, mockup D's vortex seen from below), mirrored past its edge
     if (vortex !== null) { vortex.wrapS = MirroredRepeatWrapping; vortex.wrapT = MirroredRepeatWrapping; vortex.needsUpdate = true; }
     setStormPaint(vortex);
@@ -158,9 +167,8 @@ export class SkyReachPlugin extends ShardPlugin {
       });
       else { if (source.audio.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSkyCues(rt.play.audio, rt.play.cues, ctx.scope); }
     }
-    const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
-      player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
-      presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;
+    const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null,
+      charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
     const { quest, flags, burst, finished } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
     this.quest = quest; this.flags = flags; this.questFinished = finished;
     if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
@@ -206,20 +214,29 @@ export class SkyReachPlugin extends ShardPlugin {
       if (inside) ctx.app.player?.impulse(lift.set(0, UPDRAFT_LIFT * dt, 0));
     } });
 
+    const moverPose = (id: string): ReturnType<MoverRuntime['pose']> => {
+      const movers = this.movers; if (movers === null) throw new Error('Sky mover pose requested outside its installed lifetime');
+      return movers.pose(id);
+    };
+    const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vaneFlag(vane.id) }));
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(cam.position, t);
       // SF49-g (G183): the Rising Islets ride their movers (behaviour/islet.as, in the fixed step); draw them and their chains
-      const movers = this.movers; if (movers !== null) { built.islets.update((id) => movers.pose(id)); this.isletCalls?.update((id) => movers.pose(id)); }
+      const movers = this.movers; if (movers !== null) { built.islets.update(moverPose); this.isletCalls?.update(moverPose); }
       built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
-      for (const v of built.vanes) v.rotor.rotation.y += dt * (flags.has(vaneFlag(v.id)) ? 6 : 0.25);
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
+        const row = vanes[i]; if (row === undefined) break;
+        row.vane.rotor.rotation.y += dt * (flags.has(row.flag) ? 6 : 0.25);
+      }
     } });
 
     // GUST: a cone of wind streaks and petals leaves the fan (style bible §7); a vane inside the cone starts turning (step 3).
     const fxRandom = ctx.app.rng.stream('cosmetic'), gustView = gustFx(() => fxRandom.next());
-    for (const o of gustView.objects) ctx.root.add(o);
+    const gustObjects = boundedRows(gustView.objects);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const object = gustObjects[i]; if (object === undefined) break; ctx.root.add(object); }
     ctx.scope.onDispose(() => { gustView.dispose(); });
     fan.onGust = (from, dir) => {
       gustView.fire(from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), dir); rt.play?.cues.charge(FAN_ROW, 'heavy');
@@ -229,36 +246,45 @@ export class SkyReachPlugin extends ShardPlugin {
 
     // Creatures: each one knows its home (an island or a flying circle).
     const animals = rt.play?.animals;
-    const spawn = (kind: string, variant: string, home: Home, x: number, z: number, placement?: { fromY: number }): Animal | null => {
+    const spawnCreature = (kind: string, variant: string, home: Home, x: number, z: number, placement?: { fromY: number }): Animal | null => {
       if (!animals) return null; const a = animals.spawn(kind, x, z, 0, variant, placement); setHome(a, home); return a;
     };
-    for (const home of RAY_HOMES) { const a = spawn('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.rays.push(a); }
+    const rayHomes = boundedRows(RAY_HOMES);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = rayHomes[i]; if (home === undefined) break; const a = spawnCreature('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.rays.push(a); }
     // each free ray trails its luminous wake (world/rayWake.ts; proposal B's ray beside the mill)
     const wakes = this.rays.map((ray) => { const w = rayWake(); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
+    boundedRows(wakes);
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
       const cam = rt.world?.game.camera; if (!cam) return;
-      for (const { ray, w } of wakes) w.update(ray.position, ray.alive, cam.position, dt);
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, cam.position, dt); }
     } });
-    for (const home of ROOST_RAYS) { const a = spawn('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.roostRays.push(a); }
+    const roostHomes = boundedRows(ROOST_RAYS);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = roostHomes[i]; if (home === undefined) break; const a = spawnCreature('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.roostRays.push(a); }
     // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
     // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m
     // analytic floor), so they spawn on the first fixed step.
+    const goatSpawns = boundedRows(GOATS).map(g => ({ x: g.isle.x + g.dx, z: g.isle.z + g.dz,
+      home: { x: g.isle.x, z: g.isle.z, r: apothem(g.isle), y: g.isle.y }, placement: { fromY: g.isle.y + GOAT_SPAWN_ABOVE } }));
     let goatsDue = !retainsRuntimeServices(ctx);
     ctx.system({ id: 'far.goats', phase: 'fixed.post', run: () => {
       if (!goatsDue) return; goatsDue = false;
-      for (const g of GOATS) {
-        const a = spawn('skyGoat', 'cloud', { x: g.isle.x, z: g.isle.z, r: apothem(g.isle), y: g.isle.y }, g.isle.x + g.dx, g.isle.z + g.dz, { fromY: g.isle.y + GOAT_SPAWN_ABOVE });
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
+        const g = goatSpawns[i]; if (g === undefined) break;
+        const a = spawnCreature('skyGoat', 'cloud', g.home, g.x, g.z, g.placement);
         if (a) this.goats.push(a);
       }
     } });
-    for (const home of WISP_HOMES) { const a = spawn('galeWisp', 'gale', home, home.x + home.r, home.z); if (a) this.wisps.push(a); }
-    this.roc = spawn('stormRoc', 'storm', ROC, ROC.x + ROC.r, ROC.z);
+    const wispHomes = boundedRows(WISP_HOMES);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = wispHomes[i]; if (home === undefined) break; const a = spawnCreature('galeWisp', 'gale', home, home.x + home.r, home.z); if (a) this.wisps.push(a); }
+    this.roc = spawnCreature('stormRoc', 'storm', ROC, ROC.x + ROC.r, ROC.z);
     // Preserve the shipping identity order: deferred goats follow the Roc. Retained restore runs before any tick;
     // these flat island tops have an authored exact height, so initialization needs no physics step or quest update.
     if (retainsRuntimeServices(ctx) && animals !== undefined) this.goats.push(...spawnSkyGoats(animals));
     // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are
     // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
-    if (this.roc !== null) for (const mat of Array.isArray(this.roc.mesh.material) ? this.roc.mesh.material : [this.roc.mesh.material]) {
+    if (this.roc !== null) {
+      const materials = boundedRows(Array.isArray(this.roc.mesh.material) ? this.roc.mesh.material : [this.roc.mesh.material]);
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const mat = materials[i]; if (mat === undefined) break;
       patchShader(mat, 'far.roc-slate', PATCH_ORDER.decorate, (shader) => {
         // (round 7, seat B: the wings measured unchanged: the model's self-light feeds the painted texture back as emissive,
         // so the emission is recoloured too; linear values, the brown test scaled for them)
@@ -270,10 +296,15 @@ export class SkyReachPlugin extends ShardPlugin {
         shader.fragmentShader = `${slate}\n${shader.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  diffuseColor.rgb = farSlate(diffuseColor.rgb);').replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance = farSlate(totalEmissiveRadiance);')}`;
       }, { key: (prior) => `${prior}|far.roc-slate`, scope: ctx.scope });
     }
-    ctx.scope.onDispose(() => { for (const a of [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps, ...(this.roc ? [this.roc] : [])]) animals?.retire(a); });
+    }
+    ctx.scope.onDispose(() => {
+      const retiring = boundedRows([...this.rays, ...this.roostRays, ...this.goats, ...this.wisps, ...(this.roc ? [this.roc] : [])]);
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const animal = retiring[i]; if (animal === undefined) break; animals?.retire(animal); }
+    });
     // Step 2: the roost is clear when its three rays are down.
+    const isDead = (animal: Animal): boolean => !animal.alive;
     ctx.system({ id: 'far.roost', phase: 'update', run: () => {
-      if (flags.has(FLAGS.notes) && !flags.has(FLAGS.roost) && this.roostRays.length > 0 && this.roostRays.every((a) => !a.alive)) flags.set(FLAGS.roost);
+      if (flags.has(FLAGS.notes) && !flags.has(FLAGS.roost) && this.roostRays.length > 0 && this.roostRays.every(isDead)) flags.set(FLAGS.roost);
     } });
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
@@ -312,7 +343,10 @@ export class SkyReachPlugin extends ShardPlugin {
     if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
     // 'quest-winch' (round 8, X4: the route as ordinary play): the quest as a player has it when the winch unlocks, the notes
     // read, the roost quiet and the three vanes turning; the bridge is still down, the winch raises it in play
-    if (name === 'quest-winch' && this.flags !== null) { for (const f of [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map((v) => vaneFlag(v.id))]) this.flags.set(f); }
+    if (name === 'quest-winch' && this.flags !== null) {
+      const flags = boundedRows(WINCH_FLAGS);
+      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const flag = flags[i]; if (flag === undefined) break; this.flags.set(flag); }
+    }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
     // 'roc-lap' (round 7, the lead's ruling for mock-D): the Roc's rest lap round the dais, set so that after D's 1.5 s
     // settle (steady circling, a steady bank) it is on the lap's north-east quarter, turning in toward the arena view and banking along it (tried at
@@ -327,7 +361,9 @@ export class SkyReachPlugin extends ShardPlugin {
   gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {
     const built = this.built, flags = this.flags; if (built === null || flags === null || !flags.has(FLAGS.notes)) return 0;
     let turned = 0;
-    for (const v of built.vanes) {
+    const vanes = boundedRows(built.vanes);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
+      const v = vanes[i]; if (v === undefined) break;
       if (flags.has(vaneFlag(v.id)) || !inCone(from, dir, v.at, VANE_REACH, GUST.halfAngle + 0.15)) continue;
       flags.set(vaneFlag(v.id)); turned++; toast(STRINGS.vaneTurned);
     }

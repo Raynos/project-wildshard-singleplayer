@@ -12,6 +12,7 @@ import { Bounty } from './Bounty';
 import { coinsFor, coinsOn, type LootGate } from './coins';
 import { isCosmetic, isOwnedId, type Owned, type OwnedId } from './Owned';
 import { onCreatureDeath, DEATH_ORDER, type CreatureDeathSource } from './deaths';
+import type { ShardContext } from '../shard/context';
 
 export interface LootShop { readonly isOpen: boolean; render: () => void; dispose: () => void }
 export interface LootPresentation {
@@ -86,4 +87,13 @@ export function installLoot<A extends LootBody>(h: ScopedLootHost<A>): ScopedLoo
   };
   ctx.scope.onDispose(dispose);
   return { purse, dispose };
+}
+
+/** Install ordinary loot against the admitted world services without exposing a raw scene to runtime content. */
+export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresentation): ScopedLoot | null {
+  const runtime = ctx.game.runtime;
+  if (runtime?.play === null || runtime?.play === undefined || runtime.world === null) return null;
+  return installLoot({ ctx, manifest: ctx.manifest, owned: runtime.play.owned, scene: runtime.world.game.scene,
+    player: runtime.world.player, camera: runtime.world.game.camera, animals: () => runtime.play?.animals.animals ?? [],
+    menu: runtime.play.menu, presentation });
 }
