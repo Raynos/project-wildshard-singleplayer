@@ -1,4 +1,5 @@
 import { BufferGeometry, Material, Texture, WebGLRenderTarget, InstancedMesh, BatchedMesh, type WebGLRenderer } from 'three';
+import { sceneResourceOwner } from '../app/sceneOwnership';
 import type { Scope } from '../app/scope';
 import type { AssetService } from '../app/assets';
 
@@ -26,7 +27,8 @@ export class UploadOwnership {
     const released = (): void => { this.live.delete(resource); eventMethod(resource, 'removeEventListener', released); forget(); };
     eventMethod(resource, 'addEventListener', released);
     forget = this.level.capture('resources', () => {
-      if (this.live.has(resource) && !this.assets.isAcquired(resource)) resource.dispose();
+      const owner = sceneResourceOwner(resource);
+      if (this.live.has(resource) && !this.assets.isAcquired(resource) && owner === null) resource.dispose();
       // Engine/acquired resources remain visible to the independent GPU census after level disposal.
     });
   }

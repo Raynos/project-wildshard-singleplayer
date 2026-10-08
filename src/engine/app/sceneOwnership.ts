@@ -28,13 +28,30 @@ export function containerResources(container: unknown, excludeNodes?: ReadonlySe
 }
 interface DelegatedScene { scope: Scope; capture: () => void }
 const delegatedScenes = new WeakMap<Object3D, DelegatedScene>();
+const resourceOwners = new WeakMap<object, Scope>();
+
+/** Explicit owner of a captured scene resource; renderer observers keep counting it but never free it again. */
+export function sceneResourceOwner(resource: object): Scope | null { return resourceOwners.get(resource) ?? null; }
+
+function markResourceOwner(resource: Disposable3, scope: Scope): void {
+  resourceOwners.set(resource, scope);
+  if (resource instanceof BatchedMesh) {
+    // The batch frees these private allocations itself; renderer observations must not free them separately.
+    for (const key of ['geometry', '_matricesTexture', '_indirectTexture', '_colorsTexture']) {
+      const part: unknown = Reflect.get(resource, key);
+      if (part instanceof BufferGeometry || part instanceof Texture) resourceOwners.set(part, scope);
+    }
+  }
+}
 
 /** Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never
  * take or free its resources. Nested delegated roots are independent; disposing them in either order is safe. */
 export function ownSceneTree(root: Object3D, scope: Scope, assets: Pick<AssetService, 'isAcquired'>): void {
   if (scope.disposed || delegatedScenes.has(root)) throw new Error('Scene subtree requires one live owner');
   const capture = (): void => {
-    for (const resource of sceneResources(root, scope)) if (!assets.isAcquired(resource)) scope.own(resource);
+    for (const resource of sceneResources(root, scope)) if (!assets.isAcquired(resource)) {
+      markResourceOwner(resource, scope); scope.own(resource);
+    }
     for (const child of root.children) captureDelegatedScenes(child);
   };
   delegatedScenes.set(root, { scope, capture });
@@ -109,7 +126,7 @@ export class SceneOwnership {
       }
       for (const resource of sceneResources(node)) {
         if (this.assets.isAcquired(resource)) this.acquire(resource);
-        else this.level.own(resource);
+        else { markResourceOwner(resource, this.level); this.level.own(resource); }
       }
     };
     for (const child of this.scene.children) visit(child);
