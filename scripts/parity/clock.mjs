@@ -43,7 +43,7 @@ export function installFrameDriver(opts) {
     timestamp = Math.max(timestamp + 1000 / 30, realNow());
     // Unload clears the live world before the engine-scope census RAFs finish.
     // Observe availability without requiring or retaining the retired level.
-    const drawn=()=>{const world=window.__wildshard.world;return ready&&world?Number(Reflect.get(world.game,'frameNo')):0;}, before=drawn();
+    const drawn=()=>{if(!ready)return 0;const world=window.__wildshard.world;return world?Number(Reflect.get(world.game,'frameNo')):0;}, before=drawn();
     const batch = [...callbacks]; callbacks.clear();
     // oxlint-disable-next-line promise/prefer-await-to-callbacks -- rAF callbacks are the browser API being driven, not promise continuations.
     for (const [, callback] of batch) { const start=realNow(); callback(timestamp); if(control.on)control.cpu+=realNow()-start; }

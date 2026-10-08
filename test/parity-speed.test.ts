@@ -128,7 +128,9 @@ describe('P1 capture-frame driver', () => {
     };
     const world = { game: { get frameNo() { return frameNo; } } };
     let retired = false;
-    const window = { __parity: control, __wildshard: { get world() { return retired ? undefined : world; }, requireWorld: () => { if (retired) throw new Error('Debug level has retired'); return world; } },
+    let probeInstalled = false;
+    const probe = { get world() { return retired ? undefined : world; }, requireWorld: () => { if (retired) throw new Error('Debug level has retired'); return world; } };
+    const window = { __parity: control, get __wildshard() { if (!probeInstalled) throw new Error('Probe not installed'); return probe; },
       setTimeout: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
       setInterval: (handler: TimerHandler, _delay?: number, ..._args: unknown[]) => { wallTimers.set(++timerId, handler); return timerId; },
       clearTimeout: (id?: number) => { if (id !== undefined) wallTimers.delete(id); },
@@ -152,6 +154,13 @@ describe('P1 capture-frame driver', () => {
     const fired: string[] = [];
     window.setTimeout(() => { fired.push('boot migrated'); }, 100);
     expect(wallTimers.size).toBe(1);
+    let bootCallback = false;
+    window.requestAnimationFrame(() => { bootCallback = true; });
+    const bootFrames = [...native.values()]; native.clear();
+    // oxlint-disable-next-line promise/prefer-await-to-callbacks -- Deliver native boot RAFs before the level probe exists.
+    for (const callback of bootFrames) callback(0);
+    expect(bootCallback).toBe(true);
+    probeInstalled = true;
     window.requestAnimationFrame(loop); listeners.get('ws:ready')?.();
     expect(wallTimers.size).toBe(0);
     window.setTimeout(() => { fired.push('toast expired'); }, 100);
@@ -160,7 +169,7 @@ describe('P1 capture-frame driver', () => {
     let samples = 0; control.observe?.(() => { samples++; });
     const advancing = control.advance(4);
     while (messages.length > 0) messages.shift()?.(); await advancing;
-    expect(frameNo).toBe(4); expect(samples).toBe(4); expect(timestamps[3]).toBeCloseTo(4 * 1000 / 30);
+    expect(frameNo).toBe(4); expect(samples).toBe(4); expect(timestamps[3]).toBeCloseTo(5 * 1000 / 30); // One boot callback precedes four simulation frames.
     expect(fired).toEqual(timerHz===30?['boot migrated', 'toast expired']:[]); expect(intervalTicks).toBe(timerHz===30?2:1); window.clearTimeout(repeating);
     paused = true; control.free = true;
     if (!control.wait) throw new Error('wait not installed');
