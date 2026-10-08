@@ -217,5 +217,7 @@ while :; do
     if [ -e "$marker" ]; then rm -f "$marker"; exit $rc; fi
   done
   [ $said -eq 0 ] && { echo "browser-lane: all $LANES slots in use, waiting … (scripts/browser-lane.sh status)" >&2; said=1; }
-  sleep 10
+  # the serialized push gate polls every second (BROWSER_LANE_PRIORITY=1): with ten lanes re-taking freed slots on a 10 s poll,
+  # the gate's WebKit smoke starved for minutes while it held the heavy lane every suite waits on
+  if [ "${BROWSER_LANE_PRIORITY:-0}" = 1 ]; then sleep 1; else sleep 10; fi
 done

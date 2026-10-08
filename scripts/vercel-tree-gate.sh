@@ -114,14 +114,14 @@ if [ "$(cat "$work/gen.rc" 2>/dev/null || echo 1)" = 0 ]; then
   # CI checks committed terrain, sky metadata and navmeshes; stale bakes must block the push too.
   job bake-check node scripts/bake-check.mjs --node-only
   job vitest pnpm exec vitest run
-  job script-conformance bash scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs
+  job script-conformance env BROWSER_LANE_PRIORITY=1 bash scripts/browser-lane.sh --max 5 node scripts/script-conformance.mjs
   # vite build writes nothing in the tree after gen (checked 2026-10-07), so it runs beside the readers
   chain shardfiles node scripts/build-shardfiles.mjs \
     -- vite-build pnpm exec vite build --outDir "$work/dist" --emptyOutDir \
     -- assert-devserver node scripts/check-devserver.mjs "$work/dist" \
     -- check-chunks node scripts/check-chunks.mjs "$work/dist" \
     -- shard-platform node scripts/shard-platform.mjs --check \
-    -- webkit-smoke bash scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist="$work/dist"
+    -- webkit-smoke env BROWSER_LANE_PRIORITY=1 bash scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist="$work/dist"
   # shard-platform: SHARD-PLATFORM SP5, each shard's custom share. webkit-smoke (E460, ~5 s): the built template in
   # Playwright WebKit as the phone; fails when a held item or the world view renders near black.
 fi
