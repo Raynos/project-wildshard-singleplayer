@@ -8,6 +8,8 @@ import { visitAuthoredWorld, type AuthoredWorldOptions } from './worldHost.mjs';
 export interface NalatiCapturedAttribute { itemSize: number; values: Float64Array }
 /** Inventory geometry only. Original material identities remain for the painterly catalogue owner to resolve. */
 export interface NalatiCapturedMesh {
+  /** Capture-local identity shared when overlapping drawnInto roots contain the same actual mesh. */
+  sourceMesh: number;
   name: string; type: string; visible: boolean; matrix: number[]; materials: { name: string; type: string }[];
   attributes: Record<string, NalatiCapturedAttribute>; indices: Uint32Array;
   instances: { count: number; capacity: number; matrices: Float32Array; colours: Float32Array | null } | null;
@@ -28,7 +30,7 @@ export interface NalatiAuthoredInventory { placements: NalatiCapturedPlacement[]
 
 const hybridModels = new Set(['nalati-grasslands/balbal', 'nalati-grasslands/herd-horse', 'nalati-grasslands/kokpar-rider', 'nalati-grasslands/saddled-horse']);
 
-function meshSnapshot(object: Mesh, geometry: BufferGeometry): NalatiCapturedMesh {
+function meshSnapshot(object: Mesh, geometry: BufferGeometry, sourceMesh: number): NalatiCapturedMesh {
   const attributes: Record<string, NalatiCapturedAttribute> = {};
   for (const name of Object.keys(geometry.attributes).sort()) {
     const channel = geometry.getAttribute(name);
@@ -38,7 +40,7 @@ function meshSnapshot(object: Mesh, geometry: BufferGeometry): NalatiCapturedMes
   const materials = values.map(value => { if (!(value instanceof Material)) throw new Error('Nalati capture requires authored materials'); return { name: value.name, type: value.type }; });
   const index = geometry.getIndex(), position = geometry.getAttribute('position');
   if (!geometry.hasAttribute('position')) throw new Error('Nalati capture requires positions');
-  return { name: object.name, type: object.type, visible: object.visible, matrix: [...object.matrixWorld.elements], materials, attributes,
+  return { sourceMesh, name: object.name, type: object.type, visible: object.visible, matrix: [...object.matrixWorld.elements], materials, attributes,
     indices: index === null ? Uint32Array.from({ length: position.count }, (_, i) => i) : Uint32Array.from(index.array),
     instances: object instanceof InstancedMesh ? { count: object.count, capacity: object.instanceMatrix.count,
       matrices: Float32Array.from(object.instanceMatrix.array), colours: object.instanceColor === null ? null : Float32Array.from(object.instanceColor.array) } : null };
@@ -51,12 +53,12 @@ function isMesh(value: Object3D): value is Mesh {
   return isGeometry(geometry);
 }
 
-function rootSnapshot(root: Object3D, originalTransform?: Matrix4): NalatiCapturedMesh[] {
+function rootSnapshot(root: Object3D, identity: (mesh: Mesh) => number, originalTransform?: Matrix4): NalatiCapturedMesh[] {
   root.updateWorldMatrix(true, true); const meshes: NalatiCapturedMesh[] = [];
   const relative = originalTransform?.clone().multiply(root.matrixWorld.clone().invert());
   root.traverse(object => {
     if (!isMesh(object)) { if (object instanceof Mesh) throw new Error('Nalati capture requires decoded geometry'); return; }
-    const mesh = meshSnapshot(object, object.geometry);
+    const mesh = meshSnapshot(object, object.geometry, identity(object));
     if (relative !== undefined) mesh.matrix = relative.clone().multiply(object.matrixWorld).elements;
     meshes.push(mesh);
   });
@@ -73,6 +75,12 @@ export class NalatiCaptureInventory {
   private readonly builds: NalatiCapturedBuild[] = [];
   private readonly deferred: { build: NalatiCapturedBuild; object: Object3D; transform: Matrix4 }[] = [];
   private sealed = false;
+  private readonly meshIds = new WeakMap<Mesh, number>();
+  private meshCount = 0;
+  private readonly meshIdentity = (mesh: Mesh): number => {
+    const known = this.meshIds.get(mesh); if (known !== undefined) return known;
+    const id = this.meshCount++; this.meshIds.set(mesh, id); return id;
+  };
 
   readonly visitPlacement: ModelPlacementVisitor = entry => {
     if (this.sealed) throw new Error('Nalati capture already sealed');
@@ -94,7 +102,7 @@ export class NalatiCaptureInventory {
     if (this.sealed) throw new Error('Nalati capture already sealed');
     const meshes = build.kind === 'model' && !(build.built instanceof Object3D) ? build.built.map(part => {
         const object = new Mesh(part.geometry, part.material); object.updateMatrixWorld(true);
-        return meshSnapshot(object, part.geometry);
+        return meshSnapshot(object, part.geometry, this.meshIdentity(object));
       }) : [];
     // Welds have their own surface/host ownership. Count them explicitly; never silently flatten them as static.
     const captured = { model, kind: build.kind, level: build.level, copies: build.placements.length, meshes };
@@ -109,9 +117,9 @@ export class NalatiCaptureInventory {
   async snapshot(settle: () => Promise<void>): Promise<NalatiAuthoredInventory> {
     if (this.sealed) throw new Error('Nalati capture already sealed');
     await settle(); this.sealed = true;
-    for (const entry of this.deferred) entry.build.meshes = rootSnapshot(entry.object, entry.transform);
+    for (const entry of this.deferred) entry.build.meshes = rootSnapshot(entry.object, this.meshIdentity, entry.transform);
     return { placements: structuredClone(this.placements), builds: structuredClone(this.builds), roots: this.roots.map(row => ({
-      name: row.object.name, models: [...row.models].sort(), roles: [...row.roles].sort(), meshes: rootSnapshot(row.object),
+      name: row.object.name, models: [...row.models].sort(), roles: [...row.roles].sort(), meshes: rootSnapshot(row.object, this.meshIdentity),
     })) };
   }
 }

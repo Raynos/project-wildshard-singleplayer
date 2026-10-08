@@ -3,6 +3,20 @@ import { describe, expect, it } from 'vitest';
 import { NalatiCaptureInventory } from '../scripts/bake/nalatiCaptureInventory';
 
 describe('Nalati authored capture inventory', () => {
+  it('identifies one physical mesh reached through overlapping static and hybrid roots', async () => {
+    const collector = new NalatiCaptureInventory(), outer = new Group(), inner = new Group();
+    const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3)), material = new MeshStandardMaterial();
+    inner.add(new Mesh(geometry, material)); outer.add(inner);
+    collector.visitPlacement({ model: 'nalati-grasslands/kokpar-goal', placements: [], draw: 'merged', moving: false, drawnInto: inner });
+    collector.visitPlacement({ model: 'nalati-grasslands/kokpar-rider', placements: [], draw: 'instanced', moving: false, drawnInto: outer });
+    try {
+      const captured = await collector.snapshot(() => Promise.resolve()), first = captured.roots[0]?.meshes[0], second = captured.roots[1]?.meshes[0];
+      if (first === undefined || second === undefined) throw new Error('Missing overlapping mesh');
+      expect(first.sourceMesh).toBe(second.sourceMesh); expect(first.matrix).toEqual(second.matrix);
+      expect(captured.roots.map(row => row.roles)).toEqual([['static-candidate'], ['hybrid']]);
+    } finally { geometry.dispose(); material.dispose(); }
+  });
+
   it('snapshots shared drawnInto roots after the actual GLB promise, retaining invisible copies and mixed ownership', async () => {
     const collector = new NalatiCaptureInventory(), root = new Group(); root.name = 'actual-poi'; root.position.x = 7;
     const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
