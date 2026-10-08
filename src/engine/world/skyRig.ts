@@ -1,5 +1,5 @@
 import { SkyBackdropView } from './skyBackdrop';
-import { BackdropLayer } from './backdropLayer';
+import { BackdropLayer, applyLayers } from './backdropLayer';
 import { app } from '../app/runtime';
 import { resourceScope } from '../app/resources';
 import type { Scope } from '../app/scope';
@@ -191,10 +191,12 @@ export class SkyRig {
    * SHARD-PLATFORM G223: lay a second backdrop over this sky by a weight (`backdropLayer.ts`). Build the backdrop against the
    * layer's `holder` scene and `targets`, then `attach` it; set its `weight` each frame (a grid region's frame weight: 1
    * inside its cell, blended across the edge band); `dispose` frees it and gives every shared value back. `air`: the
-   * owner's own fog object its clock colours (a grid region's: the one frame blends it as the owner's air). Null before
-   * the sky is built.
+   * owner's own fog object its clock colours (a grid region's: the one frame blends it as the owner's air). `base` (G242):
+   * a layer that stands in for this sky's own backdrop by its weight (the grid road's dome and key light): applied before,
+   * and drawn under, every other layer, at its weight's share of what they leave (`applyLayers`). Null before the sky is
+   * built.
    */
-  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope } = {}): BackdropLayer | null {
+  layerBackdrop(options: { readonly air?: () => THREE.Fog | null; readonly owner?: Scope; readonly base?: boolean } = {}): BackdropLayer | null {
     const targets = this.targets;
     if (targets === null) return null;
     const layer = new BackdropLayer({ targets, scene: this.scene }, { ...options, assets: app.assets, onDispose: () => { this.layers.delete(layer); } });
@@ -363,9 +365,12 @@ export class SkyRig {
     this.visual.updateSunHalo(this.camera);
   }
 
-  /** G223: every layer over the level's own state, then the cascades again so the shadows follow the blended key light */
+  /**
+   * G223 / G242: every layer over the level's own state (base layers first, `applyLayers`), then the cascades again so the
+   * shadows follow the blended key light
+   */
   private applyLayers(dt: number): void {
-    for (const layer of this.layers) { const undo = layer.apply(dt, this.camera); if (undo !== null) this.layerUndo.push(undo); }
+    this.layerUndo.push(...applyLayers(this.layers, dt, this.camera));
     if (this.layerUndo.length === 0) return;
     this.csm.update();
     if (this.texelBias) this.fitNormalBias();

@@ -1,0 +1,587 @@
+{
+ "base": "http://127.0.0.1:4411",
+ "scene": "nalati",
+ "video": false,
+ "stops": [
+  {
+   "name": "road",
+   "drive": {
+    "why": "arrived",
+    "seconds": 2.5610999999046324,
+    "feet": {
+     "x": 277.49999940098,
+     "y": 0.4499091848697503,
+     "z": -41.39059113669849
+    },
+    "current": null
+   },
+   "shots": [
+    "road-along",
+    "road-cell"
+   ],
+   "look": {
+    "sunDir": [
+     -0.91561,
+     0.22495,
+     0.33325
+    ],
+    "lightDirection": [
+     0.91561,
+     -0.22495,
+     -0.33325
+    ],
+    "lights": [
+     [
+      "DirectionalLight",
+      2.4,
+      [
+       1,
+       0.8,
+       0.66
+      ],
+      null
+     ],
+     [
+      "HemisphereLight",
+      1.1,
+      [
+       0.6,
+       0.62,
+       0.86
+      ],
+      [
+       0.42,
+       0.36,
+       0.34
+      ]
+     ]
+    ],
+    "fog": [
+     0.95,
+     0.56,
+     0.44
+    ],
+    "environmentIntensity": 0.7,
+    "frame": {
+     "owner": null,
+     "highway": 1,
+     "roadSky": 1,
+     "air": [
+      0.95,
+      0.56,
+      0.44
+     ],
+     "skies": {},
+     "chain": {
+      "owner": null,
+      "weight": 0
+     }
+    },
+    "programs": 87,
+    "glMB": 98.16
+   }
+  },
+  {
+   "name": "edge",
+   "drive": {
+    "why": "arrived",
+    "seconds": 7.313400000095368,
+    "feet": {
+     "x": 303.66110936193627,
+     "y": 0.4502274252451916,
+     "z": -0.01467462552885479
+    },
+    "current": "nalati-grasslands"
+   },
+   "shots": [
+    "edge"
+   ],
+   "look": {
+    "sunDir": [
+     -0.89037,
+     0.45413,
+     0.03169
+    ],
+    "lightDirection": [
+     0.17533,
+     -0.80706,
+     -0.56384
+    ],
+    "lights": [
+     [
+      "DirectionalLight",
+      2.55108,
+      [
+       1,
+       0.88561,
+       0.78087
+      ],
+      null
+     ],
+     [
+      "HemisphereLight",
+      0.99928,
+      [
+       0.39758,
+       0.44822,
+       0.88249
+      ],
+      [
+       0.55431,
+       0.3759,
+       0.26336
+      ]
+     ]
+    ],
+    "fog": [
+     0.78381,
+     0.67079,
+     0.71195
+    ],
+    "environmentIntensity": 0.85108,
+    "frame": {
+     "owner": "nalati-grasslands",
+     "highway": 0.496,
+     "roadSky": 0.496,
+     "air": [
+      0.784,
+      0.671,
+      0.712
+     ],
+     "skies": {},
+     "chain": {
+      "owner": "nalati-grasslands",
+      "weight": 0.504
+     }
+    },
+    "programs": 220,
+    "glMB": 282.11
+   }
+  },
+  {
+   "name": "inside",
+   "drive": {
+    "why": "arrived",
+    "seconds": 2.9026999998092653,
+    "feet": {
+     "x": 328.6203607719149,
+     "y": 0.4499999914647939,
+     "z": 2.3338781154791377e-05
+    },
+    "current": "nalati-grasslands"
+   },
+   "shots": [
+    "inside"
+   ],
+   "look": {
+    "sunDir": [
+     0.72603,
+     0.60808,
+     0.32112
+    ],
+    "lightDirection": [
+     -0.72595,
+     -0.60839,
+     -0.32073
+    ],
+    "lights": [
+     [
+      "DirectionalLight",
+      2.8,
+      [
+       1,
+       0.85,
+       0.64
+      ],
+      null
+     ],
+     [
+      "HemisphereLight",
+      0.475,
+      [
+       0.35947,
+       0.51521,
+       0.848
+      ],
+      [
+       0.23677,
+       0.22479,
+       0.08613
+      ]
+     ]
+    ],
+    "fog": [
+     0.62,
+     0.78,
+     0.98
+    ],
+    "environmentIntensity": 1,
+    "frame": {
+     "owner": "nalati-grasslands",
+     "highway": 0,
+     "roadSky": 0,
+     "air": [
+      0.62,
+      0.78,
+      0.98
+     ],
+     "skies": {},
+     "chain": {
+      "owner": "nalati-grasslands",
+      "weight": 1
+     }
+    },
+    "programs": 221,
+    "glMB": 282.11
+   }
+  },
+  {
+   "name": "deep",
+   "drive": {
+    "why": "arrived",
+    "seconds": 11.270900000095368,
+    "feet": {
+     "x": 468.64371720319514,
+     "y": 26.95847541608231,
+     "z": 0.02087402043365394
+    },
+    "current": "nalati-grasslands"
+   },
+   "shots": [
+    "deep"
+   ],
+   "look": {
+    "sunDir": [
+     0.73336,
+     0.57341,
+     0.36523
+    ],
+    "lightDirection": [
+     -0.73295,
+     -0.57595,
+     -0.36203
+    ],
+    "lights": [
+     [
+      "DirectionalLight",
+      2.8,
+      [
+       1,
+       0.85,
+       0.64
+      ],
+      null
+     ],
+     [
+      "HemisphereLight",
+      0.475,
+      [
+       0.35947,
+       0.51521,
+       0.848
+      ],
+      [
+       0.23677,
+       0.22479,
+       0.08613
+      ]
+     ]
+    ],
+    "fog": [
+     0.62,
+     0.78,
+     0.98
+    ],
+    "environmentIntensity": 1,
+    "frame": {
+     "owner": "nalati-grasslands",
+     "highway": 0,
+     "roadSky": 0,
+     "air": [
+      0.62,
+      0.78,
+      0.98
+     ],
+     "skies": {},
+     "chain": {
+      "owner": "nalati-grasslands",
+      "weight": 1
+     }
+    },
+    "programs": 221,
+    "glMB": 278.63
+   }
+  }
+ ],
+ "drives": [
+  {
+   "phase": "road",
+   "why": "arrived",
+   "seconds": 2.5610999999046324,
+   "feet": {
+    "x": 277.49999940098,
+    "y": 0.4499091848697503,
+    "z": -41.39059113669849
+   },
+   "current": null
+  },
+  {
+   "phase": "edge",
+   "why": "arrived",
+   "seconds": 7.313400000095368,
+   "feet": {
+    "x": 303.66110936193627,
+    "y": 0.4502274252451916,
+    "z": -0.01467462552885479
+   },
+   "current": "nalati-grasslands"
+  },
+  {
+   "phase": "inside",
+   "why": "arrived",
+   "seconds": 2.9026999998092653,
+   "feet": {
+    "x": 328.6203607719149,
+    "y": 0.4499999914647939,
+    "z": 2.3338781154791377e-05
+   },
+   "current": "nalati-grasslands"
+  },
+  {
+   "phase": "deep",
+   "why": "arrived",
+   "seconds": 11.270900000095368,
+   "feet": {
+    "x": 468.64371720319514,
+    "y": 26.95847541608231,
+    "z": 0.02087402043365394
+   },
+   "current": "nalati-grasslands"
+  },
+  {
+   "phase": "back",
+   "why": "arrived",
+   "seconds": 15.89639999961853,
+   "feet": {
+    "x": 278.82993226611916,
+    "y": 0.45000001580673465,
+    "z": 0.00013970228335491441
+   },
+   "current": null
+  },
+  {
+   "phase": "again",
+   "why": "arrived",
+   "seconds": 6.875699999809265,
+   "feet": {
+    "x": 328.66262065189994,
+    "y": 0.4499999961469751,
+    "z": -0.0010607654099177855
+   },
+   "current": "nalati-grasslands"
+  }
+ ],
+ "errors": [],
+ "console": [
+  "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+  "THREE.Material: parameter 'displacementScale' has value of undefined.",
+  "THREE.Material: parameter 'displacementBias' has value of undefined.",
+  "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+ ],
+ "shaderErrors": 0,
+ "poses": [],
+ "version": {
+  "build": "cb46b719a-muzq6pa1",
+  "time": "2026-10-08T16:03:09.536Z"
+ },
+ "road": {
+  "before": {
+   "sunDir": [
+    -0.91561,
+    0.22495,
+    0.33325
+   ],
+   "lightDirection": [
+    0.91561,
+    -0.22495,
+    -0.33325
+   ],
+   "lights": [
+    [
+     "DirectionalLight",
+     2.4,
+     [
+      1,
+      0.8,
+      0.66
+     ],
+     null
+    ],
+    [
+     "HemisphereLight",
+     1.1,
+     [
+      0.6,
+      0.62,
+      0.86
+     ],
+     [
+      0.42,
+      0.36,
+      0.34
+     ]
+    ]
+   ],
+   "fog": [
+    0.95,
+    0.56,
+    0.44
+   ],
+   "environmentIntensity": 0.7,
+   "frame": {
+    "owner": null,
+    "highway": 1,
+    "roadSky": 1,
+    "air": [
+     0.95,
+     0.56,
+     0.44
+    ],
+    "skies": {},
+    "chain": {
+     "owner": null,
+     "weight": 0
+    }
+   },
+   "programs": 80,
+   "glMB": 97.87
+  },
+  "after": {
+   "sunDir": [
+    -0.91561,
+    0.22495,
+    0.33325
+   ],
+   "lightDirection": [
+    0.91561,
+    -0.22495,
+    -0.33325
+   ],
+   "lights": [
+    [
+     "DirectionalLight",
+     2.4,
+     [
+      1,
+      0.8,
+      0.66
+     ],
+     null
+    ],
+    [
+     "HemisphereLight",
+     1.1,
+     [
+      0.6,
+      0.62,
+      0.86
+     ],
+     [
+      0.42,
+      0.36,
+      0.34
+     ]
+    ]
+   ],
+   "fog": [
+    0.95,
+    0.56,
+    0.44
+   ],
+   "environmentIntensity": 0.7,
+   "frame": {
+    "owner": null,
+    "highway": 1,
+    "roadSky": 1,
+    "air": [
+     0.95,
+     0.56,
+     0.44
+    ],
+    "skies": {},
+    "chain": {
+     "owner": null,
+     "weight": 0
+    }
+   },
+   "programs": 131,
+   "glMB": 94.66
+  },
+  "exact": true
+ },
+ "inside": {
+  "again": {
+   "sunDir": [
+    0.71872,
+    0.63183,
+    0.29022
+   ],
+   "lightDirection": [
+    -0.71848,
+    -0.63252,
+    -0.28931
+   ],
+   "lights": [
+    [
+     "DirectionalLight",
+     2.8,
+     [
+      1,
+      0.85,
+      0.64
+     ],
+     null
+    ],
+    [
+     "HemisphereLight",
+     0.475,
+     [
+      0.35947,
+      0.51521,
+      0.848
+     ],
+     [
+      0.23677,
+      0.22479,
+      0.08613
+     ]
+    ]
+   ],
+   "fog": [
+    0.62,
+    0.78,
+    0.98
+   ],
+   "environmentIntensity": 1,
+   "frame": {
+    "owner": "nalati-grasslands",
+    "highway": 0,
+    "roadSky": 0,
+    "air": [
+     0.62,
+     0.78,
+     0.98
+    ],
+    "skies": {},
+    "chain": {
+     "owner": "nalati-grasslands",
+     "weight": 1
+    }
+   },
+   "programs": 221,
+   "glMB": 276.42
+  },
+  "exactOwner": true,
+  "exactLight": false
+ }
+}

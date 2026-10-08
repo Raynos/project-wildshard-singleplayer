@@ -24,6 +24,14 @@
  *   last frame's moved values go back at the next update.
  *
  * The post effects a backdrop drives (`attachPost`) stay the page's: a layered backdrop is never handed them.
+ *
+ * **A base layer** (SHARD-PLATFORM G242, `base: true`): a sky that stands in for the page's own backdrop by its weight (the
+ * grid road's dome and key light, outside every cell). It is applied first, before every other layer, and its dome is drawn
+ * under theirs (`BASE_SKY_ORDER`), at a weight taken from the share the other layers leave (`applyLayers`): its weight `w`
+ * becomes `w / (1 − S)`, `S` the other layers' weights, capped at 1. With the owners' weights summing to 1 (a grid frame), the
+ * shared state and the drawn sky are then exactly `w · base + Σ wᵢ · layerᵢ + (1 − w − S) · page`: across a cell's edge band
+ * the road blends straight into the region's own sky, with nothing of the page's showing through. At weight 0 it is off
+ * like any layer, so inside a cell the page and the region's layer are exactly what they were without it.
  */
 import {
   BufferGeometry, Color, ConstantAlphaFactor, CustomBlending, DirectionalLight, Fog, HemisphereLight, Material, Mesh,
@@ -40,8 +48,19 @@ import type { SkyBackdrop, SkyBackdropTargets } from '../render/look';
  * whose dome has several pieces spreads them over ±0.4 around it in its own draw order (`layerOrders`)
  */
 export const LAYER_SKY_ORDER = -9.5;
+/**
+ * a base layer's dome render order (G242): after the page's sky pieces (−20 … −10), before every other layer's band
+ * (−9.9 … −9.1); several pieces spread over ±0.04 around it
+ */
+export const BASE_SKY_ORDER = -9.95;
 /** below this weight the layer is off: hidden, its clock not run, nothing moved */
 const OFF = 0.001;
+
+/**
+ * What a layer runs of a backdrop: a level's whole `SkyBackdrop` fits, and so does a fixed sky that only binds its own light
+ * and draws a dome (G242's road sky; no clock, no post).
+ */
+export type LayeredSkyBackdrop = Pick<SkyBackdrop, 'lut' | 'bind' | 'update' | 'rebuild'> & Partial<Pick<SkyBackdrop, 'clouds' | 'dispose' | 'gpuBytes'>>;
 
 /** One shared value the layer moves: held before it writes, blended toward its own, put back at the next frame. */
 interface Slot { readonly save: () => void; readonly blend: (w: number) => void; readonly undo: () => void }
@@ -79,6 +98,8 @@ function meshMaterials(node: Object3D): Material[] {
 
 /** the half-width of the band the layer's meshes are spread over, around `LAYER_SKY_ORDER` (inside −10 … −9) */
 const LAYER_SKY_BAND = 0.4;
+/** a base layer's band around `BASE_SKY_ORDER` (inside −10 … −9.9) */
+const BASE_SKY_BAND = 0.04;
 
 /**
  * Each mesh of the backdrop's dome its render order inside the layer's band, keeping the order the backdrop drew in on
@@ -87,7 +108,7 @@ const LAYER_SKY_BAND = 0.4;
  * centre) put an off-centre cloud ring ahead of the dome it sits in, and the dome, drawn after at full weight, covered it.
  * A single key keeps exactly `LAYER_SKY_ORDER`.
  */
-function layerOrders(roots: readonly Object3D[]): Map<Object3D, number> {
+function layerOrders(roots: readonly Object3D[], centre: number, band: number): Map<Object3D, number> {
   const keyed: { readonly node: Object3D; readonly key: number }[] = [];
   for (const root of roots) {
     root.traverse((node) => {
@@ -99,8 +120,8 @@ function layerOrders(roots: readonly Object3D[]): Map<Object3D, number> {
     });
   }
   const keys = [...new Set(keyed.map((k) => k.key))].sort((a, b) => a - b);
-  const rank = new Map(keys.map((key, i) => [key, LAYER_SKY_ORDER - LAYER_SKY_BAND + (2 * LAYER_SKY_BAND * (i + 0.5)) / keys.length]));
-  return new Map(keyed.map(({ node, key }) => [node, rank.get(key) ?? LAYER_SKY_ORDER]));
+  const rank = new Map(keys.map((key, i) => [key, centre - band + (2 * band * (i + 0.5)) / keys.length]));
+  return new Map(keyed.map(({ node, key }) => [node, rank.get(key) ?? centre]));
 }
 
 /** What the layer reads: the rig's live targets and the page scene it draws into. */
@@ -110,7 +131,11 @@ export interface BackdropLayerHost {
 }
 
 /** A layered backdrop's readout (tests, captures, the census). */
-export interface BackdropLayerState { readonly weight: number; readonly drawn: boolean; readonly attached: boolean; readonly disposed: boolean; readonly bytes: number }
+export interface BackdropLayerState {
+  readonly weight: number; readonly drawn: boolean; readonly attached: boolean; readonly disposed: boolean; readonly bytes: number;
+  /** the weight it was last applied at (a base layer's share of what the other layers leave; 0 when off) */
+  readonly applied: number;
+}
 
 export class BackdropLayer {
   /** the scene the backdrop factory is handed: its dome and its environment land here, never on the page scene */
@@ -123,14 +148,18 @@ export class BackdropLayer {
   private readonly host: BackdropLayerHost;
   private readonly scope: Scope;
   private readonly assets: Pick<AssetService, 'isAcquired'>;
-  private backdrop: SkyBackdrop | null = null;
+  private backdrop: LayeredSkyBackdrop | null = null;
+  /** G242: a base layer (applied first, drawn under the others, weighted by the share they leave) */
+  readonly base: boolean;
   private weight_ = 0;
+  private applied = 0;
   private drawn = false;
   private disposed = false;
   private readonly onDispose: () => void;
 
-  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'> }) {
+  constructor(host: BackdropLayerHost, options: { readonly air?: () => Fog | null; readonly onDispose: () => void; readonly owner?: Scope; readonly assets?: Pick<AssetService, 'isAcquired'>; readonly base?: boolean }) {
     this.host = host;
+    this.base = options.base === true;
     this.scope = (options.owner ?? resourceScope()).child('BackdropLayer');
     this.assets = options.assets ?? { isAcquired: () => false };
     ownSceneTree(this.holder, this.scope, this.assets);
@@ -185,20 +214,20 @@ export class BackdropLayer {
   }
 
   /** The built backdrop (made against `holder` and this layer's `targets`): its dome moves to the page scene, its clock binds here. */
-  attach(backdrop: SkyBackdrop): void {
+  attach(backdrop: LayeredSkyBackdrop): void {
     if (this.disposed) { backdrop.dispose?.(); throw new Error('Backdrop layer attached after dispose'); }
     if (this.backdrop !== null) throw new Error('Backdrop layer already has a backdrop');
     this.backdrop = backdrop;
     // The grade pass draws this sampler outside the dome subtree; it still belongs to the resident layer.
     if (backdrop.lut !== null && !this.assets.isAcquired(backdrop.lut)) ownSceneResource(backdrop.lut, this.scope);
     const children = this.holder.children.slice();
-    const order = layerOrders(children);
+    const order = this.base ? layerOrders(children, BASE_SKY_ORDER, BASE_SKY_BAND) : layerOrders(children, LAYER_SKY_ORDER, LAYER_SKY_BAND);
     for (const child of children) {
       ownSceneTree(child, this.scope, this.assets);
       this.holder.remove(child);
       child.visible = false;
       child.traverse((node) => {
-        node.renderOrder = order.get(node) ?? LAYER_SKY_ORDER;
+        node.renderOrder = order.get(node) ?? (this.base ? BASE_SKY_ORDER : LAYER_SKY_ORDER);
         for (const m of meshMaterials(node)) {
           m.transparent = true; m.depthTest = true; m.depthWrite = false;
           m.blending = CustomBlending; m.blendSrc = ConstantAlphaFactor; m.blendDst = OneMinusConstantAlphaFactor; m.blendAlpha = 0;
@@ -219,11 +248,13 @@ export class BackdropLayer {
   /**
    * Once per frame, after the page's own backdrop wrote the shared state: run the layer's clock and move the shared state
    * toward it by the weight. Returns the undo (call it before the page's backdrop runs next), or null when off.
+   * `share`: the weight to apply at instead of its own (a base layer's, from `applyLayers`).
    */
-  apply(dt: number, camera: PerspectiveCamera): (() => void) | null {
-    const backdrop = this.backdrop, w = this.weight_;
+  apply(dt: number, camera: PerspectiveCamera, share: number = this.weight_): (() => void) | null {
+    const backdrop = this.backdrop, w = Number.isFinite(share) ? Math.min(1, Math.max(0, share)) : 0;
     const on = backdrop !== null && !this.disposed && w > OFF;
     if (on !== this.drawn) { this.drawn = on; for (const dome of this.domes) dome.visible = on; }
+    this.applied = on ? w : 0;
     if (!on) return null;
     backdrop.update(dt, camera);
     // its own sky layer (a dome and its cloud ring) travels with the camera, as Game.ts keeps the page's `sky.clouds`;
@@ -242,7 +273,7 @@ export class BackdropLayer {
   bytes(): number { return this.backdrop?.gpuBytes?.() ?? 0; }
 
   state(): BackdropLayerState {
-    return { weight: Math.round(this.weight_ * 1000) / 1000, drawn: this.drawn, attached: this.backdrop !== null, disposed: this.disposed, bytes: this.bytes() };
+    return { weight: Math.round(this.weight_ * 1000) / 1000, drawn: this.drawn, attached: this.backdrop !== null, disposed: this.disposed, bytes: this.bytes(), applied: Math.round(this.applied * 1000) / 1000 };
   }
 
   /** The dome leaves the page scene and the backdrop frees its textures; the rig puts the last frame's values back. */
@@ -260,4 +291,29 @@ export class BackdropLayer {
     this.scope.dispose();
     this.onDispose();
   }
+}
+
+/**
+ * One frame of layers over the page's own sky state (`SkyRig.update`, G223 / G242): every base layer first, at its weight's
+ * share of what the other layers leave (`w / (1 − S)`, capped at 1), then the other layers at their own weights, in the order
+ * they were laid. Returns the undos in the order they must NOT run: call them last to first before the page's backdrop runs
+ * next.
+ */
+export function applyLayers(layers: Iterable<BackdropLayer>, dt: number, camera: PerspectiveCamera): (() => void)[] {
+  const list = [...layers], undo: (() => void)[] = [];
+  let taken = 0;
+  for (const layer of list) if (!layer.base) taken += layer.weight;
+  const left = 1 - Math.min(1, taken);
+  for (const layer of list) {
+    if (!layer.base) continue;
+    const w = layer.weight, share = w <= OFF ? 0 : Math.min(1, w / Math.max(w, left));
+    const done = layer.apply(dt, camera, share);
+    if (done !== null) undo.push(done);
+  }
+  for (const layer of list) {
+    if (layer.base) continue;
+    const done = layer.apply(dt, camera);
+    if (done !== null) undo.push(done);
+  }
+  return undo;
 }

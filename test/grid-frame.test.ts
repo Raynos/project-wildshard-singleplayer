@@ -4,7 +4,7 @@ import { BlendFunction, BloomEffect, BrightnessContrastEffect, ChromaticAberrati
 import { VolumetricsEffect } from '../src/engine/core/Volumetrics';
 import { RegionCinematic } from '../src/engine/render/regionCinematic';
 import { GradeEffect, GradeLookEffect } from '../src/engine/core/Grade';
-import { FRAME_BAND, HIGHWAY_GRADE, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
+import { FRAME_BAND, HIGHWAY_GRADE, ROAD_SKY, dominantOwner, edgeDistance, frameFog, frameGrade, frameOwners, frameTime } from '../src/game/grid/frameModel';
 import { FrameGradeEffect, GridFrame, chainKnobs, neutralLut, opacityFade, passEffects, swappableLut } from '../src/game/grid/frame';
 import { ROAD_SKY_ORDER } from '../src/game/grid/roadSky';
 import { frameLookOf, lookChainKind, regionChain, regionGrade } from '../src/game/grid/frameLook';
@@ -140,8 +140,8 @@ describe('grid frame grade pieces', () => {
     own.color.multiplyScalar(0.5); // the region's weather darkens its own fog (a boss seal)
     draw(pitch);
     expect(frame.state().air).toEqual([0.1, 0.15, 0.2]); expect(own.color.toArray()).toEqual([0.2, 0.3, 0.4]);
-    own.color.multiplyScalar(0.5); draw(pitch - half); // on its edge line: half its darkened air, half the road's
-    expect(frame.state().air[0]).toBeCloseTo(0.5 * 0.1 + 0.5 * (0.4 + (0.5 - 0.4) * 0.5), 3);
+    own.color.multiplyScalar(0.5); draw(pitch - half); // on its edge line: half its darkened air, half the road's (G242: its dawn air)
+    expect(frame.state().air[0]).toBeCloseTo(0.5 * 0.1 + 0.5 * ROAD_SKY.air[0], 3);
     draw(0); // at home the home's own air and grade (its chain grades)
     expect(frame.state().air).toEqual([0.4, 0.5, 0.6]); expect(frame.state().grade).toEqual([0, 1, 1, 1, 1, 1]);
     release(); draw(pitch); // released: the declared look again
@@ -192,7 +192,7 @@ it.each([true, false])('G226: catalogue home stays page-owned only when homeIsFr
   expect(effects.map(effect => Number(effect.blendMode.opacity.value))).toEqual(homeIsFrame ? [0.5, 0.5, 0.5] : [0, 0, 0]);
   draw(half + 27.5);
   expect(frame.state().owner).toBeNull(); expect(frame.state().roadSky).toBe(1);
-  expect(frame.state().air).toEqual([0.45, 0.5, 0.55]);
+  expect(frame.state().air).toEqual([...ROAD_SKY.air]); // G242: the road's own dawn air
   release(); scope.dispose();
   expect(effects.map(effect => Number(effect.blendMode.opacity.value))).toEqual([1, 1, 1]);
   expect(passEffects(pass)).toEqual(effects); pass.dispose();

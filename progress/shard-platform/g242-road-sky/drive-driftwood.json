@@ -1,0 +1,520 @@
+{
+ "base": "http://127.0.0.1:4401",
+ "scene": "driftwood",
+ "video": false,
+ "stops": [
+  {
+   "name": "road",
+   "drive": {
+    "why": "arrived",
+    "seconds": 2.563300000190735,
+    "feet": {
+     "x": 277.4999989422776,
+     "y": 0.44990918886267356,
+     "z": 41.39059114320326
+    },
+    "current": null
+   },
+   "shots": [
+    "road-along",
+    "road-cell"
+   ],
+   "look": {
+    "sunDir": [
+     -0.91561,
+     0.22495,
+     0.33325
+    ],
+    "lightDirection": [
+     0.91561,
+     -0.22495,
+     -0.33325
+    ],
+    "lights": [
+     [
+      "DirectionalLight",
+      2.4,
+      [
+       1,
+       0.8,
+       0.66
+      ],
+      null
+     ],
+     [
+      "HemisphereLight",
+      1.1,
+      [
+       0.6,
+       0.62,
+       0.86
+      ],
+      [
+       0.42,
+       0.36,
+       0.34
+      ]
+     ]
+    ],
+    "fog": [
+     0.95,
+     0.56,
+     0.44
+    ],
+    "environmentIntensity": 0.7,
+    "frame": {
+     "owner": null,
+     "highway": 1,
+     "roadSky": 1,
+     "air": [
+      0.95,
+      0.56,
+      0.44
+     ],
+     "skies": {},
+     "chain": {
+      "owner": null,
+      "weight": 0
+     }
+    },
+    "programs": 83,
+    "glMB": 94.49
+   }
+  },
+  {
+   "name": "edge",
+   "drive": {
+    "why": "arrived",
+    "seconds": 7.19110000038147,
+    "feet": {
+     "x": 251.33897859346922,
+     "y": 0.4499841333648385,
+     "z": 0.0254710029496934
+    },
+    "current": "driftwood-isle"
+   },
+   "shots": [
+    "edge"
+   ],
+   "look": {
+    "sunDir": [
+     -0.87927,
+     0.46882,
+     -0.08425
+    ],
+    "lightDirection": [
+     0.88021,
+     -0.46717,
+     0.08357
+    ],
+    "lights": [
+     [
+      "DirectionalLight",
+      2.55108,
+      [
+       1,
+       0.88561,
+       0.78086
+      ],
+      null
+     ],
+     [
+      "HemisphereLight",
+      1.12518,
+      [
+       0.39759,
+       0.44822,
+       0.88249
+      ],
+      [
+       0.61486,
+       0.42009,
+       0.30923
+      ]
+     ]
+    ],
+    "fog": [
+     0.65288,
+     0.6305,
+     0.72201
+    ],
+    "environmentIntensity": 0.7,
+    "frame": {
+     "owner": "driftwood-isle",
+     "highway": 0.496,
+     "roadSky": 1,
+     "air": [
+      0.653,
+      0.631,
+      0.722
+     ],
+     "skies": {
+      "driftwood-isle": {
+       "weight": 0.504,
+       "drawn": true,
+       "bytes": 0,
+       "reserved": 0
+      }
+     },
+     "chain": {
+      "owner": "driftwood-isle",
+      "weight": 0.504
+     }
+    },
+    "programs": 180,
+    "glMB": 185.12
+   }
+  },
+  {
+   "name": "inside",
+   "drive": {
+    "why": "arrived",
+    "seconds": 2.9131999998092653,
+    "feet": {
+     "x": 226.37969384319018,
+     "y": 1.5730622686418816,
+     "z": -4.0240595517104794e-05
+    },
+    "current": "driftwood-isle"
+   },
+   "shots": [
+    "inside"
+   ],
+   "look": {
+    "sunDir": [
+     -0.62777,
+     0.61181,
+     -0.48124
+    ],
+    "lightDirection": [
+     0.63083,
+     -0.60949,
+     0.48019
+    ],
+    "lights": [
+     [
+      "DirectionalLight",
+      2.7,
+      [
+       1,
+       0.97,
+       0.9
+      ],
+      null
+     ],
+     [
+      "HemisphereLight",
+      1.15,
+      [
+       0.19807,
+       0.27889,
+       0.90466
+      ],
+      [
+       0.80695,
+       0.47932,
+       0.27889
+      ]
+     ]
+    ],
+    "fog": [
+     0.36,
+     0.7,
+     1
+    ],
+    "environmentIntensity": 0.7,
+    "frame": {
+     "owner": "driftwood-isle",
+     "highway": 0,
+     "roadSky": 0,
+     "air": [
+      0.36,
+      0.7,
+      1
+     ],
+     "skies": {
+      "driftwood-isle": {
+       "weight": 1,
+       "drawn": true,
+       "bytes": 0,
+       "reserved": 0
+      }
+     },
+     "chain": {
+      "owner": "driftwood-isle",
+      "weight": 1
+     }
+    },
+    "programs": 180,
+    "glMB": 185.12
+   }
+  }
+ ],
+ "drives": [
+  {
+   "phase": "road",
+   "why": "arrived",
+   "seconds": 2.563300000190735,
+   "feet": {
+    "x": 277.4999989422776,
+    "y": 0.44990918886267356,
+    "z": 41.39059114320326
+   },
+   "current": null
+  },
+  {
+   "phase": "edge",
+   "why": "arrived",
+   "seconds": 7.19110000038147,
+   "feet": {
+    "x": 251.33897859346922,
+    "y": 0.4499841333648385,
+    "z": 0.0254710029496934
+   },
+   "current": "driftwood-isle"
+  },
+  {
+   "phase": "inside",
+   "why": "arrived",
+   "seconds": 2.9131999998092653,
+   "feet": {
+    "x": 226.37969384319018,
+    "y": 1.5730622686418816,
+    "z": -4.0240595517104794e-05
+   },
+   "current": "driftwood-isle"
+  },
+  {
+   "phase": "back",
+   "why": "arrived",
+   "seconds": 4.848,
+   "feet": {
+    "x": 276.1700593503179,
+    "y": 0.44999803843628194,
+    "z": 4.1543067034023953e-07
+   },
+   "current": null
+  },
+  {
+   "phase": "again",
+   "why": "arrived",
+   "seconds": 6.557,
+   "feet": {
+    "x": 226.38692151207812,
+    "y": 1.5721173983917822,
+    "z": 0.0009262160709909636
+   },
+   "current": "driftwood-isle"
+  }
+ ],
+ "errors": [],
+ "console": [
+  "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+  "THREE.Material: parameter 'displacementScale' has value of undefined.",
+  "THREE.Material: parameter 'displacementBias' has value of undefined.",
+  "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+ ],
+ "shaderErrors": 0,
+ "poses": [],
+ "version": {
+  "build": "cb46b719a-muzr9shs",
+  "time": "2026-10-08T16:33:26.978Z"
+ },
+ "road": {
+  "before": {
+   "sunDir": [
+    -0.91561,
+    0.22495,
+    0.33325
+   ],
+   "lightDirection": [
+    0.91561,
+    -0.22495,
+    -0.33325
+   ],
+   "lights": [
+    [
+     "DirectionalLight",
+     2.4,
+     [
+      1,
+      0.8,
+      0.66
+     ],
+     null
+    ],
+    [
+     "HemisphereLight",
+     1.1,
+     [
+      0.6,
+      0.62,
+      0.86
+     ],
+     [
+      0.42,
+      0.36,
+      0.34
+     ]
+    ]
+   ],
+   "fog": [
+    0.95,
+    0.56,
+    0.44
+   ],
+   "environmentIntensity": 0.7,
+   "frame": {
+    "owner": null,
+    "highway": 1,
+    "roadSky": 1,
+    "air": [
+     0.95,
+     0.56,
+     0.44
+    ],
+    "skies": {},
+    "chain": {
+     "owner": null,
+     "weight": 0
+    }
+   },
+   "programs": 82,
+   "glMB": 94.38
+  },
+  "after": {
+   "sunDir": [
+    -0.91561,
+    0.22495,
+    0.33325
+   ],
+   "lightDirection": [
+    0.91561,
+    -0.22495,
+    -0.33325
+   ],
+   "lights": [
+    [
+     "DirectionalLight",
+     2.4,
+     [
+      1,
+      0.8,
+      0.66
+     ],
+     null
+    ],
+    [
+     "HemisphereLight",
+     1.1,
+     [
+      0.6,
+      0.62,
+      0.86
+     ],
+     [
+      0.42,
+      0.36,
+      0.34
+     ]
+    ]
+   ],
+   "fog": [
+    0.95,
+    0.56,
+    0.44
+   ],
+   "environmentIntensity": 0.7,
+   "frame": {
+    "owner": null,
+    "highway": 1,
+    "roadSky": 1,
+    "air": [
+     0.95,
+     0.56,
+     0.44
+    ],
+    "skies": {},
+    "chain": {
+     "owner": null,
+     "weight": 0
+    }
+   },
+   "programs": 111,
+   "glMB": 96.23
+  },
+  "exact": true
+ },
+ "inside": {
+  "again": {
+   "sunDir": [
+    -0.64038,
+    0.60217,
+    -0.47677
+   ],
+   "lightDirection": [
+    0.64088,
+    -0.60178,
+    0.47659
+   ],
+   "lights": [
+    [
+     "DirectionalLight",
+     2.7,
+     [
+      1,
+      0.97,
+      0.9
+     ],
+     null
+    ],
+    [
+     "HemisphereLight",
+     1.15,
+     [
+      0.19807,
+      0.27889,
+      0.90466
+     ],
+     [
+      0.80695,
+      0.47932,
+      0.27889
+     ]
+    ]
+   ],
+   "fog": [
+    0.36,
+    0.7,
+    1
+   ],
+   "environmentIntensity": 0.7,
+   "frame": {
+    "owner": "driftwood-isle",
+    "highway": 0,
+    "roadSky": 0,
+    "air": [
+     0.36,
+     0.7,
+     1
+    ],
+    "skies": {
+     "driftwood-isle": {
+      "weight": 1,
+      "drawn": true,
+      "bytes": 0,
+      "reserved": 0
+     }
+    },
+    "chain": {
+     "owner": "driftwood-isle",
+     "weight": 1
+    }
+   },
+   "programs": 180,
+   "glMB": 182.33
+  },
+  "exactOwner": true,
+  "exactLight": false
+ }
+}

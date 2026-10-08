@@ -102,7 +102,15 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     ownedHome: session.ownedGridHome === true,
     ...(ctx.session.residency === undefined ? {} : { residency: ctx.session.residency }),
     onFixed: (fn) => { game.onFixed('post', fn, 'game.grid.session'); },
-    frame: { scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, sunDir: () => game.sky.sunDir, cinematic: () => game.regionCinematic(), slices: () => game.depthSlices, onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
+    frame: { scene: game.rootScene, camera: game.camera, composer: () => game.composer, post: () => game.post, sunDir: () => game.sky.sunDir, cinematic: () => game.regionCinematic(), slices: () => game.depthSlices,
+      // G242: the road's dome and key light are a base layer on the page's sky rig (game.sky throws until it is built)
+      sky: () => { const rig = game.sky; return { layerBackdrop: (o) => rig.layerBackdrop(o), warm: (object) => {
+        // into the composer's input buffer, as the dome is drawn: the canvas target would be a second program variant
+        const renderer = game.renderer, prev = renderer.getRenderTarget();
+        renderer.setRenderTarget(game.composer.inputBuffer);
+        try { renderer.compile(object, game.camera, game.rootScene); } finally { renderer.setRenderTarget(prev); }
+      } }; },
+      onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
     // other boot loads them when the room comes near: Explore's hub preloads them on open (below), so they are not resident

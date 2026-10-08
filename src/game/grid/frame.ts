@@ -12,9 +12,10 @@
  *   LUT) fade with the home's weight (their blend opacity), and one small effect appended to the engine's one colour
  *   pass applies the rest of the frame's grade (a neighbour owner's declared exposure / saturation / contrast / tint,
  *   the road's G75 grey-blue) uniformly. No extra pass, no extra target.
- * - **The road's sky** (G165, Jake: "A, road light over everything"): on the road the home look's sky gives way to the
- *   road's own calm grey-blue dome (`roadSky.ts`, the road owner's first stack), so neighbours and sky alike sit under the
- *   road look; a shard's own sky shows only once you are inside its cell (blended across the edge band).
+ * - **The road's sky and sun** (G165, Jake: "A, road light over everything"; G242's "grid dawn"): on the road the home look's
+ *   sky and key light give way to the road's own dawn dome and low sun (`roadSky.ts`, the road owner's first stack: a base
+ *   layer on the page's sky rig), and its air is the road's dawn air, so neighbours and sky alike sit under the road look; a
+ *   shard's own sky and light show only once you are inside its cell (blended across the edge band).
  * - **Live regions** (`frameLook.ts`, E452): an admitted neighbour runtime contributes its own fog object and grade while
  *   resident; what its weather writes into that fog is its air (then the base goes back), its level's grade replaces the
  *   declared one. Still one fog, one dome, one sun.
@@ -38,9 +39,9 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { GradeLookEffect, type GradeEffect } from '@wildshard/engine/core/Grade';
 import { LUT_SIZE } from '@wildshard/engine/render/lut';
 import type { FarProxyView } from './farView';
-import { RoadSky } from './roadSky';
+import { RoadSky, type RoadSkyPage } from './roadSky';
 import { bindFrameLook, type FrameLookContribution, type FramePost, type FrameSkyLayer, type RegionChain, type RegionPost } from './frameLook';
-import { NEUTRAL_GRADE, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
+import { NEUTRAL_GRADE, ROAD_SKY, dominantOwner, frameFog, frameGrade, frameOwners, type FrameCell, type FullGrade, type RegionGrade, type RegionWeights } from './frameModel';
 
 /** What the frame reads from the page: the scene and camera, the engine's composer and its grade effects (late-bound). */
 export interface GridFrameHost {
@@ -56,6 +57,8 @@ export interface GridFrameHost {
   readonly cinematic?: () => FrameCinematic;
   /** the page's scene pass draws into the depth slices (E142): its scene target's depth is the world's */
   readonly slices?: () => boolean;
+  /** G242: the page's sky rig, which takes the road's dome and key light as its base layer (absent: the dome alone, no sun) */
+  readonly sky?: () => RoadSkyPage | null;
 }
 /** The engine chain's grade effects the frame fades, and on a neutral shell writes a region's grade into (G232). */
 export interface FramePostEffects {
@@ -288,7 +291,7 @@ export class GridFrame {
     const prev = host.scene.onBeforeRender.bind(host.scene);
     host.scene.onBeforeRender = (...args) => { this.beforeScene(); prev(...args); };
     // G165: the road's own sky, its opacity the road's weight
-    const detachSky = this.roadSky.attach(host.scene);
+    const detachSky = this.roadSky.attach(host);
     this.stack(null, { weight: (w) => { this.roadSky.weight(w); } });
     this.lookEffect.blendMode.opacity.value = 0; this.lutEffect.blendMode.opacity.value = 0;
     const unbind = bindFrameLook(host.scene, { contribute: (instance, look) => this.contribute(instance, look), sky: (instance, layer) => this.sky(instance, layer),
@@ -515,7 +518,7 @@ export class GridFrame {
       }
       hazes = this.airs;
     }
-    const [r, g, b] = frameFog(this.weights, home, hazes);
+    const [r, g, b] = frameFog(this.weights, home, hazes, ROAD_SKY.air);
     this.air.setRGB(r, g, b);
     if (live !== null) { live.copy(this.air); this.written.copy(this.air); }
     for (const view of this.proxies) view.hazeColour(this.air);
