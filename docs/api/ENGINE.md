@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2254 members; 834 without a doc line (—).
+2257 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -152,6 +152,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `setCurrentProbe` | function | @wildshard/engine/app/identity | — |
 | `asShell` | function | @wildshard/engine/app/ownership | — |
 | `currentOwner` | function | @wildshard/engine/app/ownership | — |
+| `enteredOwner` | function | @wildshard/engine/app/ownership | The owner an enclosing `withOwner` section set, or null when the owner is only the ambient one (an `await` |
 | `enterOwner` | function | @wildshard/engine/app/ownership | — |
 | `onOwnerDispose` | function | @wildshard/engine/app/ownership | — |
 | `ownedFacade` | function | @wildshard/engine/app/ownership | SF57: an owner only lasts until the first `await` — `withOwner(scope, () => asyncBuild())` sets it for the synchronous |
@@ -163,6 +164,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `app` | const | @wildshard/engine/app/runtime | The page app; legacy active-service entry points delegate here during the migration. |
 | `gameplayRandom` | function | @wildshard/engine/app/runtime | One gameplay draw from the seeded `gameplay` stream (01 §2): aim spread and other rolls that change a hit. |
 | `containerResources` | function | @wildshard/engine/app/sceneOwnership | Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset. |
+| `linkStandIn` | function | @wildshard/engine/app/sceneOwnership | A detached copy drawn or compiled in place of `source` (the shader warm-up's stand-ins, SF57) uploads for `source`'s |
 | `ownSceneResource` | function | @wildshard/engine/app/sceneOwnership | Adopt an otherwise unowned resource. Existing owners (including batch-private allocations) stay authoritative. |
 | `ownSceneTree` | function | @wildshard/engine/app/sceneOwnership | Give a subtree one explicit resource owner. Parent scene captures retain its census under that owner and never |
 | `sceneObjectOwner` | function | @wildshard/engine/app/sceneOwnership | Nearest explicitly owned scene subtree, including meshes drawn through a shared page renderer. |
@@ -1693,6 +1695,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `generateCrossroads` | function | @wildshard/engine/sim/strips | B-clamped corners meet every floor endpoint; retaining walls and cliffs return10m around the junction. |
 | `GeneratedStrip` | interface | @wildshard/engine/sim/strips | The highway owns the primary mesh; neighbouring worlds receive exact translated duplicates. |
 | `generatePlatform` | function | @wildshard/engine/sim/strips | Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter. |
+| `generatePlatformSliced` | function | @wildshard/engine/sim/strips | `generatePlatform` in slices (rt3-crossing): the same strips, in the same order, but `pause` is awaited whenever a |
 | `generateStrip` | function | @wildshard/engine/sim/strips | Full native profiles run in positive lateral order; mixed rows preserve the sorted union of their vertices. |
 | `PlatformCell` | interface | @wildshard/engine/sim/strips | Declared edge data placed on an integer platform grid; placement never enters a regional simulation. |
 | `STRIP_OFFSETS` | const | @wildshard/engine/sim/strips | Full G90 gradient lattice, including the explicit 6/10m re-frame lines. |

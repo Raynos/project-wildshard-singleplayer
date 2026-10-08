@@ -867,6 +867,12 @@
         "from": "@wildshard/engine/app/ownership"
       },
       {
+        "name": "enteredOwner",
+        "kind": "function",
+        "doc": "The owner an enclosing `withOwner` section set, or null when the owner is only the ambient one (an `await`",
+        "from": "@wildshard/engine/app/ownership"
+      },
+      {
         "name": "enterOwner",
         "kind": "function",
         "doc": "",
@@ -930,6 +936,12 @@
         "name": "containerResources",
         "kind": "function",
         "doc": "Walk resource containers, stopping at scene nodes so the whole scene is never mistaken for an asset.",
+        "from": "@wildshard/engine/app/sceneOwnership"
+      },
+      {
+        "name": "linkStandIn",
+        "kind": "function",
+        "doc": "A detached copy drawn or compiled in place of `source` (the shader warm-up's stand-ins, SF57) uploads for `source`'s",
         "from": "@wildshard/engine/app/sceneOwnership"
       },
       {
@@ -10126,6 +10138,12 @@
         "name": "generatePlatform",
         "kind": "function",
         "doc": "Generate every deck corridor and four-way junction, including the explicit empty-neighbour perimeter.",
+        "from": "@wildshard/engine/sim/strips"
+      },
+      {
+        "name": "generatePlatformSliced",
+        "kind": "function",
+        "doc": "`generatePlatform` in slices (rt3-crossing): the same strips, in the same order, but `pause` is awaited whenever a",
         "from": "@wildshard/engine/sim/strips"
       },
       {

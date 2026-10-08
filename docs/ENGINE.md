@@ -1928,7 +1928,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2237 exports, grouped by the module to import them from.
+2240 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -1962,10 +1962,10 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/app/app`: `App`, `SystemsByPhase`, `TrampleField`
 - `@wildshard/engine/app/cachedAssets`: `cacheUntilDisposed`, `retainCachedResources`
 - `@wildshard/engine/app/identity`: `appIdentity`, `AppIdentity`, `currentProbe`, `harnessPins`, `installAppIdentity`, `installedIdentity`, `setCurrentProbe`
-- `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enterOwner`, `onOwnerDispose`, `ownedFacade`, `ownerCensus`, `ownerTask`, `withOwner`
+- `@wildshard/engine/app/ownership`: `asShell`, `currentOwner`, `enteredOwner`, `enterOwner`, `onOwnerDispose`, `ownedFacade`, `ownerCensus`, `ownerTask`, `withOwner`
 - `@wildshard/engine/app/resources`: `pageScope`, `resourceScope`
 - `@wildshard/engine/app/runtime`: `app`, `gameplayRandom`
-- `@wildshard/engine/app/sceneOwnership`: `containerResources`, `ownSceneResource`, `ownSceneTree`, `sceneObjectOwner`, `SceneOwnership`, `sceneResourceOwner`, `sceneResources`
+- `@wildshard/engine/app/sceneOwnership`: `containerResources`, `linkStandIn`, `ownSceneResource`, `ownSceneTree`, `sceneObjectOwner`, `SceneOwnership`, `sceneResourceOwner`, `sceneResources`
 - `@wildshard/engine/app/scheduler`: `InterruptReason`, `TickActor`, `TickBand`, `TickPoint`, `TickRate`, `TickScheduler`
 - `@wildshard/engine/app/scope`: `Disposable3`, `disposalErrorMessages`, `NativeCensus`, `nodeOwner`, `PhysicsHandle`, `registrationTimerIds`, `Scope`, `ScopeCensus`, `scopeRegistrations`, `SoundHandle`
 - `@wildshard/engine/app/systems`: `AppState`, `inState`, `Phase`, `PHASES`, `RunCondition`, `sortSystems`, `SystemSpec`, `TickRateId`
@@ -2213,7 +2213,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/engine/sim/readiness`: `ReadinessBundle`, `ReadinessEstimate`, `ReadinessLink`, `readinessModel`, `ReadinessPart`, `ReadinessStatus`, `ReadinessTicket`, `TraversalReadiness`
 - `@wildshard/engine/sim/shore`: `SHORE_DEPTH`, `SHORE_REVETMENT_INNER_FACE`
 - `@wildshard/engine/sim/snapshot`: `decodeSimSnapshot`, `regionalContinuation`, `restoreSimHost`, `serializeSimSnapshot`, `SIM_REGION_SNAPSHOT_CHAR_BUDGET`, `SIM_SNAPSHOT_VERSION`, `SimSnapshot`, `SnapshotBasisMismatchError`, `snapshotSimHost`
-- `@wildshard/engine/sim/strips`: `generateCrossroads`, `GeneratedStrip`, `generatePlatform`, `generateStrip`, `PlatformCell`, `STRIP_OFFSETS`, `StripCell`, `StripCorner`, `StripMesh`, `StripProfile`
+- `@wildshard/engine/sim/strips`: `generateCrossroads`, `GeneratedStrip`, `generatePlatform`, `generatePlatformSliced`, `generateStrip`, `PlatformCell`, `STRIP_OFFSETS`, `StripCell`, `StripCorner`, `StripMesh`, `StripProfile`
 - `@wildshard/engine/strings`: `ENGINE_STRINGS`, `engineString`, `EngineStringKey`, `installEngineStrings`
 - `@wildshard/engine/ui/authoredDebugRows`: `authoredRows`, `GlobalDebugActionSpec`, `registerGlobalDebugAction`
 - `@wildshard/engine/ui/BossBar`: `BossBar`
