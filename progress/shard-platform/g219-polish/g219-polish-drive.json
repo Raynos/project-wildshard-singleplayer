@@ -1,0 +1,24 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "errors": [],
+  "startMs": 1791430756080,
+  "seconds": 39.335,
+  "state": {
+    "plots": [
+      [
+        "open-plot-nw",
+        true
+      ],
+      [
+        "open-plot-sw",
+        true
+      ],
+      [
+        "open-plot-se",
+        false
+      ]
+    ],
+    "draws": 27,
+    "triangles": 38890
+  }
+}

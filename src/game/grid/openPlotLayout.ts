@@ -45,7 +45,8 @@ type V3 = readonly [number, number, number];
 type Rgb = readonly [number, number, number];
 /** The plot's buffers, all in plot-local metres. */
 export interface OpenPlotGeometry {
-  readonly solid: { readonly positions: Float32Array; readonly colours: Float32Array; readonly indices: Uint32Array };
+  /** colours are 8-bit (normalized RGB): a quarter of float bytes, and the baked light needs no more */
+  readonly solid: { readonly positions: Float32Array; readonly colours: Uint8Array; readonly indices: Uint32Array };
   readonly lines: Float32Array;
   readonly pictures: { readonly positions: Float32Array; readonly uvs: Float32Array; readonly indices: Uint32Array };
   readonly text: { readonly positions: Float32Array; readonly uvs: Float32Array; readonly indices: Uint32Array };
@@ -69,7 +70,11 @@ class Solid {
   readonly p: number[] = []; readonly c: number[] = []; readonly i: number[] = [];
   quad(corners: readonly V3[], normal: V3, colour: Rgb): void {
     const base = this.p.length / 3, n = norm(normal), lit = 0.6 + 0.32 * Math.max(0, n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2]) + (n[1] < -0.5 ? -0.15 : 0);
-    for (const v of corners) { this.p.push(v[0], v[1], v[2]); this.c.push(colour[0] * lit, colour[1] * lit, colour[2] * lit); }
+    // a baked contact shade: the lowest 3 m darken toward the grid floor and cool a touch, so a piece sits on the dark grid
+    for (const v of corners) {
+      const up = Math.min(1, Math.max(0, v[1]) / 3), k = lit * (0.7 + 0.3 * up);
+      this.p.push(v[0], v[1], v[2]); this.c.push(colour[0] * k * (0.94 + 0.06 * up), colour[1] * k, colour[2] * k * (1.06 - 0.06 * up));
+    }
     const [a, b, c] = corners;
     if (a === undefined || b === undefined || c === undefined) return;
     const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
@@ -133,6 +138,8 @@ class Quads {
   out(): { positions: Float32Array; uvs: Float32Array; indices: Uint32Array } { return { positions: new Float32Array(this.p), uvs: new Float32Array(this.uv), indices: new Uint32Array(this.i) }; }
 }
 
+/** The survey sign's board (m): the text atlas's 4:1 sign rect, its bottom over a hoverboard rider's head. */
+const SIGN = { w: 14, h: 3.5, bottom: 3.2 } as const;
 const C = {
   steel: hex(0x2b3540), steelLight: hex(0x55606b), white: hex(0xe9edf0), orange: hex(0xff7a1a), navy: hex(0x0d1b26), grey: hex(0x8d949b),
   greyDark: hex(0x6c737a), concrete: hex(0xb9bcbd), scaffold: hex(0xd8a23a), cyan: hex(0x38e6ff),
@@ -159,11 +166,21 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     for (const u of [-9, -3, 3, 9]) out.push(box(u, -8, 0, 1.2, 1.2, 9, 0xd9a86a), box(u, 2, 0, 1.2, 1.2, 9, 0xd9a86a), box(u, 11, 0, 1.2, 1.2, 9, 0xd9a86a));
     out.push(box(0, -8, 9, 11, 1.4, 2, 0xe2b77a), box(0, 2, 9, 11, 1.4, 2, 0xe2b77a), box(0, 11, 9, 11, 1.4, 2, 0xe2b77a));
     out.push(prism(-6, -12, 0, 2.6, 2.2, 3.4, 7, 0xc99a5e), box(8, -12, 0, 2.5, 1.6, 1.4, 0xc99a5e), prism(12, -4, 0, 1, 1, 6, 8, 0xe0b27a));
+    // polish (G219): fallen drums, a broken arch, the oasis with two palms, a buried statue head, dunes
+    for (const [u, w] of [[-11, -10], [-9.6, -11.2], [5, -9]] as const) out.push(prism(u, w, 0, 1.15, 1.15, 0.9, 8, 0xd2a066, 0xe8c48c));
+    out.push(box(-3, -11, 0, 1.1, 1.1, 5.5, 0xd9a86a), box(-1.2, -11, 4.5, 2.9, 1.2, 1.4, 0xe2b77a));
+    out.push(box(2, -12.4, 0, 3.2, 1.6, 0.08, 0x3fc7c9), prism(-0.4, -13, 0, 0.3, 0.22, 5.2, 6, 0x8a6a44), prism(-0.4, -13, 4.8, 2.4, 0.2, 1.1, 6, 0x4f9a46), prism(4.6, -11.2, 0, 0.3, 0.22, 4.4, 6, 0x8a6a44), prism(4.6, -11.2, 4, 2.1, 0.2, 1, 6, 0x4f9a46));
+    out.push(box(11, -10, 0, 1.6, 1.4, 2.6, 0xcf9d5f), box(11, -10, 2.6, 1.2, 1.1, 0.9, 0xc08f55), prism(-12, -1, 0, 3.2, 0.5, 1.4, 6, 0xe4c08a), prism(10, 2, 0, 3.6, 0.6, 1.6, 6, 0xe4c08a));
     return 0xe8c78e;
   },
   'night-market': (out) => {
     for (const u of [-9, 0, 9]) for (const w of [-9, 1, 10]) { out.push(box(u, w, 0, 3.4, 2.2, 2.6, 0x3a2a3e), box(u, w, 2.6, 3.8, 2.6, 0.5, [0xff3d8b, 0x2fe0ff, 0xffa53d][(u + 9) / 9] ?? 0xff3d8b)); }
     for (const u of [-13, 13]) for (const w of [-12, -2, 8]) out.push(prism(u, w, 0, 0.25, 0.25, 6, 6, 0x222a33), prism(u, w, 6, 0.9, 0.9, 1.2, 8, 0xff8a3d));
+    // polish: lantern strings over the lanes, crates and barrels at the stalls, a neon sign tower, a noodle cart
+    for (const w of [-9, 1]) for (let u = -12; u <= 12; u += 2) out.push(box(u, w + 4.6, 4.2 + 0.4 * Math.cos(u / 4), 0.28, 0.28, 0.5, u % 4 === 0 ? 0xff4d6d : 0xffc24d));
+    for (const [u, w] of [[-12, -12], [-6, -12.5], [5, -12.2], [11.5, -6]] as const) out.push(box(u, w, 0, 0.7, 0.7, 1.1, 0x6b4a2e), prism(u + 1.6, w, 0, 0.55, 0.55, 1.2, 8, 0x3b4a5a));
+    out.push(box(-4.5, -12, 0, 0.3, 0.3, 7.5, 0x222a33), box(-4.5, -12, 5.2, 0.25, 1.8, 2.6, 0xff3d8b), box(-4.5, -12, 7.5, 0.25, 1.4, 1.4, 0x2fe0ff));
+    out.push(box(4, -6, 0, 1.6, 0.9, 1.2, 0xc8322b), box(4, -6, 1.2, 1.8, 1.1, 0.12, 0xf0e6d0), prism(5.1, -6, 1.32, 0.35, 0.35, 0.6, 8, 0xf6f0e8));
     return 0x2a2f3a;
   },
   'frozen-lighthouse': (out) => {
@@ -171,6 +188,13 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     for (let k = 0; k < 6; k++) out.push(prism(4, 0, 2 + k * 4, 4.2 - k * 0.35, 3.85 - k * 0.35, 4, 10, k % 2 === 0 ? 0xd8323a : 0xf3f3f3));
     out.push(prism(4, 0, 26, 2.4, 2.4, 2.2, 10, 0xffe9a6), prism(4, 0, 28.2, 2.8, 0.4, 2.2, 10, 0x2b3540));
     out.push(box(-8, -10, 0, 3, 2, 1.5, 0xdfeaf2), box(-10, 2, 0, 2, 3, 2.4, 0xcfe3ef), prism(-5, 9, 0, 3, 0.5, 4, 5, 0xe8f2f8));
+    // polish: the lantern gallery's railing, a keeper's hut, snowy pines, ice floes and a buoy
+    out.push(prism(4, 0, 25.6, 3.4, 3.4, 0.25, 10, 0x2b3540), prism(4, 0, 26.4, 3.2, 3.2, 0.12, 10, 0x2b3540));
+    out.push(box(-6, -10, 0, 2.6, 2.2, 2.6, 0x9c5a3a), prism(-6, -10, 2.6, 3.4, 0.2, 1.8, 4, 0xf4f8fb), box(-6, -12.25, 0.9, 0.45, 0.05, 0.7, 0xffd27a));
+    for (const [u, w, s2] of [[-12, -12, 1], [-11, -6, 0.8], [11, -11, 1.1], [12.5, -5, 0.7]] as const) {
+      out.push(prism(u, w, 0, 0.3, 0.3, 1.2 * s2, 6, 0x4a3426), prism(u, w, 1.2 * s2, 2.0 * s2, 0.2, 2.6 * s2, 7, 0x2a5a48, 0xf4f8fb), prism(u, w, 3.2 * s2, 1.4 * s2, 0.1, 2 * s2, 7, 0xeef5f8));
+    }
+    out.push(box(1, -12.5, 0, 2.2, 1.4, 0.3, 0xcfe8f4), box(9, -9, 0, 1.4, 1.8, 0.4, 0xd8eef8), prism(13, -1, 0, 0.6, 0.4, 1.8, 8, 0xd8323a, 0xf3f3f3));
     return 0xe4eef4;
   },
   'canyon-railway': (out) => {
@@ -178,6 +202,12 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     for (let w = -13; w <= 13; w += 2) out.push(box(0, w, 4.6, 2.2, 0.35, 0.3, 0x6e4a2c));
     out.push(box(-1, 0, 4.9, 0.12, 14, 0.25, 0x8c949b), box(1, 0, 4.9, 0.12, 14, 0.25, 0x8c949b));
     for (const w of [-10, -2, 6, 13]) for (const u of [-1.8, 1.8]) out.push(box(u, w, 0, 0.3, 0.3, 4.6, 0x5a3a22));
+    // polish: a locomotive and tender on the trestle, a water tower, saguaro cacti, a signal post
+    out.push(box(0, -10, 5.2, 1.3, 3, 2, 0x1d1d22), box(0, -12.2, 5.2, 1.4, 1, 3.2, 0x8c2a22), prism(0, -8, 7.2, 0.45, 0.6, 1.4, 8, 0x1d1d22), box(0, -7, 5.2, 1.1, 0.25, 0.9, 0xd8a23a), box(0, -14, 5.2, 1.3, 0.8, 1.6, 0x3a2a22));
+    for (const [u, w] of [[6, -12], [8, -10]] as const) out.push(box(u, w, 0, 0.18, 0.18, 6, 0x5a3a22));
+    out.push(prism(7, -11, 6, 2, 2, 3, 10, 0x8a5a36, 0x6e4a2c), prism(7, -11, 9, 2.2, 0.3, 1, 10, 0x5a3a22));
+    for (const [u, w, h] of [[-5, -12, 4.5], [12, -2, 3.6], [-13, 4, 4]] as const) out.push(prism(u, w, 0, 0.5, 0.45, h, 8, 0x4f8a3a), box(u + 0.9, w, h * 0.45, 0.6, 0.3, 0.3, 0x4f8a3a), prism(u + 1.3, w, h * 0.45, 0.3, 0.28, h * 0.35, 6, 0x4f8a3a));
+    out.push(box(-3.6, -13, 0, 0.12, 0.12, 5, 0x2b3540), box(-3.6, -13, 4.4, 0.5, 0.2, 0.7, 0xd8323a));
     return 0xd28a5a;
   },
   'coral-reef': (out) => {
@@ -185,6 +215,11 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
       out.push(prism(u, w, 0, r, r * 0.4, h, 7, c), prism(u + r * 0.6, w, h * 0.6, r * 0.5, 0.2, h * 0.7, 6, c));
     }
     out.push(box(-2, 0, 0, 2.5, 7, 2.5, 0x5b4636), box(-2, 4, 2.5, 0.3, 0.3, 8, 0x4a382a));
+    // polish: kelp swaying tall, a treasure chest, a sunken anchor, a school of fish and clam shells
+    for (const [u, w, h] of [[-13, -6, 9], [-12, -4, 7], [13, -12, 8], [12, 4, 10], [-4, 12, 7]] as const) out.push(prism(u, w, 0, 0.35, 0.15, h, 5, 0x3e9a5a), prism(u + 0.5, w + 0.4, 0, 0.3, 0.1, h * 0.7, 5, 0x58b86a));
+    out.push(box(-6, -12.5, 0, 1.2, 0.8, 0.9, 0x7a4a24), box(-6, -12.5, 0.9, 1.25, 0.85, 0.35, 0xe0b040), box(3, -12.5, 0, 0.2, 0.2, 3, 0x4a4d52), box(3, -12.5, 0.2, 1.4, 0.2, 0.25, 0x4a4d52));
+    for (let k = 0; k < 7; k++) out.push(box(-2 + k * 1.1, -6 + Math.sin(k) * 0.8, 5 + Math.cos(k * 1.7) * 0.7, 0.45, 0.15, 0.3, k % 2 === 0 ? 0xffa040 : 0xffe14d));
+    out.push(prism(9, -12, 0, 1, 0.6, 0.5, 9, 0xf3c6d6), prism(-12, -12, 0, 0.8, 0.5, 0.4, 9, 0xf3c6d6));
     return 0xf0dca8;
   },
   'alien-plain': (out) => {
@@ -192,6 +227,11 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
       out.push(prism(u, w, 0, 0.7 * s, 0.6 * s, 7 * s, 8, 0xf2e3ff), prism(u, w, 7 * s, 4.4 * s, 0.6 * s, 2.4 * s, 10, s > 1 ? 0xff7ab8 : 0xb98cff, 0xffc4e1));
     }
     out.push(prism(2, -3, 0, 1, 0.05, 6, 5, 0x9ff3ff), prism(-2, 5, 0, 0.8, 0.05, 4.5, 5, 0xc6a8ff));
+    // polish: crystal clusters, glowing pods, a floating rock shelf and a landed scout ship
+    for (const [u, w] of [[-12, -12], [2, -12], [12, -6]] as const) out.push(prism(u, w, 0, 0.9, 0.05, 4, 5, 0x9ff3ff), prism(u + 1, w + 0.6, 0, 0.6, 0.05, 2.6, 5, 0xc6a8ff), prism(u - 0.8, w + 0.4, 0, 0.5, 0.05, 2, 5, 0xffc4e1));
+    for (const [u, w] of [[-4, -8], [-2.6, -7.2], [10, -12.6]] as const) out.push(prism(u, w, 0, 0.5, 0.7, 0.9, 8, 0x7affc9, 0xc9ffe8));
+    out.push(box(-1, -5, 9, 3.4, 2, 0.9, 0xa48cc8), prism(-1, -5, 6.4, 0.2, 2.2, 2.6, 6, 0x8a74b0));
+    out.push(prism(8, -12, 0.8, 2.6, 1.2, 1.1, 10, 0xe9edf0, 0xb9f6ff), prism(8, -12, 1.9, 1.2, 0.2, 0.9, 10, 0x9ff3ff), box(8, -12, 0, 0.12, 2.2, 0.8, 0x55606b));
     return 0xd9b8e8;
   },
   'ink-valley': (out) => {
@@ -199,6 +239,11 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     for (let w = -12; w <= 12; w += 3) out.push(box(Math.sin(w / 5) * 2, w, 0, 1.6, 1.2, 0.18, 0x9a9f9c));
     out.push(box(8, -10, 0, 1, 1, 1.4, 0x8e918d), box(8, -10, 1.4, 1.6, 1.6, 0.4, 0x6a6d69), box(8, -10, 1.8, 0.8, 0.8, 0.9, 0xfff0b8), prism(8, -10, 2.7, 1.8, 0.1, 1, 4, 0x4a4d49));
     out.push(prism(-10, 4, 0, 0.6, 0.5, 6, 6, 0x4a3426), prism(-10, 4, 5, 4.2, 0.4, 4, 7, 0x2f5a3a), prism(10, 8, 0, 0.6, 0.5, 5, 6, 0x4a3426), prism(10, 8, 4, 3.6, 0.4, 3.6, 7, 0x2f5a3a));
+    // polish: a two-tier pagoda, a red maple, a stone bridge over an ink stream, a second lantern
+    out.push(box(-9, -11, 0, 2.6, 2.6, 0.6, 0x8e918d), box(-9, -11, 0.6, 1.8, 1.8, 2.4, 0xc8322b), box(-9, -11, 3, 3.2, 3.2, 0.35, 0x1d1d22), box(-9, -11, 3.35, 1.4, 1.4, 1.8, 0xc8322b), box(-9, -11, 5.15, 2.6, 2.6, 0.3, 0x1d1d22), prism(-9, -11, 5.45, 0.9, 0.05, 1.6, 4, 0xd8a23a));
+    out.push(prism(12, -3.5, 0, 0.4, 0.35, 3.6, 6, 0x4a3426), prism(12, -3.5, 3, 3, 0.4, 3.2, 7, 0xd2442e));
+    out.push(box(5, -12, 0, 1.2, 4, 0.06, 0x1c2a3a), box(5, -12, 0.06, 1.6, 1.4, 0.5, 0x9a9f9c), box(5, -12, 0.56, 1.7, 1.1, 0.2, 0x8e918d));
+    out.push(box(-3, -13, 0, 0.6, 0.6, 1.1, 0x8e918d), box(-3, -13, 1.1, 1, 1, 0.3, 0x6a6d69), box(-3, -13, 1.4, 0.5, 0.5, 0.6, 0xfff0b8), prism(-3, -13, 2, 1.1, 0.1, 0.7, 4, 0x4a4d49));
     return 0xcfd3c8;
   },
   'sky-race': (out) => {
@@ -208,6 +253,12 @@ const DEMOS: Readonly<Record<PlotIdea, (out: Piece[]) => number>> = {
     for (const [u, w, y] of [[0, -12, 2], [0, 0, 8], [0, 12, 14]] as const) {
       for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; out.push(box(u + Math.cos(a) * 3.2, w, y + 3.2 + Math.sin(a) * 3.2, 0.5, 0.25, 0.9, 0xffc23a)); }
     }
+    // polish: waterfalls off the islands, a hover-racer through the first ring, a chequered start gate, trees on the isles
+    out.push(box(-8, -9 - 3.6, 0, 1.4, 0.1, 3, 0xbfe9ff), box(7, -4 - 2.9, 2.6, 1.2, 0.1, 4.4, 0xbfe9ff));
+    out.push(box(0, -12, 4.8, 0.9, 1.8, 0.45, 0xe9edf0), box(0, -13.4, 4.9, 1.5, 0.5, 0.12, 0x2fe0ff), box(0, -10.8, 5.25, 0.5, 0.4, 0.35, 0x1c2a3a), box(0, -14.2, 5.1, 0.1, 0.4, 0.6, 0xff7a1a));
+    for (const u of [-12, 12]) out.push(box(u, -13, 0, 0.3, 0.3, 6, 0xe9edf0));
+    for (let k = 0; k < 12; k++) out.push(box(-11 + k * 2, -13, 5.4, 1, 0.12, 0.6, k % 2 === 0 ? 0x1d1d22 : 0xf3f3f3));
+    for (const [u, w, y] of [[-9, -10, 3.7], [-6.5, -8, 3.7], [8, -5, 7.7]] as const) out.push(prism(u, w, y, 0.25, 0.2, 1.4, 6, 0x6e4a2c), prism(u, w, y + 1.2, 1.3, 0.1, 2, 7, 0x3f8f3a));
     return 0x9ad06f;
   },
 };
@@ -233,15 +284,22 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
       if (s > 13 && (s + t * 3) % 4 === 0) continue;
       const p = frame.at(s, t); solid.box(p.x, p.z, 0, 0.95, 0.95, 0.06, frame.yaw, s > 13 ? C.greyDark : C.concrete);
     }
-    // the survey sign (B / H) on two striped posts across the end of the stub
-    for (const t of [-5.2, 5.2]) { const p = frame.at(14, t); for (let k = 0; k < 4; k++) solid.box(p.x, p.z, k * 0.8, 0.2, 0.2, 0.8, frame.yaw, k % 2 === 0 ? C.white : C.orange); }
-    { const p = frame.at(14.15, 0); solid.box(p.x, p.z, 2.0, 5.0, 0.08, 1.9, frame.yaw, C.navy); text.add(P(14, 0, 2.95), n, 9.6, 1.8, SIGN_RECT); }
+    // the survey sign (B / H) on two striped posts across the end of the stub: 14 × 3.5 m (the atlas's 4:1) with its
+    // bottom at 3.2 m, so its first line reads from the boulevard on the phone (polish: it was 9.6 × 1.8 m and stretched)
+    for (const t of [-7.6, 7.6]) { const p = frame.at(14, t); solid.box(p.x, p.z, 0, 0.6, 0.6, 0.3, frame.yaw, C.steel); for (let k = 0; k < 9; k++) solid.box(p.x, p.z, 0.3 + k * 0.8, 0.26, 0.26, 0.8, frame.yaw, k % 2 === 0 ? C.white : C.orange); }
+    { const p = frame.at(14.18, 0); solid.box(p.x, p.z, SIGN.bottom - 0.15, SIGN.w / 2 + 0.2, 0.1, SIGN.h + 0.3, frame.yaw, C.navy); text.add(P(14, 0, SIGN.bottom + SIGN.h / 2), n, SIGN.w, SIGN.h, SIGN_RECT);
+      const a = frame.at(13.95, -SIGN.w / 2 - 0.1), b = frame.at(13.95, SIGN.w / 2 + 0.1), y0 = SIGN.bottom - 0.1, y1 = SIGN.bottom + SIGN.h + 0.1;
+      lines.seg([a.x, y0, a.z], [b.x, y0, b.z]); lines.seg([a.x, y1, a.z], [b.x, y1, b.z]); lines.seg([a.x, y0, a.z], [a.x, y1, a.z]); lines.seg([b.x, y0, b.z], [b.x, y1, b.z]); }
     // the billboard on the left: steel legs, a frame, the picture facing the road
     { const c = frame.at(44, -22), w = 22, h = 16.5, bottom = 7;
       for (const t of [-8, 8]) { const p = frame.at(44.6, -22 + t); solid.box(p.x, p.z, 0, 0.35, 0.35, bottom, frame.yaw, C.steelLight); solid.box(p.x, p.z, 0, 1.1, 1.1, 0.5, frame.yaw, C.steel); }
       const back = frame.at(44.5, -22); solid.box(back.x, back.z, bottom - 0.6, w / 2 + 0.6, 0.35, h + 1.2, frame.yaw, C.steel);
       for (const t of [-7, 0, 7]) { const p = frame.at(43.4, -22 + t); solid.box(p.x, p.z, bottom + h + 0.6, 0.15, 0.6, 0.25, frame.yaw, C.steelLight); }
       pictures.add([c.x + n.x * 0.1, bottom + h / 2, c.z + n.z * 0.1], n, w, h, faceRect(billboard));
+      // polish: a cyan edge on the face (the grid's line) and two flood lamps on arms over its top
+      { const a = frame.at(43.85, -22 - w / 2 - 0.15), b = frame.at(43.85, -22 + w / 2 + 0.15), y0 = bottom - 0.15, y1 = bottom + h + 0.15;
+        lines.seg([a.x, y0, a.z], [b.x, y0, b.z]); lines.seg([a.x, y1, a.z], [b.x, y1, b.z]); lines.seg([a.x, y0, a.z], [a.x, y1, a.z]); lines.seg([b.x, y0, b.z], [b.x, y1, b.z]); }
+      for (const t of [-6, 6]) { const arm = frame.at(43.2, -22 + t), lamp = frame.at(42.2, -22 + t); solid.box(arm.x, arm.z, bottom + h + 0.4, 0.1, 1.2, 0.12, frame.yaw, C.steelLight); solid.box(lamp.x, lamp.z, bottom + h + 0.2, 0.5, 0.3, 0.3, frame.yaw, C.white); }
     }
     // the half-built demo corner on the right, its label on a post at the path
     const { ground, pieces } = demoPieces(demo), centre = { s: 44, t: 24 };
@@ -265,12 +323,15 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
     for (let u = -14; u <= 14; u += 4) for (const w of [-3.5, -2]) { const p = at(u, w); solid.box(p.x, p.z, 0, 0.09, 0.09, 12, frame.yaw, C.scaffold); }
     for (const y of [4, 8, 12]) { const a = at(0, -3.5), b = at(0, -2); solid.box(a.x, a.z, y - 0.1, 14, 0.08, 0.16, frame.yaw, C.scaffold); solid.box(b.x, b.z, y - 0.1, 14, 0.08, 0.16, frame.yaw, C.scaffold); }
     { const back = at(0, 9.5); lines.box(back.x, back.z, 0, 14.5, 4.5, 0.02, frame.yaw); for (let u = -14; u <= 14; u += 4) { const a = at(u, 5), b = at(u, 14); lines.seg([a.x, 0.1, a.z], [b.x, 0.1, b.z]); } }
-    { const p = frame.at(26, 7.5); solid.box(p.x, p.z, 0, 0.12, 0.12, 4.6, frame.yaw, C.steelLight); const q = frame.at(25.9, 9.7); solid.box(q.x, q.z, 4.2, 2.6, 0.06, 0.8, frame.yaw, C.navy); text.add(P(25.8, 9.7, 4.6), n, 5.0, 0.94, labelRect(demo)); lines.seg([p.x, 4.6, p.z], [p.x, 9, p.z]); }
+    // its label: 7.2 × 1.35 m (the atlas's 16:3) on a post at the path, high enough to read over the stub
+    { const p = frame.at(26, 6.4); solid.box(p.x, p.z, 0, 0.14, 0.14, 6.4, frame.yaw, C.steelLight); const q = frame.at(25.9, 9.6); solid.box(q.x, q.z, 5.0, 3.75, 0.07, 1.55, frame.yaw, C.navy); text.add(P(25.8, 9.6, 5.78), n, 7.2, 1.35, labelRect(demo)); lines.seg([p.x, 6.4, p.z], [p.x, 11, p.z]); }
   }
   // the centrepiece: a stepped octagonal plinth, a hologram of a shard being built turning above it, cards of every idea
   // steps of 0.3 m: the player climbs them without a jump (the motor steps 0.35 m)
   solid.prism(0, 0, 0, 24, 24, 0.3, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.3, 20.5, 20.5, 0.3, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.6, 17, 17, 0.3, 8, C.steel, C.steelLight); solid.prism(0, 0, 0.9, 13.5, 13.2, 0.3, 8, C.navy, C.steel);
   for (let k = 0; k < 8; k++) { const a = (k + 0.5) / 8 * Math.PI * 2; solid.prism(Math.cos(a) * 18.8, Math.sin(a) * 18.8, 0.6, 0.45, 0.45, 1.6, 6, C.cyan); }
+  // polish: a cyan lip on the top step and a solid emitter column from the plinth up into the hologram's floor (20 m)
+  solid.prism(0, 0, 1.2, 13.25, 13.25, 0.08, 8, C.cyan, C.navy); solid.prism(0, 0, 1.2, 2.4, 1.6, 1.4, 8, C.steelLight, C.cyan); solid.prism(0, 0, 2.6, 0.7, 0.5, 17.4, 8, C.cyan);
   for (const side of PLOT_SIDES) { const f = entryFrame(side), p = f.at(H - 25.5, 0), n = f.out; text.add([p.x + n.x * 0.06, 0.78, p.z + n.z * 0.06], n, 8.4, 1.05, PLAQUE_RECT); }
   for (let k = 0; k < 48; k++) { const a0 = k / 48 * Math.PI * 2, a1 = (k + 1) / 48 * Math.PI * 2; lines.seg([Math.cos(a0) * 34, 0.08, Math.sin(a0) * 34], [Math.cos(a1) * 34, 0.08, Math.sin(a1) * 34]); }
   // the hologram: a 30 m shard cube, its terrain as a wire height field, half its towers solid-edged, beams from the plinth
@@ -285,14 +346,15 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
   for (const [x, z] of [[-S, -S], [S, -S], [S, S], [-S, S]] as const) holo.seg([x * 0.4, 0.8, z * 0.4], [x, base, z]);
   holo.seg([0, 0.8, 0], [0, 120, 0]); holo.seg([0.4, 0.8, 0], [0.4, 90, 0]);
   PLOT_IDEAS.forEach((idea, k) => {
-    const a = k / PLOT_IDEAS.length * Math.PI * 2, r = 54, n = { x: Math.cos(a), z: Math.sin(a) };
-    cards.add([n.x * r, 44, n.z * r], n, 20, 15, faceRect(idea)); cards.add([n.x * (r - 0.05), 44, n.z * (r - 0.05)], { x: -n.x, z: -n.z }, 20, 15, faceRect(idea));
+    // polish: 26 × 19.5 m cards (were 20 × 15) so the ring reads as pictures from the next boulevard
+    const a = k / PLOT_IDEAS.length * Math.PI * 2, r = 60, n = { x: Math.cos(a), z: Math.sin(a) };
+    cards.add([n.x * r, 46, n.z * r], n, 26, 19.5, faceRect(idea)); cards.add([n.x * (r - 0.05), 46, n.z * (r - 0.05)], { x: -n.x, z: -n.z }, 26, 19.5, faceRect(idea));
   });
   const floor = [-H, 0, -H, H, 0, -H, H, 0, H, -H, 0, H], solidPositions = new Float32Array(solid.p), solidIndices = new Uint32Array(solid.i);
   const colliderPositions = new Float32Array(floor.length + solidPositions.length); colliderPositions.set(floor); colliderPositions.set(solidPositions, floor.length);
   const colliderIndices = new Uint32Array(6 + solidIndices.length); colliderIndices.set([0, 2, 1, 0, 3, 2]); for (let k = 0; k < solidIndices.length; k++) colliderIndices[6 + k] = (solidIndices[k] ?? 0) + 4;
   return {
-    solid: { positions: solidPositions, colours: new Float32Array(solid.c), indices: solidIndices },
+    solid: { positions: solidPositions, colours: Uint8Array.from(solid.c, (v) => Math.round(Math.min(1, Math.max(0, v)) * 255)), indices: solidIndices },
     lines: new Float32Array(lines.p), pictures: pictures.out(), text: text.out(), holoLines: new Float32Array(holo.p.map((v) => v * HOLO)), holoCards: cards.out(),
     scan: { half: S * 0.97 * HOLO, low: (base + 0.5) * HOLO, high: (base + 2 * S - 0.5) * HOLO },
     collider: { positions: colliderPositions, indices: colliderIndices }, entries,

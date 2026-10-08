@@ -1,0 +1,323 @@
+{
+  "base": "http://127.0.0.1:4402",
+  "tag": "before",
+  "shots": [
+    {
+      "pose": {
+        "name": "nw-north-road",
+        "x": -555,
+        "z": 829,
+        "yaw": 0,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "nw-east-road",
+        "x": -281,
+        "z": 555,
+        "yaw": 1.5707963267948966,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "nw-south-road",
+        "x": -555,
+        "z": 281,
+        "yaw": -3.141592653589793,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "nw-west-road",
+        "x": -829,
+        "z": 555,
+        "yaw": -1.5707963267948966,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "nw-south-demo",
+        "x": -571,
+        "z": 313,
+        "yaw": 2.896613990462929,
+        "pitch": -0.12
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "nw-south-billboard",
+        "x": -541,
+        "z": 315,
+        "yaw": -2.9105019863938963,
+        "pitch": -0.2
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "nw-centre",
+        "x": -563,
+        "z": 480,
+        "yaw": -3.0353277906987146,
+        "pitch": 0.18
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "nw-centre-far",
+        "x": -105,
+        "z": 277.5,
+        "yaw": 2.1233806770856107,
+        "pitch": -0.1
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-north-road",
+        "x": -555,
+        "z": -281,
+        "yaw": 0,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-east-road",
+        "x": -281,
+        "z": -555,
+        "yaw": 1.5707963267948966,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-south-road",
+        "x": -555,
+        "z": -829,
+        "yaw": -3.141592653589793,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-west-road",
+        "x": -829,
+        "z": -555,
+        "yaw": -1.5707963267948966,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-east-demo",
+        "x": -313,
+        "z": -571,
+        "yaw": 1.3258176636680326,
+        "pitch": -0.12
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-east-billboard",
+        "x": -315,
+        "z": -541,
+        "yaw": 1.8018869939907938,
+        "pitch": -0.2
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-centre",
+        "x": -563,
+        "z": -630,
+        "yaw": -3.0353277906987146,
+        "pitch": 0.18
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "sw-centre-far",
+        "x": -105,
+        "z": -277.5,
+        "yaw": 1.0182119765041826,
+        "pitch": -0.1
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-north-road",
+        "x": 555,
+        "z": -281,
+        "yaw": 0,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-east-road",
+        "x": 829,
+        "z": -555,
+        "yaw": 1.5707963267948966,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-south-road",
+        "x": 555,
+        "z": -829,
+        "yaw": -3.141592653589793,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-west-road",
+        "x": 281,
+        "z": -555,
+        "yaw": -1.5707963267948966,
+        "pitch": -0.08
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-west-demo",
+        "x": 313,
+        "z": -539,
+        "yaw": -1.8157749899217608,
+        "pitch": -0.12
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-west-billboard",
+        "x": 315,
+        "z": -569,
+        "yaw": -1.3397056595989996,
+        "pitch": -0.2
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-centre",
+        "x": 547,
+        "z": -630,
+        "yaw": -3.0353277906987146,
+        "pitch": 0.18
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    },
+    {
+      "pose": {
+        "name": "se-centre-far",
+        "x": 105,
+        "z": -277.5,
+        "yaw": -1.0182119765041826,
+        "pitch": -0.1
+      },
+      "pictures": 8,
+      "draws": 27,
+      "triangles": 32010,
+      "playingMB": null
+    }
+  ],
+  "errors": [],
+  "version": {
+    "build": "6425634-muyz5pz8",
+    "time": "2026-10-08T03:26:27.987Z"
+  }
+}

@@ -27,6 +27,8 @@ import { FACE, PICTURE_ATLAS, PLAQUE_RECT, PLOT_IDEAS, SIGN_RECT, TEXT_ATLAS, fa
 const VISIBLE = 900;
 const FLOOR_Y = 0.03;
 const CYAN = new Color(0x38e6ff);
+/** the hologram's own cyan: deeper than the grid's line so it holds against a bright sky without additive glow */
+const HOLO = new Color(0x0b9fd8);
 const DISPLAY = "'Rajdhani', 'Bahnschrift', 'DIN Alternate', 'Helvetica Neue', Arial, sans-serif", MONO = "'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace";
 
 /** The platform colliders of every plot: its floor and every solid, one trimesh each in grid metres (origin = the plot centre). */
@@ -112,9 +114,9 @@ export interface OpenPlotState {
   readonly draws: number; readonly triangles: number;
 }
 
-function geometry(positions: Float32Array, attrs: Readonly<Record<string, readonly [Float32Array, number]>>, indices?: Uint32Array): BufferGeometry {
+function geometry(positions: Float32Array, attrs: Readonly<Record<string, readonly [Float32Array | Uint8Array, number]>>, indices?: Uint32Array): BufferGeometry {
   const g = new BufferGeometry().setAttribute('position', new BufferAttribute(positions, 3));
-  for (const [name, [array, size]] of Object.entries(attrs)) g.setAttribute(name, new BufferAttribute(array, size));
+  for (const [name, [array, size]] of Object.entries(attrs)) g.setAttribute(name, new BufferAttribute(array, size, array instanceof Uint8Array));
   if (indices !== undefined) g.setIndex(new BufferAttribute(indices, 1));
   g.computeBoundingSphere();
   return g;
@@ -169,13 +171,16 @@ export function installOpenPlots(input: {
       }
     }
     const solidMaterial = new MeshBasicMaterial({ vertexColors: true });
-    const lines = new LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.8, blending: AdditiveBlending, depthWrite: false, toneMapped: false });
-    const holo = new LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.85, blending: AdditiveBlending, depthWrite: false, toneMapped: false });
+    // polish (G219): the centrepiece and the beams read across the grid. Additive cyan vanished into the day sky and the
+    // shard fog swallowed it past ~300 m, so the hologram is a deeper cyan blended normally (it shows on sky and on the dark
+    // floor alike) and none of the plot's glow lines take fog, like the corner beams of a survey.
+    const lines = new LineBasicMaterial({ color: CYAN, transparent: true, opacity: 0.8, blending: AdditiveBlending, depthWrite: false, toneMapped: false, fog: false });
+    const holo = new LineBasicMaterial({ color: HOLO, transparent: true, opacity: 0.85, depthWrite: false, toneMapped: false, fog: false });
     const pictureMaterial = pictureTexture === null ? null : new MeshBasicMaterial({ map: pictureTexture, toneMapped: false });
     const textMaterial = textTexture === null ? null : new MeshBasicMaterial({ map: textTexture, toneMapped: false });
-    const cards = pictureTexture === null ? null : new MeshBasicMaterial({ map: pictureTexture, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false });
-    const scan = new MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.16, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, toneMapped: false });
-    const glassMaterial = new MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.045, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, toneMapped: false });
+    const cards = pictureTexture === null ? null : new MeshBasicMaterial({ map: pictureTexture, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false, fog: false });
+    const scan = new MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.16, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, toneMapped: false, fog: false });
+    const glassMaterial = new MeshBasicMaterial({ color: HOLO, transparent: true, opacity: 0.1, depthWrite: false, side: DoubleSide, toneMapped: false, fog: false });
     const floorMaterial = new ShaderMaterial({ vertexShader: floorVertex, fragmentShader: floorFragment, fog: false, lights: false,
       uniforms: { uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x03070d) }, uHalf: { value: CHUNK_HALF } } });
     floorMaterial.name = 'grid-open-plot-floor';
@@ -230,7 +235,7 @@ export function installOpenPlots(input: {
       row.holo.updateMatrixWorld(true);
     }
     if (any) {
-      if (holoMaterial !== null) holoMaterial.opacity = 0.7 + 0.2 * Math.sin(t * 2.1);
+      if (holoMaterial !== null) holoMaterial.opacity = 0.78 + 0.14 * Math.sin(t * 2.1);
       if (lineMaterial !== null) lineMaterial.opacity = 0.72 + 0.1 * Math.sin(t * 1.3 + 1);
       if (cardMaterial !== null) cardMaterial.opacity = 0.84 + 0.08 * Math.sin(t * 1.7);
       if (scanMaterial !== null) scanMaterial.opacity = 0.12 + 0.06 * Math.sin(t * 3.1);
