@@ -1,0 +1,16 @@
+{
+  "version": {
+    "build": "b6a0753-muz0i779",
+    "time": "2026-10-08T04:04:10.044Z"
+  },
+  "protocol": "One muted Chromium/Metal iPhone 16 Pro, Developer ON, live input crossings. Claims count retained resources; hidden is not freed.",
+  "driverHash": "34244fe0cd2a8b8bcd0641c031ebe6d6802d86cd947b13acac5998bda406d284",
+  "snapshots": [],
+  "routes": [],
+  "errors": [],
+  "console": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "failure": "TimeoutError: page.waitForFunction: Timeout 240000ms exceeded.",
+  "closed": true
+}

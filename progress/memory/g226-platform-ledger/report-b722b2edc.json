@@ -1,0 +1,104 @@
+{
+  "version": {
+    "build": "b722b2e-muz0poto",
+    "time": "2026-10-08T04:09:59.085Z"
+  },
+  "protocol": "One muted Chromium/Metal iPhone 16 Pro, Developer ON, live input crossings. Claims count retained resources; hidden is not freed.",
+  "driverHash": "5c95bfe23dc1234bc26d8954e38f6c5a98b3ef703f789471bf22f55d6fe0e0ed",
+  "snapshots": [],
+  "routes": [],
+  "errors": [],
+  "console": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "REQUEST FAILED http://127.0.0.1:4400/api/errors net::ERR_ABORTED"
+  ],
+  "stage": "grid-loading",
+  "failure": "TimeoutError: page.waitForFunction: Timeout 240000ms exceeded.",
+  "diagnostic": {
+    "url": "http://127.0.0.1:4400/",
+    "body": "CHUNK BOUNDARY\nNO-MAN'S LAND BEYOND · NOTHING HAS BEEN GENERATED HERE\nDriftwood Isle could not load\n\nBUILD b722b2e-muz0poto · STAGE finish\n\nThe home look is the frame itself; only a neighbour region contributes\n\nError: The home look is the frame itself; only a neighbour region contributes\n    at Dm.contribute (http://127.0.0.1:4400/assets/session-BuU95n4C.js:294:1861)\n    at Object.contribute (http://127.0.0.1:4400/assets/session-BuU95n4C.js:294:1480)\n    at Object.world (http://127.0.0.1:4400/assets/session-BuU95n4C.js:759:12704)\n    at http://127.0.0.1:4400/assets/session-BuU95n4C.js:315:85285\n    at async Object.create (http://127.0.0.1:4400/assets/session-BuU95n4C.js:759:32567)\n    at async Pg.admitRegion (http://127.0.0.1:4400/assets/session-BuU95n4C.js:315:40227)\nRELOAD",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+        "duration": 0.3000001907348633
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/land-hard-1-2ce640be.m4a",
+        "duration": 0.3000001907348633
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/splash-3-9509efbe.m4a",
+        "duration": 0.19999980926513672
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/splash-2-03ab63ae.m4a",
+        "duration": 0.09999990463256836
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+        "duration": 0.09999990463256836
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/wadeStep-2-402e850a.m4a",
+        "duration": 0.09999990463256836
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+        "duration": 0.20000028610229492
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+        "duration": 0.20000028610229492
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/dive-1-4b978224.m4a",
+        "duration": 0.2999997138977051
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/dive-3-e74abc72.m4a",
+        "duration": 0.19999980926513672
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/surface-3-85550528.m4a",
+        "duration": 0.40000009536743164
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+        "duration": 0.3000001907348633
+      },
+      {
+        "name": "http://127.0.0.1:4400/fonts/rajdhani-600-latin.woff2",
+        "duration": 0.6999998092651367
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+        "duration": 0.19999980926513672
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/kill-3-5f7ea225.m4a",
+        "duration": 0.09999990463256836
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/baked/sunscar-dunes/terrain.bin?v=2565ac9a",
+        "duration": 3
+      },
+      {
+        "name": "http://127.0.0.1:4400/shardfiles/pine-hollow/shard.json",
+        "duration": 1.8000001907348633
+      },
+      {
+        "name": "http://127.0.0.1:4400/shardfiles/_template/shard.json",
+        "duration": 3.8000001907348633
+      },
+      {
+        "name": "http://127.0.0.1:4400/shardfiles/driftwood-isle/shard.json",
+        "duration": 2
+      },
+      {
+        "name": "http://127.0.0.1:4400/assets/sfx/best/kill-2-5e4acc1b.m4a",
+        "duration": 0.2999997138977051
+      }
+    ]
+  },
+  "closed": true
+}

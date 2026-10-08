@@ -1,0 +1,1735 @@
+{
+  "pin": "1d2f2abdc32c3bbee8fe88558a1e8030c954ba57",
+  "build": "1d2f2ab-muz1gxuf",
+  "closed": true,
+  "pageErrors": [],
+  "visualProof": "not green: ocean shader uToonNight/uFogZenith compile errors routed to coordinator",
+  "poses": [
+    {
+      "pose": "home-settled",
+      "playingBytes": 905225583,
+      "marginBytes": 94774417,
+      "accountedBytes": 473176200,
+      "residents": [
+        "driftwood-isle"
+      ],
+      "runtimeBytes": 341781982,
+      "platformRenderBytes": 105889574,
+      "farBytes": 9600000,
+      "productBytes": 9160452,
+      "claims": [
+        {
+          "id": "platform:render:cell-screens",
+          "category": "l0",
+          "bytes": 280,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-0",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-1",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-2",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:grid.open-plots",
+          "category": "l0",
+          "bytes": 33785172,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.asphalt",
+          "category": "l0",
+          "bytes": 2845264,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.curtain",
+          "category": "l0",
+          "bytes": 33120,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.deck",
+          "category": "l0",
+          "bytes": 22512656,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.junctions",
+          "category": "l0",
+          "bytes": 5629880,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.signs",
+          "category": "l0",
+          "bytes": 22732832,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.void",
+          "category": "l0",
+          "bytes": 288,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:_template",
+          "category": "product",
+          "bytes": 7417076,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:driftwood-isle",
+          "category": "product",
+          "bytes": 388564,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:driftwood-isle",
+          "category": "product",
+          "bytes": 117944,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:far-reach",
+          "category": "product",
+          "bytes": 117640,
+          "owner": "far-reach",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:nalati-grasslands",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:pine-hollow",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:sunscar-dunes",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "sunscar-dunes",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:template-2",
+          "category": "product",
+          "bytes": 118104,
+          "owner": "template-2",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:nalati-grasslands",
+          "category": "product",
+          "bytes": 297152,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:pine-hollow",
+          "category": "product",
+          "bytes": 351004,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:driftwood-isle:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:far-reach:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "far-reach",
+          "distance": 111.00000018648768,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:nalati-grasslands:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "nalati-grasslands",
+          "distance": 305.00000000718467,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:pine-hollow:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "pine-hollow",
+          "distance": 498.9999998135123,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:sunscar-dunes:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "sunscar-dunes",
+          "distance": 304.99999999281533,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "template-2",
+          "distance": 584.8298896416529,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "sim:driftwood-isle",
+          "category": "sim",
+          "bytes": 341781982,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ]
+    },
+    {
+      "pose": "pine-hollow-entry",
+      "playingBytes": 1082189967,
+      "marginBytes": -82189967,
+      "accountedBytes": 632603573,
+      "residents": [
+        "pine-hollow"
+      ],
+      "runtimeBytes": 500839395,
+      "platformRenderBytes": 105889574,
+      "farBytes": 9600000,
+      "productBytes": 9160452,
+      "claims": [
+        {
+          "id": "platform:render:cell-screens",
+          "category": "l0",
+          "bytes": 280,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-0",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-1",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-2",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:grid.open-plots",
+          "category": "l0",
+          "bytes": 33785172,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.asphalt",
+          "category": "l0",
+          "bytes": 2845264,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.curtain",
+          "category": "l0",
+          "bytes": 33120,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.deck",
+          "category": "l0",
+          "bytes": 22512656,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.junctions",
+          "category": "l0",
+          "bytes": 5629880,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.signs",
+          "category": "l0",
+          "bytes": 22732832,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.void",
+          "category": "l0",
+          "bytes": 288,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:_template",
+          "category": "product",
+          "bytes": 7417076,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:driftwood-isle",
+          "category": "product",
+          "bytes": 388564,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:driftwood-isle",
+          "category": "product",
+          "bytes": 117944,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:far-reach",
+          "category": "product",
+          "bytes": 117640,
+          "owner": "far-reach",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:nalati-grasslands",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:pine-hollow",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:sunscar-dunes",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "sunscar-dunes",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:template-2",
+          "category": "product",
+          "bytes": 118104,
+          "owner": "template-2",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:nalati-grasslands",
+          "category": "product",
+          "bytes": 297152,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:pine-hollow",
+          "category": "product",
+          "bytes": 351004,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:driftwood-isle:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "driftwood-isle",
+          "distance": 74.02703334760474,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:far-reach:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "far-reach",
+          "distance": 629.0270333476046,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:nalati-grasslands:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "nalati-grasslands",
+          "distance": 313.8573290113814,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:pine-hollow:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:sunscar-dunes:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "sunscar-dunes",
+          "distance": 313.85280048008826,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "template-2",
+          "distance": 305.0023300040692,
+          "needed": true,
+          "refs": 1,
+          "holds": 2
+        },
+        {
+          "id": "render:template-2:l1/0/0",
+          "category": "l1",
+          "bytes": 187132,
+          "owner": "template-2",
+          "distance": 305.0023300040692,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/0/1",
+          "category": "l1",
+          "bytes": 182828,
+          "owner": "template-2",
+          "distance": 322.8880471138888,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "sim:pine-hollow",
+          "category": "sim",
+          "bytes": 500839395,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ]
+    },
+    {
+      "pose": "pine-hollow-centre",
+      "playingBytes": 1075914020,
+      "marginBytes": -75914020,
+      "accountedBytes": 626949567,
+      "residents": [
+        "pine-hollow"
+      ],
+      "runtimeBytes": 500839395,
+      "platformRenderBytes": 99772880,
+      "farBytes": 9600000,
+      "productBytes": 9160452,
+      "claims": [
+        {
+          "id": "platform:render:cell-screens",
+          "category": "l0",
+          "bytes": 280,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-1",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-2",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:grid.open-plots",
+          "category": "l0",
+          "bytes": 33785172,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.asphalt",
+          "category": "l0",
+          "bytes": 2845264,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.curtain",
+          "category": "l0",
+          "bytes": 33120,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.deck",
+          "category": "l0",
+          "bytes": 22512656,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.junctions",
+          "category": "l0",
+          "bytes": 5629880,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.signs",
+          "category": "l0",
+          "bytes": 22732832,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.void",
+          "category": "l0",
+          "bytes": 288,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:_template",
+          "category": "product",
+          "bytes": 7417076,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:driftwood-isle",
+          "category": "product",
+          "bytes": 388564,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:driftwood-isle",
+          "category": "product",
+          "bytes": 117944,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:far-reach",
+          "category": "product",
+          "bytes": 117640,
+          "owner": "far-reach",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:nalati-grasslands",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:pine-hollow",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:sunscar-dunes",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "sunscar-dunes",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:template-2",
+          "category": "product",
+          "bytes": 118104,
+          "owner": "template-2",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:nalati-grasslands",
+          "category": "product",
+          "bytes": 297152,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:pine-hollow",
+          "category": "product",
+          "bytes": 351004,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:driftwood-isle:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "driftwood-isle",
+          "distance": 304.0642913039384,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:far-reach:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "far-reach",
+          "distance": 859.0642913039383,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:nalati-grasslands:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "nalati-grasslands",
+          "distance": 430.1587850599036,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:pine-hollow:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:sunscar-dunes:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "sunscar-dunes",
+          "distance": 431.1898258521809,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "template-2",
+          "distance": 304.27206102112973,
+          "needed": true,
+          "refs": 1,
+          "holds": 4
+        },
+        {
+          "id": "render:template-2:l1/0/0",
+          "category": "l1",
+          "bytes": 187132,
+          "owner": "template-2",
+          "distance": 328.5931154099163,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/0/1",
+          "category": "l1",
+          "bytes": 182828,
+          "owner": "template-2",
+          "distance": 304.27206102112973,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/0/2",
+          "category": "l1",
+          "bytes": 178780,
+          "owner": "template-2",
+          "distance": 304.27349978072357,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/0/3",
+          "category": "l1",
+          "bytes": 283908,
+          "owner": "template-2",
+          "distance": 329.3042511763633,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "sim:pine-hollow",
+          "category": "sim",
+          "bytes": 500839395,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ]
+    },
+    {
+      "pose": "nalati-grasslands-entry",
+      "playingBytes": 1070881445,
+      "marginBytes": -70881445,
+      "accountedBytes": 622415716,
+      "residents": [
+        "nalati-grasslands"
+      ],
+      "runtimeBytes": 489909910,
+      "platformRenderBytes": 105889574,
+      "farBytes": 9600000,
+      "productBytes": 9160452,
+      "claims": [
+        {
+          "id": "platform:render:cell-screens",
+          "category": "l0",
+          "bytes": 280,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-0",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-1",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-2",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:grid.open-plots",
+          "category": "l0",
+          "bytes": 33785172,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.asphalt",
+          "category": "l0",
+          "bytes": 2845264,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.curtain",
+          "category": "l0",
+          "bytes": 33120,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.deck",
+          "category": "l0",
+          "bytes": 22512656,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.junctions",
+          "category": "l0",
+          "bytes": 5629880,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.signs",
+          "category": "l0",
+          "bytes": 22732832,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.void",
+          "category": "l0",
+          "bytes": 288,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:_template",
+          "category": "product",
+          "bytes": 7417076,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:driftwood-isle",
+          "category": "product",
+          "bytes": 388564,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:driftwood-isle",
+          "category": "product",
+          "bytes": 117944,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:far-reach",
+          "category": "product",
+          "bytes": 117640,
+          "owner": "far-reach",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:nalati-grasslands",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:pine-hollow",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:sunscar-dunes",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "sunscar-dunes",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:template-2",
+          "category": "product",
+          "bytes": 118104,
+          "owner": "template-2",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:nalati-grasslands",
+          "category": "product",
+          "bytes": 297152,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:pine-hollow",
+          "category": "product",
+          "bytes": 351004,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:driftwood-isle:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "driftwood-isle",
+          "distance": 74.02610618099766,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:far-reach:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "far-reach",
+          "distance": 313.8684464515522,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:nalati-grasslands:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:pine-hollow:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "pine-hollow",
+          "distance": 313.8412457062684,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:sunscar-dunes:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "sunscar-dunes",
+          "distance": 629.0261061809977,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "template-2",
+          "distance": 304.9860047775012,
+          "needed": true,
+          "refs": 1,
+          "holds": 6
+        },
+        {
+          "id": "render:template-2:l1/0/0",
+          "category": "l1",
+          "bytes": 187132,
+          "owner": "template-2",
+          "distance": 304.9860047775012,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/0/1",
+          "category": "l1",
+          "bytes": 182828,
+          "owner": "template-2",
+          "distance": 429.9860047775012,
+          "needed": false,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/1/0",
+          "category": "l1",
+          "bytes": 175916,
+          "owner": "template-2",
+          "distance": 322.8729305490059,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/1/1",
+          "category": "l1",
+          "bytes": 129524,
+          "owner": "template-2",
+          "distance": 442.8526058133546,
+          "needed": false,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/2/0",
+          "category": "l1",
+          "bytes": 279008,
+          "owner": "template-2",
+          "distance": 382.57731602390356,
+          "needed": false,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/2/1",
+          "category": "l1",
+          "bytes": 157180,
+          "owner": "template-2",
+          "distance": 488.09517917146974,
+          "needed": false,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "sim:nalati-grasslands",
+          "category": "sim",
+          "bytes": 489909910,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ]
+    },
+    {
+      "pose": "nalati-grasslands-centre",
+      "playingBytes": 1064190967,
+      "marginBytes": -64190967,
+      "accountedBytes": 616388258,
+      "residents": [
+        "nalati-grasslands"
+      ],
+      "runtimeBytes": 489909910,
+      "platformRenderBytes": 99772880,
+      "farBytes": 9600000,
+      "productBytes": 9160452,
+      "claims": [
+        {
+          "id": "platform:render:cell-screens",
+          "category": "l0",
+          "bytes": 280,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-0",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:cell-screens.slot-1",
+          "category": "l0",
+          "bytes": 6116694,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:grid.open-plots",
+          "category": "l0",
+          "bytes": 33785172,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.asphalt",
+          "category": "l0",
+          "bytes": 2845264,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.curtain",
+          "category": "l0",
+          "bytes": 33120,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.deck",
+          "category": "l0",
+          "bytes": 22512656,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.junctions",
+          "category": "l0",
+          "bytes": 5629880,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.signs",
+          "category": "l0",
+          "bytes": 22732832,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "platform:render:road.void",
+          "category": "l0",
+          "bytes": 288,
+          "owner": "platform",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:_template",
+          "category": "product",
+          "bytes": 7417076,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:driftwood-isle",
+          "category": "product",
+          "bytes": 388564,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:driftwood-isle",
+          "category": "product",
+          "bytes": 117944,
+          "owner": "driftwood-isle",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:far-reach",
+          "category": "product",
+          "bytes": 117640,
+          "owner": "far-reach",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:nalati-grasslands",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:pine-hollow",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "pine-hollow",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:sunscar-dunes",
+          "category": "product",
+          "bytes": 117656,
+          "owner": "sunscar-dunes",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:edge:template-2",
+          "category": "product",
+          "bytes": 118104,
+          "owner": "template-2",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:nalati-grasslands",
+          "category": "product",
+          "bytes": 297152,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "product:grid:pine-hollow",
+          "category": "product",
+          "bytes": 351004,
+          "owner": "grid",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:driftwood-isle:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "driftwood-isle",
+          "distance": 304.3736178209326,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:far-reach:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "far-reach",
+          "distance": 430.9671578979842,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:nalati-grasslands:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:pine-hollow:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "pine-hollow",
+          "distance": 430.8177451574014,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:sunscar-dunes:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "sunscar-dunes",
+          "distance": 859.3736178209326,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:far",
+          "category": "far",
+          "bytes": 1600000,
+          "owner": "template-2",
+          "distance": 304.8944576687227,
+          "needed": true,
+          "refs": 1,
+          "holds": 7
+        },
+        {
+          "id": "render:template-2:l1/0/0",
+          "category": "l1",
+          "bytes": 187132,
+          "owner": "template-2",
+          "distance": 329.2862388970604,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/0/1",
+          "category": "l1",
+          "bytes": 182828,
+          "owner": "template-2",
+          "distance": 447.52434743168175,
+          "needed": false,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/1/0",
+          "category": "l1",
+          "bytes": 175916,
+          "owner": "template-2",
+          "distance": 304.8944576687227,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/1/1",
+          "category": "l1",
+          "bytes": 129524,
+          "owner": "template-2",
+          "distance": 429.8944576687227,
+          "needed": false,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/2/0",
+          "category": "l1",
+          "bytes": 279008,
+          "owner": "template-2",
+          "distance": 304.89510109501396,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/2/1",
+          "category": "l1",
+          "bytes": 157180,
+          "owner": "template-2",
+          "distance": 429.89491400680635,
+          "needed": false,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "render:template-2:l1/3/0",
+          "category": "l1",
+          "bytes": 89236,
+          "owner": "template-2",
+          "distance": 329.7614565356382,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        },
+        {
+          "id": "sim:nalati-grasslands",
+          "category": "sim",
+          "bytes": 489909910,
+          "owner": "nalati-grasslands",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 1
+        },
+        {
+          "id": "sim:platform.highway",
+          "category": "sim",
+          "bytes": 6744192,
+          "owner": "platform.highway",
+          "distance": 0,
+          "needed": true,
+          "refs": 1,
+          "holds": 0
+        }
+      ]
+    }
+  ],
+  "remainingEnteredLongTasks": [
+    {
+      "milliseconds": 5956,
+      "instance": "pine-hollow"
+    },
+    {
+      "milliseconds": 4104,
+      "instance": "pine-hollow"
+    },
+    {
+      "milliseconds": 2996,
+      "instance": "pine-hollow"
+    },
+    {
+      "milliseconds": 1461,
+      "instance": "nalati-grasslands"
+    },
+    {
+      "milliseconds": 1328,
+      "instance": "pine-hollow"
+    },
+    {
+      "milliseconds": 685,
+      "instance": "nalati-grasslands"
+    },
+    {
+      "milliseconds": 576,
+      "instance": "pine-hollow"
+    }
+  ],
+  "decision": "G226 retirement succeeds; whole-runtime strict admission still refuses. G227 tiles are required; no hidden geometry discount."
+}
