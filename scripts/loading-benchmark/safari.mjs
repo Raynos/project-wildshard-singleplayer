@@ -70,7 +70,9 @@ for (const arm of arms) {
         await connect(arm.base);
       } else {
         // Reuse this exact tab/cache context; opening another tab could attach to the old playing page.
-        try { await inspector.evaluate(`location.replace('/')`); } catch { /* process swap; wait reconnects below */ }
+        await inspector.evaluate(`setTimeout(() => location.replace('/'), 100); true`);
+        await sleep(500);
+        await connect(arm.base);
       }
       await wait(`document.querySelector('.ws-main-select') !== null`, arm.base);
       await gesture(`document.querySelector('.ws-main-select').click()`);
