@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
 import { Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3 } from 'three';
+import { registerSpecies, speciesDef } from '../src/engine/entities/species/registry';
 import { App } from '../src/engine/app/app';
 import { withOwner } from '../src/engine/app/ownership';
 import { Scope } from '../src/engine/app/scope';
@@ -298,4 +299,28 @@ it("swaps its light on the page's one sky on every entry, after the scene bindin
   // held before the region's scene is bound, put back once it is unbound: the page's light is the last thing restored
   expect(events).toEqual(['hold:true', 'restore:true', 'hold:true', 'restore:true']);
   prepared.region.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
+});
+
+
+it('keeps a custom thinker at its legacy cadence after regional async construction and re-entry', async () => {
+  const f = fixture(), original = speciesDef('boar'), think = vi.fn<NonNullable<typeof original.think>>();
+  registerSpecies({ ...original, think });
+  const prepared = await f.foundation(f.request);
+  const view = createRegionalView({ cell: f.request.cell, home: { x: 0, z: 0 }, scene: f.game.rootScene,
+    physics: prepared.region.host.physics, slot: f.app, assets: f.app.assets, allocator: f.allocator,
+    claim: f.claim, scope: f.request.scope, ground: prepared.ground });
+  try {
+    const world = prepared.world(view), { animals } = await prepared.afterKit(f.request.page.context, world);
+    expect(animals.animals).toHaveLength(2);
+    for (let visit = 0; visit < 2; visit++) {
+      const entry = f.scope.child(`thinker.entry.${visit}`); prepared.enter(entry); view.enter(entry);
+      const before = think.mock.calls.length;
+      for (let tick = 0; tick < 60; tick++) animals.update(1 / 60, tick / 60, new Vector3());
+      expect(think.mock.calls.length - before).toBe(20); // Two real actors, ten brain ticks each, full-frame bodies.
+      expect(animals.animals.map(actor => animals.scheduler.brainHz('legacy', actor))).toEqual([10, 10]);
+      entry.dispose();
+    }
+  } finally {
+    registerSpecies(original); prepared.region.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
+  }
 });

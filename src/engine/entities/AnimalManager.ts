@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { canReach } from '../ai/reach';
 import { AggressionDirector } from '../ai/director';
 import { brainPinned, inspectTick } from '../ai/inspect';
-import { TickScheduler, type InterruptReason } from '../app/scheduler';
+import { TickScheduler, type InterruptReason, type TickRate } from '../app/scheduler';
 import { dodgeFx } from '../player/dodge';
 import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
@@ -483,8 +483,7 @@ export class AnimalManager {
     this.pbr = this.factory.render.furRim;
     this.group.name = 'animals';
     // Legacy authored species keep their brain/strike callback until S3.4 / S4.2 migrates it.
-    this.scheduler.configure(app.render?.level.tiers?.[TIER]?.ticks);
-    this.scheduler.rate('legacy', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] });
+    this.configureTicks(app.render?.level.tiers?.[TIER]?.ticks);
     const scope = app.levelScope;
     if (scope) {
       app.combat.registerTargets(scope, () => app.levelScope !== scope ? [] : this.animals.map((animal) =>
@@ -493,6 +492,11 @@ export class AnimalManager {
       app.events.on('weapon.fired', () => { if (app.levelScope === scope) this.interruptTargets('target.attack'); }, scope);
       scope.onDispose(() => { this.scheduler.reset(); });
     }
+  }
+
+  private configureTicks(overrides: Readonly<Record<string, TickRate>> | undefined): void {
+    this.scheduler.configure(overrides);
+    this.scheduler.rate('legacy', { bands: [{ upTo: Infinity, brainHz: 10, body: 'frame' }] });
   }
 
   get alive(): number { let n = 0; for (const a of this.animals) if (a.alive) n++; return n; }
@@ -517,7 +521,7 @@ export class AnimalManager {
       this.group.add(this.blood.group);
     };
     if (frame === undefined) start();
-    else frame.run(app, () => { start(); this.scheduler.configure(frame.terrain.level.tiers?.[TIER]?.ticks); });
+    else frame.run(app, () => { start(); this.configureTicks(frame.terrain.level.tiers?.[TIER]?.ticks); });
     await this.factory.ready;   // Pine Hollow's generated hulls (pineCreatures.ts) before the first herd: a model is made once
     if (frame === undefined) {
       for (const _herd of this.spawnHerds()) await pause();
