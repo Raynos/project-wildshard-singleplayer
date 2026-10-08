@@ -45,7 +45,8 @@ function declaration(layer, module) {
   }
   if (/from\s*['"]n8ao['"]/u.test(text)) {
     declaration('engine', 'types/n8ao');
-    const vendor = relative(resolve(output, '..'), resolve(root, 'src/sdk/dist/types/engine/types/n8ao.d.ts')).replaceAll('\\', '/');
+    // declaration() above generates this packaged output; only src/sdk is a committed input path.
+    const vendor = relative(resolve(output, '..'), resolve(root, 'src/sdk', 'dist', 'types/engine/types/n8ao.d.ts')).replaceAll('\\', '/');
     text = `/// <reference path="${vendor}" />\n${text}`;
   }
   mkdirSync(resolve(output, '..'), { recursive: true }); writeFileSync(output, text);
