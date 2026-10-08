@@ -1,0 +1,157 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "tag": "before",
+  "poses": [
+    {
+      "pose": {
+        "name": "road-nalati-west-face",
+        "x": 277.5,
+        "z": -150,
+        "yaw": 3.141592653589793,
+        "pitch": 0.12
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "road-nalati-face-east",
+        "x": 262,
+        "z": 60,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.1
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "road-pine-approach",
+        "x": 0,
+        "z": 245,
+        "yaw": 3.141592653589793,
+        "pitch": 0.08
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-n",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": 3.141592653589793,
+        "pitch": 0.08
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-e",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.08
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-s",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": 0,
+        "pitch": 0.08
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-w",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": 1.5707963267948966,
+        "pitch": 0.08
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "nalati-entry-road",
+        "x": 312,
+        "z": 0,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.3
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "nalati-inside-east",
+        "x": 470,
+        "z": 0,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.05
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "nalati-inside-north",
+        "x": 520,
+        "z": 40,
+        "yaw": 3.141592653589793,
+        "pitch": 0.02
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "pine-forest",
+        "x": 120,
+        "z": 555,
+        "yaw": 3.141592653589793,
+        "pitch": 0.05
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "open-plot-se-n",
+        "x": 555,
+        "z": -555,
+        "yaw": 3.141592653589793,
+        "pitch": 0.05
+      },
+      "current": null
+    },
+    {
+      "pose": {
+        "name": "open-plot-se-e",
+        "x": 555,
+        "z": -555,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.05
+      },
+      "current": null
+    }
+  ],
+  "glide": null,
+  "errors": [],
+  "version": {
+    "build": "7f55207-muz0xos5",
+    "time": "2026-10-08T04:16:11.838Z"
+  },
+  "hud": {
+    "budget": {
+      "top": 156,
+      "left": 6,
+      "w": 360,
+      "h": 37,
+      "text": "PTSXROADS 91 · 905.2/1000.0 MBDRIFTWOOD ISLE 319TEMPLATE SHARD 2NALATI GRASSLANDS 2PINE HOLLOW 2SIGNAL DUNES 2SKY REACH 2ROAD 105.9GRID 8.5PLATFORM.HIGHWAY 6.75"
+    },
+    "memory": null,
+    "chip": null,
+    "quest": null,
+    "coin": null,
+    "hover": null
+  },
+  "failure": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'x')\n    at eval (eval at evaluate (:311:30), <anonymous>:10:134)\n    at async <anonymous>:337:30\n    at /Users/raynos/projects/games/wildshard-singleplayer/progress/shard-platform/playtest-2/capture.mjs:55:31"
+}

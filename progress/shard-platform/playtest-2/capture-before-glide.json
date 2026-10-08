@@ -1,0 +1,38 @@
+{
+  "base": "http://127.0.0.1:4400",
+  "tag": "before-glide",
+  "poses": [],
+  "glide": {
+    "top": 30,
+    "speedAtRelease": 30,
+    "glideM": 149.7,
+    "seconds": 9.9,
+    "from": {
+      "x": 277.500013693926,
+      "z": -156.25002307033702
+    },
+    "to": {
+      "x": 277.500013693926,
+      "z": -6.500856397520522
+    }
+  },
+  "errors": [],
+  "version": {
+    "build": "7f55207-muz0xos5",
+    "time": "2026-10-08T04:16:11.838Z"
+  },
+  "hud": {
+    "budget": {
+      "top": 156,
+      "left": 6,
+      "w": 360,
+      "h": 37,
+      "text": "PTSXROADS 91 · 905.2/1000.0 MBDRIFTWOOD ISLE 319TEMPLATE SHARD 2NALATI GRASSLANDS 2PINE HOLLOW 2SIGNAL DUNES 2SKY REACH 2ROAD 105.9GRID 8.5PLATFORM.HIGHWAY 6.75"
+    },
+    "memory": null,
+    "chip": null,
+    "quest": null,
+    "coin": null,
+    "hover": null
+  }
+}

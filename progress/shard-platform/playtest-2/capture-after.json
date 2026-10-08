@@ -1,0 +1,143 @@
+{
+  "base": "http://127.0.0.1:4404",
+  "tag": "after",
+  "poses": [
+    {
+      "pose": {
+        "name": "road-nalati-west-face",
+        "x": 277.5,
+        "z": -150,
+        "yaw": 3.141592653589793,
+        "pitch": 0.12
+      },
+      "current": null,
+      "chip": null
+    },
+    {
+      "pose": {
+        "name": "road-nalati-face-east",
+        "x": 262,
+        "z": 60,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.1
+      },
+      "current": null,
+      "chip": null
+    },
+    {
+      "pose": {
+        "name": "road-pine-approach",
+        "x": 0,
+        "z": 245,
+        "yaw": 3.141592653589793,
+        "pitch": 0.08
+      },
+      "current": null,
+      "chip": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-n",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": 3.141592653589793,
+        "pitch": 0.08
+      },
+      "current": null,
+      "chip": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-e",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.08
+      },
+      "current": null,
+      "chip": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-s",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": 0,
+        "pitch": 0.08
+      },
+      "current": null,
+      "chip": null
+    },
+    {
+      "pose": {
+        "name": "se-roundabout-w",
+        "x": 277.5,
+        "z": -277.5,
+        "yaw": 1.5707963267948966,
+        "pitch": 0.08
+      },
+      "current": null,
+      "chip": null
+    },
+    {
+      "pose": {
+        "name": "nalati-entry-road",
+        "x": 312,
+        "z": 0,
+        "yaw": -1.5707963267948966,
+        "pitch": 0.3
+      },
+      "current": null,
+      "chip": {
+        "top": 104,
+        "left": 6,
+        "w": 153,
+        "h": 24
+      }
+    },
+    {
+      "pose": {
+        "name": "open-plot-se-n",
+        "x": 555,
+        "z": -555,
+        "yaw": 3.141592653589793,
+        "pitch": 0.05
+      },
+      "current": null,
+      "chip": null
+    }
+  ],
+  "glide": {
+    "top": 30,
+    "speedAtRelease": 30,
+    "glideM": 68.4,
+    "seconds": 6.4,
+    "from": {
+      "x": 277.50001354709866,
+      "z": -155.25002307033702
+    },
+    "to": {
+      "x": 277.50001354709866,
+      "z": -86.83705196793727
+    }
+  },
+  "errors": [],
+  "version": {
+    "build": "dc6139f-muz18lob",
+    "time": "2026-10-08T04:24:57.388Z"
+  },
+  "hud": {
+    "budget": {
+      "top": 156,
+      "left": 6,
+      "w": 360,
+      "h": 52,
+      "text": "MEMORYALL LOADED 905 / 1000 MB (91%)DRIFTWOOD ISLE 319% OF BUDGETTEMPLATE SHARD 2% OF BUDGETNALATI GRASSLANDS 2% OF BUDGETPINE HOLLOW 2% OF BUDGETSIGNAL DUNES 2"
+    },
+    "memory": null,
+    "chip": null,
+    "quest": null,
+    "coin": null,
+    "hover": null
+  }
+}
