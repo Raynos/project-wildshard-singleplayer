@@ -13692,6 +13692,12 @@
         "from": "@wildshard/game/Boss"
       },
       {
+        "name": "BossPersistence",
+        "kind": "interface",
+        "doc": "Optional typed persistence for a runtime owner; omitted adapters keep the legacy shard slot.",
+        "from": "@wildshard/game/Boss"
+      },
+      {
         "name": "BossPhaseDef",
         "kind": "interface",
         "doc": "Boss — the engine's boss system (docs/design/nalati/elites-and-bosses.md §2 \"The boss system\"; plan NALATI.md row B13).",
@@ -13935,6 +13941,12 @@
         "name": "EliteHost",
         "kind": "interface",
         "doc": "",
+        "from": "@wildshard/game/Elite"
+      },
+      {
+        "name": "ElitePersistence",
+        "kind": "interface",
+        "doc": "Optional typed persistence for runtime-bound lairs; the default remains the legacy shard slot.",
         "from": "@wildshard/game/Elite"
       },
       {

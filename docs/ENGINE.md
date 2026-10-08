@@ -2293,14 +2293,14 @@ Standalone bodies retain their ordinary identities in either mode.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-694 exports, grouped by the module to import them from.
+696 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
 - `@wildshard/game/bag/itemCatalog`: `isItemId`, `ITEMS`, `registerItemRow`
 - `@wildshard/game/bag/items`: `ItemRow`, `normalizeItemRow`, `RegisteredItemRow`
 - `@wildshard/game/bag/tabs`: `BagIcons`, `BagLoot`, `bagMenu`, `BagMenu`, `BagMenuOptions`
-- `@wildshard/game/Boss`: `Boss`, `BossDef`, `BossHost`, `BossPhaseDef`, `BossReward`
+- `@wildshard/game/Boss`: `Boss`, `BossDef`, `BossHost`, `BossPersistence`, `BossPhaseDef`, `BossReward`
 - `@wildshard/game/compendium/install`: `CompendiumHost`, `CompendiumWallPort`, `installCompendium`
 - `@wildshard/game/compendium/Journal`: `Journal`, `loadHandFont`, `silhouetteOf`
 - `@wildshard/game/compendium/state`: `COMPENDIUM_STORE`, `CompendiumState`
@@ -2308,7 +2308,7 @@ Standalone bodies retain their ordinary identities in either mode.
 - `@wildshard/game/complete/ShardComplete`: `completeEntry`, `CompleteEntry`, `CompleteHandlers`, `CompleteStat`, `setCompleteEntry`, `ShardComplete`, `ShardCompleteData`, `shardCompleteUp`
 - `@wildshard/game/cosmetics/bodyShadow`: `BodyHost`, `BodyPlayer`, `BodyShadow`, `installBodyShadow`
 - `@wildshard/game/cosmetics/locker`: `CosmeticDef`, `CosmeticProfile`, `CosmeticsLocker`, `CosmeticState`, `SkinLocker`
-- `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
+- `@wildshard/game/Elite`: `EliteDef`, `EliteHost`, `ElitePersistence`, `EliteRule`, `Elites`, `EliteScript`, `GroundTell`, `GroundTellWedgeStyle`
 - `@wildshard/game/grid/assembly`: `EmptyNeighbour`, `GridAssembly`, `GridCell`, `GridPlot`, `GridPoint`, `GridSide`
 - `@wildshard/game/grid/catalogue`: `CopyIdentity`, `GridCatalogue`, `GridCatalogueSchema`, `GridMode`, `GridPlacement`, `GridPlotPlacement`, `parseGridCatalogue`
 - `@wildshard/game/grid/crossing`: `GridCheckpointResult`, `GridCrossing`, `GridCrossingDriver`, `GridCrossingPorts`, `GridCrossingSession`, `GridCrossingState`, `installGridCrossing`, `PreparedGridCrossing`

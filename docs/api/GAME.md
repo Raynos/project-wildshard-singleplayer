@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-694 members; 112 without a doc line (—).
+696 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -34,6 +34,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `Boss` | class | @wildshard/game/Boss | Scene, reward and persistence adapter around the pure encounter clock. |
 | `BossDef` | interface | @wildshard/game/Boss | a boss's row: its id (saved), name and title, phases, retry card, reward and intro lengths |
 | `BossHost` | interface | @wildshard/game/Boss | — |
+| `BossPersistence` | interface | @wildshard/game/Boss | Optional typed persistence for a runtime owner; omitted adapters keep the legacy shard slot. |
 | `BossPhaseDef` | interface | @wildshard/game/Boss | Boss — the engine's boss system (docs/design/nalati/elites-and-bosses.md §2 "The boss system"; plan NALATI.md row B13). |
 | `BossReward` | interface | @wildshard/game/Boss | — |
 | `CompendiumHost` | interface | @wildshard/game/compendium/install | — |
@@ -75,6 +76,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `SkinLocker` | class | @wildshard/game/cosmetics/locker | Weapon-material profile, with the original shard-scoped save and manual wear policy. |
 | `EliteDef` | interface | @wildshard/game/Elite | — |
 | `EliteHost` | interface | @wildshard/game/Elite | — |
+| `ElitePersistence` | interface | @wildshard/game/Elite | Optional typed persistence for runtime-bound lairs; the default remains the legacy shard slot. |
 | `EliteRule` | type | @wildshard/game/Elite | Elite — the engine's NAMED ELITE system (docs/design/nalati/elites-and-bosses.md §1; plan NALATI.md row B12). "Elites |
 | `Elites` | class | @wildshard/game/Elite | — |
 | `EliteScript` | interface | @wildshard/game/Elite | — |
