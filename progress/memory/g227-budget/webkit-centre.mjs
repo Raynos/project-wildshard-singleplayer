@@ -39,12 +39,15 @@ try {
   if (!impl?.delegate) throw new Error('Playwright local WebKit delegate unavailable');
   const send = (method, params) => impl.delegate._session.send(method, params);
   report.stage = 'local-protocol'; save();
-  await page.goto(new URL('?touch=1&tier=phone&mute=1', base).href);
+  // A query-bearing URL is a selected-shard boot in bootRoute; the plain title is required for the real grid tap.
+  // Phone controls/tier and silence are seeded in settings, not selected through a boot URL.
+  await page.goto(base);
   const probe = await send('Runtime.evaluate', { expression: '1+1', returnByValue: true });
   if (probe.result.value !== 2) throw new Error('Local WebKit protocol probe failed');
   report.stage = 'grid-entry'; save();
   await page.locator('.ws-main-grid').waitFor({ timeout: 180000 });
   await page.locator('.ws-main-grid').click();
+  report.stage = 'grid-load'; save();
   await page.waitForFunction(() => !document.querySelector('.ws-load') && Boolean(window.__wildshard?.shard?.grid?.state().live?.live), undefined, { timeout: 240000 });
   await page.evaluate(() => window.__wildshard.world.hud.enterNow());
   await page.waitForFunction(() => window.__wsReveal?.endedMs != null, undefined, { timeout: 45000 });
