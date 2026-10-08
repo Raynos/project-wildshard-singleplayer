@@ -47,12 +47,14 @@ describe('level unload keeps the engine usable', () => {
     expect(physics.world.bodies.len()).toBe(1); expect(physics.world.colliders.len()).toBe(1);
     expect(scene.children).toEqual([rig]); expect(freed).toHaveBeenCalledOnce(); expect(dispose).not.toHaveBeenCalled();
     expect(quadDispose).not.toHaveBeenCalled(); expect(assets.isAcquired(quadGeometry)).toBe(true);
+    expect(assets.acquiredResources()).toContain(quadGeometry);
     for (const system of app.systemsByPhase().update) system.run(1 / 60, 0);
     expect(render).toHaveBeenCalledOnce(); expect(levelFrame).not.toHaveBeenCalled();
     const next = new Scope('next'); app.addSystem({ id: 'level.frame', phase: 'update', run: levelFrame }, next);
     for (const system of app.systemsByPhase().update) system.run(1 / 60, 0);
     expect(levelFrame).toHaveBeenCalledOnce();
     next.dispose(); app.engineScope.dispose(); enterOwner(null); physics.dispose();
+    expect(quadDispose).toHaveBeenCalledOnce(); expect(assets.acquiredResources()).toEqual([]);
   });
 
   it('disposes explicit listeners, pending timers and nodes while retaining engine registrations and native methods', async () => {

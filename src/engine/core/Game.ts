@@ -180,7 +180,7 @@ export class Game {
     const live = this.uploads.resources();
     const textures = new Set<unknown>(), programs = new Set<unknown>();
     let geometries = 0;
-    for (const resource of this.app.assets.retainedResources()) {
+    for (const resource of new Set([...this.app.assets.retainedResources(), ...this.app.assets.acquiredResources()])) {
       if (resource instanceof THREE.BufferGeometry && live.has(resource)) geometries++;
       const value: unknown = this.renderer.properties.get(resource);
       if (typeof value !== 'object' || value === null) continue;
@@ -196,7 +196,7 @@ export class Game {
     return { geometries, textures: textures.size, programs: programs.size };
   }
   gpuResourceDiagnostics(): object {
-    const retained = new Set<object>(this.app.assets.retainedResources());
+    const retained = new Set<object>([...this.app.assets.retainedResources(), ...this.app.assets.acquiredResources()]);
     const live = this.uploads.resources();
     const read = (value: unknown, key: string): unknown => typeof value === 'object' && value !== null ? Reflect.get(value, key) : undefined;
     return { total: { ...this.renderer.info.memory, programs: this.renderer.info.programs?.length ?? 0 },

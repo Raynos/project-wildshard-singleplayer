@@ -55,6 +55,8 @@ export class AssetService<T extends Disposable3 = Disposable3> {
     return [...this.entries].map(([key, entry]) => ({ key, refs: entry.refs, retained: entry.retained }));
   }
   retainedResources(): readonly T[] { return [...this.entries.values()].filter((entry) => entry.retained).map((entry) => entry.resource); }
+  /** Objects still held by explicit consumers, including renderer-lifetime acquisitions without cache retention. */
+  acquiredResources(): readonly T[] { return [...this.entries.values()].filter(entry => entry.refs > 0).map(entry => entry.resource); }
   /** Budget owners may retire a module cache only after all explicit consumers release it. Disposal events invalidate
    * module memos before another admission can reuse their GPU resources; ordinary retained engine assets are excluded. */
   evictCached(key: string): boolean {
