@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This lifecycle fixture uses the production native Rapier binary.
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it, vi } from 'vitest';
-import { Group, Scene, Vector3 } from 'three';
+import { BoxGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Group, Scene, Vector3 } from 'three';
 import { App } from '../src/engine/app/app';
 import { withOwner } from '../src/engine/app/ownership';
 import { createLevelInstallation } from '../src/engine/level/installation';
@@ -48,7 +48,7 @@ function fixture(continuation?: RegionalRuntimeFactoryPorts['continuation']) {
   // the native destination, registry, equipment, saves, scopes and entered systems below are real implementations.
   const candidate: unknown = Object.create(Game.prototype);
   if (!(candidate instanceof Game)) throw new Error('Invalid fixture Game prototype');
-  for (const [key, value] of Object.entries({ _composer: null, rootScene: scene, sceneFrames: [], renderer: {}, levelScope: scope })) Reflect.defineProperty(candidate, key, { value, writable: true });
+  for (const [key, value] of Object.entries({ _composer: null, camera: new PerspectiveCamera(), rootScene: scene, sceneFrames: [], renderer: {}, levelScope: scope })) Reflect.defineProperty(candidate, key, { value, writable: true });
   const game = candidate;
   const player = { position: new Vector3() } as Player;
   const world = { game, player, physics: home, registry: homeRegistry, chunk: PINE_HOLLOW } as ShardWorld;
@@ -104,6 +104,7 @@ it('requires a real foundation and exact whole-runtime lease before constructing
 it('composes two retained entries with real equipment, instance saves, destination colliders and refusal-preserving checkpoints', async () => {
   const f = fixture(), before = Object.getOwnPropertyDescriptors(f.runtime);
   const prepared = await f.regional(f.request), root = f.world.game.scene.children[0];
+  const handGeometry = new BoxGeometry(), handMaterial = new MeshBasicMaterial(), handDispose = vi.spyOn(handGeometry, 'dispose');
   const fire = vi.fn(noop); f.equipment.service.onFire = fire;
   let builds = 0, ticks = 0, local: ShardPlayHost | null = null;
   class Runtime extends ShardPlugin {
@@ -116,7 +117,11 @@ it('composes two retained entries with real equipment, instance saves, destinati
       f.calls.push('trusted.kit');
       ctx.rows.spawnTable({ id: 'regional.spawn', table: { mode: 'each', rows: [{ item: { kind: 'boar' }, weight: 1 }] } });
       const rt = ctx.game.runtime; if (rt === undefined) throw new Error('Missing local runtime');
-      rt.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), rifle: null, secondary: null });
+      rt.buildEquipment = () => {
+        const primary = new EmptyEquipment(); primary.model.add(new Mesh(handGeometry, handMaterial));
+        f.world.game.camera.add(primary.model);
+        return Promise.resolve({ primary, rifle: null, secondary: null });
+      };
     }
     override play(ctx: ShardContext): void {
       f.calls.push('trusted.play');
@@ -150,7 +155,7 @@ it('composes two retained entries with real equipment, instance saves, destinati
       expect(f.app.systemsByPhase().update.map(system => system.id)).toContain('grid.runtime.pine-hollow.animals');
       for (const system of f.app.systemsByPhase().update) system.run(1 / 60, visit);
       expect(f.herd.mock.calls.length).toBe(seen + 1);
-      prepared.loadout.stow(); session.leave();
+      prepared.loadout.stow(); session.leave(); expect(handDispose).not.toHaveBeenCalled();
       expect(f.equipment.service.current).toBe(f.road.current);
       expect(root?.visible).toBe(false); expect(f.app.registry).toBe(f.homeRegistry);
       expect(Object.getOwnPropertyDescriptors(f.runtime)).toEqual(before);
@@ -165,6 +170,7 @@ it('composes two retained entries with real equipment, instance saves, destinati
     expect(progress).toHaveBeenCalledOnce(); expect(inventory).toHaveBeenCalledOnce(); expect(f.nativeCheckpoints()).toBe(saved + 1);
     progress.mockRestore(); inventory.mockRestore(); f.refuse(); expect(prepared.checkpoint()).toBe(false);
   } finally { prepared.region.dispose(); f.scope.dispose(); f.home.dispose(); f.claim.release(); }
+  expect(handDispose).toHaveBeenCalledOnce();
   expect(f.destroyed()).toBe(true); expect(f.world.game.scene.children).toHaveLength(0);
   expect(f.homeRegistry.pieces).toHaveLength(0); expect(f.allocator.entries()).toEqual([]);
   expect(Object.getOwnPropertyDescriptors(f.runtime)).toEqual(before);

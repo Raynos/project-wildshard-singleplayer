@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
-import { BatchedMesh, BoxGeometry, Group, MeshBasicMaterial, Scene, Texture, PerspectiveCamera, WebGLRenderTarget, type WebGLRenderer } from 'three';
+import { BatchedMesh, BoxGeometry, Group, MeshBasicMaterial, Scene, Texture, DataTexture, PerspectiveCamera, WebGLRenderTarget, type WebGLRenderer } from 'three';
 import { app } from '../../src/engine/app/runtime';
 import { AssetService } from '../../src/engine/app/assets';
 import { SceneOwnership, ownSceneTree } from '../../src/engine/app/sceneOwnership';
@@ -78,4 +78,24 @@ it('retires detached uniform uploads with each drawn resident, keeping shared ac
   }
   page.dispose(); expect(sharedDispose).not.toHaveBeenCalled();
   assets.release('shared'); expect(sharedDispose).toHaveBeenCalledOnce(); expect(uploads.resources().size).toBe(0);
+});
+
+it('adopts a reused CPU-backed sampler again after its prior scene owner has retired', () => {
+  const page = new Scope('page'), assets = new AssetService(), uploads = new UploadOwnership(page, assets);
+  const scene = new Scene(), camera = new PerspectiveCamera(), map = new DataTexture(new Uint8Array(4), 1, 1);
+  const disposed = vi.spyOn(map, 'dispose');
+  const renderer = legacyDouble<WebGLRenderer>({
+    properties: legacyDouble<WebGLRenderer['properties']>({ get: () => ({}) }),
+    renderBufferDirect: () => { renderer.properties.get(map); },
+  });
+  uploads.attach(renderer);
+  for (let visit = 0; visit < 3; visit++) {
+    const resident = page.child(`resident:${visit}`), root = new Group(); scene.add(root); ownSceneTree(root, resident, assets);
+    const material = new MeshBasicMaterial(), batch = new BatchedMesh(1, 24, 36, material), geometry = new BoxGeometry();
+    batch.addInstance(batch.addGeometry(geometry)); geometry.dispose(); root.add(batch);
+    renderer.renderBufferDirect(camera, scene, batch.geometry, material, batch, { start: 0, count: 36, materialIndex: 0 });
+    expect(resident.census.textures).toBe(1);
+    resident.dispose(); expect(disposed).toHaveBeenCalledTimes(visit + 1); expect(uploads.resources().size).toBe(0);
+  }
+  page.dispose(); expect(disposed).toHaveBeenCalledTimes(3);
 });

@@ -44,7 +44,8 @@ export function sceneObjectOwner(node: Object3D): Scope | null {
 
 /** Adopt an otherwise unowned resource. Existing owners (including batch-private allocations) stay authoritative. */
 export function ownSceneResource(resource: Disposable3, scope: Scope): void {
-  if (resourceOwners.has(resource)) return;
+  const owner = resourceOwners.get(resource);
+  if (owner !== undefined && !owner.disposed) return;
   markResourceOwner(resource, scope); scope.own(resource);
 }
 

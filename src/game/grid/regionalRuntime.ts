@@ -1,3 +1,5 @@
+import { Object3D } from 'three';
+import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
@@ -25,6 +27,8 @@ import { Inventory } from '../Inventory';
 import { Owned } from '../loot/Owned';
 import type { EnteredEquipment } from './enteredEquipment';
 import { SkinLocker } from '../cosmetics/locker';
+
+function isSceneNode(value: unknown): value is Object3D { return value instanceof Object3D; }
 
 function sameMeasurement(a: RuntimeCost, b: RuntimeCost): boolean {
   return (['webContentMB', 'glMB', 'engineBaseMB', 'rev', 'device', 'evidence'] as const).every(key => a[key] === b[key]);
@@ -209,6 +213,11 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               if (left()) {
                 for (const weapon of [kit.primary, kit.rifle, kit.secondary, ...(kit.extras ?? [])]) weapon?.dispose();
                 throw new Error('Regional runtime left while building equipment');
+              }
+              // Kit models live under the shared camera, outside the regional scene subtree.
+              // Their resident remains the sole GPU owner even while weapon.install detaches them on retirement.
+              for (const weapon of new Set([kit.primary, kit.rifle, kit.secondary, ...(kit.extras ?? [])])) {
+                if (weapon !== null && isSceneNode(weapon.model)) ownSceneTree(weapon.model, owner, app.assets);
               }
               withOwner(owner, () => {
                 const weapons = new EquipmentService(kit.primary, { scope: owner, events: app.events,
