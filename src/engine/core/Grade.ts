@@ -74,4 +74,11 @@ export class GradeEffect extends Effect {
     if (opts.gain) u.gain.value.fromArray(opts.gain);
     if (opts.gamma !== undefined) u.gamma.value = opts.gamma;
   }
+
+  /** Hold the grade `set` writes (split tone, lift, gain, gamma); the returned function puts it back. */
+  hold(): () => void {
+    const { u } = this, gamma = u.gamma.value;
+    const vectors = [u.shadowTint, u.highTint, u.lift, u.gain].map((uniform) => [uniform, uniform.value.clone()] as const);
+    return () => { for (const [uniform, value] of vectors) uniform.value.copy(value); u.gamma.value = gamma; };
+  }
 }

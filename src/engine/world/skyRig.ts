@@ -333,5 +333,41 @@ export class SkyRig {
     this.giantUniforms.uOpacity.value = opacity;
   }
 
+  /**
+   * Hold everything a day clock or a level's own light rig writes on this sky (SHARD-PLATFORM G223: a grid region's runtime
+   * lights the page's one sky while it is entered, and must leave it as it found it). The returned function puts back:
+   * the key light (`sunDir`, `sunColor`, each cascade light's colour and intensity, the shadow direction and where the
+   * stepped shadow wants to go), the cascades' shadow map size (a changed map is freed and redrawn at the held size), the
+   * hemisphere fill, the sun disc (shown, scale, colour) and its halo (scale, opacity), and the cloud and planet lighting.
+   * The fog's in-scatter direction `setKeyLight` also writes is `fogUniforms` (the caller holds that set).
+   */
+  holdLight(): () => void {
+    const csm = this.csm, cloud = this.cloudUniforms, giant = this.giantUniforms, hemi = this.hemi;
+    const sunDir = this.sunDir.clone(), sunColor = this.sunColor.clone(), want = this.keyShadowWant?.clone() ?? null;
+    const lightDirection = csm.lightDirection.clone(), mapSize = csm.shadowMapSize;
+    const lights = csm.lights.map((l) => ({ l, color: l.color.clone(), intensity: l.intensity, size: l.shadow.mapSize.clone() }));
+    const fill = { sky: hemi.color.clone(), ground: hemi.groundColor.clone(), intensity: hemi.intensity };
+    const disc = this.sunDisc, discMaterial = disc.material instanceof THREE.MeshBasicMaterial ? disc.material : null;
+    const shown = disc.visible, discScale = disc.scale.clone(), discColor = discMaterial?.color.clone() ?? null;
+    const halo = this.visual.sunHalo, haloScale = halo?.scale.clone() ?? null, haloOpacity = halo?.material.opacity ?? 1;
+    const clouds = { dir: cloud.uSunDir.value.clone(), sun: cloud.uSunColor.value.clone(), light: cloud.uLight.value.clone() };
+    const planet = { dir: giant.uSunDir.value.clone(), light: giant.uLight.value.clone(), opacity: giant.uOpacity.value };
+    return () => {
+      this.sunDir.copy(sunDir); this.sunColor.copy(sunColor);
+      this.keyShadowWant = want === null ? null : (this.keyShadowWant ?? new THREE.Vector3()).copy(want);
+      csm.lightDirection.copy(lightDirection); csm.shadowMapSize = mapSize;
+      for (const { l, color, intensity, size } of lights) {
+        l.color.copy(color); l.intensity = intensity;
+        if (!l.shadow.mapSize.equals(size)) { l.shadow.mapSize.copy(size); l.shadow.map?.dispose(); l.shadow.map = null; }
+      }
+      hemi.color.copy(fill.sky); hemi.groundColor.copy(fill.ground); hemi.intensity = fill.intensity;
+      disc.visible = shown; disc.scale.copy(discScale);
+      if (discMaterial !== null && discColor !== null) discMaterial.color.copy(discColor);
+      if (halo !== null && haloScale !== null) { halo.scale.copy(haloScale); halo.material.opacity = haloOpacity; }
+      cloud.uSunDir.value.copy(clouds.dir); cloud.uSunColor.value.copy(clouds.sun); cloud.uLight.value.copy(clouds.light);
+      giant.uSunDir.value.copy(planet.dir); giant.uLight.value.copy(planet.light); giant.uOpacity.value = planet.opacity;
+    };
+  }
+
 
 }

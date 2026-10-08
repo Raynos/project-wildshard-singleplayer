@@ -184,3 +184,18 @@ it("contributes its own fog object and its level's grade to the one grid frame w
   expect(live[0]?.released).toBe(true);
   f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
 });
+
+it("swaps its light on the page's one sky on every entry, after the scene binding goes back on leave (G223)", async () => {
+  const f = fixture(), events: string[] = [];
+  const light = (entry: Scope): void => { events.push(`hold:${String(f.game.scene === f.game.rootScene)}`); entry.onDispose(() => { events.push(`restore:${String(f.game.scene === f.game.rootScene)}`); }); };
+  const scope = f.scope.child('grid.runtime:pine-hollow');
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => f.region, terrain: drawnGround, pause: () => Promise.resolve(), checkpoint: () => true, look: null, light });
+  const prepared = await foundation({ ...f.request, scope });
+  const view = createRegionalView({ cell: f.request.cell, home: { x: 0, z: 0 }, scene: f.game.rootScene, physics: prepared.region.host.physics, slot: f.app,
+    assets: f.app.assets, allocator: f.allocator, claim: f.claim, scope, ground: prepared.ground });
+  prepared.world(view);
+  for (const name of ['entered:1', 'entered:2']) { const entry = new Scope(name); prepared.enter(entry); entry.dispose(); }
+  // held before the region's scene is bound, put back once it is unbound: the page's light is the last thing restored
+  expect(events).toEqual(['hold:true', 'restore:true', 'hold:true', 'restore:true']);
+  prepared.region.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
+});

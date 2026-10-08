@@ -17,6 +17,8 @@
  * - its part in the one grid frame (`frameLook.ts`): its scene's own fog object (which its runtime's weather writes) and
  *   its level's grade, contributed to the page's frame while resident, so its air and grade own the frame inside its cell
  *   and blend across the edge band; it builds no sky dome or sun of its own.
+ * - its light on the page's one sky (`regionLight.ts`, G223): whatever its runtime lights (the key light, fill, sun disc,
+ *   shadow maps, painterly / fog uniforms, volumetric light, engine grade) is held on each entry and put back on leave.
  *
  * Leave: the frame, scene binding and forest LOD system end with the entered scope, and the view hides its root. Dispose
  * (the resident scope): the host's Physics frees every body and collider, the subtree leaves the page scene and frees the
@@ -35,6 +37,7 @@ import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain } from '@wildshard/engine/physics/terrain';
 import { applySkin, type SkinDef } from '@wildshard/engine/player/Skins';
 import { createSimHost, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import { SkyRig } from '@wildshard/engine/world/skyRig';
 import { Terrain } from '@wildshard/engine/world/Terrain';
 import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
@@ -45,6 +48,7 @@ import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
 import { frameLookOf, regionGrade, type FrameLookPort } from './frameLook';
+import { holdPageLight, regionLightSwap } from './regionLight';
 
 /** Page-root ports; every default is the standalone behaviour, the live session supplies the cell's own installs. */
 export interface RegionalWorldPorts {
@@ -65,6 +69,11 @@ export interface RegionalWorldPorts {
   readonly terrain?: (level: LevelSpec, scope: Scope, binding: LevelFrameBinding['terrain']) => Promise<Terrain>;
   /** The one grid frame's live-region port (default: the frame bound to the page's root scene; null: none). */
   readonly look?: FrameLookPort | null;
+  /**
+   * The region's light swap on the page's one sky (`regionLight.ts`, G223), installed on each entry: default, the page's
+   * whole shared light held on entry and put back on leave when the page sky is a real rig; null: none.
+   */
+  readonly light?: ((entry: Scope) => void) | null;
 }
 /**
  * A region's drawn ground as its own level paints it standalone: the painter its look declares (`LookStrategy.terrainPainter`),
@@ -128,6 +137,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       terrain.applyCanopy(forest.canopyMap);
       const ground = { heightAt: (x: number, z: number): number => field().heightAt(x, z), waterSurfaceAt: (x: number, z: number): number | null => water.restAt(x, z) };
       let world: ShardWorld | null = null;
+      // its light on the page's one sky: held on each entry, put back on leave (G223)
+      const light = ports.light !== undefined ? ports.light : sky instanceof SkyRig ? regionLightSwap(() => holdPageLight({ sky, game })) : null;
       const foundation: RegionalRuntimeFoundation = {
         region: { host, dispose: () => { resident.dispose(); } },
         ground,
@@ -147,6 +158,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
         },
         enter: entry => {
           if (resident.disposed || entry.disposed) throw new Error('Regional world requires a live resident and entry');
+          light?.(entry); // first, so the page's light goes back last, after everything the entry installed has left
           frame.enter(app, entry);
           const leaveScene = game.bindScene(scene, entry); bound++;
           entry.onDispose(() => { leaveScene(); bound--; });

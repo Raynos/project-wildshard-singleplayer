@@ -167,6 +167,17 @@ export class VolumetricsEffect extends Effect {
     u.uHeight.value = m.height; u.uFalloff.value = m.falloff; u.uDensity.value = m.density; u.uStrength.value = m.strength;
   }
 
+  /** Hold what `setSun`, `setFogColor`, `setStrength` and `setMedium` write; the returned function puts it back. */
+  holdLight(): () => void {
+    const u = this.marchUniforms;
+    const dir = u.uSunDir.value.clone(), sun = u.uSunColor.value.clone(), fog = u.uFogColor.value.clone();
+    const height = u.uHeight.value, falloff = u.uFalloff.value, density = u.uDensity.value, strength = u.uStrength.value;
+    return () => {
+      u.uSunDir.value.copy(dir); u.uSunColor.value.copy(sun); u.uFogColor.value.copy(fog);
+      u.uHeight.value = height; u.uFalloff.value = falloff; u.uDensity.value = density; u.uStrength.value = strength;
+    };
+  }
+
   override setDepthTexture(depthTexture: Texture, depthPacking: DepthPackingStrategies = BasicDepthPacking): void {
     if (!this.marchMat) return;
     this.depthU.value = depthTexture;
