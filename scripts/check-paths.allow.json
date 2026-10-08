@@ -1168,5 +1168,25 @@
     "path": "src/engine/world/interact/models.ts",
     "file": "scripts/decide/layer-purity-pilot.mjs",
     "why": "E405 LP6: a historical path the Clef pilot reads from git (git show <commit>^:path), the engine file before E417 moved the props to src/kit/props/interact.ts; it no longer exists by design."
+  },
+  {
+    "path": "src/kit/weapons/firearm/Rifle.ts",
+    "file": "scripts/shard-coupling.mjs",
+    "why": "E435 SF54 / G140 immutable transfer provenance: the deleted kit source must remain absent; the coupling guard refuses a surviving copy and checks the relocated runtime/weapons/Rifle.ts class. This is a historical identifier, never a module or asset read."
+  },
+  {
+    "path": "src/shards/nalati-grasslands/weapons/Rifle.ts",
+    "file": "scripts/shard-coupling.mjs",
+    "why": "E435 SF54 / G140 immutable bootstrap identity for the reviewed Rifle transfer; its current destination is src/shards/nalati-grasslands/runtime/weapons/Rifle.ts. Historical keys cannot change or grow under the shrink-only comparator."
+  },
+  {
+    "path": "src/kit/weapons/crossbow/Crossbow.ts",
+    "file": "scripts/shard-coupling.mjs",
+    "why": "E435 SF54 / G140 immutable transfer provenance: the deleted kit source must remain absent; the coupling guard refuses a surviving copy and checks the relocated runtime/weapons/crossbow/Crossbow.ts class. This is a historical identifier, never a module or asset read."
+  },
+  {
+    "path": "src/shards/pine-hollow/weapons/crossbow/Crossbow.ts",
+    "file": "scripts/shard-coupling.mjs",
+    "why": "E435 SF54 / G140 immutable bootstrap identity for the reviewed Crossbow transfer; its current destination is src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow.ts. Historical keys cannot change or grow under the shrink-only comparator."
   }
 ]

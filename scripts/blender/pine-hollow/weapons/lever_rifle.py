@@ -3,7 +3,7 @@
     blender -b --factory-startup -P scripts/blender/pine-hollow/weapons/lever_rifle.py -- <build dir> [--lod=hi,lo] [--bake=2048]
             [--samples=64] [--preview] [--no-bake] [--wood=<walnut diffuse.jpg>]
 
-A Winchester-1894-style carbine in the game's model space (src/shards/pine-hollow/weapons/LeverRifle.ts): the bore on the axis, the muzzle
+A Winchester-1894-style carbine in the game's model space (src/shards/pine-hollow/runtime/weapons/LeverRifle.ts): the bore on the axis, the muzzle
 at −Z, +Y up (glTF). Built here in Blender's frame — +Y forward (the muzzle), +Z up — and turned on export
 (game = (x, z, −y)). Every number the game aims with is kept: the sight line 45 mm over the bore, the buckhorn's U-notch
 floor where the gold bead (the game's own sphere) sits on it at the eye's distance, the lever / hammer pivots, the gate,

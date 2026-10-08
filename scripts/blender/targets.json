@@ -101,7 +101,7 @@
    "build": ["hi/lever-rifle.glb", "lo/lever-rifle.glb"],
    "meshopt": [["hi/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.glb"], ["lo/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"]],
    "outputs": ["public/assets/pine-hollow/weapons/lever-rifle.glb", "public/assets/pine-hollow/weapons/lever-rifle.phone.glb"],
-   "feeds": ["src/shards/pine-hollow/weapons/LeverRifle.ts"]
+   "feeds": ["src/shards/pine-hollow/runtime/weapons/LeverRifle.ts"]
   },
   "pine-hollow/skinning-knife": {
    "about": "The first-person skinning knife in a gloved hand, hi + lo, one mesh, one material, plus its sidecar points",
