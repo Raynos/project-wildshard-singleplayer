@@ -405,6 +405,8 @@ export class AnimalManager {
   group = new AnimalGroup();
   animals: Animal[] = [];
   private readonly entityIds = new EntityIds('creature');
+  private readonly spawnedActors = new WeakSet<Animal>();
+  private readonly retiredActors = new WeakSet<Animal>();
   herds: Herd[] = [];
   factory: AnimalFactory;
   onKill?: (animal: Animal) => void;
@@ -664,6 +666,7 @@ export class AnimalManager {
    */
   /** Retire a scripted creature through the same body and manager ownership boundary. */
   retire(a: Animal): void {
+    if (this.spawnedActors.has(a) && this.animals.includes(a)) this.retiredActors.add(a);
     a.hidden = true; a.mesh.visible = false;
     if (!a.simulationBound) { a.alive = false; a.position.y = -9999; }
     const i = this.animals.indexOf(a); if (i !== -1) this.animals.splice(i, 1);
@@ -675,13 +678,26 @@ export class AnimalManager {
 
   /** Spawn below a WORLD ray origin (fromY), or at an exact initial world feet height (y). */
   spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string }): Animal {
+    return this.spawnAnimal(kind, x, z, yaw, variant, placement);
+  }
+
+  /** Rebuild one retired authored home with fresh rig/state and ordinary spawn RNG, preserving its logical identity.
+   * Only an actor retired by this manager can be replaced, once; a foreign/live actor or live duplicate refuses before construction. */
+  replace(retired: Animal, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number }): Animal {
+    if (!this.retiredActors.has(retired) || this.animals.some(actor => actor.entityId === retired.entityId)) throw new Error('Replacement requires this manager\'s unreplaced retired actor');
+    const replacement = this.spawnAnimal(retired.kind, x, z, yaw, variant, placement, retired.entityId);
+    this.retiredActors.delete(retired);
+    return replacement;
+  }
+
+  private spawnAnimal(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[], placement?: { y?: number; fromY?: number; entityId?: string }, identity?: string): Animal {
     if ((placement?.y !== undefined && !Number.isFinite(placement.y)) || (placement?.fromY !== undefined && !Number.isFinite(placement.fromY))) throw new Error('Creature spawn placement must be finite');
     const sp = speciesDef(kind);
     const v = typeof variant === 'string' ? variantDef(kind, variant) : rollVariant(sp, this.rng, variant, this.hasLegendary(kind));
     const model = this.factory.model(kind, v.id);
     const scale = this.rng.range(v.scale[0], v.scale[1]);
     const rig = this.factory.instantiate(model, this.rng.next());
-    const a = new Animal(rig, model, this.rng.next(), scale, this.entityIds.allocate(placement?.entityId));
+    const a = new Animal(rig, model, this.rng.next(), scale, identity ?? this.entityIds.allocate(placement?.entityId));
     a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
     const physics = worldPhysics();
     const fromY = placement?.fromY ?? Math.max(activeLevel().spawn.y ?? heightAt(x, z), heightAt(x, z)) + 1;
@@ -716,6 +732,7 @@ export class AnimalManager {
     if (fur !== undefined) this.farRigs.set(a, { mesh: a.mesh, tint: fur.color, model, mask: null });
     this.group.add(a.mesh); this.group.own(a);
     this.animals.push(a);
+    this.spawnedActors.add(a);
     app.aggression.register(a, this.tokens, app.levelScope ?? undefined);
     const tune = this.tuningFor(a);
     this.brains.set(a, {
