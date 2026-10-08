@@ -27,3 +27,19 @@ Pine entered-hook long tasks: 5,956 / 4,104 / 2,996 ms after current=Pine. Nalat
 From the sp-x2 scratchpad, build `scripts/serve-build.sh --rev 1d2f2abdc --name sp-x2-g226-ledger --hours 1`; run `scripts/browser-lane.sh --max 15 node progress/memory/g226-platform-ledger/probe.mjs <url> <out>`; stop the preview. The committed probe records its serialized driver SHA256 and the build id. Focused checks: 33/33 across cell-screen, owned-home, admission-yield, owned-session, regional-world and frame-floor-grid suites; root TypeScript and typed lint green.
 
 Earlier closed attempts are retained: `report.json` failed boot before empty-look fix; `report-b722b2edc.json` failed during the then-broken owned-home frame contribution; `report-7f55207d4.json` booted but stopped at Pine readiness wall z=299 (feet z=298.3515), before target's raw 6m band. The radius-aware approach admission and pending-request reuse fixes made the current input-driven route pass. They do not change frame hysteresis or collider thresholds.
+
+## Fenced current-path recheck — 2026-10-08
+
+Build `1b0572d-muz46mxi`, local HEAD `1b0572d69a912b6bec519fd1a37908d71450041e`; [full report](report-1b0572d69-fenced.json). One muted Chromium/Metal iPhone 16 Pro, Developer ON, phone Auto, 2x render scale. The corrected probe uses the shared `runFloorGridRoute` adapter: stage the initial home approach, then keep the original `performance.timeOrigin` through every crossing and centre leg. Later legs are never reseeded; navigation is never retried.
+
+Pine entry passed in **9.863 s**, Pine centre in 17.746 s, Nalati entry in **68.330 s**, and Nalati centre in 17.796 s. Both crossing witnesses pass: exactly source -> road -> destination, entered gameplay ready, only the destination runtime resident, and the source runtime/sim/basis claims retired. **0 page errors, 0 console warnings/errors.** Browser and preview are closed. The reported Pine timeout does not reproduce on this pin; the older probe omitted both the required document identity and the source staging extracted from the driver. This result is not proof of every older pin.
+
+| Pose | Modelled playing MB | Margin to 1,000 MB |
+|---|---:|---:|
+| Driftwood settled | 905.23 | +94.77 |
+| Pine entry | 1082.20 | -82.20 |
+| Pine centre | 1075.92 | -75.92 |
+| Nalati entry | 1070.89 | -70.89 |
+| Nalati centre | 1064.20 | -64.20 |
+
+Developer override admits these truthful over-cap totals. G227 remains required; this successful route is not an in-cap, native-memory, Simulator or frame-floor proof. Two earlier launch attempts never opened a browser: their preview process died with its tool command, and the lane reaper removed the dead preview/export. The successful run held the build and browser in one command; the separate preview-launcher fix supplies a dedicated process session instead.
