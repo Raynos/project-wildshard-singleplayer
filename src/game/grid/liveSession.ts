@@ -506,7 +506,11 @@ export class LiveGridSession {
     const load = manifest.load;
     if (load === undefined) throw new GridCellWaitingError('Missing trusted first-party loader');
     const registered = manifest.trustedRuntime;
-    const entry: TrustedRuntimeEntry = { ...registered, load: () => load(registered.entry) }, bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest);
+    const entry: TrustedRuntimeEntry = { ...registered, load: async () => {
+      const loaded = await load(), resolve = loaded.resolveTrustedRuntime;
+      if (resolve === undefined) throw new Error('Trusted plugin module does not resolve its declared entry');
+      return { default: resolve(registered.entry) };
+    } }, bytes = regionalRuntimeAccountedBytes(retained.admitted, manifest);
     await prepareTrustedRuntime(declaration, cell.slug, true, [entry]);
     const { slug: identity } = entry;
     if (!this.runtimeEntries.some(row => { const { slug: registeredIdentity } = row; return registeredIdentity === identity && row.entry === entry.entry; })) this.runtimeEntries.push(entry);

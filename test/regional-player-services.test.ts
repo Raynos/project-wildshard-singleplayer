@@ -57,8 +57,8 @@ it('follows the entered runtime while refusing the road and parked actors with r
   const app = new App(), scope = app.engineScope.child('combat');
   const traveller = new PlayerHealth(app.events, { now: () => 0, position: () => new Vector3(), dodging: () => false, dodgeGuard: () => false });
   const row = SIM_LEVEL.entities[0]; if (row === undefined) throw new Error('Missing actual creature');
-  const active = new AnimalSim(row.spec, row.seed, row.scale, row.id, { heightAt: () => 0 });
-  const parked = new AnimalSim(row.spec, row.seed, row.scale, row.id, { heightAt: () => 0 });
+  const active = new AnimalSim(row.spec, row.seed, row.scale, row.id, { heightAt: () => 0, random: () => 0.5 });
+  const parked = new AnimalSim(row.spec, row.seed, row.scale, row.id, { heightAt: () => 0, random: () => 0.5 });
   let inside: string | null = 'regional', entered: string | null = 'regional';
   const actors = new Map([[active.combatActor(), active.position]]);
   installGridTravellerCombat(app.events, scope, traveller, () => entered, () => inside, () => actors);

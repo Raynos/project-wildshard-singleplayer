@@ -59,7 +59,7 @@ export const PINE_HOLLOW: ShardManifest = {
   render: async () => (await import('./look/render')).shardRender(),
   api: 1,
   audio: { bed: PINE_AUDIO_SAMPLES.bed, samples: { loopGains: PINE_AUDIO_SAMPLES.loopGains }, ambience: 'ambience.pine', score: 'score.pine', preload: () => import('./runtime/audio/files').then((m) => m.createPineAudio()) },
-  load: (entry) => entry === undefined ? import('./plugin') : entry === 'runtime/index.ts' ? import('./runtime/index') : Promise.reject(new Error('Unknown trusted runtime entry')),
+  load: () => import('./plugin'),
   boot: { viewmodelSets: ['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'], audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], stagedWorld: true, files: bootFiles, sources: bootSources, bakedUnread: BAKED_UNREAD, steps: PINE_STEPS, bytes: PINE_BYTES },
   kitLook: 'pbr',
   loadout: { weapons: ['weapon.crossbow', 'weapon.lever-rifle', 'weapon.longbow'], tools: ['tool.hoverboard'], start: ['weapon.crossbow', 'tool.hoverboard'] },

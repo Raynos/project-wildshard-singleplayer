@@ -449,7 +449,8 @@ export interface ShardManifest {
   trustedRuntime?: Pick<TrustedRuntimeEntry, 'slug' | 'entry'>;
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   /** Migrated manifests declare their plugin and level policy; legacy hooks retire per shard phase. */
-  load?: (trustedEntry?: string) => Promise<{ default: new () => ShardPlugin }>;
+  load?: () => Promise<{ default: new () => ShardPlugin;
+    resolveTrustedRuntime?: (entry: string) => new () => ShardPlugin }>;
   kitLook?: LevelSpec['kitLook'];
   /** the first-person hands' style; 'pbr' when absent (E405 AG25) */
   hands?: LevelSpec['hands'];

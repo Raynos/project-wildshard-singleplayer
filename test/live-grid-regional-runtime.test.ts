@@ -62,7 +62,9 @@ it('admits a whole-cost runtime, runs hooks only after the real interior event, 
   }
   const trusted = PINE_HOLLOW.trustedRuntime; if (trusted === undefined) throw new Error('Missing trusted entry');
   const registered = findShard(target.slug); if (registered === undefined) throw new Error('Missing registered manifest');
-  vi.spyOn(registered, 'load').mockResolvedValue({ default: Runtime });
+  vi.spyOn(registered, 'load').mockResolvedValue({ default: Runtime, resolveTrustedRuntime: entry => {
+    if (entry !== 'runtime/index.ts') throw new Error('Unknown fixture entry'); return Runtime;
+  } });
   const release = vi.fn();
   vi.spyOn(products, 'gridShardfileProduct').mockReturnValue(Promise.resolve({ admitted: { source, assets: new Map(), cached: false }, release,
     options: { base: 'https://fixture.invalid/', offline: false, firstParty: true, fetch: () => Promise.reject(new Error('No network')), hash: () => Promise.reject(new Error('Already admitted')) } }));

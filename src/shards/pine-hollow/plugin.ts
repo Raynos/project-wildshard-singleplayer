@@ -13,6 +13,12 @@ const DEBUG_ROWS = [{ id: 'pineHybrid', group: 'loading', label: 'Pine Hollow hy
 /** Compatibility callers keep the unchanged trusted runtime hooks. */
 export class PineHollow extends RuntimePlugin {}
 
+/** Resolve only this module's declared trusted entry after ordinary lazy plugin admission. */
+export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
+  if (entry !== 'runtime/index.ts') throw new Error('Unknown trusted runtime entry');
+  return RuntimePlugin;
+}
+
 /** Admit the retained ON home; fixtures can inject the same trusted preparation contract. */
 export async function preparePineHybrid(ctx: ShardContext,
   prepare?: typeof prepareTrustedHybrid): Promise<ShardPlugin> {
