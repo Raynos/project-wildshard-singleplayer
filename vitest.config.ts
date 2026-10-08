@@ -33,7 +33,7 @@ export default defineConfig({
     // These real subprocess/worker proofs keep their deadlines, after the main pool has drained.
     projects: [
       // Vite merges inherited arrays by concatenation: keep include out of the parent or integration runs all files.
-      { extends: true, test: { name: 'unit', include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts', 'drafts/test/**/*.test.ts'], exclude: HEAVY_INTEGRATION_TESTS, sequence: { groupOrder: 0 } } },
+      { extends: true, test: { name: 'unit', include: ['test/**/*.test.ts', 'api-tests/**/*.test.ts', 'drafts/test/**/*.test.ts', 'admin/test/**/*.test.ts'], exclude: HEAVY_INTEGRATION_TESTS, sequence: { groupOrder: 0 } } },
       { extends: true, test: { name: 'integration', include: HEAVY_INTEGRATION_TESTS, fileParallelism: false, sequence: { groupOrder: 1 } } },
     ],
     // Actor and engine contracts stay in Node. Only the legacy sword viewmodel opts into happy-dom via its header.

@@ -1,0 +1,12 @@
+{
+  "name": "wildshard-admin",
+  "private": true,
+  "type": "module",
+  "description": "Wildshard Admin (SHARD-PLATFORM SF68): a static site rebuilt from committed reports. Its tools (vite, typescript) resolve from the repo root's node_modules.",
+  "scripts": {
+    "build": "node ../node_modules/vite/bin/vite.js build --config vite.config.ts",
+    "preview": "node ../node_modules/vite/bin/vite.js preview --config vite.config.ts",
+    "typecheck": "node ../node_modules/typescript/bin/tsc --noEmit -p . && node ../node_modules/typescript/bin/tsc --noEmit -p tools",
+    "deploy": "bash tools/deploy.sh"
+  }
+}

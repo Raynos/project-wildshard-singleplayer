@@ -1,0 +1,12 @@
+{
+  // The admin site (browser, SF68): the root's strictness, its own program. Imports carry their .ts extension so the
+  // node-side adapter (tools/) can share src/bundle.ts. The tools have their own (tools/tsconfig.json).
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vite/client"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": ["src"]
+}

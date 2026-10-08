@@ -1,0 +1,11 @@
+{
+  // The admin tools, tests and Vite config (node 24, run as .ts with type stripping, so imports carry their .ts extension).
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2023", "DOM"],
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": [".", "../test", "../vite.config.ts", "../src/bundle.ts"]
+}
