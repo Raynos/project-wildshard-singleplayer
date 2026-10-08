@@ -20,6 +20,7 @@
  * first sight (E186); the repacks upload only the rows they wrote.
  */
 import * as THREE from 'three';
+import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 
 /** a prototype as BlenderIsland loads it: positions in the prototype's frame, Uint8 RGBA (alpha: the Cycles AO), index */
 export interface InstProto { readonly pos: Float32Array; readonly col: Uint8Array; readonly index: Uint32Array }
@@ -81,7 +82,7 @@ export const edgeOf = (x: number, z: number): number => { const h = Math.sin(x *
 const PAD = 4;
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _t = new THREE.Vector3();
-const _pv = new THREE.Matrix4(), _box = new THREE.Box3();
+const _pv = new THREE.Matrix4(), _box = new THREE.Box3(), _ws = new THREE.Sphere();
 
 /** one cover triangle in world space (`a`, `b`, `d` its corners) and its mean tinted colour */
 export interface CoverTriangle { ax: number; ay: number; az: number; bx: number; by: number; bz: number; dx: number; dy: number; dz: number; r: number; g: number; b: number }
@@ -135,11 +136,15 @@ export class IslandInstances {
   private readonly frustum = new THREE.Frustum();
   /** the camera and cascade lights of the last update (the draw hooks tell the camera's pass and each cascade's apart) */
   private camera: THREE.Camera | null = null;
+  /** the camera seen from the group (SF63: a grid cell's render offset; standalone the camera itself) */
+  private readonly frame: FrameCamera;
   private lights: readonly THREE.DirectionalLight[] = [];
   stats = { meshes: 0, rows: 0, protoBytes: 0, instanceBytes: 0 };
 
   constructor(private readonly group: THREE.Group, private readonly protos: readonly (InstProto | undefined)[],
-    private readonly names: readonly string[], private readonly f: Float32Array, private readonly lodOf: ReadonlyMap<number, number>) {}
+    private readonly names: readonly string[], private readonly f: Float32Array, private readonly lodOf: ReadonlyMap<number, number>) {
+    this.frame = new FrameCamera(group);
+  }
 
   /** the meshes of one tile set (call in the merged path's order: casters, small cover, big cover) */
   add(spec: InstanceSetSpec): void {
@@ -249,10 +254,14 @@ export class IslandInstances {
    */
   update(camera: THREE.PerspectiveCamera, shadows: readonly THREE.DirectionalLight[]): void {
     this.camera = camera; this.lights = shadows;
-    camera.updateMatrixWorld();
-    this.frustum.setFromProjectionMatrix(_pv.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    // SF63: the tiles' rects and boxes are in the group's space; inside a grid cell the group stands at the cell's render
+    // offset, so the view is measured from the group (standalone: the camera itself) and the spheres go to world space
+    // for the cascades' frusta
+    const local = this.frame.of(camera), framed = local !== camera, toWorld = this.group.matrixWorld;
+    local.updateMatrixWorld();
+    this.frustum.setFromProjectionMatrix(_pv.multiplyMatrices(local.projectionMatrix, local.matrixWorldInverse));
     const cascades = shadows.map((l) => (l.castShadow ? l.shadow.getFrustum() : null));
-    const cam = camera.position;
+    const cam = local.position;
     for (const s of this.sets) {
       const { spec, boxes, state, masks, spheres, tileBatches } = s;
       for (let k = 0; k < spec.rects.length; k++) {
@@ -263,7 +272,8 @@ export class IslandInstances {
         if (spec.reach > 0) code = d < spec.reach && this.frustum.intersectsBox(box) ? 1 : 0;
         else {
           let mask = 0;
-          for (const [i, fr] of cascades.entries()) if (fr?.intersectsSphere(sphere) === true) mask += 1 << i;
+          const inWorld = framed ? _ws.copy(sphere).applyMatrix4(toWorld) : sphere;
+          for (const [i, fr] of cascades.entries()) if (fr?.intersectsSphere(inWorld) === true) mask += 1 << i;
           masks[k] = mask;
           const view = this.frustum.intersectsBox(box);
           code = !view && mask === 0 ? 0 : (d < spec.lod ? 1 : 2) + (view ? 0 : 2);

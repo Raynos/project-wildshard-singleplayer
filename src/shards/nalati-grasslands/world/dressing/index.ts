@@ -26,6 +26,7 @@
  */
 import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
+import { FrameCamera } from '@wildshard/engine/world/frameCamera';
 import { modelContext, type ModelDef } from '@wildshard/engine/models/model';
 import { place, type PlaceOptions, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -125,6 +126,7 @@ export class NalatiDressing {
   private lastDir = new THREE.Vector3();
   private dir = new THREE.Vector3();
   private camPos = new THREE.Vector3();
+  private readonly frame = new FrameCamera(this.group);
   private size = new THREE.Vector2();
 
   constructor(private sky: Sky, private forest: Forest | null) { this.group.name = 'nalati-dressing'; this.statics.name = 'nalati-dress-statics'; }
@@ -237,7 +239,10 @@ export class NalatiDressing {
     return out;
   }
 
-  update(dt: number, camera: THREE.PerspectiveCamera, player: THREE.Vector3, renderer: Renderer): void {
+  update(dt: number, view: THREE.PerspectiveCamera, player: THREE.Vector3, renderer: Renderer): void {
+    // SF63: the layers' copies are in the group's space; inside a grid cell it stands at the cell's render offset, so the
+    // cull reads the camera seen from the group (standalone: the camera itself)
+    const camera = this.frame.of(view);
     camera.getWorldPosition(this.camPos);
     camera.getWorldDirection(this.dir);
     const moved = this.camPos.distanceToSquared(this.lastPos) > 1;
@@ -251,7 +256,7 @@ export class NalatiDressing {
     }
     this.flutter.update(dt);
     renderer.getDrawingBufferSize(this.size);
-    this.life?.update(dt, camera, player, this.size.y);
+    this.life?.update(dt, view, player, this.size.y);
   }
 
   /** visible instances / triangles per layer (after the last cull) + the static props */
