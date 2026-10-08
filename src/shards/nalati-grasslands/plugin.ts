@@ -10,6 +10,12 @@ const DEBUG_ROWS = [{ id: 'nalatiHybrid', group: 'loading', label: 'Nalati hybri
 /** Compatibility callers keep the unchanged trusted runtime hooks. */
 export class NalatiPlugin extends RuntimePlugin {}
 
+/** Resolve only this module's declared regional entry after the ordinary lazy plugin admission. */
+export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
+  if (entry !== 'runtime/index.ts') throw new Error('Unknown trusted runtime entry');
+  return RuntimePlugin;
+}
+
 async function prepareNalatiHybrid(ctx: ShardContext): Promise<ShardPlugin> {
   const [{ prepareHybridShard }, { default: source }] = await Promise.all([
     import('@wildshard/game/shardfile/hybrid'), import('./shard.config'),
