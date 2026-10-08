@@ -13,7 +13,7 @@ import { assetCost } from '../src/game/shardfile/assets';
 let texture: Uint8Array;
 beforeAll(async () => {
   // Exact 2x2 RGBA PNG fixture; image decoding remains owned by the SDK dependency.
-  const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR4nGOQi0r5D8IMMAYAPYQHbeGDBAUAAAAASUVORK5CYII='), character => character.charCodeAt(0));
+  const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR4nGOQi0r5D8IMMAYAPYQHbeGDBAUAAAAASUVORK5CYII='), character => character.codePointAt(0) ?? 0);
   texture = await bakeWorldTexture(png, 'srgb');
 });
 function model(name: string, nodeName = 'Door'): Promise<Uint8Array> {
