@@ -2,17 +2,18 @@
 // +125 m and its terrain is an undrawn datum, so nothing stood at y = 0 on its edges: each midpoint gets a Jiehua stone
 // landing deck, ENTRY_WIDTH (8 m) wide and DECK_DEPTH (16 m) deep, its top exactly at y = 0, so the platform's 8 × 15 m
 // asphalt socket lies on it flat, clear and dry. Low stone parapets stand just outside the 8 m opening (the canonical side
-// walls the footprint admits), and a stone end wall with a cinnabar band closes each deck: the climb to Lantern Square is
-// SF51-p content. Default off behind pause ▸ Settings ▸ Debug ▸ Nine Dragon entries (`nineDragonEntries`, debug.ts).
+// walls the footprint admits), and a stone end wall with a cinnabar band closes each deck. G224 (Jake): the way on is a
+// floating portal on each deck to Lantern Square (world/portalPlan.ts, portals.ts, portalRide.ts), so the decks are
+// always built (the `nineDragonEntries` row went with the lantern lift it waited for).
 import { ENTRY_ASPHALT, ENTRY_WIDTH, CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { ShardCube } from '@wildshard/game/shard/context';
 import { SURF } from '../look/paint';
 import type { Ctx } from './ctx';
 import { K, type Look } from './kit';
-import { buildLifts } from './lifts';
 import { hipRoof } from './square';
-import { DOOR, LIFTS, liftColliders, type Lift } from './liftPlan';
+import { DECK_PORTALS, SQUARE_FLOOR, deckFloorId, type ShardEdge } from './portalPlan';
+import { squareFloor } from './colliders';
 
 /** how deep each deck runs in from the edge (the 15 m socket plus a metre to the end wall) */
 export const DECK_DEPTH = 16;
@@ -32,11 +33,11 @@ const BRONZE_DK: Look = { wash: 0x5a3c1c, line: 1, accent: true, gloss: true };
 const FLAME: Look = { wash: 0xffb050, emit: 2.2, line: 0, accent: true };
 const EMBER: Look = { wash: 0xff6a20, emit: 1.8, line: 0, accent: true };
 
-/** one deck's frame: its edge-midpoint, the inward unit axis (along) and the across axis */
-interface Frame { mx: number; mz: number; ix: number; iz: number }
+/** one deck's frame: its edge, its edge-midpoint, the inward unit axis (along) and the across axis */
+interface Frame { edge: ShardEdge; mx: number; mz: number; ix: number; iz: number }
 const FRAMES: readonly Frame[] = [
-  { mx: 0, mz: CHUNK_HALF, ix: 0, iz: -1 }, { mx: 0, mz: -CHUNK_HALF, ix: 0, iz: 1 },
-  { mx: CHUNK_HALF, mz: 0, ix: -1, iz: 0 }, { mx: -CHUNK_HALF, mz: 0, ix: 1, iz: 0 },
+  { edge: 'north', mx: 0, mz: CHUNK_HALF, ix: 0, iz: -1 }, { edge: 'south', mx: 0, mz: -CHUNK_HALF, ix: 0, iz: 1 },
+  { edge: 'east', mx: CHUNK_HALF, mz: 0, ix: -1, iz: 0 }, { edge: 'west', mx: -CHUNK_HALF, mz: 0, ix: 1, iz: 0 },
 ];
 
 /** an axis-aligned box in a deck's frame: `a0..a1` metres in from the edge, `c0..c1` across, `y0..y1` up */
@@ -49,32 +50,23 @@ function inFrame(f: Frame, a0: number, a1: number, c0: number, c1: number, y0: n
   return { x: (x0 + x1) / 2, z: (z0 + z1) / 2, sx: x1 - x0, sz: z1 - z0, y0, y1 };
 }
 
-/** the lantern lift that starts from a deck (SF51-p, world/lifts.ts), if one is built there */
-function liftOf(f: Frame): Lift | undefined { return LIFTS.find((l) => l.mx === f.mx && l.mz === f.mz); }
-
-/**
- * each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket. Where a lantern
- * lift starts (SF51-p) the end wall opens on its cage: a threshold flush with the deck, two jambs and a lintel.
- */
+/** each deck's parts: the slab, the two parapets just outside the opening, the end wall past the socket */
 function parts(f: Frame): { slab: ReturnType<typeof inFrame>; rails: ReturnType<typeof inFrame>[]; walls: ReturnType<typeof inFrame>[] } {
-  const h = ENTRY_WIDTH / 2, lift = liftOf(f), c0 = -h - RAIL_T, c1 = h + RAIL_T;
-  const wall = (w0: number, w1: number, y0: number, y1: number): ReturnType<typeof inFrame> => inFrame(f, DECK_DEPTH, DECK_DEPTH + WALL_T, w0, w1, y0, y1);
-  const d0 = lift === undefined ? 0 : lift.across + DOOR.c0, d1 = lift === undefined ? 0 : lift.across + DOOR.c1;
+  const h = ENTRY_WIDTH / 2, c0 = -h - RAIL_T, c1 = h + RAIL_T;
   return {
     slab: inFrame(f, 0, DECK_DEPTH, c0, c1, -SLAB, 0),
     rails: [inFrame(f, 0, DECK_DEPTH, -h - RAIL_T, -h, 0, RAIL_H), inFrame(f, 0, DECK_DEPTH, h, h + RAIL_T, 0, RAIL_H)],
-    walls: lift === undefined ? [wall(c0, c1, -SLAB, WALL_H)]
-      : [wall(c0, c1, -SLAB, 0), wall(c0, d0, 0, WALL_H), wall(d1, c1, 0, WALL_H), wall(d0, d1, DOOR.h, WALL_H)],
+    walls: [inFrame(f, DECK_DEPTH, DECK_DEPTH + WALL_T, c0, c1, -SLAB, WALL_H)],
   };
 }
 
 /**
- * G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone there is no road at a deck's open end, so a
- * deck a lift starts from is closed there by a carved balustrade: a plinth, newel posts, carved panels with a cinnabar
+ * G200 (Jake's pick B, art/grid/round-22-landings-standalone): played alone there is no road at a deck's open end, so
+ * each deck (G224: the square's portal can set you down on any of the four) is closed there by a carved balustrade: a plinth, newel posts, carved panels with a cinnabar
  * inset and a top rail across the 8 m opening; a raised pedestal in its middle carries a bronze beacon brazier, and two
  * stone-lantern pillars with green tiled caps and red lanterns stand on the parapets' ends. Standalone only (the
  * world's `caps`, `ctx.cube === null`, plugin.ts): in a grid cell the road socket continues there. Drawn into the
- * `entries` kit like the deck (merged, no new draw); laid out in the deck's frame, so the other three decks reuse it as is.
+ * `entries` kit like the deck (merged, no new draw); laid out in the deck's frame, so all four decks share it.
  */
 export const CAP = { depth: 0.7, rail: 1.15, pedestal: 0.6, pedestalH: 1.3, pillar: 0.8, pillarH: 3.4 } as const;
 function capParts(f: Frame): { plinth: ReturnType<typeof inFrame>; rail: ReturnType<typeof inFrame>; pedestal: ReturnType<typeof inFrame>; pillars: ReturnType<typeof inFrame>[] } {
@@ -88,29 +80,32 @@ function capParts(f: Frame): { plinth: ReturnType<typeof inFrame>; rail: ReturnT
 }
 /** whether the decks get their caps this session: standalone (`cube` null) yes; in a grid cell the road socket continues */
 export function entryCapsFor(cube: ShardCube | null): boolean { return cube === null; }
-/** the decks a balustrade closes when standalone: those a lantern lift starts from (the others are out of reach) */
-const capped = (f: Frame): boolean => liftOf(f) !== undefined;
 
 const box = (b: ReturnType<typeof inFrame>): ColliderDesc => ({ kind: 'box', x: b.x, y: (b.y0 + b.y1) / 2, z: b.z, hx: b.sx / 2, hy: (b.y1 - b.y0) / 2, hz: b.sz / 2, surface: 'stone' });
 
 /** the four decks' collision: the slabs (tops at y = 0), the parapets and the end walls; with `caps` (standalone, G200)
- *  the balustrade, its brazier's pedestal and the two lantern pillars across each lift deck's open end */
+ *  the balustrade, its brazier's pedestal and the two lantern pillars across each deck's open end */
 export function entryDeckColliders(caps = false): ColliderDesc[] {
-  const cap = (f: Frame): ColliderDesc[] => { if (!caps || !capped(f)) return []; const c = capParts(f); return [box(c.rail), box(c.pedestal), ...c.pillars.map(box)]; };
-  return [...FRAMES.flatMap((f) => { const p = parts(f); return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box), ...cap(f)]; }), ...LIFTS.flatMap(liftColliders)];
+  const cap = (f: Frame): ColliderDesc[] => { if (!caps) return []; const c = capParts(f); return [box(c.rail), box(c.pedestal), ...c.pillars.map(box)]; };
+  return FRAMES.flatMap((f) => { const p = parts(f); return [box(p.slab), ...p.rails.map(box), ...p.walls.map(box), ...cap(f)]; });
 }
 
 /**
- * SF8c: the collision of the deck a lift starts from, from a metre inside the socket's inner line to its end wall (the
- * slab, the parapets, the end wall with the door's flush threshold), the same boxes entryDeckColliders installs cut short
- * there: shard.config.ts declares them as the lift's static approach (the platform's socket covers the rest of the deck,
- * and a shardfile collider stays clear of the cell's edge).
+ * SF8c (G224): the floor a deck's road portal stands on, as the shardfile declares it (`deck.<edge>`, shard.config.ts):
+ * the deck from a metre inside the socket's inner line (where the ring stands) to its end wall, the same boxes
+ * entryDeckColliders installs cut short there (the platform's socket covers the rest of the deck, and a shardfile
+ * collider stays clear of the cell's edge).
  */
-export function liftDeckColliders(l: Lift): ColliderDesc[] {
-  const f = FRAMES.find((row) => liftOf(row) === l); if (f === undefined) throw new Error(`No landing deck under ${l.id}`);
+export function portalDeckColliders(edge: ShardEdge): ColliderDesc[] {
+  const f = FRAMES.find((row) => row.edge === edge); if (f === undefined) throw new Error(`No landing deck on the ${edge} edge`);
   const h = ENTRY_WIDTH / 2, a0 = ENTRY_ASPHALT - 1, p = parts(f);
   return [box(inFrame(f, a0, DECK_DEPTH, -h - RAIL_T, h + RAIL_T, -SLAB, 0)), box(inFrame(f, a0, DECK_DEPTH, -h - RAIL_T, -h, 0, RAIL_H)),
     box(inFrame(f, a0, DECK_DEPTH, h, h + RAIL_T, 0, RAIL_H)), ...p.walls.map(box)];
+}
+/** SF8c (G224): the floors the portal nodes stand on as shardfile collider rows: the four decks' and the square's */
+export function portalFloorRows(): { id: string; panel: null; initialActive: true; shapes: ColliderDesc[] }[] {
+  return [...DECK_PORTALS.map((p) => ({ id: deckFloorId(p.edge), panel: null, initialActive: true as const, shapes: portalDeckColliders(p.edge) })),
+    { id: SQUARE_FLOOR, panel: null, initialActive: true, shapes: [squareFloor()] }];
 }
 
 /** the floor on a deck (placement, footsteps), else undefined */
@@ -152,7 +147,7 @@ function buildCap(ctx: Ctx, f: Frame): void {
     put(inFrame(f, -0.05, CAP.pillar + 0.15, ...pillarSpan(f, p, 0.12), CAP.pillarH - 0.9, CAP.pillarH - 0.7), BAND);
     put(inFrame(f, -0.1, CAP.pillar + 0.2, ...pillarSpan(f, p, 0.16), CAP.pillarH, CAP.pillarH + 0.2), STONE);
     hipRoof(ctx, k, p.x, CAP.pillarH + 0.2, p.z, 1.4, 1.4, 0.7, 0.25, 0x2f5a3f, null);
-    // the red lantern hangs from a bronze arm on the pillar's deck face (seen as you step out of the lift)
+    // the red lantern hangs from a bronze arm on the pillar's deck face (seen as you walk out along the deck)
     const [c0, c1] = pillarSpan(f, p, -0.33), arm = CAP.pillar + 0.55;
     put(inFrame(f, CAP.pillar + 0.1, arm + 0.05, c0, c1, CAP.pillarH - 0.42, CAP.pillarH - 0.34), BRONZE);
     const [lx, lz] = f.ix === 0 ? [p.x, f.mz + f.iz * arm] : [f.mx + f.ix * arm, p.z];
@@ -166,7 +161,7 @@ function pillarSpan(f: Frame, p: ReturnType<typeof inFrame>, w: number): [number
 }
 
 /** draw the four decks into the fragment's `entries` kit (merged with the world's fabric, one draw); with `caps`
- *  (standalone, G200) each lift deck's open end gets its balustrade */
+ *  (standalone, G200) each deck's open end gets its balustrade */
 export function buildEntryDecks(ctx: Ctx, caps = false): void {
   const k = ctx.kit('entries');
   for (const f of FRAMES) {
@@ -177,8 +172,6 @@ export function buildEntryDecks(ctx: Ctx, caps = false): void {
     // the cinnabar band across the end wall's face, a hand over head height
     const band = inFrame(f, DECK_DEPTH - 0.05, DECK_DEPTH, -ENTRY_WIDTH / 2, ENTRY_WIDTH / 2, 3.2, 4.0);
     k.box(band.x, band.y0, band.z, band.sx, band.y1 - band.y0, band.sz, BAND);
-    if (caps && capped(f)) buildCap(ctx, f);
+    if (caps) buildCap(ctx, f);
   }
-  // SF51-p: the lantern lifts from the decks up to the street (world/lifts.ts)
-  buildLifts(ctx);
 }

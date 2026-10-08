@@ -11,21 +11,20 @@ import { NdPlugin } from '../../../src/shards/nine-dragon-stack/plugin';
 import { ndRuntime } from '../../../src/shards/nine-dragon-stack/runtime/state';
 import { Shared } from '../../../src/shards/nine-dragon-stack/look/style';
 import { InstanceCuller } from '../../../src/shards/nine-dragon-stack/world/cull';
-import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from '../../../src/shards/nine-dragon-stack/world/colliders';
+import { fragmentColliders, fragmentGrappleGuard } from '../../../src/shards/nine-dragon-stack/world/colliders';
 import type { NineDragonWorld } from '../../../src/shards/nine-dragon-stack/world/build';
 import { FakeGame } from '../../fake/FakeGame';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import { entryDeckColliders, entryDeckFloor } from '../../../src/shards/nine-dragon-stack/world/entries';
 import { withDecks } from '../../../src/shards/nine-dragon-stack/world/install';
 import { Y0 } from '../../../src/shards/nine-dragon-stack/layout';
-import { NORTH_DOOR } from '../../../src/shards/nine-dragon-stack/world/liftPlan';
 
 const noop = (): void => { /* No GPU work in this node contract. */ };
 const loaded = new Set<App>();
 const built: boolean[] = [];
 afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); });
 
-function setup(entries: 'off' | 'on' = 'off'): { app: App; world: NineDragonWorld; plugin: NdPlugin; context: (ctx: LevelContext) => ReturnType<typeof shardContext>; fake: FakeGame; hooks: ShardPlayHooks } {
+function setup(): { app: App; world: NineDragonWorld; plugin: NdPlugin; context: (ctx: LevelContext) => ReturnType<typeof shardContext>; fake: FakeGame; hooks: ShardPlayHooks } {
   const app = new App(), fake = new FakeGame();
   app.registryValue = new WorldRegistry();
   app.render = fake.asGame(); app.scene = fake.scene;
@@ -33,11 +32,10 @@ function setup(entries: 'off' | 'on' = 'off'): { app: App; world: NineDragonWorl
     kit: noop, loadout: noop, play: noop, finish: noop };
   app.levelDriver = driver;
   app.levelAdapters.playground = () => noop;
-  // the row service applies a saved pick through `change` as the row registers (engine/ui/debugOptions.ts)
-  app.levelAdapters.debugRow = (row) => { if (row.id === 'nineDragonEntries' && entries === 'on') row.change('on'); return noop; };
+  app.levelAdapters.debugRow = () => noop;
   const world: NineDragonWorld = { root: new Group(), shared: new Shared(), ctx: { hooks: [] },
     update: vi.fn<() => void>(), cull: vi.fn<() => void>(), culler: new InstanceCuller() };
-  const plugin = new NdPlugin((_ctx, decks) => { built.push(decks); return Promise.resolve({ world, camera: fake.camera }); });
+  const plugin = new NdPlugin((_ctx, caps) => { built.push(caps); return Promise.resolve({ world, camera: fake.camera }); });
   const hooks: ShardPlayHooks = {};
   const game: GameServices = { shard: manifest, rows: new Map(), bag: { tab: () => noop, fragment: () => noop }, runtime: { world: null, step: null, play: null, interactables: [], overhead: [], objects: {}, hooks, viewer: () => fake.camera.position, horizonVeil: null } };
   loaded.add(app);
@@ -52,8 +50,8 @@ describe('Nine Dragon world hook', () => {
     expect(app.registry.pieces.map((p) => p.id)).toEqual(['nds-floors', 'nds-fronts', 'nds-grapple-guard', 'nds-crossings']);
     const floors = app.registry.get('nds-floors');
     expect(floors).toMatchObject({ name: 'Lantern Square', category: 'buildings', surface: 'stone', solidFloor: true });
-    expect(floors?.object).toBe(world.root); expect(floors?.floor).toBe(fragmentFloor);
-    expect(floors?.colliders).toEqual(fragmentColliders().floors);
+    expect(floors?.object).toBe(world.root); expect(floors?.floor).toBe(withDecks);
+    expect(floors?.colliders).toEqual([...fragmentColliders().floors, ...entryDeckColliders()]);
     expect(app.registry.get('nds-fronts')?.colliders).toEqual(fragmentColliders().fronts);
     const guard = app.registry.get('nds-grapple-guard');
     expect(guard?.colliders).toEqual(fragmentGrappleGuard());
@@ -81,26 +79,21 @@ describe('Nine Dragon world hook', () => {
     expect(ndRuntime()).not.toBe(runtime);
   });
 
-  it('SF51-g: entry bounds belong to each session, leaving OFF and concurrent manifests unchanged', async () => {
-    const off = setup();
+  it('SF51-g / G224: the decks are always built (no row), the whole cell is in bounds for each session, the manifest unchanged', async () => {
+    const one = setup();
     built.length = 0;
-    await off.app.loadLevel(toLevelSpec(manifest), { world: (ctx) => off.plugin.world(off.context(ctx)) });
-    expect(built).toEqual([false]); expect(off.app.registry.get('nds-floors')?.colliders).toEqual(fragmentColliders().floors);
+    await one.app.loadLevel(toLevelSpec(manifest), { world: (ctx) => one.plugin.world(one.context(ctx)) });
+    // standalone (no grid cube): the decks get their balustrade caps
+    expect(built).toEqual([true]);
+    const floors = one.app.registry.get('nds-floors');
+    expect(one.app.registry.pieces).toHaveLength(4);
+    expect(floors?.floor).toBe(withDecks);
+    expect(one.app.registry.get('nds-fronts')?.colliders).toEqual(fragmentColliders().fronts);
+    expect(withDecks(0, 240)).toBe(0); expect(withDecks(5, 0)).toBe(Y0); expect(withDecks(6, -200)).toBeUndefined();
     expect(toLevelSpec(manifest).bounds?.floor).toBe(Y0 - 100);
-    await off.app.unloadLevel();
-    const on = setup('on');
-    await on.app.loadLevel(toLevelSpec(manifest), { world: (ctx) => on.plugin.world(on.context(ctx)) });
-    expect(built).toEqual([false, true]);
-    const floors = on.app.registry.get('nds-floors');
-    expect(on.app.registry.pieces).toHaveLength(4);
-    expect(floors?.colliders).toEqual([...fragmentColliders({ door: NORTH_DOOR }).floors, ...entryDeckColliders()]); expect(floors?.floor).toBe(withDecks);
-    expect(on.app.registry.get('nds-fronts')?.colliders).toEqual(fragmentColliders({ door: NORTH_DOOR }).fronts); expect(withDecks(6, -200)).toBe(Y0);
-    expect(withDecks(0, 240)).toBe(0); expect(withDecks(5, 0)).toBe(Y0);
-    expect(toLevelSpec(manifest).bounds?.floor).toBe(Y0 - 100);
-    expect(resolveLevelBounds(toLevelSpec(manifest).bounds, on.hooks)).toEqual({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -20 });
-    expect(resolveLevelBounds(toLevelSpec(manifest).bounds, off.hooks)?.floor).toBe(Y0 - 100);
-    expect(off.hooks.levelBounds).toBeUndefined();
-    await on.app.unloadLevel();
+    // the whole cell; with no player yet (and under the fragment) the fall net is the fragment's own
+    expect(resolveLevelBounds(toLevelSpec(manifest).bounds, one.hooks)).toEqual({ x0: -250, x1: 250, z0: -250, z1: 250, floor: Y0 - 100 });
+    await one.app.unloadLevel();
   });
 
   it('SF51-g: each deck carries the 8 x 15 m socket footprint flat at y = 0 with its side walls outside the opening', () => {
@@ -114,9 +107,8 @@ describe('Nine Dragon world hook', () => {
         expect(entryDeckFloor(x, z)).toBe(0);
       }
     }
-    // 16 deck boxes; the north deck's end wall opens on its lantern lift (threshold, two jambs, lintel: +3) and the lift's
-    // shaft adds its pit floor, footing and winch-house back wall (+3, SF51-p)
-    expect(boxes).toHaveLength(22);
+    // 16 deck boxes: a slab, two parapets and an end wall each (G224: no lift shaft)
+    expect(boxes).toHaveLength(16);
   });
 
   it.each(['world', 'kit', 'play'] as const)('releases the world when the %s hook throws', async (stage) => {

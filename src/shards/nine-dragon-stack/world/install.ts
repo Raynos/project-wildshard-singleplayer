@@ -2,29 +2,27 @@
 import { Group, type PerspectiveCamera } from 'three';
 import type { LevelContext } from '@wildshard/engine/level/context';
 import type { NineDragonWorld } from './build';
-import { fragmentColliders, fragmentFloor, fragmentGrappleGuard, northStreetFloor } from './colliders';
-import { NORTH_DOOR } from './liftPlan';
+import { fragmentColliders, fragmentFloor, fragmentGrappleGuard } from './colliders';
 import { crossingColliders } from './well-mid';
 import { entryDeckColliders, entryDeckFloor } from './entries';
 import { NdRuntime, ownNdRuntime } from '../runtime/state';
 
 const FILE = 'src/shards/nine-dragon-stack/world/colliders.ts';
 
-/** the fragment's floor, else a road-height entry deck's (SF51-g), else the north street carried on to its lift (SF51-p) */
-export function withDecks(x: number, z: number): number | undefined { return fragmentFloor(x, z) ?? entryDeckFloor(x, z) ?? northStreetFloor(x, z); }
+/** the fragment's floor, else a road-height entry deck's (SF51-g) */
+export function withDecks(x: number, z: number): number | undefined { return fragmentFloor(x, z) ?? entryDeckFloor(x, z); }
 
 /** Legacy and staged boots share identical piece fields. */
-export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system'>, world: NineDragonWorld, camera: PerspectiveCamera, entries = false): NdRuntime {
+export function installWorld(ctx: Pick<LevelContext, 'scope' | 'piece' | 'system'>, world: NineDragonWorld, camera: PerspectiveCamera): NdRuntime {
     const rt = new NdRuntime(world, camera);
     ownNdRuntime(ctx.scope, rt);
-    // SF51-p: with the entries on, the north street runs on to the north deck's lantern lift (world/lifts.ts)
-    const c = fragmentColliders(entries ? { door: NORTH_DOOR } : undefined);
-    // SF51-g: with Debug ▸ Nine Dragon entries on, the four landing decks at road height on the edge midpoints
+    const c = fragmentColliders();
+    // SF51-g / G224: the four landing decks at road height on the edge midpoints, each with its portal to the square
     // (world/entries.ts; drawn in the world's `entries` kit) are floors of this piece
     ctx.piece({
       id: 'nds-floors', name: 'Lantern Square', category: 'buildings', file: 'src/shards/nine-dragon-stack/world/build.ts',
-      object: world.root, surface: 'stone', colliders: entries ? [...c.floors, ...entryDeckColliders(world.entryCaps === true)] : c.floors,
-      floor: entries ? withDecks : fragmentFloor, solidFloor: true,
+      object: world.root, surface: 'stone', colliders: [...c.floors, ...entryDeckColliders(world.entryCaps === true)],
+      floor: withDecks, solidFloor: true,
     });
     ctx.piece({ id: 'nds-fronts', name: 'The towers', category: 'buildings', file: FILE, surface: 'stone', colliders: c.fronts });
     // (the balustrade over the Well collides as its model since E346: models/wellBalustrade.ts, placed by world/build.ts)

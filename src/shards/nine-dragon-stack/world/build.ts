@@ -60,8 +60,8 @@ import { ndModelContext } from './modelLook';
 import { paperLantern } from '../models/paperLantern';
 import { airConBox, galleryPlant } from '../models/wallKit';
 import { cableGondola, drone, monorailTrain } from '../models/movers';
-import { liftCage, liftRoadGate } from '../models/lift';
-import { LIFTS, liftBottom, liftYaw, roadGateAt } from './liftPlan';
+import { buildPortals } from './portals';
+import type { PortalSlot } from './portalRide';
 import { feiZhuaAt, feiZhuaHook, loadFeiZhuaHook } from '../models/feiZhuaHook';
 import { loadCrowd, mahjongSitter, sitterGeometry, umbrellaWalker, walkerGeometry } from '../models/crowd';
 import { buildWell } from './well';
@@ -156,17 +156,14 @@ export interface NineDragonWorld {
   cull: (camera: PerspectiveCamera) => void;
   /** the per-instance culling (its `stats` for the budget ruler) */
   readonly culler: InstanceCuller;
-  /**
-   * SF51-p: the lantern lifts' cages by mover id (world/lifts.ts; only with the entries on), their stationary road gates
-   * (SF8c, shown while they collide) and the view the plugin sets to pose them each frame (world/liftRide.ts), run by `update`
-   */
-  readonly lifts?: { readonly cages: ReadonlyMap<string, Object3D>; readonly gates: ReadonlyMap<string, Object3D>; view: (() => void) | null };
-  /** G200: whether the lift decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
+  /** G200: whether the decks' open ends are closed by their standalone balustrades (world/entries.ts; the colliders follow) */
   readonly entryCaps?: boolean;
+  /** G224: the portals' ride step (world/portalRide.ts sets it in play), run by `update` with the frame's dt */
+  readonly portal?: PortalSlot;
 }
 
 /** build the fragment's world; `progress(0..1)` as it goes */
-export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { entries?: boolean; caps?: boolean } = {}): Promise<NineDragonWorld> {
+export async function buildNineDragonWorld(renderer: Renderer, progress: (f: number, detail?: string) => void, tier: NdTier, opts: { caps?: boolean } = {}): Promise<NineDragonWorld> {
   const shared = new Shared();
   const root = new Group();
   root.name = 'nine-dragon-stack';
@@ -208,10 +205,12 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0.25, 'layout: well');
   await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   buildWell(ctx);
-  // SF51-g: the four landing decks at road height (world/entries.ts), only with Debug ▸ Nine Dragon entries on
-  // G200: played alone (no road beyond the decks) the lift deck's open end gets its balustrade and brazier
-  const entryCaps = opts.entries === true && opts.caps === true;
-  if (opts.entries === true) buildEntryDecks(ctx, entryCaps);
+  // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
+  // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier
+  const entryCaps = opts.caps === true;
+  buildEntryDecks(ctx, entryCaps);
+  const portals = buildPortals(ctx, shared);
+  root.add(portals.root);
   progress(0.3, 'signs');
   await new Promise<void>((resolve) => { resourceScope().timeout(0, resolve); });
   // the facade grammar's sign slots, filled with real calligraphy (SDF neon for blades, lightboxes for flat ones)
@@ -421,13 +420,6 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const droneAt = [0, 1].map((i) => ({ phase: i * 2.4, r: 22 + i * 14, y: Y0 + 58 + i * 16 }));
   const bodies = movers(drone, droneAt.map((d) => ({ x: 8 + Math.cos(d.phase) * d.r, y: d.y + Math.sin(d.phase) * 1.5, z: -8 + Math.sin(d.phase) * d.r, yaw: -d.phase })), 'nds-drones');
   const drones = droneAt.flatMap((d, i) => { const body = bodies[i]; return body === undefined ? [] : [{ body, ...d }]; });
-  // SF51-p: the lantern lifts' cages at the decks (the plugin moves them to their movers' poses)
-  const cageObjects = opts.entries === true ? movers(liftCage, LIFTS.map((l) => ({ ...liftBottom(l), yaw: liftYaw(l) })), 'nds-lift-cages') : [];
-  // SF8c: each lift's stationary road gate across its socket's inner line, hidden until its mover collides
-  const gateObjects = opts.entries === true ? movers(liftRoadGate, LIFTS.map((l) => ({ ...roadGateAt(l), y: 0, yaw: liftYaw(l) })), 'nds-lift-gates') : [];
-  for (const o of gateObjects) o.visible = false;
-  const byLift = (list: readonly Object3D[]): Map<string, Object3D> => new Map(LIFTS.flatMap((l, i) => { const o = list[i]; return o === undefined ? [] : [[l.id, o] as const]; }));
-  const lifts = { cages: byLift(cageObjects), gates: byLift(gateObjects), view: null as (() => void) | null };
   const signsMesh = named(new Mesh(signs.build(), neon), 'signs');
   root.add(signsMesh);
   // every sign hung is a copy of the sign model (models/signs.ts), registered where it is drawn
@@ -505,12 +497,15 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(1, 'world ready');
   Reflect.set(window, '__ndPhaseProfile', phaseProfile);
 
+  let lastT = -1;
+  const portal: PortalSlot = { step: null };
   const update = (t: number, camera: PerspectiveCamera): void => {
+    if (lastT >= 0) portal.step?.(Math.max(0, t - lastT));
+    lastT = t;
     shared.u.uTime.value = t;
     shared.u.uNear.value = camera.near;
     shared.u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
     shared.bandWindow();
-    lifts.view?.();
     train.position.set(-100 + ((t * 16) % 300), Y0 + 25.5, -27);
     const gx = CABLE.x0 + 5 + (CABLE.x1 - CABLE.x0 - 10) * (0.5 + 0.5 * Math.sin(t * 0.12 - 0.62));
     gondola.position.set(gx, CABLE.y + ((gx - CABLE.x0) / (CABLE.x1 - CABLE.x0)) * 0.8, CABLE.z);
@@ -526,5 +521,5 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   };
   // The playable world only needs hook points from the build context. Retaining the full Ctx kept its
   // facade grammar, instance placement lists and atlas canvases alive alongside the finished meshes.
-  return { root, shared, ctx: { hooks: ctx.hooks }, update, cull, culler, lifts, entryCaps };
+  return { root, shared, ctx: { hooks: ctx.hooks }, update, cull, culler, entryCaps, portal };
 }

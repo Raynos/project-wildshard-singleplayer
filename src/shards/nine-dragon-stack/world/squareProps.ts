@@ -9,13 +9,12 @@ import { placeSet } from '@wildshard/engine/models/sets';
 import { guardianLion, loadLion } from '../models/lion';
 import { diningPavilion, marketBooth, parasolTable } from '../models/market';
 import { balustradePanel } from '../models/balustradePanel';
-import { liftChain, liftFrame } from '../models/lift';
 import { nameDraws } from './facade/batch';
 import type { NdLook } from './modelLook';
 import { lionShares, takeLions, takeSets } from './props3d';
 
 /** the model each queued set is (and the pavilion: diningPavilion, its copies carrying their turn) */
-const SETS: Readonly<Record<string, ModelDef<object>>> = { booth: marketBooth, parasol: parasolTable, 'balustrade-panel': balustradePanel, 'lift-frame': liftFrame, 'lift-chain': liftChain };
+const SETS: Readonly<Record<string, ModelDef<object>>> = { booth: marketBooth, parasol: parasolTable, 'balustrade-panel': balustradePanel };
 
 const at = (m: Matrix4): Placement<object> => ({ x: m.elements[12], y: m.elements[13], z: m.elements[14], matrix: m });
 
@@ -51,8 +50,7 @@ export async function placeSquareProps(p: { ctx: ModelContext; look: NdLook; cul
       placed = place(model, s.at.map(at), opts);
     }
     nameDraws(placed, `set:${name}`);
-    // (SF51-p: the lantern lifts' frames and chain links, world/lifts.ts, belong to no named place yet)
-    if (name === 'balustrade-panel') out.square.push(placed); else if (!name.startsWith('lift-')) market.push(placed);
+    if (name === 'balustrade-panel') out.square.push(placed); else market.push(placed);
   }
   // the square's night market, one place: its booths, parasol tables and dining pavilions (E306 M7's sets explorer)
   if (market.length > 0) placeSet({ id: 'nine-dragon-stack/night-market', name: 'Lantern Square night market', file: 'src/shards/nine-dragon-stack/world/stalls.ts', place: 'nine-dragon-stack/night-market', members: market });

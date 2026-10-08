@@ -12,22 +12,24 @@ import { installWorld } from './world/install';
 import { installSpecimenLight } from './look/specimenLight';
 import { installAudio } from './runtime/audio/ambience';
 import { STRINGS } from './strings';
-import { ndEntriesEnabled } from './debug';
-import { installLifts, type Lifts } from './world/liftRide';
+import { installPortals, type PortalRide } from './world/portalRide';
 import { entryCapsFor } from './world/entries';
 
 
-/** `entries`: the SF51-g landing decks at road height (pause ▸ Settings ▸ Debug ▸ Nine Dragon entries, default off) */
-type WorldBuilder = (ctx: ShardContext, entries: boolean) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
+/** beyond this far from the cell's centre (m) the player is out by the road-height decks (the fragment spans ~±80 m) */
+const DECK_ZONE = 200;
 
-async function buildWorld(ctx: ShardContext, entries: boolean): ReturnType<WorldBuilder> {
+/** `caps`: whether the decks' open ends get their standalone balustrades (G200: no grid cube) */
+type WorldBuilder = (ctx: ShardContext, caps: boolean) => Promise<{ world: NineDragonWorld; camera: PerspectiveCamera }>;
+
+async function buildWorld(ctx: ShardContext, caps: boolean): ReturnType<WorldBuilder> {
   const render = ctx.app.render;
   if (render === null) throw new Error('Nine Dragon needs the render service in its world stage');
-  // G200: `caps` standalone (no grid cube): the lift deck's open end is closed by its balustrade; in a grid cell the road continues
+  // G200: `caps` standalone (no grid cube): each deck's open end is closed by its balustrade; in a grid cell the road continues
   const world = await buildNineDragonWorld(render.renderer, (fraction, detail) => {
     ctx.progress.set(fraction, 1);
     if (detail !== undefined) ctx.progress.detail(detail);
-  }, render.tier, { entries, caps: entryCapsFor(ctx.cube) });
+  }, render.tier, { caps });
   return { world, camera: render.camera };
 }
 
@@ -47,17 +49,18 @@ export class NdPlugin extends ShardPlugin {
         ...(world.game.level.camera === undefined ? {} : { portraitFov: world.game.level.camera.portraitFov }) }), rifle: null, secondary: null });
     };
   }
-  override async play(ctx: ShardContext): Promise<void> {
+  override play(ctx: ShardContext): Promise<void> {
     const equipment = ctx.app.equipment;
     if (equipment === null) throw new Error('Nine Dragon needs its loadout before play');
     equipment.add(new FeiZhua(ctx), { locked: false });
-    // SF51-p (G184): the lantern lifts from the decks ride their movers (only with the entries on: the cages are built then)
-    const built = this.builtLifts, rt = this.shell;
-    if (built !== undefined && built.cages.size > 0 && rt?.world !== null && rt?.world !== undefined) this.lifts = await installLifts(ctx, rt.world, rt.interactables, built);
+    // G224: the deck portals to Lantern Square and the square's portal out (walk-in, a short fade, the move under the dark)
+    const player = this.shell?.world?.player, slot = this.ndWorld?.portal;
+    if (player !== undefined && slot !== undefined) this.portals = installPortals(slot, player);
+    return Promise.resolve();
   }
-  /** SF51-p: the lantern lifts while they ride (captures and walks read and drive them through the shard handle) */
-  lifts: Lifts | null = null;
-  private builtLifts: NineDragonWorld['lifts'];
+  /** G224: the portals while they run (captures read them through the shard handle) */
+  portals: PortalRide | null = null;
+  private ndWorld: NineDragonWorld | null = null;
   private shell: ShardContext['game']['runtime'];
   private readonly build: WorldBuilder;
   constructor(build: WorldBuilder = buildWorld) {
@@ -67,14 +70,17 @@ export class NdPlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
     ctx.playground(GRAPPLE_PLAYGROUND);
-    const entries = ndEntriesEnabled(ctx);
     this.shell = ctx.game.runtime;
-    // with the entries on the player walks from the cell's edges (the decks) up the lifts: the whole cell is in bounds
-    if (entries && this.shell !== undefined) this.shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { x0: -250, x1: 250, z0: -250, z1: 250, floor: -20 };
-    const { world, camera } = await this.build(ctx, entries);
-    this.builtLifts = world.lifts;
+    // the player stands on the road-height decks at the cell's edges as well as on the fragment: the whole cell is in
+    // bounds; the fall net stays the fragment's own (its authored floor, Y0 − 100) under the fragment and drops to just
+    // under the road only out by the decks (G224: you reach them by portal, never by a fall)
+    const shell = this.shell;
+    if (shell !== undefined) shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { x0: -250, x1: 250, z0: -250, z1: 250,
+      get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
+    const { world, camera } = await this.build(ctx, entryCapsFor(ctx.cube));
     if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
-    const rt = installWorld(ctx, world, camera, entries);
+    this.ndWorld = world;
+    const rt = installWorld(ctx, world, camera);
     installSpecimenLight(ctx.app.events, ctx.scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }
