@@ -46,10 +46,12 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any
   `.blend`. `.gitattributes` marks binaries `-delta`.
 - **The pre-push gate builds what Vercel builds.** `.githooks/pre-push` runs `scripts/vercel-tree-gate.sh` on the tip
-  you push (~6 s, stamped per commit): only the files `.vercelignore` lets through, then check-css, typecheck, oxlint,
-  vitest, liveness and vite build. It refuses the push when `.vercelignore` would drop anything under `src/`,
-  `public/`, `api/` or `scripts/`; anchor every `.vercelignore` line with `/` (E41). A red gate is yours to fix before
-  the push. Rare escape: `SKIP_VERCEL_GATE=1`.
+  you push (stamped per commit, so a passed SHA never reruns): only the files `.vercelignore` lets through, then
+  check-css, typecheck, oxlint, the ratchet, the audits, bake-check, vitest, liveness and vite build, **in parallel**,
+  each printing its own wall time. Jake's budget is **≤ 2 min for the whole push** (E454: ~65 s for the gate plus
+  ~17 s for the regeneration on 2026-10-07); a step that pushes it over moves to CI, never silently away. It refuses
+  the push when `.vercelignore` would drop anything under `src/`, `public/`, `api/` or `scripts/`; anchor every
+  `.vercelignore` line with `/` (E41). A red gate is yours to fix before the push. Rare escape: `SKIP_VERCEL_GATE=1`.
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief warns when it's off).
   The pre-commit hook also runs the architecture guards and `scripts/asks.mjs check`; commit-msg runs the lock check and
   the plan-State check ([ASKS.md](ASKS.md)). Claude hooks live in `.claude/settings.json` and take effect on restart.
