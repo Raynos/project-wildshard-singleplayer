@@ -1,0 +1,1348 @@
+{
+  "pins": {
+    "candidate": "c4a90774f24f5f692fcf9f6fe6f67a9b76b61503",
+    "candidateTree": "e37801eeee580f29147028f22a14f59f4dd23820",
+    "baseline": "29c1c18e9d898623e74c500f70697c1b6548ac66",
+    "baselineTree": "c08765c5b30dcef594d397afc2d118887c488076",
+    "patchSha256": "09dfac333a53496a3ba65fecc48c67d6d09f0aea7cf61927b39754f538444a3f",
+    "protocol": "Identical audio/KTX2/final source except inverse own road + vegetation source cuts. Memory saver ON; independent cold native routes, 3 per side."
+  },
+  "attempts": {
+    "valid": {
+      "baseline": 3,
+      "candidate": 3
+    },
+    "attempts": [
+      {
+        "attempt": 1,
+        "side": "baseline",
+        "file": "native-01-baseline.json",
+        "returncode": 1,
+        "valid": false,
+        "failure": "Error: 'Runtime' domain was not found",
+        "stage": "grid-load",
+        "pid": null
+      },
+      {
+        "attempt": 2,
+        "side": "baseline",
+        "file": "native-02-baseline.json",
+        "returncode": 0,
+        "valid": true,
+        "failure": null,
+        "stage": "pine-hollow-centre",
+        "pid": 12474
+      },
+      {
+        "attempt": 3,
+        "side": "candidate",
+        "file": "native-03-candidate.json",
+        "returncode": 1,
+        "valid": false,
+        "failure": "Error: Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue",
+        "stage": "route:pine-interior",
+        "pid": 24806
+      },
+      {
+        "attempt": 4,
+        "side": "candidate",
+        "file": "native-04-candidate.json",
+        "returncode": 0,
+        "valid": true,
+        "failure": null,
+        "stage": "pine-hollow-centre",
+        "pid": 29715
+      },
+      {
+        "attempt": 5,
+        "side": "baseline",
+        "file": "native-05-baseline.json",
+        "returncode": 0,
+        "valid": true,
+        "failure": null,
+        "stage": "pine-hollow-centre",
+        "pid": 39997
+      },
+      {
+        "attempt": 6,
+        "side": "baseline",
+        "file": "native-06-baseline.json",
+        "returncode": 0,
+        "valid": true,
+        "failure": null,
+        "stage": "pine-hollow-centre",
+        "pid": 50245
+      },
+      {
+        "attempt": 7,
+        "side": "candidate",
+        "file": "native-07-candidate.json",
+        "returncode": 1,
+        "valid": false,
+        "failure": "Error: Frame floor document changed during evaluation (navigation or graphics recovery); measurement cannot continue",
+        "stage": "route:pine-interior",
+        "pid": 55926
+      },
+      {
+        "attempt": 8,
+        "side": "candidate",
+        "file": "native-08-candidate.json",
+        "returncode": 0,
+        "valid": true,
+        "failure": null,
+        "stage": "pine-hollow-centre",
+        "pid": 65392
+      },
+      {
+        "attempt": 9,
+        "side": "candidate",
+        "file": "native-09-candidate.json",
+        "returncode": 0,
+        "valid": true,
+        "failure": null,
+        "stage": "pine-hollow-centre",
+        "pid": 70780
+      }
+    ]
+  },
+  "failureCounts": {
+    "baseline": 1,
+    "candidate": 2
+  },
+  "protocol": "Six separate cold Simulator boots, three per side, Memory saver ON, identical non-CPU source/settings. Three independent fresh per-PID one-second kernel samples at each real entered pose. Labelled GL summed separately. macOS Simulator relative evidence, not physical-phone cap proof. Released pixel payload is not an assumed native saving. Full spreads printed; no budget discount.",
+  "runs": [
+    {
+      "run": "native-02-baseline.json",
+      "side": "baseline",
+      "pose": "home-settled",
+      "pid": 12474,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:01:29.906633+00:00",
+          "pid": 12474,
+          "footprintBytes": 500485696,
+          "intervalPeakBytes": 503811648,
+          "gpuProcessBytes": 180144696
+        },
+        {
+          "at": "2026-10-08T11:01:31.060062+00:00",
+          "pid": 12474,
+          "footprintBytes": 491310704,
+          "intervalPeakBytes": 554061424,
+          "gpuProcessBytes": 180488760
+        },
+        {
+          "at": "2026-10-08T11:01:32.154824+00:00",
+          "pid": 12474,
+          "footprintBytes": 489410160,
+          "intervalPeakBytes": 554061424,
+          "gpuProcessBytes": 180423224
+        }
+      ],
+      "nativeMedian": 491310704,
+      "nativeMin": 489410160,
+      "nativeMax": 500485696,
+      "labelledGLBytes": 180446095,
+      "combinedBytes": 671756799,
+      "modelPlayingBytes": 905956532,
+      "sceneArrayBytes": 49081856
+    },
+    {
+      "run": "native-02-baseline.json",
+      "side": "baseline",
+      "pose": "pine-hollow-entry",
+      "pid": 12474,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:02:12.997009+00:00",
+          "pid": 12474,
+          "footprintBytes": 791826440,
+          "intervalPeakBytes": 812470280,
+          "gpuProcessBytes": 195300160
+        },
+        {
+          "at": "2026-10-08T11:02:14.110961+00:00",
+          "pid": 12474,
+          "footprintBytes": 791875592,
+          "intervalPeakBytes": 812470280,
+          "gpuProcessBytes": 197299008
+        },
+        {
+          "at": "2026-10-08T11:02:15.297087+00:00",
+          "pid": 12474,
+          "footprintBytes": 792023048,
+          "intervalPeakBytes": 812470280,
+          "gpuProcessBytes": 198724416
+        }
+      ],
+      "nativeMedian": 791875592,
+      "nativeMin": 791826440,
+      "nativeMax": 792023048,
+      "labelledGLBytes": 232689172,
+      "combinedBytes": 1024564764,
+      "modelPlayingBytes": 1128153350,
+      "sceneArrayBytes": 64386474
+    },
+    {
+      "run": "native-02-baseline.json",
+      "side": "baseline",
+      "pose": "pine-hollow-centre",
+      "pid": 12474,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:02:48.043825+00:00",
+          "pid": 12474,
+          "footprintBytes": 892850184,
+          "intervalPeakBytes": 894636040,
+          "gpuProcessBytes": 221039424
+        },
+        {
+          "at": "2026-10-08T11:02:49.119698+00:00",
+          "pid": 12474,
+          "footprintBytes": 892833800,
+          "intervalPeakBytes": 894636040,
+          "gpuProcessBytes": 221317952
+        },
+        {
+          "at": "2026-10-08T11:02:50.172281+00:00",
+          "pid": 12474,
+          "footprintBytes": 892669960,
+          "intervalPeakBytes": 894636040,
+          "gpuProcessBytes": 221514560
+        }
+      ],
+      "nativeMedian": 892833800,
+      "nativeMin": 892669960,
+      "nativeMax": 892850184,
+      "labelledGLBytes": 229940856,
+      "combinedBytes": 1122774656,
+      "modelPlayingBytes": 1121877403,
+      "sceneArrayBytes": 64610850
+    },
+    {
+      "run": "native-04-candidate.json",
+      "side": "candidate",
+      "pose": "home-settled",
+      "pid": 29715,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:04:51.858270+00:00",
+          "pid": 29715,
+          "footprintBytes": 507596424,
+          "intervalPeakBytes": 576949896,
+          "gpuProcessBytes": 182078032
+        },
+        {
+          "at": "2026-10-08T11:04:53.092834+00:00",
+          "pid": 29715,
+          "footprintBytes": 507285128,
+          "intervalPeakBytes": 576949896,
+          "gpuProcessBytes": 181996112
+        },
+        {
+          "at": "2026-10-08T11:04:54.160363+00:00",
+          "pid": 29715,
+          "footprintBytes": 514002592,
+          "intervalPeakBytes": 576949896,
+          "gpuProcessBytes": 181963344
+        }
+      ],
+      "nativeMedian": 507596424,
+      "nativeMin": 507285128,
+      "nativeMax": 514002592,
+      "labelledGLBytes": 180446095,
+      "combinedBytes": 688042519,
+      "modelPlayingBytes": 905956532,
+      "sceneArrayBytes": 49081856
+    },
+    {
+      "run": "native-04-candidate.json",
+      "side": "candidate",
+      "pose": "pine-hollow-entry",
+      "pid": 29715,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:05:18.682785+00:00",
+          "pid": 29715,
+          "footprintBytes": 811814920,
+          "intervalPeakBytes": 815730696,
+          "gpuProcessBytes": 198478680
+        },
+        {
+          "at": "2026-10-08T11:05:19.750549+00:00",
+          "pid": 29715,
+          "footprintBytes": 771870728,
+          "intervalPeakBytes": 815730696,
+          "gpuProcessBytes": 200133464
+        },
+        {
+          "at": "2026-10-08T11:05:20.903819+00:00",
+          "pid": 29715,
+          "footprintBytes": 771870728,
+          "intervalPeakBytes": 815730696,
+          "gpuProcessBytes": 202197848
+        }
+      ],
+      "nativeMedian": 771870728,
+      "nativeMin": 771870728,
+      "nativeMax": 811814920,
+      "labelledGLBytes": 229196232,
+      "combinedBytes": 1001066960,
+      "modelPlayingBytes": 1128153350,
+      "sceneArrayBytes": 64386474
+    },
+    {
+      "run": "native-04-candidate.json",
+      "side": "candidate",
+      "pose": "pine-hollow-centre",
+      "pid": 29715,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:05:49.451938+00:00",
+          "pid": 29715,
+          "footprintBytes": 884510752,
+          "intervalPeakBytes": 884805664,
+          "gpuProcessBytes": 228395864
+        },
+        {
+          "at": "2026-10-08T11:05:50.589169+00:00",
+          "pid": 29715,
+          "footprintBytes": 884412448,
+          "intervalPeakBytes": 884805664,
+          "gpuProcessBytes": 229215064
+        },
+        {
+          "at": "2026-10-08T11:05:51.670352+00:00",
+          "pid": 29715,
+          "footprintBytes": 884314144,
+          "intervalPeakBytes": 884805664,
+          "gpuProcessBytes": 228871000
+        }
+      ],
+      "nativeMedian": 884412448,
+      "nativeMin": 884314144,
+      "nativeMax": 884510752,
+      "labelledGLBytes": 229943160,
+      "combinedBytes": 1114355608,
+      "modelPlayingBytes": 1121877403,
+      "sceneArrayBytes": 64610850
+    },
+    {
+      "run": "native-05-baseline.json",
+      "side": "baseline",
+      "pose": "home-settled",
+      "pid": 39997,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:06:39.786682+00:00",
+          "pid": 39997,
+          "footprintBytes": 590810688,
+          "intervalPeakBytes": 622677568,
+          "gpuProcessBytes": 191875616
+        },
+        {
+          "at": "2026-10-08T11:06:40.848734+00:00",
+          "pid": 39997,
+          "footprintBytes": 574082624,
+          "intervalPeakBytes": 622677568,
+          "gpuProcessBytes": 191875616
+        },
+        {
+          "at": "2026-10-08T11:06:41.934037+00:00",
+          "pid": 39997,
+          "footprintBytes": 601787992,
+          "intervalPeakBytes": 622677568,
+          "gpuProcessBytes": 191941152
+        }
+      ],
+      "nativeMedian": 590810688,
+      "nativeMin": 574082624,
+      "nativeMax": 601787992,
+      "labelledGLBytes": 180446095,
+      "combinedBytes": 771256783,
+      "modelPlayingBytes": 905956532,
+      "sceneArrayBytes": 49081856
+    },
+    {
+      "run": "native-05-baseline.json",
+      "side": "baseline",
+      "pose": "pine-hollow-entry",
+      "pid": 39997,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:07:04.956702+00:00",
+          "pid": 39997,
+          "footprintBytes": 916541472,
+          "intervalPeakBytes": 925749280,
+          "gpuProcessBytes": 213109616
+        },
+        {
+          "at": "2026-10-08T11:07:06.190739+00:00",
+          "pid": 39997,
+          "footprintBytes": 916394016,
+          "intervalPeakBytes": 925749280,
+          "gpuProcessBytes": 214993776
+        },
+        {
+          "at": "2026-10-08T11:07:07.314941+00:00",
+          "pid": 39997,
+          "footprintBytes": 916344864,
+          "intervalPeakBytes": 925749280,
+          "gpuProcessBytes": 216779632
+        }
+      ],
+      "nativeMedian": 916394016,
+      "nativeMin": 916344864,
+      "nativeMax": 916541472,
+      "labelledGLBytes": 232691476,
+      "combinedBytes": 1149085492,
+      "modelPlayingBytes": 1128153350,
+      "sceneArrayBytes": 64386474
+    },
+    {
+      "run": "native-05-baseline.json",
+      "side": "baseline",
+      "pose": "pine-hollow-centre",
+      "pid": 39997,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:07:41.006764+00:00",
+          "pid": 39997,
+          "footprintBytes": 984551528,
+          "intervalPeakBytes": 984944744,
+          "gpuProcessBytes": 242633560
+        },
+        {
+          "at": "2026-10-08T11:07:42.030735+00:00",
+          "pid": 39997,
+          "footprintBytes": 984551528,
+          "intervalPeakBytes": 984944744,
+          "gpuProcessBytes": 243272536
+        },
+        {
+          "at": "2026-10-08T11:07:43.279745+00:00",
+          "pid": 39997,
+          "footprintBytes": 984518760,
+          "intervalPeakBytes": 984944744,
+          "gpuProcessBytes": 242994008
+        }
+      ],
+      "nativeMedian": 984551528,
+      "nativeMin": 984518760,
+      "nativeMax": 984551528,
+      "labelledGLBytes": 229943160,
+      "combinedBytes": 1214494688,
+      "modelPlayingBytes": 1121877403,
+      "sceneArrayBytes": 64610850
+    },
+    {
+      "run": "native-06-baseline.json",
+      "side": "baseline",
+      "pose": "home-settled",
+      "pid": 50245,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:08:39.300636+00:00",
+          "pid": 50245,
+          "footprintBytes": 550997568,
+          "intervalPeakBytes": 556977728,
+          "gpuProcessBytes": 185141840
+        },
+        {
+          "at": "2026-10-08T11:08:40.334860+00:00",
+          "pid": 50245,
+          "footprintBytes": 550899264,
+          "intervalPeakBytes": 556977728,
+          "gpuProcessBytes": 185141840
+        },
+        {
+          "at": "2026-10-08T11:08:41.479103+00:00",
+          "pid": 50245,
+          "footprintBytes": 553127536,
+          "intervalPeakBytes": 577785456,
+          "gpuProcessBytes": 185158224
+        }
+      ],
+      "nativeMedian": 550997568,
+      "nativeMin": 550899264,
+      "nativeMax": 553127536,
+      "labelledGLBytes": 180446095,
+      "combinedBytes": 731443663,
+      "modelPlayingBytes": 905956532,
+      "sceneArrayBytes": 49081856
+    },
+    {
+      "run": "native-06-baseline.json",
+      "side": "baseline",
+      "pose": "pine-hollow-entry",
+      "pid": 50245,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:09:00.468659+00:00",
+          "pid": 50245,
+          "footprintBytes": 765071344,
+          "intervalPeakBytes": 770166768,
+          "gpuProcessBytes": 219515760
+        },
+        {
+          "at": "2026-10-08T11:09:01.485872+00:00",
+          "pid": 50245,
+          "footprintBytes": 764841968,
+          "intervalPeakBytes": 770166768,
+          "gpuProcessBytes": 221907824
+        },
+        {
+          "at": "2026-10-08T11:09:02.612055+00:00",
+          "pid": 50245,
+          "footprintBytes": 764858352,
+          "intervalPeakBytes": 770166768,
+          "gpuProcessBytes": 224316272
+        }
+      ],
+      "nativeMedian": 764858352,
+      "nativeMin": 764841968,
+      "nativeMax": 765071344,
+      "labelledGLBytes": 232691476,
+      "combinedBytes": 997549828,
+      "modelPlayingBytes": 1128153350,
+      "sceneArrayBytes": 64386474
+    },
+    {
+      "run": "native-06-baseline.json",
+      "side": "baseline",
+      "pose": "pine-hollow-centre",
+      "pid": 50245,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:09:27.906334+00:00",
+          "pid": 50245,
+          "footprintBytes": 922308592,
+          "intervalPeakBytes": 924274672,
+          "gpuProcessBytes": 250121072
+        },
+        {
+          "at": "2026-10-08T11:09:29.035355+00:00",
+          "pid": 50245,
+          "footprintBytes": 922292208,
+          "intervalPeakBytes": 924274672,
+          "gpuProcessBytes": 251104112
+        },
+        {
+          "at": "2026-10-08T11:09:30.163092+00:00",
+          "pid": 50245,
+          "footprintBytes": 922275824,
+          "intervalPeakBytes": 924274672,
+          "gpuProcessBytes": 250841968
+        }
+      ],
+      "nativeMedian": 922292208,
+      "nativeMin": 922275824,
+      "nativeMax": 922308592,
+      "labelledGLBytes": 229943160,
+      "combinedBytes": 1152235368,
+      "modelPlayingBytes": 1121877403,
+      "sceneArrayBytes": 64610850
+    },
+    {
+      "run": "native-08-candidate.json",
+      "side": "candidate",
+      "pose": "home-settled",
+      "pid": 65392,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:11:40.669236+00:00",
+          "pid": 65392,
+          "footprintBytes": 514444792,
+          "intervalPeakBytes": 517017080,
+          "gpuProcessBytes": 180111904
+        },
+        {
+          "at": "2026-10-08T11:11:41.783831+00:00",
+          "pid": 65392,
+          "footprintBytes": 517033464,
+          "intervalPeakBytes": 517623288,
+          "gpuProcessBytes": 180095520
+        },
+        {
+          "at": "2026-10-08T11:11:42.906525+00:00",
+          "pid": 65392,
+          "footprintBytes": 516656632,
+          "intervalPeakBytes": 517623288,
+          "gpuProcessBytes": 180374048
+        }
+      ],
+      "nativeMedian": 516656632,
+      "nativeMin": 514444792,
+      "nativeMax": 517033464,
+      "labelledGLBytes": 180446095,
+      "combinedBytes": 697102727,
+      "modelPlayingBytes": 905956532,
+      "sceneArrayBytes": 49081856
+    },
+    {
+      "run": "native-08-candidate.json",
+      "side": "candidate",
+      "pose": "pine-hollow-entry",
+      "pid": 65392,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:12:01.876276+00:00",
+          "pid": 65392,
+          "footprintBytes": 706269240,
+          "intervalPeakBytes": 753733688,
+          "gpuProcessBytes": 208538432
+        },
+        {
+          "at": "2026-10-08T11:12:03.006051+00:00",
+          "pid": 65392,
+          "footprintBytes": 706236472,
+          "intervalPeakBytes": 753733688,
+          "gpuProcessBytes": 211176256
+        },
+        {
+          "at": "2026-10-08T11:12:04.030973+00:00",
+          "pid": 65392,
+          "footprintBytes": 706318392,
+          "intervalPeakBytes": 753733688,
+          "gpuProcessBytes": 214076224
+        }
+      ],
+      "nativeMedian": 706269240,
+      "nativeMin": 706236472,
+      "nativeMax": 706318392,
+      "labelledGLBytes": 232691476,
+      "combinedBytes": 938960716,
+      "modelPlayingBytes": 1128153350,
+      "sceneArrayBytes": 64386474
+    },
+    {
+      "run": "native-08-candidate.json",
+      "side": "candidate",
+      "pose": "pine-hollow-centre",
+      "pid": 65392,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:12:29.368100+00:00",
+          "pid": 65392,
+          "footprintBytes": 926879824,
+          "intervalPeakBytes": 929681488,
+          "gpuProcessBytes": 238160704
+        },
+        {
+          "at": "2026-10-08T11:12:30.425030+00:00",
+          "pid": 65392,
+          "footprintBytes": 926847056,
+          "intervalPeakBytes": 929681488,
+          "gpuProcessBytes": 239045440
+        },
+        {
+          "at": "2026-10-08T11:12:31.577318+00:00",
+          "pid": 65392,
+          "footprintBytes": 926650448,
+          "intervalPeakBytes": 929681488,
+          "gpuProcessBytes": 238947136
+        }
+      ],
+      "nativeMedian": 926847056,
+      "nativeMin": 926650448,
+      "nativeMax": 926879824,
+      "labelledGLBytes": 229943160,
+      "combinedBytes": 1156790216,
+      "modelPlayingBytes": 1121877403,
+      "sceneArrayBytes": 64610850
+    },
+    {
+      "run": "native-09-candidate.json",
+      "side": "candidate",
+      "pose": "home-settled",
+      "pid": 70780,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:13:16.697979+00:00",
+          "pid": 70780,
+          "footprintBytes": 553422424,
+          "intervalPeakBytes": 562990680,
+          "gpuProcessBytes": 187386448
+        },
+        {
+          "at": "2026-10-08T11:13:17.857377+00:00",
+          "pid": 70780,
+          "footprintBytes": 553799256,
+          "intervalPeakBytes": 562990680,
+          "gpuProcessBytes": 187370064
+        },
+        {
+          "at": "2026-10-08T11:13:18.894048+00:00",
+          "pid": 70780,
+          "footprintBytes": 555847256,
+          "intervalPeakBytes": 562990680,
+          "gpuProcessBytes": 187648592
+        }
+      ],
+      "nativeMedian": 553799256,
+      "nativeMin": 553422424,
+      "nativeMax": 555847256,
+      "labelledGLBytes": 180446095,
+      "combinedBytes": 734245351,
+      "modelPlayingBytes": 905956532,
+      "sceneArrayBytes": 49081856
+    },
+    {
+      "run": "native-09-candidate.json",
+      "side": "candidate",
+      "pose": "pine-hollow-entry",
+      "pid": 70780,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:13:37.915577+00:00",
+          "pid": 70780,
+          "footprintBytes": 757043136,
+          "intervalPeakBytes": 761122752,
+          "gpuProcessBytes": 213240664
+        },
+        {
+          "at": "2026-10-08T11:13:38.968334+00:00",
+          "pid": 70780,
+          "footprintBytes": 757059520,
+          "intervalPeakBytes": 761122752,
+          "gpuProcessBytes": 215599960
+        },
+        {
+          "at": "2026-10-08T11:13:40.119879+00:00",
+          "pid": 70780,
+          "footprintBytes": 757026752,
+          "intervalPeakBytes": 761122752,
+          "gpuProcessBytes": 218139480
+        }
+      ],
+      "nativeMedian": 757043136,
+      "nativeMin": 757026752,
+      "nativeMax": 757059520,
+      "labelledGLBytes": 229196232,
+      "combinedBytes": 986239368,
+      "modelPlayingBytes": 1128153350,
+      "sceneArrayBytes": 64386474
+    },
+    {
+      "run": "native-09-candidate.json",
+      "side": "candidate",
+      "pose": "pine-hollow-centre",
+      "pid": 70780,
+      "nativeSamples": [
+        {
+          "at": "2026-10-08T11:14:05.188753+00:00",
+          "pid": 70780,
+          "footprintBytes": 881299440,
+          "intervalPeakBytes": 882855920,
+          "gpuProcessBytes": 242420568
+        },
+        {
+          "at": "2026-10-08T11:14:06.330690+00:00",
+          "pid": 70780,
+          "footprintBytes": 881430512,
+          "intervalPeakBytes": 882855920,
+          "gpuProcessBytes": 242879320
+        },
+        {
+          "at": "2026-10-08T11:14:07.382210+00:00",
+          "pid": 70780,
+          "footprintBytes": 881348592,
+          "intervalPeakBytes": 882855920,
+          "gpuProcessBytes": 243223384
+        }
+      ],
+      "nativeMedian": 881348592,
+      "nativeMin": 881299440,
+      "nativeMax": 881430512,
+      "labelledGLBytes": 229943160,
+      "combinedBytes": 1111291752,
+      "modelPlayingBytes": 1121877403,
+      "sceneArrayBytes": 64610850
+    }
+  ],
+  "metrics": {
+    "home-settled": {
+      "baseline": {
+        "nativeMedian": {
+          "values": [
+            491310704,
+            590810688,
+            550997568
+          ],
+          "median": 550997568,
+          "min": 491310704,
+          "max": 590810688,
+          "spread": 99499984
+        },
+        "labelledGLBytes": {
+          "values": [
+            180446095,
+            180446095,
+            180446095
+          ],
+          "median": 180446095,
+          "min": 180446095,
+          "max": 180446095,
+          "spread": 0
+        },
+        "combinedBytes": {
+          "values": [
+            671756799,
+            771256783,
+            731443663
+          ],
+          "median": 731443663,
+          "min": 671756799,
+          "max": 771256783,
+          "spread": 99499984
+        },
+        "sceneArrayBytes": {
+          "values": [
+            49081856,
+            49081856,
+            49081856
+          ],
+          "median": 49081856,
+          "min": 49081856,
+          "max": 49081856,
+          "spread": 0
+        }
+      },
+      "candidate": {
+        "nativeMedian": {
+          "values": [
+            507596424,
+            516656632,
+            553799256
+          ],
+          "median": 516656632,
+          "min": 507596424,
+          "max": 553799256,
+          "spread": 46202832
+        },
+        "labelledGLBytes": {
+          "values": [
+            180446095,
+            180446095,
+            180446095
+          ],
+          "median": 180446095,
+          "min": 180446095,
+          "max": 180446095,
+          "spread": 0
+        },
+        "combinedBytes": {
+          "values": [
+            688042519,
+            697102727,
+            734245351
+          ],
+          "median": 697102727,
+          "min": 688042519,
+          "max": 734245351,
+          "spread": 46202832
+        },
+        "sceneArrayBytes": {
+          "values": [
+            49081856,
+            49081856,
+            49081856
+          ],
+          "median": 49081856,
+          "min": 49081856,
+          "max": 49081856,
+          "spread": 0
+        }
+      },
+      "baselineMinusCandidate": {
+        "nativeMedian": 34340936,
+        "labelledGLBytes": 0,
+        "combinedBytes": 34340936,
+        "sceneArrayBytes": 0
+      }
+    },
+    "pine-hollow-centre": {
+      "baseline": {
+        "nativeMedian": {
+          "values": [
+            892833800,
+            984551528,
+            922292208
+          ],
+          "median": 922292208,
+          "min": 892833800,
+          "max": 984551528,
+          "spread": 91717728
+        },
+        "labelledGLBytes": {
+          "values": [
+            229940856,
+            229943160,
+            229943160
+          ],
+          "median": 229943160,
+          "min": 229940856,
+          "max": 229943160,
+          "spread": 2304
+        },
+        "combinedBytes": {
+          "values": [
+            1122774656,
+            1214494688,
+            1152235368
+          ],
+          "median": 1152235368,
+          "min": 1122774656,
+          "max": 1214494688,
+          "spread": 91720032
+        },
+        "sceneArrayBytes": {
+          "values": [
+            64610850,
+            64610850,
+            64610850
+          ],
+          "median": 64610850,
+          "min": 64610850,
+          "max": 64610850,
+          "spread": 0
+        }
+      },
+      "candidate": {
+        "nativeMedian": {
+          "values": [
+            884412448,
+            926847056,
+            881348592
+          ],
+          "median": 884412448,
+          "min": 881348592,
+          "max": 926847056,
+          "spread": 45498464
+        },
+        "labelledGLBytes": {
+          "values": [
+            229943160,
+            229943160,
+            229943160
+          ],
+          "median": 229943160,
+          "min": 229943160,
+          "max": 229943160,
+          "spread": 0
+        },
+        "combinedBytes": {
+          "values": [
+            1114355608,
+            1156790216,
+            1111291752
+          ],
+          "median": 1114355608,
+          "min": 1111291752,
+          "max": 1156790216,
+          "spread": 45498464
+        },
+        "sceneArrayBytes": {
+          "values": [
+            64610850,
+            64610850,
+            64610850
+          ],
+          "median": 64610850,
+          "min": 64610850,
+          "max": 64610850,
+          "spread": 0
+        }
+      },
+      "baselineMinusCandidate": {
+        "nativeMedian": 37879760,
+        "labelledGLBytes": 0,
+        "combinedBytes": 37879760,
+        "sceneArrayBytes": 0
+      }
+    },
+    "pine-hollow-entry": {
+      "baseline": {
+        "nativeMedian": {
+          "values": [
+            791875592,
+            916394016,
+            764858352
+          ],
+          "median": 791875592,
+          "min": 764858352,
+          "max": 916394016,
+          "spread": 151535664
+        },
+        "labelledGLBytes": {
+          "values": [
+            232689172,
+            232691476,
+            232691476
+          ],
+          "median": 232691476,
+          "min": 232689172,
+          "max": 232691476,
+          "spread": 2304
+        },
+        "combinedBytes": {
+          "values": [
+            1024564764,
+            1149085492,
+            997549828
+          ],
+          "median": 1024564764,
+          "min": 997549828,
+          "max": 1149085492,
+          "spread": 151535664
+        },
+        "sceneArrayBytes": {
+          "values": [
+            64386474,
+            64386474,
+            64386474
+          ],
+          "median": 64386474,
+          "min": 64386474,
+          "max": 64386474,
+          "spread": 0
+        }
+      },
+      "candidate": {
+        "nativeMedian": {
+          "values": [
+            771870728,
+            706269240,
+            757043136
+          ],
+          "median": 757043136,
+          "min": 706269240,
+          "max": 771870728,
+          "spread": 65601488
+        },
+        "labelledGLBytes": {
+          "values": [
+            229196232,
+            232691476,
+            229196232
+          ],
+          "median": 229196232,
+          "min": 229196232,
+          "max": 232691476,
+          "spread": 3495244
+        },
+        "combinedBytes": {
+          "values": [
+            1001066960,
+            938960716,
+            986239368
+          ],
+          "median": 986239368,
+          "min": 938960716,
+          "max": 1001066960,
+          "spread": 62106244
+        },
+        "sceneArrayBytes": {
+          "values": [
+            64386474,
+            64386474,
+            64386474
+          ],
+          "median": 64386474,
+          "min": 64386474,
+          "max": 64386474,
+          "spread": 0
+        }
+      },
+      "baselineMinusCandidate": {
+        "nativeMedian": 34832456,
+        "labelledGLBytes": 3495244,
+        "combinedBytes": 38325396,
+        "sceneArrayBytes": 0
+      }
+    }
+  },
+  "failureCategories": {
+    "baseline": {
+      "premeasurementInspector": 1,
+      "postfenceGraphicsRecovery": 0,
+      "measuredAttempts": 3
+    },
+    "candidate": {
+      "premeasurementInspector": 0,
+      "postfenceGraphicsRecovery": 2,
+      "measuredAttempts": 5
+    }
+  },
+  "verdict": {
+    "validColdRunsPerSide": 3,
+    "nativeMemoryCreditBytes": 0,
+    "reason": "Observed centre median difference is smaller than cold-run spread; candidate has two post-fence graphics recovery failures versus zero baseline GPU failures. Do not infer causal savings or stability.",
+    "capPass": false,
+    "phoneCapProof": false,
+    "qualifyingSf57": false
+  },
+  "commands": [
+    "scripts/browser-lane.sh --max 12 scripts/sim-lane.sh run --max 12 sp-x1-g227-cpu node progress/memory/g227-budget/native.mjs <url> <attempt.json> <dist> pine-centre on",
+    "node --test scripts/soak/owned.test.mjs (14/14)",
+    "pnpm exec vitest run test/parity-speed.test.ts (9/9)"
+  ],
+  "rulers": {
+    "progress/memory/g227-budget/native.mjs": "7169be97be7af6b4b71ccb1546ba5ad08e80210c94e30a811f68cd7ddf01eeae",
+    "scripts/soak/owned.mjs": "dc1d01e96a219a9229da41b1886b77ce75a1fe44fe941d3e111e49dad860273f",
+    "scripts/parity/clock.mjs": "9f1a3bca7c29c24dd31a2200b9b7dcb2342351891efb194188768b0cd003a11f",
+    "scripts/parity.mjs": "228c9813bde6ff1408a8346f5cc1846027da16e37c02a80eb77be9caa73c8fcb",
+    "scripts/parity/glbytes.mjs": "ce49d261b1ae29c3c62eb32551b33ba7989dff926294d7814956091ccdc5f6cd"
+  },
+  "assertions": {
+    "file": "native-assertions.tar.gz",
+    "bytes": 1814025,
+    "sha256": "2cde36cb615082a84f5bc190ab012aae750bb2e5fc366f5a534ea21fef6789fc",
+    "members": {
+      "native-01-baseline.json": {
+        "bytes": 3284,
+        "sha256": "064e91827a71ae72b2344aefc47a30ee00e557864f4d98276e9d3027ee793025"
+      },
+      "native-01-baseline.json.native.jsonl": {
+        "bytes": 10498,
+        "sha256": "9d858bed0447506b89ec77bff827ec1e0f64192cf5e562ef4bb8a4148998b63e"
+      },
+      "native-01-baseline.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-01-baseline.json.sampler.log": {
+        "bytes": 232,
+        "sha256": "9c77f9f51b22a03215b4d1b6031b9c9d9ce0219374d695e3684c8dd4a0b37849"
+      },
+      "native-02-baseline.home-settled.vmmap.txt": {
+        "bytes": 7864,
+        "sha256": "08edbad4e8effe19f6d2f087a822f53d9000a5cd6640fa062d360ccb0bc0a9fc"
+      },
+      "native-02-baseline.json": {
+        "bytes": 6149800,
+        "sha256": "1b66870f86466ebee1c684d66073d521fbe9a288bbc6eb685e0e580339acdbda"
+      },
+      "native-02-baseline.json.native.jsonl": {
+        "bytes": 242461,
+        "sha256": "fa0f541ce1628396fcb537c1262672afc43294d7dbf8cbe435dea1fdd8f3e78f"
+      },
+      "native-02-baseline.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-02-baseline.json.sampler.log": {
+        "bytes": 1046,
+        "sha256": "b33ea3ee67cb88fbdc24a33dedd0444f989e85949e049698028680631dea504a"
+      },
+      "native-02-baseline.pine-hollow-centre.vmmap.txt": {
+        "bytes": 8393,
+        "sha256": "3fa3436b54b49d5018212514223ca5d9d47103f660768e4d58cf3d0e7c6e523c"
+      },
+      "native-02-baseline.pine-hollow-entry.vmmap.txt": {
+        "bytes": 8393,
+        "sha256": "5a542d169af4e0b9c846de339751882aeef1e6ccaa6925a28eb1decb359d45fe"
+      },
+      "native-03-candidate.home-settled.vmmap.txt": {
+        "bytes": 8242,
+        "sha256": "8bdc235d321325a95a71b2cbf01720d97c96d2174317304b46c652fb3a484e4b"
+      },
+      "native-03-candidate.json": {
+        "bytes": 1251110,
+        "sha256": "cf95f73ba33ab2b44d833cf4e7a6675724808bc7b02599c4a3c1cdaa5e106565"
+      },
+      "native-03-candidate.json.native.jsonl": {
+        "bytes": 105395,
+        "sha256": "3b8222865d1ba84fa7dda76f79c77ac7db0148f01f9d68f98b593ac41e094102"
+      },
+      "native-03-candidate.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-03-candidate.json.sampler.log": {
+        "bytes": 633,
+        "sha256": "b8a67fb290d7e7724545210975beeb4b1d4efdc52ec3a270091e79b87ad8cdfa"
+      },
+      "native-04-candidate.home-settled.vmmap.txt": {
+        "bytes": 7968,
+        "sha256": "8bbcb757d2939eb17f1b5236375c95958660cae500899e473fdf7f295c4f44e4"
+      },
+      "native-04-candidate.json": {
+        "bytes": 6145182,
+        "sha256": "fa7e4ef9cedb29ef7be88b22060f1e394612a9775d85612ede19f7519efe4445"
+      },
+      "native-04-candidate.json.native.jsonl": {
+        "bytes": 178088,
+        "sha256": "ecfbdd2c131e1c125d1ad585025efcd69bc3e0fd29640cfeffebb8ca3fd8d9f4"
+      },
+      "native-04-candidate.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-04-candidate.json.sampler.log": {
+        "bytes": 1044,
+        "sha256": "442753a407351b06c0226121739cbab375fa3b3cc91c1cb25e75619a360d12df"
+      },
+      "native-04-candidate.pine-hollow-centre.vmmap.txt": {
+        "bytes": 8393,
+        "sha256": "189806778dd6b628aebeb0253a162b1855ef324bea36e71bfdb4a87872cd48d3"
+      },
+      "native-04-candidate.pine-hollow-entry.vmmap.txt": {
+        "bytes": 8497,
+        "sha256": "d5810a6e69c40ef474d2f3bba705f3009f471fc0a207adacf286fe7c30b371d3"
+      },
+      "native-05-baseline.home-settled.vmmap.txt": {
+        "bytes": 7968,
+        "sha256": "44b32203538c4df3b26dde3db047f7b18e134acd08c1e31595febd5aa8f88d32"
+      },
+      "native-05-baseline.json": {
+        "bytes": 6149370,
+        "sha256": "ce25727a07126e641a450140f93f19bc446d55eb928eba66c3e0096ad6d410ec"
+      },
+      "native-05-baseline.json.native.jsonl": {
+        "bytes": 196070,
+        "sha256": "f2be3bd1d0b34196602cd07b76fc7c1f079507667fdc63b0d89804b00fbc7770"
+      },
+      "native-05-baseline.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-05-baseline.json.sampler.log": {
+        "bytes": 1046,
+        "sha256": "30e54d14266b340b4945aeef4356cd2128f9bbfebe7caac0fb23dac1f49b008b"
+      },
+      "native-05-baseline.pine-hollow-centre.vmmap.txt": {
+        "bytes": 8136,
+        "sha256": "f489f463ccdd1cc7faab9436782529b7af3056687af8f6bebbaa5eae8129ee5e"
+      },
+      "native-05-baseline.pine-hollow-entry.vmmap.txt": {
+        "bytes": 8242,
+        "sha256": "74b83777785ce8d2baece8e825d596e6035c06013d30ab924c7f9285f5ae9263"
+      },
+      "native-06-baseline.home-settled.vmmap.txt": {
+        "bytes": 7968,
+        "sha256": "8798b4383c727902562a05bf3ae149503a53bbe9e62124254d35c497d660c4d8"
+      },
+      "native-06-baseline.json": {
+        "bytes": 6145188,
+        "sha256": "525090208ea9d53a15defa77b7cdf6d5bfc7a7c6633b00c0456dcd1212a39763"
+      },
+      "native-06-baseline.json.native.jsonl": {
+        "bytes": 208249,
+        "sha256": "dea2a6b741c850813e6cffa24b4192175e8ea091fc98a888259868991a1a30eb"
+      },
+      "native-06-baseline.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-06-baseline.json.sampler.log": {
+        "bytes": 1042,
+        "sha256": "01f4fd4e363baa430ed6582f4e1602d184c06fbb3e89ce7c0d9f27390ad5456c"
+      },
+      "native-06-baseline.pine-hollow-centre.vmmap.txt": {
+        "bytes": 8497,
+        "sha256": "01ff5b0f4ce066ade3ade0b653d772f64cd3fd2756ec63303cd0e0ff582b31bf"
+      },
+      "native-06-baseline.pine-hollow-entry.vmmap.txt": {
+        "bytes": 8393,
+        "sha256": "c859cea6d708402d4ec5e23c3975e3142d3ecc70e4651ad71c844bc0f7421425"
+      },
+      "native-07-candidate.home-settled.vmmap.txt": {
+        "bytes": 8258,
+        "sha256": "4fac203091d0276fd29531a25465b5a865a7bdafe3630263710791d15018ec8e"
+      },
+      "native-07-candidate.json": {
+        "bytes": 1250367,
+        "sha256": "a55a59f3bba957275b56d240a4abf170b6044d1fecb8fd25765a086b5ac118dd"
+      },
+      "native-07-candidate.json.native.jsonl": {
+        "bytes": 96468,
+        "sha256": "bc2ad6fdb7f8399090f8c6a400134aa52bfae0b700e3fe6301269f56a351c438"
+      },
+      "native-07-candidate.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-07-candidate.json.sampler.log": {
+        "bytes": 635,
+        "sha256": "994f95044ca00032605d1326243c047199f3baa4d3446036ed58fc5b0ed1c748"
+      },
+      "native-08-candidate.home-settled.vmmap.txt": {
+        "bytes": 7968,
+        "sha256": "e31f77027916f5b72eca97fd1f8b0c040bfa67ec98790b3954cd6f1026f347b9"
+      },
+      "native-08-candidate.json": {
+        "bytes": 6145050,
+        "sha256": "a45fafd69c454fdf98ba916bd39a1395a7edf207208798803988099c86f2d88f"
+      },
+      "native-08-candidate.json.native.jsonl": {
+        "bytes": 208477,
+        "sha256": "6833fdcf37154c086e5eaf41f44181382707affeef117d7f4f43b8fe80829482"
+      },
+      "native-08-candidate.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-08-candidate.json.sampler.log": {
+        "bytes": 1045,
+        "sha256": "cbae58060f6b0a06328f20aa18cc83e8f440a567490e9bb8df468be2a025ba98"
+      },
+      "native-08-candidate.pine-hollow-centre.vmmap.txt": {
+        "bytes": 8242,
+        "sha256": "c982f70fa5bc72a636c8c77ca3ba784a0b79bb57201c0caa899c26dbfa3f23aa"
+      },
+      "native-08-candidate.pine-hollow-entry.vmmap.txt": {
+        "bytes": 8242,
+        "sha256": "b3d20b1dfd1f5759bf80da4f3d7300ac6abb4b4207135dba3851cca23066a48e"
+      },
+      "native-09-candidate.home-settled.vmmap.txt": {
+        "bytes": 7968,
+        "sha256": "17cc32234fb95c5648413334c6eb50ee4269c91106179daf19633080fd5213b9"
+      },
+      "native-09-candidate.json": {
+        "bytes": 6141694,
+        "sha256": "7d4952876bc7d3ceec16b8873f11f40ebf7d18f8de04a57b34c0196f6530971a"
+      },
+      "native-09-candidate.json.native.jsonl": {
+        "bytes": 208062,
+        "sha256": "542cfc38ae57febc39d4f1e0b4d4f295e5901f6ba813ffd3d00fcd6d5b426afa"
+      },
+      "native-09-candidate.json.phase": {
+        "bytes": 4,
+        "sha256": "a4c3ed04a95a3da14a9d235c83d868bed7c0f45cf7f3faa751ee8f50598d2211"
+      },
+      "native-09-candidate.json.sampler.log": {
+        "bytes": 1046,
+        "sha256": "ff5819cb6a168ecf6e550d6c439b2bf457ac7f99c3bc24d18b351a313a6a945d"
+      },
+      "native-09-candidate.pine-hollow-centre.vmmap.txt": {
+        "bytes": 8497,
+        "sha256": "be5bc3d146fba23f5d58b695b759e3e78016b9e9a662f7dfa151488867e5506e"
+      },
+      "native-09-candidate.pine-hollow-entry.vmmap.txt": {
+        "bytes": 8497,
+        "sha256": "741e9434961a21c6238f349a435a392790638559329ccd92ec77b67f8af8ba2c"
+      },
+      "native-attempts.json": {
+        "bytes": 2354,
+        "sha256": "105a9be9034cefaa80e914bca0f840105b0666355fec61b252942ede1b28f9ad"
+      },
+      "native.log": {
+        "bytes": 2887,
+        "sha256": "2022841f6581fa40b1a80ee1f7853de121039efb48e71d4dec0f256d3b6cbebb"
+      },
+      "native.py": {
+        "bytes": 2801,
+        "sha256": "55802ea43f080df4a603a6fee01aa05311eedebf8cdac115231aa3780c01c729"
+      },
+      "rulers.json": {
+        "bytes": 501,
+        "sha256": "2fd95d8ee9b814e7bbd2a57bd50b0baedcbc6e6f47e717d8b9d82c80f3ec842d"
+      },
+      "summarize.py": {
+        "bytes": 3499,
+        "sha256": "c8a3a2bc03f92d707e54d4a505f574ce64f695b109dd35784b262cd97f206319"
+      }
+    }
+  }
+}
