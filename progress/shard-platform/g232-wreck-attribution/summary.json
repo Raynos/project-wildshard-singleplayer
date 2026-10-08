@@ -1,0 +1,145 @@
+{
+  "pin": "cdad59776201998220705ca0c6fc16a5e7dd38b5",
+  "browserBuild": "cdad597-muzcnntr",
+  "pass": false,
+  "sourceChanged": false,
+  "walk": [
+    {
+      "name": "wreck-in-west-to-120",
+      "seconds": 19.8,
+      "end": {
+        "x": 159.599,
+        "y": -0.186,
+        "z": -0.009
+      },
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 159.6,
+          "y": -0.19,
+          "z": -0.01
+        }
+      ]
+    },
+    {
+      "name": "wreck-in-west-to-120",
+      "seconds": 19.8,
+      "end": {
+        "x": 159.599,
+        "y": -0.186,
+        "z": -0.007
+      },
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 159.6,
+          "y": -0.19,
+          "z": -0.01
+        }
+      ]
+    },
+    {
+      "name": "wreck-out-east-from-120",
+      "seconds": 5.4,
+      "end": {
+        "x": 133.984,
+        "y": 0.671,
+        "z": -0.053
+      },
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 133.98,
+          "y": 0.67,
+          "z": -0.05
+        }
+      ]
+    },
+    {
+      "name": "wreck-out-east-from-120",
+      "seconds": 5.4,
+      "end": {
+        "x": 133.984,
+        "y": 0.671,
+        "z": -0.053
+      },
+      "stuck": [
+        {
+          "wp": 0,
+          "x": 133.98,
+          "y": 0.67,
+          "z": -0.05
+        }
+      ]
+    }
+  ],
+  "nativeCounterfactuals": {
+    "coarseBox": {
+      "westStop": 159.59934291320133,
+      "halfExtents": {
+        "x": 1.12,
+        "y": 1.49,
+        "z": 1.12
+      }
+    },
+    "drawnConvexHull": {
+      "westStop": 159.3211588040624
+    },
+    "drawnTriangles": {
+      "westFeet": {
+        "x": 158.90693179452592,
+        "y": 0.07454985293769201,
+        "z": -0.3947628232469307
+      },
+      "contacts": [
+        108,
+        109
+      ],
+      "reverseFeet": {
+        "x": 133.98454318859058,
+        "y": 0.6709096929518759,
+        "z": 0.013144156138764629
+      },
+      "reverseContact": 7,
+      "reverseBox": {
+        "centre": {
+          "x": 136.1842498779297,
+          "y": 0.12439049780368805,
+          "z": 0.13431869447231293
+        },
+        "halfExtents": {
+          "x": 1.8,
+          "y": 1.58,
+          "z": 1.8
+        }
+      }
+    }
+  },
+  "recommendation": "Keep real object collision; route the capture walk around the visible wreck. Original straight-line failure remains RED. No passing route or collider fix claimed.",
+  "sealed": {
+    "browser-assertions.json.gz": {
+      "sha256": "e282e9dd1f2cb212bfcf4175ca6f089e8306d05a82a6122aa6c2dd7c716e7cf7",
+      "bytes": 11597
+    },
+    "straight-route.json": {
+      "sha256": "9d901753302a2ed67312f50c7d5a3bbdfe429f2b477142176f925c990559570e",
+      "bytes": 297
+    },
+    "wreck-collision-candidate.patch.gz": {
+      "sha256": "003b7618e9adeef1cb0e656e624cd46ba296588a4fd37b432c5437e13413a3e3",
+      "bytes": 1584
+    },
+    "wreck-entry-walk-candidate.ts.gz": {
+      "sha256": "24fc77af642d18432b47af00eed8cb498ed15a7b6eaae96c16afc254b9d0c7ed",
+      "bytes": 1442
+    },
+    "wreck-native-walk.log.gz": {
+      "sha256": "8ab439fd8b77b9d60330c9bb44f33f24539b3d419ee6ff19e7dbc336eb5cf595",
+      "bytes": 1249
+    },
+    "wreck-portrait.jpg": {
+      "sha256": "fe99a20c41f541cf0f53486a3ec747d7ab316c3facd6f0da5abc78d82db067a1",
+      "bytes": 187781
+    }
+  }
+}

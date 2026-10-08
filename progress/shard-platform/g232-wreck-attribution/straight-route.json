@@ -1,0 +1,1 @@
+{"driftwood-isle":[{"name":"wreck-in-west-to-120","start":{"x":230,"z":0,"yaw":1.5707963267948966},"waypoints":[{"x":120,"z":0}],"timeout":60,"gate":true},{"name":"wreck-out-east-from-120","start":{"x":120,"z":0,"yaw":-1.5707963267948966},"waypoints":[{"x":230,"z":0}],"timeout":60,"gate":true}]}
