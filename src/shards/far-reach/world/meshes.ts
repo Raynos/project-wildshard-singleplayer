@@ -1,4 +1,5 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
+import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { SKY_HD, SKY_MESHES, skyHdUrl, skyMeshUrl, type SkyHdName, type SkyMeshName } from '../boot/files';
 import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Uint32BufferAttribute, Vector3, type BufferAttribute, type InterleavedBufferAttribute, type Object3D, type Texture } from 'three';
 
@@ -39,7 +40,8 @@ async function load(name: SkyMeshName): Promise<void> {
     if (pos.length === 0) throw new Error(`${name}: no mesh`);
     const g = new BufferGeometry();
     g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
-    g.computeVertexNormals(); g.computeBoundingBox(); ready.set(name, g);
+    g.computeVertexNormals(); g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
+    cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
   } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the code model stands in:`, e); }
 }
 
@@ -68,13 +70,14 @@ async function loadHd(name: SkyHdName): Promise<void> {
       found.push({ geometry: g, map: m.map });
     });
     const one = found[0]; if (one === undefined) throw new Error(`${name}: no textured mesh`);
-    hd.set(name, one);
+    retainCachedResources(one); hd.set(name, one);
+    cacheUntilDisposed(one, () => { if (hd.get(name) === one) { hd.delete(name); loading = null; } });
   } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the faceted model stands in:`, e); }
 }
 
 /** Load every generated model once (a failed one is skipped). */
 export function preloadSkyMeshes(): Promise<void> {
-  loading ??= Promise.all([...SKY_MESHES.map(load), ...SKY_HD.map(loadHd)]).then(() => undefined);
+  loading ??= Promise.all([...SKY_MESHES.filter(name => !ready.has(name)).map(load), ...SKY_HD.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
   return loading;
 }
 
