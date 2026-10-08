@@ -3779,7 +3779,7 @@
       {
         "name": "viewmodelTexSet",
         "kind": "function",
-        "doc": "A viewmodel texture set as DataTextures (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8).",
+        "doc": "A viewmodel texture set (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8).",
         "from": "@wildshard/engine/combat/view/ranged"
       },
       {

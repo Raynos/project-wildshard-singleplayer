@@ -636,7 +636,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `TRACER_RED` | const | @wildshard/engine/combat/view/ranged | — |
 | `VIEWMODEL_GROUP` | const | @wildshard/engine/combat/view/ranged | — |
 | `viewmodelMaterial` | function | @wildshard/engine/combat/view/ranged | — |
-| `viewmodelTexSet` | function | @wildshard/engine/combat/view/ranged | A viewmodel texture set as DataTextures (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8). |
+| `viewmodelTexSet` | function | @wildshard/engine/combat/view/ranged | A viewmodel texture set (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8). |
 | `viewmodelTexturesReady` | function | @wildshard/engine/combat/view/ranged | Resolves when the worker has delivered every set it was asked for (or gave up); awaited by the weapon step. |
 | `whiteColors` | function | @wildshard/engine/combat/view/ranged | An all-white (×1) vertex-colour attribute where a geometry has none, so it can share a vertex-coloured program. |
 | `worldHit` | function | @wildshard/engine/combat/view/ranged | The first world surface a bolt's step (`radius` > 0: a ball swept a → b) or a shot (`radius` 0: the ray a → b) meets, |
