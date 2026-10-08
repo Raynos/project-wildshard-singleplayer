@@ -1,0 +1,1860 @@
+{
+  "label": "public grid as it would ship once GRID_GATES_PASSED flips",
+  "pin": "a1c4f02b3ecd66ba255822ecdb4b8cd22edf6ef0",
+  "validColdRuns": 3,
+  "failedColdAttempts": 2,
+  "attempts": [
+    {
+      "side": "public",
+      "number": 1,
+      "startedUtc": "2026-10-08T14:50:15.806968+00:00",
+      "helperSourceTree": "5bc7219331eac94d119431dd7ce646d67e2e5600",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-1.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-1.log",
+      "version": {
+        "build": "a1c4f02-muznkjxs",
+        "time": "2026-10-08T14:49:49.944Z"
+      },
+      "status": "failed",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4401/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-1.json",
+        "/private/tmp/wildshard-serve/20261008-094929-4401/dist",
+        "public-grid",
+        "off"
+      ],
+      "exitCode": 1,
+      "finishedUtc": "2026-10-08T14:53:54.894456+00:00",
+      "rawSha256": "2bc423f5a8c782986bc6d31ca24ff97d6cf122afc315d3ff4a0e81a8d52fe378",
+      "publicWitness": {},
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 538758768,
+          "glBytes": 243733613,
+          "sumBytes": 782492381,
+          "sampleTimestamps": [
+            "2026-10-08T14:50:49.456530+00:00",
+            "2026-10-08T14:50:50.599416+00:00",
+            "2026-10-08T14:50:51.642036+00:00"
+          ]
+        },
+        {
+          "label": "public-road",
+          "webContentBytes": 654462624,
+          "glBytes": 244818441,
+          "sumBytes": 899281065,
+          "sampleTimestamps": [
+            "2026-10-08T14:51:11.388972+00:00",
+            "2026-10-08T14:51:12.481864+00:00",
+            "2026-10-08T14:51:13.666246+00:00"
+          ]
+        }
+      ],
+      "gamePID": 85244,
+      "failureStage": "route:public-template",
+      "sampler": {
+        "pid": 85476,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-1.json.sampler.log"
+      },
+      "failures": [
+        "owned command exit 1",
+        "Error: Error: Grid floor route public-template timed out",
+        "incomplete settled pose sequence",
+        "final witness validator failed: Command '['node', '--input-type=module', '-e', \"import {readFileSync} from 'node:fs';import {publicGridWitnessFailures} from './scripts/public-grid.mjs';import {gridFloorWitnessFailures} from './scripts/frame-floor-grid.mjs';const d=JSON.parse(readFileSync(0,'utf8'));console.log(JSON.stringify([...publicGridWitnessFailures(d.publicWitness,true),...d.routes.flatMap(gridFloorWitnessFailures)]));\"]' returned non-zero exit status 1.",
+        "incomplete public route sequence"
+      ]
+    },
+    {
+      "side": "public",
+      "number": 2,
+      "startedUtc": "2026-10-08T14:55:12.324971+00:00",
+      "helperSourceTree": "0d3021363ee16cf347f7b31e048e8eecee927ef3",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-2.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-2.log",
+      "version": {
+        "build": "a1c4f02-muznkjxs",
+        "time": "2026-10-08T14:49:49.944Z"
+      },
+      "status": "failed",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4401/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-2.json",
+        "/private/tmp/wildshard-serve/20261008-094929-4401/dist",
+        "public-grid",
+        "off"
+      ],
+      "exitCode": 1,
+      "finishedUtc": "2026-10-08T14:58:46.005745+00:00",
+      "rawSha256": "8ba540020de18f7574a5b65ec6afd469c5228d118a9c5fe9f00ce7f616713c32",
+      "publicWitness": {},
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 546541216,
+          "glBytes": 243733613,
+          "sumBytes": 790274829,
+          "sampleTimestamps": [
+            "2026-10-08T14:55:44.822154+00:00",
+            "2026-10-08T14:55:45.972665+00:00",
+            "2026-10-08T14:55:47.039194+00:00"
+          ]
+        },
+        {
+          "label": "public-road",
+          "webContentBytes": 761646776,
+          "glBytes": 244731525,
+          "sumBytes": 1006378301,
+          "sampleTimestamps": [
+            "2026-10-08T14:56:02.766532+00:00",
+            "2026-10-08T14:56:03.804841+00:00",
+            "2026-10-08T14:56:04.932336+00:00"
+          ]
+        }
+      ],
+      "gamePID": 96942,
+      "failureStage": "route:public-template",
+      "sampler": {
+        "pid": 97109,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-2.json.sampler.log"
+      },
+      "failures": [
+        "owned command exit 1",
+        "Error: Error: Grid floor route public-template timed out",
+        "incomplete settled pose sequence",
+        "final witness validator failed: Command '['node', '--input-type=module', '-e', \"import {readFileSync} from 'node:fs';import {publicGridWitnessFailures} from './scripts/public-grid.mjs';import {gridFloorWitnessFailures} from './scripts/frame-floor-grid.mjs';const d=JSON.parse(readFileSync(0,'utf8'));console.log(JSON.stringify([...publicGridWitnessFailures(d.publicWitness,true),...d.routes.flatMap(gridFloorWitnessFailures)]));\"]' returned non-zero exit status 1.",
+        "incomplete public route sequence"
+      ]
+    },
+    {
+      "side": "public",
+      "number": 3,
+      "startedUtc": "2026-10-08T14:59:55.710292+00:00",
+      "helperSourceTree": "fd3c87afc3606b8757e37b83b7657aab269cd80d",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-3.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-3.log",
+      "version": {
+        "build": "a1c4f02-muznkjxs",
+        "time": "2026-10-08T14:49:49.944Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4401/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-3.json",
+        "/private/tmp/wildshard-serve/20261008-094929-4401/dist",
+        "public-grid",
+        "off"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T15:02:03.948964+00:00",
+      "rawSha256": "e9775cf90015907a3845d90378083a98f79ff5a804acdf65883792ce240bbb6c",
+      "publicWitness": {
+        "developer": false,
+        "savedDeveloper": false,
+        "state": {
+          "home": "driftwood-isle",
+          "inside": "template-1",
+          "feet": {
+            "x": -0.77,
+            "z": 555
+          },
+          "cells": [
+            {
+              "instance": "template-1",
+              "slug": "_template",
+              "cell": [
+                0,
+                1
+              ],
+              "shows": "playing"
+            },
+            {
+              "instance": "template-2",
+              "slug": "_template",
+              "cell": [
+                1,
+                1
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-3",
+              "slug": "_template",
+              "cell": [
+                -1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "driftwood-isle",
+              "slug": "driftwood-isle",
+              "cell": [
+                0,
+                0
+              ],
+              "shows": "frozen"
+            },
+            {
+              "instance": "template-4",
+              "slug": "_template",
+              "cell": [
+                1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-5",
+              "slug": "_template",
+              "cell": [
+                0,
+                -1
+              ],
+              "shows": "far proxy"
+            }
+          ],
+          "strips": 40,
+          "road": {
+            "segments": 24,
+            "junctions": 16,
+            "roundabouts": 4,
+            "signs": 124,
+            "lights": 364,
+            "draws": 3
+          },
+          "seams": {
+            "triangles": 63014,
+            "draws": 4,
+            "buckets": {
+              "ground": 55922,
+              "stone": 6132,
+              "rail": 480,
+              "curtain": 480
+            }
+          },
+          "softWalls": {
+            "closed": 12
+          },
+          "shimmer": {
+            "borders": 24,
+            "status": null
+          },
+          "screens": {
+            "shown": [],
+            "draws": 85
+          },
+          "plots": {
+            "plots": [
+              {
+                "instance": "open-plot-nw",
+                "visible": true,
+                "entries": {
+                  "north": {
+                    "billboard": "sky-race",
+                    "demo": "alien-plain"
+                  },
+                  "east": {
+                    "billboard": "night-market",
+                    "demo": "desert-ruin"
+                  },
+                  "south": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "west": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-sw",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "east": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  },
+                  "south": {
+                    "billboard": "desert-ruin",
+                    "demo": "canyon-railway"
+                  },
+                  "west": {
+                    "billboard": "ink-valley",
+                    "demo": "coral-reef"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-se",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "east": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  },
+                  "south": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "west": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  }
+                }
+              }
+            ],
+            "pictures": 8,
+            "draws": 27,
+            "triangles": 38914
+          },
+          "ringsReady": true,
+          "residentMB": 535.82,
+          "playingMB": 956.91,
+          "accountedBytes": 535821253,
+          "rings": {
+            "far": 5,
+            "l1": 22,
+            "l0": 39,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0
+          },
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": "template-1",
+            "highway": 0,
+            "weights": {
+              "template-1": 1
+            },
+            "air": [
+              0.6,
+              0.65,
+              0.7
+            ],
+            "grade": [
+              0,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "roadSky": 0,
+            "skies": {},
+            "chain": {
+              "owner": null,
+              "weight": 0,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                -1,
+                -1,
+                -1,
+                -1,
+                -1
+              ]
+            }
+          },
+          "live": {
+            "live": {
+              "current": "template-1",
+              "worldFeet": {
+                "x": -0.7732681113804736,
+                "y": -0.3042639383582501,
+                "z": 554.9979108413222
+              },
+              "crossings": 2,
+              "transitions": [
+                {
+                  "from": "driftwood-isle",
+                  "to": null
+                },
+                {
+                  "from": null,
+                  "to": "template-1"
+                }
+              ],
+              "residents": [
+                "template-1",
+                "template-2"
+              ],
+              "pending": [
+                "template-3",
+                "template-4"
+              ],
+              "issues": {},
+              "gameplayReady": true,
+              "continuations": {
+                "entries": 0,
+                "storedChars": 0,
+                "capacityChars": 0,
+                "claimedBytes": 0
+              }
+            },
+            "crossing": {
+              "current": "template-1",
+              "target": "template-1",
+              "phase": "settled",
+              "issue": null
+            },
+            "stowed": true,
+            "renderOrigin": {
+              "x": 0,
+              "z": 555
+            },
+            "runtimeTiming": {
+              "current": null,
+              "completed": []
+            },
+            "hoverCap": 14,
+            "homeActive": null
+          },
+          "life": [
+            {
+              "instance": "template-1",
+              "creatures": 3,
+              "frozen": false,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 0,
+                "capacity": 6,
+                "tick": 4560
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-2",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4560
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-3",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4560
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-4",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4560
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-5",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4560
+              },
+              "failed": null
+            }
+          ]
+        },
+        "refusals": {},
+        "homeResidency": {
+          "instance": "driftwood-isle",
+          "bytes": 341781982
+        },
+        "cellScreens": [],
+        "runtimeLevel": "driftwood-isle"
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 511823520,
+          "glBytes": 243614237,
+          "sumBytes": 755437757,
+          "sampleTimestamps": [
+            "2026-10-08T15:00:43.303204+00:00",
+            "2026-10-08T15:00:44.420208+00:00",
+            "2026-10-08T15:00:45.570946+00:00"
+          ]
+        },
+        {
+          "label": "public-road",
+          "webContentBytes": 685002424,
+          "glBytes": 244659093,
+          "sumBytes": 929661517,
+          "sampleTimestamps": [
+            "2026-10-08T15:01:04.149185+00:00",
+            "2026-10-08T15:01:05.281512+00:00",
+            "2026-10-08T15:01:06.417322+00:00"
+          ]
+        },
+        {
+          "label": "public-template-centre",
+          "webContentBytes": 647499856,
+          "glBytes": 247488077,
+          "sumBytes": 894987933,
+          "sampleTimestamps": [
+            "2026-10-08T15:01:50.054402+00:00",
+            "2026-10-08T15:01:51.200958+00:00",
+            "2026-10-08T15:01:52.242855+00:00"
+          ]
+        }
+      ],
+      "gamePID": 12435,
+      "failureStage": "public-template-centre",
+      "sampler": {
+        "pid": 12798,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-3.json.sampler.log"
+      },
+      "failures": []
+    },
+    {
+      "side": "public",
+      "number": 4,
+      "startedUtc": "2026-10-08T15:02:59.831536+00:00",
+      "helperSourceTree": "fd3c87afc3606b8757e37b83b7657aab269cd80d",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-4.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-4.log",
+      "version": {
+        "build": "a1c4f02-muznkjxs",
+        "time": "2026-10-08T14:49:49.944Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4401/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-4.json",
+        "/private/tmp/wildshard-serve/20261008-094929-4401/dist",
+        "public-grid",
+        "off"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T15:04:53.540034+00:00",
+      "rawSha256": "b4ef7a32b665213000f2506dee0cd697a26fd513abcb610093247d7e35bedbcc",
+      "publicWitness": {
+        "developer": false,
+        "savedDeveloper": false,
+        "state": {
+          "home": "driftwood-isle",
+          "inside": "template-1",
+          "feet": {
+            "x": -0.82,
+            "z": 554.99
+          },
+          "cells": [
+            {
+              "instance": "template-1",
+              "slug": "_template",
+              "cell": [
+                0,
+                1
+              ],
+              "shows": "playing"
+            },
+            {
+              "instance": "template-2",
+              "slug": "_template",
+              "cell": [
+                1,
+                1
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-3",
+              "slug": "_template",
+              "cell": [
+                -1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "driftwood-isle",
+              "slug": "driftwood-isle",
+              "cell": [
+                0,
+                0
+              ],
+              "shows": "frozen"
+            },
+            {
+              "instance": "template-4",
+              "slug": "_template",
+              "cell": [
+                1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-5",
+              "slug": "_template",
+              "cell": [
+                0,
+                -1
+              ],
+              "shows": "far proxy"
+            }
+          ],
+          "strips": 40,
+          "road": {
+            "segments": 24,
+            "junctions": 16,
+            "roundabouts": 4,
+            "signs": 124,
+            "lights": 364,
+            "draws": 3
+          },
+          "seams": {
+            "triangles": 63014,
+            "draws": 4,
+            "buckets": {
+              "ground": 55922,
+              "stone": 6132,
+              "rail": 480,
+              "curtain": 480
+            }
+          },
+          "softWalls": {
+            "closed": 12
+          },
+          "shimmer": {
+            "borders": 24,
+            "status": null
+          },
+          "screens": {
+            "shown": [],
+            "draws": 79
+          },
+          "plots": {
+            "plots": [
+              {
+                "instance": "open-plot-nw",
+                "visible": true,
+                "entries": {
+                  "north": {
+                    "billboard": "sky-race",
+                    "demo": "alien-plain"
+                  },
+                  "east": {
+                    "billboard": "night-market",
+                    "demo": "desert-ruin"
+                  },
+                  "south": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "west": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-sw",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "east": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  },
+                  "south": {
+                    "billboard": "desert-ruin",
+                    "demo": "canyon-railway"
+                  },
+                  "west": {
+                    "billboard": "ink-valley",
+                    "demo": "coral-reef"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-se",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "east": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  },
+                  "south": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "west": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  }
+                }
+              }
+            ],
+            "pictures": 8,
+            "draws": 27,
+            "triangles": 38914
+          },
+          "ringsReady": true,
+          "residentMB": 535.83,
+          "playingMB": 956.92,
+          "accountedBytes": 535826809,
+          "rings": {
+            "far": 5,
+            "l1": 22,
+            "l0": 39,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0
+          },
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": "template-1",
+            "highway": 0,
+            "weights": {
+              "template-1": 1
+            },
+            "air": [
+              0.6,
+              0.65,
+              0.7
+            ],
+            "grade": [
+              0,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "roadSky": 0,
+            "skies": {},
+            "chain": {
+              "owner": null,
+              "weight": 0,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                -1,
+                -1,
+                -1,
+                -1,
+                -1
+              ]
+            }
+          },
+          "live": {
+            "live": {
+              "current": "template-1",
+              "worldFeet": {
+                "x": -0.8197605869578739,
+                "y": -0.30241839860297337,
+                "z": 554.9894809081259
+              },
+              "crossings": 2,
+              "transitions": [
+                {
+                  "from": "driftwood-isle",
+                  "to": null
+                },
+                {
+                  "from": null,
+                  "to": "template-1"
+                }
+              ],
+              "residents": [
+                "template-1",
+                "template-2"
+              ],
+              "pending": [
+                "template-3"
+              ],
+              "issues": {},
+              "gameplayReady": true,
+              "continuations": {
+                "entries": 0,
+                "storedChars": 0,
+                "capacityChars": 0,
+                "claimedBytes": 0
+              }
+            },
+            "crossing": {
+              "current": "template-1",
+              "target": "template-1",
+              "phase": "settled",
+              "issue": null
+            },
+            "stowed": true,
+            "renderOrigin": {
+              "x": 0,
+              "z": 555
+            },
+            "runtimeTiming": {
+              "current": null,
+              "completed": []
+            },
+            "hoverCap": 14,
+            "homeActive": null
+          },
+          "life": [
+            {
+              "instance": "template-1",
+              "creatures": 3,
+              "frozen": false,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 0,
+                "capacity": 6,
+                "tick": 4454
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-2",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4454
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-3",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4454
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-4",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4454
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-5",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4454
+              },
+              "failed": null
+            }
+          ]
+        },
+        "refusals": {},
+        "homeResidency": {
+          "instance": "driftwood-isle",
+          "bytes": 341781982
+        },
+        "cellScreens": [],
+        "runtimeLevel": "driftwood-isle"
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 545590992,
+          "glBytes": 243733613,
+          "sumBytes": 789324605,
+          "sampleTimestamps": [
+            "2026-10-08T15:03:36.240643+00:00",
+            "2026-10-08T15:03:37.393681+00:00",
+            "2026-10-08T15:03:38.422021+00:00"
+          ]
+        },
+        {
+          "label": "public-road",
+          "webContentBytes": 642371304,
+          "glBytes": 244818441,
+          "sumBytes": 887189745,
+          "sampleTimestamps": [
+            "2026-10-08T15:03:54.296785+00:00",
+            "2026-10-08T15:03:55.353940+00:00",
+            "2026-10-08T15:03:56.517614+00:00"
+          ]
+        },
+        {
+          "label": "public-template-centre",
+          "webContentBytes": 687378512,
+          "glBytes": 247488077,
+          "sumBytes": 934866589,
+          "sampleTimestamps": [
+            "2026-10-08T15:04:39.450752+00:00",
+            "2026-10-08T15:04:40.602216+00:00",
+            "2026-10-08T15:04:41.638142+00:00"
+          ]
+        }
+      ],
+      "gamePID": 25854,
+      "failureStage": "public-template-centre",
+      "sampler": {
+        "pid": 26202,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-4.json.sampler.log"
+      },
+      "failures": []
+    },
+    {
+      "side": "public",
+      "number": 5,
+      "startedUtc": "2026-10-08T15:04:56.768271+00:00",
+      "helperSourceTree": "fd3c87afc3606b8757e37b83b7657aab269cd80d",
+      "out": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-5.json",
+      "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-5.log",
+      "version": {
+        "build": "a1c4f02-muznkjxs",
+        "time": "2026-10-08T14:49:49.944Z"
+      },
+      "status": "valid",
+      "command": [
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/browser-lane.sh",
+        "--max",
+        "15",
+        "/Users/raynos/projects/games/wildshard-singleplayer/scripts/sim-lane.sh",
+        "run",
+        "--max",
+        "15",
+        "wildshard-iphone",
+        "node",
+        "progress/memory/g227-budget/native.mjs",
+        "http://127.0.0.1:4401/",
+        "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-5.json",
+        "/private/tmp/wildshard-serve/20261008-094929-4401/dist",
+        "public-grid",
+        "off"
+      ],
+      "exitCode": 0,
+      "finishedUtc": "2026-10-08T15:06:45.034837+00:00",
+      "rawSha256": "55af273f29035e580dc59179578cf101e5b1f5acd4fe98d736bf1472ac8c892e",
+      "publicWitness": {
+        "developer": false,
+        "savedDeveloper": false,
+        "state": {
+          "home": "driftwood-isle",
+          "inside": "template-1",
+          "feet": {
+            "x": -0.78,
+            "z": 555
+          },
+          "cells": [
+            {
+              "instance": "template-1",
+              "slug": "_template",
+              "cell": [
+                0,
+                1
+              ],
+              "shows": "playing"
+            },
+            {
+              "instance": "template-2",
+              "slug": "_template",
+              "cell": [
+                1,
+                1
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-3",
+              "slug": "_template",
+              "cell": [
+                -1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "driftwood-isle",
+              "slug": "driftwood-isle",
+              "cell": [
+                0,
+                0
+              ],
+              "shows": "frozen"
+            },
+            {
+              "instance": "template-4",
+              "slug": "_template",
+              "cell": [
+                1,
+                0
+              ],
+              "shows": "far proxy"
+            },
+            {
+              "instance": "template-5",
+              "slug": "_template",
+              "cell": [
+                0,
+                -1
+              ],
+              "shows": "far proxy"
+            }
+          ],
+          "strips": 40,
+          "road": {
+            "segments": 24,
+            "junctions": 16,
+            "roundabouts": 4,
+            "signs": 124,
+            "lights": 364,
+            "draws": 3
+          },
+          "seams": {
+            "triangles": 63014,
+            "draws": 4,
+            "buckets": {
+              "ground": 55922,
+              "stone": 6132,
+              "rail": 480,
+              "curtain": 480
+            }
+          },
+          "softWalls": {
+            "closed": 12
+          },
+          "shimmer": {
+            "borders": 24,
+            "status": null
+          },
+          "screens": {
+            "shown": [],
+            "draws": 87
+          },
+          "plots": {
+            "plots": [
+              {
+                "instance": "open-plot-nw",
+                "visible": true,
+                "entries": {
+                  "north": {
+                    "billboard": "sky-race",
+                    "demo": "alien-plain"
+                  },
+                  "east": {
+                    "billboard": "night-market",
+                    "demo": "desert-ruin"
+                  },
+                  "south": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "west": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-sw",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "east": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  },
+                  "south": {
+                    "billboard": "desert-ruin",
+                    "demo": "canyon-railway"
+                  },
+                  "west": {
+                    "billboard": "ink-valley",
+                    "demo": "coral-reef"
+                  }
+                }
+              },
+              {
+                "instance": "open-plot-se",
+                "visible": false,
+                "entries": {
+                  "north": {
+                    "billboard": "frozen-lighthouse",
+                    "demo": "ink-valley"
+                  },
+                  "east": {
+                    "billboard": "canyon-railway",
+                    "demo": "sky-race"
+                  },
+                  "south": {
+                    "billboard": "coral-reef",
+                    "demo": "night-market"
+                  },
+                  "west": {
+                    "billboard": "alien-plain",
+                    "demo": "frozen-lighthouse"
+                  }
+                }
+              }
+            ],
+            "pictures": 8,
+            "draws": 27,
+            "triangles": 38914
+          },
+          "ringsReady": true,
+          "residentMB": 535.82,
+          "playingMB": 956.91,
+          "accountedBytes": 535821253,
+          "rings": {
+            "far": 5,
+            "l1": 22,
+            "l0": 39,
+            "refused": 0,
+            "inFlight": 0,
+            "queued": 0
+          },
+          "frame": {
+            "installed": true,
+            "faded": 4,
+            "owner": "template-1",
+            "highway": 0,
+            "weights": {
+              "template-1": 1
+            },
+            "air": [
+              0.6,
+              0.65,
+              0.7
+            ],
+            "grade": [
+              0,
+              1,
+              1,
+              1,
+              1,
+              1
+            ],
+            "roadSky": 0,
+            "skies": {},
+            "chain": {
+              "owner": null,
+              "weight": 0,
+              "lut": false,
+              "values": [
+                0,
+                0,
+                0,
+                0,
+                0
+              ],
+              "post": [
+                -1,
+                -1,
+                -1,
+                -1,
+                -1
+              ]
+            }
+          },
+          "live": {
+            "live": {
+              "current": "template-1",
+              "worldFeet": {
+                "x": -0.7783322509612374,
+                "y": -0.3042305808744583,
+                "z": 555.0019385314584
+              },
+              "crossings": 2,
+              "transitions": [
+                {
+                  "from": "driftwood-isle",
+                  "to": null
+                },
+                {
+                  "from": null,
+                  "to": "template-1"
+                }
+              ],
+              "residents": [
+                "template-1",
+                "template-2"
+              ],
+              "pending": [
+                "template-3",
+                "template-4"
+              ],
+              "issues": {},
+              "gameplayReady": true,
+              "continuations": {
+                "entries": 0,
+                "storedChars": 0,
+                "capacityChars": 0,
+                "claimedBytes": 0
+              }
+            },
+            "crossing": {
+              "current": "template-1",
+              "target": "template-1",
+              "phase": "settled",
+              "issue": null
+            },
+            "stowed": true,
+            "renderOrigin": {
+              "x": 0,
+              "z": 555
+            },
+            "runtimeTiming": {
+              "current": null,
+              "completed": []
+            },
+            "hoverCap": 14,
+            "homeActive": null
+          },
+          "life": [
+            {
+              "instance": "template-1",
+              "creatures": 3,
+              "frozen": false,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 0,
+                "capacity": 6,
+                "tick": 4388
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-2",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4388
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-3",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4388
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-4",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4388
+              },
+              "failed": null
+            },
+            {
+              "instance": "template-5",
+              "creatures": 3,
+              "frozen": true,
+              "views": {
+                "targets": 3,
+                "posed": 3,
+                "particles": 1,
+                "capacity": 6,
+                "tick": 4388
+              },
+              "failed": null
+            }
+          ]
+        },
+        "refusals": {},
+        "homeResidency": {
+          "instance": "driftwood-isle",
+          "bytes": 341781982
+        },
+        "cellScreens": [],
+        "runtimeLevel": "driftwood-isle"
+      },
+      "poses": [
+        {
+          "label": "home-settled",
+          "webContentBytes": 571019008,
+          "glBytes": 243733613,
+          "sumBytes": 814752621,
+          "sampleTimestamps": [
+            "2026-10-08T15:05:28.114187+00:00",
+            "2026-10-08T15:05:29.194414+00:00",
+            "2026-10-08T15:05:30.354109+00:00"
+          ]
+        },
+        {
+          "label": "public-road",
+          "webContentBytes": 691703552,
+          "glBytes": 244818441,
+          "sumBytes": 936521993,
+          "sampleTimestamps": [
+            "2026-10-08T15:05:46.092268+00:00",
+            "2026-10-08T15:05:47.159419+00:00",
+            "2026-10-08T15:05:48.337247+00:00"
+          ]
+        },
+        {
+          "label": "public-template-centre",
+          "webContentBytes": 702845056,
+          "glBytes": 247488077,
+          "sumBytes": 950333133,
+          "sampleTimestamps": [
+            "2026-10-08T15:06:31.210065+00:00",
+            "2026-10-08T15:06:32.250398+00:00",
+            "2026-10-08T15:06:33.400434+00:00"
+          ]
+        }
+      ],
+      "gamePID": 30823,
+      "failureStage": "public-template-centre",
+      "sampler": {
+        "pid": 30967,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "log": "/private/tmp/claude-501/sp-builders/sp-x4/public-native-attempt-5.json.sampler.log"
+      },
+      "failures": []
+    }
+  ],
+  "poses": [
+    {
+      "pose": "home-settled",
+      "coldRuns": [
+        {
+          "attempt": 3,
+          "attemptStatus": "valid",
+          "pose": "home-settled",
+          "webContentBytes": 511823520,
+          "labelledGlBytes": 243614237,
+          "combinedBytes": 755437757,
+          "highSampleCombinedBytes": 755978429,
+          "timestamps": [
+            "2026-10-08T15:00:43.303204+00:00",
+            "2026-10-08T15:00:44.420208+00:00",
+            "2026-10-08T15:00:45.570946+00:00"
+          ]
+        },
+        {
+          "attempt": 4,
+          "attemptStatus": "valid",
+          "pose": "home-settled",
+          "webContentBytes": 545590992,
+          "labelledGlBytes": 243733613,
+          "combinedBytes": 789324605,
+          "highSampleCombinedBytes": 791552829,
+          "timestamps": [
+            "2026-10-08T15:03:36.240643+00:00",
+            "2026-10-08T15:03:37.393681+00:00",
+            "2026-10-08T15:03:38.422021+00:00"
+          ]
+        },
+        {
+          "attempt": 5,
+          "attemptStatus": "valid",
+          "pose": "home-settled",
+          "webContentBytes": 571019008,
+          "labelledGlBytes": 243733613,
+          "combinedBytes": 814752621,
+          "highSampleCombinedBytes": 816522069,
+          "timestamps": [
+            "2026-10-08T15:05:28.114187+00:00",
+            "2026-10-08T15:05:29.194414+00:00",
+            "2026-10-08T15:05:30.354109+00:00"
+          ]
+        }
+      ],
+      "webContentBytes": {
+        "median": 545590992,
+        "min": 511823520,
+        "max": 571019008,
+        "spread": 59195488
+      },
+      "labelledGlBytes": {
+        "median": 243733613,
+        "min": 243614237,
+        "max": 243733613,
+        "spread": 119376
+      },
+      "combinedBytes": {
+        "median": 789324605,
+        "min": 755437757,
+        "max": 814752621,
+        "spread": 59314864
+      },
+      "highSampleCombinedBytes": {
+        "median": 791552829,
+        "min": 755978429,
+        "max": 816522069,
+        "spread": 60543640
+      }
+    },
+    {
+      "pose": "public-road",
+      "coldRuns": [
+        {
+          "attempt": 3,
+          "attemptStatus": "valid",
+          "pose": "public-road",
+          "webContentBytes": 685002424,
+          "labelledGlBytes": 244659093,
+          "combinedBytes": 929661517,
+          "highSampleCombinedBytes": 929677901,
+          "timestamps": [
+            "2026-10-08T15:01:04.149185+00:00",
+            "2026-10-08T15:01:05.281512+00:00",
+            "2026-10-08T15:01:06.417322+00:00"
+          ]
+        },
+        {
+          "attempt": 4,
+          "attemptStatus": "valid",
+          "pose": "public-road",
+          "webContentBytes": 642371304,
+          "labelledGlBytes": 244818441,
+          "combinedBytes": 887189745,
+          "highSampleCombinedBytes": 888074481,
+          "timestamps": [
+            "2026-10-08T15:03:54.296785+00:00",
+            "2026-10-08T15:03:55.353940+00:00",
+            "2026-10-08T15:03:56.517614+00:00"
+          ]
+        },
+        {
+          "attempt": 5,
+          "attemptStatus": "valid",
+          "pose": "public-road",
+          "webContentBytes": 691703552,
+          "labelledGlBytes": 244818441,
+          "combinedBytes": 936521993,
+          "highSampleCombinedBytes": 936636681,
+          "timestamps": [
+            "2026-10-08T15:05:46.092268+00:00",
+            "2026-10-08T15:05:47.159419+00:00",
+            "2026-10-08T15:05:48.337247+00:00"
+          ]
+        }
+      ],
+      "webContentBytes": {
+        "median": 685002424,
+        "min": 642371304,
+        "max": 691703552,
+        "spread": 49332248
+      },
+      "labelledGlBytes": {
+        "median": 244818441,
+        "min": 244659093,
+        "max": 244818441,
+        "spread": 159348
+      },
+      "combinedBytes": {
+        "median": 929661517,
+        "min": 887189745,
+        "max": 936521993,
+        "spread": 49332248
+      },
+      "highSampleCombinedBytes": {
+        "median": 929677901,
+        "min": 888074481,
+        "max": 936636681,
+        "spread": 48562200
+      }
+    },
+    {
+      "pose": "public-template-centre",
+      "coldRuns": [
+        {
+          "attempt": 3,
+          "attemptStatus": "valid",
+          "pose": "public-template-centre",
+          "webContentBytes": 647499856,
+          "labelledGlBytes": 247488077,
+          "combinedBytes": 894987933,
+          "highSampleCombinedBytes": 895184541,
+          "timestamps": [
+            "2026-10-08T15:01:50.054402+00:00",
+            "2026-10-08T15:01:51.200958+00:00",
+            "2026-10-08T15:01:52.242855+00:00"
+          ]
+        },
+        {
+          "attempt": 4,
+          "attemptStatus": "valid",
+          "pose": "public-template-centre",
+          "webContentBytes": 687378512,
+          "labelledGlBytes": 247488077,
+          "combinedBytes": 934866589,
+          "highSampleCombinedBytes": 934948509,
+          "timestamps": [
+            "2026-10-08T15:04:39.450752+00:00",
+            "2026-10-08T15:04:40.602216+00:00",
+            "2026-10-08T15:04:41.638142+00:00"
+          ]
+        },
+        {
+          "attempt": 5,
+          "attemptStatus": "valid",
+          "pose": "public-template-centre",
+          "webContentBytes": 702845056,
+          "labelledGlBytes": 247488077,
+          "combinedBytes": 950333133,
+          "highSampleCombinedBytes": 951250637,
+          "timestamps": [
+            "2026-10-08T15:06:31.210065+00:00",
+            "2026-10-08T15:06:32.250398+00:00",
+            "2026-10-08T15:06:33.400434+00:00"
+          ]
+        }
+      ],
+      "webContentBytes": {
+        "median": 687378512,
+        "min": 647499856,
+        "max": 702845056,
+        "spread": 55345200
+      },
+      "labelledGlBytes": {
+        "median": 247488077,
+        "min": 247488077,
+        "max": 247488077,
+        "spread": 0
+      },
+      "combinedBytes": {
+        "median": 934866589,
+        "min": 894987933,
+        "max": 950333133,
+        "spread": 55345200
+      },
+      "highSampleCombinedBytes": {
+        "median": 934948509,
+        "min": 895184541,
+        "max": 951250637,
+        "spread": 56066096
+      }
+    }
+  ],
+  "allObservedPosesIncludingFailedAttempts": [
+    {
+      "attempt": 1,
+      "attemptStatus": "failed",
+      "pose": "home-settled",
+      "webContentBytes": 538758768,
+      "labelledGlBytes": 243733613,
+      "combinedBytes": 782492381,
+      "highSampleCombinedBytes": 782656245,
+      "timestamps": [
+        "2026-10-08T14:50:49.456530+00:00",
+        "2026-10-08T14:50:50.599416+00:00",
+        "2026-10-08T14:50:51.642036+00:00"
+      ]
+    },
+    {
+      "attempt": 1,
+      "attemptStatus": "failed",
+      "pose": "public-road",
+      "webContentBytes": 654462624,
+      "labelledGlBytes": 244818441,
+      "combinedBytes": 899281065,
+      "highSampleCombinedBytes": 899461289,
+      "timestamps": [
+        "2026-10-08T14:51:11.388972+00:00",
+        "2026-10-08T14:51:12.481864+00:00",
+        "2026-10-08T14:51:13.666246+00:00"
+      ]
+    },
+    {
+      "attempt": 2,
+      "attemptStatus": "failed",
+      "pose": "home-settled",
+      "webContentBytes": 546541216,
+      "labelledGlBytes": 243733613,
+      "combinedBytes": 790274829,
+      "highSampleCombinedBytes": 790700813,
+      "timestamps": [
+        "2026-10-08T14:55:44.822154+00:00",
+        "2026-10-08T14:55:45.972665+00:00",
+        "2026-10-08T14:55:47.039194+00:00"
+      ]
+    },
+    {
+      "attempt": 2,
+      "attemptStatus": "failed",
+      "pose": "public-road",
+      "webContentBytes": 761646776,
+      "labelledGlBytes": 244731525,
+      "combinedBytes": 1006378301,
+      "highSampleCombinedBytes": 1006918973,
+      "timestamps": [
+        "2026-10-08T14:56:02.766532+00:00",
+        "2026-10-08T14:56:03.804841+00:00",
+        "2026-10-08T14:56:04.932336+00:00"
+      ]
+    },
+    {
+      "attempt": 3,
+      "attemptStatus": "valid",
+      "pose": "home-settled",
+      "webContentBytes": 511823520,
+      "labelledGlBytes": 243614237,
+      "combinedBytes": 755437757,
+      "highSampleCombinedBytes": 755978429,
+      "timestamps": [
+        "2026-10-08T15:00:43.303204+00:00",
+        "2026-10-08T15:00:44.420208+00:00",
+        "2026-10-08T15:00:45.570946+00:00"
+      ]
+    },
+    {
+      "attempt": 3,
+      "attemptStatus": "valid",
+      "pose": "public-road",
+      "webContentBytes": 685002424,
+      "labelledGlBytes": 244659093,
+      "combinedBytes": 929661517,
+      "highSampleCombinedBytes": 929677901,
+      "timestamps": [
+        "2026-10-08T15:01:04.149185+00:00",
+        "2026-10-08T15:01:05.281512+00:00",
+        "2026-10-08T15:01:06.417322+00:00"
+      ]
+    },
+    {
+      "attempt": 3,
+      "attemptStatus": "valid",
+      "pose": "public-template-centre",
+      "webContentBytes": 647499856,
+      "labelledGlBytes": 247488077,
+      "combinedBytes": 894987933,
+      "highSampleCombinedBytes": 895184541,
+      "timestamps": [
+        "2026-10-08T15:01:50.054402+00:00",
+        "2026-10-08T15:01:51.200958+00:00",
+        "2026-10-08T15:01:52.242855+00:00"
+      ]
+    },
+    {
+      "attempt": 4,
+      "attemptStatus": "valid",
+      "pose": "home-settled",
+      "webContentBytes": 545590992,
+      "labelledGlBytes": 243733613,
+      "combinedBytes": 789324605,
+      "highSampleCombinedBytes": 791552829,
+      "timestamps": [
+        "2026-10-08T15:03:36.240643+00:00",
+        "2026-10-08T15:03:37.393681+00:00",
+        "2026-10-08T15:03:38.422021+00:00"
+      ]
+    },
+    {
+      "attempt": 4,
+      "attemptStatus": "valid",
+      "pose": "public-road",
+      "webContentBytes": 642371304,
+      "labelledGlBytes": 244818441,
+      "combinedBytes": 887189745,
+      "highSampleCombinedBytes": 888074481,
+      "timestamps": [
+        "2026-10-08T15:03:54.296785+00:00",
+        "2026-10-08T15:03:55.353940+00:00",
+        "2026-10-08T15:03:56.517614+00:00"
+      ]
+    },
+    {
+      "attempt": 4,
+      "attemptStatus": "valid",
+      "pose": "public-template-centre",
+      "webContentBytes": 687378512,
+      "labelledGlBytes": 247488077,
+      "combinedBytes": 934866589,
+      "highSampleCombinedBytes": 934948509,
+      "timestamps": [
+        "2026-10-08T15:04:39.450752+00:00",
+        "2026-10-08T15:04:40.602216+00:00",
+        "2026-10-08T15:04:41.638142+00:00"
+      ]
+    },
+    {
+      "attempt": 5,
+      "attemptStatus": "valid",
+      "pose": "home-settled",
+      "webContentBytes": 571019008,
+      "labelledGlBytes": 243733613,
+      "combinedBytes": 814752621,
+      "highSampleCombinedBytes": 816522069,
+      "timestamps": [
+        "2026-10-08T15:05:28.114187+00:00",
+        "2026-10-08T15:05:29.194414+00:00",
+        "2026-10-08T15:05:30.354109+00:00"
+      ]
+    },
+    {
+      "attempt": 5,
+      "attemptStatus": "valid",
+      "pose": "public-road",
+      "webContentBytes": 691703552,
+      "labelledGlBytes": 244818441,
+      "combinedBytes": 936521993,
+      "highSampleCombinedBytes": 936636681,
+      "timestamps": [
+        "2026-10-08T15:05:46.092268+00:00",
+        "2026-10-08T15:05:47.159419+00:00",
+        "2026-10-08T15:05:48.337247+00:00"
+      ]
+    },
+    {
+      "attempt": 5,
+      "attemptStatus": "valid",
+      "pose": "public-template-centre",
+      "webContentBytes": 702845056,
+      "labelledGlBytes": 247488077,
+      "combinedBytes": 950333133,
+      "highSampleCombinedBytes": 951250637,
+      "timestamps": [
+        "2026-10-08T15:06:31.210065+00:00",
+        "2026-10-08T15:06:32.250398+00:00",
+        "2026-10-08T15:06:33.400434+00:00"
+      ]
+    }
+  ],
+  "worstValidSampleCombinedBytes": 951250637,
+  "worstObservedSampleCombinedBytesIncludingFailedAttempts": 1006918973,
+  "configuration": {
+    "developer": false,
+    "memorySaver": "off",
+    "tier": "phone",
+    "dpr": 2,
+    "muted": true
+  },
+  "limitation": "Settled Simulator WebContent physical footprint plus labelled GL at home/road/template. Not a loading/transient peak or a physical-iPhone cap reading. Failed attempts and their completed pose samples remain visible; no values are subtracted or replaced."
+}
