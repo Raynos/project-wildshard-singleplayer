@@ -94,6 +94,7 @@ function readJsonNumber(path) {try{return Number(readFileSync(path,'utf8'));}cat
 
 /** @param {string} tree @param {string} sha */
 function buildTree(tree,sha) {
+  /** @type {import('node:child_process').ExecFileSyncOptions} */
   const options={cwd:tree,env:{...process.env,VERCEL_GIT_COMMIT_SHA:sha},stdio:'pipe',maxBuffer:16*1024**2};
   // Historical oracle commits may predate these generators. Current products must exist before Vite copies public/.
   for(const script of ['scripts/gen.mjs','scripts/build-shardfiles.mjs'])if(existsSync(join(tree,script)))execFileSync('node',[script],options);
