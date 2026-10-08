@@ -1,3 +1,4 @@
+import { installLegacyProbeAdapter } from './probe.mjs';
 /// <reference path="./init.d.mts" />
 import { installFrameDriver } from './clock.mjs';
 import { telemetryOnlyWrite } from './saves.mjs';
@@ -8,6 +9,7 @@ import { installResources } from './resources.mjs';
  * @param {import('playwright').BrowserContext} context
  * @param {{lane:string,sha:string,browser:string,capture?:number|null,accelerated?:boolean,tier?:string}} meta */
 export async function installInit(context, meta) {
+  await context.addInitScript(installLegacyProbeAdapter);
   await context.addInitScript(GL_INIT);
   await context.addInitScript(`window.__parityTelemetryOnly = (${telemetryOnlyWrite.toString()});`);
   await context.addInitScript(({lane,sha,browser,capture}) => {
