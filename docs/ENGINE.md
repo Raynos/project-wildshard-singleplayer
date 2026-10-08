@@ -1,5 +1,7 @@
 # The engine API: `@wildshard/engine`, `@wildshard/game`, `@wildshard/kit`
 
+`@wildshard/engine/render/memorySaver.memorySaverOn()` reads the existing reload-scoped Debug setting. Immutable procedural textures may call `core/gpuOnly.gpuOnlyTexture` before first draw only when it returns true: after upload the canvas shrinks without another texture upload. Lit and depth passes must share that texture; CPU readers, redrawn canvases and different-sampler clones are ineligible. Rebuild these sources for each admitted world; GPU-only context loss uses the existing recovery reload.
+
 `@wildshard/engine/world/BakedTerrain.installBakedGrid(grid, binding?)` installs original native samplers and undergrowth decisions into the selected binding without a second fetch. It refuses a mismatched seed. The Node authored-world bake uses this before forest/model construction; geometry capture still supplies the production terrain constructor and retains native collision ownership.
 
 `@wildshard/game/grid/simulation` owns local physics residencies, prepared fixed-step frame changes and durable
