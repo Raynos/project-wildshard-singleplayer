@@ -37,9 +37,13 @@ export function validateEntrywayTerrain(source: { entryways: ShardEntryways; ter
   if (source.terrain === null) return;
   const bytes = assets.get(source.terrain.collider); if (bytes === undefined) throw new Error('Missing entryway terrain');
   const terrain = decodeTerrainTile(bytes);
+  validateEntrywayGrid(source.entryways, terrain);
+}
+/** Inspect the original collision lattice, including fractional footprint boundaries; no resampling or socket floor is credited. */
+export function validateEntrywayGrid(entryways: ShardEntryways, terrain: { resolution: number; x: number; z: number; size: number; heights: Float32Array }): void {
   const n = terrain.resolution - 1, stride = terrain.size / n;
-  for (const [index, rect] of entryFootprints(source.entryways).entries()) {
-    const kind = source.entryways[index]?.kind, socket = kind === 'socketOverWater' || kind === 'socketLift' || kind === 'portalLink';
+  for (const [index, rect] of entryFootprints(entryways).entries()) {
+    const kind = entryways[index]?.kind, socket = kind === 'socketOverWater' || kind === 'socketLift' || kind === 'portalLink';
     if (rect.minX < terrain.x || rect.maxX > terrain.x + terrain.size || rect.minZ < terrain.z || rect.maxZ > terrain.z + terrain.size) throw new Error('illegal shard: missing entryway ground footprint');
     const vertex = (x: number, z: number) => {
       const y = terrain.heights[z * terrain.resolution + x]; if (y === undefined) throw new Error('Missing terrain sample');

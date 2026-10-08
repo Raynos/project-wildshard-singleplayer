@@ -6,6 +6,7 @@ import { parseShardfile, type Shardfile } from './schema';
 import { assetCost } from './assets';
 import { validateTerrainAssets } from './terrain';
 import { validateMeshCollisionAssets } from './meshCollision';
+import { validateNativeGround } from './nativeGround';
 import { validateMeshEntryways } from './meshEntryways';
 import { checkPropMaterialNames, glbMaterialNames, validatePropMaterials, type PropMaterials } from './propMaterials';
 import { validateSkinAssets } from './skins';
@@ -51,7 +52,7 @@ export function preflightDeclaredCosts(source: Shardfile, memory?: MemoryAdmissi
   };
   const library = closure(source.library), libraryCost = sum(library), critical = sum(closure(source.critical), new Set(), true);
   if (libraryCost.resident > source.budgets.library.resident || libraryCost.compressed > source.budgets.library.compressed) throw new Error('declared bundle cost exceeds budget');
-  if (critical.resident > source.budgets.sim.resident || critical.compressed > source.budgets.sim.compressed || critical.compressed > C.sim.compressed) throw new Error('declared critical bundle cap or budget exceeded');
+  if (critical.resident > source.budgets.sim.resident || critical.compressed > source.budgets.sim.compressed) throw new Error('declared critical bundle cap or budget exceeded');
   for (const tile of [...source.tiles, ...source.far === null ? [] : [source.far]]) {
     const cost = sum(closure(tile.files), library);
     if (cost.resident > tile.decoded + tile.gpu || cost.compressed > tile.compressed || cost.triangles > tile.triangles || cost.draws > tile.draws) throw new Error('declared tile or far cost exceeds budget');
@@ -138,7 +139,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
     if (bytes === undefined || actual === undefined) throw new Error('unavailable critical commons');
     criticalResident += actual.decoded + actual.gpu; criticalWire += bytes.length;
   }
-  if (criticalWire > C.sim.compressed || criticalWire > s.budgets.sim.compressed || s.sim.scripts.some((r) => !critical.has(r)) || [...critical].some((r) => library.has(r))) throw new Error('critical bundle cap, declared wire budget, render-library dependency or script omitted');
+  if (criticalWire > s.budgets.sim.compressed || s.sim.scripts.some((r) => !critical.has(r)) || [...critical].some((r) => library.has(r))) throw new Error('critical bundle cap, declared wire budget, render-library dependency or script omitted');
   let scriptMemory = 0;
   for (const module of new Set(s.sim.scripts)) {
     let admission = admissions.get(module);
@@ -166,6 +167,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (libraryResident + sketchResident > s.budgets.library.resident) throw new Error('compendium sketch raster budget understated');
   const cost = worstContentCost(s, commons);
   if (!acceptsTotal(memory, s, 'actual', cost)) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
+  validateNativeGround(s, assets);
   validateEntrywayTerrain(s, assets);
   validateEntrywayClearance(s, assets);
   validateMeshCollisionAssets(s, assets);

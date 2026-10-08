@@ -125,6 +125,7 @@
     "./grid/runtimeRenderRings": "./grid/runtimeRenderRings.ts",
     "./shardfile/portalLink": "./shardfile/portalLink.ts",
     "./shardfile/portalTraversal": "./shardfile/portalTraversal.ts",
-    "./shardfile/portalLinkProof": "./shardfile/portalLinkProof.ts"
+    "./shardfile/portalLinkProof": "./shardfile/portalLinkProof.ts",
+    "./shardfile/nativeGround": "./shardfile/nativeGround.ts"
   }
 }
