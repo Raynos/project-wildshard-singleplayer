@@ -21,13 +21,15 @@ export class Physics {
   stepMs = 0;
 
   readonly R: Rapier;
+  private readonly bodyCaptures = new Map<number, () => void>();
+  private readonly colliderCaptures = new Map<number, () => void>();
   private readonly bodyOwners = new Map<number, Scope>();
   private readonly colliderOwners = new Map<number, Scope>();
   constructor(R: Rapier, snapshot?: Uint8Array) {
     this.R = R;
     this.world = snapshot === undefined ? new R.World({ x: 0, y: -9.81, z: 0 }) : R.World.restoreSnapshot(snapshot);
     this.world.timestep = FIXED_STEP;
-    const bodies = new Map<number, () => void>(), colliders = new Map<number, () => void>();
+    const bodies = this.bodyCaptures, colliders = this.colliderCaptures;
     const createBody = this.world.createRigidBody.bind(this.world), removeBody = this.world.removeRigidBody.bind(this.world);
     const createCollider = this.world.createCollider.bind(this.world), removeCollider = this.world.removeCollider.bind(this.world);
     this.world.createRigidBody = (desc) => {
@@ -90,5 +92,12 @@ export class Physics {
     this.stepMs = performance.now() - t0;
   }
 
-  dispose(): void { this.world.forEachCollider(untagCollider); this.world.free(); this.bodyOwners.clear(); this.colliderOwners.clear(); }
+  dispose(): void {
+    this.world.forEachCollider(untagCollider); this.world.free();
+    // Whole-world retirement has freed these handles. Their scopes may outlive this world (cold regions);
+    // unregister native cleanup callbacks so they cannot later dereference a freed Rapier set.
+    for (const forget of this.bodyCaptures.values()) forget();
+    for (const forget of this.colliderCaptures.values()) forget();
+    this.bodyCaptures.clear(); this.colliderCaptures.clear(); this.bodyOwners.clear(); this.colliderOwners.clear();
+  }
 }
