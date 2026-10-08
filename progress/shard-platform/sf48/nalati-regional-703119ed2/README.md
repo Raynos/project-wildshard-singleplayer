@@ -1,0 +1,11 @@
+# Nalati full-runtime re-entry diagnostic — E435 / SF48-g
+
+Pin `703119ed22b118aae4b88bd9f5bbe39d4d172c88` includes generic registration/frame fix `5abd5b40c` and shared light restoration. Actual main-menu grid boot; muted iPhone 16 Pro portrait; browser-lane. This is **not an acceptance pass**. The browser and preview were closed after capture.
+
+The real first entry completes world, kit and play: the traveller walks road → Nalati, reaches world `(323.237, 0.020, -0.00034)` with gameplay ready, then returns to road `(278.180, 0.0198, 0.00008)`. No fall, stuck recovery or intermediate teleport. Nalati's entered systems disappear on the road. The second entry reaches `(305.035, 0.0207, 0.00059)` with gameplay ready, then faults. Three legs were recorded; four transitions include initial home → road.
+
+First fault: `grid.runtime.nalati-grasslands.animals`, `RuntimeError: unreachable` at Rapier `coSetTranslation → Collider.setTranslation → CreatureBodies.sync → AnimalManager.update`. Later grid/physics/player failures are recursive-borrow cascades. The harness's own diagnostic `motor.collider.isEnabled()` also fails after the world is poisoned; it is not the originating fault. Teardown has 2,723 cascading disposal errors, so its zero scope census cannot count as a leak pass.
+
+Causal ownership trace, routed to the generic owner: `regionalRuntime` installs the animals update under an entered-scope `App.addSystem`; the App runs it `withOwner(entry)`. `AnimalManager.bodiesFor` lazily retains a `CreatureBodies` instance. Its first sync creates hitbox colliders and near motors, which Physics captures into the current entry. Leaving releases those native handles but retains the manager and its boxes map. The next sync reuses removed collider handles. The generic correction needs resident-owned allocation with callbacks still entered-only, plus a real two-entry hitbox/motor proof. No generic/physics source was edited by this diagnostic lane.
+
+Native terrain/edge rows unchanged. The grid seam reader uses Nalati's admitted `NALATI_EDGES`, not its standalone terrain bake. Memory limits are not graded by this Developer functional diagnostic; the measured opaque-runtime and neighbouring residency costs remain truthful.
