@@ -23,10 +23,17 @@ export class UploadOwnership {
     if (this.level.disposed || !(value instanceof BufferGeometry || value instanceof Material || value instanceof Texture ||
       value instanceof WebGLRenderTarget || value instanceof InstancedMesh || value instanceof BatchedMesh)) return;
     const resource = value;
-    this.assets.observeResidency(resource, this.drawOwner ?? sceneResourceOwner(resource));
     // Uniform samplers and lazily allocated targets need not be reachable from the material's public properties.
     // Their actual draw still identifies the subtree owner, even if an asynchronous build uploaded them earlier.
-    if (this.drawOwner !== null && !this.assets.isAcquired(resource)) ownSceneResource(resource, this.drawOwner);
+    if (!this.assets.isAcquired(resource)) {
+      if (this.drawOwner !== null && !this.drawOwner.disposed) ownSceneResource(resource, this.drawOwner);
+      else if (sceneResourceOwner(resource)?.disposed === true) {
+        // A CPU-backed sampler can be uploaded again outside its former subtree. Its expired owner cannot
+        // retire that new allocation; adopt it into this live renderer lifetime before the property lookup.
+        ownSceneResource(resource, this.level);
+      }
+    }
+    this.assets.observeResidency(resource, sceneResourceOwner(resource) ?? this.drawOwner);
     if (this.live.has(resource)) return;
     this.live.add(resource);
     let forget = () => { /* Bound after registration. */ };

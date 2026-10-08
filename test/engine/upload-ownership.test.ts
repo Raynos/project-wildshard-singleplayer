@@ -3,7 +3,7 @@ import { expect, it, vi } from 'vitest';
 import { BatchedMesh, BoxGeometry, Group, MeshBasicMaterial, Scene, Texture, DataTexture, PerspectiveCamera, WebGLRenderTarget, type WebGLRenderer } from 'three';
 import { app } from '../../src/engine/app/runtime';
 import { AssetService } from '../../src/engine/app/assets';
-import { SceneOwnership, ownSceneTree } from '../../src/engine/app/sceneOwnership';
+import { SceneOwnership, ownSceneTree, ownSceneResource, sceneResourceOwner } from '../../src/engine/app/sceneOwnership';
 import { Scope } from '../../src/engine/app/scope';
 import { enterOwner } from '../../src/engine/app/ownership';
 import { legacyDouble } from '../fake/FakeGame';
@@ -98,4 +98,21 @@ it('adopts a reused CPU-backed sampler again after its prior scene owner has ret
     resident.dispose(); expect(disposed).toHaveBeenCalledTimes(visit + 1); expect(uploads.resources().size).toBe(0);
   }
   page.dispose(); expect(disposed).toHaveBeenCalledTimes(3);
+});
+
+it('retires a late upload after its prior owner has ended, without a delegated draw owner', () => {
+  const page = new Scope('page'), assets = new AssetService(), uploads = new UploadOwnership(page, assets);
+  const resident = page.child('resident'), map = new DataTexture(new Uint16Array(512), 16, 16);
+  const disposed = vi.spyOn(map, 'dispose');
+  ownSceneResource(map, resident); uploads.observe(map);
+  resident.dispose();
+  expect(disposed).toHaveBeenCalledOnce(); expect(uploads.resources().size).toBe(0);
+  // The renderer can encounter a lazy CPU-backed uniform again after the resident has left.
+  // Observing it must establish a live owner before a new native upload, without another premature disposal.
+  uploads.observe(map);
+  expect(sceneResourceOwner(map)).toBe(page); expect(page.census.textures).toBe(1);
+  expect(disposed).toHaveBeenCalledOnce(); expect(uploads.resources().has(map)).toBe(true);
+  page.dispose();
+  expect(disposed).toHaveBeenCalledTimes(2); expect(uploads.resources().size).toBe(0);
+  expect(Object.values(page.census).every(n => n === 0)).toBe(true);
 });
