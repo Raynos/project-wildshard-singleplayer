@@ -1,0 +1,9 @@
+{
+  "why": "Sky Reach's islands float over a painted cloud sea, cloud banks and a storm that would cover them from straight above: the bake leaves the painted layers out and draws nothing below the islands' walk height (y = 0, less a margin for the lowest deck)",
+  "hide": [
+    "far.painted-*",
+    "far.storm",
+    "far.sun-glow"
+  ],
+  "clipBelow": -1.5
+}
