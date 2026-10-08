@@ -130,6 +130,62 @@ try {
   await snapshot('home-settled');
   const state = await evaluate('window.__wildshard.shard.grid.state()');
   const page = { evaluate: expression => evaluate(expression, 180000) };
+  if (routeMode === 'sky-entry') {
+    const sky = state.cells.find(cell => cell.slug === 'far-reach');
+    if (!sky) throw new Error('Missing Developer Sky Reach cell');
+    const ox = sky.cell[0] * 555, oz = sky.cell[1] * 555;
+    // The single initial road approach is staged; all subsequent entry, ride and bridge travel is real input.
+    await evaluate(`(async () => { const api=window.__wildshard, live=api.shard.grid.state().live.live, player=api.requireWorld().player;
+      await api.pose({x:${ox}-(live.worldFeet.x-player.position.x),y:.55,z:${oz + 277.5}-(live.worldFeet.z-player.position.z),yaw:0,pitch:-.08});return true;})()`);
+    await until("window.__wildshard.shard.grid.state().live.live.current===null && window.__wildshard.shard.grid.state().inside===null && window.__wildshard.shard.grid.state().live.live.gameplayReady");
+    await evaluate(`(() => { const player=window.__wildshard.requireWorld().player, spawn=player.spawn; window.__skyNativeRecoveries=[];
+      player.spawn=function(...args){window.__skyNativeRecoveries.push({time:performance.now(),args});return Reflect.apply(spawn,this,args);};return true;})()`);
+    await snapshot('sky-road');
+    const drive = async (name, from, points) => {
+      report.stage = 'route:' + name; writeFileSync(phaseFile, report.stage); save();
+      report.routes.push(await runFloorGridRoute(page, { name, from, to: sky.instance, movement: 'road-hover',
+        waypoints: points.map(point => ({ x: ox + point.x, z: oz + point.z })), requiredResidents: [sky.instance] }, documentOrigin));
+    };
+    await drive('sky-socket-lip', null, [{ x: 0, z: 234 }]);
+    await snapshot('sky-lip');
+    const entry = await evaluate("JSON.parse(JSON.stringify(window.__wildshard.shard.farReach.islets.find(entry=>entry.edge==='north')))");
+    report.skyEntry = entry;
+    await drive('sky-board', sky.instance, [entry.rest]);
+    await snapshot('sky-board');
+    report.stage = 'ride:sky-north'; writeFileSync(phaseFile, report.stage); save();
+    await evaluate("(window.__wildshard.shard.farReach.interactIslet('north',1),true)");
+    await until(`Math.abs(window.__wildshard.shard.farReach.isletAt('north').y-${entry.dock.y})<.01`, (entry.travel + 10) * 1000);
+    const riderY = await evaluate('window.__wildshard.requireWorld().player.position.y');
+    if (Math.abs(riderY - entry.dock.y) > .5) throw new Error('Sky rider failed to reach its dock');
+    await snapshot('sky-docked');
+    await drive('sky-bridge-island', sky.instance, entry.climb.slice(1));
+    await snapshot('sky-island');
+    const islandY = await evaluate('window.__wildshard.requireWorld().player.position.y');
+    if (Math.abs(islandY - entry.isle.y) > .5) throw new Error('Sky bridge failed to reach playable island ground');
+    report.recoveries = await evaluate('window.__skyNativeRecoveries');
+    const gameErrors = await evaluate('window.__g227Errors');
+    const edgeFallbacks = await evaluate("window.__g227Warnings.filter(message=>/edge.*fallback|fallback.*edge/iu.test(message))");
+    if (report.recoveries.length !== 0 || gameErrors.length !== 0 || edgeFallbacks.length !== 0) throw new Error('Sky route had a recovery, game error or edge fallback');
+    report.enteredCost = report.snapshots.filter(row => row.label.startsWith('sky-') && row.label !== 'sky-road').map(row => {
+      const glBytes=row.census.gl.reduce((sum,context)=>sum+context.totalBytes,0);
+      const combinedBytes=row.native.medianBytes+glBytes;
+      return {label:row.label,webContentBytes:row.native.medianBytes,labelledGLBytes:glBytes,combinedBytes,withinExplorerCap:combinedBytes<=1e9};
+    });
+    report.enteredPeakBytes = Math.max(...report.enteredCost.map(row=>row.combinedBytes));
+    report.withinExplorerCap = report.enteredPeakBytes <= 1e9;
+    report.leak = await evaluate('window.__wildshard.leak()');
+    report.finalGL = await evaluate('window.__sc_gl().map(({gl,...row})=>row)');
+    if (report.leak.after.bodies !== 0 || report.leak.after.colliders !== 0 || report.leak.disposalErrors.length !== 0
+      || Object.values(report.leak.scope).some(count => count !== 0)) throw new Error('Sky final unload leaked native resources or scopes');
+    writeFileSync(phaseFile, 'sky-unloaded');
+    report.unloadedSamples = [];
+    for (let sampleIndex = 0; sampleIndex < 3; sampleIndex++) {
+      await sleep(1100);
+      report.unloadedSamples.push(await waitNativeSample(() => readFileSync(nativeFile, 'utf8'), () => samplerState,
+        { phase: 'sky-unloaded', pid: gamePID, after: report.unloadedSamples.at(-1)?.at }));
+    }
+    save();
+  } else {
   const home = state.cells.find(cell=>cell.instance===state.home), directNalati=state.cells.find(cell=>cell.slug==='nalati-grasslands');
   if (!home || !directNalati) throw new Error('Missing home/Nalati catalogue cell');
   const plans = routeMode.startsWith('nalati') ? [{name:'nalati-direct',from:home.instance,to:directNalati.instance,
@@ -177,6 +233,7 @@ try {
   if(routeMode === 'nalati-heap') {
     await heapAt('neutral-road');
   } else if (routeMode !== 'nalati-route') { report.glFootprintControl = await footprintControl(evaluate); save(); }
+  }
   }
   }
 } catch (error) { report.diagnostic = await inspector?.raw(`JSON.stringify({url:location.href,origin:performance.timeOrigin,token:window.__frameFloorGridDocumentToken,stop:window.__frameFloorGridStop,body:document.body.innerText.slice(-4000),loading:document.querySelector('.ws-load')?.textContent,saved:(()=>{try{const keys=JSON.parse(localStorage.getItem('wildshard.save.v2.device')??'{"keys":{}}').keys;return Object.fromEntries(['life.lastEnd','life.lastUnload','boot.trace'].map(k=>[k,keys?.[k]?.data??null]));}catch(error){return{error:String(error)};}})()})`).catch(() => null); report.failure = String(error); process.exitCode = 1; console.error(report.failure); }
