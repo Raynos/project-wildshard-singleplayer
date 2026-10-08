@@ -33,3 +33,16 @@ const html = '<head><script data-g227-fixture>window.__g227Errors=[];oldOn();</s
 const cleaned = vm.runInNewContext(htmlExpression, { readFileSync: () => html, dist: '/fixture' });
 assert.equal(cleaned, '<head><script type="module" src="/assets/game.js"></script></head>');
 console.log('Cold variants remove only prior harness fixtures; production module retained.');
+
+const mesh = (name, x, visible = true) => ({ name, type: 'Mesh', isMesh: true, visible, material: [], frustumCulled: true,
+  matrixWorld: { getMaxScaleOnAxis: () => 1 }, geometry: { attributes: {}, boundingSphere: {radius:0.1,center:{clone:()=>({applyMatrix4:()=>({x,y:0,z:0})})}} } });
+const gridMeshes = [mesh('grid-in-view', 0), mesh('grid-outside', 3), mesh('grid-hidden', 0, false)];
+context.window.__wildshard.world.game.camera = { projectionMatrix: {clone:()=>({multiply:()=>({elements:[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]})})},
+  position: {toArray:()=>[0,0,0]}, quaternion:{toArray:()=>[0,0,0,1]}, fov:60 };
+context.window.__wildshard.world.game.rootScene.traverse = fn => gridMeshes.forEach(fn);
+const views = vm.runInNewContext(expression, context).roots;
+assert.equal(views[0].inFrustum, true);
+assert.equal(views[1].inFrustum, false);
+assert.equal(views[2].visible, false);
+assert.equal(reads, 0);
+console.log('Platform view diagnostics distinguish in-frustum, off-view and hidden roots without reading attribute arrays.');
