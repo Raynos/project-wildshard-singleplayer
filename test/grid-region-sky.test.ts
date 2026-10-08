@@ -223,3 +223,24 @@ it('draws a layered dome before its own cloud ring, as the backdrop does standal
   expect(ring.material instanceof ShaderMaterial && ring.material.transparent && ring.material.depthTest).toBe(true);
   layer.dispose();
 });
+
+it('keeps a layered level\'s gas giant on the camera after its dome, fades it by the weight with its own blending, and frees it (SF63)', () => {
+  const scene = new Scene(), camera = new PerspectiveCamera();
+  const layer = new BackdropLayer({ targets: pageTargets(), scene }, { onDispose: () => undefined });
+  const backdrop = regionBackdrop(layer.holder), dome = layer.holder.getObjectByName('region-dome');
+  if (!(dome instanceof Mesh)) throw new Error('Missing dome');
+  layer.attach(backdrop);
+  const opacity = { value: 1 }, planet = new Mesh(new BoxGeometry(), new ShaderMaterial({ transparent: true, depthWrite: false }));
+  const ring = new Mesh(new BoxGeometry(), new ShaderMaterial({ transparent: true, depthWrite: false }));
+  planet.renderOrder = -12; ring.renderOrder = -11; planet.add(ring);
+  layer.follow(planet, new Vector3(0, 1, 0), 1700, opacity);
+  expect(planet.parent).toBe(scene);
+  expect(dome.renderOrder).toBeLessThan(planet.renderOrder); expect(planet.renderOrder).toBeLessThan(ring.renderOrder); expect(ring.renderOrder).toBeLessThan(-9);
+  expect(planet.material.blending).not.toBe(dome.material instanceof MeshBasicMaterial ? dome.material.blending : -1); // its own blending
+  expect(planet.visible).toBe(false); // off until the weight draws it
+  camera.position.set(10, 2, -5); layer.weight = 0.5;
+  expect(layer.apply(0.016, camera)).not.toBeNull();
+  expect(planet.visible).toBe(true); expect(planet.position.toArray()).toEqual([10, 1702, -5]); expect(opacity.value).toBe(0.5);
+  layer.weight = 0; layer.apply(0.016, camera); expect(planet.visible).toBe(false);
+  layer.dispose(); expect(planet.parent).toBeNull();
+});

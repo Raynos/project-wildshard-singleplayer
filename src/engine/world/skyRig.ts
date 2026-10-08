@@ -1,4 +1,4 @@
-import { SkyBackdropView } from './skyBackdrop';
+import { PLANET_DIST, SkyBackdropView } from './skyBackdrop';
 import { BackdropLayer, applyLayers } from './backdropLayer';
 import { app } from '../app/runtime';
 import { resourceScope } from '../app/resources';
@@ -207,15 +207,34 @@ export class SkyRig {
   /**
    * G223 / G232: build a level's backdrop as a layer over this sky (`layerBackdrop`): a grid region's own sky inside its
    * cell. Null before the sky is built. The caller attaches the backdrop to the layer (`layer.attach`) once its memory is
-   * admitted, or disposes both.
+   * admitted, or disposes both. SF63: a level whose sky has a gas giant (`sky.planet`) gets its own on the layer
+   * (`layerPlanet`), unless `planet` is false (its look's sky dressing paints its own: `SkyDressing.planet`).
    */
-  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
+  async layeredBackdrop(factory: SkyBackdropFactory, options: { readonly level: LevelSpec; readonly scope?: Scope; readonly air?: () => THREE.Fog | null; readonly planet?: boolean }): Promise<{ layer: BackdropLayer; backdrop: SkyBackdrop } | null> {
     const layer = this.layerBackdrop({ ...(options.air === undefined ? {} : { air: options.air }), ...(options.scope === undefined ? {} : { owner: options.scope }) });
     if (layer === null) return null;
     try {
       const backdrop = await factory({ sky: this, scene: layer.holder, renderer: this.renderer, level: options.level, tier: TIER, look: options.level.lookLayer ?? null });
+      if (options.planet !== false) this.layerPlanet(layer, options.level); // before the layer binds the clock (its crisp disc)
       return { layer, backdrop };
     } catch (error) { layer.dispose(); throw error; }
+  }
+
+  /**
+   * SF63: a layered level's own gas giant (its `sky.planet`; nothing without one), built as the page builds its own and kept
+   * on the camera by the layer (`BackdropLayer.follow`). Its sun direction, haze and crispness are the layer's targets, so
+   * the level's clock lights it as standalone; its opacity is the layer's weight.
+   */
+  private layerPlanet(layer: BackdropLayer, level: LevelSpec): void {
+    if (level.sky.planet === undefined) return;
+    const air = new THREE.Scene(); // its haze starts from the page's fog colour; the clock turns it from the first frame
+    air.fog = new THREE.Fog(this.scene.fog instanceof THREE.Fog ? this.scene.fog.color.clone() : new THREE.Color(0.7, 0.8, 0.95), 1, 2);
+    const view = new SkyBackdropView(air, this.renderer, this.scope, this), own = layer.targets.planet, giant = view.giantUniforms;
+    view.configure(level, null);
+    giant.uSunDir = own.uSunDir; giant.uHaze = own.uHaze; giant.uCrisp = own.uCrisp;
+    view.buildPlanet();
+    air.remove(view.planet);
+    layer.follow(view.planet, view.planetDir, PLANET_DIST, giant.uOpacity);
   }
 
   /**

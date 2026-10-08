@@ -878,7 +878,7 @@ on the body clock. A shard overrides a rate in `manifest.tiers.<tier>.ticks`.
 | Shape | `compose` | Use |
 |---|---|---|
 | `ExtendLook` (`mode: 'extend'`, the default) | `(c: LookComposeContext) => LookComposition`: your passes in the slots `beforeScene`, `afterScene`, `beforeChain`, `chain`, `afterChain`. `c.engineChain('clean' \| 'cinematic')` is the engine's chain, `c.fx` its effects (`EngineEffects`), each yours to tune: e.g. `c.fx.tone.mode` (the engine's default `ToneMappingMode.AGX`, from `postprocessing`, compresses highlights hard, so a look whose target has bright sun bloom and gold rims may pick `NEUTRAL` or `ACES_FILMIC`), `c.fx.bloom.intensity` / `luminanceMaterial.threshold`, `c.fx.godRays`. **Ask `c.engineChain(kind)` before you read `c.fx`**: the first `c.fx` read builds the `'cinematic'` chain, so a later `engineChain('clean')` throws (the load then stops on the error modal; `<html data-ws-state="error">` tells a harness) | most shards (Driftwood, Pine, the template) |
-| `ReplaceLook` (`mode: 'replace'`) | `(c: LookReplaceContext) => LookChain`: `{ chain: Pass[] }`, the whole chain in order | a look with its own composer (Nalati) |
+| `ReplaceLook` (`mode: 'replace'`) | `(c: LookReplaceContext) => LookChain`: `{ chain: Pass[] }`, the whole chain in order. Optional `engineKnobs(tier) => EngineKnobs`: what that chain amounts to on an engine chain that draws your content instead (a grid cell on a page shell): `bloom` (or null), `vignette`, `rays`, `ao`, and `display`, your tone curve and grade as one NORMAL-blend `Effect` that takes over the engine's tone mapping by the cell's weight | a look with its own composer (Nalati) |
 
 Both shapes take these optional parts:
 

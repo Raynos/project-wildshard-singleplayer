@@ -13,8 +13,8 @@
  */
 import type * as THREE from 'three';
 import { Effect, BlendFunction, RenderPass, EffectPass, BloomEffect, type Pass } from 'postprocessing';
-import { TIER_CONFIG } from '@wildshard/engine/core/tier';
-import type { LookReplaceContext } from '@wildshard/engine/render/look';
+import { TIER_CONFIG, type Tier } from '@wildshard/engine/core/tier';
+import type { EngineKnobs, LookReplaceContext } from '@wildshard/engine/render/look';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 /** the grade's live knobs (shared uniform objects: the grade effect and every inverse read them) */
@@ -94,13 +94,14 @@ export function ungrade(y: [number, number, number]): [number, number, number] {
 
 /** the grade as the v2 chain's one effect */
 export class GradeV2Effect extends Effect {
-  constructor() {
+  /** `blendFunction`: SRC in its own chain; NORMAL where another chain fades it in (`lookV2EngineKnobs`) */
+  constructor(blendFunction: BlendFunction = BlendFunction.SRC) {
     super('GradeV2Effect', /* glsl */`
       ${V2_GRADE_GLSL}
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
         outputColor = vec4(v2Grade(inputColor.rgb), inputColor.a);
       }`, {
-      blendFunction: BlendFunction.SRC,
+      blendFunction,
       uniforms: new Map<string, THREE.Uniform>([
         ['uV2Exposure', gradeUniforms.uV2Exposure as THREE.Uniform],
         ['uV2Sat', gradeUniforms.uV2Sat as THREE.Uniform],
@@ -108,6 +109,17 @@ export class GradeV2Effect extends Effect {
       ]),
     });
   }
+}
+
+/** the v2 chain's desktop bloom (the phone blooms nothing) */
+const V2_BLOOM = { intensity: 0.28, threshold: 0.95, smoothing: 0.3 } as const;
+
+/**
+ * The v2 chain as engine knobs (SF63, `ReplaceLook.engineKnobs`): what a page's engine chain carries inside Nalati's grid
+ * cell — the desktop bloom, no vignette, no god rays, no AO, and its own grade in place of the engine's tone mapping.
+ */
+export function lookV2EngineKnobs(tier: Tier): EngineKnobs {
+  return { bloom: tier === 'desktop' ? V2_BLOOM : null, vignette: 0, rays: 0, ao: false, display: () => new GradeV2Effect(BlendFunction.NORMAL) };
 }
 
 /**
@@ -120,7 +132,7 @@ export function lookV2Passes(c: Pick<LookReplaceContext, 'scene' | 'camera' | 't
   const scene = new RenderPass(c.scene, c.camera);
   const grade = new GradeV2Effect();
   if (c.tier === 'desktop') {
-    const bloom = new BloomEffect({ intensity: 0.28, luminanceThreshold: 0.95, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.7, levels: TIER_CONFIG.bloomLevels });
+    const bloom = new BloomEffect({ intensity: V2_BLOOM.intensity, luminanceThreshold: V2_BLOOM.threshold, luminanceSmoothing: V2_BLOOM.smoothing, mipmapBlur: true, radius: 0.7, levels: TIER_CONFIG.bloomLevels });
     return [scene, new EffectPass(c.camera, bloom, grade)];
   }
   return [scene, new EffectPass(c.camera, grade)];

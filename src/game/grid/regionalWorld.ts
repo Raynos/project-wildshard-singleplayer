@@ -53,13 +53,13 @@ import { TreeFactory } from '@wildshard/engine/world/TreeFactory';
 import { Forest } from '@wildshard/engine/world/forest/Forest';
 import { WaterBodies } from '@wildshard/engine/world/water/body';
 import { CHUNK_SIZE } from '@wildshard/engine/core/config';
-import { TIER } from '@wildshard/engine/core/tier';
+import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
 import { toLevelSpec } from '../shard/spec';
 import type { ShardWorld } from '../shard/world';
 import type { RegionalRuntimeFoundation, RegionalRuntimeRequest } from './regionalRuntime';
-import { frameLookOf, lookChainKind, regionChain, regionGrade, type FrameLookPort } from './frameLook';
+import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, type FrameLookPort } from './frameLook';
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky } from './regionSky';
 import { imagesFirstPlayingBytes } from './runtimeCost';
@@ -190,14 +190,14 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           const look = ports.look === undefined ? frameLookOf(game.rootScene) : ports.look;
           // G232: on a neutral page shell its whole grade chain (grade, look layer, learned LUT) is carried exactly
           let lut: Texture | null = null;
-          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain: regionChain(level, () => lut, lookChainKind(levelLook)) }));
+          if (look !== null) resident.onDispose(look.contribute(cell.instance, { fog: scene.fog, grade: regionGrade(level), chain: regionChain(level, () => lut, lookChainKind(levelLook), { ao: level.tiers?.[TIER]?.ao ?? TIER_CONFIG.ao, godRays: level.tiers?.[TIER]?.godRays }, replacedKnobs(levelLook, TIER)) }));
           // G223 / G232: its level's own sky backdrop laid over the one sky by its owner weight
           if (look !== null && sky instanceof SkyRig) void (async () => {
             try {
               const made: { backdrop: LayeredBackdrop | null } = { backdrop: null };
               const outcome = await buildRegionSky({ instance: cell.instance, look, allocator: request.allocator, scope: resident, layered: async () => {
                 const make = levelLook?.backdrop;
-                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null) });
+                const layered = make === undefined ? null : await sky.layeredBackdrop(make, { level, scope: resident, air: () => (scene.fog instanceof Fog ? scene.fog : null), planet: levelLook?.sky?.planet !== false });
                 if (layered === null) return null;
                 made.backdrop = layered.backdrop;
                 // its clock turns the page's saturation with its hour as standalone, where the page carries its chain

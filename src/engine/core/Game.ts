@@ -332,7 +332,7 @@ export class Game {
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
   /** runtime handles on the colour chain (set by buildComposer) — the day/night clock + weather retune them */
-  post: { grade: GradeEffect; saturation: HueSaturationEffect; contrast: BrightnessContrastEffect; bloom: BloomEffect; vignette: VignetteEffect; rays: GodRaysEffect | null } | null = null;
+  post: { grade: GradeEffect; saturation: HueSaturationEffect; contrast: BrightnessContrastEffect; bloom: BloomEffect; vignette: VignetteEffect; rays: GodRaysEffect | null; /** the AO pass (null: the tier or level draws none) */ ao: N8AOPostPass | null; tone: ToneMappingEffect } | null = null;
   /** the post chain — set by buildComposer(); resize() and the loop hold the nullable field directly */
   get composer(): EffectComposer { if (this._composer === null) throw new Error('Game.composer read before buildComposer()'); return this._composer; }
   /** the sky — set by buildSky() */
@@ -524,7 +524,7 @@ export class Game {
       const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
       const split = new GradeEffect(G, look);
       if (!clean) this.grade = split;
-      this.post = { grade: split, saturation: grade, contrast, bloom, vignette, rays: raysOn ? godRays : null };
+      this.post = { grade: split, saturation: grade, contrast, bloom, vignette, rays: raysOn ? godRays : null, ao: aoPass, tone };
       if (!clean) {
         const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(CINEMATIC_FX.chroma, CINEMATIC_FX.chroma), radialModulation: true, modulationOffset: CINEMATIC_FX.chromaModulation });
         const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });

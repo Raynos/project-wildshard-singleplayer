@@ -192,10 +192,30 @@ export interface ExtendLook extends LookParts {
   compose: (c: LookComposeContext) => LookComposition;
 }
 
+/**
+ * The engine chain's knobs that stand for a 'replace' compose where an engine chain draws the level's content instead of
+ * its own composer (SF63: a grid cell on a page shell): its bloom (null: it blooms nothing), vignette darkness, god rays'
+ * opacity and whether it draws AO, on one tier.
+ */
+export interface EngineKnobs {
+  readonly bloom: { readonly intensity: number; readonly threshold: number; readonly smoothing: number } | null;
+  readonly vignette: number;
+  readonly rays: number;
+  readonly ao: boolean;
+  /**
+   * its own display transform (tone curve and grade) as one effect over the scene-linear colour, made fresh for each
+   * chain that draws it, with a NORMAL blend so its opacity fades it: an engine chain carrying it puts it where its tone
+   * mapping runs and fades its own tone mapping and grade out as this fades in. Absent: the engine's tone mapping stays.
+   */
+  readonly display?: () => Effect;
+}
+
 /** 'replace': the level's compose builds the whole chain; the engine adds exactly its passes to its one composer */
 export interface ReplaceLook extends LookParts {
   mode: 'replace';
   compose: (c: LookReplaceContext) => LookChain;
+  /** SF63: the engine knobs its chain amounts to on a tier (`EngineKnobs`); absent: an engine chain keeps its own there */
+  engineKnobs?: (tier: Tier) => EngineKnobs;
 }
 
 export type LookStrategy = ExtendLook | ReplaceLook;

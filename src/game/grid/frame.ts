@@ -69,6 +69,10 @@ export interface FramePostEffects {
   readonly bloom?: Effect & { intensity: number; readonly luminanceMaterial: { threshold: number; smoothing: number } };
   readonly vignette?: Effect & { darkness: number };
   readonly rays?: Effect | null;
+  /** SF63: the scene's AO pass (null: the page draws none), whose strength a carried region's chain sets */
+  readonly ao?: { readonly configuration: { intensity: number }; enabled: boolean } | null;
+  /** SF63: the chain's tone mapping, which a carried 'replace' chain's own display transform takes over by the weight */
+  readonly tone?: Effect;
 }
 
 /** The carried shafts, fringe and grain (the engine's `RegionCinematic`, `regionCinematic.ts`), as the frame drives them. */
@@ -111,8 +115,8 @@ export interface GridFrameState {
    * and the page's grade values as drawn: saturation, brightness, contrast, curve, vibrance
    */
   readonly chain: { readonly owner: string | null; readonly weight: number; readonly lut: boolean; readonly values: readonly [number, number, number, number, number];
-    /** SF63: the page chain's knobs as drawn: bloom intensity, threshold, smoothing, vignette darkness, god rays' opacity (−1: none) */
-    readonly post: readonly [number, number, number, number, number];
+    /** SF63: the page chain's knobs as drawn: bloom intensity, threshold, smoothing, vignette darkness, god rays' opacity, AO strength (0 while its pass is skipped) (−1: none) */
+    readonly post: readonly [number, number, number, number, number, number];
     /** SF63 follow-up: a cinematic region's shafts, fringe and grain in the page's colour pass (null: not installed) */
     readonly fx: FrameCinematicState | null };
 }
@@ -204,17 +208,18 @@ export function passEffects(pass: EffectPass): Effect[] | null {
 
 /**
  * SF63: a carried region's engine chain knobs on the page's same effects: bloom's intensity, threshold and smoothing, the
- * vignette's darkness and the god rays' opacity, each moved from the page's value toward the region's by the owner weight
- * every frame (all uniforms: nothing compiles). The region's clock may drive the rays' opacity itself (`FramePost.rays`):
+ * vignette's darkness, the god rays' opacity and the AO strength (a region whose own frame draws no AO fades the page's
+ * out, and at full weight the pass is skipped), each moved from the page's value toward the region's by the owner weight
+ * every frame (all uniforms and a pass's `enabled`: nothing compiles). The region's clock may drive the rays' opacity itself (`FramePost.rays`):
  * a value written since the last frame is the region's own and is kept. `restore` puts the page's values back. Null when
  * the region carries no knobs (a 'replace' look).
  */
 export function chainKnobs(post: FramePostEffects, knobs: RegionPost | undefined): { readonly weight: (w: number) => void; readonly restore: () => void } | null {
   if (knobs === undefined) return null;
-  const bloom = post.bloom, vignette = post.vignette, rays = post.rays ?? null;
+  const bloom = post.bloom, vignette = post.vignette, rays = post.rays ?? null, ao = post.ao ?? null;
   const read = (u: Uniform): number => { const v: unknown = u.value; return typeof v === 'number' ? v : 1; };
   const page = { intensity: bloom?.intensity ?? 0, threshold: bloom?.luminanceMaterial.threshold ?? 0, smoothing: bloom?.luminanceMaterial.smoothing ?? 0,
-    darkness: vignette?.darkness ?? 0, rays: rays === null ? 0 : read(rays.blendMode.opacity) };
+    darkness: vignette?.darkness ?? 0, rays: rays === null ? 0 : read(rays.blendMode.opacity), ao: ao?.configuration.intensity ?? 0, aoOn: ao?.enabled ?? false };
   // the rays' full value: the region's chain's own, or what its clock wrote since the last frame
   let raysOwn = knobs.rays, raysWritten = Number.NaN;
   const mix = (a: number, b: number, w: number): number => a + (b - a) * w;
@@ -231,11 +236,13 @@ export function chainKnobs(post: FramePostEffects, knobs: RegionPost | undefined
         if (!Number.isNaN(raysWritten) && now !== raysWritten) raysOwn = now;
         raysWritten = mix(page.rays, raysOwn, w); rays.blendMode.opacity.value = raysWritten;
       }
+      if (ao !== null && !knobs.ao) { ao.configuration.intensity = mix(page.ao, 0, w); ao.enabled = page.aoOn && w < 0.999; }
     },
     restore: () => {
       if (bloom !== undefined) { bloom.intensity = page.intensity; bloom.luminanceMaterial.threshold = page.threshold; bloom.luminanceMaterial.smoothing = page.smoothing; }
       if (vignette !== undefined) vignette.darkness = page.darkness;
       if (rays !== null) rays.blendMode.opacity.value = page.rays;
+      if (ao !== null) { ao.configuration.intensity = page.ao; ao.enabled = page.aoOn; }
     },
   };
 }
@@ -272,6 +279,10 @@ export class GridFrame {
   private chainLut = false;
   /** SF63 follow-up: a cinematic region's shafts, fringe and grain, compiled into the shell's colour pass at install */
   private cine: FrameCinematic | null = null;
+  /** SF63: the shell's colour pass and its effect list (set at install), where a resident region's display transform goes */
+  private colour: { readonly pass: EffectPass; readonly effects: Effect[]; readonly tone: Effect } | null = null;
+  /** SF63: each resident region's own display transform (a 'replace' chain's), placed after the page's tone mapping */
+  private readonly displays = new Map<string, Effect>();
   private readonly roadSky = new RoadSky();
   private readonly restore: (() => void)[] = [];
   private faded = 0;
@@ -301,6 +312,8 @@ export class GridFrame {
       unbind(); this.live.clear(); this.skies.clear();
       host.scene.onBeforeRender = prev; this.uninstall(); this.effect.dispose(); this.lookEffect.dispose(); this.lutEffect.dispose(); this.neutral.dispose();
       this.cine?.dispose(); this.cine = null;
+      for (const display of this.displays.values()) display.dispose();
+      this.displays.clear();
       detachSky(); this.roadSky.dispose();
       for (const set of this.stacks.values()) for (const stack of set) stack.dispose?.();
       this.stacks.clear();
@@ -324,11 +337,22 @@ export class GridFrame {
     this.live.set(instance, look);
     const declared = this.hazes.get(instance);
     if (declared !== undefined) look.fog?.color.setRGB(...declared); // start from the base (else its own colour until the first draw)
+    // SF63: its own display transform joins the shell's colour pass while it is resident (one recompile now, as it loads,
+    // and one as it unloads; crossing its edge only moves opacities)
+    const make = look.chain?.post?.display;
+    if (make !== undefined) { const display = make(); display.blendMode.opacity.value = 0; this.displays.set(instance, display); this.placeDisplay(display, true); }
     return () => {
       if (this.live.get(instance) !== look) return;
       this.live.delete(instance);
       if (this.carrier?.instance === instance) this.drop(); // at once: its LUT may be freed right after
       this.cine?.forget(instance);
+      const display = this.displays.get(instance);
+      if (display !== undefined) {
+        this.displays.delete(instance);
+        const colour = this.colour, i = colour?.effects.indexOf(display) ?? -1;
+        if (colour !== null && i !== -1) { colour.effects.splice(i, 1); colour.pass.recompile(); }
+        display.dispose();
+      }
     };
   }
 
@@ -396,9 +420,19 @@ export class GridFrame {
         effects.splice(at, 0, this.lookEffect, this.lutEffect);
         // SF63 follow-up: a cinematic region's shafts, fringe and grain, neutral until one carries them
         const unplace = this.placeCinematic(composer, pass, effects);
+        // SF63: a 'replace' region's display transform takes over the tone mapping by its weight: the tone mapping blends
+        // (NORMAL at opacity 1 draws exactly what SRC drew) and the regions resident before the install are placed now
+        const tone = post.tone, toneBlend = tone?.blendMode.blendFunction;
+        if (tone !== undefined && effects.includes(tone)) {
+          tone.blendMode.blendFunction = BlendFunction.NORMAL;
+          this.colour = { pass, effects, tone };
+          for (const display of this.displays.values()) this.placeDisplay(display, false);
+        }
         unstack = () => {
           this.drop(); this.chainPost = null; this.chainFade = null; carried.dispose(); rest.dispose();
-          for (const effect of [this.lookEffect, this.lutEffect]) { const i = effects.indexOf(effect); if (i !== -1) effects.splice(i, 1); }
+          for (const effect of [this.lookEffect, this.lutEffect, ...this.displays.values()]) { const i = effects.indexOf(effect); if (i !== -1) effects.splice(i, 1); }
+          if (tone !== undefined && toneBlend !== undefined) { tone.blendMode.blendFunction = toneBlend; tone.blendMode.opacity.value = 1; }
+          this.colour = null;
           unplace();
         };
       } else {
@@ -426,6 +460,14 @@ export class GridFrame {
     cine.warm();
     this.cine = cine;
     return () => { unplace(); cine.release(); };
+  }
+
+  /** a display transform right after the page's tone mapping (nothing before the install: the install places it) */
+  private placeDisplay(display: Effect, recompile: boolean): void {
+    const colour = this.colour;
+    if (colour === null || colour.effects.includes(display)) return;
+    colour.effects.splice(colour.effects.indexOf(colour.tone) + 1, 0, display);
+    if (recompile) colour.pass.recompile();
   }
 
   /** the owners' grades: a live region's own over its declared one; neutral for one whose whole chain is carried */
@@ -475,12 +517,14 @@ export class GridFrame {
     post.saturation.saturation = g.saturation; post.contrast.brightness = g.brightness; post.contrast.contrast = g.contrast;
     post.grade.set({ shadowTint: rgb(g.shadowTint), highTint: rgb(g.highTint), lift: rgb(g.lift), gain: rgb(g.gain), gamma: g.gamma });
     this.lookEffect.set(chain.look);
-    const knobs = chainKnobs(post, chain.post);
+    const knobs = chainKnobs(post, chain.post), display = this.displays.get(instance) ?? null, tone = this.colour?.tone ?? null;
     // SF63 follow-up: a cinematic chain's shafts, fringe and grain, its clock driving the shafts
     const volumetric = chain.post?.volumetric;
     if (volumetric !== undefined) this.cine?.take(instance, { strength: volumetric.strength, sunColor: volumetric.sunColor, sunDir: this.host.sunDir?.(), fog: this.live.get(instance)?.fog?.color });
-    this.carrier = { instance, chain, knobs: knobs?.weight ?? null, restore: () => {
-      knobs?.restore();
+    // SF63: its own display transform in by the weight, the page's tone mapping out
+    const fade = display === null || tone === null ? null : (w: number): void => { display.blendMode.opacity.value = w; tone.blendMode.opacity.value = 1 - w; };
+    this.carrier = { instance, chain, knobs: knobs === null && fade === null ? null : (w) => { knobs?.weight(w); fade?.(w); }, restore: () => {
+      knobs?.restore(); fade?.(0);
       post.saturation.saturation = saturation; post.contrast.brightness = brightness; post.contrast.contrast = contrast; undoGrade();
     } };
   }
@@ -531,11 +575,12 @@ export class GridFrame {
     return post === null ? [0, 0, 0, 0, 0] : [r(post.saturation.saturation), r(post.contrast.brightness), r(post.contrast.contrast), r(look.curve), r(look.vibrance)];
   }
 
-  /** the page chain's knobs as drawn (bloom intensity, threshold, smoothing, vignette, rays; −1 where the chain has none) */
-  private postValues(): readonly [number, number, number, number, number] {
+  /** the page chain's knobs as drawn (bloom intensity, threshold, smoothing, vignette, rays, AO; −1 where the chain has none) */
+  private postValues(): readonly [number, number, number, number, number, number] {
     const post = this.chainPost, r = (n: number | undefined): number => (n === undefined ? -1 : Math.round(n * 1e4) / 1e4);
     const rays: unknown = post?.rays?.blendMode.opacity.value;
-    return [r(post?.bloom?.intensity), r(post?.bloom?.luminanceMaterial.threshold), r(post?.bloom?.luminanceMaterial.smoothing), r(post?.vignette?.darkness), r(typeof rays === 'number' ? rays : undefined)];
+    return [r(post?.bloom?.intensity), r(post?.bloom?.luminanceMaterial.threshold), r(post?.bloom?.luminanceMaterial.smoothing), r(post?.vignette?.darkness), r(typeof rays === 'number' ? rays : undefined),
+      r(post?.ao ? (post.ao.enabled ? post.ao.configuration.intensity : 0) : undefined)];
   }
 
   /** The readout. */

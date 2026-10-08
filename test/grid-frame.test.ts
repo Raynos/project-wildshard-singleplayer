@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Color, Fog, PerspectiveCamera, Scene, WebGLRenderTarget, type Uniform } from 'three';
-import { BlendFunction, BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectPass, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, VignetteEffect, type EffectComposer } from 'postprocessing';
+import { BlendFunction, BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectPass, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, ToneMappingEffect, VignetteEffect, type EffectComposer } from 'postprocessing';
 import { VolumetricsEffect } from '../src/engine/core/Volumetrics';
 import { RegionCinematic } from '../src/engine/render/regionCinematic';
 import { GradeEffect, GradeLookEffect } from '../src/engine/core/Grade';
@@ -280,9 +280,12 @@ describe('SF63: a carried region\'s engine chain knobs (bloom, vignette, god ray
     expect(regionChain(pine, () => null).post).toBeUndefined();
     const post = regionChain(pine, () => null, 'cinematic').post;
     expect(post).toEqual({ kind: 'cinematic', bloomIntensity: pine.lookLayer?.grade.bloomIntensity ?? pine.grade.bloomIntensity,
-      bloomThreshold: pine.lookLayer?.grade.bloomThreshold ?? pine.grade.bloomThreshold, bloomSmoothing: 0.3, vignette: 0.55, rays: 1,
+      bloomThreshold: pine.lookLayer?.grade.bloomThreshold ?? pine.grade.bloomThreshold, bloomSmoothing: 0.3, vignette: 0.55, rays: 1, ao: true,
       volumetric: { strength: pine.atmosphere.volumetric?.strength ?? 0.55, sunColor: pine.atmosphere.volumetricSunColor } });
     expect(regionChain(pine, () => null, 'clean').post?.volumetric).toBeUndefined();
+    // SF63: its running tier's knobs: no god rays and no AO where its own boot would draw none
+    expect(regionChain(pine, () => null, 'clean', { godRays: false, ao: false }).post).toMatchObject({ rays: 0, ao: false });
+    expect(regionChain(pine, () => null, 'clean', { ao: true, godRays: undefined }).post).toMatchObject({ rays: ENGINE_CHAIN_TUNING.clean.rays, ao: true });
     expect(ENGINE_CHAIN_TUNING.clean).toEqual({ rays: 0.12, bloomSmoothing: 0.08, vignette: 0.35 });
   });
   it('moves the page\'s knobs toward the region\'s by the weight, keeps what its clock writes into the rays, and restores', () => {
@@ -291,7 +294,7 @@ describe('SF63: a carried region\'s engine chain knobs (bloom, vignette, god ray
     rays.blendMode.opacity.value = 0.12;
     const post = { grade: new GradeEffect(), saturation: new HueSaturationEffect(), contrast: new BrightnessContrastEffect(), bloom, vignette, rays };
     expect(chainKnobs(post, undefined)).toBeNull();
-    const knobs = chainKnobs(post, { kind: 'cinematic', bloomIntensity: 0.6, bloomThreshold: 0.8, bloomSmoothing: 0.3, vignette: 0.55, rays: 1 });
+    const knobs = chainKnobs(post, { kind: 'cinematic', bloomIntensity: 0.6, bloomThreshold: 0.8, bloomSmoothing: 0.3, vignette: 0.55, rays: 1, ao: true });
     if (knobs === null) throw new Error('no knobs');
     const read = (): number[] => [bloom.intensity, bloom.luminanceMaterial.threshold, bloom.luminanceMaterial.smoothing, vignette.darkness, Number(rays.blendMode.opacity.value)].map((n) => Math.round(n * 1e4) / 1e4);
     knobs.weight(1); expect(read()).toEqual([0.6, 0.8, 0.3, 0.55, 1]);
@@ -301,6 +304,18 @@ describe('SF63: a carried region\'s engine chain knobs (bloom, vignette, god ray
     knobs.weight(0); expect(read()).toEqual([0.4, 1, 0.08, 0.35, 0.12]);
     knobs.weight(1); knobs.restore(); expect(read()).toEqual([0.4, 1, 0.08, 0.35, 0.12]);
     bloom.dispose(); vignette.dispose(); rays.dispose();
+  });
+  it('fades the page\'s AO out for a region whose own frame draws none, skipping the pass at full weight, and restores', () => {
+    const ao = { configuration: { intensity: 2.5 }, enabled: true };
+    const post = { grade: new GradeEffect(), saturation: new HueSaturationEffect(), contrast: new BrightnessContrastEffect(), ao };
+    const base = { kind: 'clean', bloomIntensity: 0.4, bloomThreshold: 1, bloomSmoothing: 0.08, vignette: 0.35, rays: 0 } as const;
+    const kept = chainKnobs(post, { ...base, ao: true }); if (kept === null) throw new Error('no knobs');
+    kept.weight(1); expect([ao.configuration.intensity, ao.enabled]).toEqual([2.5, true]);
+    const none = chainKnobs(post, { ...base, ao: false }); if (none === null) throw new Error('no knobs');
+    none.weight(0.5); expect([ao.configuration.intensity, ao.enabled]).toEqual([1.25, true]);
+    none.weight(1); expect([ao.configuration.intensity, ao.enabled]).toEqual([0, false]);
+    none.weight(0); expect([ao.configuration.intensity, ao.enabled]).toEqual([2.5, true]);
+    none.weight(1); none.restore(); expect([ao.configuration.intensity, ao.enabled]).toEqual([2.5, true]);
   });
 });
 
@@ -357,5 +372,47 @@ describe('SF63 follow-up: a cinematic region\'s shafts, fringe and grain on the 
     scope.dispose();
     expect(passEffects(pass)).toEqual([bloom, saturation, contrast, gradeEffect]);
     pass.dispose(); target.dispose();
+  });
+});
+
+describe('SF63: a \'replace\' region\'s own chain on the page shell (its knobs and its display transform)', () => {
+  const pine = toLevelSpec(PINE_HOLLOW);
+  it('carries its knobs with a neutral engine grade, places its display after the tone mapping while resident, and fades one into the other', () => {
+    const scope = new Scope('sf63-display'), scene = new Scene(), camera = new PerspectiveCamera();
+    scene.fog = new Fog(new Color(0.4, 0.5, 0.6), 10, 100);
+    const home = cells[4]; if (home === undefined) throw new Error('Missing home');
+    const feet = { x: 0, z: 0 };
+    const gradeEffect = new GradeEffect(), saturation = new HueSaturationEffect(), contrast = new BrightnessContrastEffect(), tone = new ToneMappingEffect();
+    const bloom = new BloomEffect({ intensity: 0.4 }), vignette = new VignetteEffect({ darkness: 0.35 });
+    const pass = new EffectPass(camera, bloom, vignette, tone, saturation, contrast, gradeEffect), recompile = vi.spyOn(pass, 'recompile').mockImplementation(() => undefined);
+    const frame = new GridFrame({ host: { scene, camera, composer: () => legacyDouble<EffectComposer>({ passes: [pass] }),
+      post: () => ({ grade: gradeEffect, saturation, contrast, bloom, vignette, tone }) }, scope, cells, home, homeIsFrame: false, half, feet: () => feet });
+    const port = frameLookOf(scene); if (port === null) throw new Error('no port');
+    frame.frame(); // install (its blend change flags the pass too; both before the first draw: one compile)
+    expect(tone.blendMode.blendFunction).toBe(BlendFunction.NORMAL);
+    const installed = recompile.mock.calls.length;
+    const display = new Effect('display', 'void mainImage(const in vec4 i, const in vec2 uv, out vec4 o) { o = i; }', { blendFunction: BlendFunction.NORMAL });
+    const chain = regionChain(pine, () => null, undefined, { ao: true }, { bloom: null, vignette: 0, rays: 0, ao: false, display: () => display });
+    expect(chain.grade).toMatchObject({ saturation: 0, brightness: 0, contrast: 0, gamma: 1 }); expect(chain.look).toEqual({ curve: 0, vibrance: 0 });
+    const release = port.contribute('1,0', { fog: null, chain });
+    const list = passEffects(pass); if (list === null) throw new Error('no list');
+    expect(list.indexOf(display)).toBe(list.indexOf(tone) + 1); // placed as it loads: one recompile, on the road
+    expect(recompile).toHaveBeenCalledTimes(installed + 1);
+    expect([display.blendMode.opacity.value, tone.blendMode.opacity.value]).toEqual([0, 1]);
+    feet.x = pitch; frame.frame(); // inside: its display, no tone mapping, its knobs
+    expect([display.blendMode.opacity.value, tone.blendMode.opacity.value]).toEqual([1, 0]);
+    expect([bloom.intensity, vignette.darkness]).toEqual([0, 0]);
+    feet.x = pitch - half; frame.frame(); // the edge line: half and half
+    expect([display.blendMode.opacity.value, tone.blendMode.opacity.value]).toEqual([0.5, 0.5]);
+    feet.x = half + 27.5; frame.frame(); // the road: the page's
+    expect([display.blendMode.opacity.value, tone.blendMode.opacity.value]).toEqual([0, 1]);
+    expect([bloom.intensity, vignette.darkness]).toEqual([0.4, 0.35]);
+    expect(recompile).toHaveBeenCalledTimes(installed + 1); // crossings move opacities only
+    release();
+    expect(passEffects(pass)?.includes(display)).toBe(false); expect(recompile).toHaveBeenCalledTimes(installed + 2);
+    scope.dispose();
+    expect(tone.blendMode.blendFunction).toBe(BlendFunction.SRC);
+    expect(passEffects(pass)).toEqual([bloom, vignette, tone, saturation, contrast, gradeEffect]);
+    pass.dispose();
   });
 });

@@ -19,7 +19,8 @@
  * into (`frameLookOf`), so no layer names the other. Generic game code (E405): no shard is named here.
  */
 import type { Color, Texture } from 'three';
-import { ENGINE_CHAIN_TUNING, type EngineChainKind, type SkyBackdropPost } from '@wildshard/engine/render/look';
+import type { Effect } from 'postprocessing';
+import { ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineKnobs, type SkyBackdropPost } from '@wildshard/engine/render/look';
 import type { RegionGrade } from './frameModel';
 
 type Rgb = readonly [number, number, number];
@@ -62,7 +63,12 @@ export interface RegionPost {
   readonly kind: EngineChainKind;
   readonly bloomIntensity: number; readonly bloomThreshold: number; readonly bloomSmoothing: number;
   readonly vignette: number;
+  /** its god rays' opacity: its chain's own, 0 where its tier knobs leave the rays out (`godRays: false`) */
   readonly rays: number;
+  /** its frame draws ambient occlusion on this tier (its tier knob `ao`, else the tier's): the page's AO fades out where not */
+  readonly ao: boolean;
+  /** a 'replace' chain's own display transform (`EngineKnobs.display`), carried in place of the page's tone mapping */
+  readonly display?: () => Effect;
   /**
    * a cinematic chain's volumetric shafts as its level's atmosphere starts them (strength, sun colour): with the fringe and
    * the grain the page carries them inside its cell (`regionCinematic.ts`, SF63 follow-up); absent on the clean chain
@@ -138,21 +144,50 @@ export function regionGrade(level: { readonly grade: LevelGrade; readonly lookLa
   };
 }
 
+/** the engine grade that changes nothing (a 'replace' chain's: its grade lives in its own effects) */
+const NEUTRAL_CHAIN_GRADE = { saturation: 0, brightness: 0, contrast: 0, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 } as const;
+
+/**
+ * The tier knobs of a level's frame the carried chain reads (`Game.renderKnobs`): `ao` as it resolves on this tier (its
+ * `tiers[TIER].ao`, else the tier's), `godRays` (off only when false). Absent: the page's AO and rays stay.
+ */
+export interface ChainKnobs { readonly ao: boolean; readonly godRays?: boolean | undefined }
+/** no knobs given: the page's AO and rays stay */
+const PAGE_KNOBS: ChainKnobs = { ao: true };
+
 /**
  * A level's grade chain (G232): its grade with its look layer's grade over it (`resolveGrade`'s merge), the look's
- * S-curve and vibrance, and its LUT as `lut` reads it (late: the region loads it).
+ * S-curve and vibrance, and its LUT as `lut` reads it (late: the region loads it). `knobs` (SF63): its running tier's
+ * knobs, so the carried chain draws AO and god rays exactly where its own boot would (`Game.buildComposer`). `replaced` (SF63): a 'replace' look's own chain as engine knobs on this tier
+ * (`ReplaceLook.engineKnobs`), carried in place of an engine chain's (no kind: it has no engine chain of its own).
  */
-export function regionChain(level: ChainLevel, lut: () => Texture | null, kind?: EngineChainKind): RegionChain {
+export function regionChain(level: ChainLevel, lut: () => Texture | null, kind?: EngineChainKind, knobs: ChainKnobs = PAGE_KNOBS, replaced?: EngineKnobs): RegionChain {
   const g = { ...level.grade, ...level.lookLayer?.grade };
   const tuning = kind === undefined ? null : ENGINE_CHAIN_TUNING[kind];
+  if (kind === undefined && replaced !== undefined) {
+    // its own chain never runs the engine grade, look layer or LUT (`Game.buildComposer` returns before them): neutral
+    const b = replaced.bloom, n = NEUTRAL_CHAIN_GRADE;
+    return {
+      grade: { saturation: n.saturation, brightness: n.brightness, contrast: n.contrast, shadowTint: n.shadowTint, highTint: n.highTint, lift: n.lift, gain: n.gain, gamma: n.gamma },
+      look: { curve: 0, vibrance: 0 },
+      lut: () => null,
+      post: { kind: 'clean', bloomIntensity: b?.intensity ?? 0, bloomThreshold: b?.threshold ?? 1, bloomSmoothing: b?.smoothing ?? 0.08, vignette: replaced.vignette, rays: replaced.rays, ao: replaced.ao,
+        ...(replaced.display === undefined ? {} : { display: replaced.display }) },
+    };
+  }
   return {
     grade: { saturation: g.saturation, brightness: g.brightness, contrast: g.contrast, shadowTint: g.shadowTint, highTint: g.highTint, lift: g.lift, gain: g.gain, gamma: g.gamma },
     look: { curve: level.lookLayer?.curve ?? 0, vibrance: level.lookLayer?.vibrance ?? 0 },
     lut,
-    ...(kind === undefined || tuning === null ? {} : { post: { kind, bloomIntensity: g.bloomIntensity, bloomThreshold: g.bloomThreshold, bloomSmoothing: tuning.bloomSmoothing, vignette: tuning.vignette, rays: tuning.rays,
+    ...(kind === undefined || tuning === null ? {} : { post: { kind, bloomIntensity: g.bloomIntensity, bloomThreshold: g.bloomThreshold, bloomSmoothing: tuning.bloomSmoothing, vignette: tuning.vignette,
+      rays: knobs.godRays === false ? 0 : tuning.rays, ao: knobs.ao,
       // the cinematic chain's shafts start from its atmosphere (`Game.buildComposer`: `setMedium`, the sun colour; 0.55 without a medium)
       ...(kind === 'cinematic' ? { volumetric: { strength: level.atmosphere?.volumetric?.strength ?? 0.55, sunColor: level.atmosphere?.volumetricSunColor ?? [1, 0.7, 0.4] } } : {}) } }),
   };
+}
+/** A 'replace' look's own chain as engine knobs on a tier (SF63, `ReplaceLook.engineKnobs`); undefined for any other look. */
+export function replacedKnobs<T>(look: { readonly mode?: 'extend' | 'replace'; readonly engineKnobs?: (tier: T) => EngineKnobs } | null, tier: T): EngineKnobs | undefined {
+  return look?.mode === 'replace' ? look.engineKnobs?.(tier) : undefined;
 }
 /** The engine chain a level's look runs on (SF63): its declared kind, the cinematic chain without one, none for a 'replace' look. */
 export function lookChainKind(look: { readonly mode?: 'extend' | 'replace'; readonly chain?: EngineChainKind } | null): EngineChainKind | undefined {

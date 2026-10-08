@@ -145,6 +145,8 @@ export class BackdropLayer {
   private readonly slots: Slot[];
   private readonly domes: Object3D[] = [];
   private readonly materials: { blendAlpha: number }[] = [];
+  /** SF63: sky pieces kept on the camera (`follow`: a level's gas giant), faded through their own opacity uniform */
+  private readonly followers: { readonly piece: Object3D; readonly dir: Vector3; readonly dist: number; readonly opacity: { value: number } }[] = [];
   private readonly host: BackdropLayerHost;
   private readonly scope: Scope;
   private readonly assets: Pick<AssetService, 'isAcquired'>;
@@ -241,6 +243,25 @@ export class BackdropLayer {
     backdrop.bind(this.targets);
   }
 
+  /**
+   * SF63: a sky piece that sits `dist` along `dir` from the camera (a level's gas giant, which Game.ts keeps on the camera for
+   * the page's own): drawn while the layer draws, in the layer's band after its dome and clouds (in its own pieces' order),
+   * with its own blending (a transparent ring cannot take the dome's constant alpha), faded by setting `opacity` to the
+   * weight. Owned and freed with the layer.
+   */
+  follow(piece: Object3D, dir: Vector3, dist: number, opacity: { value: number }): void {
+    if (this.disposed) throw new Error('Backdrop layer followed after dispose');
+    ownSceneTree(piece, this.scope, this.assets);
+    const nodes: Object3D[] = [];
+    piece.traverse((node) => { if (meshMaterials(node).length > 0) nodes.push(node); });
+    const own = [...new Set(nodes.map((n) => n.renderOrder))].sort((a, b) => a - b), top = (this.base ? BASE_SKY_ORDER + BASE_SKY_BAND : LAYER_SKY_ORDER + LAYER_SKY_BAND) - 0.01;
+    for (const node of nodes) node.renderOrder = top - 0.02 * (own.length - 1 - own.indexOf(node.renderOrder));
+    piece.visible = this.drawn;
+    this.host.scene.add(piece);
+    this.domes.push(piece);
+    this.followers.push({ piece, dir: dir.clone(), dist, opacity });
+  }
+
   /** The owner's weight (0..1), read at the next `apply`. */
   set weight(w: number) { this.weight_ = Number.isFinite(w) ? Math.min(1, Math.max(0, w)) : 0; }
   get weight(): number { return this.weight_; }
@@ -260,6 +281,7 @@ export class BackdropLayer {
     // its own sky layer (a dome and its cloud ring) travels with the camera, as Game.ts keeps the page's `sky.clouds`;
     // left at the page origin, a ring drawn around its own centre sat off-centre and behind the far world (SF63)
     backdrop.clouds?.position.copy(camera.position);
+    for (const f of this.followers) { f.piece.position.copy(camera.position).addScaledVector(f.dir, f.dist); f.opacity.value = w; }
     for (const m of this.materials) m.blendAlpha = w;
     for (const slot of this.slots) slot.save();
     for (const slot of this.slots) slot.blend(w);
@@ -281,7 +303,7 @@ export class BackdropLayer {
     if (this.disposed) return;
     this.disposed = true;
     for (const dome of this.domes) this.host.scene.remove(dome);
-    this.domes.length = 0; this.materials.length = 0;
+    this.domes.length = 0; this.materials.length = 0; this.followers.length = 0;
     this.backdrop?.dispose?.();
     this.backdrop = null;
     const disc = this.targets.disc;
