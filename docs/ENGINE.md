@@ -642,7 +642,12 @@ colour space and sampler before awaiting `prepareCompressedTexture(texture, rend
 `@wildshard/engine/core/ktx2`; publish the material only after it resolves. Each compressed 2D or array texture
 gets a painted slice and graphics-error fence before any consumer draw. Raw KTX2 layers remain CPU inputs until
 array assembly. Shader patches declare borrowed textures and also record actual sampler uniforms at compilation;
-warm-up re-collects those uniforms before uploading. Cancellation and upload errors refuse readiness.
+warm-up re-collects those uniforms before uploading. Cancellation and upload errors refuse readiness. A glTF loader
+uses `prepareCompressedTexture(texture, renderer, current, false)` provisionally: its consumer may still change
+the sampler, so mip data stays alive until the final warm-up fence. `loadTexture` accepts a fifth `configure`
+callback for sampler changes before publication (including baked cards). Final readiness checks the live GPU
+allocation, complete sampler/storage key and source version; disposed textures or empty unresident clones refuse
+with a descriptive error rather than attempting an upload from released pixels.
 
 ## 9. Saves
 

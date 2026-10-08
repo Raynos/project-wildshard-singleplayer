@@ -28,6 +28,7 @@ import { ScopedWorkerPool } from './scopedWorkerPool';
 import { memorySaverOn } from '../render/memorySaver';
 import { Ktx2Sources } from './ktx2Sources';
 import { uploadCompressedTexture } from '../render/compressedUpload';
+import { registerCompressedMipmaps, compressedMipmapsUploaded } from '../render/compressedMipmaps';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -64,10 +65,11 @@ function ktx2Loader(): KTX2Loader {
 
 /** Fence a finalized compressed texture before publishing it to a material or doing a readback.
  * Set its colour space, sampler and version first. Raw KTX2 layer inputs stay unuploaded until assembled.
+ * A loader whose consumer still configures its sampler passes final=false to keep its CPU mip chain.
  * Node/bake callers without a game renderer retain their existing renderer-free path. */
 export async function prepareCompressedTexture<T extends THREE.Texture>(texture: T, renderer = gameRenderer,
-  current: () => boolean = () => true): Promise<T> {
-  if (renderer !== null) await uploadCompressedTexture(renderer, texture, current);
+  current: () => boolean = () => true, final = true): Promise<T> {
+  if (renderer !== null) await uploadCompressedTexture(renderer, texture, current, final);
   return texture;
 }
 
@@ -78,7 +80,8 @@ export async function prepareCompressedTexture<T extends THREE.Texture>(texture:
  * re-upload it, so a context loss reloads the page instead (gpuOnly.ts, GpuRecovery.ts — as iOS's GPU-process loss already does).
  */
 export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
-  t.onUpdate = (): void => { t.mipmaps = []; };
+  registerCompressedMipmaps(t);
+  t.onUpdate = (): void => { compressedMipmapsUploaded(t); };
   return t;
 }
 
@@ -103,7 +106,8 @@ export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
           });
           const publish = async (): Promise<void> => {
             try {
-              await Promise.all([...textures].map(texture => prepareCompressedTexture(texture)));
+              // glTF consumers still choose their final sampler (e.g. a viewmodel's anisotropy).
+              await Promise.all([...textures].map(texture => prepareCompressedTexture(texture, gameRenderer, () => true, false)));
               onLoad(gltf);
             } catch (error) {
               if (onError !== undefined) onError(new ErrorEvent('error', { error, message: String(error) }));

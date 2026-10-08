@@ -3,6 +3,7 @@ import { expect, it, vi } from 'vitest';
 import * as ktx2 from '../src/engine/core/ktx2';
 import { loadTexture } from '../src/engine/core/assets';
 import { compressedUploadsActive, uploadCompressedTexture } from '../src/engine/render/compressedUpload';
+import { compressedTextureKey } from '../src/engine/render/compressedMipmaps';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
 
 const texture = (array = false): THREE.CompressedTexture => {
@@ -18,8 +19,24 @@ async function fixture(run: (renderer: THREE.WebGLRenderer, events: string[], se
   }, cancelFrame: () => undefined });
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer prototype');
-  Reflect.set(renderer, 'initTexture', (value: THREE.Texture) => { events.push(`upload:${frame}:${value.id}`); });
-  Reflect.set(renderer, 'getContext', () => ({ NO_ERROR: 0, getError: () => { events.push(`fence:${frame}`); return error; } }));
+  const properties = new WeakMap<object, Record<string, unknown>>();
+  const get = (value: object): Record<string, unknown> => {
+    let row = properties.get(value);
+    if (row === undefined) { row = {}; properties.set(value, row); }
+    return row;
+  };
+  Reflect.set(renderer, 'properties', { get });
+  Reflect.set(renderer, 'initTexture', (value: THREE.Texture) => {
+    events.push(`upload:${frame}:${value.id}`);
+    if (!(value instanceof THREE.CompressedTexture)) throw new Error('Expected compressed texture');
+    // Match the native failure: a new sampler needs level-zero dimensions before allocation.
+    if (!value.mipmaps[0]) throw new Error('Missing level-zero width');
+    Object.assign(get(value), { __version: value.version, __cacheKey: compressedTextureKey(value), __webglTexture: {} });
+    Object.assign(get(value.source), { __version: value.source.version });
+    value.addEventListener('dispose', () => { properties.delete(value); });
+    value.onUpdate?.(value);
+  });
+  Reflect.set(renderer, 'getContext', () => ({ NO_ERROR: 0, isContextLost: () => false, getError: () => { events.push(`fence:${frame}`); return error; } }));
   try { await run(renderer, events, value => { error = value; }); }
   finally { installScopeEnvironment(previous); }
 }
@@ -54,8 +71,73 @@ it('refuses a failed upload without publishing readiness and allows a later retr
   await fixture(async (renderer, events, setError) => {
     const value = texture(); setError(1282);
     await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('Graphics error 1282');
-    setError(0); await uploadCompressedTexture(renderer, value);
+    setError(0);
+    await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('Graphics error 1282');
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
+    value.dispose(); await uploadCompressedTexture(renderer, value);
     expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(2);
+  });
+});
+
+it('does not publish native residency until the in-flight paint fence completes', async () => {
+  await fixture(async (renderer, events) => {
+    const value = ktx2.releaseAfterUpload(texture()); value.needsUpdate = true;
+    const init = renderer.initTexture.bind(renderer);
+    let second: Promise<void> | undefined;
+    Reflect.set(renderer, 'initTexture', (input: THREE.Texture) => {
+      init(input);
+      second = uploadCompressedTexture(renderer, input).then(() => { events.push('second-bound'); return undefined; });
+      expect(value.mipmaps).not.toEqual([]);
+    });
+    await uploadCompressedTexture(renderer, value);
+    await second;
+    const bound = events.indexOf('second-bound');
+    expect(events[bound - 1]).toMatch(/^paint:/u);
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
+    expect(value.mipmaps).toEqual([]);
+  });
+});
+
+it('retains a provisional glTF atlas through the LeverRifle anisotropy change and releases at its final fence', async () => {
+  await fixture(async (renderer, events) => {
+    const value = ktx2.releaseAfterUpload(texture()); value.needsUpdate = true;
+    const original = value.mipmaps;
+    await uploadCompressedTexture(renderer, value, () => true, false);
+    expect(value.mipmaps).toBe(original);
+    // LeverRifle.atlasOf runs only after GLTFLoader resolves its provisional upload.
+    value.anisotropy = 8; value.needsUpdate = true;
+    await uploadCompressedTexture(renderer, value);
+    expect(value.mipmaps).toEqual([]);
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(2);
+    await uploadCompressedTexture(renderer, value);
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(2);
+  });
+});
+
+it('recognizes an externally uploaded resident and rejects released mips after disposal or a sampler change', async () => {
+  await fixture(async (renderer, events) => {
+    const value = ktx2.releaseAfterUpload(texture()); value.needsUpdate = true;
+    renderer.initTexture(value); expect(value.mipmaps).toEqual([]);
+    await uploadCompressedTexture(renderer, value);
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
+    value.anisotropy = 8;
+    await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('no mipmaps and is not resident');
+    value.anisotropy = 1; value.dispose();
+    await expect(uploadCompressedTexture(renderer, value)).rejects.toThrow('no mipmaps and is not resident');
+    const clone = value.clone();
+    await expect(uploadCompressedTexture(renderer, clone)).rejects.toThrow('no mipmaps and is not resident');
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(1);
+  });
+});
+
+it('applies a caller sampler before the loadTexture publication fence', async () => {
+  const value = texture();
+  vi.spyOn(ktx2, 'ktx2Texture').mockResolvedValue(value);
+  vi.spyOn(ktx2, 'prepareCompressedTexture').mockImplementation(<T extends THREE.Texture>(final: T): Promise<T> => {
+    expect(final.wrapS).toBe(THREE.ClampToEdgeWrapping); expect(final.anisotropy).toBe(8); return Promise.resolve(final);
+  });
+  await loadTexture('/cards.ktx2', true, 1, undefined, final => {
+    final.wrapS = final.wrapT = THREE.ClampToEdgeWrapping; final.anisotropy = 8;
   });
 });
 it('refuses cancelled or mutated queued versions before uploading', async () => {

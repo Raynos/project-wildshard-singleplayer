@@ -16,6 +16,7 @@ function arrayTexture(size: number, layers: number): THREE.CompressedArrayTextur
 function rendererRecorder(commands: Record<string, unknown>): THREE.WebGLRenderer {
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer prototype');
+  Reflect.set(renderer, 'properties', { get: () => ({}) });
   for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
   return renderer;
 }
@@ -68,7 +69,7 @@ async function warmArrays(error: number, cancelAfterFirst = false, twoDimensiona
   const renderer = rendererRecorder({ extensions: { has: () => false }, info: { programs: [] },
     getRenderTarget: () => null, setRenderTarget: () => undefined,
     initTexture: () => { uploads++; events.push(`upload:${frame}`); },
-    getContext: () => ({ NO_ERROR: 0, getError: () => {
+    getContext: () => ({ NO_ERROR: 0, isContextLost: () => false, getError: () => {
       events.push(`fence:${frame}`); if (cancelAfterFirst) current = false; return error;
     } }),
   });
@@ -137,7 +138,7 @@ it('discovers undeclared patch sampler arrays during compilation and uploads bef
       Reflect.apply(material.onBeforeCompile.bind(material), undefined, [{ vertexShader: '', fragmentShader: '', uniforms: {} }, null]);
     },
     initTexture: (value: THREE.Texture) => { expect(value).toBe(texture); events.push('upload'); },
-    getContext: () => ({ NO_ERROR: 0, getError: () => { events.push('fence'); return 0; } }),
+    getContext: () => ({ NO_ERROR: 0, isContextLost: () => false, getError: () => { events.push('fence'); return 0; } }),
   });
   try {
     await warmComposerFrame({ render: () => { events.push('draw'); } }, renderer,

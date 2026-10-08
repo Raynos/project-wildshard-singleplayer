@@ -60,8 +60,10 @@ function shareSource(t: THREE.Texture, url: string, srgb: boolean, image: ImageB
 /**
  * One texture file. `maxSize` (default: the tier's cap) is the largest edge it keeps: a level's own memory trim may ask
  * for less (Pine Hollow's 512² building sets, G180); a KTX2 stand-in drops its top mips, an image decodes smaller.
+ * Configure a custom sampler before its compressed upload fence, while its mip chain still exists.
  */
-export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize = TIER_CONFIG.maxTexture): Promise<THREE.Texture> {
+export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize = TIER_CONFIG.maxTexture,
+  configure?: (texture: THREE.Texture) => void): Promise<THREE.Texture> {
   const k = await ktx2Texture(tierUrl(url), maxSize); // E157: the KTX2 stand-in, when the build has one and KTX2 is on (src/engine/core/ktx2.ts)
   if (k) {
     k.wrapS = k.wrapT = THREE.RepeatWrapping;
@@ -69,6 +71,7 @@ export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize
     k.anisotropy = maxAniso;
     k.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     k.needsUpdate = true;
+    configure?.(k);
     return prepareCompressedTexture(labelAsset(k, 'engine/loadTexture', url));
   }
   const key = imageKey(url, maxSize);
@@ -91,6 +94,7 @@ export async function loadTexture(url: string, srgb = false, repeat = 1, maxSize
   t.minFilter = THREE.LinearMipmapLinearFilter;
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
   t.needsUpdate = true;
+  configure?.(t);
   return labelAsset(t, 'engine/loadTexture', url);
 }
 

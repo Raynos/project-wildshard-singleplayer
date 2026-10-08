@@ -35,8 +35,11 @@ export async function loadBakedCards(slug: string): Promise<CardTextures | null>
   const urls = bakedCardUrls(slug);
   if (!urls || new URLSearchParams(location.search).has('nobake')) return null;
   try {
-    const [albedo, normal, arm] = await Promise.all([loadTexture(urls.albedo, true), loadTexture(urls.normal), loadTexture(urls.arm)]);
-    for (const t of [albedo, normal, arm]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; }
+    const configure = (t: THREE.Texture): void => { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; };
+    const [albedo, normal, arm] = await Promise.all([
+      loadTexture(urls.albedo, true, 1, undefined, configure), loadTexture(urls.normal, false, 1, undefined, configure),
+      loadTexture(urls.arm, false, 1, undefined, configure),
+    ]);
     return { albedo, normal, arm };
   } catch (e) {
     console.warn(`[baked] branch cards for ${slug} not used (${(e as Error).message}); baking at launch`);
