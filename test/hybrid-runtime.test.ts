@@ -138,12 +138,31 @@ it('cannot continue a regional shell callback into the next entered cell after l
     const pending = f.session.enter({ instance: 'template-1', slug: 'template' });
     for (let turn = 0; turn < 20; turn++) await Promise.resolve();
     expect(f.session.state()).toEqual({ instance: 'template-1', ready: false });
+    expect(f.session.timings().current).toMatchObject({ instance: 'template-1', hook: 'afterWorld' });
     f.session.leave(); await f.session.enter({ instance: 'hybrid-b', slug: 'hybrid-b' }); release();
     expect(await pending).toBe(false); expect(reachedKit).toBe(false);
     expect(f.session.state()).toEqual({ instance: 'hybrid-b', ready: true });
     expect(f.parent.objects['hybrid']).toBe('hybrid-b');
+    expect(f.session.timings().current).toBeNull();
+    expect(f.session.timings().completed.every(row => Number.isFinite(row.start) && row.end >= row.start)).toBe(true);
   } finally { release(); f.app.engineScope.dispose(); }
 });
+it('bounds entered hook diagnostics across repeated installations without changing hook order or readiness', async () => {
+  const f = fixture();
+  try {
+    for (let visit = 0; visit < 6; visit++) {
+      expect(await f.session.enter({ instance: 'template-1', slug: 'template' })).toBe(true);
+      f.session.leave();
+    }
+    const timing = f.session.timings();
+    expect(timing.current).toBeNull(); expect(timing.completed).toHaveLength(32);
+    expect(timing.completed.slice(-8).map(row => row.hook)).toEqual(['beforeWorld', 'constructor', 'world', 'afterWorld', 'kit', 'afterKit', 'play', 'afterPlay']);
+    expect(timing.completed.every(row => row.instance === 'template-1' && row.outcome === 'done' && row.end >= row.start)).toBe(true);
+    expect(f.calls.filter(call => call === 'template-1.play')).toHaveLength(6);
+    expect(f.session.state().ready).toBe(false);
+  } finally { f.app.engineScope.dispose(); }
+});
+
 it('admits only the declared same-shard first-party runtime entry without importing data-controlled paths', async () => {
   for (const path of ['../runtime/index.ts', 'runtime/../index.ts', 'https://example.test/runtime.ts', '/runtime/index.ts', 'runtime/index.js']) expect(v.safeParse(RuntimeSchema, { entry: path }).success).toBe(false);
   let imports = 0;

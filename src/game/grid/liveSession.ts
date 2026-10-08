@@ -121,6 +121,8 @@ export interface LiveGridSessionPorts {
 /** The readout: the live host's crossing telemetry, the crossing coordinator and the safe-zone state. */
 export interface LiveGridSessionState {
   readonly live: LiveGridState; readonly crossing: GridCrossingState; readonly stowed: boolean; readonly renderOrigin: { x: number; z: number };
+  /** Entered hook intervals in the same performance clock as browser long tasks. */
+  readonly runtimeTiming: ReturnType<HybridRuntimeSession['timings']>;
   /** the board's cap now (m/s; null off the board's grid rule) and whether the home client's simulation runs (null: no handoff) */
   readonly hoverCap: number | null; readonly homeActive: boolean | null;
 }
@@ -701,7 +703,7 @@ export class LiveGridSession {
 
   state(): LiveGridSessionState {
     const cap = this.page.traveller.hoverSpeedLimit?.();
-    return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z },
+    return { live: this.live.state(), crossing: this.crossing.crossing.state(), stowed: this.page.equipment.stowed, renderOrigin: { x: this.offset.x, z: this.offset.z }, runtimeTiming: this.hybrid.timings(),
       hoverCap: cap === undefined ? null : Math.round(cap * 100) / 100, homeActive: this.homeSim === null ? null : this.live.current() === this.ports.home.instance };
   }
 }
