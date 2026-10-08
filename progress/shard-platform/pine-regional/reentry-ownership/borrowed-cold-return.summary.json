@@ -1,0 +1,126 @@
+{
+  "pin": "a801eda4c8d2787ac07c5113e6f36f268ef2c225",
+  "surface": "Chromium Metal, iPhone 16 Pro portrait",
+  "seconds": 130.082,
+  "composition": "Borrowed home selected with Developer OFF; existing Developer toggled ON in the same document for G216 over-budget diagnostics.",
+  "phaseWaypoints": [
+    {
+      "phase": "enter-pine",
+      "reached": 3
+    },
+    {
+      "phase": "return-road",
+      "reached": 1
+    },
+    {
+      "phase": "cold-road-away",
+      "reached": 2
+    },
+    {
+      "phase": "cold-road-return",
+      "reached": 2
+    },
+    {
+      "phase": "reenter-pine",
+      "reached": 2
+    },
+    {
+      "phase": "return-road-again",
+      "reached": 1
+    },
+    {
+      "phase": "return-home",
+      "reached": 1
+    }
+  ],
+  "damage": {
+    "id": "creature:152",
+    "before": 100,
+    "after": 99,
+    "dealt": 1
+  },
+  "restoredHP": 99,
+  "coldResidents": [
+    "template-5"
+  ],
+  "cameraUpdaters": {
+    "first": [
+      "engine.player.for"
+    ],
+    "returned": [
+      "engine.player.for"
+    ]
+  },
+  "pageErrors": [],
+  "disposalErrors": [],
+  "finalCensus": {
+    "geometries": 0,
+    "textures": 0,
+    "programs": 0,
+    "bodies": 0,
+    "colliders": 0,
+    "listeners": {
+      "window": 0,
+      "document": 0,
+      "canvas": 0,
+      "other": 4
+    },
+    "timers": {
+      "timeouts": 0,
+      "intervals": 0,
+      "raf": 0
+    },
+    "audio": {
+      "activeVoices": 0,
+      "beds": 0,
+      "buses": 0
+    },
+    "systems": {
+      "input": 0,
+      "fixed": {
+        "pre": 0,
+        "step": 0,
+        "post": 0
+      },
+      "update": 0,
+      "late": 0,
+      "render": 0
+    },
+    "events": {
+      "listeners": 7,
+      "answerers": 5
+    },
+    "dom": {
+      "hud": 0,
+      "body": 0
+    },
+    "sceneObjects": 0
+  },
+  "finalScope": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "caughtClassification": {
+    "expectedBudgetCDPEvents": 2,
+    "unexpected": [],
+    "rawHarnessPass": false,
+    "explanation": "CDP exception + promiseRejection are the same explicit shared-budget refusal. The old harness accepted only the claim frame, incorrectly grading the admitRegion promise event as unexpected. Raw assertions are preserved."
+  },
+  "raw": {
+    "file": "borrowed-cold-return.json.gz",
+    "decodedSha256": "8ff9b5b9bf3026b55b3dfc7102c105ace78215755c8b5b2d384b0711a5e5d506"
+  }
+}

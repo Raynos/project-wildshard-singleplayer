@@ -1,0 +1,111 @@
+{
+  "pin": "6d73598abf7c30297978d6ff6049700fa886483d",
+  "qualifying": false,
+  "reason": "Texture crash corrected, residual ownership growth still under correction; final leak call lacked required harness pins. All raw assertions retained.",
+  "walks": [
+    {
+      "stop": "road-before",
+      "ok": true,
+      "glMB": 123.75,
+      "residents": []
+    },
+    {
+      "stop": "visit-1.east-inside",
+      "ok": true,
+      "glMB": 193.41,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "visit-1.east-deep",
+      "ok": true,
+      "glMB": 194.43,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "visit-1.east-deep-up",
+      "ok": true,
+      "glMB": 194.9,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "road-after-1",
+      "ok": true,
+      "glMB": 134.35,
+      "residents": []
+    },
+    {
+      "stop": "visit-2.east-inside",
+      "ok": true,
+      "glMB": 200.67,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "visit-2.east-deep",
+      "ok": true,
+      "glMB": 201.61,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "visit-2.east-deep-up",
+      "ok": true,
+      "glMB": 202.08,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "road-after-2",
+      "ok": true,
+      "glMB": 136.71,
+      "residents": []
+    },
+    {
+      "stop": "visit-3.east-inside",
+      "ok": true,
+      "glMB": 202.54,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "visit-3.east-deep",
+      "ok": true,
+      "glMB": 203.39,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "visit-3.east-deep-up",
+      "ok": true,
+      "glMB": 203.87,
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "stop": "road-after-3",
+      "ok": true,
+      "glMB": 138.5,
+      "residents": []
+    }
+  ],
+  "caughtTextureErrors": 0,
+  "pageErrors": [],
+  "failure": "page.evaluate: Error: Probe control requires the harness pins\n    at u (http://127.0.0.1:4405/assets/session-CYN-4AQa.js:2109:3567)\n    at Object.leak (http://127.0.0.1:4405/assets/session-CYN-4AQa.js:2109:7440)\n    at eval (eval at evaluate (:311:30), <anonymous>:1:24)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /private/tmp/claude-501/sp-builders/sp-x1/pine-regional/gl-reentry.mjs:162:28",
+  "raw": {
+    "file": "intermediate-three-visits.json.gz",
+    "decodedSha256": "33ff15fe359ae1a40e5f54fda40258824d2fca2aea20c1a5e27050d9ec77cc94",
+    "decodedBytes": 5914331
+  }
+}

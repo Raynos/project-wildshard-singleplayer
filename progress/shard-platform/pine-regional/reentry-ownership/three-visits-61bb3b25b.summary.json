@@ -1,0 +1,545 @@
+{
+  "pin": "61bb3b25b",
+  "version": {
+    "build": "61bb3b2-muz3hzw4",
+    "time": "2026-10-08T05:27:58.604Z"
+  },
+  "surface": "Chromium Metal, iPhone 16 Pro portrait; Developer owned-shell diagnostic (full G216 charging)",
+  "verdict": "Control/texture/native/GPU final-unload checks pass. Per-visit coat accumulation remains and is NOT accepted as a bounded-memory proof.",
+  "checks": {
+    "textureErrors": true,
+    "pageErrors": true,
+    "consoleErrors": true,
+    "cleanDisposal": true,
+    "finalNativeZero": true,
+    "finalGPUZero": true,
+    "scopeZero": true,
+    "roadSkyRestored": true
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "caughtTextureErrors": [],
+  "stops": [
+    {
+      "label": "road-before",
+      "ok": true,
+      "current": null,
+      "residents": [],
+      "glBytes": 123659462
+    },
+    {
+      "label": "visit-1.east-inside",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 242391194
+    },
+    {
+      "label": "visit-1.east-deep",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 239545678
+    },
+    {
+      "label": "visit-1.east-deep-up",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 240014890
+    },
+    {
+      "label": "road-after-1",
+      "ok": true,
+      "current": null,
+      "residents": [],
+      "glBytes": 144225078
+    },
+    {
+      "label": "visit-2.east-inside",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 248309290
+    },
+    {
+      "label": "visit-2.east-deep",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 245292054
+    },
+    {
+      "label": "visit-2.east-deep-up",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 245761266
+    },
+    {
+      "label": "road-after-2",
+      "ok": true,
+      "current": null,
+      "residents": [],
+      "glBytes": 148333170
+    },
+    {
+      "label": "visit-3.east-inside",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 248922138
+    },
+    {
+      "label": "visit-3.east-deep",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 249486870
+    },
+    {
+      "label": "visit-3.east-deep-up",
+      "ok": true,
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ],
+      "glBytes": 249956082
+    },
+    {
+      "label": "road-after-3",
+      "ok": true,
+      "current": null,
+      "residents": [],
+      "glBytes": 152614902
+    }
+  ],
+  "roadChanges": [
+    {
+      "from": "road-after-1",
+      "to": "road-after-2",
+      "netBytes": 4108092,
+      "byAsset": [
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/3/Group[1]/Group[0]/props023_1/instanceMatrix",
+          "deltaBytes": 192
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/color",
+          "deltaBytes": -6408
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/index",
+          "deltaBytes": -2136
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/normal",
+          "deltaBytes": -6408
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/position",
+          "deltaBytes": -6408
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/uv",
+          "deltaBytes": -4272
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/color",
+          "deltaBytes": -864
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/index",
+          "deltaBytes": -288
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/normal",
+          "deltaBytes": -864
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/position",
+          "deltaBytes": -864
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/uv",
+          "deltaBytes": -576
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/color",
+          "deltaBytes": -14604
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/index",
+          "deltaBytes": -13824
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/normal",
+          "deltaBytes": -14604
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/position",
+          "deltaBytes": -14604
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black-old.phone-0bb14a74.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black.phone-c3c0a7ad.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/bear-brown.bear.brown-old.phone-578fcdf5.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.black.phone-4b2abe5c.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.ironhide.phone-8241beef.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.thrall.phone-e689fe8b.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-hind.deer.piebald.phone-b8be268e.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-hind.deer.white-hind.phone-226ce3fe.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-stag.deer.ghost.phone-4cc0768e.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-stag.deer.white-stag.phone-30931233.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/elk-bull.elk.imperial.phone-d40a27de.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/elk-bull.elk.thrall.phone-826a0e63.ktx2/Texture",
+          "deltaBytes": 349552
+        }
+      ]
+    },
+    {
+      "from": "road-after-2",
+      "to": "road-after-3",
+      "netBytes": 4281732,
+      "byAsset": [
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/3/Group[1]/Group[0]/props023_1/instanceMatrix",
+          "deltaBytes": 192
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/color",
+          "deltaBytes": 6408
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/index",
+          "deltaBytes": 2136
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/normal",
+          "deltaBytes": 6408
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/position",
+          "deltaBytes": 6408
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024/uv",
+          "deltaBytes": 4272
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/color",
+          "deltaBytes": 864
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/index",
+          "deltaBytes": 288
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/instanceMatrix",
+          "deltaBytes": 192
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/normal",
+          "deltaBytes": 864
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/position",
+          "deltaBytes": 864
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/Group[1]/Group[0]/props024_1/uv",
+          "deltaBytes": 576
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/color",
+          "deltaBytes": 14604
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/index",
+          "deltaBytes": 13824
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/normal",
+          "deltaBytes": 14604
+        },
+        {
+          "kind": "buffer",
+          "owner": "engine/scene",
+          "asset": "generated/Scene/grid-cell:template-2/ring:template-2:l0/2/4/terrain:-125,0/position",
+          "deltaBytes": 14604
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black-old.phone-0bb14a74.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black.phone-c3c0a7ad.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/bear-brown.bear.brown-old.phone-578fcdf5.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.black.phone-4b2abe5c.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.ironhide.phone-8241beef.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/boar.boar.thrall.phone-e689fe8b.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-hind.deer.piebald.phone-b8be268e.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-hind.deer.white-hind.phone-226ce3fe.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-stag.deer.ghost.phone-4cc0768e.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/deer-stag.deer.white-stag.phone-30931233.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/elk-bull.elk.imperial.phone-d40a27de.ktx2/Texture",
+          "deltaBytes": 349552
+        },
+        {
+          "kind": "texture",
+          "owner": "engine/ktx2Texture",
+          "asset": "/assets/gpu/pine-hollow/creatures/coats/elk-bull.elk.thrall.phone-826a0e63.ktx2/Texture",
+          "deltaBytes": 349552
+        }
+      ]
+    }
+  ],
+  "finalCensus": {
+    "geometries": 0,
+    "textures": 0,
+    "programs": 0,
+    "bodies": 0,
+    "colliders": 0,
+    "listeners": {
+      "window": 0,
+      "document": 0,
+      "canvas": 0,
+      "other": 4
+    },
+    "timers": {
+      "timeouts": 0,
+      "intervals": 0,
+      "raf": 0
+    },
+    "audio": {
+      "activeVoices": 0,
+      "beds": 0,
+      "buses": 0
+    },
+    "systems": {
+      "input": 0,
+      "fixed": {
+        "pre": 0,
+        "step": 0,
+        "post": 0
+      },
+      "update": 0,
+      "late": 0,
+      "render": 0
+    },
+    "events": {
+      "listeners": 7,
+      "answerers": 5
+    },
+    "dom": {
+      "hud": 0,
+      "body": 0
+    },
+    "sceneObjects": 0
+  },
+  "finalScope": {
+    "geometries": 0,
+    "materials": 0,
+    "textures": 0,
+    "renderTargets": 0,
+    "meshes": 0,
+    "resources": 0,
+    "bodies": 0,
+    "sounds": 0,
+    "listeners": 0,
+    "timers": 0,
+    "rafs": 0,
+    "disposers": 0,
+    "systems": 0,
+    "colliders": 0,
+    "nodes": 0
+  },
+  "disposalErrors": [],
+  "raw": {
+    "file": "three-visits-61bb3b25b.json.gz",
+    "decodedSha256": "0f42e68199c7c3fc54678adc7505511ce5f3741cd6a2d20ac1dae7d2acc1f775",
+    "decodedBytes": 10939715
+  }
+}
