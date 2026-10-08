@@ -75,7 +75,27 @@ export function hybridInstallation(base: ShardContext, scope: Scope, runtime: Sh
   scope.onDispose(() => { residentScopes.delete(scope); });
   const installation = createLevelInstallation(base.app, scope, base.app.levelAdapters, () => base.progress);
   base.root.add(installation.context.root);
-  return { ...installation, context: shardContext(installation.context, base.manifest, { ...base.game, runtime }) };
+  // A captured callback may register after an await, when the ambient owner has already returned to the page.
+  // Keep the borrowed world live, changing only the registration owner seen through this entered context.
+  const worlds = new WeakMap<NonNullable<ShardRuntime['world']>, NonNullable<ShardRuntime['world']>>();
+  const captured = new Proxy(runtime, { get(target, key, receiver) {
+    if (key !== 'world') { const value: unknown = Reflect.get(target, key, receiver); return value; }
+    const world = target.world; if (world === null) return null;
+    let facade = worlds.get(world);
+    if (facade === undefined) {
+      const game = new Proxy(world.game, { get(host, property, owner) {
+        if (property === 'registrationScope') return scope;
+        const value: unknown = Reflect.get(host, property, owner); return value;
+      } });
+      facade = new Proxy(world, { get(host, property, owner) {
+        if (property === 'game') return game;
+        const value: unknown = Reflect.get(host, property, owner); return value;
+      } });
+      worlds.set(world, facade);
+    }
+    return facade;
+  } });
+  return { ...installation, context: shardContext(installation.context, base.manifest, { ...base.game, runtime: captured }) };
 }
 
 /** Interior events for one catalogue resident; another cell never activates its trusted hooks. */
