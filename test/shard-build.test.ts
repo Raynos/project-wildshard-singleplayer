@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { expect, it } from 'vitest';
 import binaryen from 'binaryen';
 import { CONTENT_CAPS as C } from '../src/engine/core/config';
-import { worstContentCost } from '../src/game/shardfile/budget';
+import { memoryTargetWarnings, worstContentCost } from '../src/game/shardfile/budget';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { assetCost } from '@wildshard/sdk/assets';
 import { buildProject, contentHash, newProject, validateProject } from '@wildshard/sdk/project';
@@ -52,7 +52,10 @@ it('counts all categories at the worst location: saturated v1 fits, commons can 
   expect(validateProject(s, new Map())).toEqual(s);
   expect(worstContentCost(s, 200_000_000).playing).toBeGreaterThan(C.playing); // 200 MB of commons breaks the 1.0 GB envelope (G65)
   const tile = s.tiles[0]; if (tile === undefined) throw new Error('fixture missing'); tile.gpu++;
-  expect(() => validateProject(s, new Map())).toThrow();
+  expect(validateProject(s, new Map())).toEqual(s);
+  expect(memoryTargetWarnings(s)).toEqual([{ category: 'tile 0/0/0', bytes: C.l0.resident + 1, target: C.l0.resident }]);
+  s.budgets.library.resident = C.playing;
+  expect(() => validateProject(s, new Map())).toThrow('total');
 });
 it('two clean author builds produce identical shardfiles and the canonical layout', async () => {
   const root = mkdtempSync(join(tmpdir(), 'shard-build-'));
