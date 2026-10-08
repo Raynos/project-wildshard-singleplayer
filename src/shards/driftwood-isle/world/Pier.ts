@@ -38,8 +38,8 @@ export interface PierSpec {
   rot?: number;
   /** how far below the deck the pilings reach (the sea floor is ~6 m down) */
   pileDepth?: number;
-  /** run on past `length` over the shallows to the first dry sand, and step down onto it (the south pier, E43) */
-  landing?: boolean;
+  /** Step down onto sand: true extends through the shallows; 'end' keeps the authored extent. */
+  landing?: boolean | 'end';
   /** with a landing: the pennant flies from the piling this many metres from the sea end (E308), not the sea-end bollard */
   pennantAt?: number;
   /** SF46 (G164): the deck ramps up over this many metres from road height (y = 0) at its sea end, where it meets the
@@ -88,8 +88,8 @@ export class Pier {
       // march on over the shallows to the first dry sand, then 5 m more: the last 6 m step down onto the beach
       const wl = waterLevel();
       let a = length;
-      while (a < length + 80) { const [x, z] = this.toWorld(a, 0); if (heightAt(x, z) > wl + 0.1) break; a += 0.5; }
-      const end = a + 4, [ex, ez] = this.toWorld(end, 0);
+      while (this.spec.landing !== 'end' && a < length + 80) { const [x, z] = this.toWorld(a, 0); if (heightAt(x, z) > wl + 0.1) break; a += 0.5; }
+      const end = this.spec.landing === 'end' ? length : a + 4, [ex, ez] = this.toWorld(end, 0);
       const ground = (s: number): number => heightAt(...this.toWorld(end - 0.4, s * (width / 2 + 0.3))) - deckY;
       landing = { rampFrom: end - 5.5, landY: heightAt(ex, ez) + 0.12 - deckY, postGround: [ground(-1), ground(1)] };
       length = end;
