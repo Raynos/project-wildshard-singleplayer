@@ -1719,6 +1719,25 @@
       "ceilings": {
         "far-reach.desktop.current.gpuMB": 380.89989280700684
       }
+    },
+    {
+      "shard": "nine-dragon-stack",
+      "tier": "desktop",
+      "metric": "gpuMB",
+      "source": "budgets/calibration-reports/nine-dragon-stack-g224.desktop.json",
+      "commit": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "reason": "G224 deck portals and the G200 carved arrival cap (599924369, 5ec641579, 82bd665cf): +686,480 buffer bytes, textures/renderbuffers unchanged; all three runs identical, clean boot and zero stuck. The pre-acceptance record was refused solely by these four GL-byte ceilings.",
+      "ask": "E435",
+      "approvedBy": "wildshard-new",
+      "approval": "Approved 2026-10-08: the +686,480 buffer-byte delta is intended G224 deck-portal content, from 599924369, 5ec641579 and 82bd665cf. Re-record Nine desktop gpuMB at the measured value through budget-ceilings.mjs --accept; no margin, timeout, frame target or device memory cap change.",
+      "captureSha": "bfb9dc325d08792ddbe88bd08c78fcf288da8851",
+      "captureSha256": "5ab0a40ebbf2e36476516b9a68ba04ab2326ee705c57b4cc7fdb7093b828248d",
+      "ceilings": {
+        "nine-dragon-stack.desktop.spawn-rail.gpuMB": 574.8232107162476,
+        "nine-dragon-stack.desktop.well-edge.gpuMB": 574.8232107162476,
+        "nine-dragon-stack.desktop.stair-street.gpuMB": 574.8232107162476,
+        "nine-dragon-stack.desktop.D.gpuMB": 575.1385869979858
+      }
     }
   ]
 }

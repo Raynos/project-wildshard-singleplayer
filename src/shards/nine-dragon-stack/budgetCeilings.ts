@@ -18,16 +18,16 @@ export const BUDGET_CEILINGS = {
   },
   "desktop": {
     "D": {
-      "gpuMB": 574.4839086532593
+      "gpuMB": 575.1385869979858
     },
     "spawn-rail": {
-      "gpuMB": 574.168532371521
+      "gpuMB": 574.8232107162476
     },
     "stair-street": {
-      "gpuMB": 574.168532371521
+      "gpuMB": 574.8232107162476
     },
     "well-edge": {
-      "gpuMB": 574.168532371521
+      "gpuMB": 574.8232107162476
     }
   }
 } satisfies NonNullable<LevelSpec['budgets']['ceilings']>;

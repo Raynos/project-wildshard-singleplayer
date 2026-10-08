@@ -58,15 +58,21 @@ describe('manifest budget ownership', () => {
     }
   });
   it('re-records only explicitly accepted measured GL changes with causal commits', () => {
-    expect(sources.reRecords.map((row) => `${row.shard}.${row.tier}.${row.metric}`).sort()).toEqual(['_template.desktop.gpuMB', '_template.phone.gpuMB', 'far-reach.desktop.gpuMB', 'far-reach.phone.gpuMB', 'pine-hollow.desktop.gpuMB', 'pine-hollow.phone.gpuMB', 'sunscar-dunes.desktop.gpuMB', 'sunscar-dunes.phone.gpuMB']);
+    expect(sources.reRecords.map((row) => `${row.shard}.${row.tier}.${row.metric}`).sort()).toEqual(['_template.desktop.gpuMB', '_template.phone.gpuMB', 'far-reach.desktop.gpuMB', 'far-reach.phone.gpuMB', 'nine-dragon-stack.desktop.gpuMB', 'pine-hollow.desktop.gpuMB', 'pine-hollow.phone.gpuMB', 'sunscar-dunes.desktop.gpuMB', 'sunscar-dunes.phone.gpuMB']);
     for (const row of sources.reRecords) {
-      expect(row.ask).toBe('E357'); expect(row.approvedBy).toBe('wildshard-9');
+      if (row.shard === 'nine-dragon-stack') {
+        expect(row.ask).toBe('E435'); expect(row.approvedBy).toBe('wildshard-new');
+        expect(row.reason).toContain('G224');
+        for (const commit of ['599924369', '5ec641579', '82bd665cf']) expect(row.reason).toContain(commit);
+      } else {
+        expect(row.ask).toBe('E357'); expect(row.approvedBy).toBe('wildshard-9');
+      }
       expect(row.commit).toMatch(/^[a-f0-9]{40}$/); expect(row.captureSha256).toMatch(/^[a-f0-9]{64}$/);
       expect(row.source).toContain('budgets/calibration-reports/');
       for (const [key, value] of Object.entries(row.ceilings)) {
         const pose = key.split('.')[2];
         if (!pose || (row.tier !== 'phone' && row.tier !== 'desktop')) throw new Error('Invalid approved ceiling');
-        const manifest = [template, pine, dunes, reach].find((m) => m.slug === row.shard);
+        const manifest = [template, pine, dunes, reach, nine].find((m) => m.slug === row.shard);
         if (manifest === undefined) throw new Error('Unknown approved shard');
         expect(manifest.budgets?.ceilings?.[row.tier]?.[pose]?.gpuMB).toBe(value);
       }
