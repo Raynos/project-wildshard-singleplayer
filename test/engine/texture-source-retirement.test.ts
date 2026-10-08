@@ -10,7 +10,7 @@ import { legacyDouble } from '../fake/FakeGame';
 
 it('shares a pending image but decodes a new source after the uploaded image has retired', async () => {
   overrideSetting('memorySaver', 'on');
-  vi.stubGlobal('WebGL2RenderingContext', class {});
+  vi.stubGlobal('WebGL2RenderingContext', class WebGL2Marker { readonly webgl2 = true; });
   const decode = vi.spyOn(bytes, 'fetchImage').mockImplementation(() => {
     const image = document.createElement('img'); image.width = image.height = 16;
     return Promise.resolve(image);
