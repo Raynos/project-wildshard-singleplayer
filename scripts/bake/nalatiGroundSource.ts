@@ -2,6 +2,7 @@ import { BufferAttribute, BufferGeometry, Float32BufferAttribute, MeshStandardMa
 import { sliceNativeLattice, type NativeLatticeAttribute, type NativeLatticeSource, type NativeLatticeTile } from '@wildshard/sdk/bake/nativeLattice';
 import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
 import { parseGlb, type AssetCost } from '@wildshard/sdk/assets';
+import { simplifyNativeLatticeTile, type NativeLatticeLod } from '@wildshard/sdk/bake/worldLod';
 import { parseBakedTerrain, bakedSamplers } from '../../src/engine/world/BakedTerrain';
 import { buildPainterlyGeometry } from '../../src/shards/nalati-grasslands/look/terrainPainter';
 import { TERRAIN } from '../../src/shards/nalati-grasslands/world/terrain';
@@ -9,7 +10,7 @@ import { TERRAIN } from '../../src/shards/nalati-grasslands/world/terrain';
 const CHANNELS = { normal: 3, color: 3, surf: 4, rdir: 2, zone: 3 } as const;
 const CUSTOM = { _SURF: 'surf', _RDIR: 'rdir', _ZONE: 'zone' } as const;
 /** Unpacked ground geometry: the shared SDK visitor owns later hash/file/tile row composition. */
-export interface NalatiGroundTile { tile: NativeLatticeTile; bytes: Uint8Array; cost: AssetCost }
+export interface NalatiGroundTile { tile: NativeLatticeTile; bytes: Uint8Array; cost: AssetCost; geometricError: number }
 /** Already clipped, world-local static props; borrowed geometry/materials remain caller-owned. */
 export interface NalatiStaticTile { lod: 0 | 1; x: number; z: number; primitives: readonly GlbPrimitive[] }
 
@@ -66,6 +67,20 @@ export function nalatiGroundSource(bytes: Uint8Array): NativeLatticeSource {
  * L1 retains native detail until a separately measured simplification is admitted. Physics stays on the native bake.
  */
 export function bakeNalatiGround(source: NativeLatticeSource, staticTiles: readonly NalatiStaticTile[] = []): NalatiGroundTile[] {
+  return bakePreparedGround(source, staticTiles);
+}
+
+/** Offline L1 candidate, never a live default. Preserve L0, native collision and all surviving painterly channels.
+ * Ratio is a target; the shared tool locks tile/hole boundaries and returns its actual appearance-error estimate.
+ * Rendering-owner fidelity review remains required before selecting a candidate for the live product.
+ */
+export async function bakeNalatiGroundLod(source: NativeLatticeSource, policy: { targetRatio: number; maxErrorMetres: number }, staticTiles: readonly NalatiStaticTile[] = []): Promise<NalatiGroundTile[]> {
+  const lod1: NativeLatticeLod[] = [];
+  for (const tile of sliceNativeLattice(source, 1)) lod1.push(await simplifyNativeLatticeTile(tile, policy.targetRatio, policy.maxErrorMetres));
+  return bakePreparedGround(source, staticTiles, lod1);
+}
+
+function bakePreparedGround(source: NativeLatticeSource, staticTiles: readonly NalatiStaticTile[], lod1?: readonly NativeLatticeLod[]): NalatiGroundTile[] {
   const props = new Map<string, readonly GlbPrimitive[]>();
   for (const entry of staticTiles) {
     const key = `${entry.lod}/${entry.x}/${entry.z}`, count = entry.lod === 0 ? 8 : 4;
@@ -75,7 +90,7 @@ export function bakeNalatiGround(source: NativeLatticeSource, staticTiles: reado
   const material = new MeshStandardMaterial({ color: 0xffffff, metalness: 0, roughness: 1 });
   material.name = 'nalati.ground';
   try {
-    return [0, 1].flatMap(lod => sliceNativeLattice(source, lod === 0 ? 0 : 1).map(tile => {
+    return [0, 1].flatMap(lod => (lod === 1 && lod1 !== undefined ? lod1 : sliceNativeLattice(source, lod === 0 ? 0 : 1).map(tile => ({ tile, errorMetres: 0 }))).map(({ tile, errorMetres }) => {
       const additions = props.get(`${tile.lod}/${tile.x}/${tile.z}`) ?? [], bounds = combinedBounds(tile, additions);
       const geometry = new BufferGeometry();
       let bytes: Uint8Array;
@@ -85,7 +100,7 @@ export function bakeNalatiGround(source: NativeLatticeSource, staticTiles: reado
         geometry.setIndex(new BufferAttribute(tile.indices, 1));
         bytes = staticGlb([{ geometry, material, castShadow: false, customAttributes: CUSTOM }, ...additions], `nalati.ground.l${tile.lod}.${tile.x}.${tile.z}`);
       } finally { geometry.dispose(); }
-      return { tile: { ...tile, bounds }, bytes, cost: parseGlb(bytes) };
+      return { tile: { ...tile, bounds }, bytes, cost: parseGlb(bytes), geometricError: errorMetres };
     }));
   } finally { material.dispose(); }
 }

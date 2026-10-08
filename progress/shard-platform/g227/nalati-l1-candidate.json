@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "scope": "Offline Nalati L1 candidate, not a live selection, independent error proof, product admission or retirement credit",
+  "nativeSha256": "8e610bab24eeae2d8fbd710466c99fbaf9f7fdfe721adbbfb218b4f5550855fa",
+  "groundSourceSha256": "71ea0af623c84e10d4540b0d5082984f7998a02daf67134493320c2bc1e7f4d0",
+  "tool": "meshoptimizer@1.2.0",
+  "policy": {
+    "targetRatio": 0.25,
+    "maxErrorMetres": 0.25
+  },
+  "l0": {
+    "count": 64,
+    "wire": 7588976,
+    "decoded": 7587184,
+    "gpu": 7493664,
+    "triangles": 144400,
+    "resident": 15080848,
+    "maxGeometricError": 0
+  },
+  "l1": {
+    "count": 16,
+    "wire": 5057252,
+    "decoded": 5056804,
+    "gpu": 5033472,
+    "triangles": 99458,
+    "resident": 10090276,
+    "maxGeometricError": 0.24999759931874427
+  },
+  "tiles": [
+    {
+      "x": 0,
+      "z": 0,
+      "wire": 414276,
+      "decoded": 414248,
+      "gpu": 412776,
+      "triangles": 8310,
+      "geometricError": 0.22770334620785865,
+      "sha256": "85ace2c1d60aa612c4ea8f21d2ca5b4d2b8648a35e40a4806fb7d03f08204b6d"
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "wire": 350984,
+      "decoded": 350956,
+      "gpu": 349488,
+      "triangles": 6942,
+      "geometricError": 0.24999759931874427,
+      "sha256": "e0366b7b8707932bb3dc021c69511d72bb2d1d8fab95fd032059f85d64511995"
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "wire": 398604,
+      "decoded": 398576,
+      "gpu": 397128,
+      "triangles": 7936,
+      "geometricError": 0.24364092762543668,
+      "sha256": "424013fedfe53b72d6cfc3952c85f94e0ee9302345c07b5180a0c4c4b20ecc5d"
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "wire": 413816,
+      "decoded": 413788,
+      "gpu": 412320,
+      "triangles": 8302,
+      "geometricError": 0.2478344573268475,
+      "sha256": "ac6ff127586f875f80776ad27d46003c694b953813be209675b4666c59316ad4"
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "wire": 383700,
+      "decoded": 383672,
+      "gpu": 382224,
+      "triangles": 7624,
+      "geometricError": 0.24924814526194194,
+      "sha256": "5a60795568f694229dc9bfa76934484f6a9522f99f865d16b6736c5690045dc1"
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "wire": 330432,
+      "decoded": 330404,
+      "gpu": 328944,
+      "triangles": 6466,
+      "geometricError": 0.2492508506322217,
+      "sha256": "0ed20327573cf83dbea6a0ea6545f8a70c29c07ea2a01258749f248dc638c02a"
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "wire": 326040,
+      "decoded": 326012,
+      "gpu": 324552,
+      "triangles": 6376,
+      "geometricError": 0.24963785408743974,
+      "sha256": "301104401ccfe21823c0c6ae26fb7f76b3333301d655240ddf19066aee8edc27"
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "wire": 355884,
+      "decoded": 355856,
+      "gpu": 354408,
+      "triangles": 7046,
+      "geometricError": 0.24951566593738217,
+      "sha256": "f11ec83ed16a5e3d97aa7da061a745e707ad343ca6c353806c9b84a7cf1b2494"
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "wire": 292428,
+      "decoded": 292400,
+      "gpu": 290952,
+      "triangles": 5724,
+      "geometricError": 0.2438182083009032,
+      "sha256": "f2f9c0031da42f1d0fa344e4ea01826629fd720821517b21f1c2eda3d812e401"
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "wire": 235512,
+      "decoded": 235484,
+      "gpu": 234024,
+      "triangles": 4490,
+      "geometricError": 0.24920347005908705,
+      "sha256": "b14a090b25382f9f3df38941bb24f6d62dfe348a001f9e0dbb7018893cadfc36"
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "wire": 240192,
+      "decoded": 240164,
+      "gpu": 238704,
+      "triangles": 4586,
+      "geometricError": 0.2490006502936458,
+      "sha256": "ae5602e776a16a54ff669510a9f87823c45f71d7d82457981d673978e0b53329"
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "wire": 328388,
+      "decoded": 328360,
+      "gpu": 326928,
+      "triangles": 6472,
+      "geometricError": 0.24987347399483623,
+      "sha256": "174c2ff1d8c68b24256be95e9fe9ede9d0fae1bfe349da0ed4cfd58321bae533"
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "wire": 244184,
+      "decoded": 244156,
+      "gpu": 242688,
+      "triangles": 4768,
+      "geometricError": 0.2474359718201903,
+      "sha256": "7c47a3ed1f4fa8617947f99c8cf803fc0326fc9e5daa67d3abc361846e0abafc"
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "wire": 218716,
+      "decoded": 218688,
+      "gpu": 217224,
+      "triangles": 4188,
+      "geometricError": 0.24997563673318063,
+      "sha256": "cde71a031731a4b289659b04aee77df635d85dbbd53d73e9f8fe2be6eed43703"
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "wire": 256032,
+      "decoded": 256004,
+      "gpu": 254544,
+      "triangles": 4964,
+      "geometricError": 0.2467164994309178,
+      "sha256": "e836c901b4440d0cfe989808b4be63405bbbe98dc81690a2a5a920236f8f384b"
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "wire": 268064,
+      "decoded": 268036,
+      "gpu": 266568,
+      "triangles": 5264,
+      "geometricError": 0.24918825899849834,
+      "sha256": "634d094a8530bad415c98b9b1b58bef89f56d66cad4f89f17b39f05cc90ad6e9"
+    }
+  ]
+}
