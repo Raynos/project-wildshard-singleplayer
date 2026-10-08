@@ -46,6 +46,8 @@ export interface LiveGridPorts {
   home: LiveGridHome | LiveGridOwnedHome; player: SimExternalPlayer & FrameMember; allocator: ResidencyAllocator;
   highway: { bytes: number; create: () => LiveGridRegion | LiveGridHighway };
   admit: (cell: GridCell) => Promise<LiveGridAdmission>;
+  /** Browser presentation boundary between admission batches; absent leaves the standalone Node scheduler unchanged. */
+  pause?: () => Promise<void>;
   /** Metadata-only prefetch eligibility. Unsupported far proxies do not consume cold request slots; explicit transfers
    *  still run normal admission and readiness. Absent: every cell is a candidate, as in standalone Node drivers. */
   prefetchable?: (cell: GridCell) => boolean;
@@ -262,8 +264,10 @@ export class LiveGridHost {
         if (bundle.hybridWireBytes > 0 && admitted.prepareRuntime === undefined) throw new Error('Hybrid runtime admission is missing');
         if (this.ports.home.mode !== 'owned') await admitted.prepareRuntime?.();
         this.assertAlive(); this.readiness.complete(ticket, 'runtime');
+        if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive();
         region = await admitted.create(prior, lease); this.checkRegion(region);
+        if (this.ports.pause !== undefined) await this.ports.pause();
         this.assertAlive();
         if (packed !== undefined) this.saved.store(instance, packed);
         this.residents.set(instance, { region, lease, reloadsCheckpoint: admitted.reloadsCheckpoint === true || this.ports.read !== undefined, exclusiveRuntime: admitted.exclusiveRuntime === true, reservations: 0, evicting: false });

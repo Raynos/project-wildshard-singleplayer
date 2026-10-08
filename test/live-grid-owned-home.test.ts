@@ -12,7 +12,7 @@ import { PageResidency } from '../src/game/grid/pageResidency';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 
 const noop = (): void => undefined;
-async function open(admit?: (instance: string, fallback: () => LiveGridAdmission) => Promise<LiveGridAdmission>) {
+async function open(admit?: (instance: string, fallback: () => LiveGridAdmission) => Promise<LiveGridAdmission>, pause?: () => Promise<void>) {
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const assembly = new GridAssembly({ developer: false, devserver: false });
   const shell = createSimHost({ ...SIM_LEVEL, id: 'neutral.shell', entities: [], quests: [], ground: { size: 2400, height: 0 } }, { rapier });
@@ -47,6 +47,7 @@ async function open(admit?: (instance: string, fallback: () => LiveGridAdmission
     continuations: 'durable', maxResidents: 1,
     highway: { bytes: 1000, create: () => ({ physics: shell.physics, dispose: () => { platform.dispose(); }, afterPlayerStep: () => { shellSteps++; } }) },
     admit: cell => admit === undefined ? Promise.resolve(fallback(cell.instance)) : admit(cell.instance, () => fallback(cell.instance)),
+    ...(pause === undefined ? {} : { pause }),
     save: () => true, gameplayReady: () => gameplay,
     bindFrame: frame => { frames.push(frame.instance); expect(frame.physics.world.getCollider(frame.motor.collider.handle)).toBe(frame.motor.collider); },
     readiness: { link: { speed: 15, linkBitsPerSecond: 1_000_000, requestLatencySeconds: 0.01, maxStallSeconds: 0.01 },
@@ -172,6 +173,22 @@ it('materializes only the approached road destination before its capsule reaches
     const prepared = await f.registry.prepare(null, 'pine-hollow'); prepared.commit();
     expect(f.registry.current()).toBe('pine-hollow');
     expect(f.owner.allocator.has('sim:nalati-grasslands')).toBe(false);
+  } finally { f.finish(); }
+});
+
+it('keeps the road authoritative across presentation batches and publishes readiness only after allocation yields', async () => {
+  const pauses: (() => void)[] = [];
+  const f = await open(undefined, () => new Promise<void>(resolve => { pauses.push(resolve); }));
+  const settle = async (): Promise<void> => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+  const resume = (): void => { const run = pauses.shift(); if (run === undefined) throw new Error('Missing presentation batch'); run(); };
+  try {
+    const preparing = f.registry.prepare(null, 'driftwood-isle'); await settle();
+    expect(f.creates).toEqual([]); expect(f.registry.current()).toBeNull(); expect(f.registry.ready('driftwood-isle')).toBe(false);
+    resume(); await settle();
+    expect(f.creates).toEqual(['driftwood-isle']); expect(f.registry.current()).toBeNull(); expect(f.registry.ready('driftwood-isle')).toBe(false);
+    resume(); const prepared = await preparing;
+    expect(f.registry.ready('driftwood-isle')).toBe(true); expect(f.registry.current()).toBeNull();
+    prepared.commit(); expect(f.registry.current()).toBe('driftwood-isle');
   } finally { f.finish(); }
 });
 
