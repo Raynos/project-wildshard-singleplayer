@@ -152,6 +152,17 @@ const mix = (a: RGB, b: RGB, t: number, out: RGB) => { out[0] = a[0] + (b[0] - a
 
 function canvas(w: number, h: number): HTMLCanvasElement { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D { const ctx = c.getContext('2d'); if (!ctx) throw new Error('Minimap: no 2d context'); return ctx; }
+/**
+ * drawImage of the source window (sx, sy, sw, sh) into (dx, dy, dw, dh), the window first cut to the source's bounds and the
+ * destination cut to match. WebKit (Safari, playtest round 3) draws nothing at all when an ImageBitmap's source window runs
+ * past its edge, where Chromium clips it: near a chunk edge the baked map's minimap window always does.
+ */
+function drawWindow(ctx: CanvasRenderingContext2D, src: HTMLCanvasElement | ImageBitmap, sx: number, sy: number, sw: number, sh: number, dx: number, dy: number, dw: number, dh: number): void {
+  const x0 = Math.max(0, sx), y0 = Math.max(0, sy), x1 = Math.min(src.width, sx + sw), y1 = Math.min(src.height, sy + sh);
+  if (x1 <= x0 || y1 <= y0) return;
+  const kx = dw / sw, ky = dh / sh;
+  ctx.drawImage(src, x0, y0, x1 - x0, y1 - y0, dx + (x0 - sx) * kx, dy + (y0 - sy) * ky, (x1 - x0) * kx, (y1 - y0) * ky);
+}
 
 const SVG_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="currentColor"/><path d="M12 2.2v3M12 18.8v3M2.2 12h3M18.8 12h3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M5.1 18.9l2.1-2.1M16.8 7.2l2.1-2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
 const SVG_MOON = '<svg viewBox="0 0 24 24"><path d="M15.5 3.2a8.8 8.8 0 1 0 5.3 13.9A7.2 7.2 0 0 1 15.5 3.2z" fill="currentColor"/></svg>';
@@ -367,7 +378,7 @@ export class Minimap {
       if (ground !== null) {
         const gp = ground.width / CHUNK_SIZE, lr = VIEW_RADIUS * gp; // the ground's px per metre (2 for both today)
         ctx.globalAlpha = baseAlpha;
-        ctx.drawImage(ground, (CHUNK_HALF - pos.x) * gp - lr, (CHUNK_HALF - pos.z) * gp - lr, lr * 2, lr * 2, 0, 0, D, D);
+        drawWindow(ctx, ground, (CHUNK_HALF - pos.x) * gp - lr, (CHUNK_HALF - pos.z) * gp - lr, lr * 2, lr * 2, 0, 0, D, D);
         ctx.globalAlpha = 1;
       }
 
@@ -377,7 +388,7 @@ export class Minimap {
       fc.fillStyle = `rgba(0, 0, 0, ${(1 - FOG_BRIGHTNESS) * baseAlpha})`;
       fc.fillRect(0, 0, D, D);
       fc.globalCompositeOperation = 'destination-out';
-      fc.drawImage(this.cover, (CHUNK_HALF - pos.x) * COVER_PPM - cr, (CHUNK_HALF - pos.z) * COVER_PPM - cr, cr * 2, cr * 2, 0, 0, D, D);
+      drawWindow(fc, this.cover, (CHUNK_HALF - pos.x) * COVER_PPM - cr, (CHUNK_HALF - pos.z) * COVER_PPM - cr, cr * 2, cr * 2, 0, 0, D, D);
       if (overlay === null) ctx.drawImage(this.fog, 0, 0);
       else {
         const x0 = c - (CHUNK_HALF - pos.x) * k, y0 = c - (CHUNK_HALF - pos.z) * k, side = CHUNK_SIZE * k;

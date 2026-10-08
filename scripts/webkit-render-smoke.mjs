@@ -3,6 +3,9 @@
 // each held item (the whip it starts with, then the iron sword) render the camera's held models alone over a magenta
 // clear and read the pixels back, and render the whole world once. Fails when a held item draws near black (Jake's iPhone:
 // the sword as a black slab, the lantern as a black box) or the world view is mostly black.
+// Then it boots Driftwood (playtest round 3: Safari drew its minimap blank, as WebKit draws nothing for an ImageBitmap source
+// window that runs past the image's edge) and fails unless the minimap disc shows the baked map, both at the spawn on the
+// pier and with the player moved to the chunk's corner.
 // Serves a built dist with vite preview, or reads a running build:
 //   node scripts/webkit-render-smoke.mjs --dist=<dir> | --url=http://127.0.0.1:4405/   (through scripts/browser-lane.sh)
 import { webkit, devices } from 'playwright';
@@ -22,6 +25,22 @@ if (base === '/') throw new Error('webkit-render-smoke: no preview URL');
 /** the thresholds, sRGB 0–255 luminance: a held item's mean, its share of near-black pixels, the world's near-black share */
 const ITEM_MEAN = 70, DARK = 32, ITEM_DARK_SHARE = 0.35, WORLD_DARK_SHARE = 0.2;
 const ITEMS = ['weapon.template-whip', 'weapon.sword-iron'];
+/** the minimap: the share of its disc that must differ from the bare void (#0b1016) by more than MAP_DIFF in some channel */
+const MAP_SHARE = 0.42, MAP_DIFF = 28; // WebKit before the fix: 27 % at the spawn, 31 % at the corner; after: 74 %, 54 %
+
+// Browser side: the minimap disc's pixels that are not the bare void (fog over the void stays near it), as a share. Plain function.
+function minimapShare(arg) {
+  const c = document.querySelector('.ws-minimap-canvas'), x = c?.getContext('2d');
+  if (!c || !x || c.width < 8) return { share: 0, size: c?.width ?? 0 };
+  const w = c.width, h = c.height, d = x.getImageData(0, 0, w, h).data, r = w * 0.42;
+  let n = 0, lit = 0;
+  for (let y = 0; y < h; y += 2) for (let i = 0; i < w; i += 2) {
+    if ((i - w / 2) ** 2 + (y - h / 2) ** 2 > r * r) continue;
+    const o = (y * w + i) * 4; n++;
+    if (Math.max(Math.abs((d[o] ?? 0) - 11), Math.abs((d[o + 1] ?? 0) - 16), Math.abs((d[o + 2] ?? 0) - 22)) > arg.diff) lit++;
+  }
+  return { share: n ? lit / n : 0, size: w };
+}
 
 // Browser side: render (only the camera's descendants, over magenta) or (everything), read the drawing buffer in the
 // same task, and summarise. Plain function: serialised into the page.
@@ -78,6 +97,17 @@ try {
     if (m.held !== id) failures.push(`${id}: could not hold it (holding ${m.held})`);
     else if (m.pixels < 200) failures.push(`${id}: the held models drew ${m.pixels} sampled pixels (nothing on screen)`);
     else if (m.mean < ITEM_MEAN || m.darkShare > ITEM_DARK_SHARE) failures.push(`${id}: held models near black (mean ${m.mean.toFixed(0)} < ${ITEM_MEAN} or ${(m.darkShare * 100).toFixed(0)}% below ${DARK} > ${ITEM_DARK_SHARE * 100}%)`);
+  }
+  // Driftwood's minimap (playtest round 3): the baked map must draw at the pier spawn and at the chunk's corner
+  await page.goto(`${base}?chunk=driftwood-isle&mute=1&skipintro=1&nolock=1&sw=0`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => Boolean(window.__wildshard?.world?.game && document.querySelector('.ws-minimap-canvas') && !document.querySelector('.ws-load')), null, { timeout: 90_000, polling: 250 });
+  for (const spot of [null, { x: 200, z: 200 }]) {
+    if (spot !== null) await page.evaluate((p) => { window.__wildshard.world.player.spawn(p.x, p.z, 0); }, spot);
+    const at = spot === null ? 'spawn' : `(${spot.x}, ${spot.z})`;
+    let m = { share: 0, size: 0 };
+    for (let t = 0; t < 40 && m.share < MAP_SHARE; t++) { await page.waitForTimeout(250); m = await page.evaluate(minimapShare, { diff: MAP_DIFF }); }
+    rows.push({ view: `driftwood minimap ${at}`, mean: m.share * 100, darkShare: 1 - m.share, pixels: m.size });
+    if (m.share < MAP_SHARE) failures.push(`driftwood minimap at ${at}: ${(m.share * 100).toFixed(0)}% of the disc shows the map (min ${MAP_SHARE * 100}%): blank in WebKit`);
   }
   if (errors.length > 0) failures.push(`page errors: ${errors.join(' | ')}`);
 } finally {

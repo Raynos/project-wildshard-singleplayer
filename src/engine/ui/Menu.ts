@@ -123,6 +123,7 @@ export class GameMenu {
   constructor(opts: GameMenuOptions) {
     this.opts = opts;
     const levelName = this.opts.levelName ?? '';
+    this.levelName = levelName;
     this.root = el('ws-gmenu');
     this.root.inert = true; // closed until open()
     this.sheet = el('ws-gmenu-sheet ws-glass');
@@ -238,13 +239,23 @@ export class GameMenu {
    *  E321). A feature playground (E307) is a practice room too: `room` names it under the title (the arena's is
    *  "Training arena"). */
   setPractice(active: boolean, room = 'Training arena'): void {
-    this.practice = active;
+    this.practice = active; this.room = room;
     this.root.classList.toggle('practice', active);
-    this.subtitle.textContent = active ? room : (this.opts.levelName ?? '');
-    this.mapMeta.textContent = active ? room : (this.opts.levelName ?? ''); // E314: the MAP tab over a room's own map names the room
+    this.syncName();
     this.exitBtn.innerHTML = active ? engineString('s_36c97383811d') : engineString('s_2c5e5026f627');
     this.exitBtn.setAttribute('aria-label', active ? engineString('s_084735ce4470') : engineString('s_83b2c11883e2'));
     if (active && this._tab === 'map' && this.noMap) this.select('settings'); else this.syncTabs();
+  }
+
+  /** The place named under the title and over the MAP tab: the level's name, or (the grid, playtest round 3) the shard
+   *  whose cell you stand in, as you cross into it. A practice room's name wins while one is up. */
+  setLevelName(name: string): void { this.levelName = name; this.syncName(); }
+  private levelName: string;
+  private room = '';
+  private syncName(): void {
+    const name = this.practice ? this.room : this.levelName;
+    this.subtitle.textContent = name;
+    this.mapMeta.textContent = name; // E314: the MAP tab over a room's own map names the room
   }
 
   /** pause ▸ Settings ▸ Debug, the grouped registry (E162; the title's Settings mounts the same one, E172) */

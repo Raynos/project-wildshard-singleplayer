@@ -288,10 +288,16 @@ export class FullMap {
     ctx.strokeRect(ox, oy, side, side);
 
     // the extras' labels (the grid: each cell's shard name), under the pins
+    const held: Box[] = [];
     if (extras !== null && extras.labels.length > 0) {
       ctx.font = `700 ${Math.max(12 * this.dpr, 0.05 * CHUNK_SIZE * ppm)}px Rajdhani, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.lineJoin = 'round'; ctx.lineWidth = 3 * this.dpr; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)';
-      for (const l of extras.labels) { const t = l.text.toUpperCase(); ctx.strokeText(t, sx(l.x), sz(l.z)); ctx.fillStyle = l.color; ctx.fillText(t, sx(l.x), sz(l.z)); }
+      const lh = Math.max(12 * this.dpr, 0.05 * CHUNK_SIZE * ppm);
+      for (const l of extras.labels) {
+        const t = l.text.toUpperCase(), x = sx(l.x), y = sz(l.z), hw = ctx.measureText(t).width / 2;
+        ctx.strokeText(t, x, y); ctx.fillStyle = l.color; ctx.fillText(t, x, y);
+        held.push({ x0: x - hw, y0: y - lh / 2, x1: x + hw, y1: y + lh / 2 }); // the pins' labels lay out clear of it (playtest round 3)
+      }
       ctx.textAlign = 'left';
     }
 
@@ -301,6 +307,7 @@ export class FullMap {
     const list: Pin[] = this.poiSource ? [...this.poiSource()] : levelPins();
     if (this.poiSources.size > 0) list.push(...[...this.poiSources].flatMap((source) => source()));
     const tally = this.tally ? this.layTally(list, ox, oy + side) : null;
+    if (tally !== null) held.push(tally);
     // the minimap's marks (Driftwood's sea chart: every unfound sea glass piece, E314) — under the pins, no labels, not
     // tallied; a bead in the piece's colour inside a white ring (a quest marker is a cyan diamond, a place a white dot)
     const marks = this.minimap.marks;
@@ -313,7 +320,7 @@ export class FullMap {
         ctx.lineWidth = 1.2 * this.dpr; ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.stroke();
       }
     }
-    this.drawPois(list, sx, sz, fs, { x: px, y: py, r: r * 2.2 }, tally);
+    this.drawPois(list, sx, sz, fs, { x: px, y: py, r: r * 2.2 }, held);
     if (tally) this.drawTally(tally);
 
     // you
@@ -370,7 +377,7 @@ export class FullMap {
 
   /** the points of interest: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top);
    *  then every label, placed where it covers no other label, marker or your arrow (`you`) */
-  private drawPois(list: Pin[], sx: (x: number) => number, sz: (z: number) => number, fs: number, you: { x: number; y: number; r: number }, avoid: Box | null): void {
+  private drawPois(list: Pin[], sx: (x: number) => number, sz: (z: number) => number, fs: number, you: { x: number; y: number; r: number }, avoid: readonly Box[]): void {
     const ctx = this.ctx, d = this.dpr;
     // the shard's zone names (setZones — Pine Hollow's THE RIDGE, THE OLD-GROWTH, …): big faint caps under everything, up to 2.5×
     if (this._zoom <= 2.5 && this.zones.length > 0) {
@@ -437,7 +444,7 @@ export class FullMap {
     // labels: ◆-tagged first, then places, then "?"; each takes the first candidate spot that is free (else the least covered)
     const taken: Box[] = [{ x0: you.x - you.r, y0: you.y - you.r, x1: you.x + you.r, y1: you.y + you.r }];
     for (const m of pins) taken.push({ x0: m.x - m.r, y0: m.y - m.r, x1: m.x + m.r, y1: m.y + m.r });
-    if (avoid) taken.push(avoid);   // the PLACES tally (E309 A)
+    taken.push(...avoid);   // the PLACES tally (E309 A) and the extras' labels (the grid's shard names)
     const rank = (m: (typeof pins)[number]): number => (m.glyph ? 0 : m.p.kind === 'place' ? 1 : 2);
     const gw = fs * 0.62, gap = fs * 0.3, pad = 2 * d;
     // (an unfound place's "?" is inside its ring: it carries no label unless a quest marker named it)

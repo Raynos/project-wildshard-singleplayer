@@ -495,6 +495,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     // G107: the minimap blends at the road boundary (the shard + the road + the neighbours' names inside; faded terrain on the road)
     const blend = installMinimapBlend(minimap, { assembly: grid.assembly, home: grid.home, cells: gridCells, worldFeet: () => grid.worldFeet(), image: (id) => grid.mapImage(id),
       name: (cell) => findShard(cell.slug)?.name ?? cell.slug }, game.levelScope, fullMap); // SF66: the full map lays out every cell's baked map + the road
+    // playtest round 3: the menu names the shard whose cell you are in (the full map's arrow reads mapAt's home frame too)
+    game.levelScope.onDispose(gridCells.onEnter((cell) => { menu.setLevelName(findShard(cell.slug)?.name ?? cell.slug); }));
     // SF38 / G30: Developer mode's points budget over the one live allocator (no element or timer until Developer is on)
     const slugCount = new Map<string, number>();
     for (const cell of grid.assembly.cells) slugCount.set(cell.slug, (slugCount.get(cell.slug) ?? 0) + 1);
@@ -637,7 +639,7 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
-    if (hud.entered) { hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(mapAt(), player.yaw, away() ? [] : animals.animals); fullMap.update(player.position, player.yaw); } // a practice room's map is its own (Minimap.setRoom, E321), not the shard's terrain
+    if (hud.entered) { const at = mapAt(); hud.setAnimals(away() ? [] : animalPositions(animals.animals)); minimap.update(at, player.yaw, away() ? [] : animals.animals); fullMap.update(at, player.yaw); } // a practice room's map is its own (Minimap.setRoom, E321), not the shard's terrain
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       weaponUi: weapons.current.row.ui,
