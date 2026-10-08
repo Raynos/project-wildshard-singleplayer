@@ -1,0 +1,449 @@
+{
+  "pin": "82f724fc9f54b41cb5bc433571cd113f0fec7491",
+  "protocol": "Cold Simulator Safari, Developer ON, phone tier/2x, Auto textures, Memory saver ON; north road socket -> ridden islet -> fixed gate -> bridge -> island with real held input. One initial road pose only. Three settled one-second fixed-WebContent-PID kernel samples per pose plus matching labelled GL; no continuous GL journal or heap capture. Relative Simulator evidence, not physical-phone cap proof.",
+  "completeRuns": 3,
+  "attempts": 5,
+  "incompleteHarnessAttempts": 2,
+  "completeRouteAndNativeScopeTeardownPass": true,
+  "proxyCapBytes": 1000000000,
+  "proxyCapPass": false,
+  "qualifyingPhoneCapPass": false,
+  "medianRunWorstSettledBytes": 1008945548,
+  "worstHighSettledSamplePlusGLBytes": 1067473280,
+  "continuousCombinedPeakMeasured": false,
+  "costConstantDiscountApplied": false,
+  "attemptsDetail": [
+    {
+      "attempt": 1,
+      "complete": false,
+      "failure": "Error: Sky route had a recovery, game error or edge fallback",
+      "version": {
+        "build": "82f724f-muzibj2c",
+        "time": "2026-10-08T12:22:51.624Z"
+      },
+      "gamePID": 94552,
+      "closed": true,
+      "recoveries": [
+        {
+          "time": 118965,
+          "args": [
+            0,
+            -5.5,
+            0,
+            31
+          ]
+        }
+      ],
+      "enteredSettledWorstBytes": null,
+      "enteredHighSampleBytes": null,
+      "withinExplorerCap": null,
+      "enteredCost": null,
+      "unload": null
+    },
+    {
+      "attempt": 2,
+      "complete": false,
+      "failure": "Error: Error: Leak census requires independent harness resource counters",
+      "version": {
+        "build": "82f724f-muzibj2c",
+        "time": "2026-10-08T12:22:51.624Z"
+      },
+      "gamePID": 7727,
+      "closed": true,
+      "recoveries": [],
+      "enteredSettledWorstBytes": 960048916,
+      "enteredHighSampleBytes": 960261908,
+      "withinExplorerCap": true,
+      "enteredCost": [
+        {
+          "label": "sky-lip",
+          "webContentBytes": 675925688,
+          "labelledGLBytes": 260120668,
+          "combinedBytes": 936046356,
+          "highSampleCombinedBytes": 936177428,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-board",
+          "webContentBytes": 699928248,
+          "labelledGLBytes": 260120668,
+          "combinedBytes": 960048916,
+          "highSampleCombinedBytes": 960261908,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-gate",
+          "webContentBytes": 681430712,
+          "labelledGLBytes": 260121964,
+          "combinedBytes": 941552676,
+          "highSampleCombinedBytes": 942486564,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-island",
+          "webContentBytes": 689639096,
+          "labelledGLBytes": 253131476,
+          "combinedBytes": 942770572,
+          "highSampleCombinedBytes": 942967180,
+          "withinExplorerCap": true
+        }
+      ],
+      "unload": null
+    },
+    {
+      "attempt": 3,
+      "complete": true,
+      "failure": null,
+      "version": {
+        "build": "82f724f-muzibj2c",
+        "time": "2026-10-08T12:22:51.624Z"
+      },
+      "gamePID": 17505,
+      "closed": true,
+      "recoveries": [],
+      "enteredSettledWorstBytes": 1008945548,
+      "enteredHighSampleBytes": 1009060236,
+      "withinExplorerCap": false,
+      "enteredCost": [
+        {
+          "label": "sky-lip",
+          "webContentBytes": 617189000,
+          "labelledGLBytes": 256625424,
+          "combinedBytes": 873814424,
+          "highSampleCombinedBytes": 875780504,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-board",
+          "webContentBytes": 695684744,
+          "labelledGLBytes": 256625424,
+          "combinedBytes": 952310168,
+          "highSampleCombinedBytes": 954882456,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-gate",
+          "webContentBytes": 720801440,
+          "labelledGLBytes": 256626720,
+          "combinedBytes": 977428160,
+          "highSampleCombinedBytes": 980508352,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-island",
+          "webContentBytes": 755814072,
+          "labelledGLBytes": 253131476,
+          "combinedBytes": 1008945548,
+          "highSampleCombinedBytes": 1009060236,
+          "withinExplorerCap": false
+        }
+      ],
+      "unload": {
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": [],
+        "eventServiceBaseline": {
+          "listeners": 7,
+          "answerers": 5
+        }
+      }
+    },
+    {
+      "attempt": 4,
+      "complete": true,
+      "failure": null,
+      "version": {
+        "build": "82f724f-muzibj2c",
+        "time": "2026-10-08T12:22:51.624Z"
+      },
+      "gamePID": 25375,
+      "closed": true,
+      "recoveries": [],
+      "enteredSettledWorstBytes": 1067440512,
+      "enteredHighSampleBytes": 1067473280,
+      "withinExplorerCap": false,
+      "enteredCost": [
+        {
+          "label": "sky-lip",
+          "webContentBytes": 810815088,
+          "labelledGLBytes": 256625424,
+          "combinedBytes": 1067440512,
+          "highSampleCombinedBytes": 1067473280,
+          "withinExplorerCap": false
+        },
+        {
+          "label": "sky-board",
+          "webContentBytes": 793775728,
+          "labelledGLBytes": 256625424,
+          "combinedBytes": 1050401152,
+          "highSampleCombinedBytes": 1050401152,
+          "withinExplorerCap": false
+        },
+        {
+          "label": "sky-gate",
+          "webContentBytes": 793890416,
+          "labelledGLBytes": 256626720,
+          "combinedBytes": 1050517136,
+          "highSampleCombinedBytes": 1050566288,
+          "withinExplorerCap": false
+        },
+        {
+          "label": "sky-island",
+          "webContentBytes": 802361040,
+          "labelledGLBytes": 253131476,
+          "combinedBytes": 1055492516,
+          "highSampleCombinedBytes": 1055639972,
+          "withinExplorerCap": false
+        }
+      ],
+      "unload": {
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": [],
+        "eventServiceBaseline": {
+          "listeners": 7,
+          "answerers": 5
+        }
+      }
+    },
+    {
+      "attempt": 5,
+      "complete": true,
+      "failure": null,
+      "version": {
+        "build": "82f724f-muzibj2c",
+        "time": "2026-10-08T12:22:51.624Z"
+      },
+      "gamePID": 42437,
+      "closed": true,
+      "recoveries": [],
+      "enteredSettledWorstBytes": 976629380,
+      "enteredHighSampleBytes": 976858756,
+      "withinExplorerCap": true,
+      "enteredCost": [
+        {
+          "label": "sky-lip",
+          "webContentBytes": 670961192,
+          "labelledGLBytes": 260120668,
+          "combinedBytes": 931081860,
+          "highSampleCombinedBytes": 931638916,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-board",
+          "webContentBytes": 716508712,
+          "labelledGLBytes": 260120668,
+          "combinedBytes": 976629380,
+          "highSampleCombinedBytes": 976858756,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-gate",
+          "webContentBytes": 709103144,
+          "labelledGLBytes": 260121964,
+          "combinedBytes": 969225108,
+          "highSampleCombinedBytes": 970224532,
+          "withinExplorerCap": true
+        },
+        {
+          "label": "sky-island",
+          "webContentBytes": 716557864,
+          "labelledGLBytes": 253131476,
+          "combinedBytes": 969689340,
+          "highSampleCombinedBytes": 969967868,
+          "withinExplorerCap": true
+        }
+      ],
+      "unload": {
+        "after": {
+          "geometries": 0,
+          "textures": 0,
+          "programs": 0,
+          "bodies": 0,
+          "colliders": 0,
+          "listeners": {
+            "window": 0,
+            "document": 0,
+            "canvas": 0,
+            "other": 0
+          },
+          "timers": {
+            "timeouts": 0,
+            "intervals": 0,
+            "raf": 0
+          },
+          "audio": {
+            "activeVoices": 0,
+            "beds": 0,
+            "buses": 0
+          },
+          "systems": {
+            "input": 0,
+            "fixed": {
+              "pre": 0,
+              "step": 0,
+              "post": 0
+            },
+            "update": 0,
+            "late": 0,
+            "render": 0
+          },
+          "events": {
+            "listeners": 7,
+            "answerers": 5
+          },
+          "dom": {
+            "hud": 0,
+            "body": 0
+          },
+          "sceneObjects": 0
+        },
+        "scope": {
+          "geometries": 0,
+          "materials": 0,
+          "textures": 0,
+          "renderTargets": 0,
+          "meshes": 0,
+          "resources": 0,
+          "bodies": 0,
+          "sounds": 0,
+          "listeners": 0,
+          "timers": 0,
+          "rafs": 0,
+          "disposers": 0,
+          "systems": 0,
+          "colliders": 0,
+          "nodes": 0
+        },
+        "disposalErrors": [],
+        "eventServiceBaseline": {
+          "listeners": 7,
+          "answerers": 5
+        }
+      }
+    }
+  ],
+  "archive": {
+    "path": "native-assertions.tar.gz",
+    "bytes": 1650363,
+    "sha256": "2bc5a922d5f706d1b7bbfdcef41b04562690be4155c3232032e7cc11476782a1",
+    "rawFiles": 55,
+    "allExtractedFileSealsVerified": true
+  }
+}

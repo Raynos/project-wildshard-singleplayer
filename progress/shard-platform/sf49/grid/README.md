@@ -9,8 +9,24 @@
 | South | 77.473 | 766.85 | 0 / 0 / 0 | 0 / 0 / 0 |
 | West | 74.804 | 817.09 | 0 / 0 / 0 | 0 / 0 / 0 |
 
-All four prove the gate is open at rest, shuts while the islet is away, the rider reaches the dock, and the player reaches the target island height. No edge-fallback warning. Portrait island captures have been inspected. The allocator is **not measured native memory**: no cap PASS or runtime discount is inferred. Native entered cost and both-surface frame floors remain pending. Standalone parent/candidate parity is **GREEN on both tiers** (`bb91db4b0` → `82f724fc9`): full walk/combat/pause/resume/unload, four pose comparisons, min SSIM **0.999992292**. `standalone-parity.json` links the sealed complete assertion payload; no stored golden was written.
+All four prove the gate is open at rest, shuts while the islet is away, the rider reaches the dock, and the player reaches the target island height. No edge-fallback warning. Portrait island captures have been inspected. The allocator is **not measured native memory**: no cap PASS or runtime discount is inferred. Native entered cost is measured and the 1.0 GB proxy comparison is **RED** (table below); both-surface frame floors are running. Standalone parent/candidate parity is **GREEN on both tiers** (`bb91db4b0` → `82f724fc9`): full walk/combat/pause/resume/unload, four pose comparisons, min SSIM **0.999992292**. `standalone-parity.json` links the sealed complete assertion payload; no stored golden was written.
 
 `capture.mjs` runs through `scripts/browser-lane.sh`; its optional final argument selects one edge. `summary.json` keeps the compact conjunction and SHA256 seals; the gzipped reports preserve every route sample, native census, GL row, warning and original assertion. Both rejected north attempts remain: custom cadence erased by captured construction (`408598de2` fixes it), then positive standalone fall floor applied before entered readiness (`95c869d4c` + `82f724fc9` fix it; `b24f8c36b` proves the positive-floor shape in the real native fixture). Fifteen native foundation/live fixtures and focused strict compilation pass.
 
 The legacy constructor stays in `plugin.ts` behind the strict declared resolver; the mechanical runtime relocation and its 19 SF62 findings remain explicit SF49-p work, without a new allowance. Far Reach is already absent from `edge-exemptions.json` and keeps accent 18 PINK. The edge reader uses admitted entries plus manifest-derived void observation, never a nonexistent terrain bake.
+
+## Cold Simulator entered cost
+
+Same app pin, Auto textures, phone tier / 2×, Memory saver ON, Developer ON. Three complete cold north-road → islet → fixed gate → bridge → island runs pass real-input traversal and final native/scope teardown. Three settled one-second samples per pose share one fixed WebContent PID, with labelled GL at the same pose. These are relative Simulator readings, **not physical-phone cap evidence or a continuously sampled combined peak**.
+
+| Complete attempt | Worst settled median + GL, MB | Highest settled sample + GL, MB | 1,000 MB proxy |
+| --- | ---: | ---: | --- |
+| 3 | 1008.946 | 1009.060 | FAIL |
+| 4 | 1067.441 | 1067.473 | FAIL |
+| 5 | 976.629 | 976.859 | PASS |
+
+Median run-worst settled cost: **1008.946 MB**. Full-run sampled WebContent values, every pose and original GL rows stay in the sealed archive; no allocator substitution or runtime-cost discount. All three complete runs have zero unexpected respawns, errors or context losses; final native bodies/colliders, graphics/listener/timer/audio/system/DOM/scene deltas and scopes are zero. Page event service counts stay at their original 7 listeners / 5 answerers.
+
+All five attempts are retained. Attempt 1 is rejected: the ruler paused nine seconds on the authored six-second top dwell, missed disembarkation and recovered. `d475126f5` follows normal input onto the stationary gate before sampling. Attempt 2 is incomplete: traversal passed, but the leak probe correctly refused missing independent harness counters. `ae77c5ddc` adds the existing parity resource port for Sky mode only. Attempt 2's lower reading does not enter the three-run result. No GPU-process restart occurred in any attempt.
+
+`native-summary.json` contains compact fields and the SHA256 seal for `native-assertions.tar.gz` (55 original reports, logs, kernel ledgers, phases and vmmap files; every archived file read back and verified). **SF49-g remains unprepared at the memory gate**. Runtime relocation / 19 SF62 findings remain the separate SF49-p leftover above.
