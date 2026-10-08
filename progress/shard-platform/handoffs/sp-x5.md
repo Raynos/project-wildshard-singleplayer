@@ -3,6 +3,24 @@
 SF67 / E461 loading sprint. Coordinator wildshard-new owns the push and plan edits.
 Never message wildshard-v. The matched Simulator Safari cohort is complete and all owned resources are released.
 
+## Runtime one-shot actors — format landing
+
+Optional runtime.spawns.actors uses the exact boss-body grammar (id/kind/look/
+at[x,z]/yaw), max256, no refill/respawn. Omitted remains omitted; explicit[] is
+valid. Admission preserves authored row order and refuses id collisions across
+homes/bosses/actors. RuntimeActorRow is available from defining runtimeSpawns.ts.
+Full-schema tests cover row order, omission, empty/max/overflow, finite bounds,
+strict data-only fields, shared identities, binding pairing and external/cache
+trust. SHARDFILE.md records the shape and keeps the runtime binder separate.
+sp-x1 owns bindRuntimeActor in hybridRows; no binder/client/physics work here.
+
+Clean3e995e5a2 plus owned patch, committed linker and pnpm gen before checks.
+13 focused tests/2 files, root strict, root-config oxlint and ratchet pass.
+Heavy-lane full413 is still queued; focused-green format lands early to unblock
+sp-x1 binder. Final full proof remains required before the task closes. Current-HEAD private index/hooks/CAS required.
+No new imports/debt, generated files, shard map inputs or rendering changes.
+Coordinator owns the push and relay to sp-x1. No browser/Simulator/build held.
+
 ## SF70 format — landed36c03f7ba
 
 Ranged / bow / thrown item context profiles are strict declared data. Optional

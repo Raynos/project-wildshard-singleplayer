@@ -116,6 +116,33 @@ it('validates runtime home and boss data, bounds and shared identities through t
   expect(() => admit({ homes, bosses: [...bosses, { ...boss, id: 'boss:16' }] })).toThrow();
 });
 
+it('admits optional finite one-shot actors without changing row order or omitted-field output', () => {
+  const source = empty(), spawns = { homes: [], bosses: [] };
+  const runtime = { entry: 'runtime/index.ts', binds: ['spawns'] };
+  const admit = (input: unknown) => parseShardfile({ ...source, runtime: { ...runtime, spawns: input } });
+  const actor = { id: 'actor:z', kind: 'skySentinel', look: 'sentinel', at: [-250, 250], yaw: Math.PI };
+  const actors = [actor, { ...actor, id: 'actor:a', kind: 'antler-king', at: [250, -250], yaw: 0 }];
+  expect(admit(spawns).runtime?.spawns).toEqual(spawns);
+  expect(admit(spawns).runtime?.spawns).not.toHaveProperty('actors');
+  expect(admit({ ...spawns, actors: [] }).runtime?.spawns?.actors).toEqual([]);
+  expect(admit({ ...spawns, actors }).runtime?.spawns?.actors).toEqual(actors);
+  expect(admit({ ...spawns, actors }).runtime?.spawns?.actors?.map((row) => row.id)).toEqual(['actor:z', 'actor:a']);
+  const maximum = Array.from({ length: 256 }, (_, index) => ({ ...actor, id: `actor:${index}` }));
+  expect(admit({ ...spawns, actors: maximum }).runtime?.spawns?.actors).toEqual(maximum);
+  for (const bad of [null, {}, [actor, actor], [...maximum, { ...actor, id: 'actor:256' }]]) {
+    expect(() => admit({ ...spawns, actors: bad })).toThrow();
+  }
+  for (const bad of [{ ...actor, respawn: 60 }, { ...actor, at: [250.01, 0] }, { ...actor, at: [0, -250.01] },
+    { ...actor, yaw: Infinity }, { ...actor, id: 'a'.repeat(129) }, { ...actor, kind: 'k'.repeat(65) },
+    { ...actor, kind: 'bad_kind' }, { ...actor, look: 'BadLook' }, { ...actor, look: 'l'.repeat(129) },
+    { ...actor, spawn: () => undefined }]) {
+    expect(() => admit({ ...spawns, actors: [bad] })).toThrow();
+  }
+  expect(() => admit({ homes: [{ ...actor, respawn: 60 }], bosses: [], actors: [actor] })).toThrow('unique runtime spawn identities');
+  expect(() => admit({ homes: [], bosses: [actor], actors: [actor] })).toThrow('unique runtime spawn identities');
+  expect(() => parseShardfile({ ...source, runtime: { entry: runtime.entry, spawns: { ...spawns, actors } } })).toThrow('runtime spawns');
+});
+
 it('keeps runtime-bound quest rows under ordinary format validation before any binding', () => {
   const source = empty(), quest = { id: 'runtime.quest', title: 'Bound quest', completeFlag: 'done',
     steps: [{ id: 'first', objective: 'Finish the task', chip: 'Finish task', done: { all: ['done'] } }] };
@@ -128,7 +155,7 @@ it('keeps runtime-bound quest rows under ordinary format validation before any b
 });
 
 it('refuses external runtime declarations before fetching or publishing, including cached declarations', async () => {
-  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: { homes: [], bosses: [] } };
+  const source = empty(); source.runtime = { entry: 'runtime/index.ts', binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: { homes: [], bosses: [], actors: [{ id: 'actor:1', kind: 'skySentinel', look: 'sentinel', at: [0, 0], yaw: 0 }] } };
   let published = false;
   const cache = { product: () => Promise.resolve({ source, firstParty: true }), asset: () => Promise.resolve(null),
     putAsset: () => Promise.resolve(), putProduct: () => { published = true; return Promise.resolve(); } };

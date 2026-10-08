@@ -589,13 +589,20 @@ slot; it is not a second permissive format or a source-code hook.
 The sole defining `RuntimeSchema` enforces this pairing through full shardfile
 admission; selecting the section without rows, or supplying rows without selecting
 it, is refused. Its strict object has required `homes` (at most 256) and `bosses`
-(at most 16) arrays; either array may be empty. Both rows contain
+(at most 16) arrays; either array may be empty. Optional `actors` contains at most
+256 finite one-shot bodies. All three row kinds contain
 `{id, kind, look, at: [x, z], yaw}`; homes also require `respawn` in seconds, from
 1 through 3600. Coordinates are finite and within [-250, 250]; yaw is finite.
 IDs and look names are lowercase identifiers of at most 128 characters; the
 runtime species `kind` starts with a lowercase letter, allows camel case and
 hyphens (for example `antler-king`), and is at most 64 characters. IDs must
-be unique across both arrays. Unknown fields and non-data values are refused.
+be unique across all three arrays. Unknown fields and non-data values are refused.
+Actor rows accept no refill/`respawn` field. Their authored array order is preserved;
+row admission never sorts, spawns a body or changes runtime-allocated identities.
+Omitting `actors` preserves the existing parsed shape; `actors: []` is also valid.
+The trusted runtime explicitly binds each actor when it reaches that position in
+its existing spawn sequence. The actor binder is a separate runtime integration;
+the format itself adds no automatic spawn, refill or independent lifecycle.
 These rows place the trusted runtime's registered species and looks; their brains,
 rigs and encounter logic remain runtime-owned. They do not create local-simulation
 `creatures` rows or grant trust to a product.
