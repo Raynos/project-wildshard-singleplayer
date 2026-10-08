@@ -71,6 +71,21 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     const picked = await load({ chunk: 'pine-hollow', tier: 'phone', tex: 'img' });
     expect(picked.gf.texMode()).toBe('img');
   });
+  it('Sky Reach\'s phone loads its HD models as KTX2 from the first visit (G253); desktop keeps Auto\'s rule; a Debug pick wins', async () => {
+    const phone = await load({ chunk: 'far-reach', tier: 'phone' });
+    expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2', why: 'auto: level tier texture policy' });
+    const def = phone.def, sources = def?.boot?.sources;
+    if (def === undefined || sources === undefined) throw new Error('far-reach: no boot sources');
+    const props = sources('phone', phone.gf.texMode()).props;
+    const hd = props.filter((url) => url.startsWith('/assets/gpu/far-reach/'));
+    expect(hd).toHaveLength(22);
+    // no images GLB of an HD model on the phone's default boot (the faceted C6 models have no KTX2 stand-in and stay)
+    expect(props.filter((url) => url.startsWith('/assets/far-reach/') && /-hd\.glb$|\/trees\/|\/crown\/|\/mill\//u.test(url))).toEqual([]);
+    const desktop = await load({ chunk: 'far-reach', tier: 'desktop' });
+    expect(desktop.gf.texMode()).toBe('img');
+    const picked = await load({ chunk: 'far-reach', tier: 'phone', tex: 'img' });
+    expect(picked.gf.texMode()).toBe('img');
+  });
   it('a first visit (no marker) loads images', async () => {
     await load();
     expect(gf.texModeWhy().mode).toBe('img');

@@ -55,7 +55,7 @@ export const FAN_LEAF_URL = '/assets/far-reach/fan/leaf.webp';
 export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone: '/assets/far-reach/sky/panorama.phone.webp' } as const;
 
 /** Sky Reach downloads its painted sky (look/sky.ts) and its generated models (C6, `world/meshes.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
-// The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's ASTC A/B, manifest.ts): images otherwise.
+// The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
   sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(skyMeshUrl), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(skyHdUrl(name)))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });

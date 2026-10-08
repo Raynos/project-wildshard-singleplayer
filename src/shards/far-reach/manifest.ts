@@ -39,9 +39,10 @@ export const SKY_REACH: ShardManifest = {
   species: ['driftRay', 'skyGoat', 'galeWisp', 'stormRoc'], encounters: ['far.roc'], spawns: [], fight: { telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
   // far.meadowBlades: blades per 8 m tile of the near meadow (world/meadow.ts)
-  // E435 sky-mem: the HD models' ASTC 4×4 (UASTC) phone set is an A/B for Jake, default off — the phone keeps the images
-  // under Auto, and only pause ▸ Settings ▸ Debug ▸ GPU textures = KTX2 loads the KTX2 GLBs (progress/memory/sky-reach/)
-  tiers: { phone: { 'far.meadowBlades': 1600, godRays: true, ao: false, textures: 'img' }, desktop: { 'far.meadowBlades': 3200, godRays: true, ao: false } },
+  // G253 (Jake, B): the phone loads the 22 HD models' ASTC 4×4 (UASTC) KTX2 GLBs under Auto from the first visit (−72 MB
+  // GL, progress/memory/sky-reach/). The desktop has no KTX2 set and keeps Auto's rule (G188); pause ▸ Settings ▸ Debug ▸
+  // GPU textures = Images stays the engine-wide fallback (the desktop's own files).
+  tiers: { phone: { 'far.meadowBlades': 1600, godRays: true, ao: false, textures: 'ktx2' }, desktop: { 'far.meadowBlades': 3200, godRays: true, ao: false } },
   ktx2: () => import('./ktx2.generated'),
   loot: { coins: true },
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./data/cues')).CUES },
