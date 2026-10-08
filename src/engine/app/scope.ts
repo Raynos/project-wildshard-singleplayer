@@ -86,6 +86,9 @@ export class Scope {
   }
 
   get disposed(): boolean { return this.closed; }
+  /** true only while `dispose()` runs this scope's cleanups (SF57: a lookup then is the teardown, not a new use) */
+  get disposing(): boolean { return this.tearing; }
+  private tearing = false;
   belongsTo(scope: Scope): boolean { return this === scope || (this.parent?.belongsTo(scope) ?? false); }
   get census(): ScopeCensus {
     const counts = emptyCensus();
@@ -252,9 +255,12 @@ export class Scope {
     const cleanups = [...this.cleanups].reverse();
     this.cleanups.clear();
     const errors: unknown[] = [];
-    for (const cleanup of cleanups) {
-      try { cleanup.run(); } catch (error) { errors.push(error); }
-    }
+    this.tearing = true;
+    try {
+      for (const cleanup of cleanups) {
+        try { cleanup.run(); } catch (error) { errors.push(error); }
+      }
+    } finally { this.tearing = false; }
     this.children.clear();
     this.owned.clear();
     this.detach?.();

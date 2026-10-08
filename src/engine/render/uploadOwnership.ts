@@ -28,6 +28,10 @@ export class UploadOwnership {
     if (!this.assets.isAcquired(resource)) {
       if (this.drawOwner !== null && !this.drawOwner.disposed) ownSceneResource(resource, this.drawOwner);
       else if (sceneResourceOwner(resource)?.disposed === true) {
+        // SF57: three's own dispose handlers look the resource up (deallocateMaterial / deallocateTexture call
+        // properties.get) while its owner is tearing it down. That lookup is not a use: adopting there made the page's
+        // level own every retired resident's materials and textures for the page's life.
+        if (sceneResourceOwner(resource)?.disposing === true) return;
         // A CPU-backed sampler can be uploaded again outside its former subtree. Its expired owner cannot
         // retire that new allocation; adopt it into this live renderer lifetime before the property lookup.
         ownSceneResource(resource, this.level);

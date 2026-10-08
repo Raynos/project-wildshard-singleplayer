@@ -116,3 +116,25 @@ it('retires a late upload after its prior owner has ended, without a delegated d
   expect(disposed).toHaveBeenCalledTimes(2); expect(uploads.resources().size).toBe(0);
   expect(Object.values(page.census).every(n => n === 0)).toBe(true);
 });
+
+it('SF57: a retiring owner\'s dispose-time lookup (three\'s deallocateMaterial) never hands the resource to the page', () => {
+  const page = new Scope('page'), assets = new AssetService(), uploads = new UploadOwnership(page, assets);
+  const renderer = legacyDouble<WebGLRenderer>({
+    properties: legacyDouble<WebGLRenderer['properties']>({ get: () => ({}) }),
+    renderBufferDirect: () => undefined,
+  });
+  uploads.attach(renderer);
+  for (let visit = 0; visit < 3; visit++) {
+    const resident = page.child(`resident:${visit}`), material = new MeshBasicMaterial();
+    ownSceneResource(material, resident);
+    // the renderer's own dispose handler reads the material's properties while the resident tears it down
+    const onDispose = (): void => { material.removeEventListener('dispose', onDispose); renderer.properties.get(material); };
+    material.addEventListener('dispose', onDispose);
+    uploads.observe(material);
+    resident.dispose();
+    expect(sceneResourceOwner(material)).toBe(resident); // not adopted by the page
+    expect(uploads.resources().has(material)).toBe(false);
+  }
+  expect(page.census.materials).toBe(0);
+  page.dispose();
+});

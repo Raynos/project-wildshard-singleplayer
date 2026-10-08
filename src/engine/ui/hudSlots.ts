@@ -39,6 +39,10 @@ export class HudSlots {
   private layer: HTMLElement | null = null;
   private status: HTMLElement | null = null;
   private readonly cancels = new WeakMap<HTMLElement, () => void>();
+  /** SF57: what each element registered on its owner (listeners, the removal); `discard` releases them, so an owner that
+   *  outlives the element (a page-scoped HUD adapter serving a resident shard) keeps none of its closures */
+  private readonly holds = new WeakMap<HTMLElement, (() => void)[]>();
+  private hold(el: HTMLElement, ...releases: (() => void)[]): void { this.holds.set(el, [...(this.holds.get(el) ?? []), ...releases]); }
   private pending: ((layer: HTMLElement, status: HTMLElement) => void)[] = [];
 
   private rowOrder(band: HudBand, order: number): number { return order + 1000 * (this.bands.indexOf(band) - DEFAULT_BANDS.indexOf(band)); }
@@ -51,7 +55,7 @@ export class HudSlots {
       this.placements.set(el, { band, order });
       this.statusRow(el, this.rowOrder(band, order), band !== 'band.2');
     } else (root ?? document.getElementById('hud') ?? document.body).append(el);
-    scope.capture('nodes', () => { this.discard(el); });
+    this.hold(el, scope.capture('nodes', () => { this.discard(el); }));
   }
 
   /** TouchControls, once its layer is in #hud */
@@ -72,7 +76,11 @@ export class HudSlots {
   onLayer(f: (layer: HTMLElement) => void): () => void { return this.run((layer) => { f(layer); }); }
 
   /** Cancel delayed placement as well as removing the node; parked snapshots cannot resurrect it. */
-  discard(el: HTMLElement): void { this.cancels.get(el)?.(); this.cancels.delete(el); this.placements.delete(el); this.owners.delete(el); el.remove(); }
+  discard(el: HTMLElement): void {
+    this.cancels.get(el)?.(); this.cancels.delete(el); this.placements.delete(el); this.owners.delete(el); el.remove();
+    const holds = this.holds.get(el) ?? []; this.holds.delete(el);
+    for (const release of holds) release();
+  }
 
   /** a row of the top-left status column; `order` from ROW (a shard's own rows go after the base's). `box: false` keeps
    *  the element's own box (the base's VITALS / ammo strips, game.css) instead of the shared row glass */
@@ -88,10 +96,10 @@ export class HudSlots {
     el.classList.add('ws-touch-tag');
     el.style.order = String(ROW.pill);
     // the layer cancels its touch events (TouchControls, E46), so there is no click: act on the pointer's release
-    scope.listen(el, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); });
-    scope.listen(el, 'pointerup', (e) => { e.stopPropagation(); onTap(); });
+    this.hold(el, scope.listen(el, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); }),
+      scope.listen(el, 'pointerup', (e) => { e.stopPropagation(); onTap(); }));
     this.cancels.set(el, this.run((_l, status) => { status.append(el); }));
-    scope.capture('nodes', () => { this.discard(el); });
+    this.hold(el, scope.capture('nodes', () => { this.discard(el); }));
   }
 
   /** a round control disc at `spot`, with the base's press plumbing; hidden until `.show` */
@@ -103,11 +111,11 @@ export class HudSlots {
     b.innerHTML = o.icon; // Platform-owned SVG; the authored label is a separate text node.
     const label = document.createElement('span'); label.textContent = o.label; b.append(label);
     b.setAttribute('draggable', 'false');
-    scope.listen(b, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); o.press?.(); });
+    this.hold(b, scope.listen(b, 'pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); o.press?.(); }));
     const end = (e: Event): void => { e.stopPropagation(); if (!b.classList.contains('down')) return; b.classList.remove('down'); o.release?.(); };
-    scope.listen(b, 'pointerup', end); scope.listen(b, 'pointercancel', end); scope.listen(b, 'pointerleave', end);
+    this.hold(b, scope.listen(b, 'pointerup', end), scope.listen(b, 'pointercancel', end), scope.listen(b, 'pointerleave', end));
     this.cancels.set(b, this.run((layer) => { layer.append(b); }));
-    scope.capture('nodes', () => { this.discard(b); });
+    this.hold(b, scope.capture('nodes', () => { this.discard(b); }));
     return b;
   }
 

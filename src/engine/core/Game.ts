@@ -236,7 +236,9 @@ export class Game {
   }
   registrationScope = this.engineScope;
   private readonly fixed: Record<FixedPhase, Phase> = { pre: 'fixed.pre', step: 'fixed.step', post: 'fixed.post' };
-  private readonly faultSystems = new Map<string, GameSystem<(dt: number, t: number) => void>>();
+  /** SF57: each live system's fault record, keyed by the app's own system row, so a retired world's systems (and the closures
+   *  they hold) go with their row; a re-registered id starts a fresh record. */
+  private readonly faultSystems = new WeakMap<object, GameSystem<(dt: number, t: number) => void>>();
   private anonymous = 0;
   /** E357 F2: list order is the execution order; observation never registers a system. */
   systemLabels(): Record<'input' | 'fixed.pre' | 'fixed.step' | 'fixed.post' | 'update' | 'late', string[]> {
@@ -579,9 +581,6 @@ export class Game {
     const id = label === 'main' ? 'main.frame' : label ?? `engine.core.callback.${String(this.anonymous++)}`;
     if (content) this.app.addContentSystem({ id, phase, run: fn, core }, scope);
     else this.app.addSystem({ id, phase, run: fn, core }, scope);
-    this.faultSystems.set(id, makeSystem(fn, id, core, id));
-    const faults = this.faultSystems;
-    scope.onDispose(() => { faults.delete(id); });
   }
   onUpdate(fn: (dt: number, t: number) => void, label?: string, core = false): void { this.register('update', fn, label, core); }
   /** One player-owned callback survives world-frame changes and ends with the original player scope. */
@@ -612,8 +611,8 @@ export class Game {
     const on = frameCost.on; // the dev fps panel's timing rows (src/engine/core/frameCost.ts): one boolean read while it is closed
     for (const spec of this.app.systemsByPhase()[phase]) {
       if (spec.when && !spec.when(this.app)) continue;
-      let s = this.faultSystems.get(spec.id);
-      if (!s) { s = makeSystem(spec.run, spec.id, spec.core ?? false, spec.id); this.faultSystems.set(spec.id, s); }
+      let s = this.faultSystems.get(spec);
+      if (!s) { s = makeSystem(spec.run, spec.id, spec.core ?? false, spec.id); this.faultSystems.set(spec, s); }
       if (!s.on) continue;
       const scheduledDt = this.app.scheduler.systemDt(spec, dt);
       if (scheduledDt === 0 && spec.tick && spec.tick !== 'always') continue;

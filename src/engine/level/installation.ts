@@ -1,6 +1,7 @@
 import { Group, type Object3D } from 'three';
 import type { App } from '../app/app';
 import type { Scope } from '../app/scope';
+import { ownedFacade, withOwner } from '../app/ownership';
 import { sceneResources } from '../app/sceneOwnership';
 import type { StepProgress } from '../boot/plan';
 import type { ContentRowMap, LevelAdapters, LevelContext } from './context';
@@ -28,7 +29,8 @@ export function createLevelInstallation(app: App, scope: Scope, adapters: LevelA
     const hud = (): NonNullable<LevelAdapters['hud']> => {
       live();
       if (adapters.hud === undefined) throw new Error('HUD service is not installed');
-      return adapters.hud;
+      // SF57: a verb called after an await still builds under this scope (its buttons, nodes and listeners end with it)
+      return ownedFacade(scope, adapters.hud);
     };
     const root = new Group();
     const freeTree = (tree: Object3D): void => {
@@ -67,8 +69,8 @@ export function createLevelInstallation(app: App, scope: Scope, adapters: LevelA
         },
       },
       inputContext: (def) => {
-        live(); if (adapters.inputContext === undefined) throw new Error('Input context service is not installed');
-        own(adapters.inputContext(def));
+        live(); const make = adapters.inputContext; if (make === undefined) throw new Error('Input context service is not installed');
+        own(withOwner(scope, () => make(def)));
       },
       hud: {
         widget: (band, el, order) => own(hud().widget(band, el, order)),
@@ -92,16 +94,16 @@ export function createLevelInstallation(app: App, scope: Scope, adapters: LevelA
         });
       },
       debugRow: (value) => {
-        live(); if (adapters.debugRow === undefined) throw new Error('Debug row service is not installed');
-        own(adapters.debugRow(value));
+        live(); const make = adapters.debugRow; if (make === undefined) throw new Error('Debug row service is not installed');
+        own(withOwner(scope, () => make(value)));
       },
       playground: (value) => {
-        live(); if (adapters.playground === undefined) throw new Error('Playground service is not installed');
-        own(adapters.playground(value));
+        live(); const make = adapters.playground; if (make === undefined) throw new Error('Playground service is not installed');
+        own(withOwner(scope, () => make(value)));
       },
       strings: (table) => { live(); app.levelRegistrations.strings(table, scope); },
       tiers: { knobs: (schema) => { live(); app.levelRegistrations.knobs(schema, scope); } },
-      debug: { expose: (name, value) => { live(); own(app.debug.scopedExpose(name, value)); } },
+      debug: { expose: (name, value) => { live(); own(withOwner(scope, () => app.debug.scopedExpose(name, value))); } },
     };
   return { context: ctx, openKit: () => { kitOpen = true; app.levelRegistrations.openKit(scope); },
     closeKit: () => { kitOpen = false; app.levelRegistrations.closeKit(scope); } };

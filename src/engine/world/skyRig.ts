@@ -50,6 +50,33 @@ export function shadowRig(phoneSplits: boolean): ShadowRig {
 }
 
 /**
+ * SF57: CSM's material → shader map, holding its materials weakly. CSM kept every material `setupMaterial` ever saw (a
+ * retired shard's, never disposed while the page owned them) and walked them all every frame for the page's life. The
+ * same calls CSM makes (set / get / has / delete / clear / forEach); a collected material drops out on the next walk.
+ */
+class WeakShaderMap<V> {
+  private readonly refs = new Map<WeakRef<object>, V>();
+  private readonly index = new WeakMap<object, WeakRef<object>>();
+  get size(): number { return this.refs.size; }
+  set(material: object, value: V): this {
+    let ref = this.index.get(material);
+    if (ref === undefined) { ref = new WeakRef(material); this.index.set(material, ref); }
+    this.refs.set(ref, value);
+    return this;
+  }
+  get(material: object): V | undefined { const ref = this.index.get(material); return ref === undefined ? undefined : this.refs.get(ref); }
+  has(material: object): boolean { const ref = this.index.get(material); return ref !== undefined && this.refs.has(ref); }
+  delete(material: object): boolean { const ref = this.index.get(material); return ref !== undefined && this.refs.delete(ref); }
+  clear(): void { this.refs.clear(); }
+  forEach(fn: (value: V, material: object, map: this) => void): void {
+    for (const [ref, value] of this.refs) {
+      const material = ref.deref();
+      if (material === undefined) this.refs.delete(ref); else fn(value, material, this);
+    }
+  }
+}
+
+/**
  * Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the
  * HDRI's brightest pixel, a visible sun disc (for god rays) and the ringed planet that
  * hangs over every the game level.
@@ -68,7 +95,7 @@ export class SkyRig {
   get planetDir(): THREE.Vector3 { return this.visual.planetDir; }
   /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clocks */
   hemi!: THREE.HemisphereLight;
-  private materials = new Set<THREE.Material>();
+  private materials = new WeakSet<THREE.Material>();
   /** the level this sky lights (handed to build()) */
   private level!: LevelSpec;
 
@@ -120,6 +147,8 @@ export class SkyRig {
       lightIntensity: S.sunIntensity, shadowBias: -0.00012, lightMargin: rig.margin, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
+    // SF57: the page's sky outlives every shard visit; its cascades hold each set-up material weakly (WeakShaderMap)
+    Reflect.set(this.csm, 'shaders', new WeakShaderMap());
     installCascadeCull(this.csm, this.camera); // each cascade draws only the casters its own slice can see the shadow of (PH-P2)
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
     // E138: the phone's split rig may filter its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps

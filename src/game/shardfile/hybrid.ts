@@ -1,4 +1,4 @@
-import { withOwner } from '@wildshard/engine/app/ownership';
+import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
@@ -370,17 +370,17 @@ export class HybridRuntimeSession {
       if (slots !== undefined && hooks !== undefined) active.retained = { slots, hooks };
       const context = hooks?.context ?? installation.context;
       const live = (): boolean => !scope.disposed && this.active === active && generation === this.generation;
-      await this.stage(scope, cell.instance, 'beforeWorld', () => withOwner(scope, () => installation.beforeWorld?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'beforeWorld', () => ownerTask(scope, () => installation.beforeWorld?.(context))); if (!live()) return false;
       const plugin = await this.stage(scope, cell.instance, 'constructor', () => withOwner(scope, () => new Plugin()));
       if (!live()) return false;
-      await this.stage(scope, cell.instance, 'world', () => withOwner(scope, () => plugin.world?.(context))); if (!live()) return false;
-      await this.stage(scope, cell.instance, 'afterWorld', () => withOwner(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'world', () => ownerTask(scope, () => plugin.world?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'afterWorld', () => ownerTask(scope, () => installation.afterWorld?.(context))); if (!live()) return false;
       installation.openKit();
-      try { await this.stage(scope, cell.instance, 'kit', () => withOwner(scope, () => plugin.kit?.(context))); } finally { installation.closeKit(); }
+      try { await this.stage(scope, cell.instance, 'kit', () => ownerTask(scope, () => plugin.kit?.(context))); } finally { installation.closeKit(); }
       if (!live()) return false;
-      await this.stage(scope, cell.instance, 'afterKit', () => withOwner(scope, () => installation.afterKit?.(context))); if (!live()) return false;
-      await this.stage(scope, cell.instance, 'play', () => withOwner(scope, () => plugin.play?.(context))); if (!live()) return false;
-      await this.stage(scope, cell.instance, 'afterPlay', () => withOwner(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'afterKit', () => ownerTask(scope, () => installation.afterKit?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'play', () => ownerTask(scope, () => plugin.play?.(context))); if (!live()) return false;
+      await this.stage(scope, cell.instance, 'afterPlay', () => ownerTask(scope, () => installation.afterPlay?.(context))); if (!live()) return false;
       active.ready = true;
       if (active.retained !== undefined) this.retained.set(cell.instance, active);
       return true;

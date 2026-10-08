@@ -276,8 +276,20 @@ scope owns callbacks and resources without importing browser globals.
 | `onOwnerDispose(fn)` | `fn` runs when the current owner disposes |
 | `asShell(fn)` | runs `fn` with no owner: what it builds belongs to the page, not a level |
 | `pageScope`, `resourceScope()` | the page's scope, which outlives every level; `resourceScope()` is the current owner or else `pageScope` |
+| `ownedFacade(scope, service)` | the service with every method call run under `withOwner(scope)` (one level deep, the real service as `this`) |
+| `ownerTask(scope, fn)` | `withOwner` for an async build; while its promise is pending, `ownerCensus()` counts ambient owner reads |
+| `ownerCensus()` | owned builds pending, ambient owner reads seen meanwhile and their newest stacks (the probe's `app.owners`) |
 
 A shard rarely needs these: every `ctx` verb already runs in its scope.
+
+**An owner lasts only until the first `await`** (SF57). `withOwner(scope, () => build())` owns the build's synchronous
+prefix; every continuation after an `await` runs under the ambient owner, which is the page's level scope. Browsers give
+no hook into native `await` continuations, so an asynchronous build carries its owner explicitly: the resident build path
+runs each hook with `ownerTask`, the level installation's adapters (HUD, input, debug rows, playgrounds) run under the
+installation scope, and a resident's play host gets the page HUD, menu and maps as `ownedFacade`s. A registration made
+through those after an `await` ends with the resident. Anything else that reads `currentOwner()` after an `await` (a bare
+`onOwnerDispose`, `resourceScope()`) still lands on the page; pass the build's scope instead, and read
+`ownerCensus().stacks` to find such a site.
 
 **Owned vs acquired.** `own` only what your level creates. A shared engine or kit asset comes through
 `app.assets.acquire(key)` and is released, never disposed (`AssetService`, `AssetCensus`, `AssetRecord`).

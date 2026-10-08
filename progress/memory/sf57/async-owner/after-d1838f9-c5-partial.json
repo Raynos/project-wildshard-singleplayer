@@ -1,0 +1,295 @@
+{
+  "base": "http://127.0.0.1:4411/",
+  "circuits": 4,
+  "samples": [
+    {
+      "cycle": 0,
+      "leg": "start",
+      "at": 1791491724.05,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 340,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at ii.draw (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7946)\n    at ii.place (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7090)\n    at Cl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:5025)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at r.untilOwnerOrRetire (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:529)\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:775)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at ii.draw (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7946)\n    at ii.place (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7090)\n    at Cl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:5025)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at ii.draw (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7946)\n    at ii.place (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7090)\n    at Cl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:5025)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at c (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:194)\n    at m (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:692)\n    at http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8548\n    at Go.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62726)\n    at pi.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62790)\n    at Nl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8470)\n    at P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:170085)\n    at async P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:180749)"
+        ]
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791491762.629,
+      "placement": {
+        "lives": 1,
+        "records": 44,
+        "groups": 56,
+        "cullers": 17
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 1018,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at ii.draw (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7946)\n    at ii.place (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7090)\n    at Cl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:5025)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at c (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:194)\n    at m (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:692)\n    at http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8548\n    at Go.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62726)\n    at pi.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62790)\n    at Nl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8470)\n    at P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:170085)\n    at async P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:180749)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at r.place (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4597)\n    at J.placeModels (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:5903)\n    at J.build (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4218)\n    at vg (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:346:71909)"
+        ]
+      },
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791491808.64,
+      "placement": {
+        "lives": 1,
+        "records": 65,
+        "groups": 74,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 1330,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at r.place (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4597)\n    at J.placeModels (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:5903)\n    at J.build (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4218)\n    at vg (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:346:71909)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38254\n    at async Object.register (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:87:10915)\n    at async kh (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:54388)\n    at async ag.world (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:74149)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at n (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9278)\n    at N (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:8272)\n    at http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:60416\n    at Object.bind (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:423:13381)\n    at ag.play (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:76559)"
+        ]
+      },
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791491851.947,
+      "placement": {
+        "lives": 0,
+        "records": 0,
+        "groups": 0,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 1330,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at r.place (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4597)\n    at J.placeModels (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:5903)\n    at J.build (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4218)\n    at vg (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:346:71909)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38254\n    at async Object.register (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:87:10915)\n    at async kh (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:54388)\n    at async ag.world (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:74149)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at n (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9278)\n    at N (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:8272)\n    at http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:60416\n    at Object.bind (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:423:13381)\n    at ag.play (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:76559)"
+        ]
+      },
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791491898.38,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 1682,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at r.place (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4597)\n    at J.placeModels (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:5903)\n    at J.build (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4218)\n    at vg (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:346:71909)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38254\n    at async Object.register (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:87:10915)\n    at async kh (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:54388)\n    at async ag.world (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:74149)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at n (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9278)\n    at N (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:8272)\n    at http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:60416\n    at Object.bind (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:423:13381)\n    at ag.play (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:76559)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at c (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:194)\n    at m (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:692)\n    at http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8548\n    at Go.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62726)\n    at pi.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62790)\n    at Nl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8470)\n    at P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:170085)\n    at async P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:180749)"
+        ]
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "settled",
+      "at": 1791491903.383,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 1682,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at r.place (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4597)\n    at J.placeModels (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:5903)\n    at J.build (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4218)\n    at vg (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:346:71909)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38254\n    at async Object.register (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:87:10915)\n    at async kh (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:54388)\n    at async ag.world (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:74149)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at n (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9278)\n    at N (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:8272)\n    at http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:60416\n    at Object.bind (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:423:13381)\n    at ag.play (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:76559)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at c (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:194)\n    at m (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:692)\n    at http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8548\n    at Go.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62726)\n    at pi.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62790)\n    at Nl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8470)\n    at P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:170085)\n    at async P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:180749)"
+        ]
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791491947.231,
+      "placement": {
+        "lives": 1,
+        "records": 44,
+        "groups": 56,
+        "cullers": 17
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 2354,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at c (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:194)\n    at m (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:692)\n    at http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8548\n    at Go.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62726)\n    at pi.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62790)\n    at Nl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8470)\n    at P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:170085)\n    at async P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:180749)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at Zd (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:333:15272)\n    at async http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:455:10879\n    at async z_.world (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:455:10751)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674"
+        ]
+      },
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791491993.343,
+      "placement": {
+        "lives": 1,
+        "records": 65,
+        "groups": 74,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 2661,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at Zd (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:333:15272)\n    at async http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:455:10879\n    at async z_.world (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:455:10751)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at n (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9278)\n    at Object.system (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9541)\n    at kh (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:60937)\n    at async ag.world (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:74149)"
+        ]
+      },
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791492036.77,
+      "placement": {
+        "lives": 0,
+        "records": 0,
+        "groups": 0,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 2661,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at Zd (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:333:15272)\n    at async http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:455:10879\n    at async z_.world (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:455:10751)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at _ (http://127.0.0.1:4411/assets/devMode-ClKulvU5.js:1:189)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1189\n    at new Promise (<anonymous>)\n    at m (http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:1173)\n    at http://127.0.0.1:4411/assets/compressedUpload-B1mtp3YG.js:1:3674",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at n (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9278)\n    at Object.system (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9541)\n    at kh (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:60937)\n    at async ag.world (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:74149)"
+        ]
+      },
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    }
+  ],
+  "heap": [
+    {
+      "cycle": 0,
+      "usedMB": 71.490424,
+      "totalMB": 74.46528,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 340,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at ii.draw (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7946)\n    at ii.place (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7090)\n    at Cl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:5025)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at r.untilOwnerOrRetire (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:529)\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:775)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at ii.draw (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7946)\n    at ii.place (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7090)\n    at Cl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:5025)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at ii.draw (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7946)\n    at ii.place (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:120:7090)\n    at Cl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:5025)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at c (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:194)\n    at m (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:692)\n    at http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8548\n    at Go.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62726)\n    at pi.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62790)\n    at Nl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8470)\n    at P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:170085)\n    at async P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:180749)"
+        ]
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "usedMB": 125.141404,
+      "totalMB": 132.431872,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "owners": {
+        "pendingTasks": 0,
+        "strayReads": 1682,
+        "stacks": [
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at y (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:37536)\n    at ot (http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38494)\n    at r.place (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4597)\n    at J.placeModels (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:5903)\n    at J.build (http://127.0.0.1:4411/assets/Interactables-BirTMAnw.js:1:4218)\n    at vg (http://127.0.0.1:4411/assets/plugin-CZk_Vv45.js:346:71909)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at http://127.0.0.1:4411/assets/session-B6QJLqGF.js:335:78252\n    at r.add (http://127.0.0.1:4411/assets/registry-CQK4xNEF.js:1:890)\n    at http://127.0.0.1:4411/assets/place-B9B5Ky5N.js:1:38254\n    at async Object.register (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:87:10915)\n    at async kh (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:54388)\n    at async ag.world (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:74149)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at n (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:9278)\n    at N (http://127.0.0.1:4411/assets/retainedHooks-BXNOcvoC.js:17:8272)\n    at http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:60416\n    at Object.bind (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:423:13381)\n    at ag.play (http://127.0.0.1:4411/assets/plugin-DazblHx2.js:546:76559)",
+          "Error: ambient owner read during an owned async build\n    at ye (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2968)\n    at pe (http://127.0.0.1:4411/assets/runtime-C3JVv_tW.js:1:2112)\n    at c (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:194)\n    at m (http://127.0.0.1:4411/assets/gpuOnly-0XzkubY6.js:1:692)\n    at http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8548\n    at Go.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62726)\n    at pi.traverse (http://127.0.0.1:4411/assets/three.module-0SoK2Fk7.js:1:62790)\n    at Nl (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:8470)\n    at P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:170085)\n    at async P_.world (http://127.0.0.1:4411/assets/plugin-BJkDIPqf.js:349:180749)"
+        ]
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    }
+  ],
+  "errors": [],
+  "version": {
+    "build": "d1838f9-muzzvnf5",
+    "time": "2026-10-08T20:34:35.428Z"
+  },
+  "route": [
+    "driftwood-isle-to-pine-hollow",
+    "pine-hollow-to-nalati-grasslands",
+    "nalati-grasslands-to-template-2",
+    "template-2-to-driftwood-isle"
+  ],
+  "failure": "page.evaluate: Error: Grid floor route template-2-to-driftwood-isle timed out\n    at eval (eval at evaluate (:311:30), <anonymous>:36:70)\n    at runFloorGridRoute (/Users/raynos/projects/games/wildshard-singleplayer/scripts/frame-floor-grid.mjs:58:15)\n    at async file:///private/tmp/claude-501/sp-builders/async-owner/tools/drive.mjs:87:23"
+}

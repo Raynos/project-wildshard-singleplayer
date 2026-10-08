@@ -2,6 +2,7 @@ import { app } from '../app/runtime';
 import type { UiHandle } from './layers';
 import type { Scope } from '../app/scope';
 import { uiScope, mountUi } from './ownership';
+import { currentOwner } from '../app/ownership';
 import { engineString } from '../strings';
 /**
  * The full map — the MAP tab of the in-game menu (src/engine/ui/Menu.ts): tap the minimap or press M.
@@ -119,7 +120,13 @@ export class FullMap {
   get isOpen(): boolean { return this.open; }
   /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open.
    *  (`declutter` is kept for its callers: every label is laid out apart now, E130 — NALATI-MERGE F11's elder included) */
-  setPois(source: () => MapPoi[], opts: { declutter?: boolean; tally?: boolean } = {}): void { this.poiSource = source; this.tally = opts.tally === true; }
+  setPois(source: () => MapPoi[], opts: { declutter?: boolean; tally?: boolean } = {}): void {
+    this.poiSource = source; this.tally = opts.tally === true;
+    // SF57: a shard's list (and the world it closes over) goes with its owner — a resident's, through its ownedFacade —
+    // and a replaced list's hold is dropped at once, so no owner keeps more than the latest
+    this.forgetPois(); this.forgetPois = holdUntilOwnerDispose(() => { if (this.poiSource === source) { this.poiSource = null; this.tally = false; } });
+  }
+  private forgetPois = (): void => undefined;
   /** Quest overlays keep the base places and tally intact. */
   addPois(source: () => MapPoi[]): () => void {
     this.poiSources.add(source);
@@ -138,7 +145,11 @@ export class FullMap {
   setExtras(source: (() => MapExtras | null) | null): void { this.extrasSource = source; }
   private extrasSource: (() => MapExtras | null) | null = null;
   /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
-  setQuest(source: () => MapQuest | null): void { this.questSource = source; }
+  setQuest(source: () => MapQuest | null): void {
+    this.questSource = source;
+    this.forgetQuest(); this.forgetQuest = holdUntilOwnerDispose(() => { if (this.questSource === source) this.questSource = null; });
+  }
+  private forgetQuest = (): void => undefined;
   /** Scoped cards may retire in any order without resurrecting a disposed quest. */
   addQuest(source: () => MapQuest | null): () => void {
     this.questSources.push(source);
@@ -509,3 +520,8 @@ function diamond(ctx: CanvasRenderingContext2D, x: number, y: number, r: number)
 interface Box { x0: number; y0: number; x1: number; y1: number }
 /** the PLACES tally's plate (a Box) and how its letter-spaced text is set */
 interface Tally extends Box { text: string; fs: number; sp: number; padX: number }
+
+/** Run `release` when the current owner disposes; the returned function drops that hold early (a superseded source). */
+function holdUntilOwnerDispose(release: () => void): () => void {
+  return currentOwner()?.capture('disposers', release) ?? ((): void => undefined);
+}

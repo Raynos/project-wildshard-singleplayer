@@ -1,0 +1,409 @@
+{
+  "base": "http://127.0.0.1:4400/",
+  "circuits": 4,
+  "samples": [
+    {
+      "cycle": 0,
+      "leg": "start",
+      "at": 1791487627.631,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791487665.576,
+      "placement": {
+        "lives": 1,
+        "records": 44,
+        "groups": 56,
+        "cullers": 17
+      },
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791487710.22,
+      "placement": {
+        "lives": 1,
+        "records": 65,
+        "groups": 74,
+        "cullers": 0
+      },
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791487752.916,
+      "placement": {
+        "lives": 0,
+        "records": 0,
+        "groups": 0,
+        "cullers": 0
+      },
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791487797.853,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "leg": "settled",
+      "at": 1791487802.855,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791487847.544,
+      "placement": {
+        "lives": 1,
+        "records": 44,
+        "groups": 56,
+        "cullers": 17
+      },
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791487893.001,
+      "placement": {
+        "lives": 1,
+        "records": 65,
+        "groups": 74,
+        "cullers": 0
+      },
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791487936.687,
+      "placement": {
+        "lives": 0,
+        "records": 0,
+        "groups": 0,
+        "cullers": 0
+      },
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791487981.465,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 2,
+      "leg": "settled",
+      "at": 1791487986.466,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791488025.163,
+      "placement": {
+        "lives": 1,
+        "records": 44,
+        "groups": 56,
+        "cullers": 17
+      },
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791488069.855,
+      "placement": {
+        "lives": 1,
+        "records": 65,
+        "groups": 74,
+        "cullers": 0
+      },
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791488112.581,
+      "placement": {
+        "lives": 0,
+        "records": 0,
+        "groups": 0,
+        "cullers": 0
+      },
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791488157.084,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 3,
+      "leg": "settled",
+      "at": 1791488162.086,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "driftwood-isle-to-pine-hollow",
+      "at": 1791488208.218,
+      "placement": {
+        "lives": 1,
+        "records": 44,
+        "groups": 56,
+        "cullers": 17
+      },
+      "current": "pine-hollow",
+      "residents": [
+        "pine-hollow"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "pine-hollow-to-nalati-grasslands",
+      "at": 1791488252.788,
+      "placement": {
+        "lives": 1,
+        "records": 65,
+        "groups": 74,
+        "cullers": 0
+      },
+      "current": "nalati-grasslands",
+      "residents": [
+        "nalati-grasslands"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "nalati-grasslands-to-template-2",
+      "at": 1791488296.346,
+      "placement": {
+        "lives": 0,
+        "records": 0,
+        "groups": 0,
+        "cullers": 0
+      },
+      "current": "template-2",
+      "residents": [
+        "template-2"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "template-2-to-driftwood-isle",
+      "at": 1791488342.459,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 4,
+      "leg": "settled",
+      "at": 1791488347.462,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    }
+  ],
+  "heap": [
+    {
+      "cycle": 0,
+      "usedMB": 70.200528,
+      "totalMB": 73.416704,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 1,
+      "usedMB": 178.304,
+      "totalMB": 186.433536,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 2,
+      "usedMB": 222.534112,
+      "totalMB": 229.998592,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 3,
+      "usedMB": 263.043292,
+      "totalMB": 274.481152,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    },
+    {
+      "cycle": 4,
+      "usedMB": 303.364812,
+      "totalMB": 312.049664,
+      "placement": {
+        "lives": 1,
+        "records": 56,
+        "groups": 61,
+        "cullers": 0
+      },
+      "current": "driftwood-isle",
+      "residents": [
+        "driftwood-isle"
+      ]
+    }
+  ],
+  "errors": [],
+  "version": {
+    "build": "e71d2a9-muzxggbd",
+    "time": "2026-10-08T19:26:34.977Z"
+  },
+  "route": [
+    "driftwood-isle-to-pine-hollow",
+    "pine-hollow-to-nalati-grasslands",
+    "nalati-grasslands-to-template-2",
+    "template-2-to-driftwood-isle"
+  ]
+}

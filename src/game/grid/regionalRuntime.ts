@@ -1,7 +1,7 @@
 import { Object3D } from 'three';
 import { ownSceneTree } from '@wildshard/engine/app/sceneOwnership';
 import type { Scope } from '@wildshard/engine/app/scope';
-import { withOwner } from '@wildshard/engine/app/ownership';
+import { ownedFacade, ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import { authoredTargets } from '@wildshard/engine/combat/targets';
@@ -205,13 +205,13 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               const left = (): boolean => owner.disposed;
               const regional = await foundation.afterKit(entered, world);
               if (left()) throw new Error('Regional runtime left while building creatures');
-              for (const animal of regional.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
+              for (const animal of regional.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
               runtime.hooks.animalsReady?.(regional.animals);
               app.effects?.registerDefinitions(app.levelRegistrations.list('effect'));
               const targets = authoredTargets(app.events, regional.animals, () => null);
               const build = runtime.buildEquipment;
               if (build === undefined) throw new Error('Regional kit did not install its equipment factory');
-              const kit = await withOwner(owner, () => build(targets, request.page.play.nolock));
+              const kit = await ownerTask(owner, () => build(targets, request.page.play.nolock));
               if (left()) {
                 for (const weapon of [kit.primary, kit.rifle, kit.secondary, ...(kit.extras ?? [])]) weapon?.dispose();
                 throw new Error('Regional runtime left while building equipment');
@@ -230,7 +230,14 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
                 kit.install?.(weapons); app.registerEquipment(weapons, world.game.levelScope);
                 const progress = new Progress(request.cell.instance), inventory = new Inventory(request.cell.instance), owned = new Owned(request.cell.instance);
                 const skins = new SkinLocker(request.cell.instance, skinRows);
-                localPlay = { ...request.page.play, animals: regional.animals, weapons, primary: kit.primary,
+                // SF57: the page's maps reach this resident's hooks through owner facades, so what its play registers on
+                // them after an await (a quest card, its places, its marks) ends with the resident, not the page. (Not the
+                // HUD or menu: other services key on their identity, e.g. bag tabs by menu.)
+                const page = request.page.play;
+                const residentOwned = <S>(service: S): S => (typeof service === 'object' && service !== null ? ownedFacade(owner, service) : service);
+                localPlay = { ...page, fullMap: residentOwned(page.fullMap),
+                  ...(page.minimap === undefined ? {} : { minimap: residentOwned(page.minimap) }),
+                  animals: regional.animals, weapons, primary: kit.primary,
                   rifle: kit.rifle, secondary: kit.secondary, progress, inventory, owned, skins,
                   wearSkin: skin => { regional.wearSkin(weapons, skin); skins.wear(skin.weapon, skin.id); },
                   disposeRifleDrop: () => { runtime.hooks.disposeRifleDrop?.(); } };
@@ -253,7 +260,7 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
               ports.continuation?.restore(localPlay.animals);
               const equipment = request.page.equipment, weapons = localPlay.weapons;
               if (equipment !== undefined) installEnteredRuntimeService(entered, entry => { equipment.bind(weapons, entry); });
-              for (const animal of localPlay.animals.animals) animal.motionConstraint = gridCreatureConstraint(() => host.physics, animal.dims.bodyRadius * animal.scale);
+              for (const animal of localPlay.animals.animals) animal.motionConstraint = hostConstraint(host, animal.dims.bodyRadius * animal.scale);
               // G217 stays up until the actual page composer has warmed this newly entered world and kit.
               await request.page.world.game.warmEnteredFrame(owner);
               restored = true;
@@ -275,4 +282,11 @@ export function createRegionalRuntimeFactory(ports: RegionalRuntimeFactoryPorts)
       throw error;
     }
   };
+}
+
+/** SF57: a creature's border constraint built outside the admission closure. V8 gives every closure of one scope that
+ *  scope's single context, so an inline `() => host.physics` there held the whole runtime (its hooks, the shard's world)
+ *  for as long as any creature kept its constraint. */
+function hostConstraint(host: { readonly physics: Parameters<typeof gridCreatureConstraint>[0] extends () => infer P ? P : never }, radius: number): ReturnType<typeof gridCreatureConstraint> {
+  return gridCreatureConstraint(() => host.physics, radius);
 }
