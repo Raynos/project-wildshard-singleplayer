@@ -33,7 +33,7 @@ function fixture(state: AudioContextState = 'running') {
   const gains: Node[] = [], sources: Node[] = [], scope = new Scope('region');
   const ctx = Object.assign(new EventTarget(), {
     state, currentTime: 10,
-    createGain: (): GainNode => { const n = new Node(); gains.push(n); return n as GainNode; },
+    createGain: (): GainNode => { const n = new Node(); gains.push(n); return n; },
     createBufferSource: (): AudioBufferSourceNode => { const n = new Node(); sources.push(n); return n as AudioBufferSourceNode; },
   });
   const audio: SlotAudio = {
