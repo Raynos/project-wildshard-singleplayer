@@ -98,7 +98,9 @@ async function adoptBakedSets(sets: readonly SetName[]): Promise<SetName[]> {
     const [map, normalMap, armMap] = await Promise.all(planes.map((plane) => ktx2Texture(viewmodelBakeUrl(slug, name, plane)).catch(() => null)));
     if (!map || !normalMap || !armMap) return;
     const maps = { map: viewmodelSampling(map, true), normalMap: viewmodelSampling(normalMap, false), armMap: viewmodelSampling(armMap, false) };
-    await Promise.all(Object.values(maps).map(texture => prepareCompressedTexture(texture)));
+    // Consumers still finalize their sampler (makeBoltAtlas changes Repeat to Clamp).
+    // The material warm-up owns the final fence and mip retirement.
+    await Promise.all(Object.values(maps).map(texture => prepareCompressedTexture(texture, undefined, () => true, false)));
     bakedSets.set(name, maps);
   }));
   return sets.filter((name) => !bakedSets.has(name));

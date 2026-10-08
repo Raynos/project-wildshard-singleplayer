@@ -4,6 +4,10 @@ import * as ktx2 from '../src/engine/core/ktx2';
 import { loadTexture } from '../src/engine/core/assets';
 import { compressedUploadsActive, uploadCompressedTexture } from '../src/engine/render/compressedUpload';
 import { compressedTextureKey } from '../src/engine/render/compressedMipmaps';
+import { startViewmodelTextures, viewmodelTexturesReady, makeBoltAtlas } from '../src/engine/combat/view/ranged';
+import manifest from '../src/shards/pine-hollow/manifest';
+import { toLevelSpec } from '../src/game/shard/spec';
+import * as selection from '../src/engine/level/selection';
 import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
 
 const texture = (array = false): THREE.CompressedTexture => {
@@ -172,4 +176,26 @@ it('propagates a late upload failure instead of publishing an unfenced texture',
   vi.spyOn(ktx2, 'ktx2Texture').mockResolvedValue(texture());
   vi.spyOn(ktx2, 'prepareCompressedTexture').mockRejectedValue(new Error('Graphics error 1282'));
   await expect(loadTexture('/fixture.ktx2')).rejects.toThrow('Graphics error 1282');
+});
+
+it('keeps the real baked bolt preload provisional until makeBoltAtlas finalizes Clamp wrapping', async () => {
+  await fixture(async (renderer, events) => {
+    vi.spyOn(selection, 'activeLevel').mockReturnValue(toLevelSpec(manifest));
+    vi.spyOn(ktx2, 'ktx2Texture').mockImplementation(() => Promise.resolve(ktx2.releaseAfterUpload(texture())));
+    const prepare = vi.spyOn(ktx2, 'prepareCompressedTexture').mockImplementation(async <T extends THREE.Texture>(value: T,
+      _renderer?: THREE.WebGLRenderer | null, current?: () => boolean, final?: boolean): Promise<T> => {
+      await uploadCompressedTexture(renderer, value, current, final); return value;
+    });
+    startViewmodelTextures(['bolt']); await viewmodelTexturesReady();
+    expect(prepare).toHaveBeenCalledTimes(3);
+    for (const call of prepare.mock.calls) expect(call[3]).toBe(false);
+    const atlas = makeBoltAtlas();
+    expect(atlas.map.wrapS).toBe(THREE.ClampToEdgeWrapping);
+    expect(atlas.map.wrapT).toBe(THREE.ClampToEdgeWrapping);
+    expect(atlas.map.mipmaps).toHaveLength(1);
+    const maps = [atlas.map, atlas.normalMap, atlas.armMap];
+    await Promise.all(maps.map(value => uploadCompressedTexture(renderer, value)));
+    expect(events.filter(event => event.startsWith('upload:'))).toHaveLength(4);
+    for (const value of maps) expect(value.mipmaps).toEqual([]);
+  });
 });
