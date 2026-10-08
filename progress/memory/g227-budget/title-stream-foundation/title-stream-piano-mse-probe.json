@@ -1,0 +1,17 @@
+{
+  "protocol": "Mac WebKit phone-tier media-source capture, silent worklet output. Diagnostic only; no production change and no native saving credit.",
+  "genre": "piano",
+  "mode": "mse",
+  "spec": {
+    "full": "title-3d1f713a.m4a",
+    "bpm": 75.666,
+    "beatsPerBar": 4,
+    "loopStart": 27.3995,
+    "loopEnd": 59.118,
+    "duration": 62.2933
+  },
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "failure": "Error: page.evaluate: TypeError: Type error",
+  "closed": true
+}

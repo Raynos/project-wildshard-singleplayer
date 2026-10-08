@@ -1,0 +1,52 @@
+{
+  "protocol": "OfflineAudioContext, same Float32 PCM / original native loop versus bounded native sources with guard samples and a compact loop bridge. No media seek. No native saving claim.",
+  "cases": [
+    {
+      "rate": 48000,
+      "sourceRate": 48000,
+      "loopStart": 27.3995,
+      "loopEnd": 59.118,
+      "fractional": false,
+      "comparedSamples": 384000,
+      "largestWindowFrames": 24064,
+      "windows": 9,
+      "maxAbs": 0,
+      "rms": 0,
+      "exact": true
+    },
+    {
+      "rate": 44100,
+      "sourceRate": 48000,
+      "loopStart": 27.3995,
+      "loopEnd": 59.118,
+      "fractional": false,
+      "comparedSamples": 352800,
+      "largestWindowFrames": 24064,
+      "windows": 9,
+      "maxAbs": 0.006496921181678772,
+      "rms": 0.000010944689856982978,
+      "firstDifference": {
+        "frame": 4510,
+        "seconds": 0.10226757369614513,
+        "a": 0.000001929250174725894,
+        "b": 0.0000019292499473522184
+      },
+      "exact": false
+    },
+    {
+      "rate": 96000,
+      "sourceRate": 48000,
+      "loopStart": 27.3995,
+      "loopEnd": 59.118,
+      "fractional": false,
+      "comparedSamples": 768000,
+      "largestWindowFrames": 24064,
+      "windows": 9,
+      "maxAbs": 0,
+      "rms": 0,
+      "exact": true
+    }
+  ],
+  "errors": [],
+  "closed": true
+}

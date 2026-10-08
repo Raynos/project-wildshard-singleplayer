@@ -1,0 +1,28 @@
+{
+  "protocol": "Mac WebKit phone-tier, native AAC AudioDecoder versus current OfflineAudioContext.decodeAudioData. Whole reference exists only in this diagnostic; candidate output is consumed/closed per callback with at most8 compressed packets queued.",
+  "genre": "folk",
+  "spec": {
+    "full": "title-50001128.m4a",
+    "bpm": 104.908,
+    "beatsPerBar": 4,
+    "loopStart": 15.6735,
+    "loopEnd": 63.7156,
+    "duration": 66.0053
+  },
+  "sourceSha256": "e4a2970e875b93c0dc6a4f962bbe602c59be4f9204df90ca9124391d17f9f879",
+  "errors": [],
+  "result": {
+    "referenceFrames": 3168243,
+    "channels": 2,
+    "sampleRate": 48000,
+    "skippedPrimingFrames": 1024,
+    "outputFrames": 3169280,
+    "comparedSamples": 6336486,
+    "maxOutputFrames": 1024,
+    "maxQueued": 8,
+    "maxAbs": 0,
+    "rms": 0,
+    "exact": true
+  },
+  "closed": true
+}

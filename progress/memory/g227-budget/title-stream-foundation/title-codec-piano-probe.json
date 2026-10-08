@@ -1,0 +1,28 @@
+{
+  "protocol": "Mac WebKit phone-tier, native AAC AudioDecoder versus current OfflineAudioContext.decodeAudioData. Whole reference exists only in this diagnostic; candidate output is consumed/closed per callback with at most8 compressed packets queued.",
+  "genre": "piano",
+  "spec": {
+    "full": "title-3d1f713a.m4a",
+    "bpm": 75.666,
+    "beatsPerBar": 4,
+    "loopStart": 27.3995,
+    "loopEnd": 59.118,
+    "duration": 62.2933
+  },
+  "sourceSha256": "2bffc07f13ebebd370f28a89a7024a350fe397a64e5a474eb00da98369c15311",
+  "errors": [],
+  "result": {
+    "referenceFrames": 2990080,
+    "channels": 2,
+    "sampleRate": 48000,
+    "skippedPrimingFrames": 1024,
+    "outputFrames": 2991104,
+    "comparedSamples": 5980160,
+    "maxOutputFrames": 1024,
+    "maxQueued": 8,
+    "maxAbs": 0,
+    "rms": 0,
+    "exact": true
+  },
+  "closed": true
+}

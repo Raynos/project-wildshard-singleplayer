@@ -1,0 +1,121 @@
+{
+  "protocol": "OfflineAudioContext, same Float32 PCM / original native loop versus bounded native sources with guard samples and a compact loop bridge. No media seek. No native saving claim.",
+  "cases": [
+    {
+      "rate": 48000,
+      "sourceRate": 48000,
+      "loopStart": 1.25,
+      "loopEnd": 3.25,
+      "fractional": false,
+      "comparedSamples": 960000,
+      "largestWindowFrames": 24064,
+      "windows": 25,
+      "maxAbs": 4.656612873077393e-10,
+      "rms": 2.822080757893357e-12,
+      "firstDifference": {
+        "frame": 160848,
+        "seconds": 3.351,
+        "a": 0.0010826365323737264,
+        "b": 0.0010826364159584045
+      },
+      "exact": false
+    },
+    {
+      "rate": 48000,
+      "sourceRate": 48000,
+      "loopStart": 1.12345,
+      "loopEnd": 3.23456,
+      "fractional": true,
+      "comparedSamples": 960000,
+      "largestWindowFrames": 24065,
+      "windows": 24,
+      "maxAbs": 0.0000020372681319713593,
+      "rms": 8.097025382280129e-7,
+      "firstDifference": {
+        "frame": 154059,
+        "seconds": 3.2095625,
+        "a": 0.17599159479141235,
+        "b": 0.17599143087863922
+      },
+      "exact": false
+    },
+    {
+      "rate": 44100,
+      "sourceRate": 48000,
+      "loopStart": 1.25,
+      "loopEnd": 3.25,
+      "fractional": false,
+      "comparedSamples": 882000,
+      "largestWindowFrames": 24064,
+      "windows": 25,
+      "maxAbs": 0.004720509052276611,
+      "rms": 0.00000823678502058201,
+      "firstDifference": {
+        "frame": 26686,
+        "seconds": 0.605124716553288,
+        "a": -0.0002104527229676023,
+        "b": -0.00021045251924078912
+      },
+      "exact": false
+    },
+    {
+      "rate": 44100,
+      "sourceRate": 48000,
+      "loopStart": 1.12345,
+      "loopEnd": 3.23456,
+      "fractional": true,
+      "comparedSamples": 882000,
+      "largestWindowFrames": 24065,
+      "windows": 24,
+      "maxAbs": 0.0000020400620996952057,
+      "rms": 8.109661273118501e-7,
+      "firstDifference": {
+        "frame": 26686,
+        "seconds": 0.605124716553288,
+        "a": -0.0002104527229676023,
+        "b": -0.00021045251924078912
+      },
+      "exact": false
+    },
+    {
+      "rate": 96000,
+      "sourceRate": 48000,
+      "loopStart": 1.25,
+      "loopEnd": 3.25,
+      "fractional": false,
+      "comparedSamples": 1920000,
+      "largestWindowFrames": 24064,
+      "windows": 25,
+      "maxAbs": 4.656612873077393e-10,
+      "rms": 1.995512440962464e-12,
+      "firstDifference": {
+        "frame": 321696,
+        "seconds": 3.351,
+        "a": 0.0010826365323737264,
+        "b": 0.0010826364159584045
+      },
+      "exact": false
+    },
+    {
+      "rate": 96000,
+      "sourceRate": 48000,
+      "loopStart": 1.12345,
+      "loopEnd": 3.23456,
+      "fractional": true,
+      "comparedSamples": 1920000,
+      "largestWindowFrames": 24065,
+      "windows": 24,
+      "maxAbs": 0.0000020372681319713593,
+      "rms": 8.096932648876073e-7,
+      "firstDifference": {
+        "frame": 308118,
+        "seconds": 3.2095625,
+        "a": 0.17599159479141235,
+        "b": 0.17599143087863922
+      },
+      "exact": false
+    }
+  ],
+  "errors": [],
+  "closed": true
+}
