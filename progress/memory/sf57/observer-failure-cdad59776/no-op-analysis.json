@@ -1,0 +1,17 @@
+{
+  "raw": 1971986,
+  "retained": 9557,
+  "suppressedLabels": 1962346,
+  "suppressedAllocations": 83,
+  "byOperation": {
+    "begin": 4,
+    "end": 3,
+    "label": 1964611,
+    "allocation": 7365,
+    "cycle": 2,
+    "stop": 1
+  },
+  "retainedFraction": 0.004846383290753585,
+  "observerFix": "4f6bf8d21",
+  "method": "Streaming scalar state comparison by document/resource ID, identical to the journal no-op filter. Raw archives unchanged; this is an event-volume analysis, not a successful regrade or new live run."
+}

@@ -7,3 +7,5 @@ The journal recorded 1,971,986 events (406,406,137 raw bytes), predominantly rep
 Sampling failed with 12 missing GL joins, zero complete laps, no unload census and no calibration windows after a complete lap. The printed scalar peaks and vacuous empty calibration result are not a cap pass, a memory saving or a WebKit retention attribution. Fresh per-sample native highs were selected; phase maxima stay separate.
 
 Five raw files are preserved as Brotli archives with decompressed SHA-256 and byte lengths in summary.json; all were verified before scratch cleanup. Native sampler, Inspector/proxy, Safari and the owned Simulator closed; sim-lane reported 0/1. The borrowed preview remains with sp-x5. No renderer code or count exemption was changed.
+
+The follow-up scalar filter in 4f6bf8d21 was applied to this archived trace as a volume analysis: 9,557 of 1,971,986 events remain; 1,962,346 unchanged labels and 83 unchanged allocations are suppressed (99.515% fewer records). `no-op-analysis.json` records the counts. This does not change the raw trace, repair its document fence, or turn the rejected run into a pass. A fresh live rehearsal is still required.
