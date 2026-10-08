@@ -43,7 +43,7 @@ it('shows a different idea at each entry of a plot, a billboard and a demo, and 
     expect(new Set(PLOT_SIDES.map((side) => ideas[side].demo)).size).toBe(4);
     for (const side of PLOT_SIDES) expect(ideas[side].demo).not.toBe(ideas[side].billboard);
     const g = openPlotGeometry(ordinal);
-    expect(g.pictures.indices.length / 6).toBe(4); // one billboard per entry
+    expect(g.pictures.indices.length / 6).toBe(4 * 2); // one billboard per entry, a picture on both faces (playtest round 2)
     expect(g.text.indices.length / 6).toBe(4 + 4 + 4); // a survey sign and a demo label per entry, a plaque on each plinth face
     expect(g.holoCards.indices.length / 6).toBe(PLOT_IDEAS.length * 2); // the centrepiece's ring of cards, both faces
     expect(g.solid.positions.every(Number.isFinite)).toBe(true);

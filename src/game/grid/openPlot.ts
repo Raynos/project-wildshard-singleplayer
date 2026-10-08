@@ -26,6 +26,8 @@ import { FACE, PICTURE_ATLAS, PLAQUE_RECT, PLOT_IDEAS, SIGN_RECT, TEXT_ATLAS, fa
 /** A plot farther than this (m, from the feet to its square) is hidden whole; its beacons' beams are the far marker until then. */
 const VISIBLE = 900;
 const FLOOR_Y = 0.03;
+/** the floor's own colour at the feet and its haze toward the horizon (G219's H board: a deep navy floor, not black) */
+const FLOOR_NAVY = 0x07223a, FLOOR_HAZE = 0x3f86a8;
 const CYAN = new Color(0x38e6ff);
 /** the hologram's own cyan: deeper than the grid's line so it holds against a bright sky without additive glow */
 const HOLO = new Color(0x0b9fd8);
@@ -50,21 +52,29 @@ void main() {
 const floorFragment = /* glsl */ `
 uniform vec3 uLine;
 uniform vec3 uBase;
+uniform vec3 uHaze;
 uniform float uHalf;
 varying vec2 vLocal;
 varying vec3 vWorld;
 float lines(vec2 p, float cell, float width) {
   vec2 g = p / cell; vec2 w = fwidth(g);
   vec2 d = abs(fract(g - 0.5) - 0.5) / max(w, vec2(1e-5));
-  return (1.0 - min(min(d.x, d.y) / width, 1.0)) * (1.0 - smoothstep(0.12, 0.45, max(w.x, w.y)));
+  float line = 1.0 - min(min(d.x, d.y) / width, 1.0);
+  // a line thinner than a pixel turns into its mean cover, never into nothing: the far floor reads as a fine glowing mesh
+  // (the H board) instead of the black void the playtest saw past ~20 m (round 2, G219)
+  float cover = min(1.0, width * (w.x + w.y));
+  return mix(line, cover, smoothstep(0.12, 0.45, max(w.x, w.y)));
 }
 void main() {
   float minor = lines(vLocal, 10.0, 1.0), major = lines(vLocal, 50.0, 1.7);
   float edge = uHalf - max(abs(vLocal.x), abs(vLocal.y));
   float border = exp(-edge / 1.2) + exp(-edge / 14.0) * 0.25; // the survey line and its glow
-  float fade = exp(-length(vWorld.xz - cameraPosition.xz) / 1100.0);
+  float dist = length(vWorld.xz - cameraPosition.xz);
+  float fade = exp(-dist / 1100.0);
   float lit = max(minor * 0.5, major) * (0.35 + 0.65 * fade) + border;
-  gl_FragColor = vec4(uBase + uLine * lit, 1.0);
+  // a navy floor that hazes toward the sky's blue with distance, so the plot never reads as a black hole (G219's board)
+  vec3 base = mix(uBase, uHaze, 1.0 - exp(-dist / 650.0));
+  gl_FragColor = vec4(base + uLine * lit, 1.0);
 }`;
 
 /** Fit `text` into `width` px, shrinking from `size`. */
@@ -182,7 +192,7 @@ export function installOpenPlots(input: {
     const scan = new MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.16, blending: AdditiveBlending, depthWrite: false, side: DoubleSide, toneMapped: false, fog: false });
     const glassMaterial = new MeshBasicMaterial({ color: HOLO, transparent: true, opacity: 0.1, depthWrite: false, side: DoubleSide, toneMapped: false, fog: false });
     const floorMaterial = new ShaderMaterial({ vertexShader: floorVertex, fragmentShader: floorFragment, fog: false, lights: false,
-      uniforms: { uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(0x03070d) }, uHalf: { value: CHUNK_HALF } } });
+      uniforms: { uLine: { value: CYAN.clone().multiplyScalar(0.9) }, uBase: { value: new Color(FLOOR_NAVY) }, uHaze: { value: new Color(FLOOR_HAZE) }, uHalf: { value: CHUNK_HALF } } });
     floorMaterial.name = 'grid-open-plot-floor';
     disposables.push(solidMaterial, lines, holo, scan, glassMaterial, floorMaterial, ...[pictureMaterial, textMaterial, cards].filter((m): m is MeshBasicMaterial => m !== null));
     lineMaterial = lines; holoMaterial = holo; cardMaterial = cards; scanMaterial = scan;

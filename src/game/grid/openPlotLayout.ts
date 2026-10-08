@@ -296,6 +296,11 @@ export function openPlotGeometry(ordinal: number): OpenPlotGeometry {
       const back = frame.at(44.5, -22); solid.box(back.x, back.z, bottom - 0.6, w / 2 + 0.6, 0.35, h + 1.2, frame.yaw, C.steel);
       for (const t of [-7, 0, 7]) { const p = frame.at(43.4, -22 + t); solid.box(p.x, p.z, bottom + h + 0.6, 0.15, 0.6, 0.25, frame.yaw, C.steelLight); }
       pictures.add([c.x + n.x * 0.1, bottom + h / 2, c.z + n.z * 0.1], n, w, h, faceRect(billboard));
+      // playtest round 2: its back carries a picture too (the demo corner's idea), so from inside the plot every entry
+      // shows a picture, never the blank grey slab that stood on the horizon in every direction
+      { const b = frame.at(44.9, -22); pictures.add([b.x, bottom + h / 2, b.z], { x: -n.x, z: -n.z }, w, h, faceRect(demo));
+        const a = frame.at(45.15, -22 + w / 2 + 0.15), e = frame.at(45.15, -22 - w / 2 - 0.15), y0 = bottom - 0.15, y1 = bottom + h + 0.15;
+        lines.seg([a.x, y0, a.z], [e.x, y0, e.z]); lines.seg([a.x, y1, a.z], [e.x, y1, e.z]); lines.seg([a.x, y0, a.z], [a.x, y1, a.z]); lines.seg([e.x, y0, e.z], [e.x, y1, e.z]); }
       // polish: a cyan edge on the face (the grid's line) and two flood lamps on arms over its top
       { const a = frame.at(43.85, -22 - w / 2 - 0.15), b = frame.at(43.85, -22 + w / 2 + 0.15), y0 = bottom - 0.15, y1 = bottom + h + 0.15;
         lines.seg([a.x, y0, a.z], [b.x, y0, b.z]); lines.seg([a.x, y1, a.z], [b.x, y1, b.z]); lines.seg([a.x, y0, a.z], [a.x, y1, a.z]); lines.seg([b.x, y0, b.z], [b.x, y1, b.z]); }
