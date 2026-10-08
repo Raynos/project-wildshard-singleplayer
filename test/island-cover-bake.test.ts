@@ -10,7 +10,7 @@ import { decodeIslandCover, encodeIslandCover, islandCoverUrl } from '../src/sha
 import { CoverGrid } from '../src/shards/driftwood-isle/world/coverTint';
 
 const ROOT = resolve(import.meta.dirname, '..');
-const bytesOf = (b: Uint8Array): ArrayBuffer => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+const bytesOf = (b: Uint8Array): ArrayBuffer => { const out = new ArrayBuffer(b.byteLength); new Uint8Array(out).set(b); return out; };
 
 describe('baked island cover (SF67)', () => {
   it('writes a splat block back bit for bit', () => {
