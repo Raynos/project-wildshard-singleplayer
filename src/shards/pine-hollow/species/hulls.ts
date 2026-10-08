@@ -155,7 +155,7 @@ function adoptOnce(name: PineRigName, rig: PineRig): Promise<void> {
 
 /**
  * G187 cut 2: on the KTX2 path the hull's atlas is a compressed texture (no pixels to recolour), so each coat comes baked
- * (scripts/bake-pine-coats.mjs: pineCoatAtlas's own canvas, per tier, as UASTC KTX2) and is adopted under pineCoatAtlas's
+ * (scripts/bake-coats.mjs: pineCoatAtlas's own canvas, per tier, as UASTC KTX2) and is adopted under pineCoatAtlas's
  * key. A coat with no stand-in keeps the hull's own.
  */
 async function adoptBakedCoats(name: PineRigName, rig: PineRig): Promise<void> {
@@ -175,7 +175,7 @@ async function adoptBakedCoats(name: PineRigName, rig: PineRig): Promise<void> {
 const coatSpec = (name: PineRigName): CoatSpec => (name === 'bear-brown' ? { ...COATS[name], measured: BEAR_FIX_COATS } : COATS[name]);
 
 /**
- * G187 cut 2, the bake's source (scripts/bake-pine-coats.mjs, through the `harness.shard.pine-hollow` capture handle's `coats` on an images page):
+ * G187 cut 2, the bake's source (scripts/bake-coats.mjs, through the `harness.shard.pine-hollow` capture handle's `coats` on an images page):
  * every coat that repaints its hull, exactly as the game paints it (pineCoatAtlas over the loaded rig, the variant as the
  * species resolves it, the rig's own joints), as a lossless PNG data URL keyed by its KTX2 table name for this tier.
  */

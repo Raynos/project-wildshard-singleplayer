@@ -22,13 +22,13 @@ function rig(): GLTF {
   return { scene, scenes: [scene], animations: [], cameras: [], asset: { version: '2.0' }, parser: {} as GLTF['parser'], userData: {} };
 }
 
-// each case builds its own creature rigs with its own file loader (no module reset, no loader spy, E422)
+// each case builds its own creature rigs with its own file loader and no baked coats (no module reset, no loader spy, E422)
 describe('Nalati creature boot barrier (E357 R9)', () => {
   it.each([false, true])('factory.ready waits for every rig, including when the last file fails (%s)', async (failLast) => {
     const pending: { resolve: (value: GLTF) => void; reject: (reason: Error) => void }[] = [];
     const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const load = vi.fn(() => new Promise<GLTF>((resolve, reject) => { pending.push({ resolve, reject }); }));
-    const rigs = new CreatureRigs(load), NALATI_LOOKS = NALATI_DEFINITIONS.map((def) => nalatiLook(def, rigs));
+    const rigs = new CreatureRigs(load, () => Promise.resolve(null)), NALATI_LOOKS = NALATI_DEFINITIONS.map((def) => nalatiLook(def, rigs));
     const scope = new Scope('nalati-preload-test');
     app.levelScope = scope;
     for (const row of NALATI_SPECIES) app.species.registerRow(row, scope);

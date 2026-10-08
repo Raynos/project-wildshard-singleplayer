@@ -1,0 +1,100 @@
+{
+ "row": "G226 nalati-coats: parent ae934b53a vs candidate 6d3889e66 (scripts via progress/shard-platform/SF46-parity.mjs), Nalati only",
+ "parent": "ae934b53adf652b859c0b31b71789eee7689ef27",
+ "current": "6d3889e66626540a7347944b6d1dc7f6583de553",
+ "hybridDebugFixture": "off",
+ "when": "2026-10-08T05:35:28.831Z",
+ "elapsedSeconds": 443.447,
+ "method": "Fresh pinned parent and current captures using scripts/parity.mjs capture()/weatherLeak(), compare(), aggregate() and masked imageScore(). Memory saver OFF. Metal poses, full walk/combat/pause/resume/unload; seeded accelerated clock. No stored baseline writes. Phone tier is emulated Chromium, not Safari.",
+ "reports": [
+  {
+   "setting": "off",
+   "shard": "nalati-grasslands",
+   "tier": "phone",
+   "verdict": "red",
+   "images": [
+    {
+     "name": "camp",
+     "ssim": 1,
+     "full": 1,
+     "masked": 0.271,
+     "note": null
+    },
+    {
+     "name": "bridge",
+     "ssim": 0.9999999308893419,
+     "full": 0.9999999318124159,
+     "masked": 0.013,
+     "note": null
+    },
+    {
+     "name": "plains",
+     "ssim": 0.9999981560730911,
+     "full": 0.999998363161888,
+     "masked": 0.112,
+     "note": null
+    }
+   ],
+   "differences": [
+    {
+     "field": "combat.shot",
+     "baseline": {
+      "weapon": "bow",
+      "target": "wolf",
+      "hits": 0,
+      "hitWithinS": null,
+      "killed": false,
+      "killWithinS": null,
+      "hitLimit": 20,
+      "killLimit": 20
+     },
+     "now": {
+      "weapon": "bow",
+      "target": "wolf",
+      "hits": 0,
+      "hitWithinS": null,
+      "killed": false,
+      "killWithinS": null,
+      "hitLimit": 20,
+      "killLimit": 20
+     },
+     "class": "D",
+     "band": "hit and kill within limits",
+     "verdict": "red"
+    }
+   ],
+   "checks": 133
+  },
+  {
+   "setting": "off",
+   "shard": "nalati-grasslands",
+   "tier": "desktop",
+   "verdict": "green",
+   "images": [
+    {
+     "name": "camp",
+     "ssim": 1,
+     "full": 1,
+     "masked": 0.155,
+     "note": null
+    },
+    {
+     "name": "bridge",
+     "ssim": 1,
+     "full": 1,
+     "masked": 0.012,
+     "note": null
+    },
+    {
+     "name": "plains",
+     "ssim": 0.9999989364658223,
+     "full": 0.9999988192841437,
+     "masked": 0.052,
+     "note": null
+    }
+   ],
+   "differences": [],
+   "checks": 132
+  }
+ ]
+}

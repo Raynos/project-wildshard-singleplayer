@@ -1,6 +1,10 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { variantDef, type BoneDef } from '@wildshard/engine/entities/species/registry';
+import { fetchImage, tierUrl } from '@wildshard/engine/boot/bytes';
+import { publicBytes } from '@wildshard/engine/boot/tables';
+import { ktx2Texture } from '@wildshard/engine/core/ktx2';
+import { TIER } from '@wildshard/engine/core/tier';
+import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
 
 /**
  * glbCreatures — the generated creature hulls, pre-skinned to the procedural species' skeletons, so the species' own
@@ -19,13 +23,16 @@ import { variantDef, type BoneDef } from '@wildshard/engine/entities/species/reg
  * The hull's coat comes from the atlas; vertex colours are white (the per-animal tint still multiplies via `color`).
  * Which variants swap: only those whose coat the hull shows (the dun wild horse, the camp bay, the grey / tawny /
  * young wolves) — a hull can't be recoloured into a chestnut or a black horse.
+ * The recoloured coats come baked (scripts/bake-coats.mjs --shard=nalati-grasslands: coats.ts paintCoat's own canvas per
+ * tier, lossless, with a KTX2 stand-in): each rig adopts its coats as it loads, so entry paints none (SHARD-PLATFORM
+ * G226). A coat with no bake is painted on first use, as before.
  */
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { creatureRigUrl, type CreatureRigName } from './rigs';
+import { creatureRigUrl, nalatiCoatUrl, type CreatureRigName } from './rigs';
 import { modelsOn } from '../world/glbPaint';
 
-import { coatAtlas, HULL_COATS } from './coats';
+import { adoptCoat, coatAtlas, HULL_COATS, isOwnCoat, paintCoat } from './coats';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */
 
@@ -73,10 +80,31 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
   return new THREE.BufferAttribute(out, k);
 }
 
-/** load one rig (cached): its geometry in the skeleton's rest space, the atlas, the joints' rest positions */
 /** true when the rig's skin joints are `bones` by name, in order (their rest positions may be retargeted) */
 function jointsMatch(rig: RigAsset, bones: readonly BoneDef[]): boolean {
   return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
+}
+
+/** the (kind, variant) pairs that wear rig `name` when it has coats (coats.ts HULL_COATS); the bake holds those whose coat repaints the atlas */
+function coatVariants(name: CreatureRigName): [string, string][] {
+  if (HULL_COATS[name] === undefined) return [];
+  return Object.entries(HULL).filter(([, hull]) => hull === name).map(([kv]): [string, string] => { const [kind = '', variant = ''] = kv.split(':'); return [kind, variant]; });
+}
+
+/** the variant when its kind is registered (an elite kind is derived later), else null */
+function knownVariant(kind: string, variant: string): VariantDef | null {
+  try { return variantDef(kind, variant); } catch { return null; }
+}
+
+/**
+ * A baked coat (scripts/bake-coats.mjs) as a texture: its KTX2 stand-in on a KTX2 page, else the lossless image (decoded
+ * off the main thread, unflipped: glTF orientation). Null when this build ships no such coat (it is painted instead).
+ */
+export async function loadBakedCoat(url: string): Promise<THREE.Texture | null> {
+  if (!(url in publicBytes())) return null;
+  const k = await ktx2Texture(tierUrl(url));
+  if (k !== null) return k;
+  return new THREE.Texture(await fetchImage(url, Infinity, false));
 }
 
 /**
@@ -88,13 +116,16 @@ export class CreatureRigs {
   private readonly ready = new Map<CreatureRigName, RigAsset>();
   private preloaded: Promise<void> | null = null;
   private readonly loadFile: (url: string) => Promise<GLTF>;
-  constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
+  private readonly loadCoat: (url: string) => Promise<THREE.Texture | null>;
+  constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile, loadCoat: (url: string) => Promise<THREE.Texture | null> = loadBakedCoat) {
+    this.loadFile = loadFile; this.loadCoat = loadCoat;
+  }
 
-  /** one rig file, loaded and prepared once */
+  /** one rig file, loaded and prepared once (its baked coats adopted before it is ready) */
   load(name: CreatureRigName): Promise<RigAsset> {
   let p = this.loading.get(name);
   if (!p) {
-    p = this.loadFile(creatureRigUrl(name)).then((gltf) => {
+    p = this.loadFile(creatureRigUrl(name)).then(async (gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: THREE.SkinnedMesh[] = [];
       gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });
@@ -128,6 +159,7 @@ export class CreatureRigs {
       const joints = sm.skeleton.bones.map((b) => ({ name: b.name, pos: new THREE.Vector3().setFromMatrixPosition(b.matrixWorld) }));
       const out: RigAsset = { geometry, map, joints };
       retainCachedResources(out);
+      await this.adoptCoats(name, out);
       this.ready.set(name, out);
       return out;
     });
@@ -135,6 +167,43 @@ export class CreatureRigs {
   }
   return p;
 }
+
+  /**
+   * The baked coats of rig `name` (scripts/bake-coats.mjs), adopted under `coatAtlas`'s keys with the hull map's sampling.
+   * A coat with no file (its hull's own coat, or not baked) or whose load fails stays as before (painted on first use).
+   */
+  private async adoptCoats(name: CreatureRigName, rig: RigAsset): Promise<void> {
+    const map = rig.map;
+    if (map === null) return;
+    await Promise.all(coatVariants(name).map(async ([kind, variant]) => {
+      const tex = await this.loadCoat(nalatiCoatUrl(name, kind, variant)).catch(() => null);
+      if (tex === null) return;
+      tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
+      tex.wrapS = map.wrapS; tex.wrapT = map.wrapT; tex.name = `${map.name}:${name}:${kind}:${variant}`;
+      tex.needsUpdate = true;
+      adoptCoat(`${name}:${kind}:${variant}`, retainCachedResources(tex));
+    }));
+  }
+
+  /**
+   * The bake's source (scripts/bake-coats.mjs, through the `harness.shard.nalati-grasslands` capture handle's `coats`):
+   * every coat that repaints a loaded hull, painted fresh by `paintCoat` (never the adopted bake), as a lossless PNG data
+   * URL keyed by its coat file for this tier. A kind not registered yet (an elite derived later) is not baked.
+   */
+  coatSources(): { url: string; png: string }[] {
+    const out: { url: string; png: string }[] = [];
+    for (const [name, rig] of this.ready) {
+      const spec = HULL_COATS[name];
+      if (spec === undefined || rig.map === null) continue;
+      for (const [kind, variant] of coatVariants(name)) {
+        const v = knownVariant(kind, variant);
+        if (v === null || isOwnCoat(spec, v.tint)) continue;
+        const canvas = paintCoat(spec, rig.geometry, rig.map, v.tint);
+        if (canvas !== null) out.push({ url: TIER === 'phone' ? nalatiCoatUrl(name, kind, variant).replace(/\.webp$/u, '.phone.webp') : nalatiCoatUrl(name, kind, variant), png: canvas.toDataURL('image/png') });
+      }
+    }
+    return out;
+  }
 
   /** every rig, behind the loading screen (a failed one warns; its creatures stay procedural) */
   preload(): Promise<void> {

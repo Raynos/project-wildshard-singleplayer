@@ -1,0 +1,268 @@
+{
+ "base": "http://127.0.0.1:4401",
+ "tag": "after",
+ "stops": [
+  {
+   "why": "arrived",
+   "seconds": 7.116,
+   "current": "nalati-grasslands"
+  },
+  {
+   "why": "arrived",
+   "seconds": 11.8595,
+   "current": "nalati-grasslands"
+  }
+ ],
+ "errors": [],
+ "console": [
+  "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+  "THREE.Material: parameter 'displacementScale' has value of undefined.",
+  "THREE.Material: parameter 'displacementBias' has value of undefined.",
+  "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+ ],
+ "version": {
+  "build": "6d3889e-muz37uqb",
+  "time": "2026-10-08T05:20:05.422Z"
+ },
+ "homeTasks": 13,
+ "hooks": [
+  {
+   "instance": "driftwood-isle",
+   "hook": "beforeWorld",
+   "start": 3212,
+   "end": 3212.300000190735,
+   "outcome": "done"
+  },
+  {
+   "instance": "driftwood-isle",
+   "hook": "constructor",
+   "start": 3229,
+   "end": 3229,
+   "outcome": "done"
+  },
+  {
+   "instance": "driftwood-isle",
+   "hook": "world",
+   "start": 3242.300000190735,
+   "end": 3796.4000000953674,
+   "outcome": "done"
+  },
+  {
+   "instance": "driftwood-isle",
+   "hook": "afterWorld",
+   "start": 3796.800000190735,
+   "end": 3796.800000190735,
+   "outcome": "done"
+  },
+  {
+   "instance": "driftwood-isle",
+   "hook": "kit",
+   "start": 3810.5999999046326,
+   "end": 3810.800000190735,
+   "outcome": "done"
+  },
+  {
+   "instance": "driftwood-isle",
+   "hook": "afterKit",
+   "start": 3826.2000002861023,
+   "end": 3919,
+   "outcome": "done"
+  },
+  {
+   "instance": "driftwood-isle",
+   "hook": "play",
+   "start": 3927.5999999046326,
+   "end": 3962.9000000953674,
+   "outcome": "done"
+  },
+  {
+   "instance": "driftwood-isle",
+   "hook": "afterPlay",
+   "start": 3977.4000000953674,
+   "end": 3977.7000002861023,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "beforeWorld",
+   "start": 21430.300000190735,
+   "end": 21430.5,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "constructor",
+   "start": 21443.400000095367,
+   "end": 21443.5,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "world",
+   "start": 21460.300000190735,
+   "end": 22823.800000190735,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "afterWorld",
+   "start": 22826.900000095367,
+   "end": 22826.900000095367,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "kit",
+   "start": 22843.300000190735,
+   "end": 22843.400000095367,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "afterKit",
+   "start": 22860,
+   "end": 23020.599999904633,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "play",
+   "start": 23021.400000095367,
+   "end": 23107.800000190735,
+   "outcome": "done"
+  },
+  {
+   "instance": "nalati-grasslands",
+   "hook": "afterPlay",
+   "start": 23110.700000286102,
+   "end": 23602.300000190735,
+   "outcome": "done"
+  }
+ ],
+ "longTasks": [
+  {
+   "start": 172,
+   "ms": 62,
+   "current": null
+  },
+  {
+   "start": 238,
+   "ms": 54,
+   "current": null
+  },
+  {
+   "start": 294,
+   "ms": 56,
+   "current": null
+  },
+  {
+   "start": 351,
+   "ms": 63,
+   "current": null
+  },
+  {
+   "start": 526,
+   "ms": 140,
+   "current": null
+  },
+  {
+   "start": 825,
+   "ms": 2109,
+   "current": null
+  },
+  {
+   "start": 3045,
+   "ms": 87,
+   "current": null
+  },
+  {
+   "start": 3243,
+   "ms": 119,
+   "current": null
+  },
+  {
+   "start": 3363,
+   "ms": 60,
+   "current": null
+  },
+  {
+   "start": 3490,
+   "ms": 59,
+   "current": null
+  },
+  {
+   "start": 3550,
+   "ms": 57,
+   "current": null
+  },
+  {
+   "start": 3618,
+   "ms": 159,
+   "current": null
+  },
+  {
+   "start": 4480,
+   "ms": 157,
+   "current": "driftwood-isle"
+  },
+  {
+   "start": 13575,
+   "ms": 146,
+   "current": null
+  },
+  {
+   "start": 20616,
+   "ms": 110,
+   "current": null
+  },
+  {
+   "start": 21569,
+   "ms": 238,
+   "current": "nalati-grasslands"
+  },
+  {
+   "start": 21844,
+   "ms": 356,
+   "current": "nalati-grasslands"
+  },
+  {
+   "start": 22358,
+   "ms": 99,
+   "current": "nalati-grasslands"
+  },
+  {
+   "start": 22609,
+   "ms": 207,
+   "current": "nalati-grasslands"
+  },
+  {
+   "start": 22900,
+   "ms": 120,
+   "current": "nalati-grasslands"
+  },
+  {
+   "start": 23552,
+   "ms": 50,
+   "current": "nalati-grasslands"
+  },
+  {
+   "start": 23603,
+   "ms": 380,
+   "current": "nalati-grasslands"
+  }
+ ],
+ "coatTextures": {
+  "Image_0:wolf:wolf:alpha": "ImageBitmap",
+  "Image_0:wolf:wolf:tawny": "ImageBitmap",
+  "Image_0:wolf:wolf:scout": "ImageBitmap",
+  "atlas:horse-wild:horse:bay": "ImageBitmap",
+  "atlas:horse-wild:horse:chestnut": "ImageBitmap",
+  "atlas:horse-wild:horse:grey": "ImageBitmap",
+  "atlas:horse-wild:horse:black": "ImageBitmap",
+  "atlas:horse-wild:horse:foal-bay": "ImageBitmap",
+  "atlas:horse-wild:horse:foal-chestnut": "ImageBitmap",
+  "atlas:horse-wild:horse:stallion": "ImageBitmap",
+  "atlas:horse-saddled:horse:camp-black": "ImageBitmap",
+  "atlas:horse-wild:argymaq:stallion": "ImageBitmap"
+ }
+}

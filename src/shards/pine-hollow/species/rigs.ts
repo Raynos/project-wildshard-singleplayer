@@ -16,7 +16,7 @@ export function pineCreatureRigUrl(name: PineRigName, tier: 'phone' | 'desktop' 
   return `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`;
 }
 
-/** G187 cut 2: the name a coat's baked KTX2 is keyed by in Pine's KTX2 table (scripts/bake-pine-coats.mjs), beside its rig:
+/** G187 cut 2: the name a coat's baked KTX2 is keyed by in Pine's KTX2 table (scripts/bake-coats.mjs), beside its rig:
  *  `<hull>[.phone].<kind>.<variant>.coat.png` — a name, not a file: only its `/assets/gpu/` stand-in exists, and only the
  *  KTX2 path asks for it (boot/files.ts lists the `.coat.png` entries) */
 export function pineCoatUrl(name: PineRigName, kind: string, variant: string, tier: 'phone' | 'desktop' = TIER): string {

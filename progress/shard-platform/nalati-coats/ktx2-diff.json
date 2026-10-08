@@ -1,0 +1,456 @@
+{
+ "phone": {
+  "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-saddled.horse.camp-black.coat.phone-de388d39.ktx2",
+   "bytes": 296606,
+   "webpBytes": 268938,
+   "ASTC": {
+    "mae": 0.678,
+    "psnr": 45.31,
+    "max": 33
+   },
+   "BC7": {
+    "mae": 0.838,
+    "psnr": 44.61,
+    "max": 36
+   }
+  },
+  "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-saddled.horse.camp-black.coat.phone-de388d39.ktx2",
+   "bytes": 296606,
+   "webpBytes": 268938,
+   "ASTC": {
+    "mae": 0.678,
+    "psnr": 45.31,
+    "max": 33
+   },
+   "BC7": {
+    "mae": 0.838,
+    "psnr": 44.61,
+    "max": 36
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.black.coat.phone-ca9a3e2a.ktx2",
+   "bytes": 264457,
+   "webpBytes": 182886,
+   "ASTC": {
+    "mae": 0.277,
+    "psnr": 52.14,
+    "max": 14
+   },
+   "BC7": {
+    "mae": 0.455,
+    "psnr": 49.8,
+    "max": 14
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.bay.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.bay.coat.phone-8e94d0fe.ktx2",
+   "bytes": 301722,
+   "webpBytes": 269500,
+   "ASTC": {
+    "mae": 0.835,
+    "psnr": 43.17,
+    "max": 27
+   },
+   "BC7": {
+    "mae": 0.961,
+    "psnr": 42.83,
+    "max": 27
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.black.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.black.coat.phone-ca9a3e2a.ktx2",
+   "bytes": 264457,
+   "webpBytes": 182886,
+   "ASTC": {
+    "mae": 0.277,
+    "psnr": 52.14,
+    "max": 14
+   },
+   "BC7": {
+    "mae": 0.455,
+    "psnr": 49.8,
+    "max": 14
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.chestnut.coat.phone-0f465ad5.ktx2",
+   "bytes": 305450,
+   "webpBytes": 296188,
+   "ASTC": {
+    "mae": 1.191,
+    "psnr": 39.6,
+    "max": 54
+   },
+   "BC7": {
+    "mae": 1.333,
+    "psnr": 39.33,
+    "max": 54
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.foal-bay.coat.phone-a4317fe1.ktx2",
+   "bytes": 326875,
+   "webpBytes": 342416,
+   "ASTC": {
+    "mae": 1.783,
+    "psnr": 36.57,
+    "max": 65
+   },
+   "BC7": {
+    "mae": 1.899,
+    "psnr": 36.41,
+    "max": 67
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.phone-13e16f73.ktx2",
+   "bytes": 327266,
+   "webpBytes": 348862,
+   "ASTC": {
+    "mae": 1.823,
+    "psnr": 36.73,
+    "max": 76
+   },
+   "BC7": {
+    "mae": 1.932,
+    "psnr": 36.56,
+    "max": 76
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.grey.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.grey.coat.phone-4a525480.ktx2",
+   "bytes": 311093,
+   "webpBytes": 249346,
+   "ASTC": {
+    "mae": 0.856,
+    "psnr": 41.71,
+    "max": 60
+   },
+   "BC7": {
+    "mae": 1.016,
+    "psnr": 41.17,
+    "max": 61
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.black.coat.phone-ca9a3e2a.ktx2",
+   "bytes": 264457,
+   "webpBytes": 182886,
+   "ASTC": {
+    "mae": 0.277,
+    "psnr": 52.14,
+    "max": 14
+   },
+   "BC7": {
+    "mae": 0.455,
+    "psnr": 49.8,
+    "max": 14
+   }
+  },
+  "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.kokbori.kokbori.coat.phone-120ab95c.ktx2",
+   "bytes": 292040,
+   "webpBytes": 313334,
+   "ASTC": {
+    "mae": 0.845,
+    "psnr": 44.3,
+    "max": 27
+   },
+   "BC7": {
+    "mae": 0.974,
+    "psnr": 43.82,
+    "max": 28
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.alpha.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.alpha.coat.phone-7723ff5f.ktx2",
+   "bytes": 284717,
+   "webpBytes": 271410,
+   "ASTC": {
+    "mae": 0.556,
+    "psnr": 48.14,
+    "max": 25
+   },
+   "BC7": {
+    "mae": 0.708,
+    "psnr": 47.05,
+    "max": 24
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.dark.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.dark.coat.phone-43436294.ktx2",
+   "bytes": 273585,
+   "webpBytes": 256698,
+   "ASTC": {
+    "mae": 0.509,
+    "psnr": 48.25,
+    "max": 19
+   },
+   "BC7": {
+    "mae": 0.693,
+    "psnr": 47.03,
+    "max": 19
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.scout.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.scout.coat.phone-1be51c0c.ktx2",
+   "bytes": 300999,
+   "webpBytes": 317758,
+   "ASTC": {
+    "mae": 0.81,
+    "psnr": 45.4,
+    "max": 28
+   },
+   "BC7": {
+    "mae": 0.946,
+    "psnr": 44.69,
+    "max": 31
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.tawny.coat.phone.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.tawny.coat.phone-7ccb6d92.ktx2",
+   "bytes": 304540,
+   "webpBytes": 332116,
+   "ASTC": {
+    "mae": 0.98,
+    "psnr": 43.55,
+    "max": 25
+   },
+   "BC7": {
+    "mae": 1.111,
+    "psnr": 43.01,
+    "max": 25
+   }
+  }
+ },
+ "desktop": {
+  "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-saddled.horse.camp-black.coat-206ca071.ktx2",
+   "bytes": 1038479,
+   "webpBytes": 803448,
+   "ASTC": {
+    "mae": 0.391,
+    "psnr": 48.37,
+    "max": 30
+   },
+   "BC7": {
+    "mae": 0.553,
+    "psnr": 47.32,
+    "max": 30
+   }
+  },
+  "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-saddled.horse.camp-black.coat-206ca071.ktx2",
+   "bytes": 1038479,
+   "webpBytes": 803448,
+   "ASTC": {
+    "mae": 0.391,
+    "psnr": 48.37,
+    "max": 30
+   },
+   "BC7": {
+    "mae": 0.553,
+    "psnr": 47.32,
+    "max": 30
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.black.coat-1c9095ac.ktx2",
+   "bytes": 875422,
+   "webpBytes": 531438,
+   "ASTC": {
+    "mae": 0.162,
+    "psnr": 54.6,
+    "max": 12
+   },
+   "BC7": {
+    "mae": 0.324,
+    "psnr": 51.69,
+    "max": 13
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.bay.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.bay.coat-8dcf7bda.ktx2",
+   "bytes": 1068796,
+   "webpBytes": 774018,
+   "ASTC": {
+    "mae": 0.427,
+    "psnr": 47.13,
+    "max": 26
+   },
+   "BC7": {
+    "mae": 0.559,
+    "psnr": 46.49,
+    "max": 27
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.black.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.black.coat-1c9095ac.ktx2",
+   "bytes": 875422,
+   "webpBytes": 531438,
+   "ASTC": {
+    "mae": 0.162,
+    "psnr": 54.6,
+    "max": 12
+   },
+   "BC7": {
+    "mae": 0.324,
+    "psnr": 51.69,
+    "max": 13
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.chestnut.coat-be6c85dc.ktx2",
+   "bytes": 1093395,
+   "webpBytes": 870700,
+   "ASTC": {
+    "mae": 0.66,
+    "psnr": 43.33,
+    "max": 39
+   },
+   "BC7": {
+    "mae": 0.785,
+    "psnr": 42.93,
+    "max": 39
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.foal-bay.coat-aadef851.ktx2",
+   "bytes": 1199394,
+   "webpBytes": 1003334,
+   "ASTC": {
+    "mae": 0.962,
+    "psnr": 40.59,
+    "max": 58
+   },
+   "BC7": {
+    "mae": 1.089,
+    "psnr": 40.33,
+    "max": 58
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.foal-chestnut.coat-ad3a458f.ktx2",
+   "bytes": 1202377,
+   "webpBytes": 1027216,
+   "ASTC": {
+    "mae": 1.006,
+    "psnr": 40.58,
+    "max": 62
+   },
+   "BC7": {
+    "mae": 1.128,
+    "psnr": 40.32,
+    "max": 63
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.grey.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.grey.coat-77cdda62.ktx2",
+   "bytes": 1106904,
+   "webpBytes": 727744,
+   "ASTC": {
+    "mae": 0.481,
+    "psnr": 44.75,
+    "max": 62
+   },
+   "BC7": {
+    "mae": 0.639,
+    "psnr": 44.12,
+    "max": 63
+   }
+  },
+  "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/horse-wild.horse.black.coat-1c9095ac.ktx2",
+   "bytes": 875422,
+   "webpBytes": 531438,
+   "ASTC": {
+    "mae": 0.162,
+    "psnr": 54.6,
+    "max": 12
+   },
+   "BC7": {
+    "mae": 0.324,
+    "psnr": 51.69,
+    "max": 13
+   }
+  },
+  "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.kokbori.kokbori.coat-604a75c6.ktx2",
+   "bytes": 1065541,
+   "webpBytes": 1016270,
+   "ASTC": {
+    "mae": 0.505,
+    "psnr": 47.54,
+    "max": 136
+   },
+   "BC7": {
+    "mae": 0.667,
+    "psnr": 46.69,
+    "max": 134
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.alpha.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.alpha.coat-dc3e2703.ktx2",
+   "bytes": 1031315,
+   "webpBytes": 887206,
+   "ASTC": {
+    "mae": 0.337,
+    "psnr": 50.85,
+    "max": 92
+   },
+   "BC7": {
+    "mae": 0.517,
+    "psnr": 49.19,
+    "max": 92
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.dark.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.dark.coat-89ee57f0.ktx2",
+   "bytes": 978141,
+   "webpBytes": 826442,
+   "ASTC": {
+    "mae": 0.301,
+    "psnr": 51.22,
+    "max": 84
+   },
+   "BC7": {
+    "mae": 0.512,
+    "psnr": 49.27,
+    "max": 84
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.scout.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.scout.coat-2c93efa3.ktx2",
+   "bytes": 1101573,
+   "webpBytes": 1035518,
+   "ASTC": {
+    "mae": 0.493,
+    "psnr": 48.46,
+    "max": 80
+   },
+   "BC7": {
+    "mae": 0.664,
+    "psnr": 47.32,
+    "max": 81
+   }
+  },
+  "/assets/nalati/models/coats/wolf.wolf.tawny.coat.webp": {
+   "ktx2": "/assets/gpu/nalati/models/coats/wolf.wolf.tawny.coat-c57490b5.ktx2",
+   "bytes": 1114078,
+   "webpBytes": 1080288,
+   "ASTC": {
+    "mae": 0.576,
+    "psnr": 47.01,
+    "max": 74
+   },
+   "BC7": {
+    "mae": 0.741,
+    "psnr": 46.1,
+    "max": 74
+   }
+  }
+ }
+}

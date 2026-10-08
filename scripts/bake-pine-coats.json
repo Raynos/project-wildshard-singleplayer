@@ -1,5 +1,5 @@
 {
- "$doc": "G187 cut 2: written by scripts/bake-pine-coats.mjs (per tier: coat table name -> KTX2; cache: PNG+settings hash -> KTX2); merged into Pine's KTX2 table by scripts/bake-ktx2.mjs",
+ "$doc": "G187 cut 2: written by scripts/bake-coats.mjs (per tier: coat table name -> KTX2; cache: PNG+settings hash -> KTX2); merged into Pine's KTX2 table by scripts/bake-ktx2.mjs",
  "phone": {
   "procedural:/assets/pine-hollow/creatures/bear-black.phone.bear.black-blaze.coat.png": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black-blaze.phone-cb42331e.ktx2",
   "procedural:/assets/pine-hollow/creatures/bear-black.phone.bear.black-old.coat.png": "/assets/gpu/pine-hollow/creatures/coats/bear-black.bear.black-old.phone-0bb14a74.ktx2",

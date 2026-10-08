@@ -1,0 +1,253 @@
+{
+ "url": "http://127.0.0.1:4401",
+ "tiers": {
+  "phone": {
+   "coats": [
+    {
+     "url": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.black.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.dark.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.scout.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.phone.webp",
+     "size": "512x512",
+     "fileSize": "512x512",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    }
+   ],
+   "runtime": {
+    "Image_0:wolf:wolf:alpha": "ImageBitmap",
+    "Image_0:wolf:wolf:tawny": "ImageBitmap",
+    "Image_0:wolf:wolf:scout": "ImageBitmap",
+    "atlas:horse-wild:horse:bay": "ImageBitmap",
+    "atlas:horse-wild:horse:chestnut": "ImageBitmap",
+    "atlas:horse-wild:horse:grey": "ImageBitmap",
+    "atlas:horse-wild:horse:black": "ImageBitmap",
+    "atlas:horse-wild:horse:foal-bay": "ImageBitmap",
+    "atlas:horse-wild:horse:foal-chestnut": "ImageBitmap",
+    "atlas:horse-wild:horse:stallion": "ImageBitmap",
+    "atlas:horse-saddled:horse:camp-black": "ImageBitmap",
+    "atlas:horse-wild:argymaq:stallion": "ImageBitmap"
+   },
+   "errors": []
+  },
+  "desktop": {
+   "coats": [
+    {
+     "url": "/assets/nalati/models/coats/horse-saddled.horse.camp-black.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-saddled.horse.tulpar.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.bay.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.chestnut.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.grey.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.black.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.foal-bay.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.foal-chestnut.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.horse.stallion.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/horse-wild.argymaq.stallion.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.tawny.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.dark.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.scout.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.wolf.alpha.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    },
+    {
+     "url": "/assets/nalati/models/coats/wolf.kokbori.kokbori.coat.webp",
+     "size": "1024x1024",
+     "fileSize": "1024x1024",
+     "texelsDiffering": 0,
+     "maxChannelDiff": 0
+    }
+   ],
+   "runtime": {
+    "Image_0:wolf:wolf:alpha": "ImageBitmap",
+    "Image_0:wolf:wolf:tawny": "ImageBitmap",
+    "Image_0:wolf:wolf:scout": "ImageBitmap",
+    "atlas:horse-wild:horse:bay": "ImageBitmap",
+    "atlas:horse-wild:horse:chestnut": "ImageBitmap",
+    "atlas:horse-wild:horse:grey": "ImageBitmap",
+    "atlas:horse-wild:horse:black": "ImageBitmap",
+    "atlas:horse-wild:horse:foal-bay": "ImageBitmap",
+    "atlas:horse-wild:horse:foal-chestnut": "ImageBitmap",
+    "atlas:horse-wild:horse:stallion": "ImageBitmap",
+    "atlas:horse-saddled:horse:camp-black": "ImageBitmap",
+    "atlas:horse-wild:argymaq:stallion": "ImageBitmap"
+   },
+   "errors": []
+  }
+ }
+}

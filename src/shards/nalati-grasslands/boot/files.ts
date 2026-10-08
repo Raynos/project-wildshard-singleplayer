@@ -4,9 +4,12 @@ import type { TexMode } from '@wildshard/engine/boot/gpuFiles';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
+import { NALATI_COAT_DIR } from '../species/coatDir';
 
 const models = ['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3', 'watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'];
 const rigs = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];
+/** the baked creature coats (species/rigs.ts nalatiCoatUrl; the rigs adopt them as they load): their desktop names, in order */
+const coatFiles = (): string[] => Object.keys(publicBytes()).filter((url) => url.startsWith(NALATI_COAT_DIR) && url.endsWith('.coat.webp')).sort();
 /** Original ordered painted-world reads, with an explicit tier. */
 export function worldFiles(tier: Tier): string[] {
   const { phone } = filePolicy(tier, 'img', GPU_FILES);
@@ -16,6 +19,7 @@ export function worldFiles(tier: Tier): string[] {
     ...models.map((name) => `/assets/nalati/models/${name}.glb`),
     '/assets/nalati/models/horse-wild.far.glb', '/assets/nalati/models/kokpar-rider.far.glb',
     ...rigs.map((name) => `/assets/nalati/models/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`),
+    ...coatFiles(),
   ].filter((url) => phone(url) in publicBytes() || url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {

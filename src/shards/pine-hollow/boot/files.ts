@@ -18,7 +18,7 @@ const bakedDir = '/assets/baked/pine-hollow/';
 const hdri = '/assets/hdri/qwantani_sunset_puresky_2k';
 export const BAKED_UNREAD = /\/fur-[^/]*$/;
 /**
- * G187 cut 2: the creature coats baked to KTX2 (scripts/bake-pine-coats.mjs; species/rigs.ts pineCoatUrl names them
+ * G187 cut 2: the creature coats baked to KTX2 (scripts/bake-coats.mjs; species/rigs.ts pineCoatUrl names them
  * `<hull>[.phone].<kind>.<variant>.coat.png`): read only on the KTX2 path (species/hulls.ts adopts them at preload), so
  * only a KTX2 list carries their stand-ins.
  */

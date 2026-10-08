@@ -1,5 +1,6 @@
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { NALATI_SPECIES, NALATI_LOOKS } from '../species/rows';
+import { creatureRigs } from '../species/hulls';
 import { STRINGS } from '../strings';
 import { NALATI_FEATS } from '../feats';
 import { renderFinds } from '@wildshard/game/bag/bag';
@@ -65,7 +66,8 @@ export class NalatiPlugin extends ShardPlugin {
     shell.menu = { skins: () => skinRows(rt.skins), onWearSkin: (id) => { rt.skins.toggle(id); }, skinsTitle: 'Skins' };
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
-    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({}, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
+    // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands)
+    ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ coats: () => creatureRigs.coatSources() }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     installEnteredRuntimeService(ctx, (scope) => { ctx.app.registerDayCycle(rt.weather.clock, scope); });
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));
     installEnteredRuntimeService(ctx, (scope) => { scope.onDispose(onSettingChange('time', (value) => { rt.weather.clock.setTime(value); })); });

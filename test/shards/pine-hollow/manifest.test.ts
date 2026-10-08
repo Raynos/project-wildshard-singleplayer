@@ -5,7 +5,7 @@ import before from './boot-before.json';
 import bakedCoats from '../../../scripts/bake-pine-coats.json';
 import bakedViewmodel from '../../../scripts/bake-viewmodel-sets.json';
 
-/** G187 cut 2: the coats baked to KTX2 (scripts/bake-pine-coats.mjs) ride the KTX2 lists only, never the image ones */
+/** G187 cut 2: the coats baked to KTX2 (scripts/bake-coats.mjs) ride the KTX2 lists only, never the image ones */
 const COAT = /^\/assets\/gpu\/pine-hollow\/creatures\/coats\/[^/]+\.ktx2$/u;
 /** G187 cut 3: the weapon viewmodel sets baked to KTX2 (scripts/bake-viewmodel-sets.mjs), likewise KTX2 lists only */
 const VIEWMODEL = /^\/assets\/gpu\/baked\/pine-hollow\/viewmodel\/[^/]+\.ktx2$/u;

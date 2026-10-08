@@ -4,8 +4,9 @@ import { variantDef } from '@wildshard/engine/entities/species/registry';
  * creatureCoats — one rigged hull, every coat: the hull's atlas recoloured per variant (glbCreatures.ts), so a herd of
  * bay, chestnut, grey and black mares, or a pack of grey, tawny and dark wolves, all wear the generated model.
  *
- *   const map = coatAtlas(hull, rigGeometry, sourceMap, targetTint)   // a CanvasTexture (cached per hull + variant),
- *                                                                     // or the source map when the coat is the hull's own
+ *   const map = coatAtlas(hull, rigGeometry, sourceMap, targetTint)   // the coat (cached per hull + variant), or the
+ *                                                                     // source map when the coat is the hull's own
+ *   adoptCoat(key, baked)                                             // a coat baked offline stands in (no paint at entry)
  *
  * How: the species' palette names three coat keys — dark (a horse's points: legs, mane, tail; a wolf's saddle), body
  * (the coat) and light (the belly / chest). The atlas's own levels for those keys are measured: the luminance of texels
@@ -158,20 +159,43 @@ export function isOwnCoat(spec: CoatSpec, tint: Readonly<Record<string, RGB>> | 
 }
 
 /**
- * The hull's atlas in the coat `tint` (cached by `key`). `geometry` (uv + index) says which texels the mesh uses.
- * Returns `map` itself when the coat is the hull's own, or when the atlas can't be read.
+ * A coat baked offline (scripts/bake-coats.mjs paints every coat with `paintCoat` itself, per tier) stands in for the
+ * canvas under the same key: the rigs adopt them as they load (hulls.ts), so `coatAtlas` returns the baked texture and
+ * never paints at entry. A coat the bake doesn't hold is painted as before.
+ */
+export function adoptCoat(key: string, tex: THREE.Texture): void { cache.set(key, tex); }
+
+/**
+ * The hull's atlas in the coat `tint` (cached by `key`): a baked coat when one was adopted, else painted here
+ * (`paintCoat`). `geometry` (uv + index) says which texels the mesh uses. Returns `map` itself when the coat is the
+ * hull's own, or when the atlas can't be read.
  */
 export function coatAtlas(key: string, spec: CoatSpec, geometry: THREE.BufferGeometry, map: THREE.Texture, tint: Readonly<Record<string, RGB>> | undefined): THREE.Texture {
   if (isOwnCoat(spec, tint)) return map;
   const hit = cache.get(key);
   if (hit) return hit;
+  const canvas = paintCoat(spec, geometry, map, tint);
+  if (canvas === null) return map;
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
+  tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
+  tex.name = `${map.name}:${key}`;
+  cache.set(key, tex);
+  return tex;
+}
+
+/**
+ * The hull's atlas repainted in the coat `tint`, on a fresh canvas (never cached: the bake's source and `coatAtlas`'s
+ * fallback). Null when the atlas can't be read.
+ */
+export function paintCoat(spec: CoatSpec, geometry: THREE.BufferGeometry, map: THREE.Texture, tint: Readonly<Record<string, RGB>> | undefined): HTMLCanvasElement | null {
   const img = map.image as CanvasImageSource & { width: number; height: number } | null;
-  if (!img || typeof document === 'undefined') return map;
+  if (!img || typeof document === 'undefined') return null;
   const W = img.width, H = img.height;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) return map;
+  if (!ctx) return null;
   ctx.drawImage(img, 0, 0);
   const data = ctx.getImageData(0, 0, W, H);
   const px = data.data;
@@ -258,10 +282,5 @@ export function coatAtlas(key: string, spec: CoatSpec, geometry: THREE.BufferGeo
     px[o + 2] = toSrgb[Math.min(LUT_N, Math.round(Math.min(1, b * mb) * LUT_N))] ?? 0;
   }
   ctx.putImageData(data, 0, 0);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
-  tex.wrapS = map.wrapS; tex.wrapT = map.wrapT;
-  tex.name = `${map.name}:${key}`;
-  cache.set(key, tex);
-  return tex;
+  return canvas;
 }
