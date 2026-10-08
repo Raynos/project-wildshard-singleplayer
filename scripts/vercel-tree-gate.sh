@@ -77,10 +77,10 @@ run oxlint pnpm exec oxlint
 run ratchet node lint/ratchet.mjs
 # CI runs this in `pnpm test`; a stale scripts/README.md failed the 96239386 deploy run with this gate green
 [ -f scripts/normalize/liveness.mjs ] && [ -f scripts/README.md ] && run liveness node scripts/normalize/liveness.mjs --readme --check
-# CI's `pnpm test:checks` runs these too; e9128c290 went red on audit-assets, check-paths and the WebGPU inventory with
-# this gate green (2026-10-07), so the push checks them before CI does.
+# CI's `pnpm test:checks` runs these too; e9128c290 went red on audit-assets and the WebGPU inventory with
+# this gate green (2026-10-07), so the push checks them before CI does. (check-paths needs the full checkout: the
+# Vercel tree drops test/parity, so it stays a CI check.)
 run audit-assets node scripts/audit-assets.mjs
-run check-paths node scripts/check-paths.mjs
 run check-model-sources node scripts/check-model-sources.mjs
 run webgpu-inventory node scripts/webgpu-inventory.mjs --check
 # CI checks committed terrain, sky metadata and navmeshes; stale bakes must block the push too.
