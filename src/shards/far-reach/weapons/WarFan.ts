@@ -4,12 +4,13 @@ import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
 import { Vector2, Vector3, type Texture } from 'three';
+import { FAN_SWING, FAN_GUST } from '../data/items';
 import { FAN_ROW } from './rows';
 import { fanParts } from './fanModel';
 
 /** Anything the fan can strike: a world position and its combat actor. */
 export interface FanTarget { readonly position: Vector3; readonly actor: Actor | null; impulse?: (velocity: Vector3) => void }
-export const SWING = { reach: 3.4, halfAngle: 0.9, light: 16, heavy: 30, cooldown: 0.45, heavyCooldown: 0.85 } as const;
+export const SWING = { ...FAN_SWING };
 /** The idle hold (mockup B / C): the fan open at a three-quarter angle, lower right, the hand under it; never over the discs. */
 /** Loop 5 (council R1C-14): raised so the grip and the hand sit above the GUST / DODGE / JUMP cluster. */
 /** E399 (the council mockups A, C and proposal B): lower, smaller (the seats: 'twice the mockup's size') and turned open, face-on to you, its tassel hanging free. */
@@ -25,7 +26,7 @@ export const HOLD = { x: 0.155, y: -0.194, z: -0.6, pitch: 0.35, yaw: -0.5, roll
 /** The painted silk's tint (E399 seats: 'plain and bright'): mockup C's silk is a muted, deeper teal. */
 // E399 seats: the mockups' silk is a lighter sea-green with pale cloud swirls
 export const SILK_TINT = 0xdfece6;
-export const GUST = { reach: 9, halfAngle: 0.6, push: 15, lift: 4, damage: 4, cooldown: 1.6 } as const;
+export const GUST = { ...FAN_GUST };
 
 /** A viewmodel offset from HOLD (metres, radians). */
 interface Pose { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly pitch: number; readonly roll: number }

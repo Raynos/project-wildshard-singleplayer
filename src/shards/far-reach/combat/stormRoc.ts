@@ -1,7 +1,6 @@
-import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
+import { BossBrain, type BossScript, type BossSaved } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
-import { bossesSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Vector3 } from 'three';
 import { CROWN, DAIS, FALLEN_BRIDGE } from '../layout';
@@ -18,7 +17,7 @@ const clampPhase = (n: number): RocPhase => n <= 0 ? 0 : n === 1 ? 1 : 2;
  * Phase 1 stoops from the storm, phase 2 sweeps gale walls across the crown, phase 3 lands on the dais and fights there.
  */
 export class StormRocBoss extends BossBrain {
-  constructor(ctx: ShardContext, player: Vector3, roc: Animal | null, onVictory: (at: Vector3) => void) {
+  constructor(ctx: ShardContext, player: Vector3, roc: Animal | null, onVictory: (at: Vector3) => void, saves: { read: () => BossSaved; write: (value: BossSaved) => void }) {
     let hp = 1, invulnerable = false;
     const at = new Vector3(DAIS.x, CROWN.y + DAIS.h, DAIS.z), body = roc ? rocBrain(roc) : null;
     const script: BossScript = {
@@ -36,13 +35,13 @@ export class StormRocBoss extends BossBrain {
     };
     const presentation = new BossBar(); ctx.scope.onDispose(() => { presentation.scope.dispose(); });
     ctx.answer('damage.modify', (request) => request !== null && roc !== null && request.target === roc.combatActor() && invulnerable ? null : request);
-    const saves = shardSave(bossesSave, ctx.manifest.slug), saved = saves.read()[ROC_ID] ?? { defeated: false, rewardTaken: false, kills: 0 };
+    const saved = saves.read();
     super({ id: ROC_ID, name: STRINGS.roc, title: STRINGS.rocTitle, retryTitle: STRINGS.rocRetry, intro: 1.5, introShort: 0.3,
       phases: [{ at: PHASES[0], caption: STRINGS.rocP1, name: STRINGS.rocP1 }, { at: PHASES[1], caption: STRINGS.rocP2, name: STRINGS.rocP2 }, { at: PHASES[2], caption: STRINGS.rocP3, name: STRINGS.rocP3 }],
       reward: {} }, script,
       { events: ctx.app.events, player: { position: player }, lockInput: (on) => { ctx.game.runtime?.play?.weapons.setEnabled(!on); },
         respawn: (pos, yaw) => { const motor = ctx.game.runtime?.world?.player; if (motor) { motor.position.copy(pos); motor.yaw = yaw; } }, skipHeld: () => ctx.app.input.held('skip'),
         faceToward: (target) => { const motor = ctx.game.runtime?.world?.player; if (motor) motor.yaw = Math.atan2(motor.position.x - target.x, motor.position.z - target.z); },
-        spawnReward: () => undefined, persist: (value) => { saves.write({ ...saves.read(), [ROC_ID]: { ...value } }); } }, presentation, saved);
+        spawnReward: () => undefined, persist: saves.write }, presentation, saved);
   }
 }

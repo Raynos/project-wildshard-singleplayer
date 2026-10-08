@@ -65,7 +65,7 @@ async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin;
     stage('data'); ctx.scope.onDispose(() => { physics.dispose(); });
     ctx.system({ id: 'physics.step', phase: 'fixed.step', run: () => { physics.step(); } });
   }, world: () => stage('world'), kit: () => stage('kit'),
-    loadout: (_spec, ctx) => { stage('loadout'); expect(ctx.app.levelRegistrations.list('weapon').map((r) => r.id)).toEqual(['weapon.far-fan']); },
+    loadout: (_spec, ctx) => { stage('loadout'); expect(ctx.app.levelRegistrations.list('weapon').map((r) => r.id)).toEqual(['weapon.far-reach.fan']); },
     play: () => stage('play'), finish: () => stage('finish') };
   app.levelDriver = driver;
   loaded.add(app);

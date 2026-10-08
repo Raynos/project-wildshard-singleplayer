@@ -1,0 +1,374 @@
+{
+  "sourceCandidate": "c4b9f4f53a7458f4dc02238348b599d55e412eea",
+  "browserBuild": {
+    "build": "c4b9f4f-mv05ufo5",
+    "time": "2026-10-08T23:21:28.917Z"
+  },
+  "protocol": "Production build, Developer ON, phone tier/2x, one muted Metal iPhone 16 Pro portrait browser. One standalone context then one cold north-entry grid context. One initial road pose; no later teleport, creature freeze or crossing reload. Labelled GL and allocator cost only; native WebContent pending.",
+  "pass": true,
+  "seconds": 93.13,
+  "rawSHA256": "6e8418d182fbc89fb293f92870063292abdaff54ed0c3ba8b989ffdcbd12a845",
+  "standalone": {
+    "before": {
+      "chip": {
+        "label": "TALK TO THE KEEPER",
+        "count": ""
+      },
+      "fan": {
+        "id": "far-fan",
+        "row": "weapon.far-reach.fan",
+        "context": "far.fan"
+      },
+      "roster": [
+        {
+          "id": "creature:0",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:1",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:2",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:3",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:4",
+          "kind": "galeWisp"
+        },
+        {
+          "id": "creature:5",
+          "kind": "galeWisp"
+        },
+        {
+          "id": "creature:6",
+          "kind": "galeWisp"
+        },
+        {
+          "id": "creature:7",
+          "kind": "stormRoc"
+        },
+        {
+          "id": "creature:8",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:9",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:10",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:11",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:12",
+          "kind": "skyGoat"
+        }
+      ]
+    },
+    "gusts": 1,
+    "after": {
+      "chip": {
+        "label": "CLEAR THE ROOST",
+        "count": ""
+      },
+      "flags": [
+        "seen:far.sunrest",
+        "far.notes"
+      ]
+    },
+    "legacy": {
+      "counts": {},
+      "earned": [],
+      "title": null,
+      "playS": 125
+    },
+    "errors": [],
+    "pass": true
+  },
+  "standaloneUnload": {
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": []
+  },
+  "grid": {
+    "edge": "north",
+    "binding": {
+      "chip": {
+        "label": "TALK TO THE KEEPER",
+        "count": ""
+      },
+      "fan": {
+        "id": "far-fan",
+        "row": "weapon.far-reach.fan",
+        "context": "far.fan"
+      },
+      "roc": "creature:7",
+      "roster": [
+        {
+          "id": "creature:0",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:1",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:2",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:3",
+          "kind": "driftRay"
+        },
+        {
+          "id": "creature:4",
+          "kind": "galeWisp"
+        },
+        {
+          "id": "creature:5",
+          "kind": "galeWisp"
+        },
+        {
+          "id": "creature:6",
+          "kind": "galeWisp"
+        },
+        {
+          "id": "creature:7",
+          "kind": "stormRoc"
+        },
+        {
+          "id": "creature:8",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:9",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:10",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:11",
+          "kind": "skyGoat"
+        },
+        {
+          "id": "creature:12",
+          "kind": "skyGoat"
+        }
+      ]
+    },
+    "onIsland": true,
+    "gateOpenAtRest": true,
+    "gateShutAway": true,
+    "recoveries": [],
+    "errors": [],
+    "consoleErrors": [],
+    "warnings": [
+      "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed.",
+      "THREE.BufferGeometry.toNonIndexed(): BufferGeometry is already non-indexed."
+    ],
+    "documents": [
+      "http://127.0.0.1:4461/",
+      "http://127.0.0.1:4461/?chunk=driftwood-isle"
+    ],
+    "bootDocuments": 2,
+    "edgeFallbacks": [],
+    "pass": true
+  },
+  "gridUnload": {
+    "after": {
+      "geometries": 0,
+      "textures": 0,
+      "programs": 0,
+      "bodies": 0,
+      "colliders": 0,
+      "listeners": {
+        "window": 0,
+        "document": 0,
+        "canvas": 0,
+        "other": 0
+      },
+      "timers": {
+        "timeouts": 0,
+        "intervals": 0,
+        "raf": 0
+      },
+      "audio": {
+        "activeVoices": 0,
+        "beds": 0,
+        "buses": 0
+      },
+      "systems": {
+        "input": 0,
+        "fixed": {
+          "pre": 0,
+          "step": 0,
+          "post": 0
+        },
+        "update": 0,
+        "late": 0,
+        "render": 0
+      },
+      "events": {
+        "listeners": 7,
+        "answerers": 5
+      },
+      "dom": {
+        "hud": 0,
+        "body": 0
+      },
+      "sceneObjects": 0
+    },
+    "scope": {
+      "geometries": 0,
+      "materials": 0,
+      "textures": 0,
+      "renderTargets": 0,
+      "meshes": 0,
+      "resources": 0,
+      "bodies": 0,
+      "sounds": 0,
+      "listeners": 0,
+      "timers": 0,
+      "rafs": 0,
+      "disposers": 0,
+      "systems": 0,
+      "colliders": 0,
+      "nodes": 0
+    },
+    "disposalErrors": []
+  },
+  "routes": [
+    {
+      "name": "north-road-to-lip",
+      "elapsedSeconds": 9.884599999904633
+    },
+    {
+      "name": "north-board",
+      "elapsedSeconds": 1.4655999999046325
+    },
+    {
+      "name": "north-gate-bridge-island",
+      "elapsedSeconds": 47.01930000019073
+    }
+  ],
+  "allocatorPlayingMB": [
+    {
+      "stop": "road-initial",
+      "playingMB": 525.28
+    },
+    {
+      "stop": "board",
+      "playingMB": 787.7
+    },
+    {
+      "stop": "island",
+      "playingMB": 774.12
+    }
+  ],
+  "map": {
+    "version": 1,
+    "tilesHash": "bde755367b60f0db70227495c01e5c277a941d7a7fb964490db1d25aa584125d",
+    "image": "/assets/far-reach/map/top.webp",
+    "size": 1000,
+    "metres": 500,
+    "north": "+z",
+    "east": "-x",
+    "style": "stylized:void",
+    "bytes": 41462
+  },
+  "node": {
+    "farFiles": 14,
+    "farTests": 35,
+    "strict": true,
+    "oxlint": true,
+    "ratchet": true,
+    "fullSuite": {
+      "filesPassed": 945,
+      "testsPassed": 5402,
+      "testsSkipped": 14,
+      "seconds": 308,
+      "ticket": 433,
+      "failures": 0
+    }
+  },
+  "scope": "Binding conversion only; no native memory or fps claim. Sky remains Developer-only and its prior over-cap status is unchanged. Independent north-entry fix belongs to rt3-dev and follows this landing.",
+  "harnessCorrections": [
+    "Select Sky with the visible carousel dot and assert selection before PLAY.",
+    "Resume before waiting for deferred goat fixed-step spawn.",
+    "Supply harness pins before leak().",
+    "Leave service workers enabled; Playwright blocking returned undefined registration and created two harness-induced .waiting errors."
+  ]
+}

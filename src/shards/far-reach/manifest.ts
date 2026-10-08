@@ -35,7 +35,7 @@ export const SKY_REACH: ShardManifest = {
   grade: { saturation: 0, brightness: 0, contrast: 0.12, bloomIntensity: 0.35, bloomThreshold: 0.7, shadowTint: [0.97, 0.98, 1.04], highTint: [1.06, 1.0, 0.88], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1 },
   render: async () => (await import('./look/render')).skyReachLook(),
   uses: ['hover', 'quests', 'bosses', 'coins', 'loot'],
-  loadout: { weapons: ['weapon.far-fan'], tools: ['tool.hoverboard'], start: ['weapon.far-fan', 'tool.hoverboard'], held: 'weapon.far-fan' },
+  loadout: { weapons: ['weapon.far-reach.fan'], tools: ['tool.hoverboard'], start: ['weapon.far-reach.fan', 'tool.hoverboard'], held: 'weapon.far-reach.fan' },
   species: ['driftRay', 'skyGoat', 'galeWisp', 'stormRoc'], encounters: ['far.roc'], spawns: [], fight: { telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
   // far.meadowBlades: blades per 8 m tile of the near meadow (world/meadow.ts)

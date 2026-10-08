@@ -2,6 +2,11 @@ import { SKY_REACH_RUNTIME_COST } from './budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { parseSocketLift } from '@wildshard/sdk/socketLift';
+import { SKY_QUESTS } from './data/quests';
+import { SKY_LEDGER } from './data/ledger';
+import { SKY_ITEMS } from './data/items';
+import { SKY_SPAWNS } from './data/spawns';
+import { SKY_STATE } from './data/state';
 import { AUDIO } from './data/audio';
 import { MOVERS } from './data/movers';
 import { LIFT_MODULE } from './data/liftModule';
@@ -19,7 +24,8 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const lifts = new Map(RISING_ISLETS.map((entry) => [entry.edge, parseSocketLift(isletLift(entry))]));
 const script = { hash: LIFT_MODULE.hash, kind: 'wasm', compressed: LIFT_MODULE.bytes, decoded: LIFT_MODULE.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true };
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST }, audio: AUDIO,
+export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns'], spawns: SKY_SPAWNS }, audio: AUDIO,
+  quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
     return { edge, at, width, kind: 'socketLift' as const, lift };

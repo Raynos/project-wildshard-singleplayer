@@ -42,7 +42,7 @@
     "sunscar.creature.sandSkitterer",
     "weapon.bow",
     "weapon.crossbow",
-    "weapon.far-fan",
+    "weapon.far-reach.fan",
     "weapon.jian",
     "weapon.lever",
     "weapon.longbow",
@@ -64,7 +64,9 @@
       "name": "Template shard",
       "ids": [],
       "settings": [],
-      "assets": []
+      "assets": [
+        "public/assets/_template/map/**"
+      ]
     },
     "driftwood-isle": {
       "name": "Driftwood Isle",
@@ -82,7 +84,8 @@
         "public/assets/gpu/horizon/driftwood-isle-*",
         "public/assets/lut/driftwood-isle.bin",
         "public/assets/title/driftwood-isle-portrait.jpg",
-        "public/assets/sfx/driftwood-isle/**"
+        "public/assets/sfx/driftwood-isle/**",
+        "public/assets/driftwood-isle/map/**"
       ]
     },
     "far-reach": {
@@ -92,7 +95,7 @@
         "far.creature.galeWisp",
         "far.creature.skyGoat",
         "far.creature.stormRoc",
-        "weapon.far-fan"
+        "weapon.far-reach.fan"
       ],
       "settings": [],
       "assets": [
@@ -123,7 +126,8 @@
         "public/assets/gpu/nalati/**",
         "public/assets/music/nalati/**",
         "public/assets/sfx/nalati-grasslands/**",
-        "public/assets/title/nalati-grasslands-portrait.jpg"
+        "public/assets/title/nalati-grasslands-portrait.jpg",
+        "public/assets/nalati-grasslands/map/**"
       ]
     },
     "nine-dragon-stack": {
@@ -137,7 +141,8 @@
         "public/assets/gpu/nine-dragon/**",
         "public/assets/music/nine-dragon-stack/**",
         "public/assets/sfx/nine-dragon-stack/**",
-        "public/assets/title/nine-dragon-stack-portrait.jpg"
+        "public/assets/title/nine-dragon-stack-portrait.jpg",
+        "public/assets/nine-dragon-stack/map/**"
       ]
     },
     "pine-hollow": {
@@ -166,7 +171,8 @@
         "public/assets/horizon/pine-hollow-*",
         "public/assets/gpu/horizon/pine-hollow-*",
         "public/assets/lut/pine-hollow.bin",
-        "public/assets/title/pine-hollow-portrait.jpg"
+        "public/assets/title/pine-hollow-portrait.jpg",
+        "public/assets/pine-hollow/map/**"
       ]
     },
     "sunscar-dunes": {

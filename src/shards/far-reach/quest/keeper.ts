@@ -5,11 +5,11 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { FLAGS } from './flags';
 import { STRINGS } from '../strings';
 import { SPAWN } from '../layout';
+import { KEEPER_AT } from '../data/quests';
 
 /** Where the bridge-keeper stands: at Sunrest's north rim, left of the rope bridge's posts, facing the spawn (mockup B). */
 // E399: 0.8 m further left than loop 5's spot, so the views down the bridge's axis (mockups A and proposal B) frame the
 // bridge between its posts with him and his stand outside the portrait frame; from the spawn he stands 16.5 deg left
-export const KEEPER_AT = { x: -2.4, z: -13.6, yaw: Math.atan2(SPAWN.x + 2.4, SPAWN.z + 13.6) } as const;
 /** He waves while the player is this close (metres), as Wendell does. */
 export const WAVE_RANGE = 16;
 

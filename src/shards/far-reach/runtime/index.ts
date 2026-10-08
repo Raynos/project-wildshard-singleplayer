@@ -10,7 +10,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from '../strings';
-import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem, type Home } from '../layout';
+import { CROWN, DAIS, GOATS, ISLES, RAY_HOMES, ROC, ROOST_RAYS, UPDRAFT, VANES, WISP_HOMES, apothem } from '../layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
 import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/shardfile/moverRuntime';
@@ -42,6 +42,9 @@ import { BOSS_REWARD, installQuest } from '../quest/install';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
 import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
+import { bindSkyActor } from './spawns';
+import { bindSkyItems } from './items';
 import { spawnSkyGoats } from '../species/goats';
 
 declare module '@wildshard/engine/input/InputService' {
@@ -169,7 +172,8 @@ export class SkyReachPlugin extends ShardPlugin {
     }
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null,
       charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
-    const { quest, flags, burst, finished } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
+    const { quest, flags, burst, finished, persistence } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
+    persistence.bindProgress(rt?.play?.progress);
     this.quest = quest; this.flags = flags; this.questFinished = finished;
     if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
 
@@ -187,6 +191,7 @@ export class SkyReachPlugin extends ShardPlugin {
     }
 
     // Step 1: the keeper's notes.
+    bindSkyItems(ctx, fan);
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };
     // Step 4: the winch answers only once the roost is quiet and the vanes turn (the notes say so).
     const unlocked = (): boolean => flags.has(FLAGS.roost) && flags.has(FLAGS.vanes);
@@ -246,11 +251,8 @@ export class SkyReachPlugin extends ShardPlugin {
 
     // Creatures: each one knows its home (an island or a flying circle).
     const animals = rt.play?.animals;
-    const spawnCreature = (kind: string, variant: string, home: Home, x: number, z: number, placement?: { fromY: number }): Animal | null => {
-      if (!animals) return null; const a = animals.spawn(kind, x, z, 0, variant, placement); setHome(a, home); return a;
-    };
     const rayHomes = boundedRows(RAY_HOMES);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = rayHomes[i]; if (home === undefined) break; const a = spawnCreature('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.rays.push(a); }
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = rayHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.ray.${String(i)}`, home).spawn(); if (a) this.rays.push(a); }
     // each free ray trails its luminous wake (world/rayWake.ts; proposal B's ray beside the mill)
     const wakes = this.rays.map((ray) => { const w = rayWake(); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);
@@ -259,27 +261,32 @@ export class SkyReachPlugin extends ShardPlugin {
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, cam.position, dt); }
     } });
     const roostHomes = boundedRows(ROOST_RAYS);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = roostHomes[i]; if (home === undefined) break; const a = spawnCreature('driftRay', 'dusk', home, home.x + home.r, home.z); if (a) this.roostRays.push(a); }
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = roostHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.roost.${String(i)}`, home).spawn(); if (a) this.roostRays.push(a); }
     // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
     // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m
     // analytic floor), so they spawn on the first fixed step.
-    const goatSpawns = boundedRows(GOATS).map(g => ({ x: g.isle.x + g.dx, z: g.isle.z + g.dz,
-      home: { x: g.isle.x, z: g.isle.z, r: apothem(g.isle), y: g.isle.y }, placement: { fromY: g.isle.y + GOAT_SPAWN_ABOVE } }));
+    const goatSpawns = boundedRows(GOATS).map((g, index) => ({
+      body: bindSkyActor(ctx, `far.goat.${String(index)}`, { x: g.isle.x, z: g.isle.z, r: apothem(g.isle), y: g.isle.y }),
+      placement: { fromY: g.isle.y + GOAT_SPAWN_ABOVE } }));
     let goatsDue = !retainsRuntimeServices(ctx);
     ctx.system({ id: 'far.goats', phase: 'fixed.post', run: () => {
       if (!goatsDue) return; goatsDue = false;
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const g = goatSpawns[i]; if (g === undefined) break;
-        const a = spawnCreature('skyGoat', 'cloud', g.home, g.x, g.z, g.placement);
+        const a = g.body.spawn(g.placement);
         if (a) this.goats.push(a);
       }
     } });
     const wispHomes = boundedRows(WISP_HOMES);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = wispHomes[i]; if (home === undefined) break; const a = spawnCreature('galeWisp', 'gale', home, home.x + home.r, home.z); if (a) this.wisps.push(a); }
-    this.roc = spawnCreature('stormRoc', 'storm', ROC, ROC.x + ROC.r, ROC.z);
+    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const home = wispHomes[i]; if (home === undefined) break; const a = bindSkyActor(ctx, `far.wisp.${String(i)}`, home).spawn(); if (a) this.wisps.push(a); }
+    this.roc = bindRuntimeBoss(ctx, source, ROC_ID, undefined, { identity: 'runtime' }).spawn();
+    if (this.roc !== null) setHome(this.roc, ROC);
     // Preserve the shipping identity order: deferred goats follow the Roc. Retained restore runs before any tick;
     // these flat island tops have an authored exact height, so initialization needs no physics step or quest update.
-    if (retainsRuntimeServices(ctx) && animals !== undefined) this.goats.push(...spawnSkyGoats(animals));
+    if (retainsRuntimeServices(ctx) && animals !== undefined) this.goats.push(...spawnSkyGoats(animals, (index, y) => {
+      const row = goatSpawns[index]; if (row === undefined) throw new Error('Missing Sky goat home');
+      return row.body.spawn({ y });
+    }));
     // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are
     // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
     if (this.roc !== null) {
@@ -310,8 +317,8 @@ export class SkyReachPlugin extends ShardPlugin {
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
     const boss = new StormRocBoss(ctx, position, this.roc, () => {
       if (flags.has(FLAGS.roc)) { toast(STRINGS.rocDown); return; }
-      flags.set(FLAGS.roc); burst(BOSS_REWARD, STRINGS.bossReward);
-    });
+      flags.set(FLAGS.roc); persistence.facts('far-reach.roc', ROC_ID); burst(BOSS_REWARD, STRINGS.bossReward);
+    }, persistence.boss);
     this.boss = ctx.app.encounters.boss(ROC_ID, boss, ctx.scope); this.boss.arm();
     ctx.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true);
     ctx.system({ id: 'far.boss', phase: 'update', run: (dt, t) => { boss.update(dt, t); } });

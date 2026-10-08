@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createShardfileSim } from '../../../src/game/shardfile/simulation';
+import { withoutRuntimeRows } from '../../../src/game/shardfile/hybridRows';
 import { proveShardfileEntries } from '../../../src/game/shardfile/socketLiftProof';
 import { validateShardfileAssets } from '../../../src/game/shardfile/validate';
 import { contentHash } from '../../../src/sdk/project';
@@ -12,7 +13,7 @@ import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 
 it('walks and rides all four authored Rising Islets, calls both stops and closes every road gate lane', async () => {
   const bytes = Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${LIFT_MODULE.hash}`));
-  const assets = new Map([[LIFT_MODULE.hash, bytes]]), shard = validateShardfileAssets(source, assets, contentHash);
+  const assets = new Map([[LIFT_MODULE.hash, bytes]]), shard = validateShardfileAssets(withoutRuntimeRows(source), assets, contentHash);
   const rapier = await loadRapier(await (await fetch(wasmInline)).arrayBuffer());
   const sim = createShardfileSim(shard, assets, { rapier, ground: false });
   try {
