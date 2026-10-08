@@ -76,5 +76,9 @@ try {
   await ctx.close();
 } finally {
   await browser.close();
+  // keep the receipt small: only the memory ledger's accounted total (MB) at each pose
+  const mb = (m) => (m === null || m === undefined ? null : Math.round((m.accountedBytes ?? 0) / 1e5) / 10);
+  for (const v of Object.values(out.shards)) { v.accountedMBPlay = mb(v.memoryPlay); v.accountedMBMap = mb(v.memoryMap); delete v.memoryPlay; delete v.memoryMap; }
+  if (out.grid) for (const k of ['Pier', 'Road', 'Map']) { out.grid[`accountedMB${k}`] = mb(out.grid[`memory${k}`]); delete out.grid[`memory${k}`]; }
   writeFileSync(join(OUT, 'capture-draw.json'), `${JSON.stringify(out, null, 2)}\n`);
 }
