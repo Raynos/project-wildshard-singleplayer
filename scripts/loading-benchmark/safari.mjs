@@ -8,7 +8,7 @@ import { soakInspector } from '../soak/inspector.mjs';
 import { installSafariFixture } from './safari-fixture.mjs';
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-const repeat = Number(arg('repeat') ?? 1);
+const repeat = Number(arg('repeat') ?? 1), profiling = arg('profile') === '1';
 const udid = process.env.SIM_UDID, shard = arg('shard'), out = arg('out'), timeout = Number(arg('timeout') ?? 180) * 1000;
 if (!udid || !shard || !out) throw new Error('Requires SIM_UDID (sim-lane), --shard and --out');
 const names = { 'driftwood-isle': 'Driftwood Isle', 'nalati-grasslands': 'Nalati', 'pine-hollow': 'Pine Hollow', _template: 'Template shard', 'far-reach': 'Sky Reach', 'sunscar-dunes': 'Signal Dunes', 'nine-dragon-stack': 'Nine Dragon' };
@@ -59,7 +59,7 @@ for (const arm of arms) {
   const fixture = installSafariFixture(arm.dist); fixture.start(shard === '_template');
   try {
   for (const cache of ['cold', 'warm']) {
-    const result = { pin: arm.pin, shard, cache, repeat, loadStart: loadavg(), status: 'failed', capturedAt: new Date().toISOString(), fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 }, protocolErrors: [], timeline: [], profiles: [], console: [] };
+    const result = { pin: arm.pin, shard, cache, repeat, loadStart: loadavg(), status: 'failed', capturedAt: new Date().toISOString(), fixture: { originalSHA256: fixture.originalSHA256, injectedSHA256: fixture.injectedSHA256 }, taskClock: profiling ? 'Inspector pilot; validate its timestamps before attribution' : 'Unavailable: Inspector pilot returns zero task/profile timestamps; repeated ruler keeps only HTML phase/RAF clocks', protocolErrors: [], timeline: [], profiles: [], console: [] };
     const file = resolvePath(out, `r${repeat}-${arm.name}-${shard}-${cache}.json`);
     try {
       if (cache === 'cold') {
@@ -84,7 +84,7 @@ for (const arm of arms) {
       const offTimeline = inspector.on('Timeline.eventRecorded', row => result.timeline.push(row));
       const offProfile = inspector.on('ScriptProfiler.trackingComplete', row => result.profiles.push(row));
       const offConsole = inspector.on('Console.messageAdded', row => result.console.push(row));
-      for (const { method, params } of [{ method: 'Console.enable', params: {} }, { method: 'Timeline.enable', params: {} }, { method: 'Timeline.setAutoCaptureEnabled', params: { enabled: true } }, { method: 'Timeline.start', params: { maxCallStackDepth: 12 } }, { method: 'ScriptProfiler.startTracking', params: { includeSamples: true } }]) {
+      for (const { method, params } of [{ method: 'Console.enable', params: {} }, ...(profiling ? [{ method: 'Timeline.enable', params: {} }, { method: 'Timeline.setAutoCaptureEnabled', params: { enabled: true } }, { method: 'Timeline.start', params: { maxCallStackDepth: 12 } }, { method: 'ScriptProfiler.startTracking', params: { includeSamples: true } }] : [])]) {
         try { await inspector.send(method, params); } catch (error) { result.protocolErrors.push(`${method}: ${String(error)}`); }
       }
       await gesture(`(() => { setTimeout(() => { sessionStorage.setItem('sf67.tap', String(performance.timeOrigin + performance.now())); const compiled = document.querySelector('.ws-menu-shardfile'); const button = compiled && getComputedStyle(compiled).display !== 'none' && !compiled.disabled ? compiled : document.querySelector('.ws-menu-play'); button.click(); }, 0); return true; })()`);
@@ -97,7 +97,7 @@ for (const arm of arms) {
       Object.assign(result, JSON.parse(raw));
       if (!(result.data.origin >= result.tapEpoch) || !result.data.url.includes(`chunk=${shard}`)) throw new Error('Stale document after shard selection');
       result.status = 'ok';
-      for (const method of ['ScriptProfiler.stopTracking', 'Timeline.stop']) try { await inspector.send(method); } catch (error) { result.protocolErrors.push(`${method}: ${String(error)}`); }
+      for (const method of profiling ? ['ScriptProfiler.stopTracking', 'Timeline.stop'] : []) try { await inspector.send(method); } catch (error) { result.protocolErrors.push(`${method}: ${String(error)}`); }
       await sleep(100);
       offTimeline(); offProfile(); offConsole();
       console.log(`${arm.name} ${shard} ${cache}: ${(result.data.origin + result.data.play - result.tapEpoch).toFixed(1)}ms`);
