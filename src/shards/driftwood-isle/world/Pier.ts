@@ -84,7 +84,7 @@ export class Pier {
   private draw(registry: WorldRegistry | null, id: string): this {
     const { width, deckY } = this.spec, yaw = this.spec.rot ?? 0;
     let length = this.spec.length, landing: PierParams['landing'] = null;
-    if (this.spec.landing) {
+    if (this.spec.landing === true || this.spec.landing === 'end') {
       // march on over the shallows to the first dry sand, then 5 m more: the last 6 m step down onto the beach
       const wl = waterLevel();
       let a = length;
