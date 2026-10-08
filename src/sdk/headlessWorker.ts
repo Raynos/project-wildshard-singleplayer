@@ -1,3 +1,4 @@
+import { diagnosticNow } from '@wildshard/engine/core/clock';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only the platform-selected physics binary is read inside the isolated worker.
 import { readFileSync } from 'node:fs';
 import * as v from 'valibot';
@@ -28,9 +29,18 @@ await runTickWorker(async raw => {
     sim = installed;
   }
   effects = [];
+  let scriptMicros = 0;
+  if (sim.lane !== undefined) {
+    const host = sim.lane.host, call = host.call.bind(host);
+    // Offline-only instrumentation; neither author code nor the production frame loop chooses this wrapper.
+    host.call = (...args: Parameters<typeof call>): ReturnType<typeof call> => {
+      const started = diagnosticNow();
+      try { return call(...args); } finally { scriptMicros += (diagnosticNow() - started) * 1000; }
+    };
+  }
   return {
     step: input => {
-      effects = []; const numeric = new Map<string, number>(); let player: SimCommand | undefined;
+      scriptMicros = 0; effects = []; const numeric = new Map<string, number>(); let player: SimCommand | undefined;
       for (const command of input) {
         if (command.kind === 'player') player = { moveX: command.moveX, moveZ: command.moveZ, yaw: command.yaw, ...(command.attack === undefined ? {} : { attack: command.attack }) };
         else if (command.kind === 'script') {
@@ -41,8 +51,11 @@ await runTickWorker(async raw => {
       if (![sim.host.player.position, ...[...sim.host.entities.values()].map(entity => entity.position)].every(point => [point.x, point.y, point.z].every(Number.isFinite))) throw new Error('Nonfinite headless simulation state');
     },
     commit: () => {
-      if (sim.lane?.host.checkpoint().modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Headless script call failed');
-      return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(sim.host)), effects };
+      const script = sim.lane?.host.checkpoint();
+      if (script?.modules.some(module => module.failures > 0 || module.disabled)) throw new Error('Headless script call failed');
+      // A sleeping lane retains its last counters; report only fuel consumed by this completed global tick.
+      const fuelUsed = script?.tick === sim.host.state.tick ? script.used.fuel : 0;
+      return { tick: sim.host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(sim.host)), effects, fuelUsed, scriptMicros };
     },
     finish: () => ({ ticks: sim.host.state.tick, ...proveShardfileEntries(shard, sim, payload.assets, ports) }),
     dispose: () => { sim.dispose(); },

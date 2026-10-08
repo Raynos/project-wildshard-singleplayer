@@ -10,6 +10,7 @@ import { validateShardfileAssets } from '@wildshard/game/shardfile/validate';
 import type { Shardfile } from './shardfile';
 import { TickWorkerHost } from './tickWorkerHost';
 import type { HeadlessCommandSource, HeadlessTickCommit } from './tickProtocol';
+import { SCRIPT_LIMITS } from '@wildshard/engine/script/host';
 
 /** A plain-Node authoritative session. Failed ticks quarantine the isolate and retain the previous exact checkpoint. */
 export class HeadlessSimulation {
@@ -47,12 +48,12 @@ export class HeadlessSimulation {
   dispose(): Promise<void> { return this.runner.dispose(); }
 }
 /** Offline admission enforces fuel, bounded platform queries and aggregate commands deterministically; wall timing is advisory. The independent request watchdog still bounds a broken worker. */
-export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number; timing: { medianMicros: number; maxMicros: number; samples: number } }> {
+export async function validateSimulation(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<{ ticks: number; lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number; timing: { medianMicros: number; p95Micros: number; maxMicros: number; samples: number }; fuel: { p95: number; max: number; limit: number; samples: number }; scripts: { p95Micros: number; maxMicros: number; samples: number } }> {
   const sim = await HeadlessSimulation.create(shard, assets, undefined, { deadline: 'advisory' });
   try {
-    const measured: number[] = [];
-    for (let tick = 0; tick < 60; tick++) { await sim.step(); measured.push(sim.lastTickMicros); }
-    measured.sort((a, b) => a - b);
-    return { ...await sim.finish(), timing: { medianMicros: ((measured[29] ?? 0) + (measured[30] ?? 0)) / 2, maxMicros: measured.at(-1) ?? 0, samples: measured.length } };
+    const measured: number[] = [], fuel: number[] = [], scripts: number[] = [];
+    for (let tick = 0; tick < 60; tick++) { const commit = await sim.step(); measured.push(sim.lastTickMicros); fuel.push(commit.fuelUsed ?? 0); scripts.push(commit.scriptMicros ?? 0); }
+    measured.sort((a, b) => a - b); fuel.sort((a, b) => a - b); scripts.sort((a, b) => a - b);
+    return { ...await sim.finish(), timing: { medianMicros: ((measured[29] ?? 0) + (measured[30] ?? 0)) / 2, p95Micros: measured[56] ?? 0, maxMicros: measured.at(-1) ?? 0, samples: measured.length }, fuel: { p95: fuel[56] ?? 0, max: fuel.at(-1) ?? 0, limit: SCRIPT_LIMITS.fuelPerTick, samples: fuel.length }, scripts: { p95Micros: scripts[56] ?? 0, maxMicros: scripts.at(-1) ?? 0, samples: scripts.length } };
   } finally { await sim.dispose(); }
 }

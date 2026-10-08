@@ -1,6 +1,9 @@
 import { TickWorkerHost, HeadlessDeadlineError } from '../../../src/sdk/tickWorkerHost';
 import { HeadlessSimulation, validateSimulation } from '../../../src/sdk/headless';
 import { emptyShardfile } from '../../../src/sdk/author';
+import { numericScriptEntityId } from '../../../src/game/shardfile/simulation';
+// oxlint-disable-next-line import/no-nodejs-modules -- Hash admitted worker fixture bytes without loading author build tooling.
+import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read the real template's committed, already admitted asset fixture.
 import { readFileSync } from 'node:fs';
 import template from '../../../src/shards/_template/shard.config';
@@ -8,6 +11,24 @@ import template from '../../../src/shards/_template/shard.config';
 function check(value: boolean, message: string): void { if (!value) throw new Error(message); }
 /** Native Node fixture: imports only bundled installed-style JavaScript, with no Vitest loader or workspace aliases. */
 export async function run(mode: string, bytes: number[]): Promise<object> {
+  if (mode === 'fuel') {
+    const source = emptyShardfile({ slug: 'fuel-test', name: 'Fuel', author: 'Test', revision: 1, seed: 435 });
+    const binary = Uint8Array.from(bytes), hash = createHash('sha256').update(binary).digest('hex'), assets = new Map([[hash, binary]]);
+    source.files.push({ hash, kind: 'wasm', compressed: binary.length, decoded: binary.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
+    source.sim.scripts.push(hash); source.critical.push(hash);
+    source.sim.bindings.push({ module: hash, entity: numericScriptEntityId('actor.player'), actorId: 'actor.player', kind: 'server' });
+    source.budgets.sim = { compressed: binary.length, resident: 16_000_000 };
+    source.serverBudget.memory = 16_000_000;
+    const sim = await HeadlessSimulation.create(source, assets, undefined, { deadline: 'advisory' });
+    try {
+      const sleeping = await sim.step(), due = await sim.step(), next = await sim.step();
+      const fresh = await HeadlessSimulation.create(source, assets, due.snapshot, { deadline: 'advisory' });
+      try {
+        const replay = await fresh.step(), proof = await validateSimulation(source, assets);
+        return { sleeping: sleeping.fuelUsed, due: due.fuelUsed, restoredSleeping: replay.fuelUsed, exact: replay.snapshot === next.snapshot, fuel: proof.fuel, scripts: proof.scripts, sleepingMicros: sleeping.scriptMicros, dueMicros: due.scriptMicros };
+      } finally { await fresh.dispose(); }
+    } finally { await sim.dispose(); }
+  }
   if (mode === 'measure') {
     const source = structuredClone(template); source.serverBudget.tickMicros = 16_666;
     const sim = await HeadlessSimulation.create(source, new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(`src/shards/_template/assets/${file.hash}`))])));

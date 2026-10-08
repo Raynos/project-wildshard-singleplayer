@@ -16,8 +16,10 @@ import { scriptSource } from './script/fixture';
 
 const directory = mkdtempSync(resolve(tmpdir(), 'sf58-watchdog-'));
 let bytes: number[] = [];
+let fuelBytes: number[] = [];
 beforeAll(async () => {
   bytes = Array.from(await compileScript(scriptSource('query(410,32768,33792);', '@external("env", "query") declare function query(kind:i32,request:i32,response:i32):i32;')));
+  fuelBytes = Array.from(await compileScript(scriptSource('')));
   await build({ configFile: false, publicDir: false, resolve: { alias: rapierAlias }, logLevel: 'silent', build: { outDir: directory, emptyOutDir: false, minify: false,
     lib: { entry: { runner: resolve('test/fixtures/headless/runner.ts'), slowWorker: resolve('test/fixtures/headless/slowWorker.ts'), headlessWorker: resolve('src/sdk/headlessWorker.ts') }, formats: ['es'], fileName: (_format, name) => `${name}.js` },
     rolldownOptions: { platform: 'node', external: [/^node:/u, 'vite'] },
@@ -27,7 +29,7 @@ beforeAll(async () => {
 afterAll(() => { rmSync(directory, { recursive: true, force: true }); });
 function proof(mode: string): Record<string, unknown> {
   // Native module/world initialization competes with the full parallel gate; this child-process limit is separate from every runtime tick deadline.
-  const output = execFileSync('node', ['--input-type=module', '-e', 'const fixture=await import(process.argv[1]); console.log(JSON.stringify(await fixture.run(process.argv[2],JSON.parse(process.argv[3]))));', pathToFileURL(resolve(directory, 'runner.js')).href, mode, JSON.stringify(bytes)], { encoding: 'utf8', timeout: 120_000 });
+  const output = execFileSync('node', ['--input-type=module', '-e', 'const fixture=await import(process.argv[1]); console.log(JSON.stringify(await fixture.run(process.argv[2],JSON.parse(process.argv[3]))));', pathToFileURL(resolve(directory, 'runner.js')).href, mode, JSON.stringify(mode === 'fuel' ? fuelBytes : bytes)], { encoding: 'utf8', timeout: 120_000 });
   const result: unknown = JSON.parse(output); if (typeof result !== 'object' || result === null || Array.isArray(result)) throw new Error('Missing Node worker proof'); return result as Record<string, unknown>;
 }
 it('preempts a finite-fuel WASM script blocked in a host query, publishes no unfinished effects, and resumes the committed snapshot', () => {
@@ -36,6 +38,17 @@ it('preempts a finite-fuel WASM script blocked in a host query, publishes no unf
 it('counts aggregate commands across sources before any tick and protects detached checkpoints', () => { expect(proof('overflow')).toEqual({ accepted: 2, refused: 3, tick: 1 }); });
 it('keeps the first-touch allowance bounded and preemptible', () => { expect(proof('cold')).toEqual({ retained: 0, effects: 0, quarantined: true }); });
 it('validates deterministically with a 1us declared runtime budget, advisory timing and exact native suffix replay', () => { expect(proof('normal')).toMatchObject({ ticks: 60, exact: true, timing: { samples: 60 } }); });
+it('reports current-tick aggregate fuel and zero on sleepers without changing exact continuation', () => {
+  const result = proof('fuel');
+  expect(result).toMatchObject({ sleeping: 0, restoredSleeping: 0, sleepingMicros: 0, exact: true, fuel: { samples: 60, limit: 8_000_000 } });
+  expect(result['due']).toBeGreaterThan(0);
+  expect(result['dueMicros']).toBeGreaterThan(0);
+  expect(result['scripts']).toMatchObject({ samples: 60 });
+  const fuel = result['fuel'];
+  if (typeof fuel !== 'object' || fuel === null) throw new Error('Missing fuel report');
+  expect(Reflect.get(fuel, 'max')).toBe(result['due']);
+  expect(Reflect.get(fuel, 'p95')).toBe(result['due']);
+});
 it('runs the real template under its declared wall deadline, retaining the exact completed tick if contended work is quarantined', () => {
   const result = proof('template');
   if (result['deadline'] === true) {
