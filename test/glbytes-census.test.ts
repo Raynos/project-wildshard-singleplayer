@@ -14,6 +14,8 @@ function census(scenario: string): Census[] {
       bindings = new Map(); canvas = {width:16,height:16}; lost = false;
       createTexture() { return {}; } createBuffer() { return {}; } createRenderbuffer() { return {}; }
       getParameter(key) { return this.bindings.get(key); } isContextLost() { return this.lost; }
+      loss = {loseContext:()=>{this.lost=true;}, restoreContext:()=>{this.lost=false;}};
+      getExtension(name) { return name === 'WEBGL_lose_context' ? this.loss : null; }
       bindTexture(_target, value) { this.bindings.set(0x8069,value); }
       bindBuffer(_target, value) { this.bindings.set(0x8894,value); }
       bindRenderbuffer(_target, value) { this.bindings.set(0x8ca7,value); }
@@ -131,4 +133,29 @@ it('joins native handles and uploaded sources by scalar identities without label
   `);
   expect(rows[0]?.resources).toHaveLength(1);
   expect(rows[0]?.totalBytes).toBe(0);
+});
+
+it('retires probe textures and every allocation when a context is lost, before the next census', () => {
+  const rows = census(`
+    const events=[]; window.__sc_gl_change=event=>events.push(event);
+    const textures=[4,24,4,4].map(bytes=>{
+      const t=window.__sc_gl_scope('engine/renderer','builtin/probe-renderer',()=>gl.createTexture());
+      gl.bindTexture(0x0de1,t); gl.texImage2D(0x0de1,0,0x8058,bytes/4,1,0,0x1908,0x1401,null); return t;
+    });
+    const b=gl.createBuffer(); gl.bindBuffer(0x8892,b); gl.bufferData(0x8892,64,0x88e4);
+    const rb=gl.createRenderbuffer(); gl.bindRenderbuffer(0x8d41,rb); gl.renderbufferStorageMultisample(0x8d41,1,0x8058,2,2);
+    if(window.__sc_gl()[0].totalBytes!==116)throw Error('Fixture allocation');
+    const loss=gl.getExtension('WEBGL_lose_context'); gl.getExtension('WEBGL_lose_context'); loss.loseContext();
+    const retired=events.filter(e=>e.op==='allocation' && e.bytes===null);
+    if(retired.length!==6 || new Set(retired.map(e=>e.id)).size!==6)throw Error('Missing immediate context retirement');
+    if(retired.filter(e=>e.kind==='texture').length!==textures.length)throw Error('Missing probe texture retirement');
+    if(window.__sc_gl().length || events.filter(e=>e.bytes===null).length!==6)throw Error('Repeated context retirement');
+    loss.restoreContext();
+    if(window.__sc_gl()[0].totalBytes!==0 || window.__sc_gl()[0].resources.length)throw Error('Restored context resurrected dead allocations');
+    gl.createTexture(); gl.lost=true; window.__sc_gl();
+    if(events.filter(e=>e.bytes===null).length!==7)throw Error('Unrequested loss not reconciled');
+    gl.lost=false;
+  `);
+  expect(rows[0]?.totalBytes).toBe(0);
+  expect(rows[0]?.resources).toEqual([]);
 });

@@ -22,6 +22,16 @@ export const GL_INIT = String.raw`(() => { const W = window;
   // Optional loading journal contains scalar identities only; it never retains GPU/source objects.
   const changed = (gl, resource, kind, bytes) => { if (W.__sc_gl_change) {const row=entry(resource,kind,bytes);W.__sc_gl_change({at:Date.now()/1000,op:'allocation',context:identity(gl,'context'),...row,bytes});} };
   const changedTexture = (gl, resource) => { if (!W.__sc_gl_change) return; let bytes=0; for(const level of rec(gl).tex.get(resource)?.values() ?? []) bytes+=level.bytes; changed(gl,resource,'texture',bytes); };
+  // Lost contexts have no live allocations. Record the same retirement in the journal as in the census.
+  const retireLost = (gl) => {
+    if (!gl.isContextLost()) return;
+    const r = recOf.get(gl); if (!r) return;
+    for (const [field, kind] of [['tex', 'texture'], ['rb', 'renderbuffer'], ['buf', 'buffer']]) {
+      for (const resource of r[field].keys()) changed(gl, resource, kind, null);
+      r[field].clear();
+    }
+  };
+  const lossExtensions = new WeakSet();
   // GPU bytes at the WebGL API, per context: textures (per face + level), renderbuffers, buffers
   const SIZED = { 0x8229: 1, 0x822b: 2, 0x8051: 4, 0x8058: 4, 0x8c43: 4, 0x8c41: 4, 0x822d: 2, 0x822f: 4, 0x881b: 8, 0x881a: 8, 0x822e: 4, 0x8230: 8, 0x8815: 16, 0x8814: 16,
     0x8c3a: 4, 0x8c3d: 4, 0x8059: 4, 0x8d62: 2, 0x8056: 2, 0x8057: 2, 0x8232: 1, 0x8231: 1, 0x8234: 2, 0x8233: 2, 0x8236: 4, 0x8235: 4, 0x823a: 4, 0x823c: 8, 0x8d7c: 4, 0x8d76: 8,
@@ -63,6 +73,12 @@ export const GL_INIT = String.raw`(() => { const W = window;
   const hook = (proto) => {
     if (!proto) return;
     const wrap = (name, after) => { const orig = proto[name]; if (typeof orig !== 'function') return; proto[name] = function wrapped(...a) { const r = orig.apply(this, a); try { after(this, a, r); } catch {} return r; }; };
+    wrap('getExtension', (gl, args, extension) => {
+      if (args[0] !== 'WEBGL_lose_context' || !extension || lossExtensions.has(extension)) return;
+      const lose = extension.loseContext;
+      extension.loseContext = function loseContext(...a) { const result = lose.apply(this, a); retireLost(gl); return result; };
+      lossExtensions.add(extension);
+    });
     for (const [method, kind, field] of [['createTexture', 'texture', 'tex'], ['createRenderbuffer', 'renderbuffer', 'rb'], ['createBuffer', 'buffer', 'buf']]) {
       wrap(method, (gl, _args, resource) => { if (!resource) return; const r = rec(gl); r[field].set(resource, kind === 'texture' ? new Map() : 0); identity(resource, kind); if (scope) label(resource, scope.owner, scope.asset); changed(gl,resource,kind,0); });
     }
@@ -107,7 +123,7 @@ export const GL_INIT = String.raw`(() => { const W = window;
   };
   hook(W.WebGL2RenderingContext && W.WebGL2RenderingContext.prototype);
   hook(W.WebGLRenderingContext && W.WebGLRenderingContext.prototype);
-  W.__sc_gl = () => recs.filter((r) => !r.gl.isContextLost()).map((r) => {
+  W.__sc_gl = () => { for (const r of recs) retireLost(r.gl); return recs.filter((r) => !r.gl.isContextLost()).map((r) => {
     let tex = 0, levels = 0; const per = [], resources = [];
     for (const [resource, e] of r.tex) { let b = 0, l0 = null; for (const [k, i] of e) { b += i.bytes; levels++; if (k === 0) l0 = i; } tex += b; per.push([b, l0 ? l0.w + 'x' + l0.h + (l0.d > 1 ? 'x' + l0.d : '') : '?', l0 ? '0x' + l0.ifmt.toString(16) : '?', e.size]); resources.push({ ...entry(resource, 'texture', b), subresources: [...e].map(([key, info]) => ({ face: Math.floor(key / 64), level: key % 64, ...info })) }); }
     per.sort((a, b) => b[0] - a[0]);
@@ -115,5 +131,5 @@ export const GL_INIT = String.raw`(() => { const W = window;
     let buf = 0; for (const [resource, bytes] of r.buf) { buf += bytes; resources.push(entry(resource, 'buffer', bytes)); }
     resources.sort((a, b) => b.bytes - a.bytes || a.asset.localeCompare(b.asset) || a.id.localeCompare(b.id)); const totalBytes = tex + rb + buf; const listedBytes = resources.reduce((sum, row) => sum + row.bytes, 0);
     const c = r.gl.canvas; return { resources, totalBytes, listedBytes, reconciled: listedBytes === totalBytes, unlabelled: resources.filter((row) => !row.labelled).length, gl: r.gl, canvas: c ? [c.width, c.height] : null, texBytes: tex, textures: r.tex.size, levels, top: per.slice(0, 12), rbBytes: rb, bufBytes: buf, buffers: r.buf.size, compressedUploads: r.compressed };
-  });
+  }); };
 })();`;
