@@ -102,6 +102,12 @@ export interface BossHost {
 
 const _to = new THREE.Vector3();
 
+/** Optional typed persistence for a runtime owner; omitted adapters keep the legacy shard slot. */
+export interface BossPersistence {
+  read: (slug: string) => ReturnType<typeof bossesSave.read>;
+  write: (value: ReturnType<typeof bossesSave.read>, slug: string) => void;
+}
+
 /** Scene, reward and persistence adapter around the pure encounter clock. */
 export class Boss extends BossBrain {
   override readonly def: BossDef;
@@ -109,14 +115,14 @@ export class Boss extends BossBrain {
   private readonly renderUi: BossBar;
   private drop: WeaponPickup | null = null;
   get reward(): WeaponPickup | null { return this.drop; }
-  constructor(def: BossDef, script: BossScript, host: BossHost, ui: BossBar, chunkId = 'local') {
+  constructor(def: BossDef, script: BossScript, host: BossHost, ui: BossBar, chunkId = 'local', persistence: BossPersistence = bossesSave) {
     const slug = saveSlug(chunkId), key = def.id;
-    const saved = bossesSave.read(slug)[key] ?? { defeated: false, rewardTaken: false, kills: 0 };
+    const saved = persistence.read(slug)[key] ?? { defeated: false, rewardTaken: false, kills: 0 };
     super(def, script, { player: host.player, lockInput: host.lockInput, respawn: host.respawn,
       skipHeld: host.skipHeld, feed: host.feed, toast: host.toast, music: host.music,
       faceToward: (target, dt) => { this.faceToward(target, dt); }, spawnReward: () => { this.spawnReward(); },
       events: app.events,
-      persist: (value) => { const all = bossesSave.read(slug); all[key] = value; bossesSave.write(all, slug); },
+      persist: (value) => { const all = persistence.read(slug); all[key] = value; persistence.write(all, slug); },
     }, ui, saved);
     this.def = def; this.renderHost = host; this.renderUi = ui;
   }

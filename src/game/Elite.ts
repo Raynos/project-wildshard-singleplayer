@@ -124,6 +124,12 @@ interface Entry {
 const BANNER_R = 80, DISCOVER_R = 60, REARM_T = 60, LEASH_HOME_T = 12, SIGHT_EVERY = 0.2;
 const _h = new THREE.Vector3();
 
+/** Optional typed persistence for runtime-bound lairs; the default remains the legacy shard slot. */
+export interface ElitePersistence {
+  read: (slug: string) => ReturnType<typeof elitesSave.read>;
+  write: (value: ReturnType<typeof elitesSave.read>, slug: string) => void;
+}
+
 export class Elites {
   private readonly scope = resourceScope().child('Elites');
   readonly entries: Entry[] = [];
@@ -136,7 +142,7 @@ export class Elites {
   /** the focus's head in line of sight (re-cast every SIGHT_EVERY s while its bar floats over its head) */
   private seen = true; private sightT = 0;
 
-  constructor(private readonly host: EliteHost, private readonly bar: EliteBar, slug: string) { this.slug = slug; this.saved = elitesSave.read(slug); }
+  constructor(private readonly host: EliteHost, private readonly bar: EliteBar, slug: string, private readonly persistence: ElitePersistence = elitesSave) { this.slug = slug; this.saved = persistence.read(slug); }
 
   add(script: EliteScript): void {
     const s = this.saved[script.def.id] ?? { timer: 0, discovered: false, skinTaken: false, kills: 0, retired: false };
@@ -170,7 +176,7 @@ export class Elites {
 
   private save(): void {
     for (const e of this.entries) { const s = this.saved[e.script.def.id]; if (s) { s.timer = e.timer; s.discovered = e.discovered; } }
-    elitesSave.write(this.saved, this.slug);
+    this.persistence.write(this.saved, this.slug);
   }
 
   /** the script says this elite moved its signature move now: flash its name the first time */
