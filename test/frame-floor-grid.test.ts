@@ -5,7 +5,7 @@ const cells = [{ instance: 'home', slug: 'driftwood-isle', cell: [0, 0] as const
   { instance: 'template-1', slug: '_template', cell: [-1, -1] as const },
   { instance: 'pine', slug: 'pine-hollow', cell: [0, 1] as const },
   { instance: 'nalati', slug: 'nalati-grasslands', cell: [1, 0] as const }];
-const state = (current: string, x: number, z: number): FloorGridState => ({ home: 'home', cells, inside: current,
+const state = (current: string, x: number, z: number): FloorGridState => ({ home: 'home', cells, inside: current, claims: [],
   live: { crossing: { phase: 'idle', issue: null }, live: { current, worldFeet: { x, y: 0.55, z }, crossings: 0,
     transitions: [], residents: [current], gameplayReady: true } } });
 
@@ -17,10 +17,12 @@ it('routes a corner template through midpoint entrances and returns over the sam
   expect(back?.start).toBeUndefined();
 });
 
-it('requires real Pine and Nalati runtime residents in the requested Developer travel scenario', () => {
+it('requires the entered runtime resident and the prior owned runtime retired under G226', () => {
   const [pine, nalati] = gridFloorPlans({ home: 'home', cells }, 'runtime-travel');
   expect(pine?.requiredResidents).toEqual(['pine']);
-  expect(nalati?.requiredResidents).toEqual(['pine', 'nalati']);
+  expect(pine?.retiredResidents).toEqual(['home']);
+  expect(nalati?.requiredResidents).toEqual(['nalati']);
+  expect(nalati?.retiredResidents).toEqual(['pine']);
   expect(nalati?.waypoints).toEqual([{ x: 0, z: 277.5 }, { x: 277.5, z: 277.5 }, { x: 277.5, z: 0 }, { x: 325, z: 0 }]);
   expect(nalati?.start).toBeUndefined();
   expect(gridFloorPlans({ home: 'home', cells }, 'baseline')).toEqual([]);
@@ -32,7 +34,7 @@ function witness(): FloorGridWitness {
   if (plan === undefined) throw new Error('Missing route fixture');
   const before = state('pine', 0, 325), after = state('nalati', 325, 0);
   after.live.live.crossings = 2; after.live.live.transitions = [{ from: 'pine', to: null }, { from: null, to: 'nalati' }];
-  after.live.live.residents = ['pine', 'nalati'];
+  after.live.live.residents = ['nalati'];
   return { plan, before, after, elapsedSeconds: 50, trace: [{ seconds: 25, x: 277.5, y: 0.55, z: 277.5, current: null, gameplayReady: true }] };
 }
 
@@ -43,11 +45,16 @@ it('requires frame commits, interior gameplay, residency and a finite above-grou
     row => { row.after.live.live.transitions.reverse(); },
     row => { row.after.inside = null; },
     row => { row.after.live.live.gameplayReady = false; },
-    row => { row.after.live.live.residents = ['nalati']; },
+    row => { row.after.live.live.residents = []; },
+    row => { row.after.live.live.residents = ['pine', 'nalati']; },
+    row => { row.after.claims = [{ id: 'sim-basis:pine', category: 'sim', owner: 'pine' }]; },
+    row => { delete row.after.claims; },
     row => { row.after.live.live.worldFeet.x = 805; },
     row => { row.trace = []; },
     row => { row.trace[0] = { seconds: 1, x: Number.NaN, y: 0, z: 0, current: null, gameplayReady: true }; },
     row => { row.trace[0] = { seconds: 1, x: 0, y: -1, z: 0, current: null, gameplayReady: true }; },
   ];
   for (const change of changes) { const row = witness(); change(row); expect(gridFloorWitnessFailures(row).length).toBeGreaterThan(0); }
+  const prefetched = witness(); prefetched.after.claims = [{ id: 'product:pine', category: 'product', owner: 'pine' }];
+  expect(gridFloorWitnessFailures(prefetched)).toEqual([]);
 });

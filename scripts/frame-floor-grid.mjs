@@ -24,9 +24,10 @@ export function gridFloorPlans(state, scenario) {
     if (p.x !== h.x || p.z <= h.z || n.z !== h.z || n.x <= h.x) throw new Error('Unexpected Developer travel layout');
     const road = { x: (h.x + n.x) / 2, z: (h.z + p.z) / 2 };
     plans.push({ name: 'pine-interior', from: home.instance, to: pine.instance, start: { x: h.x, z: h.z + 230 },
-      waypoints: [{ x: p.x, z: p.z - 230 }], requiredResidents: [pine.instance] },
-    { name: 'nalati-with-pine-resident', from: pine.instance, to: nalati.instance,
-      waypoints: [{ x: p.x, z: road.z }, road, { x: road.x, z: n.z }, { x: n.x - 230, z: n.z }], requiredResidents: [pine.instance, nalati.instance] });
+      waypoints: [{ x: p.x, z: p.z - 230 }], requiredResidents: [pine.instance], retiredResidents: [home.instance] },
+    { name: 'nalati-interior', from: pine.instance, to: nalati.instance,
+      waypoints: [{ x: p.x, z: road.z }, road, { x: road.x, z: n.z }, { x: n.x - 230, z: n.z }],
+      requiredResidents: [nalati.instance], retiredResidents: [pine.instance] });
   }
   return plans;
 }
@@ -34,7 +35,10 @@ export function gridFloorPlans(state, scenario) {
 /** This self-contained function is serialized into Chromium or Safari, without changing the game's fixed step. */
 export async function driveFloorGrid(plan) {
   const api = window.__wildshard, world = api.world, player = world.player, input = world.game.app.input;
-  const read = () => { const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing'); return state; };
+  const read = () => {
+    const state = api.shard.grid.state(); if (!state.live?.live) throw new Error('Grid live telemetry missing');
+    return { ...state, claims: api.shard.grid.residency().claims };
+  };
   const initial = read(), live = initial.live.live;
   if (live.current !== plan.from) throw new Error(`Grid floor starts in ${live.current}, expected ${plan.from}`);
   const oldHover = player.hover, oldLimit = player.hoverSpeedLimit;
@@ -84,6 +88,11 @@ export function gridFloorWitnessFailures(result) {
   if (count !== 2 || JSON.stringify(transitions) !== JSON.stringify([{ from: plan.from, to: null }, { from: null, to: plan.to }])) failures.push('Expected source/road/destination frame commits');
   if (active.current !== plan.to || after.inside !== plan.to || !active.gameplayReady) failures.push('Destination interior gameplay is not ready');
   if (plan.requiredResidents.some(id => !active.residents.includes(id))) failures.push('Required runtime residents are missing');
+  if ((plan.retiredResidents ?? []).some(id => {
+    if (active.residents.includes(id)) return true;
+    if (after.claims === undefined) return true;
+    return after.claims.some(claim => claim.owner === id && claim.category === 'sim');
+  })) failures.push('Source runtime or its sim/basis claim was not retired');
   const cell = after.cells.find(row => row.instance === plan.to);
   if (!cell || Math.abs(active.worldFeet.x - cell.cell[0] * 555) >= 250 || Math.abs(active.worldFeet.z - cell.cell[1] * 555) >= 250) failures.push('Destination feet are outside its interior');
   if (![active.worldFeet.x, active.worldFeet.y, active.worldFeet.z, result.elapsedSeconds].every(Number.isFinite)
