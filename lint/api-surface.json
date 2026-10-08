@@ -8934,6 +8934,12 @@
         "from": "@wildshard/engine/render/look"
       },
       {
+        "name": "EngineKnobs",
+        "kind": "interface",
+        "doc": "The engine chain's knobs that stand for a 'replace' compose where an engine chain draws the level's content instead of",
+        "from": "@wildshard/engine/render/look"
+      },
+      {
         "name": "ExtendLook",
         "kind": "interface",
         "doc": "'extend' (the default): the level's passes go in slots around the engine's chain",

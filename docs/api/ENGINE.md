@@ -4,7 +4,7 @@
 
 The engine's public modules (src/engine/package.json `exports`; no index file). docs/ENGINE.md explains them by area; this is the full list, each with the module to import it from.
 
-2242 members; 834 without a doc line (—).
+2243 members; 834 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -1494,6 +1494,7 @@ The engine's public modules (src/engine/package.json `exports`; no index file). 
 | `ENGINE_CHAIN_TUNING` | const | @wildshard/engine/render/look | The knobs that differ between the two chains beside which effects they hold (Game.buildComposer builds from these; a grid |
 | `EngineChainKind` | type | @wildshard/engine/render/look | the engine's two colour chains (Game.buildComposer): 'cinematic' (volumetrics, god rays, grain, fringe, the level's |
 | `EngineEffects` | interface | @wildshard/engine/render/look | — |
+| `EngineKnobs` | interface | @wildshard/engine/render/look | The engine chain's knobs that stand for a 'replace' compose where an engine chain draws the level's content instead of |
 | `ExtendLook` | interface | @wildshard/engine/render/look | 'extend' (the default): the level's passes go in slots around the engine's chain |
 | `FogControl` | interface | @wildshard/engine/render/look | a level's fog switched off and back on around an off-screen shot (Explore's map from overhead) |
 | `FogModel` | interface | @wildshard/engine/render/look | A level's fog patch (01 §13.2's ordered `fog_fragment` slots: engine fog 100, stylize 200, a level's fog 300). The |

@@ -17,7 +17,7 @@
     "shards/driftwood-isle → game": 52,
     "shards/driftwood-isle → kit": 14,
     "shards/driftwood-isle → sdk": 7,
-    "shards/far-reach → engine": 87,
+    "shards/far-reach → engine": 88,
     "shards/far-reach → game": 21,
     "shards/far-reach → kit": 2,
     "shards/far-reach → sdk": 7,
@@ -34,8 +34,8 @@
     "shards/pine-hollow → kit": 25,
     "shards/pine-hollow → sdk": 10,
     "shards/sunscar-dunes → engine": 83,
-    "shards/sunscar-dunes → game": 19,
+    "shards/sunscar-dunes → game": 20,
     "shards/sunscar-dunes → kit": 2,
-    "shards/sunscar-dunes → sdk": 5
+    "shards/sunscar-dunes → sdk": 8
   }
 }

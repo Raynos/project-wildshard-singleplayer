@@ -1896,7 +1896,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 
 ### `@wildshard/engine` (`src/engine/package.json`)
 
-2225 exports, grouped by the module to import them from.
+2226 exports, grouped by the module to import them from.
 
 - `@wildshard/engine/ai/BossBrain`: `BossBrain`, `BossContinuation`, `BossDefinition`, `BossPhaseDef`, `BossPorts`, `BossPresentation`, `BossSaved`, `BossScript`, `BossState`
 - `@wildshard/engine/ai/bossDefinition`: `BossDef`
@@ -2151,7 +2151,7 @@ Compressed array textures upload on separate painted slices with a graphics-erro
 - `@wildshard/engine/render/graph/presets`: `emissiveGraph`, `painterlyGraph`, `pbrMeasureGraph`, `PRESET_GRAPH_BUDGET`, `toonGraph`
 - `@wildshard/engine/render/graphBackend`: `GraphCompiler`, `loadGraphBackend`, `loadGraphCompiler`
 - `@wildshard/engine/render/hoverboardGeometry`: `buildHoverboard`
-- `@wildshard/engine/render/look`: `CINEMATIC_FX`, `ENGINE_CHAIN_TUNING`, `EngineChainKind`, `EngineEffects`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
+- `@wildshard/engine/render/look`: `CINEMATIC_FX`, `ENGINE_CHAIN_TUNING`, `EngineChainKind`, `EngineEffects`, `EngineKnobs`, `ExtendLook`, `FogControl`, `FogModel`, `GrassDriver`, `GrassLayer`, `LightingRig`, `LookChain`, `LookComposeContext`, `LookComposition`, `LookReplaceContext`, `LookStrategy`, `PainterField`, `ReplaceLook`, `ShadowStyle`, `SkyBackdrop`, `SkyBackdropContext`, `SkyBackdropFactory`, `SkyBackdropPost`, `SkyBackdropTargets`, `SkyDressing`, `TerrainPainter`
 - `@wildshard/engine/render/lut`: `fetchLut`, `LUT_SIZE`
 - `@wildshard/engine/render/memorySaver`: `dropOutputDepth`, `halfLuminance`, `installMemorySaver`, `memorySaverOn`, `releaseOnUpload`, `shadowLights`
 - `@wildshard/engine/render/nodes/cascadeLightNode`: `EngineDirectionalLightNode`
