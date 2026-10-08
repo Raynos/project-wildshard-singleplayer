@@ -4,7 +4,7 @@
 
 The game layer's public modules (src/game/package.json `exports`).
 
-697 members; 112 without a doc line (—).
+698 members; 112 without a doc line (—).
 
 | Member | Kind | From | What it is |
 |---|---|---|---|
@@ -224,6 +224,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `previewNewGame` | function | @wildshard/game/newGame | Preview without mutating saves or loading a shard runtime. Cards must pass an explicit copy id, never a grid cell. |
 | `resetNewGame` | function | @wildshard/game/newGame | Confirm a fresh preview and reset durably; old live checkpoints cannot revive it. Reload the page or evict/rebind this instance including frozen grid residents only when applied is true; a refusal keeps playing intact. |
 | `Progress` | class | @wildshard/game/Progress | — |
+| `ProgressLedger` | interface | @wildshard/game/Progress | Read-only achievement state from the authoritative ledger; the shard's feat table owns presentation. |
 | `ProgressRow` | interface | @wildshard/game/Progress | — |
 | `ProgressSink` | interface | @wildshard/game/Progress | what a shard's feats code records into (Driftwood's quest/Feats.ts, Nalati's adventure): the game layer's type, so two shards share it without importing each other (E357 F6) |
 | `createQuestScriptPorts` | function | @wildshard/game/quest/declared | Resolve conditions through public/owner state and scenes through the bounded next-tick event queue. |
@@ -477,7 +478,7 @@ The game layer's public modules (src/game/package.json `exports`).
 | `RuntimeBoss` | interface | @wildshard/game/shardfile/hybridRows | A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. |
 | `RuntimeBossOptions` | interface | @wildshard/game/shardfile/hybridRows | Boss identity policy for a runtime adopting spawn data without changing its existing save identities. |
 | `RuntimeCoins` | type | @wildshard/game/shardfile/hybridRows | A runtime's coin port: what a declared quest or an encounter pays, in whole coins. |
-| `RuntimeFacts` | type | @wildshard/game/shardfile/hybridRows | Emit one declared fact for an entity; the platform ledger decides the grant. |
+| `RuntimeFacts` | interface | @wildshard/game/shardfile/hybridRows | Emit one declared fact for an entity; the platform ledger decides the grant. |
 | `RuntimeHome` | interface | @wildshard/game/shardfile/hybridRows | One kept home: its declared row's place, the creature living there now and the seconds left before it refills. |
 | `RuntimeHomePorts` | interface | @wildshard/game/shardfile/hybridRows | What a runtime lends its declared homes. |
 | `RuntimeHomes` | interface | @wildshard/game/shardfile/hybridRows | The declared homes as kept: every home, and every creature alive in one. |

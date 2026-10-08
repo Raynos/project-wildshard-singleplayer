@@ -14838,6 +14838,12 @@
         "from": "@wildshard/game/Progress"
       },
       {
+        "name": "ProgressLedger",
+        "kind": "interface",
+        "doc": "Read-only achievement state from the authoritative ledger; the shard's feat table owns presentation.",
+        "from": "@wildshard/game/Progress"
+      },
+      {
         "name": "ProgressRow",
         "kind": "interface",
         "doc": "",
@@ -16357,7 +16363,7 @@
       },
       {
         "name": "RuntimeFacts",
-        "kind": "type",
+        "kind": "interface",
         "doc": "Emit one declared fact for an entity; the platform ledger decides the grant.",
         "from": "@wildshard/game/shardfile/hybridRows"
       },

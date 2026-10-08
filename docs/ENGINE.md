@@ -2303,7 +2303,7 @@ projectile or script lane. Existing families without it keep their previous row.
 
 ### `@wildshard/game` (`src/game/package.json`)
 
-697 exports, grouped by the module to import them from.
+698 exports, grouped by the module to import them from.
 
 - `@wildshard/game/achievements`: `AchievementDef`, `achievementsFor`, `registerAchievements`
 - `@wildshard/game/bag/bag`: `BagHas`, `bagTabs`, `CosmeticSlot`, `FindsView`, `GearLoot`, `GearOpts`, `GearTool`, `renderFinds`, `renderGear`
@@ -2347,7 +2347,7 @@ projectile or script lane. Existing families without it keep their previous row.
 - `@wildshard/game/loot/tables`: `getLootTable`, `LootContext`, `LootTableRow`, `registerLootTable`, `rollLoot`
 - `@wildshard/game/loot/ui/ShopPanel`: `ShopCost`, `ShopGood`, `ShopOpts`, `ShopPanel`, `ShopState`
 - `@wildshard/game/newGame`: `NewGameProgress`, `NewGameQuest`, `NewGameSummary`, `previewNewGame`, `resetNewGame`
-- `@wildshard/game/Progress`: `Progress`, `ProgressRow`, `ProgressSink`
+- `@wildshard/game/Progress`: `Progress`, `ProgressLedger`, `ProgressRow`, `ProgressSink`
 - `@wildshard/game/quest/declared`: `createQuestScriptPorts`, `DeclaredQuests`, `DialogueView`, `QuestDataPorts`, `QuestScriptBindings`, `QuestScriptPorts`
 - `@wildshard/game/quest/presentation`: `installEnteredQuestPresentation`, `installQuestPresentation`, `PresentedQuestDef`, `PresentedQuestStep`, `presentQuest`, `QuestPresentation`, `QuestPresentationContext`, `QuestPresentationHost`, `QuestPresentationNpc`, `QuestPresentationOptions`, `QuestTarget`
 - `@wildshard/game/quest/reward`: `QuestRewardBeat`, `QuestRewardHost`, `QuestRewardPlayer`, `QuestRewardSpec`
