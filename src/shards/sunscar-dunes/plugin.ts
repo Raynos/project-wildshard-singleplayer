@@ -2,6 +2,7 @@ import { declaredDuneRows } from './runtime/brains';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { installSilentScore } from '@wildshard/kit/audio/forest';
 import source from './shard.config';
 import { Vector3 } from 'three';
@@ -99,9 +100,17 @@ export class SignalDunesPlugin extends ShardPlugin {
     const host = ctx.app.equipmentHost, whip = this.whip;
     // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
     if (host !== null && whip !== null) { host.viewmodel.add(whip.model); lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); }
-    ctx.inputContext({ id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
+    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, { id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } }, { rows: [] });
+    else ctx.inputContext({ id: 'sunscar.whip', actions: ['attack', 'heavy', 'lock'], keysFrom: 'weapon.melee', touch: { mode: 'melee', lockable: true, relabel: {} } });
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
-    if (rt?.play) { if (source.audio.score === 'silent') installSilentScore(rt.play.music, ctx.scope); installSunscarCues(rt.play.audio, rt.play.cues, ctx.scope); }
+    if (rt?.play) {
+      const play = rt.play;
+      if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
+        if (source.audio.score === 'silent') installSilentScore(play.music, scope);
+        installSunscarCues(play.audio, play.cues, scope);
+      });
+      else { if (source.audio.score === 'silent') installSilentScore(play.music, ctx.scope); installSunscarCues(play.audio, play.cues, ctx.scope); }
+    }
     const loot = rt?.play && rt.world ? installLoot({ ctx, manifest: ctx.manifest, owned: rt.play.owned, scene: rt.world.game.scene,
       player: rt.world.player, camera: rt.world.game.camera, animals: () => rt.play?.animals.animals ?? [], menu: rt.play.menu,
       presentation: { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt.play?.cues.cue('cue.swap'); } } }) : null;
@@ -119,9 +128,12 @@ export class SignalDunesPlugin extends ShardPlugin {
     this.creatures = installCreatures(ctx, () => places !== null && !places.flags.has(SCOUT_FLAG));
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.
     if (places) {
-      setDusk(duskOf(places), true);
+      if (retainsRuntimeServices(ctx)) installEnteredRuntimeService(ctx, scope => {
+        setDusk(duskOf(places), true);
+        scope.onDispose(() => { setDusk(0, true); });
+      });
+      else { setDusk(duskOf(places), true); ctx.scope.onDispose(() => { setDusk(0, true); }); }
       ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); } });
-      ctx.scope.onDispose(() => { setDusk(0, true); });
     }
     ctx.debug.expose('sunscar', this);
   }

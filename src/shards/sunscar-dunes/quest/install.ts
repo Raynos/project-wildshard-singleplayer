@@ -1,9 +1,10 @@
 import { QuestState, type QuestMarker } from '@wildshard/engine/quest/core';
 import { boxDesc } from '@wildshard/engine/world/registry';
 import { CoinBurst } from '@wildshard/game/loot/CoinBurst';
-import { installQuestPresentation, type QuestPresentation } from '@wildshard/game/quest/presentation';
+import { installEnteredQuestPresentation, installQuestPresentation, type QuestPresentation, type QuestPresentationOptions } from '@wildshard/game/quest/presentation';
 import { purseSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as v from 'valibot';
 import { Scene, Vector3 } from 'three';
 import { FLAG, type SignalWorld } from '../world/build';
@@ -85,14 +86,16 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     ctx.system({ id: 'sunscar.scout', phase: 'update', run: (dt, t) => { sefa.update(dt, t, player, flags.has(SCOUT_FLAG)); } });
   }
   const live = ctx.game.runtime?.world && ctx.game.runtime.play ? ctx.game.runtime : null;
-  const view = live === null ? null : installQuestPresentation(ctx, quest, { places: [...PLACES], introTitle: STRINGS.quest,
+  const presentation: QuestPresentationOptions = { places: [...PLACES], introTitle: STRINGS.quest,
     ...(sefa === null ? {} : { npc: { npc: scoutNpc(COMPLETE_FLAG), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: 3.5 } }),
-    reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } });
+    reward: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, when: () => !alreadyPaid && quest.isComplete, finish: pay } };
+  const entered = live !== null && retainsRuntimeServices(ctx) ? installEnteredQuestPresentation(ctx, quest, presentation) : null;
+  const view = live === null || entered !== null ? null : installQuestPresentation(ctx, quest, presentation);
   // Headless (no play host: tests, a node bake) the reward pays at once.
-  if (view === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
+  if (live === null) ctx.scope.onDispose(quest.observe({ complete: () => { pay(); } }));
   // On the first frame the goal is on screen: the chip, and a toast that names the quest.
   if (!quest.isComplete) ctx.game.runtime?.play?.hud.toast(`${STRINGS.newQuest} · ${STRINGS.quest}`);
   ctx.system({ id: 'sunscar.reward', phase: 'update', run: (dt) => { burst.update(dt, player); } });
   ctx.scope.onDispose(() => { burst.update(3, player); burst.dispose(); });
-  return { quest, burst, view };
+  return { quest, burst, get view() { return entered === null ? view : entered(); } };
 }

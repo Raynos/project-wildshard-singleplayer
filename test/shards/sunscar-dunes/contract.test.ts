@@ -7,7 +7,8 @@ import type { LevelDriver } from '../../../src/engine/level/load';
 import { TabRegistry } from '../../../src/engine/ui/tabs';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import { purseSave, shardSave } from '../../../src/game/saves';
-import { shardContext, type GameServices } from '../../../src/game/shard/context';
+import { shardContext, type GameServices, type ShardContext } from '../../../src/game/shard/context';
+import { RetainedRuntimeHooks } from '../../../src/game/shard/retainedHooks';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { Vector3 } from 'three';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
@@ -18,9 +19,10 @@ import { SCOUT_FLAG } from '../../../src/shards/sunscar-dunes/quest/scout';
 import { DUNE_RAY, DUNE_RAY_LOOK, SWOOP } from '../../../src/shards/sunscar-dunes/species/duneRay';
 import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
+import { DUSK, setDusk } from '../../../src/shards/sunscar-dunes/look/dusk';
 
 const noop = (): void => undefined;
-async function boot(): Promise<{ app: App; plugin: SignalDunesPlugin; stages: string[]; active: Set<string>; fake: FakeGame }> {
+async function boot(retained = false): Promise<{ app: App; plugin: SignalDunesPlugin; stages: string[]; active: Set<string>; fake: FakeGame; hooks: RetainedRuntimeHooks | null }> {
   const fake = new FakeGame();
   const app = new App(), plugin = new SignalDunesPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
   for (const context of INPUT_CONTEXTS) app.input.register(context, app.engineScope);
@@ -35,15 +37,46 @@ async function boot(): Promise<{ app: App; plugin: SignalDunesPlugin; stages: st
     loadout: (_spec, ctx) => { stage('loadout'); expect(ctx.app.levelRegistrations.list('weapon').map((r) => r.id)).toEqual(['weapon.sunscar-whip']); },
     play: () => stage('play'), finish: () => stage('finish') };
   app.levelDriver = driver;
-  await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(shardContext(ctx, manifest, game)), kit: (ctx) => plugin.kit(shardContext(ctx, manifest, game)), play: (ctx) => plugin.play(shardContext(ctx, manifest, game)) });
+  let hooks: RetainedRuntimeHooks | null = null;
+  const context = (ctx: Parameters<typeof shardContext>[0]): ShardContext => {
+    if (!retained) return shardContext(ctx, manifest, game);
+    hooks ??= new RetainedRuntimeHooks(shardContext(ctx, manifest, game));
+    return hooks.context;
+  };
+  await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(context(ctx)), kit: (ctx) => plugin.kit(context(ctx)), play: (ctx) => plugin.play(context(ctx)) });
   fake.onUpdate((dt, time) => { for (const system of app.systemsByPhase().update) system.run(dt, time); });
-  app.setState('play'); return { app, plugin, stages, active, fake };
+  app.setState('play'); return { app, plugin, stages, active, fake, hooks };
 }
 const target = (health = 70): Actor => { const actor: Actor = { id: 'sunscar.target', tags: ['actor.creature', 'creature.duneRay'], state: [], attributes: { health, maxHealth: health }, alive: true,
   applyDamage: (req) => { actor.attributes.health -= req.amount; return false; } }; return actor; };
 
 describe('Signal Dunes plugin contract', () => {
   beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  it('retains authored quest state while parked input and dusk callbacks disappear through two re-entries', async () => {
+    const { app, plugin, fake, hooks } = await boot(true);
+    if (hooks === null || plugin.places === null || app.levelScope === null) throw new Error('Missing retained Dunes context');
+    const quest = plugin.quest, pieces = app.registry.pieces.map(piece => piece.id), scope = app.levelScope;
+    try {
+      plugin.places.flags.set(SCOUT_FLAG); app.events.flush('update');
+      expect(plugin.quest?.index).toBe(1);
+      for (let visit = 0; visit < 2; visit++) {
+        app.input.push('sunscar.whip', scope);
+        expect(app.input.allowed('attack')).toBe(true);
+        expect(app.systemsByPhase().update.filter(system => system.id === 'sunscar.dusk')).toHaveLength(1);
+        hooks.deactivate();
+        expect(() => app.input.push('sunscar.whip', scope)).toThrow('Unknown input context');
+        expect(app.systemsByPhase().update.some(system => system.id.startsWith('sunscar.'))).toBe(false);
+        setDusk(0.83, true);
+        for (let tick = 0; tick < 600; tick++) fake.advance(1 / 60);
+        expect(DUSK.value).toBe(0.83);
+        expect(app.registry.pieces.map(piece => piece.id)).toEqual(pieces);
+        hooks.activate();
+        expect(plugin.quest).toBe(quest); expect(plugin.quest?.index).toBe(1);
+        expect(DUSK.value).toBe(0.5);
+      }
+    } finally { await app.unloadLevel(); }
+    expect(app.systemsByPhase().update.some(system => system.id.startsWith('sunscar.'))).toBe(false);
+  });
   it('boots every stage and tears down registrations and resources', async () => {
     const { app, plugin, stages, active } = await boot();
     expect(stages).toEqual(['data', 'world', 'kit', 'loadout', 'play', 'finish']);
