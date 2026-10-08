@@ -32,6 +32,24 @@ export function writeSaveFixture(fixture) {
 export async function saveFixture(target, fixture) { await target.addInitScript(writeSaveFixture, fixture); }
 /** @param {{addInitScript: Function}} target @param {Record<string, string | boolean | number>} picks */
 export async function debugSettings(target, picks) { await saveFixture(target, { scope: 'global', key: 'settings', data: picks, merge: true }); }
+/** Explicit diagnostic capture settings: enable the device Developer gate before the global picks are read.
+ * @param {{addInitScript: Function}} target @param {Record<string, string | boolean | number>} picks */
+export async function developerSettings(target, picks) {
+  await saveFixture(target, { scope: 'device', key: 'devMode', data: true });
+  await debugSettings(target, picks);
+}
+/** Capture-only presentation: keep Developer settings effective while excluding diagnostic overlays from pixels.
+ * Late-mounted overlays inherit the same rule; gameplay HUD, loading and error screens remain untouched. */
+export function hideDeveloperOverlays() {
+  const mount = () => {
+    const style = document.createElement('style');
+    style.id = 'parity-developer-overlays';
+    style.textContent = '.ws-perf,.ws-perf-panel,.ws-game-developer,.ws-game-dev-alert,.ws-grid-budget,.ws-memory-warning,.ws-game-boundary{visibility:hidden!important}';
+    document.head.append(style);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
+  else mount();
+}
 /** @param {{scope: string, key: string, data: unknown, merge?: boolean, once?: string}} fixture */
 export function saveFixtureCode(fixture) { return `(${writeSaveFixture.toString()})(${JSON.stringify(fixture)})`; }
 /** Browser-side raw JSON codec for script evaluators which cannot accept addInitScript callbacks. @param {string} scope */

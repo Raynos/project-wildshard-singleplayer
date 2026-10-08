@@ -4,6 +4,7 @@ import { runInNewContext } from 'node:vm';
 // oxlint-disable-next-line import/default -- Vite's ?raw loader exports this module's source as a default string.
 import source from '../../scripts/debug-settings.mjs?raw';
 import { MemoryStorage } from '../setup';
+import { createSettings } from '../../src/engine/ui/Settings';
 
 it('seeds versioned documents, merges Settings, and does not overwrite a once-seeded save on reload', () => {
   const localStorage = new MemoryStorage(), sessionStorage = new MemoryStorage();
@@ -49,4 +50,28 @@ it('seeds explicit memory variants in device slots and refuses ambiguous picks',
   expect(localStorage.getItem('wildshard.save.v2.global')).toBe('{"keys":{}}');
   expect(() => parse([`${key}=on`, `${key}=off`])).toThrow('Duplicate');
   expect(() => parse([`${key}=`])).toThrow('Invalid');
+});
+
+
+it('makes capture time effective through the real Developer fence without changing ordinary save fixtures', async () => {
+  const localStorage = new MemoryStorage(), sessionStorage = new MemoryStorage();
+  const context: Record<string, unknown> = { localStorage, sessionStorage };
+  runInNewContext(source.replaceAll(/^export /gmu, ''), context);
+  const helper = context['developerSettings'], plain = context['debugSettings'];
+  if (typeof helper !== 'function' || typeof plain !== 'function') throw new Error('Settings helpers missing');
+  const scripts = { addInitScript: (fn: (value: unknown) => void, value: unknown): void => { fn(value); } };
+  const seed = plain as (target: typeof scripts, picks: Record<string, string>) => Promise<void>;
+  const capture = helper as (target: typeof scripts, picks: Record<string, string>) => Promise<void>;
+  const codec = context['fixtureStorage'];
+  if (typeof codec !== 'function') throw new Error('Storage codec missing');
+  const storage = codec as (scope: string) => Pick<Storage, 'getItem' | 'setItem'>;
+  const device = storage('device'), store = storage('global');
+  const enabled = (): boolean => JSON.parse(device.getItem('devMode') ?? 'false') === true;
+  await seed(scripts, { time: 'midday', weather: 'rain' });
+  expect(createSettings(store, () => '', { enabled }).setting('time')).toBe('live');
+  await capture(scripts, { time: 'midday', weather: 'rain' });
+  const settings = createSettings(store, () => '', { enabled });
+  expect(settings.setting('time')).toBe('midday');
+  expect(settings.setting('weather')).toBe('rain');
+  expect(enabled()).toBe(true);
 });

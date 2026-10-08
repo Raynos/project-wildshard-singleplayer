@@ -4,7 +4,7 @@ import { shardFolders } from './gen-shards.mjs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { debugSettings } from './debug-settings.mjs';
+import { developerSettings, hideDeveloperOverlays } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
 import { cachedTree, exportTree, readJson, serve } from './parity/serve.mjs';
 import { evictBuildCache } from './parity/cache.mjs';
@@ -75,7 +75,8 @@ export async function capture(browser,url,opts) {
       if(telemetryFixtureAccepts(request.method(),payload)){phases.telemetryFixturePosts++;await route.fulfill({status:200,json:{id:'parity-clock-proof'}});}
       else await route.continue();
     });}
-    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});await debugSettings(context,{time:'midday',weather:'clear',...opts.settings});
+    await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});await developerSettings(context,{time:'midday',weather:'clear',...opts.settings});
+    await context.addInitScript(hideDeveloperOverlays);
     const page=await context.newPage();page.setDefaultTimeout(opts.timeout*1000);
     page.on('response',(response)=>{if(response.status()>=400)console.error(`parity: ${opts.shard}.${opts.tier} HTTP ${response.status()} ${response.url()}`);});
     /** @type {string[]} */const errors=[];page.on('pageerror',(e)=>{if(relevantError(e.message))errors.push(e.message);});page.on('console',(m)=>{if(m.type()==='error'&&relevantError(m.text()))errors.push(m.text());});
@@ -93,6 +94,15 @@ export async function capture(browser,url,opts) {
     /** @type {RecordValue} */const result={boot:object(boot)};
     if(errors.length > 0)return result;
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
+    const clockWitness=await page.evaluate(()=>{
+      const clock=window.__wildshard.world.game.sky.dayNight;
+      return {developer:Object.hasOwn(document.documentElement.dataset,'dev'),overlayStyle:Boolean(document.getElementById('parity-developer-overlays')),fpsBadges:[...document.querySelectorAll('.ws-perf,.ws-perf-panel')].map((node)=>getComputedStyle(node).visibility),clock:clock?{paused:clock.paused,phase:clock.phase}:null,developerAlerts:[...document.querySelectorAll('.ws-game-dev-alert')].filter((node)=>node instanceof HTMLElement&&!node.hidden).map((node)=>node.textContent||'Developer script failure')};
+    });
+    if(clockWitness.developerAlerts.length>0){object(result.boot).errors=[...new Set([...boot.errors,...clockWitness.developerAlerts])];return result;}
+    if(!clockWitness.overlayStyle||clockWitness.fpsBadges.some((visibility)=>visibility!=='hidden'))throw new Error('Parity Developer overlays are visible');
+    if(!clockWitness.developer)throw new Error('Parity Developer settings are inactive');
+    if((opts.settings?.time??'midday')!=='live'&&clockWitness.clock&&!clockWitness.clock.paused)throw new Error('Parity requested frozen time but the live clock is running');
+    writeFileSync(join(opts.out,`${opts.shard}.${opts.tier}.settings.json`),JSON.stringify({requested:{time:'midday',weather:'clear',...opts.settings},...clockWitness},null,2));
     if(opts.settings){
       const saved=object(await page.evaluate(()=>JSON.parse(localStorage.getItem('wildshard.save.v2.global')??'{}')));
       const observed=object(get(saved,'keys.settings.data'));
@@ -115,7 +125,8 @@ export async function capture(browser,url,opts) {
       result.leak=object(await page.evaluate(()=>window.__wildshard.leak()));mark('leakMs');
     }
     const session=await context.newCDPSession(page);await session.send('Performance.enable');const metrics=await session.send('Performance.getMetrics');object(result.boot).heapMB=(metrics.metrics.find((m)=>m.name==='JSHeapUsedSize')?.value??0)/2**20;await session.detach();
-    object(result.boot).errors=[...new Set([...boot.errors,...errors])];
+    const developerAlerts=await page.evaluate(()=>[...document.querySelectorAll('.ws-game-dev-alert')].filter((node)=>node instanceof HTMLElement&&!node.hidden).map((node)=>node.textContent||'Developer script failure'));
+    object(result.boot).errors=[...new Set([...boot.errors,...errors,...developerAlerts])];
     return result;
   } catch(error) {
     if(opts.offline)throw new Error(`offline: ${opts.shard}.${opts.tier} ${offlineStep}: ${error instanceof Error?error.message:String(error)}`,{cause:error});
@@ -130,7 +141,7 @@ export async function weatherLeak(browser,url,opts) {
   const context=await browser.newContext(opts.tier==='phone'?{viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true,serviceWorkers:'block'}:{viewport:{width:1600,height:900},serviceWorkers:'block'});
   try {
     await installInit(context,{lane:opts.lane,sha:opts.sha,browser:browser.version(),capture:30,accelerated:opts.accelerated,tier:opts.tier});
-    await debugSettings(context,{time:'midday',weather:opts.shard==='pine-hollow'?'rain':'clear',...opts.settings});
+    await developerSettings(context,{time:'midday',weather:opts.shard==='pine-hollow'?'rain':'clear',...opts.settings});
     const page=await context.newPage();
     /** @type {string[]} */ const errors=[];
     page.on('pageerror',(error)=>{if(relevantError(error.message))errors.push(error.message);});
