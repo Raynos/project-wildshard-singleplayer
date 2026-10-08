@@ -5,8 +5,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { Group, type Mesh } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { cellScreenBytes, cellScreenContent, drawCellScreen, installCellScreens, SCREEN_M, type CellScreenInput, type ScreenContext } from '../src/game/grid/cellScreen';
-import type { PlatformRenderAdmission, PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
+import { PlatformRenderResidency, type PlatformRenderAdmission, type PlatformRenderBytePlan } from '../src/game/grid/renderResidency';
+import { ResidencyAllocator } from '../src/game/grid/allocator';
 
+const originalDocument = globalThis.document;
+const originalStorage = globalThis.localStorage;
+const restoreGlobals = (): void => { vi.unstubAllGlobals(); vi.stubGlobal('document', originalDocument); vi.stubGlobal('localStorage', originalStorage); };
 const MB = 1e6;
 const base: CellScreenInput = { instance: 'template-1', slug: 'template', name: 'Template', status: 'loading', refusal: null, wait: null, issue: null, far: 'resident',
   requested: true, product: true, runtime: false, colliders: false, sim: false, claimedBytes: 12 * MB, claims: 3, declaredBytes: 10 * MB, pageBytes: 400 * MB, capBytes: 1000 * MB, overBytes: 0 };
@@ -87,7 +91,7 @@ function recorder(drawn: string[]): ScreenContext {
 }
 
 describe('G217: the panels in the world', () => {
-  it('stand on the nearest unenterable cells at their soft wall facing the traveller, redraw only on change, and are one platform claim', () => {
+  it('stand on the nearest unenterable cells at their soft wall facing the traveller, redraw only on change, and release slot resources outside the wanted range', () => {
     const drawn: string[] = [], plans: PlatformRenderBytePlan[] = [], scope = new Scope('cell-screen-test');
     vi.stubGlobal('document', { createElement: () => ({ width: 0, height: 0, getContext: () => recorder(drawn) }) });
     const admission: PlatformRenderAdmission = { allocate: (plan, build) => { plans.push(plan); return build(scope.child(plan.id)); } };
@@ -97,9 +101,10 @@ describe('G217: the panels in the world', () => {
     let feet = { x: 270, z: 10 }, now = 0;
     try {
       const screens = installCellScreens({ cells, wall: 256, scene, admission, time: () => now, build: 'b', tier: 'desktop', slots: 2, ports: { read: () => snapshot, feet: () => feet } });
-      expect(plans).toEqual([{ id: 'cell-screens', ...cellScreenBytes(2) }]);
+      expect(plans).toEqual([{ id: 'cell-screens', jsBytes: 140, gpuBytes: 140 }]);
       expect(cellScreenBytes(2)).toEqual({ jsBytes: 2 * 1024 * 640 * 4, gpuBytes: 2 * Math.ceil(1024 * 640 * 4 * 4 / 3) });
       screens.step();
+      expect(plans.slice(1)).toEqual([{ id: 'cell-screens.slot-0', ...cellScreenBytes(1) }, { id: 'cell-screens.slot-1', ...cellScreenBytes(1) }]);
       expect(screens.state().shown.map((s) => s.instance).sort()).toEqual(['east', 'north']); // the far corner is out of the two slots
       expect(screens.state().draws).toBe(2);
       for (let k = 0; k < 30; k++) screens.step();
@@ -126,6 +131,60 @@ describe('G217: the panels in the world', () => {
       expect(screens.state().shown).toEqual([]); // out of range
       scope.dispose();
       expect(scene.getObjectByName('grid-cell-screens')).toBeUndefined();
-    } finally { vi.unstubAllGlobals(); }
+    } finally { restoreGlobals(); }
   });
+});
+
+
+it('charges only live screen canvases, frees them before releasing bytes, and reacquires after a U-turn', () => {
+  const scope = new Scope('screen-ring'), allocator = new ResidencyAllocator(), scene = new Group();
+  const canvases: { width: number; height: number }[] = [];
+  const images: { src: string; onload: (() => void) | null }[] = [];
+  vi.stubGlobal('Image', class {
+    src = ''; onload: (() => void) | null = null;
+    constructor() { images.push(this); }
+  });
+  vi.stubGlobal('document', { createElement: () => {
+    const canvas = { width: 0, height: 0, getContext: () => recorder([]) }; canvases.push(canvas); return canvas;
+  } });
+  const admission = new PlatformRenderResidency(allocator, scope), cells = [{ instance: 'east', x: 560, z: 0, art: '/card.png' }];
+  let feet = { x: 2000, z: 0 };
+  const snapshot = new Map([['east', { ...base, instance: 'east' }]]);
+  try {
+    const screens = installCellScreens({ cells, wall: 256, scene, admission, time: () => 0, build: 'b', tier: 'phone',
+      ports: { read: () => snapshot, feet: () => feet } });
+    const shared = allocator.cost().accounted;
+    expect(shared).toBe(280); screens.step(); expect(canvases).toHaveLength(0);
+    feet = { x: 270, z: 0 }; screens.step();
+    const one = cellScreenBytes(1);
+    expect(allocator.cost().accounted).toBe(shared + one.jsBytes + one.gpuBytes);
+    expect(canvases).toHaveLength(1); expect(screens.state().shown).toHaveLength(1);
+    expect(images).toHaveLength(1); expect(images[0]?.src).toBe('/card.png'); images[0]?.onload?.();
+    const atOne = scope.census.disposers;
+    feet = { x: 2000, z: 0 }; screens.step();
+    expect(allocator.cost().accounted).toBe(shared); expect(canvases[0]).toMatchObject({ width: 0, height: 0 });
+    expect(screens.state().shown).toEqual([]); expect(scene.getObjectByName('grid-cell-screen')).toBeUndefined();
+    expect(images[0]).toMatchObject({ src: '', onload: null });
+    feet = { x: 270, z: 0 }; screens.step();
+    expect(canvases).toHaveLength(2); expect(allocator.cost().accounted).toBe(shared + one.jsBytes + one.gpuBytes);
+    expect(scope.census.disposers).toBe(atOne); // repeated turns retain no old slot cleanup or canvas
+    scope.dispose(); expect(allocator.entries()).toEqual([]);
+    expect(canvases.every(canvas => canvas.width === 0 && canvas.height === 0)).toBe(true);
+  } finally { scope.dispose(); restoreGlobals(); }
+});
+
+it('does not allocate or throw on an unaffordable screen slot, and retries once room exists', () => {
+  const scope = new Scope('screen-refusal'), allocator = new ResidencyAllocator({ playing: 390_000_000 });
+  const blocker = allocator.reserve({ id: 'sim:needed', category: 'sim', owner: 'home', bytes: 8_000_000, distance: 0, needed: true });
+  if (blocker === null) throw new Error('Fixture blocker did not fit');
+  let canvases = 0;
+  vi.stubGlobal('document', { createElement: () => { canvases++; return { width: 0, height: 0, getContext: () => recorder([]) }; } });
+  try {
+    const screens = installCellScreens({ cells: [{ instance: 'east', x: 560, z: 0, art: null }], wall: 256,
+      scene: new Group(), admission: new PlatformRenderResidency(allocator, scope), time: () => 0, build: 'b', tier: 'phone',
+      ports: { read: () => new Map([['east', { ...base, instance: 'east' }]]), feet: () => ({ x: 270, z: 0 }) } });
+    expect(() => screens.step()).not.toThrow(); expect(canvases).toBe(0); expect(screens.state().shown).toEqual([]);
+    blocker.release(); screens.step(); expect(canvases).toBe(1); expect(screens.state().shown).toHaveLength(1);
+  } finally { scope.dispose(); blocker.release(); restoreGlobals(); }
+  expect(allocator.entries()).toEqual([]);
 });

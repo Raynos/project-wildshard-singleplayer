@@ -9,11 +9,11 @@
  * readiness stages, the admission's refusal, the one allocator and the far view) to the screen's text; `drawCellScreen`
  * paints it on a 2D canvas. `installCellScreens` keeps a small pool of world-space panels (one per unenterable cell, the
  * nearest `slots` of them): one mesh and one CanvasTexture each, redrawn only when the screen's text changes (a loading
- * cell's clock ticks in whole seconds), never per frame. Its canvases and textures are one platform render claim in the
- * allocator, admitted up front.
+ * cell's clock ticks in whole seconds), never per frame. Each live slot is admitted before allocation and freed outside
+ * the existing nearest-cell/distance selection; hidden canvases never remain as an unbounded cache.
  */
 import { CanvasTexture, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, type Object3D } from 'three';
-import type { PlatformRenderAdmission } from './renderResidency';
+import { PlatformRenderAdmissionError, type PlatformRenderAdmission } from './renderResidency';
 import { refusalReason, type FarViewStatus, type ShardRefusal } from './refusal';
 import { GAME_STRINGS } from '../strings';
 
@@ -244,7 +244,7 @@ export interface CellScreensState { readonly shown: readonly { readonly instance
 
 interface Slot {
   readonly mesh: Mesh; readonly material: MeshBasicMaterial; readonly canvas: HTMLCanvasElement; readonly context: CanvasRenderingContext2D | null; readonly texture: CanvasTexture;
-  instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
+  readonly ordinal: number; readonly dispose: () => void; instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
 }
 const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
 // Screens stay inside the closed cell, beyond a 20 m glide, leaving the entire road and soft wall clear.
@@ -262,27 +262,38 @@ export function installCellScreens(input: {
   readonly admission: PlatformRenderAdmission; readonly time: () => number; readonly build: string; readonly tier: string; readonly slots?: number;
 }): { step: () => void; state: () => CellScreensState } {
   const { cells, ports, wall, time } = input, count = input.slots ?? 3, byInstance = new Map(cells.map((cell) => [cell.instance, cell]));
-  return input.admission.allocate({ id: 'cell-screens', ...cellScreenBytes(count) }, (owner) => {
+  // Four plane vertices: position, normal and UV, plus six uint16 indices, retained on both CPU and GPU.
+  return input.admission.allocate({ id: 'cell-screens', jsBytes: 140, gpuBytes: 140 }, (owner) => {
     const group = new Group(); group.name = 'grid-cell-screens';
     const geometry = new PlaneGeometry(SCREEN_M.w, SCREEN_M.h);
     const slots: Slot[] = [];
     const art = new Map<string, { image: HTMLImageElement; ready: boolean }>();
-    const slot = (): Slot => {
-      const canvas = document.createElement('canvas'); canvas.width = SCREEN_PX.w; canvas.height = SCREEN_PX.h;
-      const texture = new CanvasTexture(canvas); texture.colorSpace = SRGBColorSpace; texture.anisotropy = 4;
-      const material = new MeshBasicMaterial({ map: texture, toneMapped: false, fog: false });
-      const mesh = new Mesh(geometry, material); mesh.name = 'grid-cell-screen'; mesh.visible = false; mesh.matrixAutoUpdate = false;
-      group.add(mesh);
-      return { mesh, material, canvas, context: canvas.getContext('2d'), texture, instance: null, key: '', along: 0, sliding: false, status: null, since: 0 };
+    const slot = (): Slot | undefined => {
+      let ordinal = 0;
+      while (slots.some(candidate => candidate.ordinal === ordinal)) ordinal++;
+      if (ordinal >= count) return undefined;
+      return input.admission.allocate({ id: `cell-screens.slot-${String(ordinal)}`, ...cellScreenBytes(1) }, (slotOwner) => {
+        // Slot lifetime is shorter than the session: leave the old range before releasing its claim.
+        const forget = owner.capture('disposers', () => { slotOwner.dispose(); });
+        slotOwner.onDispose(forget);
+        const canvas = document.createElement('canvas'); canvas.width = SCREEN_PX.w; canvas.height = SCREEN_PX.h;
+        const texture = new CanvasTexture(canvas); texture.colorSpace = SRGBColorSpace; texture.anisotropy = 4;
+        const material = new MeshBasicMaterial({ map: texture, toneMapped: false, fog: false });
+        const mesh = new Mesh(geometry, material); mesh.name = 'grid-cell-screen'; mesh.visible = false; mesh.matrixAutoUpdate = false;
+        slotOwner.onDispose(() => { mesh.removeFromParent(); texture.dispose(); material.dispose(); canvas.width = 0; canvas.height = 0; });
+        group.add(mesh);
+        return { ordinal, dispose: () => { slotOwner.dispose(); }, mesh, material, canvas, context: canvas.getContext('2d'), texture,
+          instance: null, key: '', along: 0, sliding: false, status: null, since: 0 };
+      });
     };
     input.scene.add(group);
     let ticks = 0, draws = 0, snapshot: ReadonlyMap<string, CellScreenInput> = new Map();
-    const image = (cell: CellScreenCell | undefined, redraw: () => void): HTMLImageElement | null => {
+    const image = (cell: CellScreenCell | undefined): HTMLImageElement | null => {
       if (cell?.art === null || cell === undefined || typeof Image === 'undefined') return null;
       let entry = art.get(cell.art);
       if (entry === undefined) {
         const loaded = new Image(), made = { image: loaded, ready: false }; entry = made;
-        loaded.onload = () => { made.ready = true; redraw(); }; loaded.src = cell.art; art.set(cell.art, made);
+        loaded.onload = () => { made.ready = true; }; loaded.src = cell.art; art.set(cell.art, made);
       }
       return entry.ready ? entry.image : null;
     };
@@ -306,11 +317,19 @@ export function installCellScreens(input: {
       const wanted = [...snapshot.keys()].flatMap((id) => { const cell = byInstance.get(id); return cell === undefined || distance(cell) > RANGE ? [] : [cell]; })
         .sort((a, b) => distance(a) - distance(b) || a.instance.localeCompare(b.instance)).slice(0, count);
       const keep = new Set(wanted.map((cell) => cell.instance));
-      for (const s of slots) if (s.instance !== null && !keep.has(s.instance)) { s.instance = null; s.status = null; s.key = ''; s.mesh.visible = false; }
+      for (let i = slots.length - 1; i >= 0; i--) {
+        const s = slots[i];
+        if (s !== undefined && s.instance !== null && !keep.has(s.instance)) { s.dispose(); slots.splice(i, 1); }
+      }
       for (const cell of wanted) {
         let s = slots.find((candidate) => candidate.instance === cell.instance);
         if (s === undefined) {
-          s = slots.find((candidate) => candidate.instance === null) ?? (slots.length < count ? slot() : undefined);
+          try { s = slots.length < count ? slot() : undefined; }
+          catch (error) {
+            // An optional extra screen must not disable movement or the authoritative wall if its canvas cannot fit.
+            if (!(error instanceof PlatformRenderAdmissionError)) throw error;
+            continue;
+          }
           if (s === undefined) continue;
           if (!slots.includes(s)) slots.push(s);
           s.instance = cell.instance; s.key = ''; s.status = null; s.sliding = false;
@@ -318,18 +337,24 @@ export function installCellScreens(input: {
         }
         const state = snapshot.get(cell.instance); if (state === undefined) continue;
         if (state.status !== s.status) { s.status = state.status; s.since = now; }
-        const shown = s, frame = { build: input.build, tier: input.tier, elapsedS: state.status === 'loading' ? Math.max(0, Math.floor(now - s.since)) : null };
-        const picture = image(cell, () => { shown.key = ''; });
+        const frame = { build: input.build, tier: input.tier, elapsedS: state.status === 'loading' ? Math.max(0, Math.floor(now - s.since)) : null };
+        const picture = image(cell);
         place(s, cell, feet);
         const near = Math.hypot(feet.x - s.mesh.position.x, feet.z - s.mesh.position.z) < NEAR;
         const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(screen)}`;
         if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture, near); s.texture.needsUpdate = true; draws++; }
         s.mesh.visible = true;
       }
+      const liveArt = new Set(slots.flatMap(s => {
+        const url = s.instance === null ? null : byInstance.get(s.instance)?.art;
+        return url === null || url === undefined ? [] : [url];
+      }));
+      for (const [url, { image: loaded }] of art) if (!liveArt.has(url)) { loaded.onload = null; loaded.src = ''; art.delete(url); }
     };
     owner.onDispose(() => {
       group.removeFromParent(); geometry.dispose();
-      for (const s of slots) { s.texture.dispose(); s.material.dispose(); s.canvas.width = 0; s.canvas.height = 0; }
+      for (const s of slots) s.dispose();
+      slots.length = 0;
       for (const { image: loaded } of art.values()) { loaded.onload = null; loaded.src = ''; }
       art.clear();
     });
