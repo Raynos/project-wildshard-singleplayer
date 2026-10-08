@@ -3,13 +3,19 @@ import { writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { saveFixture } from '../../../scripts/debug-settings.mjs';
-import { driveFloorGrid, gridFloorPlans } from '../../../scripts/frame-floor-grid.mjs';
+import { driveFloorGrid, stageFloorGrid, gridFloorPlans } from '../../../scripts/frame-floor-grid.mjs';
+
+// The first source pose is staged once; every later leg keeps the previous real crossing and original document.
+async function driveRoute(page, plan, documentOrigin) {
+  await page.evaluate(`(${stageFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
+  return page.evaluate(`(${driveFloorGrid.toString()})(${JSON.stringify(plan)},${JSON.stringify(documentOrigin)})`);
+}
 
 const [base, out] = process.argv.slice(2);
 const { TraceMap, originalPositionFor } = createRequire(import.meta.url)('@jridgewell/trace-mapping');
 const report = { version: await (await fetch(new URL('version.json', base))).json(),
   protocol: 'One muted Chromium/Metal iPhone 16 Pro, Developer ON, live input crossings. Claims count retained resources; hidden is not freed.',
-  driverHash: createHash('sha256').update(driveFloorGrid.toString()).digest('hex'), snapshots: [], routes: [], errors: [], console: [], assetRequests: [] };
+  driverHash: createHash('sha256').update(`${stageFloorGrid.toString()}\n${driveFloorGrid.toString()}`).digest('hex'), snapshots: [], routes: [], errors: [], console: [], assetRequests: [] };
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
@@ -58,6 +64,8 @@ try {
     await page.evaluate(() => window.__wildshard.world.hud.enterNow());
     await page.waitForFunction(() => window.__wsReveal?.endedMs != null, null, { timeout: 45000 });
     await page.waitForTimeout(5000); await snapshot('home-settled');
+    const documentOrigin = await page.evaluate(() => performance.timeOrigin);
+    report.documentOrigin = documentOrigin;
     await profiler.send('Performance.enable');
     const { metrics } = await profiler.send('Performance.getMetrics');
     profileStart = metrics.find(row => row.name === 'NavigationStart')?.value;
@@ -70,16 +78,16 @@ try {
       const plan = { ...original, requiredResidents: [original.to] };
       report.stage = `route:${plan.name}`; save();
       // Entry-edge poses first, then a real-input route into each cell centre. No diagnostic teleport across a seam.
-      report.routes.push(await page.evaluate(driveFloorGrid, plan));
+      report.routes.push(await driveRoute(page, plan, documentOrigin));
       await page.waitForTimeout(5000); await snapshot(`${plan.to}-entry`);
       const cell = state.cells.find(row => row.instance === plan.to); if (!cell) throw new Error('Missing destination');
-      report.routes.push(await page.evaluate(driveFloorGrid, { name: `${plan.to}-centre`, from: plan.to, to: plan.to,
-        waypoints: [{ x: cell.cell[0] * 555, z: cell.cell[1] * 555 }], requiredResidents: [plan.to] }));
+      report.routes.push(await driveRoute(page, { name: `${plan.to}-centre`, from: plan.to, to: plan.to,
+        waypoints: [{ x: cell.cell[0] * 555, z: cell.cell[1] * 555 }], requiredResidents: [plan.to] }, documentOrigin));
       await page.waitForTimeout(5000); await snapshot(`${plan.to}-centre`);
     }
   } catch (error) {
     report.failure = String(error);
-    report.diagnostic = await page.evaluate(() => ({ url: location.href, body: document.body.innerText.slice(-6000),
+    report.diagnostic = await page.evaluate(() => ({ documentOrigin: performance.timeOrigin, url: location.href, body: document.body.innerText.slice(-6000),
       boot: window.__wildshard?.world?.game?.app?.state, grid: window.__wildshard?.shard?.grid?.state(), reveal: window.__wsReveal,
       longTasks: window.__gridAdmissionLongTasks,
       resources: performance.getEntriesByType('resource').slice(-20).map(row => ({ name: row.name, duration: row.duration })) })).catch(() => null);
