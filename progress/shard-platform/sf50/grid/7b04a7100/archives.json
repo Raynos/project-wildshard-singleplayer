@@ -1,0 +1,38 @@
+[
+  {
+    "path": "north.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/final-north.json",
+    "bytes": 1761979,
+    "sha256": "e4cc6dfd9562ca02897ee5fb30b39e39a8aa01595796022d6484a8c2ac2f4298"
+  },
+  {
+    "path": "east.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/final-east.json",
+    "bytes": 1776594,
+    "sha256": "32163c17181ca1d4acdbdb19d16ee10b6358058a58332b572f5e1bb4077ffa10"
+  },
+  {
+    "path": "south.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/final-south.json",
+    "bytes": 1764378,
+    "sha256": "c8e071363256d7c3177515d77027ca4051015be8df4d09ed1926373265e59526"
+  },
+  {
+    "path": "west.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/final-west.json",
+    "bytes": 1733800,
+    "sha256": "a1b37d2c216dae94180a6e72591f5a9fa6b214d5f294db60d6f5b6ecb8c91f59"
+  },
+  {
+    "path": "preliminary-blocked-sw.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/north.json",
+    "bytes": 1794014,
+    "sha256": "375cedfb12e8ece43f4cf6a16000ba76653a6ecb8048e7533b911269da3706bd"
+  },
+  {
+    "path": "preliminary-entered-band-predicate.json.gz",
+    "source": "/private/tmp/claude-501/sp-builders/sp-x5/sf50-grid/four-edges.json",
+    "bytes": 1793170,
+    "sha256": "1cb37901c6424c57f50aa9188c74e77418b8baef0d46d4305f7e735e0767ea16"
+  }
+]

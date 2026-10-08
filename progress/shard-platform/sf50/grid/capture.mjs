@@ -16,6 +16,11 @@ const report = { version: await (await fetch(new URL('version.json', base))).jso
   protocol: 'Production build, Developer ON, phone tier/2x, one muted Metal iPhone 16 Pro portrait browser. Four cold contexts. One road pose per context; real-input entry, road return and re-entry, no later teleport, creature freeze or crossing reload. Labelled GL and allocator cost only; native WebContent pending.', entries: [], errors: [], consoleErrors: [], warnings: [], documents: [] };
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
+const interrupt = () => {
+  report.interrupted = true; process.exitCode = 1; save();
+  void browser.close().catch(error => { report.closeFailure = String(error); save(); });
+};
+process.once('SIGTERM', interrupt); process.once('SIGINT', interrupt);
 const snapshot = page => page.evaluate(() => {
   const api = window.__wildshard, grid = api.shard.grid, world = api.requireWorld(), hud = document.querySelector('#hud');
   return { state: grid.state(), residency: grid.residency(), gl: window.__sc_gl().map(({ gl, ...row }) => row),

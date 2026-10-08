@@ -1,6 +1,6 @@
 # Signal Dunes grid preparation (SF50-g, E435)
 
-In flight. The standalone constructor remains the shipping loader. Grid discovery is now declared with the measured whole-runtime bound and passes real emitted-product admission; these source fixtures do not claim a browser crossing, entered-grid cap pass or frame floor.
+In flight. The standalone constructor remains the shipping loader. Grid discovery is declared with the measured whole-runtime bound and passes real emitted-product admission. Four cold browser entries and three cold native entered routes now pass; both-surface frame-floor and qualifying soak evidence remain open.
 
 | Source slice | Commit | Evidence |
 | --- | --- | --- |
@@ -17,4 +17,8 @@ Retained homes use stable `sunscar.home:<authored index>` ids; the Matriarch use
 
 The native entry proof uses the committed terrain bytes, not an analytic rebake, a flat substitute or a platform socket floor. It is separate from the transitional audio/edge shardfile, whose trusted runtime still owns the physical world.
 
-Next: the entered four-edge/return browser proof, warm dust-haze border, cube skirt/horizon inspection, entered native cost and both-surface floor remain open. They wait behind the coordinated soak quiet window. The standalone measurement is Simulator regression evidence, not a physical-iPhone cap claim or entered-grid witness.
+The entered receipt at `grid/7b04a7100/` has four final independent cold browser contexts: north/east/south/west entry, return and re-entry, 12 real frame commits, no errors/recoveries, ORCHID inside / cyan on the road, the warm road haze band and exact final census / zero scopes. The captured 500 m skirt agrees with the native/source cube fixtures. Preliminary harness refusals are retained separately. Screenshots are functional evidence, not fps measurements.
+
+`progress/memory/sf50-sun-entered-7b04a7100/` records 3 valid / 3 cold native attempts, zero failures or GPU restarts, a real north-entry walk through the authored spawn and re-entry, and exact teardown. Re-entry WebContent + labelled GL is 913.41 MB median [871.50–914.62]; the highest individual sampled entered total is 914.69 MB. The model predicts 582.10 MB there; this gap remains open calibration evidence. All sampled entered stops are under 1.0 GB, without a continuous loading/travel peak, physical-iPhone or full-loop claim. The raw metadata source used for admission remains the separate standalone calibration.
+
+Next: both-surface entered frame-floor and the qualifying full-layout soak. Browser/native resources were released to the coordinated P0 GPU investigation. The behaviour 80/20 port and world tiling are not claimed by these hybrid readiness proofs.

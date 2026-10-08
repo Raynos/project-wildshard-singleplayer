@@ -1,0 +1,122 @@
+{
+  "source": "7b04a71009de93f059c8208d101f18e2c55ceeed",
+  "build": {
+    "build": "7b04a71-muzljc2s",
+    "time": "2026-10-08T13:52:54.356Z"
+  },
+  "harnessSha256": "78c8e143be510a0d6cea087eecbfa1c876ef6bff24091f98147424d956e1c43c",
+  "protocol": "Four independent fresh muted iPhone 16 Pro Chromium Metal contexts, each through browser-lane; up to four concurrent lanes. Functional evidence, no timing/memory ruler. One road seed, later real held input. Developer ON, phone/2x, Auto, Memory saver ON, other Debug defaults.",
+  "pass": true,
+  "edges": [
+    {
+      "edge": "north",
+      "pass": true,
+      "routes": 3,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveries": [],
+      "actorCount": 13,
+      "actorIdsPreserved": true,
+      "orchid": true,
+      "roadCyan": true,
+      "warmRoadBand": true,
+      "enteredPlaneDimensions": [
+        [
+          480,
+          480
+        ],
+        [
+          500,
+          500
+        ]
+      ],
+      "modelPlayingMB": 580.65,
+      "exactTeardown": true,
+      "closed": true
+    },
+    {
+      "edge": "east",
+      "pass": true,
+      "routes": 3,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveries": [],
+      "actorCount": 13,
+      "actorIdsPreserved": true,
+      "orchid": true,
+      "roadCyan": true,
+      "warmRoadBand": true,
+      "enteredPlaneDimensions": [
+        [
+          480,
+          480
+        ],
+        [
+          500,
+          500
+        ]
+      ],
+      "modelPlayingMB": 587.44,
+      "exactTeardown": true,
+      "closed": true
+    },
+    {
+      "edge": "south",
+      "pass": true,
+      "routes": 3,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveries": [],
+      "actorCount": 13,
+      "actorIdsPreserved": true,
+      "orchid": true,
+      "roadCyan": true,
+      "warmRoadBand": true,
+      "enteredPlaneDimensions": [
+        [
+          480,
+          480
+        ],
+        [
+          500,
+          500
+        ]
+      ],
+      "modelPlayingMB": 580.65,
+      "exactTeardown": true,
+      "closed": true
+    },
+    {
+      "edge": "west",
+      "pass": true,
+      "routes": 3,
+      "errors": [],
+      "consoleErrors": [],
+      "recoveries": [],
+      "actorCount": 13,
+      "actorIdsPreserved": true,
+      "orchid": true,
+      "roadCyan": true,
+      "warmRoadBand": true,
+      "enteredPlaneDimensions": [
+        [
+          480,
+          480
+        ],
+        [
+          500,
+          500
+        ]
+      ],
+      "modelPlayingMB": 567.07,
+      "exactTeardown": true,
+      "closed": true
+    }
+  ],
+  "preliminaryAttempts": {
+    "count": 2,
+    "valid": false,
+    "reason": "Rejected harness runs: blocked ServiceWorker registration produced waiting TypeErrors; inline-only CSS read missed inherited road cyan; band predicate incorrectly required the outside-only G158 band inside. Both raw refusals preserved; final source uses normal SW, computed CSS and band checks on both road visits."
+  },
+  "limitation": "Warm retained actor identities and actual traversals only; cold lit-save/respawn has its separate native fixture. Screenshots are not an fps floor. No physical-phone or continuous cap claim."
+}
