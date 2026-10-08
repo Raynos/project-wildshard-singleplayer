@@ -22,7 +22,7 @@ export const snapshotExpression = `(() => {
         const sphere = object.geometry?.boundingSphere;
         const centre = sphere?.center.clone().applyMatrix4(object.matrixWorld), radius = sphere ? sphere.radius*object.matrixWorld.getMaxScaleOnAxis() : null;
         const inFrustum = !object.frustumCulled ? true : centre && planes ? planes.every(p=>p[0]*centre.x+p[1]*centre.y+p[2]*centre.z+p[3]>=-radius) : null;
-        roots.push({ name: object.name, owner: names.join('/'), visible, inFrustum,
+        roots.push({ uuid: object.uuid, name: object.name, owner: names.join('/'), visible, inFrustum,
           bound: centre ? {x:centre.x,y:centre.y,z:centre.z,radius} : null,
           vertices: object.geometry?.attributes.position?.count, indices: object.geometry?.index?.count });
       });
@@ -62,13 +62,14 @@ export const snapshotExpression = `(() => {
             if (!texture?.isTexture) continue;
             let item = textures.get(texture);
             if (!item) {
-              item = { uuid: texture.uuid, name: texture.name, uses: [], imageKind: texture.image?.constructor?.name,
+              item = { uuid: texture.uuid, name: texture.name, uses: [], objectIds: [], imageKind: texture.image?.constructor?.name,
                 width: texture.image?.width, height: texture.image?.height, depth: texture.image?.depth };
               textures.set(texture, item);
               const handle = api.world.game.renderer.properties.get(texture).__webglTexture;
               if (handle) { textureHandles.set(texture.uuid, handle); window.__sc_label_gl(handle, 'g227:scene-texture', texture.uuid); }
             }
             if (!item.uses.includes(user)) item.uses.push(user);
+            if (!item.objectIds.includes(object.uuid)) item.objectIds.push(object.uuid);
             addArray(texture.image?.data, user, 'texture:' + texture.uuid);
             for (const mip of texture.mipmaps ?? []) addArray(mip.data, user, 'mip:' + texture.uuid);
           }
