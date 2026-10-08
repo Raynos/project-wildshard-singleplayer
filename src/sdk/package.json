@@ -57,7 +57,8 @@
     "./runtime/weapons/starterBow": "./runtime/weapons/starterBow.ts",
     "./bake/worldCollision": "./bake/worldCollision.ts",
     "./meshCollision": "./meshCollision.ts",
-    "./portalLink": "./portalLink.ts"
+    "./portalLink": "./portalLink.ts",
+    "./bake/nativeLattice": "./bake/nativeLattice.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -307,6 +308,10 @@
       "./portalLink": {
         "types": "./dist/types/sdk/portalLink.d.ts",
         "default": "./dist/portalLink.js"
+      },
+      "./bake/nativeLattice": {
+        "types": "./dist/types/sdk/bake/nativeLattice.d.ts",
+        "default": "./dist/bake/nativeLattice.js"
       }
     }
   }
