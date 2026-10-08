@@ -22,6 +22,7 @@
  * away from it. At night the painted SKY (above the ridge line) fades out and the day/night rig's dome — stars, moon glow
  * — shows through; the painted ranges stay, dark and moonlit.
  */
+import type { Scope } from '@wildshard/engine/app/scope';
 import * as THREE from 'three';
 import { fetchImage } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture, readTexturePixels } from '@wildshard/engine/core/ktx2';
@@ -134,6 +135,11 @@ function ridgeTexture(): THREE.DataTexture {
   return t;
 }
 
+interface SkyImagePorts { image: typeof fetchImage; compressed: typeof ktx2Texture }
+const skyImages: SkyImagePorts = { image: fetchImage, compressed: ktx2Texture };
+// Async decodes may complete after their captured owner retires.
+function cancelled(scope: Scope): boolean { return scope.disposed; }
+
 export class SkyDomeV2 {
   readonly mesh: THREE.Mesh;
   readonly uniforms: {
@@ -142,7 +148,7 @@ export class SkyDomeV2 {
     uZenith: { value: THREE.Color }; uSunNow: { value: THREE.Vector3 }; uSunPainted: { value: THREE.Vector3 }; uNight: { value: number };
   };
 
-  private constructor(tex: THREE.Texture, width: number, fogLut: THREE.Texture, zenith: THREE.Color) {
+  private constructor(tex: THREE.Texture, width: number, fogLut: THREE.Texture, zenith: THREE.Color, scope: Scope) {
     this.uniforms = {
       tPano: { value: tex }, tRidge: { value: ridgeTexture() }, tFogLut: { value: fogLut },
       uHorizonV: { value: PANO_HORIZON_V }, uPad: { value: PANO_PAD_PX / Math.max(1, width) }, uVPerDeg: { value: 1 / PANO_DEG_PER_V }, uElShift: { value: 0 },
@@ -158,15 +164,17 @@ export class SkyDomeV2 {
     this.mesh.name = 'sky-dome-v2';
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = -90; // first of the transparents; after the rig's star dome (−100), which it covers by day
-    if (typeof window !== 'undefined') Object.assign(window, { __skyV2: this.uniforms });
+    if (typeof window !== 'undefined') scope.expose(window, '__skyV2', this.uniforms);
   }
 
   /** fetch the tier's strip and build the dome (null when the file is missing) */
-  static async load(renderer: Renderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
-    const k = await SkyDomeV2.loadKtx2(renderer, fogLut);
+  static async load(renderer: Renderer, fogLut: THREE.Texture, scope: Scope, ports: SkyImagePorts = skyImages): Promise<SkyDomeV2 | null> {
+    const k = await SkyDomeV2.loadKtx2(renderer, fogLut, scope, ports);
     if (k) return k;
+    if (cancelled(scope)) return null;
     let image: ImageBitmap | HTMLImageElement;
-    try { image = await fetchImage(nalatiUrl('panorama'), Infinity, true); } catch { return null; }
+    try { image = await ports.image(nalatiUrl('panorama'), Infinity, true); } catch { return null; }
+    if (cancelled(scope)) { if (typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) image.close(); return null; }
     const tex = new THREE.Texture(image);
     tex.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -192,17 +200,18 @@ export class SkyDomeV2 {
         zenith.setRGB(r / n / 255, gg / n / 255, b / n / 255, THREE.SRGBColorSpace);
       }
     } catch { /* keep the default */ }
-    return new SkyDomeV2(tex, image.width, fogLut, zenith);
+    return new SkyDomeV2(tex, image.width, fogLut, zenith, scope);
   }
 
   /**
    * E157: the panorama's KTX2 stand-in (Y-flipped at encode, like the bitmap above), or null. A compressed texture has no
    * pixels to draw on a canvas, so the zenith's top rows are read back through the GPU (the same 64×12 average).
    */
-  private static async loadKtx2(renderer: Renderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
+  private static async loadKtx2(renderer: Renderer, fogLut: THREE.Texture, scope: Scope, ports: SkyImagePorts = skyImages): Promise<SkyDomeV2 | null> {
     let tex: THREE.CompressedTexture | null;
-    try { tex = await ktx2Texture(nalatiUrl('panorama')); } catch { return null; }
+    try { tex = await ports.compressed(nalatiUrl('panorama')); } catch { return null; }
     if (!tex) return null;
+    if (cancelled(scope)) { tex.dispose(); return null; }
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.ClampToEdgeWrapping;
     tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter;
@@ -217,6 +226,6 @@ export class SkyDomeV2 {
       const n = rows.length / 4;
       if (n > 0) zenith.setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
     } catch { /* keep the default */ }
-    return new SkyDomeV2(tex, tex.image.width, fogLut, zenith);
+    return new SkyDomeV2(tex, tex.image.width, fogLut, zenith, scope);
   }
 }

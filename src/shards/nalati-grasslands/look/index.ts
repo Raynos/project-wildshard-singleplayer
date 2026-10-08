@@ -42,7 +42,9 @@ export interface LookV2Ctx {
 
 export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const { game, sky, weather } = ctx;
-  const dome = await SkyDomeV2.load(game.renderer, fogLut);
+  const scope = game.levelScope;
+  const dome = await SkyDomeV2.load(game.renderer, fogLut, scope);
+  if (scope.disposed) return;
   if (dome === null) { console.warn('[look v2] no panorama: the plain sky stays'); return; }
   game.scene.add(dome.mesh);
   ctx.groups['skyV2'] = dome.mesh;
@@ -55,7 +57,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const u = dome.uniforms;
   const cheat = new LightCheat(sky, game.level.grade.saturation);
   // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
-  const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture());
+  const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture(), scope);
   for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
   bake.add(ctx.forest.group);
   // the generated models' shading (glbPaint.ts; N20, the user's pick): the clones the builders made of a model get their own bake

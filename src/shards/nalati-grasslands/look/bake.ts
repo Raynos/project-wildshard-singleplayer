@@ -18,6 +18,7 @@ import * as THREE from 'three';
 import { onGpuRestored } from '@wildshard/engine/core/gpuOnly';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { Scope } from '@wildshard/engine/app/scope';
 
 const LAYER = 7;
 const SIZE = TIER === 'phone' ? 1024 : 2048;
@@ -123,7 +124,7 @@ export class StaticBake {
   /** contact darkening strength (0 = off) */
   contact = 0.45;
 
-  constructor(private readonly renderer: Renderer, private readonly scene: THREE.Scene, tHeight: THREE.Texture) {
+  constructor(private readonly renderer: Renderer, private readonly scene: THREE.Scene, tHeight: THREE.Texture, scope: Scope) {
     const depthTexture = new THREE.DepthTexture(SIZE, SIZE, THREE.UnsignedIntType);
     this.shadowRT = new THREE.WebGLRenderTarget(SIZE, SIZE, { depthTexture, depthBuffer: true, type: THREE.UnsignedByteType });
     depthTexture.minFilter = depthTexture.magFilter = THREE.NearestFilter;
@@ -140,8 +141,14 @@ export class StaticBake {
     this.contactCam.updateMatrixWorld();
     bakeUniforms.tBakeShadow.value = depthTexture;
     bakeUniforms.tBakeContact.value = this.contactRT.texture;
-    if (typeof window !== 'undefined') Object.assign(window, { __bake: this });
-    onGpuRestored(() => { this.invalidate(); }); // the maps live only on the GPU: an in-place WebGL restore bakes them again (E54)
+    if (typeof window !== 'undefined') scope.expose(window, '__bake', this);
+    scope.own(this.shadowRT); scope.own(this.contactRT); scope.own(this.depthMat); scope.own(this.contactMat);
+    scope.onDispose(() => {
+      this.roots.length = 0;
+      if (bakeUniforms.tBakeShadow.value === depthTexture) { bakeUniforms.tBakeShadow.value = null; bakeUniforms.uBakeInfo.value.x = 0; }
+      if (bakeUniforms.tBakeContact.value === this.contactRT.texture) { bakeUniforms.tBakeContact.value = null; bakeUniforms.uContactXf.value.w = 0; }
+    });
+    onGpuRestored(() => { this.invalidate(); }, scope); // the maps live only on the GPU: an in-place WebGL restore bakes them again (E54)
   }
 
   private readonly roots: THREE.Object3D[] = [];

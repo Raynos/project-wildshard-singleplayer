@@ -5,6 +5,8 @@
  */
 import { BufferAttribute, type BufferGeometry, Data3DTexture, DataArrayTexture, DataTexture, StaticDrawUsage, type Texture } from 'three';
 import { currentOwner } from '../app/ownership';
+import { resourceScope } from '../app/resources';
+import type { Scope } from '../app/scope';
 
 const labels = new Set<string>();
 /** marks made outside any shard (at module load: KTX2 mode drops every texture's mips once uploaded) — the page's, never reset */
@@ -17,8 +19,13 @@ export function markGpuOnly(label: string): void { (currentOwner() === null ? pa
  * re-bake here instead of marking itself GPU-only: an in-place restore calls it after re-linking the programs, before
  * the first frame (NALATI-MERGE F7), so the restore stays in place instead of reloading the page.
  */
-const rebakes: (() => void)[] = [];
-export function onGpuRestored(rebake: () => void): void { rebakes.push(rebake); }
+const rebakes = new Set<() => void>();
+/** Repaint callback owned by its captured resource lifetime; disposal removes its captured scene and textures. */
+export function onGpuRestored(rebake: () => void, scope: Scope = resourceScope()): void {
+  if (scope.disposed) return;
+  rebakes.add(rebake);
+  scope.onDispose(() => { rebakes.delete(rebake); });
+}
 /** GpuRecovery.ts: re-paint every registered bake (after an in-place restore) */
 export function rebakeGpuContent(): void { for (const f of rebakes) f(); }
 
