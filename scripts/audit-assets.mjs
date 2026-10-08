@@ -72,6 +72,13 @@ if (tier) {
   const { SHARDS } = await import('../src/shards.generated.ts');
   const { PACKS } = await import('../src/game/boot/packs.generated.ts');
   const { GPU_FILES: shared } = await import('../src/engine/boot/ktx2.generated.ts');
+  const { prepareShardAssets } = await import('../src/game/shard/load.ts');
+  const { registerGpuFiles, autoTexturePolicy } = await import('../src/engine/boot/gpuFiles.ts');
+  const { imagesFirstPlayingBytes } = await import('../src/game/grid/runtimeCost.ts');
+  const { chunkFiles } = await import('../src/engine/boot/manifest.ts');
+  const { bootFetches } = await import('../src/engine/boot/prefetch.ts');
+  // Match the pack baker and cold boot: install shard overlays before resolving the same Auto policy and file source.
+  await Promise.all(SHARDS.map((manifest) => prepareShardAssets(manifest, registerGpuFiles)));
   const rows = [];
   for (const manifest of SHARDS) {
     if (manifest.status === 'hidden') continue;
@@ -89,9 +96,8 @@ if (tier) {
     const table = manifest.ktx2 ? (await manifest.ktx2()).GPU_FILES[tier] : {};
     const gpu = { ...shared[tier], ...table };
     const img = boot.sources(tier, 'img'), ktx = boot.sources(tier, 'ktx2');
-    const mode = manifest.tiers?.[tier]?.textures ?? 'img';
-    const sources = mode === 'ktx2' ? ktx : img;
-    const packFiles = [...sources.sky, ...sources.baked, ...sources.terrain, ...sources.trees, ...sources.cabins, ...sources.props];
+    const mode = autoTexturePolicy(manifest.tiers?.[tier]?.textures, imagesFirstPlayingBytes(manifest.runtimeCost))?.mode ?? 'img';
+    const packFiles = bootFetches(manifest, chunkFiles(manifest, mode));
     const pack = Object.hasOwn(PACKS, manifest.slug) ? PACKS[manifest.slug]?.[tier] : undefined;
     const packed = pack === undefined ? [] : pack.files.map(([path]) => path);
     rows.push({ slug: manifest.slug, tier, files: [...new Set([...boot.files(tier), ...Object.values(img).flat(), ...(boot.lateReads?.(tier, 'img') ?? []), ...(boot.precache ?? []), ...art, ...Object.values(manifest.card).filter((value) => typeof value === 'string' && value.startsWith('/src/')), ...audio])], packFiles: [...new Set(packFiles)], packed, gpu, ktxFiles: [...new Set([...Object.values(ktx).flat(), ...(boot.lateReads?.(tier, 'ktx2') ?? [])])] });
