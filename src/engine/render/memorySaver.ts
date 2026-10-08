@@ -13,9 +13,8 @@
  *    A released array is read back from the GPU the first time any code reads or writes it again (`restore`), and that
  *    attribute then keeps it: a late writer (the far herd's repaint faulted three's same-size check, SF22d) or reader
  *    sees the real bytes. Only static (StaticDrawUsage, no update ranges), plain attributes three uploaded go.
- * 2. The practice dummies load when the room opens, not ahead (play.ts).
- * 3. A shadow map three made keeps only its depth texture (`dropShadowColour`, as Driftwood's E174 maps).
- * 4. Bloom's luminance pass at half resolution and no depth buffer on the composer's output buffer (Game.buildComposer).
+ * 2. A shadow map three made keeps only its depth texture (`dropShadowColour`, as Driftwood's E174 maps).
+ * 3. Bloom's luminance pass at half resolution and no depth buffer on the composer's output buffer (Game.buildComposer).
  *
  * A context loss reloads the page while it is on (gpuOnly.ts: the released copies cannot be uploaded again).
  */

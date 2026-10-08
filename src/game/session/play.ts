@@ -55,7 +55,7 @@ import { GameMenu } from '@wildshard/engine/ui/Menu';
 import { Minimap } from '@wildshard/engine/ui/Minimap';
 import { Perf } from '@wildshard/engine/ui/Perf';
 import { rotateGated } from '@wildshard/engine/ui/RotateGate';
-import { getNumber, onNumber, setting } from '@wildshard/engine/ui/Settings';
+import { getNumber, onNumber } from '@wildshard/engine/ui/Settings';
 import { SpeedLines } from '@wildshard/engine/ui/SpeedLines';
 import { WeaponStrip } from '@wildshard/engine/ui/WeaponStrip';
 import { WindupWarn } from '@wildshard/engine/ui/WindupWarn';
@@ -113,9 +113,8 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
       onLate: (fn) => { game.onLate(fn, 'game.grid.frame'); } } }) : null;
   await step('menu', async (p) => { // the cards' art in memory before the title builds its deck (showIntro below)
     // + the practice room's dummies when this boot lands in it (a travel in arena mode): full on its first frame (E291). Any
-    // other boot loads them when the room comes near: Explore's hub preloads them on open (below), so they are not resident
-    // while the player is out in the world (G187: −33.6 MB of GL on Pine). The Memory saver loads them when the room opens (SF22d).
-    const practice = isDev() && setting('memorySaver') === 'off' && session.arrival?.mode === 'arena' ? arena.preload() : null;
+    // other boot loads them when the room opens, in every mode (G187: −33.6 MB of GL on Pine; SF47 made it the only path).
+    const practice = isDev() && session.arrival?.mode === 'arena' ? arena.preload() : null;
     await (menuLoad ?? startMenuPreload(files, chunk)).wait(p);
     await practice; // the grid's streaming is covered by its entry reveal (G98, below), not the loading screen
   });
@@ -473,7 +472,6 @@ async function buildPlay(ctx: Awaited<ReturnType<typeof loadoutStage>>) {
     const t2 = performance.now();
     recordBootCheckpoint('explore:constructed');
     explore.open(mode, opts);
-    if (isDev() && setting('memorySaver') === 'off') void arena.preload(); // the hub's Practice card (Developer mode): its dummies load now, not when it opens (E291; not with the Memory saver, SF22d)
     console.info(`[explore] open: import ${Math.round(t1 - t0)} ms · build ${Math.round(t2 - t1)} ms · open ${Math.round(performance.now() - t2)} ms`);
   };
   const exploreParam = params.get('explore');

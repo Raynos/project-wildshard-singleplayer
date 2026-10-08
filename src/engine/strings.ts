@@ -2,7 +2,7 @@
 export const ENGINE_STRINGS = {
   "s_explore_playgrounds": "⟦0⟧ · playgrounds",
   "s_memory_saver": "Memory saver",
-  "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, loads the practice dummies when the room opens, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
+  "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
   "s_graph_materials": "Graph materials",
   "s_graph_materials_note": "SF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. Reloads",
   "s_item_card_picked": "Picked up",

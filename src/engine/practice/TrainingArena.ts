@@ -325,7 +325,8 @@ export class TrainingArena {
 
   /**
    * Fetch, decode and upload the three figures before the room opens, so it is full on its first frame (E291: it opened
-   * empty for a second or more). Explore's hub calls it (the Practice card is one tap away) and enter() does; once only.
+   * empty for a second or more). A boot that lands in the room calls it, and enter() does; once only. Nothing preloads
+   * them ahead of the room (G187 / SF47: they are not resident while the player is out in the world).
    */
   preload(): Promise<void> {
     this.loadPromise ??= this.prepareModels();
