@@ -11,15 +11,15 @@ import { GAME_STRINGS } from '../src/game/strings';
 import { generatePlatform, type PlatformCell } from '../src/engine/sim/strips';
 import { CHUNK_HALF, ENTRY_WIDTH } from '../src/engine/core/config';
 
-it('alternates Template copies and open plots round the ring of cells without a shard (G198)', () => {
+it('keeps the three open plots while G233 restores public template cells round the ring', () => {
   const grid = new GridAssembly({ developer: false, devserver: false });
   const ring = [[-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0]] as const;
   const kinds = ring.map(([x, z]) => {
     const cell = grid.cells.find((row) => row.cell[0] === x && row.cell[1] === z);
     if (cell !== undefined) return cell.slug === '_template' ? 'template' : 'shard';
     return grid.plots.some((row) => row.cell[0] === x && row.cell[1] === z) ? 'plot' : 'missing';
-  }).filter((kind) => kind !== 'shard');
-  expect(kinds).toEqual(['plot', 'template', 'plot', 'template', 'plot', 'template']);
+  });
+  expect(kinds).toEqual(['plot', 'template', 'template', 'template', 'plot', 'template', 'plot', 'template']);
   // a plot is never a shard cell: no slug, no `at` hit, no instance lookup
   for (const plot of grid.plots) { expect(grid.at(plot.origin.x, plot.origin.z)).toBeUndefined(); expect(() => grid.cell(plot.instance)).toThrow(); }
   // Developer keeps all three plots (its overrides land on Template cells); a DEVSERVER override replaces the SE plot

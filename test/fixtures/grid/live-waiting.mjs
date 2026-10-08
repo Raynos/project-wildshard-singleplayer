@@ -37,17 +37,17 @@ const registry = new LiveGridHost(assembly, {
   },
 });
 try {
-  // The shipped layout (G198: open plots at NW, SW and SE are platform ground, never candidates): the unconverted shard
-  // beside the spawn must not consume a candidate slot.
+  // G233: public copies replace Pine/Nalati. G198 open plots remain platform ground, never candidates;
+  // only the three nearby templates fit this cold readiness radius, and Developer-only shards never fetch.
   registry.beforeFixed();
-  assert.deepEqual(registry.state().pending, ['template-3', 'template-5']);
+  assert.deepEqual(registry.state().pending, ['template-3', 'template-4', 'template-5']);
   await registry.prefetch(registry.state().pending);
-  assert.equal(registry.ready('template-3'), true); assert.equal(registry.ready('template-5'), true);
+  for (const id of ['template-3', 'template-4', 'template-5']) assert.equal(registry.ready(id), true);
   assert.equal(registry.ready('nalati-grasslands'), false); assert.equal(registry.ready('pine-hollow'), false);
-  assert.equal(attempts.get('template-2'), undefined); // outside the cold readiness radius: no new eager world
+  for (const id of ['template-1', 'template-2']) assert.equal(attempts.get(id), undefined); // outside the cold readiness radius: no new eager world
   for (const id of ['nalati-grasslands', 'pine-hollow']) assert.equal(attempts.get(id), undefined);
   for (let tick = 0; tick < 20; tick++) registry.beforeFixed();
-  assert.equal(attempts.get('template-3'), 1); assert.equal(attempts.get('template-5'), 1);
+  for (const id of ['template-3', 'template-4', 'template-5']) assert.equal(attempts.get(id), 1);
   assert.equal(registry.state().residents.length <= 3, true);
   console.info(JSON.stringify({ warmed: registry.state().residents, waitingWallsClosed: true, repeatedFetches: 0 }));
 } finally { registry.dispose(); player.motor.dispose(); page.dispose(); }

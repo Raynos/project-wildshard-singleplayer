@@ -14,8 +14,16 @@ it('lists every save instance once: canonical copies in card order, then the gri
   const shipped = saveCards(list, false), dev = saveCards(list, true);
   expect(shipped.filter((c) => c.listed).map((c) => c.name)).toEqual(['Driftwood Isle', 'Pine Hollow']);
   expect(dev.filter((c) => c.listed).map((c) => c.instance.id)).toEqual(['driftwood-isle', 'pine-hollow', 'template-solo']);
-  expect(dev.filter((c) => c.instance.id.startsWith('template-') && c.instance.id !== 'template-solo').map((c) => c.name))
-    .toEqual(['Template shard · COPY 2', 'Template shard · COPY 3', 'Template shard · COPY 5']); // G198: copies 1, 4 and 6 became open plots
+  // G233 restores public copies 1 and 4; canonical Select saves stay in card order and keep their visibility.
+  expect(shipped.map((c) => [c.instance.id, c.name, c.listed])).toEqual([
+    ['driftwood-isle', 'Driftwood Isle', true], ['pine-hollow', 'Pine Hollow', true], ['template-solo', 'Template shard', false],
+    ['template-1', 'Template shard · COPY 1', false], ['template-2', 'Template shard · COPY 2', false],
+    ['template-3', 'Template shard · COPY 3', false], ['template-4', 'Template shard · COPY 4', false],
+    ['template-5', 'Template shard · COPY 5', false],
+  ]);
+  expect(dev.map((c) => c.instance.id)).toEqual(shipped.map((c) => c.instance.id));
+  // Grid copies appear for current/progress saves, rather than as empty listed cards, in either mode.
+  expect(dev.slice(3)).toEqual(shipped.slice(3));
   expect(new Set(dev.map((c) => c.instance.id)).size).toBe(dev.length);
 });
 it('words the card and the sheet from the preview: before → after, kept, quoted strings', () => {
