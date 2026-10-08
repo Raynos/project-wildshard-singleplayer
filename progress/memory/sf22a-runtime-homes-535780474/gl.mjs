@@ -7,19 +7,23 @@ import { chromium, devices } from 'playwright';
 import { GL_INIT } from '../../../scripts/parity/glbytes.mjs';
 import { saveFixtureCode } from '../../../scripts/debug-settings.mjs';
 
-const [base, out] = process.argv.slice(2);
-if (!base || !out) throw new Error('location-gl.mjs <preview-url> <out>');
+const [base, out, shards = 'nine-dragon-stack,far-reach', memorySaver] = process.argv.slice(2);
+if (!base || !out) throw new Error('gl.mjs <preview-url> <out> [comma-separated-shards] [on|off]');
+const slugs = shards.split(',');
+if (slugs.some(slug => !/^_?[a-z0-9-]+$/.test(slug)) || new Set(slugs).size !== slugs.length) throw new Error('Invalid shard list');
+if (memorySaver !== undefined && !['on', 'off'].includes(memorySaver)) throw new Error('Invalid Memory saver setting');
+const settings = { tex: 'auto', ...(memorySaver === undefined ? {} : { memorySaver }) };
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ channel: 'chromium', args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
 const records = [];
 try {
-  for (let round = 1; round <= 3; round++) for (const slug of ["nine-dragon-stack", "far-reach"]) {
+  for (let round = 1; round <= 3; round++) for (const slug of slugs) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], serviceWorkers: 'block' });
     try {
       const version = await (await context.request.get(new URL('version.json', base).href)).json();
       await context.addInitScript(GL_INIT);
       await context.addInitScript([
-        saveFixtureCode({ scope: 'global', key: 'settings', data: { tex: 'auto' }, merge: true }),
+        saveFixtureCode({ scope: 'global', key: 'settings', data: settings, merge: true }),
         saveFixtureCode({ scope: 'device', key: 'devMode', data: true }),
         saveFixtureCode({ scope: 'session', key: 'titleArrival', data: { slug, mode: 'enter', at: Date.now() } }),
         saveFixtureCode({ scope: 'device', key: 'titleArrival.once', data: { slug, mode: 'enter', at: Date.now() } }),
@@ -38,7 +42,7 @@ try {
         settings: JSON.parse(localStorage.getItem('wildshard.save.v2.global') ?? '{}').keys?.settings?.data,
         fingerprint: window.__wildshard.fingerprint(), prefetch: window.__ws_prefetch?.state ?? null,
         compressedRequests: performance.getEntriesByType('resource').map((row) => row.name).filter((name) => /\.ktx2(?:\?|$)/.test(name)) }));
-      if (identity.build !== version.build || identity.shard !== slug || identity.settings?.tex !== 'auto') throw new Error('wrong build/shard/settings');
+      if (identity.build !== version.build || identity.shard !== slug || Object.entries(settings).some(([key, value]) => identity.settings?.[key] !== value)) throw new Error('wrong build/shard/settings');
       if (identity.fingerprint.tier !== 'phone') throw new Error('wrong renderer tier');
       const samples = [];
       const ledgers = {};
